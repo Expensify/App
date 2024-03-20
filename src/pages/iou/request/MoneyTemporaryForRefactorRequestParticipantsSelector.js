@@ -20,9 +20,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import { useOptionsList } from '@components/OptionListContextProvider';
 
 const propTypes = {
     /** Beta features list */
@@ -48,9 +48,6 @@ const propTypes = {
         }),
     ),
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
-
     /** Padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -67,7 +64,6 @@ const propTypes = {
 const defaultProps = {
     participants: [],
     safeAreaPaddingBottomStyle: {},
-    reports: {},
     betas: [],
     dismissedReferralBanners: {},
     didScreenTransitionEnd: false,
@@ -76,7 +72,6 @@ const defaultProps = {
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
     betas,
     participants,
-    reports,
     onFinish,
     onParticipantsAdded,
     safeAreaPaddingBottomStyle,
@@ -92,6 +87,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {canUseP2PDistanceRequests} = usePermissions();
+    const {options} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
@@ -111,8 +109,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         let indexOffset = 0;
 
         const chatOptions = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports,
+            options.personalDetails,
             betas,
             searchTerm,
             participants,
@@ -180,7 +178,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, canUseP2PDistanceRequests, translate]);
+    }, [didScreenTransitionEnd, options.reports, options.personalDetails, betas, searchTerm, participants, iouType, canUseP2PDistanceRequests, iouRequestType, maxParticipantsReached, personalDetails, translate]);
 
     /**
      * Adds a single participant to the request
