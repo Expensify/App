@@ -1,11 +1,12 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import ScrollView from '@components/ScrollView';
 import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -328,6 +329,7 @@ function MoneyRequestAmountForm(
                     allowBubble={!isEditing}
                     pressOnEnter
                     medium={isExtraSmallScreenHeight}
+                    large={!isExtraSmallScreenHeight}
                     style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
                     onPress={submitAndNavigateToNextPage}
                     text={buttonText}

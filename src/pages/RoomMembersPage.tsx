@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -17,6 +18,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -34,6 +36,7 @@ import type {Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import SearchInputManager from './workspace/SearchInputManager';
 
 type RoomMembersPageOnyxProps = {
     session: OnyxEntry<Session>;
@@ -52,6 +55,19 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
+    const isFocusedScreen = useIsFocused();
+
+    useEffect(() => {
+        setSearchValue(SearchInputManager.searchInput);
+    }, [isFocusedScreen]);
+
+    useEffect(
+        () => () => {
+            SearchInputManager.searchInput = '';
+        },
+        [],
+    );
 
     /**
      * Get members for the current room
@@ -182,6 +198,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     return;
                 }
             }
+            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
 
             result.push({
                 keyForList: String(accountID),
@@ -198,10 +215,11 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         id: Number(accountID),
                     },
                 ],
+                pendingAction: pendingChatMember?.pendingAction,
             });
         });
 
-        result = result.sort((value1, value2) => value1.text.localeCompare(value2.text.toLowerCase()));
+        result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
         return result;
     };
@@ -221,7 +239,9 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={isEmptyObject(report) || !isPolicyMember}
+                shouldShow={
+                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyMember) || ReportUtils.isDefaultRoom(report)))
+                }
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
@@ -269,7 +289,10 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             textInputLabel={translate('optionsSelector.findMember')}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
-                            onChangeText={setSearchValue}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchValue(value);
+                            }}
                             headerMessage={headerMessage}
                             onSelectRow={(item) => toggleUser(item)}
                             onSelectAll={() => toggleAllUsers(data)}

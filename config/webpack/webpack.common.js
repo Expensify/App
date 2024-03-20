@@ -18,7 +18,6 @@ const includeModules = [
     '@react-native-picker',
     'react-native-modal',
     'react-native-gesture-handler',
-    'react-native-flipper',
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
     'react-native-view-shot',
@@ -219,6 +218,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
             '@src': path.resolve(__dirname, '../../src/'),
             '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
+            '@desktop': path.resolve(__dirname, '../../desktop'),
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`

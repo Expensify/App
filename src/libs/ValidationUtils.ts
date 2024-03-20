@@ -8,9 +8,10 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, TaxRates} from '@src/types/onyx';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
+import type {MaybePhraseKey} from './Localize';
 import * as LoginUtils from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
@@ -37,7 +38,11 @@ function validateCardNumber(value: string): boolean {
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
  */
-function isValidAddress(value: string): boolean {
+function isValidAddress(value: FormValue): boolean {
+    if (typeof value !== 'string') {
+        return false;
+    }
+
     if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
         return false;
     }
@@ -77,7 +82,7 @@ function isValidPastDate(date: string | Date): boolean {
  * Used to validate a value that is "required".
  * @param value - field value
  */
-function isRequiredFulfilled(value?: FormValue): boolean {
+function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<string, string>): boolean {
     if (!value) {
         return false;
     }
@@ -186,7 +191,7 @@ function meetsMaximumAgeRequirement(date: string): boolean {
 /**
  * Validate that given date is in a specified range of years before now.
  */
-function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): string | Array<string | Record<string, string>> {
+function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): MaybePhraseKey {
     const currentDate = startOfDay(new Date());
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
@@ -356,7 +361,7 @@ function isValidPersonName(value: string) {
 /**
  * Checks if the provided string includes any of the provided reserved words
  */
-function doesContainReservedWord(value: string, reservedWords: string[]): boolean {
+function doesContainReservedWord(value: string, reservedWords: typeof CONST.DISPLAY_NAME.RESERVED_NAMES): boolean {
     const valueToCheck = value.trim().toLowerCase();
     return reservedWords.some((reservedWord) => valueToCheck.includes(reservedWord.toLowerCase()));
 }
@@ -455,6 +460,21 @@ function prepareValues(values: ValuesType): ValuesType {
     return trimmedStringValues;
 }
 
+/**
+ * Validates the given value if it is correct percentage value.
+ */
+function isValidPercentage(value: string): boolean {
+    const parsedValue = Number(value);
+    return !Number.isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 100;
+}
+
+/**
+ * Validates the given value if it is correct tax name.
+ */
+function isExistingTaxName(value: string, taxRates: TaxRates): boolean {
+    return !!Object.values(taxRates).find((taxRate) => taxRate.name === value);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -493,4 +513,6 @@ export {
     validateDateTimeIsAtLeastOneMinuteInFuture,
     prepareValues,
     isValidPersonName,
+    isValidPercentage,
+    isExistingTaxName,
 };

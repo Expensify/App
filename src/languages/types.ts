@@ -90,6 +90,7 @@ type ReportArchiveReasonsMergedParams = {
 type ReportArchiveReasonsRemovedFromPolicyParams = {
     displayName: string;
     policyName: string;
+    shouldUseYou?: boolean;
 };
 
 type ReportArchiveReasonsPolicyDeletedParams = {
@@ -99,6 +100,7 @@ type ReportArchiveReasonsPolicyDeletedParams = {
 type RequestCountParams = {
     count: number;
     scanningReceipts: number;
+    pendingReceipts: number;
 };
 
 type SettleExpensifyCardParams = {
@@ -109,13 +111,13 @@ type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
-type SplitAmountParams = {amount: number};
+type SplitAmountParams = {amount: string};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
 type AmountEachParams = {amount: string};
 
-type PayerOwesAmountParams = {payer: string; amount: number | string};
+type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
 type PayerOwesParams = {payer: string};
 
@@ -157,7 +159,7 @@ type EnterMagicCodeParams = {contactMethod: string};
 
 type TransferParams = {amount: string};
 
-type InstantSummaryParams = {rate: number; minAmount: number};
+type InstantSummaryParams = {rate: string; minAmount: string};
 
 type NotYouParams = {user: string};
 
@@ -195,7 +197,7 @@ type OOOEventSummaryFullDayParams = {summary: string; dayCount: number; date: st
 
 type OOOEventSummaryPartialDayParams = {summary: string; timePeriod: string; date: string};
 
-type ParentNavigationSummaryParams = {rootReportName?: string; workspaceName?: string};
+type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
@@ -208,8 +210,6 @@ type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; ol
 type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisplay: string; newAmountToDisplay: string; oldAmountToDisplay: string};
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
-
-type TagSelectionParams = {tagName: string};
 
 type WalletProgramParams = {walletProgram: string};
 
@@ -360,7 +360,6 @@ export type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,
