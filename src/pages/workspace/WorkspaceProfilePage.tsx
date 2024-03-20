@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
@@ -41,6 +42,8 @@ type WorkSpaceProfilePageOnyxProps = {
 
 type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps;
 
+const parser = new ExpensiMark();
+
 function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -58,7 +61,15 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '')), [policy?.id]);
 
     const policyName = policy?.name ?? '';
-    const policyDescription = policy?.description ?? '';
+    const policyDescription =
+        // policy?.description can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        policy?.description ||
+        parser.replace(
+            translate('workspace.common.welcomeNote', {
+                workspaceName: policy?.name ?? '',
+            }),
+        );
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
 

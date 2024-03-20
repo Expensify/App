@@ -31,6 +31,13 @@ function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean 
 }
 
 /**
+ *  Check if the policy has any tax rate errors.
+ */
+function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
+    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0);
+}
+
+/**
  * Check if the policy has any errors within the categories.
  */
 function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>): boolean {
@@ -299,6 +306,7 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    hasTaxRateError,
     hasPolicyCategoriesError,
 };
 
