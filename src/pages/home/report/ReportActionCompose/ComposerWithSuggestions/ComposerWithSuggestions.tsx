@@ -432,10 +432,9 @@ function ComposerWithSuggestions(
             }
 
             commentRef.current = newCommentConverted;
-            const isDraftCommentEmpty = getDraftComment(reportID) === '';
             if (shouldDebounceSaveComment) {
                 debouncedSaveReportComment(reportID, newCommentConverted);
-            } else if (isDraftCommentEmpty && newCommentConverted.length !== 0) {
+            } else {
                 Report.saveReportComment(reportID, newCommentConverted || '');
             }
             if (newCommentConverted) {

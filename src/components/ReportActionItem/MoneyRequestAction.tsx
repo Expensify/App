@@ -8,9 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -91,15 +89,7 @@ function MoneyRequestAction({
             return;
         }
 
-        // If the childReportID is not present, we need to create a new thread
-        const childReportID = action?.childReportID;
-        if (!childReportID) {
-            const thread = ReportUtils.buildTransactionThread(action, requestReportID);
-            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
-            Report.openReport(thread.reportID, userLogins, thread, action.reportActionID);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
-            return;
-        }
+        const childReportID = action?.childReportID ?? '0';
         Report.openReport(childReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };

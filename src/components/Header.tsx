@@ -55,3 +55,5 @@ function Header({title = '', subtitle = '', textStyles = [], shouldShowEnvironme
 Header.displayName = 'Header';
 
 export default Header;
+
+export type {HeaderProps};

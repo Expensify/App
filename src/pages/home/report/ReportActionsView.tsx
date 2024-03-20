@@ -94,9 +94,12 @@ function ReportActionsView({
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             openReportIfNecessary();
         });
-        return () => {
-            interactionTask?.cancel();
-        };
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        if (interactionTask) {
+            return () => {
+                interactionTask.cancel();
+            };
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -150,20 +153,15 @@ function ReportActionsView({
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
-        let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | undefined;
         if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-            interactionTask = InteractionManager.runAfterInteractions(() => {
+            const interactionTask = InteractionManager.runAfterInteractions(() => {
                 Report.subscribeToReportTypingEvents(reportID);
                 didSubscribeToReportTypingEvents.current = true;
             });
+            return () => {
+                interactionTask.cancel();
+            };
         }
-
-        return () => {
-            if (!interactionTask) {
-                return;
-            }
-            interactionTask.cancel();
-        };
     }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
 
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);

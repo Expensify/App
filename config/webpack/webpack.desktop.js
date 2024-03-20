@@ -28,8 +28,8 @@ module.exports = (env) => {
         name: 'desktop-main',
         target: 'electron-main',
         entry: {
-            main: './desktop/main.js',
-            contextBridge: './desktop/contextBridge.js',
+            main: './desktop/main.ts',
+            contextBridge: './desktop/contextBridge.ts',
         },
         output: {
             filename: '[name].js',
