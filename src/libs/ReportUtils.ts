@@ -5351,23 +5351,17 @@ function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject):
         return {};
     }
 
-    if (!isPolicyExpenseChat(iouReport)) {
+    if (!isExpenseReport(iouReport)) {
         return {
             hasOutstandingChildRequest: iouReport.managerID === currentUserAccountID && iouReport.total !== 0,
         };
     }
 
     const policy = getPolicy(iouReport.policyID);
-    if (PolicyUtils.isPolicyAdmin(policy)) {
+    const shouldBeManuallySubmitted = PolicyUtils.isPaidGroupPolicy(policy) && !policy?.harvesting?.enabled;
+    if (shouldBeManuallySubmitted || PolicyUtils.isPolicyAdmin(policy)) {
         return {
             hasOutstandingChildRequest: true,
-        };
-    }
-
-    const shouldBeManuallySubmitted = PolicyUtils.isPaidGroupPolicy(policy) && !policy?.harvesting?.enabled;
-    if (!shouldBeManuallySubmitted) {
-        return {
-            hasOutstandingChildRequest: false,
         };
     }
 
