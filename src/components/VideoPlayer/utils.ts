@@ -14,10 +14,10 @@ function convertMillisecondsToTime(milliseconds: number) {
  * Adds a #t=seconds tag to the end of the URL to skip first seconds of the video
  */
 function addSkipTimeTagToURL(url: string, seconds: number) {
-    if (!url.includes('#t=')) {
-        return `${url}#t=${seconds}`;
+    if (url.includes('#t=')) {
+        return url;
     }
-    return url;
+    return `${url}#t=${seconds}`;
 }
 
 export {convertMillisecondsToTime, addSkipTimeTagToURL};
