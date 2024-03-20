@@ -19,8 +19,8 @@ type EditReportFieldTextPageProps = {
     /** Name of the policy report field */
     fieldName: string;
 
-    /** ID of the policy report field */
-    fieldID: string;
+    /** Key of the policy report field */
+    fieldKey: string;
 
     /** Flag to indicate if the field can be left blank */
     isRequired: boolean;
@@ -29,7 +29,7 @@ type EditReportFieldTextPageProps = {
     onSubmit: (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => void;
 };
 
-function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldID}: EditReportFieldTextPageProps) {
+function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey}: EditReportFieldTextPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef<AnimatedTextInputRef>(null);
@@ -37,12 +37,12 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM> = {};
-            if (isRequired && values[fieldID].trim() === '') {
-                errors[fieldID] = 'common.error.fieldRequired';
+            if (isRequired && values[fieldKey].trim() === '') {
+                errors[fieldKey] = 'common.error.fieldRequired';
             }
             return errors;
         },
-        [fieldID, isRequired],
+        [fieldKey, isRequired],
     );
 
     return (
@@ -66,8 +66,8 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                 <View style={styles.mb4}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={fieldID}
-                        name={fieldID}
+                        inputID={fieldKey}
+                        name={fieldKey}
                         defaultValue={fieldValue}
                         label={fieldName}
                         accessibilityLabel={fieldName}

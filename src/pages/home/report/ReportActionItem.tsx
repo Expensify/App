@@ -98,9 +98,6 @@ type ReportActionItemOnyxProps = {
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
-    /** All policy report fields */
-    policyReportFields: OnyxEntry<OnyxTypes.PolicyReportFields>;
-
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
@@ -157,7 +154,6 @@ function ReportActionItem({
     userWallet,
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
-    policyReportFields,
     policy,
     onPress = undefined,
 }: ReportActionItemProps) {
@@ -744,7 +740,6 @@ function ReportActionItem({
                     <MoneyReportView
                         report={report}
                         policy={policy}
-                        policyReportFields={Object.values(policyReportFields ?? {})}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                     />
                 </OfflineWithFeedback>
@@ -891,10 +886,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         },
         initialValue: {} as OnyxTypes.Report,
     },
-    policyReportFields: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? 0}`,
-        initialValue: {},
-    },
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
         initialValue: {} as OnyxTypes.Policy,
@@ -935,8 +926,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.report?.total === nextProps.report?.total &&
             prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
-            lodashIsEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
-            lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
             lodashIsEqual(prevProps.policy, nextProps.policy) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );

@@ -23,7 +23,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyReportField,
-    PolicyReportFields,
     Report,
     ReportAction,
     ReportMetadata,
@@ -480,14 +479,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
-});
-
-let allPolicyReportFields: OnyxCollection<PolicyReportFields> = {};
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicyReportFields = value),
 });
 
 let allBetas: OnyxEntry<Beta[]>;
@@ -2099,22 +2090,36 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
 /**
  * Given a set of report fields, return the field of type formula
  */
-function getFormulaTypeReportField(reportFields: PolicyReportFields) {
-    return Object.values(reportFields).find((field) => field.type === 'formula');
+function getFormulaTypeReportField(reportFields: Record<string, PolicyReportField>) {
+    return Object.values(reportFields).find((field) => field?.type === 'formula');
 }
 
 /**
  * Given a set of report fields, return the field that refers to title
  */
-function getTitleReportField(reportFields: PolicyReportFields) {
+function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
     return Object.values(reportFields).find((field) => isReportFieldOfTypeTitle(field));
+}
+
+/**
+ * Get the key for a report field
+ */
+function getReportFieldKey(reportFieldId: string) {
+    return `expensify_${reportFieldId}`;
 }
 
 /**
  * Get the report fields attached to the policy given policyID
  */
-function getReportFieldsByPolicyID(policyID: string) {
-    return Object.entries(allPolicyReportFields ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS, '') === policyID)?.[1];
+function getReportFieldsByPolicyID(policyID: string): Record<string, PolicyReportField> {
+    const policyReportFields = Object.entries(allPolicies ?? {}).find(([key]) => key.replace(ONYXKEYS.COLLECTION.POLICY, '') === policyID);
+    const fieldList = policyReportFields?.[1]?.fieldList;
+
+    if (!policyReportFields || !fieldList) {
+        return {};
+    }
+
+    return fieldList;
 }
 
 /**
@@ -2123,7 +2128,7 @@ function getReportFieldsByPolicyID(policyID: string) {
 
 function getAvailableReportFields(report: Report, policyReportFields: PolicyReportField[]): PolicyReportField[] {
     // Get the report fields that are attached to a report. These will persist even if a field is deleted from the policy.
-    const reportFields = Object.values(report.reportFields ?? {});
+    const reportFields = Object.values(report.fieldList ?? {});
     const reportIsSettled = isSettled(report.reportID);
 
     // If the report is settled, we don't want to show any new field that gets added to the policy.
@@ -2134,7 +2139,24 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
     // If the report is unsettled, we want to merge the new fields that get added to the policy with the fields that
     // are attached to the report.
     const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
-    return mergedFieldIds.map((id) => report?.reportFields?.[id] ?? policyReportFields.find(({fieldID}) => fieldID === id)) as PolicyReportField[];
+
+    const fields = mergedFieldIds.map((id) => {
+        const field = report?.fieldList?.[getReportFieldKey(id)];
+
+        if (field) {
+            return field;
+        }
+
+        const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
+
+        if (policyReportField) {
+            return policyReportField;
+        }
+
+        return null;
+    });
+
+    return fields.filter(Boolean) as PolicyReportField[];
 }
 
 /**
@@ -2142,7 +2164,7 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
  */
 function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
     const isReportSettled = isSettled(report?.reportID ?? '');
-    const reportFields = isReportSettled ? report?.reportFields : getReportFieldsByPolicyID(report?.policyID ?? '');
+    const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID ?? '');
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
 
     if (titleReportField && report?.reportName && reportFieldsEnabled(report)) {
@@ -5623,6 +5645,7 @@ export {
     hasUpdatedTotal,
     isReportFieldDisabled,
     getAvailableReportFields,
+    getReportFieldKey,
     reportFieldsEnabled,
     getAllAncestorReportActionIDs,
     getPendingChatMembers,
