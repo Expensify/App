@@ -1711,6 +1711,17 @@ function getIcons(
         return getIconsForParticipants([currentUserAccountID ?? 0], personalDetails);
     }
 
+    if (isGroupChat(report)) {
+        const groupChatIcon = {
+            source: getDefaultGroupAvatar(),
+            id: report?.ownerAccountID,
+            type: CONST.ICON_TYPE_AVATAR,
+            name: personalDetails?.[report?.ownerAccountID ?? -1]?.displayName ?? '',
+            fallbackIcon: personalDetails?.[report?.ownerAccountID ?? -1]?.fallbackIcon,
+        };
+        return [groupChatIcon];
+    }
+
     return getIconsForParticipants(report?.participantAccountIDs ?? [], personalDetails);
 }
 
