@@ -25,6 +25,7 @@ function ProcessMoneyRequestHoldPage() {
                 success
                 text={translate('common.buttonConfirm')}
                 onPress={onConfirm}
+                large
             />
         ),
         [onConfirm, translate],
@@ -40,7 +41,7 @@ function ProcessMoneyRequestHoldPage() {
             <View style={[styles.mh5, styles.flex1]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>;
+                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>
                 </View>
                 <HoldMenuSectionList />
             </View>

@@ -1,6 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -24,10 +25,29 @@ Onyx.connect({
     },
 });
 
-function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true): string {
-    const displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
-    const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
-    return displayName || defaultValue || fallbackValue;
+function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
+    let displayName = passedPersonalDetails?.displayName ?? '';
+
+    // If the displayName starts with the merged account prefix, remove it.
+    if (displayName.startsWith(CONST.MERGED_ACCOUNT_PREFIX)) {
+        // Remove the merged account prefix from the displayName.
+        displayName = displayName.substring(CONST.MERGED_ACCOUNT_PREFIX.length);
+    }
+
+    // If the displayName is not set by the user, the backend sets the diplayName same as the login so
+    // we need to remove the sms domain from the displayName if it is an sms login.
+    if (displayName === passedPersonalDetails?.login && Str.isSMSLogin(passedPersonalDetails?.login)) {
+        displayName = Str.removeSMSDomain(displayName);
+    }
+
+    if (shouldAddCurrentUserPostfix && !!displayName) {
+        displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
+    }
+
+    if (displayName) {
+        return displayName;
+    }
+    return defaultValue || (shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '');
 }
 
 /**
@@ -56,6 +76,10 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
     return result;
 }
 
+function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
+    return (Object.values(allPersonalDetails ?? {}) as PersonalDetails[]).find((detail) => detail?.login === email);
+}
+
 /**
  * Given a list of logins, find the associated personal detail and return related accountIDs.
  *
@@ -64,7 +88,7 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
  */
 function getAccountIDsByLogins(logins: string[]): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
-        const currentDetail = personalDetails.find((detail) => detail?.login === login);
+        const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(UserUtils.generateAccountID(login));
@@ -179,8 +203,8 @@ function getStreetLines(street = '') {
  * @param privatePersonalDetails - details object
  * @returns - formatted address
  */
-function getFormattedAddress(privatePersonalDetails: PrivatePersonalDetails): string {
-    const {address} = privatePersonalDetails;
+function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): string {
+    const {address} = privatePersonalDetails ?? {};
     const [street1, street2] = getStreetLines(address?.street);
     const formattedAddress =
         formatPiece(street1) + formatPiece(street2) + formatPiece(address?.city) + formatPiece(address?.state) + formatPiece(address?.zip) + formatPiece(address?.country);
@@ -226,7 +250,7 @@ function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDe
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
  */
-function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
+function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: CurrentUserPersonalDetails): FirstAndLastName {
     // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (firstName || lastName) {
@@ -263,6 +287,7 @@ export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
+    getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getNewPersonalDetailsOnyxData,

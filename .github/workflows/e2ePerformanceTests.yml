@@ -175,8 +175,11 @@ jobs:
       - name: Rename delta APK
         run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2edelta-release.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2edeltaRelease.apk"
 
+      - name: Compile test runner to be executable in a nodeJS environment
+        run: npm run e2e-test-runner-build
+
       - name: Copy e2e code into zip folder
-        run: cp -r tests/e2e zip
+        run: cp tests/e2e/dist/index.js zip/testRunner.ts
 
       - name: Zip everything in the zip directory up
         run: zip -qr App.zip ./zip

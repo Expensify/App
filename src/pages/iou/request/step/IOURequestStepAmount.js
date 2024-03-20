@@ -37,10 +37,6 @@ const propTypes = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: transactionPropTypes,
 
-    /* Onyx Props */
-    /** Collection of tax rates attached to a policy */
-    policyTaxRates: taxPropTypes,
-
     /** The policy of the report */
     policy: PropTypes.shape({
         /**
@@ -54,6 +50,9 @@ const propTypes = {
         tax: PropTypes.shape({
             trackingEnabled: PropTypes.bool,
         }),
+
+        /** Collection of tax rates attached to a policy */
+        taxRates: taxPropTypes,
     }),
 };
 
@@ -61,7 +60,6 @@ const defaultProps = {
     report: {},
     transaction: {},
     splitDraftTransaction: {},
-    policyTaxRates: {},
     policy: {},
 };
 
@@ -78,7 +76,6 @@ function IOURequestStepAmount({
     transaction,
     splitDraftTransaction,
     transaction: {currency},
-    policyTaxRates,
     policy,
 }) {
     const {translate} = useLocalize();
@@ -91,6 +88,7 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditing && isSplitBill ? splitDraftTransaction : transaction);
 
+    const taxRates = lodashGet(policy, 'taxRates', {});
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
     const isTaxTrackingEnabled = isPolicyExpenseChat && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
 
@@ -138,7 +136,7 @@ function IOURequestStepAmount({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         if ((iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) && isTaxTrackingEnabled) {
-            const taxAmount = getTaxAmount(transaction, policyTaxRates.defaultValue, amountInSmallestCurrencyUnits);
+            const taxAmount = getTaxAmount(transaction, taxRates.defaultValue, amountInSmallestCurrencyUnits);
             const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
             IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
         }
@@ -217,9 +215,6 @@ export default compose(
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
                 return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
             },
-        },
-        policyTaxRates: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,

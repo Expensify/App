@@ -166,22 +166,35 @@ function FloatingActionButtonAndPopover(props) {
                         text: translate('iou.requestMoney'),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
-                                Navigation.navigate(
+                                IOU.startMoneyRequest(
+                                    CONST.IOU.TYPE.REQUEST,
                                     // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                     // for all of the routes in the creation flow.
+<<<<<<< HEAD
                                     ROUTES.MONEY_REQUEST_CREATE.getRoute(
                                         CONST.IOU.ACTION.CREATE,
                                         CONST.IOU.TYPE.REQUEST,
                                         CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                                         ReportUtils.generateReportID(),
                                     ),
+=======
+                                    ReportUtils.generateReportID(),
+>>>>>>> main
                                 ),
                             ),
                     },
                     {
                         icon: Expensicons.Send,
                         text: translate('iou.sendMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                IOU.startMoneyRequest(
+                                    CONST.IOU.TYPE.SEND,
+                                    // When starting to create a send money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ReportUtils.generateReportID(),
+                                ),
+                            ),
                     },
                     ...[
                         {
