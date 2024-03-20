@@ -57,9 +57,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                textInput.current?.focus();
-            }, CONST.ANIMATED_TRANSITION);
+            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -132,9 +130,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
             isEditing={isEditing}
             currency={currency}
             amount={iou?.amount}
-            ref={(e) => {
-                textInput.current = e;
-            }}
+            ref={textInput}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={navigateToNextPage}
             selectedTab={selectedTab ?? CONST.TAB_REQUEST.MANUAL}
