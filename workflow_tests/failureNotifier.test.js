@@ -2,7 +2,7 @@ const path = require('path');
 const kieMockGithub = require('@kie/mock-github');
 const assertions = require('./assertions/failureNotifierAssertions');
 const mocks = require('./mocks/failureNotifierMocks');
-const eAct = require('./utils/ExtendedAct');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
 let mockGithub;
@@ -36,7 +36,7 @@ describe('test workflow failureNotifier', () => {
     it('runs the notify failure when main fails', async () => {
         const repoPath = mockGithub.repo.getPath('testFailureNotifierWorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'failureNotifier.yml');
-        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+        let act = new ExtendedAct(repoPath, workflowPath);
         const event = 'workflow_run';
         act = act.setEvent({
             workflow_run: {
