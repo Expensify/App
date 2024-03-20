@@ -192,7 +192,7 @@ function FloatingActionButtonAndPopover(props) {
                     ...(canUseTrackExpense
                         ? [
                               {
-                                  icon: Expensicons.TrackExpense,
+                                  icon: Expensicons.DocumentPlus,
                                   text: translate('iou.trackExpense'),
                                   onSelected: () =>
                                       interceptAnonymousUser(() =>
