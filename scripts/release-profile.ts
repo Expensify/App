@@ -59,7 +59,7 @@ if (cpuProfiles.length === 0) {
         console.log(output.toString());
     } catch (error) {
         if (error instanceof Error) {
-            console.error(`Error executing command: ${error}`);
+            console.error(`Error executing command: ${error.toString()}`);
         }
 
         process.exit(1);
