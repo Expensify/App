@@ -131,7 +131,7 @@ beforeAll(() => {
     Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=AuthenticatePusher`,
+        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     });
 });
 
@@ -413,7 +413,6 @@ describe('Unread Indicators', () => {
                                 reportActionID: commentReportActionID,
                             },
                         },
-                        // @ts-expect-error -- it's necessary for the test
                         shouldNotify: true,
                     },
                     {

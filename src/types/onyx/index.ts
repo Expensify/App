@@ -11,6 +11,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -43,6 +44,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
@@ -90,6 +92,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    DismissedReferralBanners,
     Download,
     FrequentlyUsedEmoji,
     Fund,
@@ -119,6 +122,7 @@ export type {
     PreferredTheme,
     PriorityMode,
     PrivatePersonalDetails,
+    QuickAction,
     RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
