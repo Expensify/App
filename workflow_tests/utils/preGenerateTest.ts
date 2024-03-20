@@ -226,9 +226,7 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
             stepMocks.push(stepMockName);
             mockStepsContent += mockStepTemplate(stepMockName, step, jobId);
         });
-        console.log('PARAMS ', workflowName, jobs);
-        console.log('STEP MOCKS ', stepMocks);
-        console.log('JOB ID ', jobId.toUpperCase());
+        
         const jobMocksName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__STEP_MOCKS`;
         jobMocks.push(jobMocksName);
         mockStepsContent += jobMocksTemplate(jobMocksName, stepMocks);
