@@ -162,7 +162,7 @@ describe('actions/IOU', () => {
                                         // The transaction thread should have a CREATED action
                                         expect(Object.values(reportActionsForTransactionThread ?? {}).length).toBe(1);
                                         const createdActions = Object.values(reportActionsForTransactionThread ?? {}).filter(
-                                            (reportAction) => (reportAction?.actionName as unknown as string) === CONST.REPORT.ACTIONS.TYPE.CREATED,
+                                            (reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED,
                                         );
                                         expect(Object.values(createdActions).length).toBe(1);
                                         transactionThreadCreatedAction = createdActions[0];
@@ -251,7 +251,7 @@ describe('actions/IOU', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 participantAccountIDs: [CARLOS_ACCOUNT_ID],
             };
-            const createdAction = {
+            const createdAction: OnyxTypes.ReportAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 created: DateUtils.getDBTime(),
@@ -420,7 +420,7 @@ describe('actions/IOU', () => {
                 iouReportID,
                 participantAccountIDs: [CARLOS_ACCOUNT_ID],
             };
-            const createdAction = {
+            const createdAction: OnyxTypes.ReportAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 created: DateUtils.getDBTime(),
@@ -460,7 +460,7 @@ describe('actions/IOU', () => {
                 },
             };
             let newIOUAction: OnyxEntry<OnyxTypes.ReportAction>;
-            let newTransaction;
+            let newTransaction: OnyxEntry<OnyxTypes.Transaction>;
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
             return (
@@ -552,7 +552,7 @@ describe('actions/IOU', () => {
                                         // There should be two transactions
                                         expect(Object.values(allTransactions ?? {}).length).toBe(2);
 
-                                        newTransaction = Object.values(allTransactions ?? {}).find((transaction) => transaction?.transactionID !== existingTransaction.transactionID);
+                                        newTransaction = Object.values(allTransactions ?? {}).find((transaction) => transaction?.transactionID !== existingTransaction.transactionID) ?? null;
 
                                         expect(newTransaction?.reportID).toBe(iouReportID);
                                         expect(newTransaction?.amount).toBe(amount);
@@ -662,13 +662,10 @@ describe('actions/IOU', () => {
                                         // The chat report should have a CREATED action and IOU action
                                         expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
                                         const createdActions =
-                                            Object.values(reportActionsForIOUReport ?? {}).filter(
-                                                (reportAction) => (reportAction?.actionName as unknown as string) === CONST.REPORT.ACTIONS.TYPE.CREATED,
-                                            ) ?? null;
+                                            Object.values(reportActionsForIOUReport ?? {}).filter((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ?? null;
                                         const iouActions =
                                             Object.values(reportActionsForIOUReport ?? {}).filter(
-                                                (reportAction): reportAction is ReportActionBase & OriginalMessageIOU =>
-                                                    (reportAction?.actionName as unknown as string) === CONST.REPORT.ACTIONS.TYPE.IOU,
+                                                (reportAction): reportAction is ReportActionBase & OriginalMessageIOU => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
                                             ) ?? null;
                                         expect(Object.values(createdActions).length).toBe(1);
                                         expect(Object.values(iouActions).length).toBe(1);
