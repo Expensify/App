@@ -4156,7 +4156,24 @@ function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transact
         return false;
     }
 
-    return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations) && !isSettled(IOUReportID);
+    return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations);
+}
+
+/**
+ * Checks if we should display violation - we display violations when the money request has violation and it is not settled
+ */
+function shouldDisplayTransactionThreadViolations(
+    report: OnyxEntry<Report>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    parentReportAction: OnyxEntry<ReportAction>,
+): boolean {
+    if (parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return false;
+    }
+
+    const {IOUReportID} = parentReportAction.originalMessage ?? {};
+
+    return doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction) && !isSettled(IOUReportID);
 }
 
 /**
@@ -5515,6 +5532,7 @@ export {
     getRoom,
     canEditReportDescription,
     doesTransactionThreadHaveViolations,
+    shouldDisplayTransactionThreadViolations,
     hasViolations,
     navigateToPrivateNotes,
     canEditWriteCapability,
