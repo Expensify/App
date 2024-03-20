@@ -4262,7 +4262,7 @@ function shouldReportBeInOptionList({
 
     const reportIsSettled = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
-    // Always show IOU reports with violations
+    // Always show IOU reports with violations unless they are reimbursed
     if (isExpenseRequest(report) && doesReportHaveViolations && !reportIsSettled) {
         return true;
     }
