@@ -83,7 +83,7 @@ function subscribeToNetInfo() {
                 return;
             }
             // Using the API url ensures reachability is tested over internet
-            fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=Ping`, {
+            fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping`, {
                 method: 'GET',
                 cache: 'no-cache',
             })
