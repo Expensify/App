@@ -127,7 +127,7 @@ const WRITE_COMMANDS = {
     DELETE_WORKSPACE_CATEGORIES: 'DeleteWorkspaceCategories',
     SET_POLICY_REQUIRES_TAG: 'SetPolicyRequiresTag',
     RENAME_POLICY_TAG_LIST: 'RenamePolicyTaglist',
-    DELETE_POLICY_TAGS: 'Policy_IndependentTaglist_Tags_Remove',
+    DELETE_POLICY_TAGS: 'DeletePolicyTags',
     CREATE_TASK: 'CreateTask',
     CANCEL_TASK: 'CancelTask',
     EDIT_TASK_ASSIGNEE: 'EditTaskAssignee',
@@ -182,7 +182,13 @@ const WRITE_COMMANDS = {
     ACCEPT_JOIN_REQUEST: 'AcceptJoinRequest',
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
+    SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
+    DELETE_POLICY_TAXES: 'DeletePolicyTaxes',
+    UPDATE_POLICY_TAX_VALUE: 'UpdatePolicyTaxValue',
+    RENAME_POLICY_TAX: 'RenamePolicyTax',
     CREATE_POLICY_DISTANCE_RATE: 'CreatePolicyDistanceRate',
+    SET_POLICY_DISTANCE_RATES_UNIT: 'SetPolicyDistanceRatesUnit',
+    SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY: 'SetPolicyDistanceRatesDefaultCategory',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -363,7 +369,13 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_CUSTOM_TAX_NAME]: Parameters.SetPolicyCustomTaxNameParams;
     [WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT]: Parameters.SetPolicyForeignCurrencyDefaultParams;
     [WRITE_COMMANDS.CREATE_POLICY_TAX]: Parameters.CreatePolicyTaxParams;
+    [WRITE_COMMANDS.SET_POLICY_TAXES_ENABLED]: Parameters.SetPolicyTaxesEnabledParams;
+    [WRITE_COMMANDS.DELETE_POLICY_TAXES]: Parameters.DeletePolicyTaxesParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE]: Parameters.UpdatePolicyTaxValueParams;
     [WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE]: Parameters.CreatePolicyDistanceRateParams;
+    [WRITE_COMMANDS.RENAME_POLICY_TAX]: Parameters.RenamePolicyTaxParams;
+    [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
+    [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
 };
 
 const READ_COMMANDS = {

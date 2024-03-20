@@ -222,6 +222,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
@@ -238,6 +241,18 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAX_CREATE]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAX_EDIT]: {
+        policyID: string;
+        taxID: string;
+    };
+    [SCREENS.WORKSPACE.TAX_NAME]: {
+        policyID: string;
+        taxID: string;
+    };
+    [SCREENS.WORKSPACE.TAX_VALUE]: {
+        policyID: string;
+        taxID: string;
     };
 } & ReimbursementAccountNavigatorParamList;
 

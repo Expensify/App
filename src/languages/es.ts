@@ -1067,6 +1067,14 @@ export default {
             },
         },
     },
+    workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+        autoReportingFrequencyErrorMessage: 'La frecuencia de envío no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
+        monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
+    },
+    workflowsApprovalPage: {
+        genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+    },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
         genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
@@ -1791,6 +1799,8 @@ export default {
             moreFeatures: 'Más características',
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
+            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
+                `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         type: {
             free: 'Gratis',
@@ -1869,6 +1879,9 @@ export default {
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
+            enableTags: 'Habilitar etiquetas',
+            disableTag: 'Desactivar etiqueta',
+            disableTags: 'Desactivar etiquetas',
             addTag: 'Añadir etiqueta',
             editTag: 'Editar etiqueta',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
@@ -1877,7 +1890,9 @@ export default {
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
             },
             deleteTag: 'Eliminar etiqueta',
+            deleteTags: 'Eliminar etiquetas',
             deleteTagConfirmation: '¿Estás seguro de que quieres eliminar esta etiqueta?',
+            deleteTagsConfirmation: '¿Estás seguro de que quieres eliminar estas etiquetas?',
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la etiqueta. Por favor, inténtalo más tarde.',
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
@@ -1892,8 +1907,20 @@ export default {
             value: 'Valor',
             errors: {
                 taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',
-                valuePercentageRange: 'Introduzca un porcentaje válido entre 0 y 100',
-                genericFailureMessage: 'Se produjo un error al actualizar el tipo impositivo, inténtelo nuevamente.',
+                valuePercentageRange: 'Por favor, introduce un porcentaje entre 0 y 100',
+                deleteFailureMessage: 'Se ha producido un error al intentar eliminar la tasa de impuesto. Por favor, inténtalo más tarde.',
+                updateFailureMessage: 'Se ha producido un error al intentar modificar la tasa de impuesto. Por favor, inténtalo más tarde.',
+                createFailureMessage: 'Se ha producido un error al intentar crear la tasa de impuesto. Por favor, inténtalo más tarde.',
+            },
+            deleteTaxConfirmation: '¿Estás seguro de que quieres eliminar este impuesto?',
+            deleteMultipleTaxConfirmation: ({taxAmount}) => `¿Estás seguro de que quieres eliminar ${taxAmount} impuestos?`,
+            actions: {
+                delete: 'Eliminar tasa',
+                deleteMultiple: 'Eliminar tasas',
+                disable: 'Desactivar tasa',
+                disableMultiple: 'Desactivar tasas',
+                enable: 'Activar tasa',
+                enableMultiple: 'Activar tasas',
             },
         },
         emptyWorkspace: {
@@ -1960,8 +1987,6 @@ export default {
             trackDistanceRate: 'Tarifa',
             trackDistanceUnit: 'Unidad',
             trackDistanceChooseUnit: 'Elige una unidad predeterminada de medida.',
-            kilometers: 'Kilómetros',
-            miles: 'Millas',
             unlockNextDayReimbursements: 'Desbloquea reembolsos diarios',
             captureNoVBACopyBeforeEmail: 'Pide a los miembros de tu espacio de trabajo que envíen recibos a ',
             captureNoVBACopyAfterEmail: ' y descarga la App de Expensify para controlar tus gastos en efectivo sobre la marcha.',
@@ -2017,8 +2042,6 @@ export default {
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
@@ -2036,6 +2059,8 @@ export default {
             status: 'Estado',
             enabled: 'Activada',
             disabled: 'Desactivada',
+            unit: 'Unidad',
+            defaultCategory: 'Categoría predeterminada',
         },
         editor: {
             nameInputLabel: 'Nombre',

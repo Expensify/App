@@ -25,6 +25,7 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     defaultCategory?: string;
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 type DisabledFields = {
@@ -50,6 +51,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
+
+    /** An error object keyed by field name containing errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 type TaxRates = Record<string, TaxRate>;
@@ -179,6 +183,8 @@ type Connections = {
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
+
+type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
 
 type PendingJoinRequestPolicy = {
     isJoinRequestPending: boolean;
@@ -363,4 +369,4 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
 export default Policy;
 
-export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PendingJoinRequestPolicy};
+export type {Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};

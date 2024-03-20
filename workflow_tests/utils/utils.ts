@@ -1,9 +1,31 @@
-const yaml = require('yaml');
-const fs = require('fs');
-const path = require('path');
+import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import fs from 'fs';
+import path from 'path';
+import yaml from 'yaml';
+import type ExtendedAct from './ExtendedAct';
 
-function setUpActParams(act, event = null, eventOptions = null, secrets = null, githubToken = null, envVars = null, inputs = null) {
-    let updated_act = act;
+type EventOptions = {
+    action?: string;
+};
+
+type StepAssertionInputEntry = {key: string; value: string};
+
+type StepAssertion = {
+    name: string;
+    status: number;
+    output: string;
+};
+
+function setUpActParams(
+    act: ExtendedAct,
+    event: string | null = null,
+    eventOptions: EventOptions | null = null,
+    secrets: Record<string, string> | null = null,
+    githubToken: string | null = null,
+    envVars: Record<string, string> | null = null,
+    inputs: Record<string, string> | null = null,
+): ExtendedAct {
+    let updatedAct = act;
 
     if (event && eventOptions) {
         // according to `Act` docs event data should be under the key with the event name (`[event]: eventOptions`), but
@@ -13,39 +35,49 @@ function setUpActParams(act, event = null, eventOptions = null, secrets = null, 
             [event]: eventOptions,
             ...eventOptions,
         };
-        updated_act = updated_act.setEvent(eventData);
+        updatedAct = updatedAct.setEvent(eventData);
     }
 
     if (secrets) {
         Object.entries(secrets).forEach(([key, value]) => {
-            updated_act = updated_act.setSecret(key, value);
+            updatedAct = updatedAct.setSecret(key, value);
         });
     }
 
     if (githubToken) {
-        updated_act = updated_act.setGithubToken(githubToken);
+        updatedAct = updatedAct.setGithubToken(githubToken);
     }
 
     if (envVars) {
         Object.entries(envVars).forEach(([key, value]) => {
-            updated_act = updated_act.setEnv(key, value);
+            updatedAct = updatedAct.setEnv(key, value);
         });
     }
 
     if (inputs) {
         Object.entries(inputs).forEach(([key, value]) => {
-            updated_act = updated_act.setInput(key, value);
+            updatedAct = updatedAct.setInput(key, value);
         });
     }
 
-    return updated_act;
+    return updatedAct;
 }
 
-function createMockStep(name, message, job_id = null, inputs = null, in_envs = null, outputs = null, out_envs = null, isSuccessful = true, id = null) {
+function createMockStep(
+    name: string,
+    message: string,
+    jobId: string | null = null,
+    inputs: string[] | null = null,
+    inEnvs: string[] | null = null,
+    outputs: Record<string, string> | null = null,
+    outEnvs: Record<string, string> | null = null,
+    isSuccessful = true,
+    id: string | null = null,
+): StepIdentifier {
     const mockStepName = name;
     let mockWithCommand = 'echo [MOCK]';
-    if (job_id) {
-        mockWithCommand += ` [${job_id}]`;
+    if (jobId) {
+        mockWithCommand += ` [${jobId}]`;
     }
     mockWithCommand += ` ${message}`;
     if (inputs) {
@@ -53,8 +85,8 @@ function createMockStep(name, message, job_id = null, inputs = null, in_envs = n
             mockWithCommand += `, ${input}="\${{ inputs.${input} && inputs.${input} || github.event.inputs.${input} }}"`;
         });
     }
-    if (in_envs) {
-        in_envs.forEach((env) => {
+    if (inEnvs) {
+        inEnvs.forEach((env) => {
             mockWithCommand += `, ${env}="\${{ env.${env} }}"`;
         });
     }
@@ -63,29 +95,41 @@ function createMockStep(name, message, job_id = null, inputs = null, in_envs = n
             mockWithCommand += `\necho "${key}=${value}" >> "$GITHUB_OUTPUT"`;
         });
     }
-    if (out_envs) {
-        Object.entries(out_envs).forEach(([key, value]) => {
+    if (outEnvs) {
+        Object.entries(outEnvs).forEach(([key, value]) => {
             mockWithCommand += `\necho "${key}=${value}" >> "$GITHUB_ENV"`;
         });
     }
     if (!isSuccessful) {
         mockWithCommand += '\nexit 1';
     }
-    const mockStep = {
+    if (!id) {
+        return {
+            name: mockStepName,
+            mockWith: mockWithCommand,
+        };
+    }
+
+    return {
+        id,
         name: mockStepName,
         mockWith: mockWithCommand,
     };
-    if (id) {
-        mockStep.id = id;
-    }
-    return mockStep;
 }
 
-function createStepAssertion(name, isSuccessful = true, expectedOutput = null, jobId = null, message = null, inputs = null, envs = null) {
+function createStepAssertion(
+    name: string,
+    isSuccessful = true,
+    expectedOutput: string | null = null,
+    jobId: string | null = null,
+    message: string | null = null,
+    inputs: StepAssertionInputEntry[] | null = null,
+    envs: StepAssertionInputEntry[] | null = null,
+): StepAssertion {
     const stepName = `Main ${name}`;
     const stepStatus = isSuccessful ? 0 : 1;
-    let stepOutput;
-    if (expectedOutput !== undefined && expectedOutput !== null) {
+    let stepOutput: string;
+    if (expectedOutput !== null) {
         stepOutput = expectedOutput;
     } else {
         stepOutput = '[MOCK]';
@@ -113,7 +157,7 @@ function createStepAssertion(name, isSuccessful = true, expectedOutput = null, j
     };
 }
 
-function setJobRunners(act, jobs, workflowPath) {
+function setJobRunners(act: ExtendedAct, jobs: Record<string, string>, workflowPath: string): ExtendedAct {
     if (!act || !jobs || !workflowPath) {
         return act;
     }
@@ -127,11 +171,15 @@ function setJobRunners(act, jobs, workflowPath) {
     return act;
 }
 
-function deepCopy(originalObject) {
-    return JSON.parse(JSON.stringify(originalObject));
+function deepCopy<TObject>(originalObject: TObject): TObject {
+    return JSON.parse(JSON.stringify(originalObject)) as TObject;
 }
 
-function getLogFilePath(workflowName, testName) {
+function getLogFilePath(workflowName: string, testName: string | undefined): string {
+    if (!testName) {
+        throw new Error();
+    }
+
     const logsDir = path.resolve(__dirname, '..', 'logs');
     if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir);
@@ -166,13 +214,4 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
     },
 ];
 
-module.exports = {
-    setUpActParams,
-    createMockStep,
-    createStepAssertion,
-    setJobRunners,
-    deepCopy,
-    getLogFilePath,
-    FILES_TO_COPY_INTO_TEST_REPO,
-    removeMockRepoDir,
-};
+export {setUpActParams, createMockStep, createStepAssertion, setJobRunners, deepCopy, getLogFilePath, FILES_TO_COPY_INTO_TEST_REPO, removeMockRepoDir};
