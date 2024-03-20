@@ -167,6 +167,10 @@ export default {
         marginLeft: 24,
     },
 
+    ml7: {
+        marginLeft: 28,
+    },
+
     ml8: {
         marginLeft: 32,
     },
@@ -479,6 +483,10 @@ export default {
 
     pr9: {
         paddingRight: 32,
+    },
+
+    pr10: {
+        paddingRight: 40,
     },
 
     pr15: {
