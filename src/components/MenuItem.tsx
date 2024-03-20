@@ -590,7 +590,7 @@ function MenuItem(
                                     </View>
                                 )}
                                 {floatRightAvatars?.length > 0 && (
-                                    <View style={[styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : undefined]}>
+                                    <View style={[styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : undefined, label ? styles.mt8 : undefined]}>
                                         <MultipleAvatars
                                             isHovered={isHovered}
                                             isPressed={pressed}
