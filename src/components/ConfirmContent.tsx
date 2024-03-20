@@ -145,6 +145,7 @@ function ConfirmContent({
                             style={[styles.mt4]}
                             onPress={onConfirm}
                             pressOnEnter
+                            large
                             text={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
                         />
@@ -152,6 +153,7 @@ function ConfirmContent({
                             <Button
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={onCancel}
+                                large
                                 text={cancelText || translate('common.no')}
                             />
                         )}
