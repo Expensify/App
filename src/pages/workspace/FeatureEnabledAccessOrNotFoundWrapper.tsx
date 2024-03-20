@@ -2,10 +2,10 @@
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -53,7 +53,8 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
 
     if (shouldShowNotFoundPage) {
         return (
-            <NotFoundPage
+            <FullPageNotFoundView
+                shouldShow={shouldShowNotFoundPage}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 shouldForceFullScreen
             />
