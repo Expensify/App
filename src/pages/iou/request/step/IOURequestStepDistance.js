@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
@@ -23,8 +23,8 @@ import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -48,7 +48,7 @@ const propTypes = {
 const defaultProps = {
     report: {},
     transaction: {},
-    transactionBackup: {}
+    transactionBackup: {},
 };
 
 function IOURequestStepDistance({
@@ -57,7 +57,7 @@ function IOURequestStepDistance({
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
-    transactionBackup
+    transactionBackup,
 }) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -205,9 +205,21 @@ function IOURequestStepDistance({
             Navigation.dismissModal(report.reportID);
             return;
         }
-            
+
         navigateToNextStep();
-    }, [duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, isEditing, navigateToNextStep, transactionBackup, waypoints, transaction.transactionID, report.reportID]);
+    }, [
+        duplicateWaypointsError,
+        atLeastTwoDifferentWaypointsError,
+        hasRouteError,
+        isLoadingRoute,
+        isLoading,
+        isEditing,
+        navigateToNextStep,
+        transactionBackup,
+        waypoints,
+        transaction.transactionID,
+        report.reportID,
+    ]);
 
     return (
         <StepScreenWrapper
@@ -275,8 +287,12 @@ IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 IOURequestStepDistance.propTypes = propTypes;
 IOURequestStepDistance.defaultProps = defaultProps;
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound, withOnyx({
-    transactionBackup: {
-        key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${props.transactionID}`,
-    },
-}))(IOURequestStepDistance);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        transactionBackup: {
+            key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${props.transactionID}`,
+        },
+    }),
+)(IOURequestStepDistance);
