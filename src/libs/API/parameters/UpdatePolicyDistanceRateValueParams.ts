@@ -1,9 +1,7 @@
-import type {Rate} from '@src/types/onyx/Policy';
-
 type UpdatePolicyDistanceRateValueParams = {
     policyID: string;
     customUnitID: string;
-    customUnitRateArray: Rate[];
+    customUnitRateArray: string;
 };
 
 export default UpdatePolicyDistanceRateValueParams;

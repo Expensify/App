@@ -3978,6 +3978,34 @@ function clearPolicyDistanceRatesErrorFields(policyID: string, customUnitID: str
     });
 }
 
+function clearDeleteDistanceRateError(policyID: string, customUnitID: string, rateID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                rates: {
+                    [rateID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+    });
+}
+
+function clearPolicyRateErrorFields(policyID: string, customUnitID: string, rateID: string, updatedErrorFields: ErrorFields) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                rates: {
+                    [rateID]: {
+                        errorFields: updatedErrorFields,
+                    },
+                },
+            },
+        },
+    });
+}
+
 function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4001,7 +4029,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
             value: {
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
-                        pendingFields: null,
+                        pendingFields: {attributes: null},
                     },
                 },
             },
@@ -4090,25 +4118,26 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Rate> = {};
     const successRates: Record<string, Rate> = {};
+    const failureRates: Record<string, Rate> = {};
 
     Object.keys(customUnit.rates).forEach((rateID) => {
         if (!customUnitRates.map((customUnitRate) => customUnitRate.customUnitRateID).includes(rateID)) {
-            optimisticRates[rateID] = {
-                ...customUnitRates.find((rate) => rate.customUnitRateID === rateID),
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            };
-            successRates[rateID] = {
-                ...customUnitRates.find((rate) => rate.customUnitRateID === rateID),
-                pendingAction: null,
-            };
-        } else {
-            optimisticRates[rateID] = {
-                ...currentRates[rateID],
-            };
-            successRates[rateID] = {
-                ...currentRates[rateID],
-            };
+            return;
         }
+
+        optimisticRates[rateID] = {
+            ...customUnitRates.find((rate) => rate.customUnitRateID === rateID),
+            pendingFields: {rate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        };
+        successRates[rateID] = {
+            ...customUnitRates.find((rate) => rate.customUnitRateID === rateID),
+            pendingFields: {rate: null},
+        };
+        failureRates[rateID] = {
+            ...currentRates[rateID],
+            pendingFields: {rate: null},
+            errorFields: {rate: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+        };
     });
 
     const optimisticData: OnyxUpdate[] = [
@@ -4146,9 +4175,8 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
             value: {
                 customUnits: {
                     [customUnit.customUnitID]: {
-                        rates: currentRates,
+                        rates: failureRates,
                     },
-                    errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
                 },
             },
         },
@@ -4157,7 +4185,7 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
     const params: UpdatePolicyDistanceRateValueParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
-        customUnitRateArray: customUnitRates,
+        customUnitRateArray: JSON.stringify(customUnitRates),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE, params, {optimisticData, successData, failureData});
@@ -4167,6 +4195,7 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Rate> = {};
     const successRates: Record<string, Rate> = {};
+    const failureRates: Record<string, Rate> = {};
 
     Object.keys(customUnit.rates).forEach((rateID) => {
         if (!customUnitRates.map((customUnitRate) => customUnitRate.customUnitRateID).includes(rateID)) {
@@ -4175,11 +4204,16 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
 
         optimisticRates[rateID] = {
             ...customUnitRates.find((rate) => rate.customUnitRateID === rateID),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            pendingFields: {enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         };
         successRates[rateID] = {
             ...customUnitRates.find((rate) => rate.customUnitRateID === rateID),
-            pendingAction: null,
+            pendingFields: {enabled: null},
+        };
+        failureRates[rateID] = {
+            ...currentRates[rateID],
+            pendingFields: {enabled: null},
+            errorFields: {enabled: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
         };
     });
 
@@ -4218,9 +4252,8 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
             value: {
                 customUnits: {
                     [customUnit.customUnitID]: {
-                        rates: currentRates,
+                        rates: failureRates,
                     },
-                    errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
                 },
             },
         },
@@ -4229,22 +4262,27 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
     const params: SetPolicyDistanceRatesEnabledParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
-        customUnitRateArray: customUnitRates,
+        customUnitRateArray: JSON.stringify(customUnitRates),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});
 }
 
 function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rateIDsToDelete: string[]) {
-    const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Rate> = {};
     const successRates: Record<string, Rate> | null = {};
+    const failureRates: Record<string, Rate> | null = {};
 
     Object.keys(customUnit.rates).forEach((rateID) => {
         if (rateIDsToDelete.includes(rateID)) {
             optimisticRates[rateID] = {
                 ...customUnit.rates[rateID],
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            failureRates[rateID] = {
+                ...customUnit.rates[rateID],
+                pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
             };
         } else {
             optimisticRates[rateID] = customUnit.rates[rateID];
@@ -4287,9 +4325,8 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
             value: {
                 customUnits: {
                     [customUnit.customUnitID]: {
-                        rates: currentRates,
+                        rates: failureRates,
                     },
-                    errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
                 },
             },
         },
@@ -4535,6 +4572,7 @@ export {
     generateCustomUnitID,
     createPolicyDistanceRate,
     clearCreateDistanceRateItemAndError,
+    clearDeleteDistanceRateError,
     setPolicyDistanceRatesUnit,
     setPolicyDistanceRatesDefaultCategory,
     createPolicyTag,
@@ -4548,6 +4586,7 @@ export {
     setForeignCurrencyDefault,
     setPolicyCustomTaxName,
     clearPolicyDistanceRatesErrorFields,
+    clearPolicyRateErrorFields,
     updatePolicyDistanceRateValue,
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,

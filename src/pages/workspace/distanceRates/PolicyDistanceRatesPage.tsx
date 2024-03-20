@@ -70,9 +70,14 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
     const dismissError = useCallback(
         (item: RateForList) => {
+            if (customUnitRates[item.value].errors) {
+                Policy.clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? '', item.value);
+                return;
+            }
+
             Policy.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
         },
-        [customUnit?.customUnitID, policyID],
+        [customUnit?.customUnitID, customUnitRates, policyID],
     );
 
     const {isOffline} = useNetwork({onReconnect: fetchDistanceRates});
@@ -130,8 +135,9 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         Policy.setPolicyDistanceRatesEnabled(
             policyID,
             customUnit,
-            selectedDistanceRates.filter((rate) => rate.enabled),
+            selectedDistanceRates.filter((rate) => rate.enabled).map((rate) => ({...rate, enabled: false})),
         );
+        setSelectedDistanceRates([]);
     };
 
     const enableRates = () => {
@@ -142,8 +148,9 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         Policy.setPolicyDistanceRatesEnabled(
             policyID,
             customUnit,
-            selectedDistanceRates.filter((rate) => !rate.enabled),
+            selectedDistanceRates.filter((rate) => !rate.enabled).map((rate) => ({...rate, enabled: true})),
         );
+        setSelectedDistanceRates([]);
     };
 
     const deleteRates = () => {
@@ -151,15 +158,13 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
             return;
         }
 
-        if (selectedDistanceRates.length !== Object.values(customUnitRates).length) {
-            Policy.deletePolicyDistanceRates(
-                policyID,
-                customUnit,
-                selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
-            );
-            setSelectedDistanceRates([]);
-            setIsDeleteModalVisible(false);
-        }
+        Policy.deletePolicyDistanceRates(
+            policyID,
+            customUnit,
+            selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
+        );
+        setSelectedDistanceRates([]);
+        setIsDeleteModalVisible(false);
     };
 
     const toggleRate = (rate: RateForList) => {
