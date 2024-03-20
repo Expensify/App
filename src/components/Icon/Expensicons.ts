@@ -141,6 +141,7 @@ import Task from '@assets/images/task.svg';
 import Tax from '@assets/images/tax.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import TrackExpense from '@assets/images/track-expense.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -314,4 +315,5 @@ export {
     ChatBubbleUnread,
     ChatBubbleReply,
     Lightbulb,
+    TrackExpense,
 };

@@ -13,6 +13,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -115,6 +116,7 @@ function AttachmentPickerWithMenuItems({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
+    const {canUseTrackExpense} = usePermissions();
 
     /**
      * Returns the list of IOU Options
@@ -136,12 +138,17 @@ function AttachmentPickerWithMenuItems({
                 text: translate('iou.sendMoney'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID ?? ''),
             },
+            [CONST.IOU.TYPE.TRACK_EXPENSE]: {
+                icon: Expensicons.TrackExpense,
+                text: translate('iou.trackExpense'),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, report?.reportID ?? ''),
+            },
         };
 
-        return ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
+        return ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], canUseTrackExpense).map((option) => ({
             ...options[option],
         }));
-    }, [report, policy, reportParticipantIDs, translate]);
+    }, [translate, report, policy, reportParticipantIDs, canUseTrackExpense]);
 
     /**
      * Determines if we can show the task option

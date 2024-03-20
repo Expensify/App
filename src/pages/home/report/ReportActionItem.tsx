@@ -58,6 +58,7 @@ import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -365,8 +366,37 @@ function ReportActionItem({
         const isWhisperResolution = (action?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution !== null;
         const isJoinChoice = (action?.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage'])?.choice === '';
 
-        if (!((ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) || (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice))) {
+        if (!((ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) || (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice) || ReportActionsUtils.isActionableTrackExpense(action))) {
             return [];
+        }
+
+        if (ReportActionsUtils.isActionableTrackExpense(action)) {
+            return [
+                {
+                    text: 'actionableMentionTrackExpense.request',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-request`,
+                    onPress: () => console.log('Track'),
+                    isPrimary: true,
+                },
+                {
+                    text: 'actionableMentionTrackExpense.categorize',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
+                    onPress: () => Policy.categorizeTrackedTransaction(report.reportID, action),
+                    isPrimary: true,
+                },
+                {
+                    text: 'actionableMentionTrackExpense.share',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
+                    onPress: () => Policy.categorizeTrackedTransaction(report.reportID, action),
+                    isPrimary: true,
+                },
+                {
+                    text: 'actionableMentionTrackExpense.nothing',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
+                    onPress: () => ReportActions.dismissActionableWhisper(report.reportID, action.reportActionID),
+                    isPrimary: true,
+                },
+            ];
         }
 
         if (ReportActionsUtils.isActionableJoinRequest(action)) {
@@ -414,7 +444,10 @@ function ReportActionItem({
             isIOUReport(action) &&
             action.originalMessage &&
             // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
-            (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT || isSendingMoney)
+            (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
+                action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
+                isSendingMoney)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
@@ -667,6 +700,14 @@ function ReportActionItem({
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
             if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+                let message: TranslationPaths;
+                if (isReversedTransaction) {
+                    message = 'parentReportAction.reversedTransaction';
+                } else if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+                    message = 'parentReportAction.deletedExpense';
+                } else {
+                    message = 'parentReportAction.deletedRequest';
+                }
                 return (
                     <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.justifyContentEnd]}>
                         <AnimatedEmptyStateBackground />
@@ -677,9 +718,7 @@ function ReportActionItem({
                                     showHeader
                                     report={report}
                                 >
-                                    <RenderHTML
-                                        html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`}
-                                    />
+                                    <RenderHTML html={`<comment>${translate(message)}</comment>`} />
                                 </ReportActionItemSingle>
                                 <View style={styles.threadDividerLine} />
                             </OfflineWithFeedback>
@@ -767,7 +806,7 @@ function ReportActionItem({
     }
 
     // if action is actionable mention whisper and resolved by user, then we don't want to render anything
-    if (ReportActionsUtils.isActionableMentionWhisper(action) && (action.originalMessage.resolution ?? null)) {
+    if ((ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action)) && (action.originalMessage.resolution ?? null)) {
         return null;
     }
 

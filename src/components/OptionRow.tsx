@@ -229,7 +229,12 @@ function OptionRow({
                                         numberOfLines={isMultilineSupported ? 2 : 1}
                                         textStyles={displayNameStyle}
                                         shouldUseFullTitle={
-                                            !!option.isChatRoom || !!option.isPolicyExpenseChat || !!option.isMoneyRequestReport || !!option.isThread || !!option.isTaskReport
+                                            !!option.isChatRoom ||
+                                            !!option.isPolicyExpenseChat ||
+                                            !!option.isMoneyRequestReport ||
+                                            !!option.isThread ||
+                                            !!option.isTaskReport ||
+                                            !!option.isSelfDM
                                         }
                                     />
                                     {option.alternateText ? (

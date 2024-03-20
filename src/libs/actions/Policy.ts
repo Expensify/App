@@ -4239,6 +4239,66 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
+function categorizeTrackedTransaction(chatReportID, action) {
+    const policyID = generatePolicyID();
+    const workspaceName = generateDefaultWorkspaceName('');
+    const {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        announceCreatedReportActionID,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        adminsCreatedReportActionID,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+        expenseCreatedReportActionID,
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
+
+
+    const moneyRequestReport = ReportUtils.buildOptimisticExpenseReport(chatReportID, policyID, sessionAccountID, 0, 'USD');
+    const moneyRequestCreatedReportActionID = ReportUtils.buildOptimisticCreatedReportAction(sessionEmail ?? '');
+          
+
+    const params = {
+        policyID,
+        transactionID: action.originalMessage.transactionID,
+
+        // Report ID that the transaction is currently on
+        reportID: chatReportID,
+
+        // reportActionID of the actionable whisper
+        reportActionID: action.reportActionID,
+
+        // Parameters for the money request
+        moneyRequestReportID: moneyRequestReport.reportID,
+        moneyRequestCreatedReportActionID,
+
+        // Parameters for the workspace
+        announceChatReportID,
+        announceCreatedReportActionID,
+        adminsChatReportID,
+        adminsCreatedReportActionID,
+        policyExpenseChatReportID: expenseChatReportID,
+        policyExpenseCreatedReportActionID: expenseCreatedReportActionID,
+    };
+
+    console.log('What are all the parameters', params);
+
+    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, params);
+}
+
+function convertTrackedExpenseToRequest(reportID, action) {
+    const params = {
+        reportID,
+        reportActionID: action.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, params);
+}
+
 export {
     removeMembers,
     updateWorkspaceMembersRole,
@@ -4326,5 +4386,6 @@ export {
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
     setPolicyCustomTaxName,
+    categorizeTrackedTransaction,
     clearPolicyDistanceRatesErrorFields,
 };

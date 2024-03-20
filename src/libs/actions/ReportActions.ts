@@ -5,6 +5,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Report from './Report';
+import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 
 function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -40,7 +42,16 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
     });
 }
 
+function dismissActionableWhisper(reportID: string, reportActionID: string) {
+    const params = {
+        reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.DISMISS_ACTIONABLE_WHISPER, params);
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     clearReportActionErrors,
+    dismissActionableWhisper,
 };

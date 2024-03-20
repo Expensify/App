@@ -9,6 +9,7 @@ import withNavigation from '@components/withNavigation';
 import withNavigationFocus from '@components/withNavigationFocus';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -75,6 +76,7 @@ function FloatingActionButtonAndPopover(props) {
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef(null);
+    const {canUseTrackExpense} = usePermissions();
 
     const prevIsFocused = usePrevious(props.isFocused);
 
@@ -187,13 +189,28 @@ function FloatingActionButtonAndPopover(props) {
                                 ),
                             ),
                     },
-                    ...[
-                        {
-                            icon: Expensicons.Task,
-                            text: translate('newTaskPage.assignTask'),
-                            onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                        },
-                    ],
+                    ...(canUseTrackExpense
+                        ? [
+                              {
+                                  icon: Expensicons.TrackExpense,
+                                  text: translate('iou.trackExpense'),
+                                  onSelected: () =>
+                                      interceptAnonymousUser(() =>
+                                          IOU.startMoneyRequest(
+                                              CONST.IOU.TYPE.TRACK_EXPENSE,
+                                              // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
+                                              // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
+                                              ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                                          ),
+                                      ),
+                              },
+                          ]
+                        : []),
+                    {
+                        icon: Expensicons.Task,
+                        text: translate('newTaskPage.assignTask'),
+                        onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
+                    },
                     {
                         icon: Expensicons.Heart,
                         text: translate('sidebarScreen.saveTheWorld'),
