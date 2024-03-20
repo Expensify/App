@@ -102,6 +102,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report.reportID);
+    console.log(parentReportAction);
     const shouldShowSubtitle = () => {
         if (!subtitle) {
             return false;
@@ -334,7 +335,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {isTaskReport && !isSmallScreenWidth && ReportUtils.isOpenTaskReport(report) && <TaskHeaderActionButton report={report} />}
+                                    {isTaskReport && !isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {canJoin && !isSmallScreenWidth && joinButton}
                                     {shouldShowThreeDotsButton && (
                                         <ThreeDotsMenu

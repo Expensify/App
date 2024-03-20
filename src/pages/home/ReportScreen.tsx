@@ -50,7 +50,7 @@ import ReportFooter from './report/ReportFooter';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 
-type ReportScreenOnyxProps = {
+type ReportScreenOnyxPropsWithoutParentReportAction = {
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: OnyxEntry<boolean>;
 
@@ -77,10 +77,7 @@ type ReportScreenOnyxProps = {
 
     /** The report metadata loading states */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-
-    /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-};
+}
 
 type OnyxHOCProps = {
     /** Onyx function that marks the component ready for hydration */
@@ -89,7 +86,15 @@ type OnyxHOCProps = {
 
 type ReportScreenNavigationProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
 
-type ReportScreenProps = OnyxHOCProps & ViewportOffsetTopProps & CurrentReportIDContextValue & ReportScreenOnyxProps & ReportScreenNavigationProps;
+type ReportScreenPropsWithoutParentReportAction = OnyxHOCProps & CurrentReportIDContextValue & ViewportOffsetTopProps & ReportScreenOnyxPropsWithoutParentReportAction & ReportScreenNavigationProps;
+
+type ReportScreenParentReportActionOnyxProps = {
+    /** The report's parentReportAction */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportActions>;
+}
+
+type ReportScreenProps = ReportScreenPropsWithoutParentReportAction & ReportScreenParentReportActionOnyxProps
+
 
 /** Get the currently viewed report ID as number */
 function getReportID(route: ReportScreenNavigationProps['route']): string {
@@ -122,7 +127,7 @@ function ReportScreen({
         isLoadingNewerReportActions: false,
     },
     reportActions = [],
-    parentReportAction,
+    parentReportAction: parentReportActions,
     accountManagerReportID,
     markReadyForHydration,
     policies = {},
@@ -225,6 +230,13 @@ function ReportScreen({
             reportProp?.lastMentionedTime,
         ],
     );
+
+    const parentReportAction = useMemo(() => {
+        if (!parentReportActions || !report.parentReportActionID) {
+            return null;
+        }
+        return parentReportActions[report.parentReportActionID ?? '0'];
+    }, [parentReportActions, report.parentReportActionID])
 
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
@@ -582,7 +594,7 @@ ReportScreen.displayName = 'ReportScreen';
 
 export default withViewportOffsetTop(
     withCurrentReportID(
-        withOnyx<ReportScreenProps, ReportScreenOnyxProps>(
+        withOnyx<ReportScreenPropsWithoutParentReportAction, ReportScreenOnyxPropsWithoutParentReportAction>(
             {
                 isSidebarLoaded: {
                     key: ONYXKEYS.IS_SIDEBAR_LOADED,
@@ -623,37 +635,33 @@ export default withViewportOffsetTop(
                 userLeavingStatus: {
                     key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                     initialValue: false,
-                },
-                parentReportAction: {
-                    key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
-                    selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<ReportScreenOnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
-                        const parentReportActionID = props?.report?.parentReportActionID;
-                        if (!parentReportActionID) {
-                            return null;
-                        }
-                        return parentReportActions?.[parentReportActionID] ?? null;
-                    },
-                    canEvict: false,
-                },
+                }
             },
             true,
         )(
-            memo(
-                ReportScreen,
-                (prevProps, nextProps) =>
-                    prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
-                    lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
-                    lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
-                    prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
-                    lodashIsEqual(prevProps.betas, nextProps.betas) &&
-                    lodashIsEqual(prevProps.policies, nextProps.policies) &&
-                    prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
-                    prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
-                    prevProps.currentReportID === nextProps.currentReportID &&
-                    prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
-                    lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
-                    lodashIsEqual(prevProps.report, nextProps.report),
+            withOnyx<ReportScreenProps, ReportScreenParentReportActionOnyxProps>({
+                parentReportAction: {
+                    key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+                    canEvict: false,
+                },
+            })(
+                memo(
+                    ReportScreen,
+                    (prevProps, nextProps) =>
+                        prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
+                        lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
+                        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+                        prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
+                        lodashIsEqual(prevProps.betas, nextProps.betas) &&
+                        lodashIsEqual(prevProps.policies, nextProps.policies) &&
+                        prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
+                        prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
+                        prevProps.currentReportID === nextProps.currentReportID &&
+                        prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
+                        lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
+                        lodashIsEqual(prevProps.report, nextProps.report),
+                ),
             ),
-        ),
+        )
     ),
 );
