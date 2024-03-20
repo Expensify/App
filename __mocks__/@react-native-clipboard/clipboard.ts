@@ -1,6 +1,3 @@
-import type ClipboardModule from '@react-native-clipboard/clipboard';
-import MockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock';
+import clipboardMock from '@react-native-clipboard/clipboard/jest/clipboard-mock';
 
-const Clipboard: typeof ClipboardModule = MockClipboard;
-
-export default Clipboard;
+export default clipboardMock;

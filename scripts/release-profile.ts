@@ -58,7 +58,10 @@ if (cpuProfiles.length === 0) {
         const output = execSync(command, {stdio: 'inherit'});
         console.log(output.toString());
     } catch (error) {
-        console.error(`Error executing command: ${error as string}`);
+        if (error instanceof Error) {
+            console.error(`Error executing command: ${error}`);
+        }
+
         process.exit(1);
     }
 }
