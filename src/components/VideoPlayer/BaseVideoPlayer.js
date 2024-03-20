@@ -137,14 +137,14 @@ function BaseVideoPlayer({
                 isFullscreenRef.current = false;
                 // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
                 // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
-                if (isPlaying) {
+                if (videoStateRef.current && videoStateRef.current.isPlaying) {
                     pauseVideo();
                     playVideo();
                     videoResumeTryNumber.current = 3;
                 }
             }
         },
-        [isFullscreenRef, isPlaying, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
+        [isFullscreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
     );
 
     const bindFunctions = useCallback(() => {
