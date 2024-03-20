@@ -52,6 +52,7 @@ import type {Receipt, TransactionChanges, WaypointCollection} from '@src/types/o
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import * as TransactionEdit from '@userActions/TransactionEdit';
 import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
@@ -5423,6 +5424,16 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
 
+function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string) {
+    const transaction = getTransaction(transactionID);
+    if (isEmpty(transaction)) {
+        return;
+    }
+    TransactionEdit.createBackupTransaction(transaction as Transaction);
+
+    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID))
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5636,6 +5647,7 @@ export {
     shouldCreateNewMoneyRequestReport,
     isTrackExpenseReport,
     hasActionsWithErrors,
+    createDraftTransactionAndNavigateToParticipantSelector,
 };
 
 export type {

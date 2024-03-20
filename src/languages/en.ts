@@ -2375,7 +2375,7 @@ export default {
         request: 'Request someone to pay it',
         categorize: 'Categorize it',
         share: 'Share it with my accountant',
-        nothing: 'Nothing for now'
+        nothing: 'Nothing for now',
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',

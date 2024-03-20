@@ -1,10 +1,10 @@
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent, TextInput} from 'react-native';
-import {InteractionManager, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
-import type {Emoji} from '@assets/emojis/types';
+import React, { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import type { GestureResponderEvent, TextInput } from 'react-native';
+import { InteractionManager, View } from 'react-native';
+import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
+import type { Emoji } from '@assets/emojis/types';
 import Button from '@components/Button';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
@@ -13,11 +13,11 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts} from '@components/OnyxProvider';
+import { useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts } from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
-import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
+import type { ActionableItem } from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
@@ -28,7 +28,7 @@ import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TaskView from '@components/ReportActionItem/TaskView';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import { ShowContextMenuContext } from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
@@ -49,7 +49,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
-import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import { ReactionListContext } from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Policy from '@userActions/Policy';
@@ -58,16 +58,16 @@ import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type { TranslationPaths } from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {OriginalMessageActionableMentionWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { OriginalMessageActionableMentionWhisper, OriginalMessageJoinPolicyChangeLog } from '@src/types/onyx/OriginalMessage';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
+import { hideContextMenu } from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import ReportActionItemCreated from './ReportActionItemCreated';
@@ -161,8 +161,8 @@ function ReportActionItem({
     policy,
     onPress = undefined,
 }: ReportActionItemProps) {
-    const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const { translate } = useLocalize();
+    const { isSmallScreenWidth } = useWindowDimensions();
     const blockedFromConcierge = useBlockedFromConcierge();
     const reportActionDrafts = useReportActionsDrafts();
     const draftMessage = useMemo(() => getDraftMessage(reportActionDrafts, report.reportID, action), [action, report.reportID, reportActionDrafts]);
@@ -176,7 +176,7 @@ function ReportActionItem({
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
-    const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
+    const { updateHiddenAttachments } = useContext(ReportAttachmentsContext);
     const textInputRef = useRef<TextInput & HTMLTextAreaElement>();
     const popoverAnchorRef = useRef<ReportActionContextMenu.ContextMenuAnchor>(null);
     const downloadedPreviews = useRef<string[]>([]);
@@ -366,7 +366,13 @@ function ReportActionItem({
         const isWhisperResolution = (action?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution !== null;
         const isJoinChoice = (action?.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage'])?.choice === '';
 
-        if (!((ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) || (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice) || ReportActionsUtils.isActionableTrackExpense(action))) {
+        if (
+            !(
+                (ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) ||
+                (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice) ||
+                ReportActionsUtils.isActionableTrackExpense(action)
+            )
+        ) {
             return [];
         }
 
@@ -375,26 +381,28 @@ function ReportActionItem({
                 {
                     text: 'actionableMentionTrackExpense.request',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-request`,
-                    onPress: () => console.log('Track'),
-                    isPrimary: true,
+                    onPress: () => {
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(action?.originalMessage?.transactionID, report.reportID);
+                    },
+                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                     onPress: () => console.log('Categorize'),
-                    isPrimary: true,
+                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.share',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                     onPress: () => console.log('Share'),
-                    isPrimary: true,
+                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.nothing',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
                     onPress: () => console.log('Nothing'),
-                    isPrimary: true,
+                    isMediumSized: true,
                 },
             ];
         }
@@ -505,7 +513,7 @@ function ReportActionItem({
             const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, report.reportID, action);
             children = (
                 <ReportActionItemBasicMessage
-                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
+                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', { submitterDisplayName })}
                 >
                     <>
                         {missingPaymentMethod === 'bankAccount' && (
@@ -550,7 +558,7 @@ function ReportActionItem({
             // This handles all historical actions from OldDot that we just want to display the message text
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMessageOfOldDotReportAction(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest', {comment: action.message?.[1].text ?? ''})} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest', { comment: action.message?.[1].text ?? '' })} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldRequest')} />;
         } else {
@@ -575,7 +583,7 @@ function ReportActionItem({
                                 >
                                     <Text
                                         style={[styles.buttonSmallText, styles.userSelectNone]}
-                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        dataSet={{ [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true }}
                                     >
                                         {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
                                     </Text>
@@ -586,7 +594,12 @@ function ReportActionItem({
                                 for example: Invite a user mentioned but not a member of the room
                                 https://github.com/Expensify/App/issues/32741
                             */}
-                            {actionableItemButtons.length > 0 && <ActionableItemButtons items={actionableItemButtons} />}
+                            {actionableItemButtons.length > 0 && (
+                                <ActionableItemButtons
+                                    items={actionableItemButtons}
+                                    layout={ReportActionsUtils.isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                                />
+                            )}
                         </View>
                     ) : (
                         <ReportActionItemMessageEdit
@@ -914,22 +927,22 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
     },
     iouReport: {
-        key: ({action}) => {
+        key: ({ action }) => {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
             return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? 0}`;
         },
         initialValue: {} as OnyxTypes.Report,
     },
     policyReportFields: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? 0}`,
+        key: ({ report }) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? 0}`,
         initialValue: {},
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
+        key: ({ report }) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
         initialValue: {} as OnyxTypes.Policy,
     },
     emojiReactions: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
+        key: ({ action }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
         initialValue: {},
     },
     userWallet: {
