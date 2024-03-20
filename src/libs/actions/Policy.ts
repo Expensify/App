@@ -866,13 +866,14 @@ function removeMembers(accountIDs: number[], policyID: string) {
             },
         });
     });
-    optimisticClosedReportActions.forEach((reportAction, index) => {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.[index]?.reportID}`,
-            value: {[reportAction.reportActionID]: reportAction as ReportAction},
-        });
-    });
+    // comment out for time this issue would be resolved https://github.com/Expensify/App/issues/35952
+    // optimisticClosedReportActions.forEach((reportAction, index) => {
+    //     optimisticData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.[index]?.reportID}`,
+    //         value: {[reportAction.reportActionID]: reportAction as ReportAction},
+    //     });
+    // });
 
     // If the policy has primaryLoginsInvited, then it displays informative messages on the members page about which primary logins were added by secondary logins.
     // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
