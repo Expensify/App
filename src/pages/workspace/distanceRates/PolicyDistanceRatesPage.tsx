@@ -316,17 +316,17 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                             confirmText={translate('common.buttonConfirm')}
                             shouldShowCancelButton={false}
                         />
-                    <ConfirmModal
-                        title={translate('workspace.distanceRates.deleteDistanceRate')}
-                        isVisible={isDeleteModalVisible}
-                        onConfirm={deleteRates}
-                        onCancel={() => setIsDeleteModalVisible(false)}
-                        prompt={translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length})}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                </ScreenWrapper>
+                        <ConfirmModal
+                            title={translate('workspace.distanceRates.deleteDistanceRate')}
+                            isVisible={isDeleteModalVisible}
+                            onConfirm={deleteRates}
+                            onCancel={() => setIsDeleteModalVisible(false)}
+                            prompt={translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length})}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
+                    </ScreenWrapper>
                 </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
