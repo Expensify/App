@@ -1528,7 +1528,7 @@ function getOptions(
     // - All archived reports should remain at the bottom
     const orderedReportOptions = lodashSortBy(filteredReportOptions, (option) => {
         const report = option.item;
-        if (ReportUtils.isArchivedRoom(report)) {
+        if (option.isArchivedRoom) {
             return CONST.DATE.UNIX_EPOCH;
         }
 
@@ -1543,11 +1543,11 @@ function getOptions(
             return;
         }
 
-        const isThread = ReportUtils.isChatThread(report);
-        const isTaskReport = ReportUtils.isTaskReport(report);
-        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const isSelfDM = ReportUtils.isSelfDM(report);
+        const isThread = option.isThread;
+        const isTaskReport = option.isTaskReport;
+        const isPolicyExpenseChat = option.isPolicyExpenseChat;
+        const isMoneyRequestReport = option.isMoneyRequestReport;
+        const isSelfDM = option.isSelfDM;
         // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
         const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
 
