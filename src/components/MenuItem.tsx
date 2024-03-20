@@ -190,6 +190,9 @@ type MenuItemBaseProps = {
     /** Used to truncate the text with an ellipsis after computing the text layout */
     numberOfLinesTitle?: number;
 
+    /** Used to truncate the description with an ellipsis after computing the text layout */
+    numberOfLinesDescription?: number;
+
     /**  Whether we should use small avatar subscript sizing the for menu item */
     isSmallAvatarSubscriptMenu?: boolean;
 
@@ -255,6 +258,7 @@ function MenuItem(
         badgeStyle,
         viewMode = CONST.OPTION_MODE.DEFAULT,
         numberOfLinesTitle = 1,
+        numberOfLinesDescription = 2,
         icon,
         iconFill,
         secondaryIcon,
@@ -506,7 +510,7 @@ function MenuItem(
                                         {!!description && shouldShowDescriptionOnTop && (
                                             <Text
                                                 style={descriptionTextStyles}
-                                                numberOfLines={2}
+                                                numberOfLines={numberOfLinesDescription}
                                             >
                                                 {description}
                                             </Text>
@@ -538,7 +542,7 @@ function MenuItem(
                                         {!!description && !shouldShowDescriptionOnTop && (
                                             <Text
                                                 style={descriptionTextStyles}
-                                                numberOfLines={2}
+                                                numberOfLines={numberOfLinesDescription}
                                             >
                                                 {description}
                                             </Text>

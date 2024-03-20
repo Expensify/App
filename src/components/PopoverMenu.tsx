@@ -200,6 +200,7 @@ function PopoverMenu({
                         title={item.text}
                         shouldCheckActionAllowedOnPress={false}
                         description={item.description}
+                        numberOfLinesDescription={item.numberOfLinesDescription}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
                         displayInDefaultIconColor={item.displayInDefaultIconColor}

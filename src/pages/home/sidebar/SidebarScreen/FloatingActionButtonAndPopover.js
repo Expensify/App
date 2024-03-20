@@ -330,6 +330,7 @@ function FloatingActionButtonAndPopover(props) {
                                   floatRightAvatars: avatars,
                                   floatRightAvatarSize: avatars.length > 1 ? CONST.AVATAR_SIZE.SMALLER : CONST.AVATAR_SIZE.SMALL,
                                   description: ReportUtils.getReportName(quickActionReport),
+                                  numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                               },
                           ]
