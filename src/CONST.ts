@@ -1487,7 +1487,7 @@ const CONST = {
             DISABLE: 'disable',
             ENABLE: 'enable',
         },
-        COLLECTION_FIELDS: {
+        COLLECTION_KEYS: {
             DESCRIPTION: 'description',
             REIMBURSER_EMAIL: 'reimburserEmail',
             REIMBURSEMENT_CHOICE: 'reimbursementChoice',
