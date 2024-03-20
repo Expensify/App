@@ -67,13 +67,7 @@ function IOURequestStepScan({
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
     const askedForPermission = useRef(false);
-
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
-    useFocusEffect(
-        useCallback(() => {
-            setDidCapturePhoto(false);
-        }, []),
-    );
 
     const {translate} = useLocalize();
 
@@ -130,6 +124,8 @@ function IOURequestStepScan({
 
     useFocusEffect(
         useCallback(() => {
+            setDidCapturePhoto(false);
+
             const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
                 CameraPermission.getCameraPermissionStatus()
                     .then((res) => {
