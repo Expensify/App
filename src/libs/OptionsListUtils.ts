@@ -1014,8 +1014,8 @@ function getCategoryListSections(
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledWithoutSelectedCategories = sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name));
-    const numberOfVisibleCategories = enabledWithoutSelectedCategories.length + selectedOptions.length;
+    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
+    const numberOfVisibleCategories = filteredCategories.length + selectedOptionNames.length;
 
     if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
         categorySections.push({
@@ -1023,7 +1023,7 @@ function getCategoryListSections(
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(enabledWithoutSelectedCategories),
+            data: getCategoryOptionTree(filteredCategories, false, selectedOptionNames),
         });
 
         return categorySections;
@@ -1049,8 +1049,6 @@ function getCategoryListSections(
 
         indexOffset += filteredRecentlyUsedCategories.length;
     }
-
-    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
