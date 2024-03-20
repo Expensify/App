@@ -81,7 +81,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
                                 label={translate('workspace.editor.nameInputLabel')}
                                 accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                                 defaultValue={policy?.taxRates?.name}
-                                maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
+                                maxLength={CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH}
                                 multiline={false}
                                 ref={inputCallbackRef}
                             />

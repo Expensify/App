@@ -358,6 +358,7 @@ const CONST = {
         NOT_INSTALLED: 'not-installed',
     },
     TAX_RATES: {
+        CUSTOM_NAME_MAX_LENGTH: 8,
         NAME_MAX_LENGTH: 50,
     },
     PLATFORM: {
