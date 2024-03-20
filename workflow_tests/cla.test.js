@@ -3,7 +3,7 @@ const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/claAssertions');
 const mocks = require('./mocks/claMocks');
-const eAct = require('./utils/ExtendedAct');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
 let mockGithub;
@@ -62,7 +62,7 @@ describe('test workflow cla', () => {
             it('workflow executes, CLA assistant step not run', async () => {
                 const repoPath = mockGithub.repo.getPath('testClaWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
                 const testMockSteps = {
                     CLA: mocks.CLA__CLA__NO_MATCHES__STEP_MOCKS,
@@ -93,7 +93,7 @@ describe('test workflow cla', () => {
             it('workflow executes, CLA assistant step run', async () => {
                 const repoPath = mockGithub.repo.getPath('testClaWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
                 const testMockSteps = {
                     CLA: mocks.CLA__CLA__CHECK_MATCH__STEP_MOCKS,
@@ -124,7 +124,7 @@ describe('test workflow cla', () => {
             it('workflow executes, CLA assistant step run', async () => {
                 const repoPath = mockGithub.repo.getPath('testClaWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
                 const testMockSteps = {
                     CLA: mocks.CLA__CLA__RECHECK_MATCH__STEP_MOCKS,
@@ -154,7 +154,7 @@ describe('test workflow cla', () => {
             it('workflow executes, CLA assistant step still run', async () => {
                 const repoPath = mockGithub.repo.getPath('testClaWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
                 const testMockSteps = {
                     CLA: mocks.CLA__CLA__NO_MATCHES__STEP_MOCKS,
@@ -178,7 +178,7 @@ describe('test workflow cla', () => {
             };
             const repoPath = mockGithub.repo.getPath('testClaWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
             const testMockSteps = {
                 CLA: mocks.CLA__CLA__NO_MATCHES__STEP_MOCKS,

@@ -68,7 +68,6 @@ import type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,
@@ -463,9 +462,14 @@ export default {
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
-        editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}?`,
+        editAction: ({action}: EditActionParams) =>
+            `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'}`,
+        deleteAction: ({action}: DeleteActionParams) =>
+            `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'}`,
+        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
+            `Are you sure you want to delete this ${
+                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'
+            }?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
@@ -504,6 +508,8 @@ export default {
             send: 'send money',
             split: 'split a bill',
             request: 'request money',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'track-expense': 'track an expense',
         },
     },
     reportAction: {
@@ -594,6 +600,7 @@ export default {
         participants: 'Participants',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
+        trackExpense: 'Track expense',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
@@ -625,10 +632,11 @@ export default {
         finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
+        trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
-        payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} owes ${amount}`,
+        payerOwesAmount: ({payer, amount, comment}: PayerOwesAmountParams) => `${payer} owes ${amount}${comment ? ` for ${comment}` : ''}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer ? `${payer} ` : ''}paid ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} paid: `,
@@ -656,9 +664,10 @@ export default {
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
             `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'request'}`,
+        threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
-        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money.`,
-        categorySelection: 'Select a category to add additional organization to your money.',
+        tagSelection: 'Select a tag to better organize your spend.',
+        categorySelection: 'Select a category to better organize your spend.',
         error: {
             invalidCategoryLength: 'The length of the category chosen exceeds the maximum allowed (255). Please choose a different or shorten the category name first.',
             invalidAmount: 'Please enter a valid amount before continuing.',
@@ -1071,6 +1080,14 @@ export default {
                 other: 'th',
             },
         },
+    },
+    workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'The delayed submission parameter could not be changed. Please try again or contact support.',
+        autoReportingFrequencyErrorMessage: 'The submission frequency could not be changed. Please try again or contact support.',
+        monthlyOffsetErrorMessage: 'The monthly frequency could not be changed. Please try again or contact support.',
+    },
+    workflowsApprovalPage: {
+        genericErrorMessage: 'The approver could not be changed. Please try again or contact support.',
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -1768,6 +1785,8 @@ export default {
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
+            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
+                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         type: {
             free: 'Free',
@@ -1846,14 +1865,20 @@ export default {
             requiresTag: 'Members must tag all spend',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
+            enableTags: 'Enable tags',
+            disableTag: 'Disable tag',
+            disableTags: 'Disable tags',
             addTag: 'Add tag',
+            editTag: 'Edit tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {
                 title: "You haven't created any tags",
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
             },
             deleteTag: 'Delete tag',
+            deleteTags: 'Delete tags',
             deleteTagConfirmation: 'Are you sure that you want to delete this tag?',
+            deleteTagsConfirmation: 'Are you sure that you want to delete these tags?',
             deleteFailureMessage: 'An error occurred while deleting the tag, please try again.',
             tagRequiredError: 'Tag name is required.',
             existingTagError: 'A tag with this name already exists.',
@@ -1869,7 +1894,19 @@ export default {
             errors: {
                 taxRateAlreadyExists: 'This tax name is already in use.',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
-                genericFailureMessage: 'An error occurred while updating the tax rate, please try again.',
+                deleteFailureMessage: 'An error occurred while deleting the tax rate. Please try again or ask Concierge for help.',
+                updateFailureMessage: 'An error occurred while updating the tax rate. Please try again or ask Concierge for help.',
+                createFailureMessage: 'An error occurred while creating the tax rate. Please try again or ask Concierge for help.',
+            },
+            deleteTaxConfirmation: 'Are you sure you want to delete this tax?',
+            deleteMultipleTaxConfirmation: ({taxAmount}) => `Are you sure you want to delete ${taxAmount} taxes?`,
+            actions: {
+                delete: 'Delete rate',
+                deleteMultiple: 'Delete rates',
+                disable: 'Disable rate',
+                disableMultiple: 'Disable rates',
+                enable: 'Enable rate',
+                enableMultiple: 'Enable rates',
             },
         },
         emptyWorkspace: {
@@ -1935,8 +1972,6 @@ export default {
             trackDistanceRate: 'Rate',
             trackDistanceUnit: 'Unit',
             trackDistanceChooseUnit: 'Choose a default unit to track.',
-            kilometers: 'Kilometers',
-            miles: 'Miles',
             unlockNextDayReimbursements: 'Unlock next-day reimbursements',
             captureNoVBACopyBeforeEmail: 'Ask your workspace members to forward receipts to ',
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
@@ -1992,8 +2027,6 @@ export default {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
@@ -2011,6 +2044,8 @@ export default {
             status: 'Status',
             enabled: 'Enabled',
             disabled: 'Disabled',
+            unit: 'Unit',
+            defaultCategory: 'Default category',
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -2310,6 +2345,7 @@ export default {
         deletedReport: '[Deleted report]',
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        deletedExpense: '[Deleted expense]',
         reversedTransaction: '[Reversed transaction]',
         deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
