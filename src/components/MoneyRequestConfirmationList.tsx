@@ -645,10 +645,8 @@ function MoneyRequestConfirmationList({
                         if (isDistanceRequest) {
                             return;
                         }
-                        const action = props.isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE;
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, props.iouType, props.transaction.transactionID, props.reportID, Navigation.getActiveRouteWithoutParams()),
-                        );
+                        const action = isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE;
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}

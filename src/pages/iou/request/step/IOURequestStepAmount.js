@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import lodashIsEmpty from 'lodash/isEmpty';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -86,7 +87,8 @@ function IOURequestStepAmount({
     const iouRequestType = getRequestType(transaction);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditing && isSplitBill ? splitDraftTransaction : transaction);
+    const isEditingSplitBill = isEditing && isSplitBill;
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
     const taxRates = lodashGet(policy, 'taxRates', {});
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
