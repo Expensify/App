@@ -368,7 +368,7 @@ function ReportScreen({
         });
         return () => {
             interactionTask.cancel();
-            if (!didSubscribeToReportLeavingEvents) {
+            if (!didSubscribeToReportLeavingEvents.current) {
                 return;
             }
 
