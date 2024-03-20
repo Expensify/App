@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -288,6 +289,14 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID;
 }
 
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
+        return Boolean(policy?.tax?.trackingEnabled);
+    }
+
+    return Boolean(policy?.[featureName]);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -319,6 +328,7 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    isPolicyFeatureEnabled,
     hasTaxRateError,
     getTaxByID,
     hasPolicyCategoriesError,
