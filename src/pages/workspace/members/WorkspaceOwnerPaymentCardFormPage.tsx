@@ -238,6 +238,7 @@ function WorkspaceOwnerPaymentCardFormPage({policy, route}: WorkspaceOwnerPaymen
                                 currencies={Object.keys(CONST.CURRENCY) as Array<keyof typeof CONST.CURRENCY>}
                                 currentCurrency={currency}
                                 onCurrencyChange={changeCurrency}
+                                onClose={() => setIsCurrencyModalVisible(false)}
                             />
 
                             <Text style={[styles.textMicroSupporting, styles.mt5]}>
