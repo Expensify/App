@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
