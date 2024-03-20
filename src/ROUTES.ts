@@ -576,6 +576,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tags/edit',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/edit` as const,
     },
+    WORKSPACE_TAG_EDIT: {
+        route: 'settings/workspace/:policyID/tag/:tagName/edit',
+        getRoute: (policyID: string, tagName: string) => `settings/workspace/${policyID}/tag/${encodeURIComponent(tagName)}/edit` as const,
+    },
     WORKSPACE_TAG_SETTINGS: {
         route: 'settings/workspaces/:policyID/tag/:tagName',
         getRoute: (policyID: string, tagName: string) => `settings/workspaces/${policyID}/tag/${encodeURIComponent(tagName)}` as const,
@@ -583,6 +587,22 @@ const ROUTES = {
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes` as const,
+    },
+    WORKSPACE_TAXES_SETTINGS: {
+        route: 'settings/workspaces/:policyID/taxes/settings',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings` as const,
+    },
+    WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: {
+        route: 'settings/workspaces/:policyID/taxes/settings/workspace-currency',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings/workspace-currency` as const,
+    },
+    WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: {
+        route: 'settings/workspaces/:policyID/taxes/settings/foreign-currency',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings/foreign-currency` as const,
+    },
+    WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME: {
+        route: 'settings/workspaces/:policyID/taxes/settings/tax-name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings/tax-name` as const,
     },
     WORKSPACE_MEMBER_DETAILS: {
         route: 'settings/workspaces/:policyID/members/:accountID',

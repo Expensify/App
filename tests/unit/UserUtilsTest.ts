@@ -1,4 +1,4 @@
-import * as UserUtils from '../../src/libs/UserUtils';
+import * as UserUtils from '@src/libs/UserUtils';
 
 describe('UserUtils', () => {
     it('should return the default avatar from the avatar url', () => {
