@@ -94,12 +94,16 @@ function ReportActionsView({
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             openReportIfNecessary();
         });
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        if (interactionTask) {
-            return () => {
+
+        return () => {
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            if (interactionTask) {
                 interactionTask.cancel();
-            };
-        }
+            }
+            if (didSubscribeToReportTypingEvents.current) {
+                Report.unsubscribeFromLeavingRoomReportChannel(report.reportID);
+            }
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
