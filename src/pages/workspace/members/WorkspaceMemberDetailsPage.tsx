@@ -1,8 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -63,6 +64,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const isCurrentUserAdmin = policyMembers?.[currentUserPersonalDetails?.accountID]?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
 
+    useEffect(() => {
+        if (!policy?.errorFields?.changeOwner) {
+            return;
+        }
+
+        const keys = Object.keys(policy.errorFields.changeOwner);
+
+        if (keys && keys.length > 0) {
+            if (keys[0] === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
+                Navigation.navigate(ROUTES.WORKSPACE_OWNER_PAYMENT_CARD_FORM.getRoute(policyID, accountID));
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, keys[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+            }
+        }
+    }, [accountID, policy?.errorFields?.changeOwner, policyID]);
+
     const askForConfirmationToRemove = () => {
         setIsRemoveMemberConfirmModalVisible(true);
     };
@@ -82,16 +99,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     }, [accountID, policyID]);
 
     const startChangeOwnershipFlow = useCallback(() => {
-        const ownershipChecks: PolicyOwnershipChangeChecks = {
-            shouldClearOutstandingBalance: false,
-            shouldTransferAmountOwed: false,
-            shouldTransferSubscription: false,
-            shouldTransferSingleSubscription: false,
-        };
+        const ownershipChecks: PolicyOwnershipChangeChecks = {};
 
         Policy.clearWorkspaceOwnerChangeFlow(policyID);
-        Policy.updateWorkspaceOwnershipChecks(policyID, ownershipChecks);
-        Policy.requestWorkspaceOwnerChange(policyID);
+        Policy.requestWorkspaceOwnerChange(policyID, ownershipChecks);
     }, [policyID]);
 
     return (

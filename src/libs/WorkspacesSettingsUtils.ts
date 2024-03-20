@@ -196,6 +196,34 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
     return workspacesUnreadStatuses;
 }
 
+function getOwnershipChecks(error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) {
+    if (error === CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
+        return {
+            shouldClearOutstandingBalance: true
+        };
+    }
+
+    if (error === CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT) {
+        return {
+            shouldTransferAmountOwed: true
+        };
+    }
+
+    if (error === CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION) {
+        return {
+            shouldTransferSubscription: true
+        };
+    }
+
+    if (error === CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION) {
+        return {
+            shouldTransferSingleSubscription: true
+        };
+    }
+
+    return {};
+}
+
 export {
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
@@ -204,5 +232,6 @@ export {
     checkIfWorkspaceSettingsTabHasRBR,
     hasWorkspaceSettingsRBR,
     getChatTabBrickRoad,
+    getOwnershipChecks,
 };
 export type {BrickRoad};

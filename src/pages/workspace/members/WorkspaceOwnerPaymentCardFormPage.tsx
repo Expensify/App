@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -24,6 +25,8 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -33,11 +36,11 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 import WorkspaceOwnerPaymentCardCurrencyModal from './WorkspaceOwnerPaymentCardCurrencyModal';
 
-type WorkspaceOwnerPaymentCardFormPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_PAYMENT_CARD_FORM>;
+type WorkspaceOwnerPaymentCardFormPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_PAYMENT_CARD_FORM>;
 
 const REQUIRED_FIELDS = [INPUT_IDS.NAME_ON_CARD, INPUT_IDS.CARD_NUMBER, INPUT_IDS.EXPIRATION_DATE, INPUT_IDS.ADDRESS_STREET, INPUT_IDS.SECURITY_CODE, INPUT_IDS.ADDRESS_ZIP_CODE];
 
-function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFormPageProps) {
+function WorkspaceOwnerPaymentCardFormPage({policy, route}: WorkspaceOwnerPaymentCardFormPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -62,30 +65,47 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
         [],
     );
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+    useEffect(() => {
+        if (!policy) {
+            return;
+        }
 
-        if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
+        if (!policy?.errorFields?.changeOwner) {
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+            return;
+        }
+
+        const keys = Object.keys(policy.errorFields.changeOwner);
+
+        if (keys && keys.length > 0 && keys[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, keys[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+        }
+    }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
+
+    const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
+
+        if (formValues.nameOnCard && !ValidationUtils.isValidLegalName(formValues.nameOnCard)) {
             errors.nameOnCard = 'addDebitCardPage.error.invalidName';
         }
 
-        if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+        if (formValues.cardNumber && !ValidationUtils.isValidDebitCard(formValues.cardNumber.replace(/ /g, ''))) {
             errors.cardNumber = 'addDebitCardPage.error.debitCardNumber';
         }
 
-        if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
+        if (formValues.expirationDate && !ValidationUtils.isValidExpirationDate(formValues.expirationDate)) {
             errors.expirationDate = 'addDebitCardPage.error.expirationDate';
         }
 
-        if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
+        if (formValues.securityCode && !ValidationUtils.isValidSecurityCode(formValues.securityCode)) {
             errors.securityCode = 'addDebitCardPage.error.securityCode';
         }
 
-        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+        if (formValues.addressStreet && !ValidationUtils.isValidAddress(formValues.addressStreet)) {
             errors.addressStreet = 'addDebitCardPage.error.addressStreet';
         }
 
-        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+        if (formValues.addressZipCode && !ValidationUtils.isValidZipCode(formValues.addressZipCode)) {
             errors.addressZipCode = 'addDebitCardPage.error.addressZipCode';
         }
 
@@ -103,8 +123,8 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
                 addressZip: values.addressZipCode,
                 currency: CONST.CURRENCY.USD,
             };
+
             Policy.addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);
-            Navigation.dismissModal();
         },
         [policyID],
     );
@@ -290,4 +310,4 @@ function WorkspaceOwnerPaymentCardFormPage({route}: WorkspaceOwnerPaymentCardFor
 
 WorkspaceOwnerPaymentCardFormPage.displayName = 'WorkspaceOwnerPaymentCardForm';
 
-export default WorkspaceOwnerPaymentCardFormPage;
+export default withPolicy(WorkspaceOwnerPaymentCardFormPage);

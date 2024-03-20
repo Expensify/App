@@ -72,8 +72,8 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyMember,
-    PolicyTag,
     PolicyOwnershipChangeChecks,
+    PolicyTag,
     PolicyTagList,
     PolicyTags,
     RecentlyUsedCategories,
@@ -244,14 +244,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
     waitForCollectionCallback: true,
     callback: (val) => (allPolicyCategories = val),
-});
-
-let policyOwnershipChecks: Record<string, PolicyOwnershipChangeChecks>;
-Onyx.connect({
-    key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
-    callback: (value) => {
-        policyOwnershipChecks = value ?? {};
-    },
 });
 
 /**
@@ -985,15 +977,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
-function updateWorkspaceOwnershipChecks(policyID: string, ownershipChecks: PolicyOwnershipChangeChecks) {
-    Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, {
-        [policyID]: ownershipChecks,
-    });
-}
-
-function requestWorkspaceOwnerChange(policyID: string) {
-    const ownershipChecks = policyOwnershipChecks?.[policyID] ?? {};
-
+function requestWorkspaceOwnerChange(policyID: string, ownershipChecks: PolicyOwnershipChangeChecks) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1038,9 +1022,6 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {changeOwner: null},
         pendingAction: null,
-    });
-    Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, {
-        [policyID]: null,
     });
 }
 
@@ -4201,7 +4182,6 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
 export {
     removeMembers,
     updateWorkspaceMembersRole,
-    updateWorkspaceOwnershipChecks,
     requestWorkspaceOwnerChange,
     clearWorkspaceOwnerChangeFlow,
     addBillingCardAndRequestPolicyOwnerChange,

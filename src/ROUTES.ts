@@ -608,14 +608,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
     },
+    WORKSPACE_OWNER_PAYMENT_CARD_FORM: {
+        route: 'settings/workspaces/:policyID/add-payment-card/:accountID',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/add-payment-card/${accountID}` as const,
+    },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         route: 'settings/workspaces/:policyID/change-owner/:accountID/:error',
         getRoute: (policyID: string, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) =>
             `settings/workspaces/${policyID}/change-owner/${accountID}/${error}` as const,
-    },
-    WORKSPACE_OWNER_PAYMENT_CARD_FORM: {
-        route: 'settings/workspaces/:policyID/change-owner/:accountID/add-payment-card',
-        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/add-payment-card` as const,
     },
     WORKSPACE_TAX_CREATE: {
         route: 'settings/workspaces/:policyID/taxes/new',

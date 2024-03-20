@@ -6,7 +6,6 @@ import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -43,7 +42,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyMember, PolicyMembers, PolicyOwnershipChangeChecks, Session} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyMember, PolicyMembers, Session} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -58,9 +57,6 @@ type WorkspaceMembersPageOnyxProps = {
 
     /** An object containing the accountID for every invited user email */
     invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
-
-    /** Ownership checks */
-    policyOwnershipChangeChecks: OnyxEntry<Record<string, PolicyOwnershipChangeChecks>>;
 };
 
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
@@ -87,7 +83,6 @@ function WorkspaceMembersPage({
     policy,
     session,
     currentUserPersonalDetails,
-    policyOwnershipChangeChecks,
     isLoadingReportData = true,
 }: WorkspaceMembersPageProps) {
     const styles = useThemeStyles();
@@ -188,30 +183,6 @@ function WorkspaceMembersPage({
         }
         getWorkspaceMembers();
     }, [isOffline, prevIsOffline, getWorkspaceMembers]);
-
-    useEffect(() => {
-        if (isEmptyObject(policyOwnershipChangeChecks?.[policyID])) {
-            return;
-        }
-
-        Policy.requestWorkspaceOwnerChange(policyID);
-    }, [policyID, policyOwnershipChangeChecks]);
-
-    useEffect(() => {
-        if (!policy?.errorFields?.changeOwner || !policy?.ownerAccountID || isEmptyObject(policyOwnershipChangeChecks?.[policyID])) {
-            return;
-        }
-
-        const keys = Object.keys(policy.errorFields.changeOwner);
-
-        if (keys && keys.length > 0) {
-            if (keys[0] === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
-                Navigation.navigate(ROUTES.WORKSPACE_OWNER_PAYMENT_CARD_FORM.getRoute(policyID, policy?.ownerAccountID));
-            } else {
-                Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, policy?.ownerAccountID, keys[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-            }
-        }
-    }, [policy?.errorFields?.changeOwner, policy?.ownerAccountID, policyID, policyOwnershipChangeChecks]);
 
     /**
      * Open the modal to invite a user
@@ -650,9 +621,6 @@ export default withCurrentUserPersonalDetails(
             },
             session: {
                 key: ONYXKEYS.SESSION,
-            },
-            policyOwnershipChangeChecks: {
-                key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
             },
         })(WorkspaceMembersPage),
     ),
