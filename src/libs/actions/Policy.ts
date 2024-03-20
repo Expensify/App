@@ -59,7 +59,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import CONST, {DEFAULT_TAXES_OPTIMISTIC_DATA, DEFAULT_TAXES_SUCCESS_DATA} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -3571,7 +3571,23 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: DEFAULT_TAXES_OPTIMISTIC_DATA,
+                    taxRates: CONST.DEFAULT_TAX.RATES,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            id_TAX_EXEMPT: {
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                            id_TAX_RATE_1: {
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        },
+                    },
                 },
             },
         ],
@@ -3580,7 +3596,16 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: DEFAULT_TAXES_SUCCESS_DATA,
+                    taxRates: {
+                        taxes: {
+                            id_TAX_EXEMPT: {
+                                pendingAction: null,
+                            },
+                            id_TAX_RATE_1: {
+                                pendingAction: null,
+                            },
+                        },
+                    },
                 },
             },
         ],
@@ -3594,8 +3619,8 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         ],
     };
-    const policy = ReportUtils.getPolicy(policyID);
-    const shouldAddDefaultTaxRatesData = isEmptyObject(policy.taxRates) && enabled;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const shouldAddDefaultTaxRatesData = (!policy?.taxRates || isEmptyObject(policy.taxRates)) && enabled;
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3643,7 +3668,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
     if (shouldAddDefaultTaxRatesData) {
-        parameters.taxFields = DEFAULT_TAXES_OPTIMISTIC_DATA;
+        parameters.taxFields = CONST.DEFAULT_TAX.RATES;
     }
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 

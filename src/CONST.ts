@@ -4072,41 +4072,28 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
-} as const;
-
-const DEFAULT_TAXES_OPTIMISTIC_DATA = {
-    defaultExternalID: 'id_TAX_EXEMPT',
-    defaultValue: '0%',
-    foreignTaxDefault: 'id_TAX_EXEMPT',
-    name: 'Tax',
-    taxes: {
-        id_TAX_EXEMPT: {
-            name: 'Tax exempt',
-            value: '0%',
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    DEFAULT_TAX: {
+        RATES: {
+            defaultExternalID: 'id_TAX_EXEMPT',
+            defaultValue: '0%',
+            foreignTaxDefault: 'id_TAX_EXEMPT',
+            name: 'Tax',
+            taxes: {
+                id_TAX_EXEMPT: {
+                    name: 'Tax exempt',
+                    value: '0%',
+                },
+                id_TAX_RATE_1: {
+                    name: 'Tax rate 1',
+                    value: '5%',
+                },
+            },
         },
-        id_TAX_RATE_1: {
-            name: 'Tax rate 1',
-            value: '5%',
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        },
-    },
-};
-
-const DEFAULT_TAXES_SUCCESS_DATA = {
-    taxes: {
-        id_TAX_EXEMPT: {
-            pendingAction: null,
-        },
-        id_TAX_RATE_1: {
-            pendingAction: null,
-        },
-    },
+    } as const,
 };
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 export type {Country};
-export {DEFAULT_TAXES_OPTIMISTIC_DATA, DEFAULT_TAXES_SUCCESS_DATA};
 
 export default CONST;
