@@ -1,9 +1,8 @@
-// Implements Why Did You Render (WDYR) in Dev
-import lodashGet from 'lodash/get';
+/// <reference types="@welldone-software/why-did-you-render" />
 import React from 'react';
 import Config from 'react-native-config';
 
-const useWDYR = lodashGet(Config, 'USE_WDYR') === 'true';
+const useWDYR = Config?.USE_WDYR === 'true';
 
 if (useWDYR) {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
