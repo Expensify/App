@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -71,49 +72,54 @@ function WorkspaceCreateTaxPage({
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper
-                    testID={WorkspaceCreateTaxPage.displayName}
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
                 >
-                    <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
-                        <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />
-                        <FormProvider
-                            style={[styles.flexGrow1, styles.mh5]}
-                            formID={ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM}
-                            onSubmit={submitForm}
-                            validate={validate}
-                            submitButtonText={translate('common.save')}
-                            enabledWhenOffline
-                            shouldValidateOnBlur={false}
-                            disablePressOnEnter={false}
-                        >
-                            <View style={styles.mhn5}>
-                                <InputWrapper
-                                    InputComponent={TextPicker}
-                                    inputID={INPUT_IDS.NAME}
-                                    label={translate('common.name')}
-                                    description={translate('common.name')}
-                                    rightLabel={translate('common.required')}
-                                    accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                                    maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
-                                    multiline={false}
-                                    role={CONST.ROLE.PRESENTATION}
-                                    autoFocus
-                                />
-                                <InputWrapper
-                                    InputComponent={AmountPicker}
-                                    inputID={INPUT_IDS.VALUE}
-                                    title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
-                                    description={translate('workspace.taxes.value')}
-                                    rightLabel={translate('common.required')}
-                                    hideCurrencySymbol
-                                    extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
-                                />
-                            </View>
-                        </FormProvider>
-                    </View>
-                </ScreenWrapper>
+                    <ScreenWrapper
+                        testID={WorkspaceCreateTaxPage.displayName}
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                    >
+                        <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
+                            <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />
+                            <FormProvider
+                                style={[styles.flexGrow1, styles.mh5]}
+                                formID={ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM}
+                                onSubmit={submitForm}
+                                validate={validate}
+                                submitButtonText={translate('common.save')}
+                                enabledWhenOffline
+                                shouldValidateOnBlur={false}
+                                disablePressOnEnter={false}
+                            >
+                                <View style={styles.mhn5}>
+                                    <InputWrapper
+                                        InputComponent={TextPicker}
+                                        inputID={INPUT_IDS.NAME}
+                                        label={translate('common.name')}
+                                        description={translate('common.name')}
+                                        rightLabel={translate('common.required')}
+                                        accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                                        maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
+                                        multiline={false}
+                                        role={CONST.ROLE.PRESENTATION}
+                                        autoFocus
+                                    />
+                                    <InputWrapper
+                                        InputComponent={AmountPicker}
+                                        inputID={INPUT_IDS.VALUE}
+                                        title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
+                                        description={translate('workspace.taxes.value')}
+                                        rightLabel={translate('common.required')}
+                                        hideCurrencySymbol
+                                        extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                                    />
+                                </View>
+                            </FormProvider>
+                        </View>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );

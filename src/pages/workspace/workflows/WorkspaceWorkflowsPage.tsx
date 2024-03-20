@@ -228,19 +228,19 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
     const isLoading = reimbursementAccount?.isLoading ?? true;
 
     return (
-        <WorkspacePageWithSections
-            headerText={translate('workspace.common.workflows')}
-            icon={Illustrations.Workflows}
-            route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
-            shouldShowOfflineIndicatorInWideScreen
-            shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
-            shouldSkipVBBACall
-            isLoading={isLoading}
+        <FeatureEnabledAccessOrNotFoundWrapper
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={route.params.policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            <WorkspacePageWithSections
+                headerText={translate('workspace.common.workflows')}
+                icon={Illustrations.Workflows}
+                route={route}
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
+                shouldShowOfflineIndicatorInWideScreen
+                shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
+                shouldSkipVBBACall
+                isLoading={isLoading}
             >
                 <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
@@ -258,8 +258,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                         </View>
                     </Section>
                 </View>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </WorkspacePageWithSections>
+            </WorkspacePageWithSections>
+        </FeatureEnabledAccessOrNotFoundWrapper>
     );
 }
 
