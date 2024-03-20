@@ -992,7 +992,7 @@ function requestWorkspaceOwnerChange(policyID: string, ownershipChecks?: PolicyO
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: null,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                isLoading: true,
             },
         },
     ];
@@ -1002,8 +1002,7 @@ function requestWorkspaceOwnerChange(policyID: string, ownershipChecks?: PolicyO
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                errorFields: null,
-                pendingAction: null,
+                isLoading: false,
             },
         },
     ];
@@ -1013,7 +1012,7 @@ function requestWorkspaceOwnerChange(policyID: string, ownershipChecks?: PolicyO
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingAction: null,
+                isLoading: false,
             },
         },
     ];
