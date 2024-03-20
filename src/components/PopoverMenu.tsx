@@ -205,6 +205,8 @@ function PopoverMenu({
                         displayInDefaultIconColor={item.displayInDefaultIconColor}
                         shouldShowRightIcon={item.shouldShowRightIcon}
                         shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
+                        label={item.label}
+                        floatRightAvatars={item.floatRightAvatars}
                     />
                 ))}
             </View>

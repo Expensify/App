@@ -322,6 +322,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 hasDraft: false,
                 oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
+                policyName: '',
             },
         });
 
@@ -368,6 +369,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum,
                 hasDraft,
                 oldPolicyName,
+                policyName: report?.policyName,
             },
         });
     });
@@ -451,7 +453,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
                     enabled,
                 },
                 autoReportingFrequency: frequency,
-                pendingFields: {isAutoApprovalEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                pendingFields: {autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
     ];
@@ -466,7 +468,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
                     enabled: policy.harvesting?.enabled ?? null,
                 },
                 autoReportingFrequency: policy.autoReportingFrequency ?? null,
-                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
+                pendingFields: {autoReporting: null},
             },
         },
     ];
@@ -476,7 +478,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {isAutoApprovalEnabled: null, harvesting: null},
+                pendingFields: {autoReporting: null},
             },
         },
     ];
@@ -566,13 +568,11 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
 }
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
-    const isAutoApprovalEnabled = approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC;
     const policy = ReportUtils.getPolicy(policyID);
 
     const value = {
         approver,
         approvalMode,
-        isAutoApprovalEnabled,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -593,7 +593,6 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 approver: policy.approver ?? null,
                 approvalMode: policy.approvalMode ?? null,
-                isAutoApprovalEnabled: policy.isAutoApprovalEnabled ?? null,
                 pendingFields: {approvalMode: null},
             },
         },
@@ -609,7 +608,14 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         },
     ];
 
-    const params: SetWorkspaceApprovalModeParams = {policyID, value: JSON.stringify(value)};
+    const params: SetWorkspaceApprovalModeParams = {
+        policyID,
+        value: JSON.stringify({
+            ...value,
+            // This property should now be set to false for all Collect policies
+            isAutoApprovalEnabled: false,
+        }),
+    };
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
@@ -3081,6 +3087,72 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
     });
 }
 
+function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+    const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[policyTag.oldName] ?? {};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.oldName]: null,
+                            [policyTag.newName]: {
+                                ...oldTag,
+                                name: policyTag.newName,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.newName]: {
+                                errors: null,
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.newName]: null,
+                            [policyTag.oldName]: {
+                                ...oldTag,
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        oldName: policyTag.oldName,
+        newName: policyTag.newName,
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
+}
+
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -4123,6 +4195,7 @@ export {
     createPolicyDistanceRate,
     clearCreateDistanceRateItemAndError,
     createPolicyTag,
+    renamePolicyTag,
     clearPolicyTagErrors,
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,

@@ -1857,6 +1857,7 @@ export default {
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
             addTag: 'Add tag',
+            editTag: 'Edit tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {
                 title: "You haven't created any tags",

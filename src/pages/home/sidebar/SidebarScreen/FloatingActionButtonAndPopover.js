@@ -285,6 +285,8 @@ function FloatingActionButtonAndPopover(props) {
                             {
                                 icon: getQuickActionIcon(quickAction),
                                 text: translate(getQuickActionTitle(quickAction)),
+                                label: 'Shortcut',
+                                floatRightAvatars: avatars,
                                 description: translate('workspace.new.getTheExpensifyCardAndMore'),
                             },
                         ]
