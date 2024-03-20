@@ -4089,8 +4089,8 @@ const CONST = {
                 },
             },
         },
-    } as const,
-};
+    },
+} as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
