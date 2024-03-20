@@ -159,7 +159,7 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         isEmptyChat?: boolean;
 
         /** The last report action */
-        lastReportAction?: OnyxTypes.ReportAction;
+        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
         /** Whether to include chronos */
         includeChronos?: boolean;
@@ -432,10 +432,9 @@ function ComposerWithSuggestions(
             }
 
             commentRef.current = newCommentConverted;
-            const isDraftCommentEmpty = getDraftComment(reportID) === '';
             if (shouldDebounceSaveComment) {
                 debouncedSaveReportComment(reportID, newCommentConverted);
-            } else if (isDraftCommentEmpty && newCommentConverted.length !== 0) {
+            } else {
                 Report.saveReportComment(reportID, newCommentConverted || '');
             }
             if (newCommentConverted) {

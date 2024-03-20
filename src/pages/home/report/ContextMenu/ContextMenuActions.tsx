@@ -18,7 +18,6 @@ import * as Localize from '@libs/Localize';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -101,6 +100,7 @@ type ContextMenuActionWithIcon = {
 type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIcon) & {
     isAnonymousAction: boolean;
     shouldShow: ShouldShow;
+    shouldPreventDefaultFocusOnPress?: boolean;
 };
 
 // A list of all the context actions in this menu.
@@ -219,13 +219,6 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
                 const childReportID = reportAction?.childReportID ?? '0';
-                if (!childReportID) {
-                    const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
-                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
-                    Report.openReport(thread.reportID, userLogins, thread, reportAction?.reportActionID);
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
-                    return;
-                }
                 Report.openReport(childReportID);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
@@ -501,6 +494,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             openContextMenu();
         },
         getDescription: () => {},
+        shouldPreventDefaultFocusOnPress: false,
     },
 ];
 

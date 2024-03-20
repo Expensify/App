@@ -4,7 +4,7 @@ import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/lockDeploysAssertions';
 import mocks from './mocks/lockDeploysMocks';
-import eAct from './utils/ExtendedAct';
+import ExtendedAct from './utils/ExtendedAct';
 import utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
@@ -47,7 +47,7 @@ describe('test workflow lockDeploys', () => {
                     it('job triggered, comment left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -90,7 +90,7 @@ describe('test workflow lockDeploys', () => {
                     it('one step fails, comment not left in StagingDeployCash, announced failure in Slack', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -146,7 +146,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -193,7 +193,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -238,7 +238,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -287,7 +287,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -332,7 +332,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -379,7 +379,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
@@ -424,7 +424,7 @@ describe('test workflow lockDeploys', () => {
                     it('job not triggered, comment not left in StagingDeployCash', async () => {
                         const repoPath = mockGithub.repo.getPath('testLockDeploysWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml');
-                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
                             act,
                             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.

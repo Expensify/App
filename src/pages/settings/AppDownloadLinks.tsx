@@ -47,7 +47,7 @@ function AppDownloadLinksPage() {
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP);
+                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
             icon: Expensicons.Monitor,

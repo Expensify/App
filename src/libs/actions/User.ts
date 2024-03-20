@@ -33,7 +33,7 @@ import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BlockedFromConcierge, FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
+import type {BlockedFromConcierge, CustomStatusDraft, FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -945,7 +945,7 @@ function clearCustomStatus() {
  * @param status.emojiCode
  * @param status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
  */
-function updateDraftCustomStatus(status: Status) {
+function updateDraftCustomStatus(status: CustomStatusDraft) {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, status);
 }
 

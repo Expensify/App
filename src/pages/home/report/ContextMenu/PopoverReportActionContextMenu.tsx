@@ -3,7 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {Dimensions} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -30,7 +30,6 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
     return event;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
     const reportIDRef = useRef('0');
@@ -262,6 +261,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);
         }
+
+        DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
     }, []);
 

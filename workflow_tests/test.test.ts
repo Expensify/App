@@ -4,7 +4,7 @@ import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/testAssertions';
 import mocks from './mocks/testMocks';
-import eAct from './utils/ExtendedAct';
+import ExtendedAct from './utils/ExtendedAct';
 import utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
@@ -53,7 +53,7 @@ describe('test workflow test', () => {
         it('runs all tests', async () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps: MockStep = {
@@ -74,7 +74,7 @@ describe('test workflow test', () => {
             it('does not run tests', async () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
@@ -102,7 +102,7 @@ describe('test workflow test', () => {
         it('runs all tests', async () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps: MockStep = {
@@ -123,7 +123,7 @@ describe('test workflow test', () => {
             it('does not run tests', async () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
@@ -149,7 +149,7 @@ describe('test workflow test', () => {
         it('runs all tests', async () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps: MockStep = {
@@ -170,7 +170,7 @@ describe('test workflow test', () => {
             it('runs all tests normally', async () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
