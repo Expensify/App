@@ -17,6 +17,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -70,40 +71,45 @@ function NamePage({
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    shouldEnableMaxHeight
-                    testID={NamePage.displayName}
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
                 >
-                    <HeaderWithBackButton
-                        title={translate('common.name')}
-                        onBackButtonPress={goBack}
-                    />
-
-                    <FormProvider
-                        formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
-                        submitButtonText={translate('workspace.editor.save')}
-                        style={[styles.flexGrow1, styles.ph5]}
-                        scrollContextEnabled
-                        onSubmit={submit}
-                        enabledWhenOffline
-                        validate={validate}
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        shouldEnableMaxHeight
+                        testID={NamePage.displayName}
                     >
-                        <View style={styles.mb4}>
-                            <InputWrapper
-                                InputComponent={TextInput}
-                                role={CONST.ROLE.PRESENTATION}
-                                inputID={INPUT_IDS.NAME}
-                                label={translate('workspace.editor.nameInputLabel')}
-                                accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                                value={name}
-                                maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
-                                onChangeText={setName}
-                                ref={inputCallbackRef}
-                            />
-                        </View>
-                    </FormProvider>
-                </ScreenWrapper>
+                        <HeaderWithBackButton
+                            title={translate('common.name')}
+                            onBackButtonPress={goBack}
+                        />
+
+                        <FormProvider
+                            formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
+                            submitButtonText={translate('workspace.editor.save')}
+                            style={[styles.flexGrow1, styles.ph5]}
+                            scrollContextEnabled
+                            onSubmit={submit}
+                            enabledWhenOffline
+                            validate={validate}
+                        >
+                            <View style={styles.mb4}>
+                                <InputWrapper
+                                    InputComponent={TextInput}
+                                    role={CONST.ROLE.PRESENTATION}
+                                    inputID={INPUT_IDS.NAME}
+                                    label={translate('workspace.editor.nameInputLabel')}
+                                    accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                                    value={name}
+                                    maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
+                                    onChangeText={setName}
+                                    ref={inputCallbackRef}
+                                />
+                            </View>
+                        </FormProvider>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );

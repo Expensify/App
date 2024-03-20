@@ -15,9 +15,11 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -53,39 +55,44 @@ function ValuePage({
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    shouldEnableMaxHeight
-                    testID={ValuePage.displayName}
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
                 >
-                    <HeaderWithBackButton
-                        title={translate('workspace.taxes.value')}
-                        onBackButtonPress={goBack}
-                    />
-
-                    <FormProvider
-                        formID={ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM}
-                        submitButtonText={translate('workspace.editor.save')}
-                        style={[styles.flexGrow1]}
-                        scrollContextEnabled
-                        validate={validateTaxValue}
-                        onSubmit={submit}
-                        enabledWhenOffline
-                        disablePressOnEnter={false}
-                        shouldHideFixErrorsAlert
-                        submitFlexEnabled={false}
-                        submitButtonStyles={[styles.mh5]}
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        shouldEnableMaxHeight
+                        testID={ValuePage.displayName}
                     >
-                        <InputWrapper
-                            InputComponent={AmountForm}
-                            inputID={INPUT_IDS.VALUE}
-                            defaultValue={value}
-                            onInputChange={setValue}
-                            hideCurrencySymbol
-                            extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                        <HeaderWithBackButton
+                            title={translate('workspace.taxes.value')}
+                            onBackButtonPress={goBack}
                         />
-                    </FormProvider>
-                </ScreenWrapper>
+
+                        <FormProvider
+                            formID={ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM}
+                            submitButtonText={translate('workspace.editor.save')}
+                            style={[styles.flexGrow1]}
+                            scrollContextEnabled
+                            validate={validateTaxValue}
+                            onSubmit={submit}
+                            enabledWhenOffline
+                            disablePressOnEnter={false}
+                            shouldHideFixErrorsAlert
+                            submitFlexEnabled={false}
+                            submitButtonStyles={[styles.mh5]}
+                        >
+                            <InputWrapper
+                                InputComponent={AmountForm}
+                                inputID={INPUT_IDS.VALUE}
+                                defaultValue={value}
+                                onInputChange={setValue}
+                                hideCurrencySymbol
+                                extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                            />
+                        </FormProvider>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
