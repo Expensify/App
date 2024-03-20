@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import _ from 'underscore';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -22,7 +23,6 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as OnyxTypes from "@src/types/onyx";
 import personalDetailsPropType from "@pages/personalDetailsPropType";
 import lodashGet from "lodash/get";
 
@@ -145,8 +145,6 @@ function FloatingActionButtonAndPopover(props) {
     if (props.quickAction) {
         const quickActionReportID = props.quickAction.chatReportID;
         quickActionReport = ReportUtils.getReport(quickActionReportID);
-        console.log(quickActionReportID);
-        console.log(quickActionReport);
         if (quickActionReport) {
             avatars = _.filter(ReportUtils.getIcons(quickActionReport, props.personalDetails), avatar => avatar.id !== props.session.accountID);
         }
