@@ -48,7 +48,7 @@ function WorkspaceEditTaxPage({
         setPolicyTaxesEnabled(policyID, [taxID], !!currentTaxRate.isDisabled);
     };
 
-    const deleteTax = () => {
+    const deleteTaxRate = () => {
         if (!policyID) {
             return;
         }
@@ -138,7 +138,7 @@ function WorkspaceEditTaxPage({
                     <ConfirmModal
                         title={translate('workspace.taxes.actions.delete')}
                         isVisible={isDeleteModalVisible}
-                        onConfirm={deleteTax}
+                        onConfirm={deleteTaxRate}
                         onCancel={() => setIsDeleteModalVisible(false)}
                         prompt={translate('workspace.taxes.deleteTaxConfirmation')}
                         confirmText={translate('common.delete')}
