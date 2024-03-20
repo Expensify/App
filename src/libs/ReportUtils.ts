@@ -30,6 +30,7 @@ import type {
     Task,
     Transaction,
     TransactionViolation,
+    UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -50,6 +51,7 @@ import type {Receipt, TransactionChanges, WaypointCollection} from '@src/types/o
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -423,6 +425,8 @@ type AncestorIDs = {
     reportActionsIDs: string[];
 };
 
+type MissingPaymentMethod = 'bankAccount' | 'wallet';
+
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -532,7 +536,7 @@ function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObjec
 }
 
 /**
- * Returns the parentReport if the given report is a thread.
+ * Returns the parentReport if the given report is a thread
  */
 function getParentReport(report: OnyxEntry<Report> | EmptyObject): OnyxEntry<Report> | EmptyObject {
     if (!report?.parentReportID) {
@@ -561,6 +565,9 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
     return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : null);
 }
 
+/**
+ * @deprecated Use withOnyx or Onyx.connect() instead
+ */
 function getPolicy(policyID: string | undefined): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
         return {};
@@ -778,7 +785,7 @@ function isAnnounceRoom(report: OnyxEntry<Report>): boolean {
  * Whether the provided report is a default room
  */
 function isDefaultRoom(report: OnyxEntry<Report>): boolean {
-    return [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL].some((type) => type === getChatType(report));
+    return CONST.DEFAULT_POLICY_ROOM_CHAT_TYPES.some((type) => type === getChatType(report));
 }
 
 /**
@@ -1168,7 +1175,7 @@ function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): 
  * If the report is a thread and has a chat type set, it is a workspace chat.
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
-    return isThread(report) && isChatReport(report) && !isDM(report);
+    return isThread(report) && isChatReport(report) && !!getChatType(report);
 }
 
 /**
@@ -2357,6 +2364,31 @@ function hasMissingSmartscanFields(iouReportID: string): boolean {
 }
 
 /**
+ * Get the transactions related to a report preview with receipts
+ * Get the details linked to the IOU reportAction
+ *
+ * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use withOnyx or Onyx.connect() instead.
+ */
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): Transaction | EmptyObject {
+    let transactionID = '';
+
+    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+        transactionID = (reportAction?.originalMessage as IOUMessage)?.IOUTransactionID ?? '';
+    }
+
+    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
+}
+
+/**
+ * Retrieve the particular transaction object given its ID.
+ *
+ * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use withOnyx or Onyx.connect() instead.
+ */
+function getTransaction(transactionID: string): OnyxEntry<Transaction> | EmptyObject {
+    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
+}
+
+/**
  * Given a parent IOU report action get report name for the LHN.
  */
 function getTransactionReportName(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): string {
@@ -2368,7 +2400,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 
-    const transaction = TransactionUtils.getLinkedTransaction(reportAction);
+    const transaction = getLinkedTransaction(reportAction);
     if (isEmptyObject(transaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Request
         return Localize.translateLocal('iou.request');
@@ -2397,17 +2429,21 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
 /**
  * Get money request message for an IOU report
  *
- * @param [reportAction] This can be either a report preview action or the IOU action
+ * @param [iouReportAction] This is always an IOU action. When necessary, report preview actions will be unwrapped and the child iou report action is passed here (the original report preview
+ *     action will be passed as `originalReportAction` in this case).
+ * @param [originalReportAction] This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped
+ *     from a report preview action. Otherwise, it will be the same as `iouReportAction`.
  */
 function getReportPreviewMessage(
     report: OnyxEntry<Report> | EmptyObject,
-    reportAction: OnyxEntry<ReportAction> | EmptyObject = {},
+    iouReportAction: OnyxEntry<ReportAction> | EmptyObject = {},
     shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
     policy: OnyxEntry<Policy> = null,
     isForListPreview = false,
+    originalReportAction: OnyxEntry<ReportAction> | EmptyObject = iouReportAction,
 ): string {
-    const reportActionMessage = reportAction?.message?.[0].html ?? '';
+    const reportActionMessage = iouReportAction?.message?.[0].html ?? '';
 
     if (isEmptyObject(report) || !report?.reportID) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
@@ -2415,9 +2451,9 @@ function getReportPreviewMessage(
         return reportActionMessage;
     }
 
-    if (!isEmptyObject(reportAction) && !isIOUReport(report) && reportAction && ReportActionsUtils.isSplitBillAction(reportAction)) {
+    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && ReportActionsUtils.isSplitBillAction(iouReportAction)) {
         // This covers group chats where the last action is a split bill action
-        const linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+        const linkedTransaction = getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
         }
@@ -2452,8 +2488,8 @@ function getReportPreviewMessage(
     }
 
     let linkedTransaction;
-    if (!isEmptyObject(reportAction) && shouldConsiderScanningReceiptOrPendingRoute && reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        linkedTransaction = TransactionUtils.getLinkedTransaction(reportAction);
+    if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && ReportActionsUtils.isMoneyRequestAction(iouReportAction)) {
+        linkedTransaction = getLinkedTransaction(iouReportAction);
     }
 
     if (!isEmptyObject(linkedTransaction) && TransactionUtils.hasReceipt(linkedTransaction) && TransactionUtils.isReceiptBeingScanned(linkedTransaction)) {
@@ -2464,7 +2500,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.routePending');
     }
 
-    const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
+    const originalMessage = iouReportAction?.originalMessage as IOUMessage | undefined;
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
@@ -2492,7 +2528,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
-    const lastActorID = reportAction?.actorAccountID;
+    const lastActorID = iouReportAction?.actorAccountID;
     let amount = originalMessage?.amount;
     let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
 
@@ -2501,16 +2537,29 @@ function getReportPreviewMessage(
         currency = TransactionUtils.getCurrency(linkedTransaction);
     }
 
+    if (isEmptyObject(linkedTransaction) && !isEmptyObject(iouReportAction)) {
+        linkedTransaction = getLinkedTransaction(iouReportAction);
+    }
+
+    let comment = !isEmptyObject(linkedTransaction) ? TransactionUtils.getDescription(linkedTransaction) : undefined;
+    if (!isEmptyObject(originalReportAction) && ReportActionsUtils.isReportPreviewAction(originalReportAction) && ReportActionsUtils.getNumberOfMoneyRequests(originalReportAction) !== 1) {
+        comment = undefined;
+    }
+
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest request
     if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
         const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency);
 
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName = lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant(lastActorID, !isPreviewMessageForParentChatReport) : '';
-        return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`;
+        return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay, comment})}`;
     }
 
-    return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
+    if (containsNonReimbursable) {
+        return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName ?? '', amount: formattedAmount});
+    }
+
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
 }
 
 /**
@@ -4965,7 +5014,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: ''});
     }
 
-    const transaction = TransactionUtils.getTransaction(originalMessage.IOUTransactionID ?? '');
+    const transaction = getTransaction(originalMessage.IOUTransactionID ?? '');
     const transactionDetails = getTransactionDetails(!isEmptyObject(transaction) ? transaction : null);
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
     const isRequestSettled = isSettled(originalMessage.IOUReportID);
@@ -5263,6 +5312,30 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
 }
 
 /**
+ * What missing payment method does this report action indicate, if any?
+ */
+function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, reportId: string, reportAction: ReportAction): MissingPaymentMethod | undefined {
+    const isSubmitterOfUnsettledReport = isCurrentUserSubmitter(reportId) && !isSettled(reportId);
+    if (!isSubmitterOfUnsettledReport || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
+        return undefined;
+    }
+    const paymentType = reportAction.originalMessage?.paymentType;
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        return isEmpty(userWallet) || userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
+    }
+
+    return !store.hasCreditBankAccount() ? 'bankAccount' : undefined;
+}
+
+/**
+ * Checks if report chat contains missing payment method
+ */
+function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID: string): boolean {
+    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
+    return Object.values(reportActions).some((action) => getIndicatedMissingPaymentMethod(userWallet, iouReportID, action) !== undefined);
+}
+
+/**
  * Used from money request actions to decide if we need to build an optimistic money request report.
    Create a new report if:
    - we don't have an iouReport set in the chatReport
@@ -5271,6 +5344,14 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
+}
+
+/**
+ * Checks if report contains actions with errors
+ */
+function hasActionsWithErrors(reportID: string): boolean {
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID ?? '');
+    return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
 
 export {
@@ -5407,7 +5488,6 @@ export {
     isSettled,
     isAllowedToComment,
     getBankAccountRoute,
-    getParentReport,
     getRootParentReport,
     getReportPreviewMessage,
     isMoneyRequestReportPendingDeletion,
@@ -5469,6 +5549,7 @@ export {
     isValidReport,
     getReportDescriptionText,
     isReportFieldOfTypeTitle,
+    hasMissingPaymentMethod,
     isIOUReportUsingReport,
     hasUpdatedTotal,
     isReportFieldDisabled,
@@ -5479,9 +5560,11 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    getIndicatedMissingPaymentMethod,
     isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    hasActionsWithErrors,
 };
 
 export type {

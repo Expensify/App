@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
@@ -14,6 +15,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,11 +42,14 @@ type WorkSpaceProfilePageOnyxProps = {
 
 type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps;
 
+const parser = new ExpensiMark();
+
 function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
@@ -56,7 +61,15 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '')), [policy?.id]);
 
     const policyName = policy?.name ?? '';
-    const policyDescription = policy?.description ?? '';
+    const policyDescription =
+        // policy?.description can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        policy?.description ||
+        parser.replace(
+            translate('workspace.common.welcomeNote', {
+                workspaceName: policy?.name ?? '',
+            }),
+        );
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
 
@@ -84,11 +97,15 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         }
 
         Policy.deleteWorkspace(policy?.id, policyName);
-
         PolicyUtils.goBackFromInvalidPolicy();
-
         setIsDeleteModalOpen(false);
-    }, [policy?.id, policyName]);
+
+        // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
+        if (activeWorkspaceID === policy?.id) {
+            setActiveWorkspaceID(undefined);
+            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+        }
+    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -102,7 +119,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         >
             {(hasVBA?: boolean) => (
                 <ScrollView>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             isCentralPane
                             title=""
@@ -127,6 +144,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     styles.alignItemsStart,
                                     styles.sectionMenuItemTopDescription,
                                 ]}
+                                editIconStyle={styles.smallEditIconWorkspace}
                                 isUsingDefaultAvatar={!policy?.avatar ?? null}
                                 onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
                                 onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
@@ -193,6 +211,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                         text={translate('common.share')}
                                         onPress={onPressShare}
                                         medium
+                                        icon={Expensicons.QrCode}
                                     />
                                     <Button
                                         accessibilityLabel={translate('common.delete')}
@@ -200,6 +219,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                         style={[styles.ml2]}
                                         onPress={() => setIsDeleteModalOpen(true)}
                                         medium
+                                        icon={Expensicons.Trashcan}
                                     />
                                 </View>
                             )}

@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {FlatList, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -98,6 +98,20 @@ function getReportID(route: ReportScreenNavigationProps['route']): string {
     return String(route.params?.reportID || 0);
 }
 
+/**
+ * Check is the report is deleted.
+ * We currently use useMemo to memorize every properties of the report
+ * so we can't check using isEmpty.
+ *
+ * @param report
+ */
+function isEmpty(report: OnyxTypes.Report): boolean {
+    if (isEmptyObject(report)) {
+        return true;
+    }
+    return !Object.values(report).some((value) => value !== undefined && value !== '');
+}
+
 function ReportScreen({
     betas = [],
     route,
@@ -123,7 +137,7 @@ function ReportScreen({
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const isFocused = useIsFocused();
-
+    const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
     const flatListRef = useRef<FlatList>(null);
     const reactionListRef = useRef<ReactionListRef>(null);
@@ -263,6 +277,7 @@ function ReportScreen({
             reportID={reportID}
             onNavigationMenuButtonClicked={goBack}
             report={report}
+            parentReportAction={parentReportAction}
         />
     );
 
@@ -348,8 +363,11 @@ function ReportScreen({
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
         fetchReportIfNeeded();
-        ComposerActions.setShouldShowComposeInput(true);
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            ComposerActions.setShouldShowComposeInput(true);
+        });
         return () => {
+            interactionTask.cancel();
             if (!didSubscribeToReportLeavingEvents) {
                 return;
             }
@@ -360,6 +378,17 @@ function ReportScreen({
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
+    useEffect(() => {
+        if (!isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+            return;
+        }
+        Report.openReport(report.reportID);
+
+        // We don't want to run this useEffect every time `report` is changed
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [prevIsFocused, report.notificationPreference, isFocused]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
@@ -382,7 +411,7 @@ function ReportScreen({
                 !onyxReportID &&
                 prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
                 (report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
-            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport)) && isEmptyObject(report))
+            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport) || ReportUtils.isPolicyExpenseChat(prevReport)) && isEmpty(report))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
@@ -423,14 +452,23 @@ function ReportScreen({
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
+        let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
-            Report.subscribeToReportLeavingEvents(reportID);
-            didSubscribeToReportLeavingEvents.current = true;
+            interactionTask = InteractionManager.runAfterInteractions(() => {
+                Report.subscribeToReportLeavingEvents(reportID);
+                didSubscribeToReportLeavingEvents.current = true;
+            });
         }
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
     const onListLayout = useCallback((event: LayoutChangeEvent) => {
-        setListHeight((prev) => event.nativeEvent.layout.height ?? prev);
+        setListHeight((prev) => event.nativeEvent?.layout?.height ?? prev);
         if (!markReadyForHydration) {
             return;
         }
@@ -517,8 +555,8 @@ function ReportScreen({
                                 )}
 
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
-                     If we prevent rendering the report while they are loading then
-                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                                         If we prevent rendering the report while they are loading then
+                                         we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (
@@ -530,9 +568,7 @@ function ReportScreen({
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                     />
-                                ) : (
-                                    <ReportFooter isReportReadyForDisplay={false} />
-                                )}
+                                ) : null}
                             </View>
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
