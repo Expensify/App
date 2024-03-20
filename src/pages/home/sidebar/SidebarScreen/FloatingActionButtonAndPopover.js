@@ -328,7 +328,7 @@ function FloatingActionButtonAndPopover(props) {
                                   text: translate(getQuickActionTitle(props.quickAction.action)),
                                   label: translate('quickAction.shortcut'),
                                   floatRightAvatars: avatars,
-                                  floatRightAvatarSize: CONST.AVATAR_SIZE.SMALLER,
+                                  floatRightAvatarSize: avatars.length > 1 ? CONST.AVATAR_SIZE.SMALLER : CONST.AVATAR_SIZE.SMALL,
                                   description: ReportUtils.getReportName(quickActionReport),
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                               },
