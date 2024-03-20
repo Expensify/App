@@ -1685,7 +1685,7 @@ function getOptions(
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
             {
-                source: UserUtils.getAvatar('', optimisticAccountID),
+                source: '',
                 name: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },

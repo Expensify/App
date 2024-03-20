@@ -39,10 +39,10 @@ import type {
     EreceiptColorStyle,
     ParsableStyle,
     TextColorStyle,
-    WorkspaceColorStyle,
+    SVGAvatarColorStyle,
 } from './types';
 
-const workspaceColorOptions: WorkspaceColorStyle[] = [
+const workspaceColorOptions: SVGAvatarColorStyle[] = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
     {backgroundColor: colors.blue400, fill: colors.blue800},
     {backgroundColor: colors.blue700, fill: colors.blue200},
@@ -274,6 +274,14 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
     const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
+}
+
+
+/**
+ * Helper method to return formatted backgroundColor and fill styles
+ */
+function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAvatarColorStyle {
+    return {backgroundColor, fill};
 }
 
 /**
@@ -1112,6 +1120,7 @@ const staticStyleUtils = {
     getComposeTextAreaPadding,
     getColorStyle,
     getDefaultWorkspaceAvatarColor,
+    getBackgroundColorAndFill,
     getDirectionStyle,
     getDropDownButtonHeight,
     getEmojiPickerListHeight,

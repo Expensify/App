@@ -10,6 +10,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+import type {SVGAvatarColorStyle} from '@src/types';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
@@ -74,18 +75,25 @@ function Avatar({
         setImageError(false);
     }, [source]);
 
-    if (!source) {
-        return null;
-    }
-
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(size);
 
     const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
-    const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill;
-    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
+    // We pass the color styles down to the SVG for the workspace and fallback avatar.
+    const useFallBackAvatar = imageError || source === Expensicons.FallbackAvatar;
+
+    let iconColors: SVGAvatarColorStyle;
+    if (isWorkspace) {
+        iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(name);
+    } else if (useFallBackAvatar) {
+        iconColors = StyleUtils.getBackgroundColorAndFill(theme.border, theme.icon);
+    } else {
+        iconColors = null;
+    }
+
+    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : (fallbackIcon || Expensicons.FallbackAvatar);
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
 
     const avatarSource = imageError ? fallbackAvatar : source;
@@ -107,11 +115,10 @@ function Avatar({
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}
-                        fill={imageError ? theme.offline : iconFillColor}
+                        fill={imageError ? theme.offline : null}
                         additionalStyles={[
                             StyleUtils.getAvatarBorderStyle(size, type),
-                            isWorkspace && StyleUtils.getDefaultWorkspaceAvatarColor(name),
-                            imageError && StyleUtils.getBackgroundColorStyle(theme.fallbackIconColor),
+                            iconColors,
                             iconAdditionalStyles,
                         ]}
                     />
