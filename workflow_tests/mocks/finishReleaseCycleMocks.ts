@@ -1,8 +1,9 @@
-const utils = require('../utils/utils');
+/* eslint-disable @typescript-eslint/naming-convention */
+import {createMockStep} from '../utils/utils';
 
 // validate
-const FINISHRELEASECYCLE__VALIDATE__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'VALIDATE', ['ref', 'token']);
-const FINISHRELEASECYCLE__VALIDATE__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__VALIDATE__CHECKOUT__STEP_MOCK = createMockStep('Checkout', 'Checkout', 'VALIDATE', ['ref', 'token']);
+const FINISHRELEASECYCLE__VALIDATE__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = createMockStep(
     'Setup git for OSBotify',
     'Setup git for OSBotify',
     'VALIDATE',
@@ -10,7 +11,7 @@ const FINISHRELEASECYCLE__VALIDATE__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = utils.cr
     [],
     {OS_BOTIFY_API_TOKEN: 'os_botify_api_token'},
 );
-const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_TRUE__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_TRUE__STEP_MOCK = createMockStep(
     'Validate actor is deployer',
     'Validating if actor is deployer',
     'VALIDATE',
@@ -18,7 +19,7 @@ const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_TRUE__STEP_MOCK =
     ['GITHUB_TOKEN'],
     {IS_DEPLOYER: true},
 );
-const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_FALSE__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_FALSE__STEP_MOCK = createMockStep(
     'Validate actor is deployer',
     'Validating if actor is deployer',
     'VALIDATE',
@@ -27,14 +28,14 @@ const FINISHRELEASECYCLE__VALIDATE__VALIDATE_ACTOR_IS_DEPLOYER_FALSE__STEP_MOCK 
     {IS_DEPLOYER: false},
 );
 // eslint-disable-next-line rulesdir/no-negated-variables
-const FINISHRELEASECYCLE__VALIDATE__REOPEN_AND_COMMENT_ON_ISSUE_NOT_A_TEAM_MEMBER__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__VALIDATE__REOPEN_AND_COMMENT_ON_ISSUE_NOT_A_TEAM_MEMBER__STEP_MOCK = createMockStep(
     'Reopen and comment on issue (not a team member)',
     'Reopening issue - not a team member',
     'VALIDATE',
     ['GITHUB_TOKEN', 'ISSUE_NUMBER', 'COMMENT'],
     [],
 );
-const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_FALSE__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_FALSE__STEP_MOCK = createMockStep(
     'Check for any deploy blockers',
     'Checking for deploy blockers',
     'VALIDATE',
@@ -42,7 +43,7 @@ const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_FALSE__STEP_MO
     [],
     {HAS_DEPLOY_BLOCKERS: false},
 );
-const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_TRUE__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_TRUE__STEP_MOCK = createMockStep(
     'Check for any deploy blockers',
     'Checking for deploy blockers',
     'VALIDATE',
@@ -50,14 +51,14 @@ const FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_TRUE__STEP_MOC
     [],
     {HAS_DEPLOY_BLOCKERS: true},
 );
-const FINISHRELEASECYCLE__VALIDATE__REOPEN_AND_COMMENT_ON_ISSUE_HAS_BLOCKERS__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__VALIDATE__REOPEN_AND_COMMENT_ON_ISSUE_HAS_BLOCKERS__STEP_MOCK = createMockStep(
     'Reopen and comment on issue (has blockers)',
     'Reopening issue - blockers',
     'VALIDATE',
     ['GITHUB_TOKEN', 'ISSUE_NUMBER'],
     [],
 );
-const FINISHRELEASECYCLE__VALIDATE__ANNOUNCE_FAILED_WORKFLOW_IN_SLACK__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__VALIDATE__ANNOUNCE_FAILED_WORKFLOW_IN_SLACK__STEP_MOCK = createMockStep(
     'Announce failed workflow in Slack',
     'Announce failed workflow in Slack',
     'VALIDATE',
@@ -104,16 +105,16 @@ const FINISHRELEASECYCLE__VALIDATE__NOT_TEAM_MEMBER_BLOCKERS__STEP_MOCKS = [
 ];
 
 // updateproduction
-const FINISHRELEASECYCLE__UPDATEPRODUCTION__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'UPDATEPRODUCTION', ['ref', 'token'], []);
-const FINISHRELEASECYCLE__UPDATEPRODUCTION__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__UPDATEPRODUCTION__CHECKOUT__STEP_MOCK = createMockStep('Checkout', 'Checkout', 'UPDATEPRODUCTION', ['ref', 'token'], []);
+const FINISHRELEASECYCLE__UPDATEPRODUCTION__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = createMockStep(
     'Setup git for OSBotify',
     'Setup git for OSBotify',
     'UPDATEPRODUCTION',
     ['GPG_PASSPHRASE'],
     [],
 );
-const FINISHRELEASECYCLE__UPDATEPRODUCTION__UPDATE_PRODUCTION_BRANCH__STEP_MOCK = utils.createMockStep('Update production branch', 'Updating production branch', 'UPDATEPRODUCTION', [], []);
-const FINISHRELEASECYCLE__UPDATEPRODUCTION__ANNOUNCE_FAILED_WORKFLOW_IN_SLACK__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__UPDATEPRODUCTION__UPDATE_PRODUCTION_BRANCH__STEP_MOCK = createMockStep('Update production branch', 'Updating production branch', 'UPDATEPRODUCTION', [], []);
+const FINISHRELEASECYCLE__UPDATEPRODUCTION__ANNOUNCE_FAILED_WORKFLOW_IN_SLACK__STEP_MOCK = createMockStep(
     'Announce failed workflow in Slack',
     'Announce failed workflow in Slack',
     'UPDATEPRODUCTION',
@@ -128,7 +129,7 @@ const FINISHRELEASECYCLE__UPDATEPRODUCTION__STEP_MOCKS = [
 ];
 
 // createnewpatchversion
-const FINISHRELEASECYCLE__CREATENEWPATCHVERSION__CREATE_NEW_VERSION__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__CREATENEWPATCHVERSION__CREATE_NEW_VERSION__STEP_MOCK = createMockStep(
     'Create new version',
     'Creating new version',
     'CREATENEWPATCHVERSION',
@@ -142,22 +143,16 @@ const FINISHRELEASECYCLE__CREATENEWPATCHVERSION__CREATE_NEW_VERSION__STEP_MOCK =
 const FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS = [FINISHRELEASECYCLE__CREATENEWPATCHVERSION__CREATE_NEW_VERSION__STEP_MOCK];
 
 // updatestaging
-const FINISHRELEASECYCLE__UPDATESTAGING__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'UPDATESTAGING', ['ref', 'token'], []);
-const FINISHRELEASECYCLE__UPDATESTAGING__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = utils.createMockStep(
-    'Setup git for OSBotify',
-    'Setup git for OSBotify',
-    'UPDATESTAGING',
-    ['GPG_PASSPHRASE'],
-    [],
-);
-const FINISHRELEASECYCLE__UPDATESTAGING__UPDATE_STAGING_BRANCH_TO_TRIGGER_STAGING_DEPLOY__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__UPDATESTAGING__CHECKOUT__STEP_MOCK = createMockStep('Checkout', 'Checkout', 'UPDATESTAGING', ['ref', 'token'], []);
+const FINISHRELEASECYCLE__UPDATESTAGING__SETUP_GIT_FOR_OSBOTIFY__STEP_MOCK = createMockStep('Setup git for OSBotify', 'Setup git for OSBotify', 'UPDATESTAGING', ['GPG_PASSPHRASE'], []);
+const FINISHRELEASECYCLE__UPDATESTAGING__UPDATE_STAGING_BRANCH_TO_TRIGGER_STAGING_DEPLOY__STEP_MOCK = createMockStep(
     'Update staging branch to trigger staging deploy',
     'Updating staging branch',
     'UPDATESTAGING',
     [],
     [],
 );
-const FINISHRELEASECYCLE__UPDATESTAGING__ANNOUNCE_FAILED_WORKFLOW_IN_SLACK__STEP_MOCK = utils.createMockStep(
+const FINISHRELEASECYCLE__UPDATESTAGING__ANNOUNCE_FAILED_WORKFLOW_IN_SLACK__STEP_MOCK = createMockStep(
     'Announce failed workflow in Slack',
     'Announce failed workflow in Slack',
     'UPDATESTAGING',
@@ -171,7 +166,7 @@ const FINISHRELEASECYCLE__UPDATESTAGING__STEP_MOCKS = [
     FINISHRELEASECYCLE__UPDATESTAGING__ANNOUNCE_FAILED_WORKFLOW_IN_SLACK__STEP_MOCK,
 ];
 
-module.exports = {
+export {
     FINISHRELEASECYCLE__VALIDATE__TEAM_MEMBER_NO_BLOCKERS__STEP_MOCKS,
     FINISHRELEASECYCLE__VALIDATE__TEAM_MEMBER_BLOCKERS__STEP_MOCKS,
     FINISHRELEASECYCLE__VALIDATE__NOT_TEAM_MEMBER_NO_BLOCKERS__STEP_MOCKS,

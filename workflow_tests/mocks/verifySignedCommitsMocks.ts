@@ -1,7 +1,8 @@
-const utils = require('../utils/utils');
+/* eslint-disable @typescript-eslint/naming-convention */
+import {createMockStep} from '../utils/utils';
 
 // verifysignedcommits
-const VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__VERIFY_SIGNED_COMMITS__STEP_MOCK = utils.createMockStep(
+const VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__VERIFY_SIGNED_COMMITS__STEP_MOCK = createMockStep(
     'Verify signed commits',
     'Verify signed commits',
     'VERIFYSIGNEDCOMMITS',
@@ -10,6 +11,6 @@ const VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__VERIFY_SIGNED_COMMITS__STEP_MOCK
 );
 const VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__STEP_MOCKS = [VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__VERIFY_SIGNED_COMMITS__STEP_MOCK];
 
-module.exports = {
+export default {
     VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__STEP_MOCKS,
 };
