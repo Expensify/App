@@ -243,12 +243,12 @@ Here's how you can re-enable the SSO buttons in development mode:
                                         <Text
                                             accessibilityElementsHidden
     ```
-- Update the webpack.dev.ts [config](https://github.com/Expensify/App/blob/1d6bb1d14cff3dd029868a0a7c8ee14ae78c527b/config/webpack/webpack.dev.ts#L47-L49) to change `host` from `dev.new.expensify.com` to `localhost` and server type from `https` to `http`. The reason for this is that Google Sign In allows localhost, but `dev.new.expensify.com` is not a registered Google Sign In domain.
+- Update the webpack.dev.ts [config](https://github.com/Expensify/App/blob/1d6bb1d14cff3dd029868a0a7c8ee14ae78c527b/config/webpack/webpack.dev.js#L47-L49) to change `host` from `dev.new.expensify.com` to `localhost` and server type from `https` to `http`. The reason for this is that Google Sign In allows localhost, but `dev.new.expensify.com` is not a registered Google Sign In domain.
     ```diff
     diff --git a/config/webpack/webpack.dev.ts b/config/webpack/webpack.dev.ts
     index e28383eff5..b14f6f34aa 100644
-    --- a/config/webpack/webpack.dev.ts
-    +++ b/config/webpack/webpack.dev.ts
+    --- a/config/webpack/webpack.dev.js
+    +++ b/config/webpack/webpack.dev.js
     @@ -44,9 +44,9 @@ module.exports = (env = {}) =>
                     ...proxySettings,
                     historyApiFallback: true,

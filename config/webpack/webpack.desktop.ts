@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import path from 'path';
+import type {Configuration} from 'webpack';
 import webpack from 'webpack';
-// eslint-disable-next-line @dword-design/import-alias/prefer-alias, import/no-relative-packages
+// eslint-disable-next-line @dword-design/import-alias/prefer-alias, import/no-relative-packages -- alias imports don't work for webpack
 import {dependencies as desktopDependencies} from '../../desktop/package.json';
+import type {WebpackConfig} from './types';
 import getCommonConfig from './webpack.common';
 import type {EnvFile} from './webpack.dev';
 
@@ -12,20 +14,17 @@ import type {EnvFile} from './webpack.dev';
  * 2. web - the app content that would be rendered in electron
  * Everything is placed in desktop/dist and ready for packaging
  */
-const getConfig = (env: EnvFile = {}) => {
+const getConfig = (env: EnvFile = {}): WebpackConfig[] => {
     const rendererConfig = getCommonConfig({...env, platform: 'desktop'});
     const outputPath = path.resolve(__dirname, '../../desktop/dist');
 
     rendererConfig.name = 'renderer';
-    if (rendererConfig.output) {
-        rendererConfig.output.path = path.join(outputPath, 'www');
-    }
+    (rendererConfig.output ??= {}).path = path.join(outputPath, 'www');
 
     // Expose react-native-config to desktop-main
-    // const definePlugin = _.find(rendererConfig.plugins, (plugin) => plugin.constructor === webpack.DefinePlugin);
     const definePlugin = rendererConfig.plugins?.find((plugin) => plugin?.constructor === webpack.DefinePlugin);
 
-    const mainProcessConfig = {
+    const mainProcessConfig: Configuration = {
         mode: 'production',
         name: 'desktop-main',
         target: 'electron-main',

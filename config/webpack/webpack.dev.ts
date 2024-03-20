@@ -4,24 +4,21 @@ import portfinder from 'portfinder';
 import {TimeAnalyticsPlugin} from 'time-analytics-webpack-plugin';
 import type webpack from 'webpack';
 import {DefinePlugin} from 'webpack';
+import type * as webpackDevServer from 'webpack-dev-server';
 import {merge} from 'webpack-merge';
+import type {EnvFile, WebpackConfig} from './types';
 import getCommonConfig from './webpack.common';
 
 const BASE_PORT = 8082;
 
-type EnvFile = {
-    envFile?: string;
-    platform?: 'web' | 'desktop';
-};
-
 /**
  * Configuration for the local dev server
  */
-const getConfig = (env: EnvFile = {}): Promise<webpack.Configuration> =>
+const getConfig = (env: EnvFile = {}): Promise<WebpackConfig> =>
     portfinder.getPortPromise({port: BASE_PORT}).then((port) => {
         // Check if the USE_WEB_PROXY variable has been provided
         // and rewrite any requests to the local proxy server
-        const proxySettings =
+        const proxySettings: Pick<webpackDevServer.Configuration, 'proxy'> =
             process.env.USE_WEB_PROXY === 'false'
                 ? {}
                 : {
