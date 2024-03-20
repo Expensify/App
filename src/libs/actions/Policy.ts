@@ -3637,7 +3637,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
-            ...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []),
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.failureData ?? [] : []),
         ],
     };
 
