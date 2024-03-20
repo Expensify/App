@@ -360,8 +360,7 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTempora
 
 export default withOnyx({
     dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data.dismissedReferralBanners || {},
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,

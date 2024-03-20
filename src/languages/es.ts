@@ -1067,6 +1067,14 @@ export default {
             },
         },
     },
+    workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+        autoReportingFrequencyErrorMessage: 'La frecuencia de envío no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
+        monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
+    },
+    workflowsApprovalPage: {
+        genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+    },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
         genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
@@ -1899,8 +1907,20 @@ export default {
             value: 'Valor',
             errors: {
                 taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',
-                valuePercentageRange: 'Introduzca un porcentaje válido entre 0 y 100',
-                genericFailureMessage: 'Se produjo un error al actualizar el tipo impositivo, inténtelo nuevamente.',
+                valuePercentageRange: 'Por favor, introduce un porcentaje entre 0 y 100',
+                deleteFailureMessage: 'Se ha producido un error al intentar eliminar la tasa de impuesto. Por favor, inténtalo más tarde.',
+                updateFailureMessage: 'Se ha producido un error al intentar modificar la tasa de impuesto. Por favor, inténtalo más tarde.',
+                createFailureMessage: 'Se ha producido un error al intentar crear la tasa de impuesto. Por favor, inténtalo más tarde.',
+            },
+            deleteTaxConfirmation: '¿Estás seguro de que quieres eliminar este impuesto?',
+            deleteMultipleTaxConfirmation: ({taxAmount}) => `¿Estás seguro de que quieres eliminar ${taxAmount} impuestos?`,
+            actions: {
+                delete: 'Eliminar tasa',
+                deleteMultiple: 'Eliminar tasas',
+                disable: 'Desactivar tasa',
+                disableMultiple: 'Desactivar tasas',
+                enable: 'Activar tasa',
+                enableMultiple: 'Activar tasas',
             },
         },
         emptyWorkspace: {
