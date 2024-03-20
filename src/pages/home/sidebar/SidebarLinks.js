@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
@@ -149,5 +149,5 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.displayName = 'SidebarLinks';
 
-export default SidebarLinks;
+export default memo(SidebarLinks);
 export {basePropTypes};

@@ -86,14 +86,14 @@ function WorkspaceInviteMessagePage({
 
     useEffect(() => {
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
-            setWelcomeNote(getDefaultWelcomeNote());
+            setWelcomeNote(parser.htmlToMarkdown(getDefaultWelcomeNote()));
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const debouncedSaveDraft = lodashDebounce((newDraft: string) => {
+    const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {
         Policy.setWorkspaceInviteMessageDraft(route.params.policyID, newDraft);
     });
 
@@ -101,6 +101,7 @@ function WorkspaceInviteMessagePage({
         Keyboard.dismiss();
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
+        debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
         Navigation.goBack();
