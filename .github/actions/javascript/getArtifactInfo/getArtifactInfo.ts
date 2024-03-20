@@ -4,7 +4,7 @@ import GithubUtils from '../../../libs/GithubUtils';
 
 type OctokitArtifact = OctokitComponents['schemas']['artifact'];
 
-const run = function (): Promise<OctokitArtifact | void> {
+const run = function (): Promise<void> {
     const artifactName = core.getInput('ARTIFACT_NAME', {required: true});
 
     // TODO: remove type casting once GithubUtils (https://github.com/Expensify/App/pull/38280) is migrated to TypeScript
@@ -24,7 +24,7 @@ const run = function (): Promise<OctokitArtifact | void> {
         .catch((error: Error) => {
             console.error('A problem occurred while trying to communicate with the GitHub API', error);
             core.setFailed(error);
-        }) as Promise<OctokitArtifact | void>;
+        }) as Promise<void>;
 };
 
 if (require.main === module) {
