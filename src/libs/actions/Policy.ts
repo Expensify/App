@@ -1,7 +1,7 @@
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
-import {escapeRegExp} from 'lodash';
+import {escapeRegExp, reduce} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -3580,12 +3580,14 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     taxRates: {
                         taxes: {
-                            id_TAX_EXEMPT: {
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            },
-                            id_TAX_RATE_1: {
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            },
+                            ...reduce(
+                                Object.keys(CONST.DEFAULT_TAX.RATES.taxes),
+                                (prevTaxesData, taxKey) => ({
+                                    ...prevTaxesData,
+                                    [taxKey]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                                }),
+                                {},
+                            ),
                         },
                     },
                 },
@@ -3598,12 +3600,14 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     taxRates: {
                         taxes: {
-                            id_TAX_EXEMPT: {
-                                pendingAction: null,
-                            },
-                            id_TAX_RATE_1: {
-                                pendingAction: null,
-                            },
+                            ...reduce(
+                                Object.keys(CONST.DEFAULT_TAX.RATES.taxes),
+                                (prevTaxesData, taxKey) => ({
+                                    ...prevTaxesData,
+                                    [taxKey]: {pendingAction: null},
+                                }),
+                                {},
+                            ),
                         },
                     },
                 },
