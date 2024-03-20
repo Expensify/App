@@ -18,7 +18,6 @@ function focusComposerWithDelay(textInput: TextInput | null): FocusComposerWithD
         if (!textInput || EmojiPickerAction.isEmojiPickerVisible()) {
             return;
         }
-
         if (!shouldDelay) {
             textInput.focus();
             return;
