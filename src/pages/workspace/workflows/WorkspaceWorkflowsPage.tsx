@@ -126,8 +126,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                           ),
                           isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
                           pendingAction: policy?.pendingFields?.autoReporting,
-                          errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.AUTOREPORTING),
-                          onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.AUTOREPORTING),
+                          errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+                          onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
                       },
                   ]
                 : []),
@@ -153,37 +153,35 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 ),
                 isActive: (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
-                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.APPROVAL_MODE),
-                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.APPROVAL_MODE),
+                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
             },
             {
                 icon: Illustrations.WalletAlt,
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
-                onToggle: (isEnabled: boolean) => {
-                    let newReimbursementChoice;
+                onToggle: () => {
+                    const isActive = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
-                    if (!isEnabled) {
-                        newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-                    } else if (hasVBA && !Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
-                        setIsCurrencyModalOpen(true);
-                        return;
-                    } else {
-                        newReimbursementChoice = hasVBA ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-                    }
+                    const newReimbursementChoice = isActive ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
+                    const shouldUseDirectReimbursement = !isActive && Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '');
+
+                    // If trying to enable direct reimbursement and currency is not supported, default to manual (indirect) reimbursement
+                    const effectiveReimbursementChoice = shouldUseDirectReimbursement ? newReimbursementChoice : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
                     const newReimburserAccountID =
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.accountID || policy?.reimburserAccountID || policy?.ownerAccountID;
                     const newReimburserEmail = PersonalDetailsUtils.getPersonalDetailsByIDs([newReimburserAccountID ?? 0], session?.accountID ?? 0)?.[0]?.login;
-                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserAccountID ?? 0, newReimburserEmail ?? '');
+                    Policy.setWorkspaceReimbursement(policy?.id ?? '', effectiveReimbursementChoice, newReimburserAccountID ?? 0, newReimburserEmail ?? '');
                 },
                 subMenuItems: (
                     <>
                         <MenuItem
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={styles.textNormalThemeText}
-                            title={hasVBA ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
+                            title={hasVBA && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
                             description={state === BankAccount.STATE.OPEN ? bankDisplayName : undefined}
                             onPress={() => {
                                 if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
@@ -196,11 +194,11 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                             wrapperStyle={containerStyle}
                             hoverAndPressStyle={[styles.mr0, styles.br2]}
                         />
-                        {hasVBA && (
+                        {hasVBA && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.reimburserEmail}
-                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.REIMBURSER_EMAIL)}
-                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.REIMBURSER_EMAIL)}
+                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER_EMAIL)}
+                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER_EMAIL)}
                                 errorRowStyles={[styles.ml7]}
                             >
                                 <MenuItem
@@ -219,10 +217,10 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                     </>
                 ),
                 isEndOptionRow: true,
-                isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                isActive: policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
-                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_FIELDS.REIMBURSEMENT_CHOICE),
-                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_FIELDS.REIMBURSEMENT_CHOICE),
+                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
+                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
             },
         ];
     }, [
