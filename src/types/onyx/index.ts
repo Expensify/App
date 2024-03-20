@@ -44,6 +44,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
@@ -120,6 +121,7 @@ export type {
     PreferredTheme,
     PriorityMode,
     PrivatePersonalDetails,
+    QuickAction,
     RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
