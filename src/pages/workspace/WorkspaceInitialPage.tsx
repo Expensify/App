@@ -198,6 +198,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
+    if (policy?.areAccountingEnabled) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.accounting',
+            icon: Expensicons.Sync,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)))),
+            // brickRoadIndicator should be set when API will be ready
+            brickRoadIndicator: undefined,
+            routeName: SCREENS.WORKSPACE.ACCOUNTING,
+        });
+    }
+
     protectedCollectPolicyMenuItems.push({
         translationKey: 'workspace.common.moreFeatures',
         icon: Expensicons.Gear,
@@ -219,13 +230,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.MEMBERS,
-        },
-        {
-            translationKey: 'workspace.common.accounting',
-            icon: Expensicons.Sync,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)))),
-            brickRoadIndicator: undefined,
-            routeName: SCREENS.WORKSPACE.ACCOUNTING,
         },
         ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
         ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
