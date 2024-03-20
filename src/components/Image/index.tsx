@@ -11,14 +11,19 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, ...fo
      * to the source.
      */
     const source = useMemo(() => {
-        const authToken = session?.encryptedAuthToken ?? null;
-        if (isAuthTokenRequired && typeof propsSource === 'object' && 'uri' in propsSource && authToken) {
-            return {
-                ...propsSource,
-                headers: {
-                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
-                },
-            };
+        if (typeof propsSource === 'object' && 'uri' in propsSource) {
+            if (typeof propsSource.uri === 'number') {
+                return propsSource.uri;
+            }
+            const authToken = session?.encryptedAuthToken ?? null;
+            if (isAuthTokenRequired && authToken) {
+                return {
+                    ...propsSource,
+                    headers: {
+                        [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
+                    },
+                };
+            }
         }
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.

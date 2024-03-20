@@ -249,7 +249,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includeSafeAreaPaddingBottom={false}
-            style={[styles.pb0]}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
