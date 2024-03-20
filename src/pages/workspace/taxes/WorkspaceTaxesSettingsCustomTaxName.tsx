@@ -61,7 +61,6 @@ function WorkspaceTaxesSettingsCustomTaxName({
                     policyID={policyID}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
                 >
-                    {' '}
                     <ScreenWrapper
                         includeSafeAreaPaddingBottom={false}
                         shouldEnableMaxHeight
@@ -76,6 +75,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
                             style={[styles.flexGrow1, styles.ph5]}
                             scrollContextEnabled
                             enabledWhenOffline
+                            validate={validate}
                             onSubmit={submit}
                         >
                             <View style={styles.mb4}>
