@@ -1,63 +1,60 @@
-import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
-import avatarPropTypes from './avatarPropTypes';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
 
-const propTypes = {
-    icons: PropTypes.arrayOf(avatarPropTypes),
-    reportID: PropTypes.string,
+type RoomHeaderAvatarsProps = {
+    icons: Icon[];
+    reportID: string;
 };
 
-const defaultProps = {
-    icons: [],
-    reportID: '',
-};
-
-function RoomHeaderAvatars(props) {
-    const navigateToAvatarPage = (icon) => {
+function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
+    const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
-            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(props.reportID));
+            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID));
             return;
         }
-        Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(icon.id));
+
+        if (icon.id) {
+            Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(icon.id));
+        }
     };
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    if (!props.icons.length) {
+
+    if (!icons.length) {
         return null;
     }
 
-    if (props.icons.length === 1) {
+    if (icons.length === 1) {
         return (
             <PressableWithoutFocus
-                style={[styles.noOutline]}
-                onPress={() => navigateToAvatarPage(props.icons[0])}
+                style={styles.noOutline}
+                onPress={() => navigateToAvatarPage(icons[0])}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                accessibilityLabel={props.icons[0].name}
+                accessibilityLabel={icons[0].name ?? ''}
             >
                 <Avatar
-                    source={props.icons[0].source}
-                    imageStyles={[styles.avatarLarge]}
+                    source={icons[0].source}
+                    imageStyles={styles.avatarLarge}
                     size={CONST.AVATAR_SIZE.LARGE}
-                    name={props.icons[0].name}
-                    type={props.icons[0].type}
-                    fallbackIcon={props.icons[0].fallbackIcon}
+                    name={icons[0].name}
+                    type={icons[0].type}
+                    fallbackIcon={icons[0].fallbackIcon}
                 />
             </PressableWithoutFocus>
         );
     }
 
-    const iconsToDisplay = props.icons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
+    const iconsToDisplay = icons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
 
     const iconStyle = [
         styles.roomHeaderAvatar,
@@ -68,8 +65,9 @@ function RoomHeaderAvatars(props) {
     return (
         <View style={styles.pointerEventsBoxNone}>
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
-                {_.map(iconsToDisplay, (icon, index) => (
+                {iconsToDisplay.map((icon, index) => (
                     <View
+                        // eslint-disable-next-line react/no-array-index-key
                         key={`${icon.id}${index}`}
                         style={[styles.justifyContentCenter, styles.alignItemsCenter]}
                     >
@@ -77,7 +75,7 @@ function RoomHeaderAvatars(props) {
                             style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                             onPress={() => navigateToAvatarPage(icon)}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                            accessibilityLabel={icon.name}
+                            accessibilityLabel={icon.name ?? ''}
                         >
                             <Avatar
                                 source={icon.source}
@@ -88,7 +86,7 @@ function RoomHeaderAvatars(props) {
                                 fallbackIcon={icon.fallbackIcon}
                             />
                         </PressableWithoutFocus>
-                        {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
+                        {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                             <>
                                 <View
                                     style={[
@@ -100,7 +98,7 @@ function RoomHeaderAvatars(props) {
                                         styles.roomHeaderAvatarOverlay,
                                     ]}
                                 />
-                                <Text style={styles.avatarInnerTextChat}>{`+${props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}</Text>
+                                <Text style={styles.avatarInnerTextChat}>{`+${icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}</Text>
                             </>
                         )}
                     </View>
@@ -110,8 +108,6 @@ function RoomHeaderAvatars(props) {
     );
 }
 
-RoomHeaderAvatars.defaultProps = defaultProps;
-RoomHeaderAvatars.propTypes = propTypes;
 RoomHeaderAvatars.displayName = 'RoomHeaderAvatars';
 
 export default memo(RoomHeaderAvatars);
