@@ -7,6 +7,7 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
@@ -22,7 +23,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { useOptionsList } from '@components/OptionListContextProvider';
 
 const propTypes = {
     /** Beta features list */
@@ -178,7 +178,20 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [didScreenTransitionEnd, options.reports, options.personalDetails, betas, searchTerm, participants, iouType, canUseP2PDistanceRequests, iouRequestType, maxParticipantsReached, personalDetails, translate]);
+    }, [
+        didScreenTransitionEnd,
+        options.reports,
+        options.personalDetails,
+        betas,
+        searchTerm,
+        participants,
+        iouType,
+        canUseP2PDistanceRequests,
+        iouRequestType,
+        maxParticipantsReached,
+        personalDetails,
+        translate,
+    ]);
 
     /**
      * Adds a single participant to the request
