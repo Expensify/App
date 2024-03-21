@@ -200,7 +200,8 @@ label.search-label {
     height: 40px;
 }
 
-.gsc-search-button.gsc-search-button-v2:hover {
+.gsc-search-button.gsc-search-button-v2:hover,
+.gsc-search-button.gsc-search-button-v2:focus {
     background-color: var(--color-button-success-background-hover);
 }
 
