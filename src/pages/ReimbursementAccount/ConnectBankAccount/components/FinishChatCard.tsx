@@ -39,12 +39,13 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <Button
+                    iconStyles={[styles.customMarginButtonWithMenuItem]}
                     text={translate('connectBankAccountStep.letsChatCTA')}
                     onPress={handleNavigateToConciergeChat}
                     icon={Expensicons.ChatBubble}
                     shouldShowRightIcon
-                    large
                     success
+                    innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                 />
                 <MenuItem
                     title={translate('workspace.bankAccount.noLetsStartOver')}
