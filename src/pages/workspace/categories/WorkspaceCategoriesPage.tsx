@@ -259,8 +259,6 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
 
     const isLoading = !isOffline && policyCategories === undefined;
 
-    const shouldShowEmptyState = !categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isLoading;
-
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -302,14 +300,14 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                                 color={theme.spinner}
                             />
                         )}
-                        {shouldShowEmptyState && (
+                        {categoryList.length === 0 && !isLoading && (
                             <WorkspaceEmptyStateSection
                                 title={translate('workspace.categories.emptyCategories.title')}
                                 icon={Illustrations.EmptyStateExpenses}
                                 subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                             />
                         )}
-                        {!shouldShowEmptyState && (
+                        {categoryList.length > 0 && (
                             <SelectionList
                                 canSelectMultiple
                                 sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
