@@ -4155,7 +4155,6 @@ function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transact
     if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
         return false;
     }
-
     return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations);
 }
 
@@ -4167,13 +4166,11 @@ function shouldDisplayTransactionThreadViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     parentReportAction: OnyxEntry<ReportAction>,
 ): boolean {
-    if (parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+    const {IOUReportID} = (parentReportAction?.originalMessage as IOUMessage) ?? {};
+    if (isSettled(IOUReportID)) {
         return false;
     }
-
-    const {IOUReportID} = parentReportAction.originalMessage ?? {};
-
-    return doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction) && !isSettled(IOUReportID);
+    return doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
 }
 
 /**
