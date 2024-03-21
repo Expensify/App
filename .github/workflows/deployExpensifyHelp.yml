@@ -46,13 +46,12 @@ jobs:
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@f0a1cd58cd66095dee69bfa18fa5efd1dde93bca
         id: deploy
+        if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork)
         with:
           apiToken: ${{ secrets.CLOUDFLARE_PAGES_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: helpdot
           directory: ./docs/_site
-        # Add the conditional on this step to prevent execution for pull requests from forks
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
       - name: Setup Cloudflare CLI
         run: pip3 install cloudflare==2.19.0
