@@ -8,6 +8,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
 import Modal from './Modal';
 import ProfilingToolMenu from './ProfilingToolMenu';
 import TestToolMenu from './TestToolMenu';
@@ -32,6 +33,7 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
         >
             <View style={[StyleUtils.getTestToolsModalStyle(windowWidth)]}>
                 {isDevelopment && <TestToolMenu />}
+                <ClientSideLoggingToolMenu />
                 <ProfilingToolMenu />
             </View>
         </Modal>
