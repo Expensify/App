@@ -12,10 +12,6 @@ let hasDismissedModal: boolean | undefined;
 let hasSelectedChoice: boolean | undefined;
 let isLoadingReportData = true;
 
-type ServerDataReadyProps = {
-    onReady: () => void;
-};
-
 type DetermineOnboardingStatusProps = {
     onAble?: () => void;
     onNotAble?: () => void;
