@@ -146,13 +146,7 @@ function FloatingActionButtonAndPopover(props) {
 
     const quickActionReport = useMemo(() => (props.quickAction ? ReportUtils.getReport(props.quickAction.chatReportID) : 0), [props.quickAction]);
 
-    const quickActionAvatars = useMemo(() => {
-        if (quickActionReport) {
-            const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
-            return avatars.length <= 1 ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
-        }
-        return [];
-    }, [props.personalDetails, props.session.accountID, quickActionReport]);
+    const quickActionAvatars = useMemo(() => quickActionReport ? ReportUtils.getIcons(quickActionReport, props.personalDetails) : [], [props.personalDetails, props.session.accountID, quickActionReport]);
 
     const navigateToQuickAction = () => {
         switch (props.quickAction.action) {
