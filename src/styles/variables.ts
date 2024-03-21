@@ -83,6 +83,7 @@ export default {
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 120,
     iconBottomBar: 24,
+    sidebarAvatarSize: 28,
     iconHeader: 48,
     emojiSize: 20,
     emojiLineHeight: 28,
@@ -222,4 +223,5 @@ export default {
 
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
+    bankButtonMargin: 23,
 } as const;

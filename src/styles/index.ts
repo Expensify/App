@@ -534,7 +534,7 @@ const styles = (theme: ThemeColors) =>
         button: {
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.buttonBorderRadius,
-            minHeight: variables.componentSizeLarge,
+            minHeight: variables.componentSizeNormal,
             justifyContent: 'center',
             alignItems: 'center',
             ...spacing.ph3,
@@ -573,23 +573,24 @@ const styles = (theme: ThemeColors) =>
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeSmall,
-            paddingHorizontal: 14,
+            minWidth: variables.componentSizeSmall,
+            paddingHorizontal: 12,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
-            paddingRight: 16,
-            paddingLeft: 16,
+            minWidth: variables.componentSizeNormal,
+            paddingHorizontal: 16,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
-            paddingRight: 10,
-            paddingLeft: 10,
+            minWidth: variables.componentSizeLarge,
+            paddingHorizontal: 20,
             backgroundColor: theme.buttonDefaultBG,
         },
 
@@ -1264,6 +1265,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        textLabelSupportingEmptyValue: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: FontUtils.fontWeight.normal,
+            color: theme.textSupporting,
+        },
+
         textLabelSupportingNormal: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -1442,9 +1450,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            borderRadius: 28,
-            height: variables.componentSizeSmall,
-            width: variables.componentSizeSmall,
+            borderRadius: variables.sidebarAvatarSize,
+            height: variables.sidebarAvatarSize,
+            width: variables.sidebarAvatarSize,
         },
 
         selectedAvatarBorder: {
@@ -2091,6 +2099,10 @@ const styles = (theme: ThemeColors) =>
         editChatItemEmojiWrapper: {
             marginRight: 3,
             alignSelf: 'flex-end',
+        },
+
+        customMarginButtonWithMenuItem: {
+            marginRight: variables.bankButtonMargin,
         },
 
         composerSizeButton: {
@@ -3098,13 +3110,20 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
-            borderColor: theme.appBG,
             borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
             height: 40,
             width: 40,
             justifyContent: 'center',
+        },
+
+        smallEditIconWorkspace: {
+            borderColor: theme.cardBG,
+        },
+
+        smallEditIconAccount: {
+            borderColor: theme.appBG,
         },
 
         smallAvatarEditIcon: {
@@ -3435,6 +3454,12 @@ const styles = (theme: ThemeColors) =>
         invisibleOverlay: {
             backgroundColor: theme.transparent,
             zIndex: 1000,
+        },
+
+        invisibleImage: {
+            opacity: 0,
+            width: 200,
+            height: 200,
         },
 
         reportDropOverlay: {
