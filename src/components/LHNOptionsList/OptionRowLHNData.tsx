@@ -1,5 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo, useRef} from 'react';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as Report from '@userActions/Report';
@@ -31,6 +32,8 @@ function OptionRowLHNData({
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
+    const currentReportIDValue = useCurrentReportID();
+    const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
 
     const optionItemRef = useRef<OptionData>();
 
@@ -83,7 +86,7 @@ function OptionRowLHNData({
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
-            isFocused={isFocused}
+            isFocused={isReportFocused}
             optionItem={optionItem}
         />
     );
