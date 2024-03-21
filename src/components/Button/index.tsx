@@ -241,6 +241,7 @@ function Button(
                             <View style={[large ? styles.mr2 : styles.mr1, !text && styles.mr0, iconStyles]}>
                                 <Icon
                                     src={icon}
+                                    hasText={!!text}
                                     fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                     small={small}
                                     medium={medium}

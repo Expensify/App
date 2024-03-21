@@ -255,7 +255,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouType !== CONST.IOU.TYPE.SEND;
 
     const handleConfirmSelection = useCallback(() => {
         if (shouldShowSplitBillErrorMessage) {

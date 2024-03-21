@@ -573,6 +573,7 @@ const styles = (theme: ThemeColors) =>
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeSmall,
+            minWidth: variables.componentSizeSmall,
             paddingHorizontal: 12,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -580,6 +581,7 @@ const styles = (theme: ThemeColors) =>
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
+            minWidth: variables.componentSizeNormal,
             paddingHorizontal: 16,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -587,6 +589,7 @@ const styles = (theme: ThemeColors) =>
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
+            minWidth: variables.componentSizeLarge,
             paddingHorizontal: 20,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -1441,8 +1444,8 @@ const styles = (theme: ThemeColors) =>
 
         sidebarAvatar: {
             borderRadius: 28,
-            height: variables.componentSizeSmall,
-            width: variables.componentSizeSmall,
+            height: 28,
+            width: 28,
         },
 
         selectedAvatarBorder: {
@@ -2089,6 +2092,10 @@ const styles = (theme: ThemeColors) =>
         editChatItemEmojiWrapper: {
             marginRight: 3,
             alignSelf: 'flex-end',
+        },
+
+        customMarginButtonWithMenuItem: {
+            marginRight: variables.bankButtonMargin,
         },
 
         composerSizeButton: {
@@ -3440,6 +3447,12 @@ const styles = (theme: ThemeColors) =>
         invisibleOverlay: {
             backgroundColor: theme.transparent,
             zIndex: 1000,
+        },
+
+        invisibleImage: {
+            opacity: 0,
+            width: 200,
+            height: 200,
         },
 
         reportDropOverlay: {
