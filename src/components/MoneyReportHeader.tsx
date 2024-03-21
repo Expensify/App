@@ -65,10 +65,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
 
-    const shouldShowApproveButton = useMemo(
-        () => IOU.canApproveIOU(moneyRequestReport, chatReport, policy),
-        [moneyRequestReport, chatReport, policy],
-    );
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
 
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
