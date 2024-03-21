@@ -57,14 +57,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {whiteSpace: 'pre'},
                 contentModel: HTMLContentModel.textual,
             }),
-            'thread-title': HTMLElementModel.fromCustomModel({
-                tagName: 'thread-title',
-                contentModel: HTMLContentModel.textual,
-                mixedUAStyles: {...styles.headerText, whiteSpace: 'pre'},
-                reactNativeProps: {
-                    text: {numberOfLines: 1},
-                },
-            }),
+            'thread-title': HTMLElementModel.fromCustomModel({tagName: 'thread-title', contentModel: HTMLContentModel.block}),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
@@ -79,7 +72,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
             }),
         }),
-        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting, styles.lh16, styles.headerText],
+        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting, styles.lh16],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 

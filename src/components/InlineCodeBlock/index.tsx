@@ -7,13 +7,19 @@ import type {TTextOrTPhrasing} from './types';
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, textStyle, defaultRendererProps, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const flattenTextStyle = StyleSheet.flatten(textStyle);
     const {textDecorationLine, ...textStyles} = flattenTextStyle;
+    const numberOfLines = defaultRendererProps.propsFromParent?.numberOfLines;
 
     return (
         <TDefaultRenderer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
         >
-            <Text style={[boxModelStyle, textStyles]}>{'data' in defaultRendererProps.tnode && defaultRendererProps.tnode.data}</Text>
+            <Text
+                numberOfLines={numberOfLines}
+                style={[boxModelStyle, textStyles]}
+            >
+                {'data' in defaultRendererProps.tnode && defaultRendererProps.tnode.data}
+            </Text>
         </TDefaultRenderer>
     );
 }

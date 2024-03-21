@@ -6,6 +6,7 @@ import WrappedText from './WrappedText';
 
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
+    const numberOfLines = defaultRendererProps.propsFromParent?.numberOfLines;
 
     return (
         <TDefaultRenderer
@@ -15,6 +16,7 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
             <WrappedText
                 textStyles={textStyle}
                 wordStyles={[boxModelStyle, styles.codeWordStyle]}
+                numberOfLines={numberOfLines}
             >
                 {'data' in defaultRendererProps.tnode && defaultRendererProps.tnode.data}
             </WrappedText>
