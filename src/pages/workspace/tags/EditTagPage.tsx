@@ -57,7 +57,10 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
 
     const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+            const tagName = values.tagName.trim();
+            if (currentTagName !== tagName) {
             Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
+            }
             Keyboard.dismiss();
             Navigation.dismissModal();
         },
