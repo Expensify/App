@@ -80,6 +80,9 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         if (typeof policy?.autoReportingOffset === 'number') {
             return toLocaleOrdinal(policy.autoReportingOffset);
         }
+        if (typeof policy?.autoReportingOffset === 'string' && parseInt(policy?.autoReportingOffset, 10)) {
+            return toLocaleOrdinal(parseInt(policy.autoReportingOffset, 10));
+        }
 
         return translate(`workflowsPage.frequencies.${policy?.autoReportingOffset}`);
     };
