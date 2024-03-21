@@ -21,7 +21,6 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import {usePersonalDetails} from './OnyxProvider';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
 type MoneyRequestHeaderOnyxProps = {
@@ -47,14 +46,13 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     report: Report;
 
     /** The policy which the report is tied to */
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
 
     /** The report action the transaction is tied to from the parent report */
-    parentReportAction: ReportAction & OriginalMessageIOU;
+    parentReportAction: OnyxEntry<ReportAction>;
 };
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy}: MoneyRequestHeaderProps) {
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -71,9 +69,17 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
 
     const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', parentReportAction, true);
+        if (parentReportAction) {
+            const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+                IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+                return;
+            }
+            IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
+        }
+
         setIsDeleteModalVisible(false);
-    }, [parentReportAction, setIsDeleteModalVisible]);
+    }, [parentReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
@@ -82,14 +88,16 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction;
 
     // If the report supports adding transactions to it, then it also supports deleting transactions from it.
-    const canDeleteRequest = isActionOwner && ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
+        const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+
         if (isOnHold) {
-            IOU.unholdRequest(parentReportAction?.originalMessage?.IOUTransactionID ?? '', report?.reportID);
+            IOU.unholdRequest(iouTransactionID, report?.reportID);
         } else {
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type, parentReportAction?.originalMessage?.IOUTransactionID ?? '', report?.reportID, activeRoute));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? '', iouTransactionID, report?.reportID, activeRoute));
         }
     };
 
@@ -105,7 +113,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     if (canHoldOrUnholdRequest) {
         const isRequestIOU = parentReport?.type === 'iou';
         const isHoldCreator = ReportUtils.isHoldCreator(transaction, report?.reportID) && isRequestIOU;
-        const canModifyStatus = isPolicyAdmin || isActionOwner || isApprover;
+        const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
+        const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
         if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
@@ -157,7 +166,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
                     shouldShowBorderBottom={!isScanning && !isPending && !isOnHold}
-                    shouldShowAvatarWithDisplay
+                    shouldShowReportAvatarWithDisplay
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
@@ -167,7 +176,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
-                    personalDetails={personalDetails}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 />
