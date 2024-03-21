@@ -274,6 +274,9 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                     duration: 0,
                 });
             }
+            case States.EDIT_MESSAGE: {
+                return 0;
+            }
 
             default:
                 return 0;
