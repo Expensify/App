@@ -187,7 +187,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: numbe
 /**
  * Gets all tag lists of a policy
  */
-function getTagLists(policyTagList: OnyxEntry<PolicyTagList> ): Array<PolicyTagList[keyof PolicyTagList]> {
+function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagList[keyof PolicyTagList]> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
