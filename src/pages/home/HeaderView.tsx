@@ -349,7 +349,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    Task.deleteTask(report)
+                                    Task.deleteTask(report);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}
