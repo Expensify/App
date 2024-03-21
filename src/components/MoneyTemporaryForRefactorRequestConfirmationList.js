@@ -906,7 +906,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
-                    objectPositionTop
+                    objectPosition={CONST.IMAGE_OBJECT_POSITION.TOP}
                 />
             ),
         [receiptFilename, receiptImage, styles, receiptThumbnail, isLocalFile, isAttachmentInvalid],

@@ -5,12 +5,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import BaseImage from './BaseImage';
 import type {ImageOnLoadEvent, ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
-function Image({source: propsSource, isAuthTokenRequired = false, session, onLoad, objectPositionTop, style, ...forwardedProps}: ImageProps) {
+function Image({source: propsSource, isAuthTokenRequired = false, session, onLoad, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL, style, ...forwardedProps}: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
+    const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
-            if (!objectPositionTop) {
+            if (!isObjectPositionTop) {
                 return;
             }
 
@@ -21,7 +22,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
 
             setAspectRatio(height ? width / height : 'auto');
         },
-        [objectPositionTop],
+        [isObjectPositionTop],
     );
 
     const handleLoad = useCallback(
@@ -63,7 +64,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             onLoad={handleLoad}
-            style={[style, aspectRatio ? {aspectRatio, height: 'auto'} : {}, objectPositionTop && !aspectRatio && {opacity: 0}]}
+            style={[style, aspectRatio ? {aspectRatio, height: 'auto'} : {}, isObjectPositionTop && !aspectRatio && {opacity: 0}]}
             source={source}
         />
     );

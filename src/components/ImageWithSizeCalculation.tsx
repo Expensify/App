@@ -5,9 +5,11 @@ import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
 import RESIZE_MODES from './Image/resizeModes';
+import type {ImageObjectPosition} from './Image/types';
 
 type OnMeasure = (args: {width: number; height: number}) => void;
 
@@ -33,8 +35,8 @@ type ImageWithSizeCalculationProps = {
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
 
-    /** Whether we should show the top of the image */
-    objectPositionTop?: boolean;
+    /** The object position of image */
+    objectPosition?: ImageObjectPosition;
 };
 
 /**
@@ -43,7 +45,7 @@ type ImageWithSizeCalculationProps = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-function ImageWithSizeCalculation({url, style, onMeasure, onLoadFailure, isAuthTokenRequired, objectPositionTop = false}: ImageWithSizeCalculationProps) {
+function ImageWithSizeCalculation({url, style, onMeasure, onLoadFailure, isAuthTokenRequired, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL}: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
@@ -104,7 +106,7 @@ function ImageWithSizeCalculation({url, style, onMeasure, onLoadFailure, isAuthT
                 }}
                 onError={onError}
                 onLoad={imageLoadedSuccessfully}
-                objectPositionTop={objectPositionTop}
+                objectPosition={objectPosition}
             />
             {isLoading && !isImageCached && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
         </View>

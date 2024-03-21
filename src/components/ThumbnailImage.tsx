@@ -6,9 +6,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 type ThumbnailImageProps = {
@@ -35,7 +37,9 @@ type ThumbnailImageProps = {
 
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize?: boolean;
-    objectPositionTop?: boolean;
+
+    /** The object position of image */
+    objectPosition?: ImageObjectPosition;
 };
 
 type UpdateImageSizeParams = {
@@ -52,7 +56,7 @@ function ThumbnailImage({
     shouldDynamicallyResize = true,
     fallbackIcon = Expensicons.Gallery,
     fallbackIconSize = variables.iconSizeSuperLarge,
-    objectPositionTop = false,
+    objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -104,7 +108,7 @@ function ThumbnailImage({
                     onMeasure={updateImageSize}
                     onLoadFailure={() => setFailedToLoad(true)}
                     isAuthTokenRequired={isAuthTokenRequired}
-                    objectPositionTop={objectPositionTop}
+                    objectPosition={objectPosition}
                 />
             </View>
         </View>

@@ -85,7 +85,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                 fallbackIcon={Expensicons.Receipt}
                 fallbackIconSize={isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge}
                 shouldDynamicallyResize={false}
-                objectPositionTop
+                objectPosition={CONST.IMAGE_OBJECT_POSITION.TOP}
             />
         );
     } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
@@ -100,7 +100,7 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
             <Image
                 source={imageSource}
                 style={[styles.w100, styles.h100]}
-                objectPositionTop
+                objectPosition={CONST.IMAGE_OBJECT_POSITION.TOP}
             />
         );
     }

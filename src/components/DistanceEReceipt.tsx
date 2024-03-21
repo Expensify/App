@@ -63,7 +63,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                                 style={[styles.w100, styles.h100]}
                                 isAuthTokenRequired
                                 shouldDynamicallyResize={false}
-                                objectPositionTop
+                                objectPosition
                             />
                         )}
                     </View>
