@@ -157,17 +157,22 @@ function IOURequestStepDistance({
             }
 
             const newWaypoints = {};
+            let emptyWaypointIndex = -1;
             _.each(data, (waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, {});
+                // Find waypoint that BECOMES empty after dragging
+                if (_.isEmpty(newWaypoints[`waypoint${index}`]) && !_.isEmpty(lodashGet(waypoints, `waypoint${index}`, {}))) {
+                    emptyWaypointIndex = index;
+                }
             });
 
             setOptimisticWaypoints(newWaypoints);
             // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            Transaction.updateWaypoints(transactionID, newWaypoints, true).then(() => {
+            Promise.all([Transaction.removeWaypoint(transaction, emptyWaypointIndex.toString(), true), Transaction.updateWaypoints(transactionID, newWaypoints, true)]).then(() => {
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, waypoints, waypointsList],
+        [transactionID, transaction, waypoints, waypointsList],
     );
 
     const submitWaypoints = useCallback(() => {
@@ -229,6 +234,7 @@ function IOURequestStepDistance({
                         success
                         allowBubble
                         pressOnEnter
+                        large
                         style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                         onPress={submitWaypoints}
                         text={translate('common.next')}

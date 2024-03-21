@@ -7,7 +7,7 @@ import type {SAMLSignInPageOnyxProps, SAMLSignInPageProps} from './types';
 
 function SAMLSignInPage({credentials}: SAMLSignInPageProps) {
     useEffect(() => {
-        window.open(`${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials?.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`, '_self');
+        window.location.replace(`${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials?.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`);
     }, [credentials?.login]);
 
     return <SAMLLoadingIndicator />;

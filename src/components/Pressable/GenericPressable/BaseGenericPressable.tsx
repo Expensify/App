@@ -26,7 +26,7 @@ function GenericPressable(
         focusStyle = {},
         pressStyle = {},
         screenReaderActiveStyle = {},
-        shouldUseHapticsOnLongPress = false,
+        shouldUseHapticsOnLongPress = true,
         shouldUseHapticsOnPress = false,
         nextFocusRef,
         keyboardShortcut,

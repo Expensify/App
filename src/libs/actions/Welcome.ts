@@ -12,6 +12,7 @@ import type OnyxPolicy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
+import * as Session from './Session';
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isReadyPromise = new Promise<void>((resolve) => {
@@ -168,7 +169,14 @@ function show(routes: State<RootStackParamList>['routes'] | undefined, showEngag
 
         // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
         // we will show the engagement modal.
-        if (!Policy.isAdminOfFreePolicy(allPolicies ?? undefined) && !isExitingToWorkspaceRoute && !hasSelectedChoice && !hasDismissedModal && Object.keys(allPolicies ?? {}).length === 1) {
+        if (
+            !Session.isAnonymousUser() &&
+            !Policy.isAdminOfFreePolicy(allPolicies ?? undefined) &&
+            !isExitingToWorkspaceRoute &&
+            !hasSelectedChoice &&
+            !hasDismissedModal &&
+            Object.keys(allPolicies ?? {}).length === 1
+        ) {
             showEngagementModal();
         }
 

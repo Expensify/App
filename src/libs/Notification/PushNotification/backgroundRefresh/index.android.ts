@@ -39,6 +39,7 @@ const backgroundRefresh: BackgroundRefresh = () => {
              * See more here: https://reactnative.dev/docs/headless-js-android
              */
             App.confirmReadyToOpenApp();
+            Log.info('[PushNotification] Sending ReconnectApp');
             App.reconnectApp(lastUpdateIDAppliedToClient ?? undefined);
         })
         .catch((error) => {
