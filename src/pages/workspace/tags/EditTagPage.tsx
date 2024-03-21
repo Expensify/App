@@ -59,7 +59,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const tagName = values.tagName.trim();
             if (currentTagName !== tagName) {
-            Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
+                Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
             }
             Keyboard.dismiss();
             Navigation.dismissModal();

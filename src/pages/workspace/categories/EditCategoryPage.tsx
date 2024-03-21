@@ -2,8 +2,8 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +36,6 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
             const newCategoryName = values.categoryName.trim();
-            
 
             if (!newCategoryName) {
                 errors.categoryName = 'workspace.categories.categoryRequiredError';
@@ -53,7 +52,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newCategoryName = values.categoryName.trim();
             if (currentCategoryName !== newCategoryName) {
-            Policy.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
+                Policy.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
             }
         },
         [currentCategoryName, route.params.policyID],
