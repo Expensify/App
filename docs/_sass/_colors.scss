@@ -1,22 +1,22 @@
 :root {
     // UI Colors
-    --color-text: #002E22;
+    --color-text: #002e22;
     --color-button-text: #fff;
-    --color-text-supporting: #76847E;
-    --color-icons: #A2A9A3;
-    --color-borders: #E6E1DA;
-    --color-highlightBG: #F8F4F0;
-    --color-row-hover: #F2EDE7;
-    --color-appBG: #FCFBF9;
+    --color-text-supporting: #76847e;
+    --color-icons: #a2a9a3;
+    --color-borders: #e6e1da;
+    --color-highlightBG: #f8f4f0;
+    --color-row-hover: #f2ede7;
+    --color-appBG: #fcfbf9;
     --color-success: #03d47c;
     --color-accent: #03d47c;
     --color-link: #5ab0ff;
     --color-link-hovered: #b0d9ff;
-    --color-button-background: #E6E1DA;
-    --color-button-background-hover: #D8D1C7;
+    --color-button-background: #e6e1da;
+    --color-button-background-hover: #d8d1c7;
     --color-button-success-background: #03d47c;
     --color-button-success-background-hover: #00a862;
-    --color-overlay: rgba(26, 61, 50, 0.72);
+    --color-overlay: rgba(0, 0, 0, 0.28);
 }
 
 @media (prefers-color-scheme: dark) {
