@@ -26,6 +26,10 @@ function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
 }
 
+function canUseTrackExpense(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.TRACK_EXPENSE) || canUseAllBetas(betas);
+}
+
 function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.P2P_DISTANCE_REQUESTS) || canUseAllBetas(betas);
 }
@@ -47,6 +51,7 @@ export default {
     canUseCommentLinking,
     canUseLinkPreviews,
     canUseViolations,
+    canUseTrackExpense,
     canUseReportFields,
     canUseP2PDistanceRequests,
     canUseWorkflowsDelayedSubmission,

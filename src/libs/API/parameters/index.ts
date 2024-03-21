@@ -164,6 +164,7 @@ export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceRei
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as RenamePolicyTaglist} from './RenamePolicyTaglist';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';

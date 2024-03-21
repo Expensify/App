@@ -463,9 +463,14 @@ export default {
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
-        editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}?`,
+        editAction: ({action}: EditActionParams) =>
+            `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'}`,
+        deleteAction: ({action}: DeleteActionParams) =>
+            `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'}`,
+        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
+            `Are you sure you want to delete this ${
+                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'
+            }?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
@@ -504,6 +509,8 @@ export default {
             send: 'send money',
             split: 'split a bill',
             request: 'request money',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'track-expense': 'track an expense',
         },
     },
     reportAction: {
@@ -594,6 +601,7 @@ export default {
         participants: 'Participants',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
+        trackExpense: 'Track expense',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
@@ -625,6 +633,7 @@ export default {
         finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
+        trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
@@ -656,6 +665,7 @@ export default {
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
             `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'request'}`,
+        threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: 'Select a tag to better organize your spend.',
         categorySelection: 'Select a category to better organize your spend.',
@@ -1071,6 +1081,14 @@ export default {
                 other: 'th',
             },
         },
+    },
+    workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'The delayed submission parameter could not be changed. Please try again or contact support.',
+        autoReportingFrequencyErrorMessage: 'The submission frequency could not be changed. Please try again or contact support.',
+        monthlyOffsetErrorMessage: 'The monthly frequency could not be changed. Please try again or contact support.',
+    },
+    workflowsApprovalPage: {
+        genericErrorMessage: 'The approver could not be changed. Please try again or contact support.',
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -1877,6 +1895,7 @@ export default {
             errors: {
                 taxRateAlreadyExists: 'This tax name is already in use.',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
+                customNameRequired: 'Custom tax name is required.',
                 deleteFailureMessage: 'An error occurred while deleting the tax rate. Please try again or ask Concierge for help.',
                 updateFailureMessage: 'An error occurred while updating the tax rate. Please try again or ask Concierge for help.',
                 createFailureMessage: 'An error occurred while creating the tax rate. Please try again or ask Concierge for help.',
@@ -2328,6 +2347,7 @@ export default {
         deletedReport: '[Deleted report]',
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        deletedExpense: '[Deleted expense]',
         reversedTransaction: '[Reversed transaction]',
         deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
