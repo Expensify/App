@@ -27,7 +27,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {DismissedReferralBanners} from '@src/types/onyx/Account';
 
 type NewChatPageWithOnyxProps = {
     /** All reports shared with the user */
@@ -42,7 +41,7 @@ type NewChatPageWithOnyxProps = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: DismissedReferralBanners;
+    dismissedReferralBanners: OnyxEntry<OnyxTypes.DismissedReferralBanners>;
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: OnyxEntry<boolean>;
@@ -288,7 +287,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
                             shouldShowConfirmButton
-                            shouldShowReferralCTA={!dismissedReferralBanners[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
+                            shouldShowReferralCTA={!dismissedReferralBanners?.[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
                             confirmButtonText={selectedOptions.length > 1 ? translate('common.next') : translate('newChatPage.createChat')}
                             textInputAlert={isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
@@ -310,8 +309,7 @@ NewChatPage.displayName = 'NewChatPage';
 
 export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
     dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data?.dismissedReferralBanners ?? {},
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
     newGroupDraft: {
         key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
