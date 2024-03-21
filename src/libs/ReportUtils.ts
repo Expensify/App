@@ -4212,6 +4212,10 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
         return false;
     }
 
+    if (report?.errorFields?.notFound) {
+        return false;
+    }
+
     return true;
 }
 
@@ -4244,6 +4248,21 @@ function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transact
         return false;
     }
     return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations);
+}
+
+/**
+ * Checks if we should display violation - we display violations when the money request has violation and it is not settled
+ */
+function shouldDisplayTransactionThreadViolations(
+    report: OnyxEntry<Report>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    parentReportAction: OnyxEntry<ReportAction>,
+): boolean {
+    const {IOUReportID} = (parentReportAction?.originalMessage as IOUMessage) ?? {};
+    if (isSettled(IOUReportID)) {
+        return false;
+    }
+    return doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
 }
 
 /**
@@ -5622,6 +5641,7 @@ export {
     getRoom,
     canEditReportDescription,
     doesTransactionThreadHaveViolations,
+    shouldDisplayTransactionThreadViolations,
     hasViolations,
     navigateToPrivateNotes,
     canEditWriteCapability,
