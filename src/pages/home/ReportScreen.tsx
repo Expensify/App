@@ -47,7 +47,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Modal} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
 import ReportActionsView from './report/ReportActionsView';
@@ -57,7 +56,7 @@ import type {ActionListContextType, ReactionListRef, ScrollPosition} from './Rep
 
 type ReportScreenOnyxProps = {
     /** Indicates if there is a modal currently visible or not */
-    modal: OnyxEntry<Modal>;
+    modal: OnyxEntry<OnyxTypes.Modal>;
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: OnyxEntry<boolean>;
 

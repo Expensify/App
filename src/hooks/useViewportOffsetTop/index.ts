@@ -10,7 +10,7 @@ export default function useViewportOffsetTop(shouldAdjustScrollView = false): nu
     const cachedDefaultOffsetTop = useRef<number>(0);
     useEffect(() => {
         const updateOffsetTop = (event?: Event) => {
-            let targetOffsetTop = window.visualViewport?.offsetTop || 0;
+            let targetOffsetTop = window.visualViewport?.offsetTop ?? 0;
             if (event?.target instanceof VisualViewport) {
                 targetOffsetTop = event.target.offsetTop;
             }

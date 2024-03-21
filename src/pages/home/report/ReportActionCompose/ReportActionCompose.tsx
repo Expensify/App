@@ -301,27 +301,25 @@ function ReportActionCompose({
         isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
-    const onBlur = useCallback((event: NativeSyntheticEvent<TextInputFocusEventData>) => {
-        const webEvent = event as unknown as FocusEvent;
-        setIsFocused(false);
-        onComposerBlur();
-        if (suggestionsRef.current) {
-            suggestionsRef.current.resetSuggestions();
-        }
-        if (webEvent.relatedTarget && webEvent.relatedTarget === actionButtonRef.current) {
-            isKeyboardVisibleWhenShowingModalRef.current = true;
-        }
-    }, []);
+    const onBlur = useCallback(
+        (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+            const webEvent = event as unknown as FocusEvent;
+            setIsFocused(false);
+            onComposerBlur();
+            if (suggestionsRef.current) {
+                suggestionsRef.current.resetSuggestions();
+            }
+            if (webEvent.relatedTarget && webEvent.relatedTarget === actionButtonRef.current) {
+                isKeyboardVisibleWhenShowingModalRef.current = true;
+            }
+        },
+        [onComposerBlur],
+    );
 
     const handleFocus = useCallback(() => {
         setIsFocused(true);
         onComposerFocus();
-    }, []);
-
-    const handleBlur = useCallback(() => {
-        setIsFocused(false);
-        onComposerBlur();
-    }, []);
+    }, [onComposerFocus]);
 
     // resets the composer to normal size when
     // the send button is pressed.
@@ -452,7 +450,7 @@ function ReportActionCompose({
                                         handleSendMessage={handleSendMessage}
                                         shouldShowComposeInput={shouldShowComposeInput}
                                         onFocus={handleFocus}
-                                        onBlur={handleBlur}
+                                        onBlur={onBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
                                         onValueChange={(value) => {

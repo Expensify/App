@@ -49,6 +49,13 @@ function close(onModalCloseCallback: () => void, isNavigating = true) {
     closeTop();
 }
 
+/**
+ * Allows other parts of the app to know when a modal has been opened or closed
+ */
+function setModalVisibility(isVisible: boolean) {
+    Onyx.merge(ONYXKEYS.MODAL, {isVisible});
+}
+
 function onModalDidClose() {
     if (!onModalClose) {
         return;
@@ -61,13 +68,6 @@ function onModalDidClose() {
     onModalClose = null;
     isNavigate = undefined;
     setModalVisibility(false);
-}
-
-/**
- * Allows other parts of the app to know when a modal has been opened or closed
- */
-function setModalVisibility(isVisible: boolean) {
-    Onyx.merge(ONYXKEYS.MODAL, {isVisible});
 }
 
 /**

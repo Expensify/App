@@ -176,7 +176,8 @@ const EmojiPicker = forwardRef((props, ref) => {
             onModalShow={focusEmojiSearchInput}
             onModalHide={onModalHide.current}
             hideModalContentWhileAnimating
-            shouldSetModalVisibility={Browser.isMobile()}
+            // shouldSetModalVisibility is true for mobile safari to handle adjust virtual viewport position when toggle modal visibility
+            shouldSetModalVisibility={Browser.isMobileSafari()}
             animationInTiming={1}
             animationOutTiming={1}
             anchorPosition={{
