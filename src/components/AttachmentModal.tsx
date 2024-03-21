@@ -637,4 +637,4 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     },
 })(memo(AttachmentModal));
 
-export type {Attachment, FileObject};
+export type {Attachment, FileObject, ImagePickerResponse};

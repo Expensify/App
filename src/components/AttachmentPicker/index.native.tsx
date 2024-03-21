@@ -6,7 +6,7 @@ import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
@@ -31,6 +31,17 @@ type Item = {
     icon: IconAsset;
     textTranslationKey: TranslationPaths;
     pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
+};
+
+type FileData = {
+    fileName?: string;
+    name?: string | undefined;
+    fileCopyUri?: string;
+    uri?: string;
+    width?: number;
+    height?: number;
+    size?: number;
+    type?: string;
 };
 
 /**
@@ -79,17 +90,17 @@ const getDocumentPickerOptions = (type: string): DocumentPickerOptions<'ios' | '
  * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
  * send to the xhr will be handled properly.
  */
-const getDataForUpload = (fileData: Asset & DocumentPickerResponse): Promise<FileObject> => {
-    const fileName = fileData.fileName ?? fileData.name ?? 'chat_attachment';
+const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
+    const fileName = fileData.name ?? 'chat_attachment';
     const fileResult: FileObject = {
         name: FileUtils.cleanFileName(fileName),
         type: fileData.type,
         width: fileData.width,
         height: fileData.height,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        uri: fileData.fileCopyUri || fileData.uri,
+        uri: fileData.uri,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        size: fileData.fileSize || fileData.size,
+        size: fileData.size,
     };
 
     if (fileResult.size) {
@@ -233,7 +244,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     };
 
     const validateAndCompleteAttachmentSelection = useCallback(
-        (fileData: Asset | DocumentPickerResponse) => {
+        (fileData: FileResponse) => {
             if (fileData.width === -1 || fileData.height === -1) {
                 showImageCorruptionAlert();
                 return Promise.resolve();
@@ -256,7 +267,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      */
     const pickAttachment = useCallback(
         (attachments: Asset[] | DocumentPickerResponse[] | void = []): Promise<void> | undefined => {
-            if(!attachments){
+            if (!attachments) {
                 onCanceled.current();
                 return Promise.resolve();
             }
@@ -271,17 +282,26 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 return Promise.resolve();
             }
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) 
+            const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) || '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const fileDataUri = ('fileCopyUri' in fileData && fileData.fileCopyUri) || ('uri' in fileData && fileData.uri) || ''
+            const fileDataUri = ('fileCopyUri' in fileData && fileData.fileCopyUri) || ('uri' in fileData && fileData.uri) || '';
+
+            const fileDataObject: FileResponse = {
+                name: fileDataName ?? '',
+                uri: fileDataUri,
+                size: ('size' in fileData && fileData.size) || ('fileSize' in fileData && fileData.fileSize) || null,
+                type: fileData.type ?? '',
+                width: ('width' in fileData && fileData.width) || undefined,
+                height: ('height' in fileData && fileData.height) || undefined,
+            };
             if (fileDataName && Str.isImage(fileDataName)) {
                 RNImage.getSize(fileDataUri, (width, height) => {
-                    fileData.width = width;
-                    fileData.height = height;
-                    validateAndCompleteAttachmentSelection(fileData);
+                    fileDataObject.width = width;
+                    fileDataObject.height = height;
+                    validateAndCompleteAttachmentSelection(fileDataObject);
                 });
             } else {
-                return validateAndCompleteAttachmentSelection(fileData);
+                return validateAndCompleteAttachmentSelection(fileDataObject);
             }
         },
         [validateAndCompleteAttachmentSelection],
