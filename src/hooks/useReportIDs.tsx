@@ -27,10 +27,12 @@ type WithReportIDsContextProviderProps = OnyxProps & {
 
 type ReportIDsContextValue = {
     orderedReportIDs: string[];
+    currentReportID: string;
 };
 
 const ReportIDsContext = createContext<ReportIDsContextValue>({
     orderedReportIDs: [],
+    currentReportID: '',
 });
 
 function WithReportIDsContextProvider({
@@ -91,8 +93,9 @@ function WithReportIDsContextProvider({
     const contextValue = useMemo(
         () => ({
             orderedReportIDs: orderedReportIDsWithCurrentReport,
+            currentReportID: derivedCurrentReportID ?? '',
         }),
-        [orderedReportIDsWithCurrentReport],
+        [orderedReportIDsWithCurrentReport, derivedCurrentReportID],
     );
 
     return <ReportIDsContext.Provider value={contextValue}>{children}</ReportIDsContext.Provider>;

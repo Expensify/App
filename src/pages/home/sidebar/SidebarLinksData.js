@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
-import withCurrentReportID from '@components/withCurrentReportID';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -44,7 +43,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onLinkClick, priorityMode, network, policyMembers, currentUserPersonalDetails}) {
+function SidebarLinksData({isFocused, insets, isLoadingApp, onLinkClick, priorityMode, network, policyMembers, currentUserPersonalDetails}) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
@@ -57,7 +56,7 @@ function SidebarLinksData({isFocused, currentReportID, insets, isLoadingApp, onL
 
     const orderedReportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
-    const {orderedReportIDs} = useReportIDs();
+    const {orderedReportIDs, currentReportID} = useReportIDs();
 
     const optionListItems = useMemo(() => {
         if (deepEqual(orderedReportIDsRef.current, orderedReportIDs)) {
@@ -103,7 +102,6 @@ SidebarLinksData.defaultProps = defaultProps;
 SidebarLinksData.displayName = 'SidebarLinksData';
 
 export default compose(
-    withCurrentReportID,
     withCurrentUserPersonalDetails,
     withNavigationFocus,
     withNetwork(),
