@@ -106,6 +106,7 @@ function WorkspaceCreateTaxPage({
                                         description={translate('workspace.taxes.value')}
                                         rightLabel={translate('common.required')}
                                         hideCurrencySymbol
+                                        extraDecimals={6}
                                         extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
                                     />
                                 </View>
