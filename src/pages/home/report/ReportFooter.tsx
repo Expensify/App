@@ -171,7 +171,6 @@ export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
     },
     blockedFromChat: {
         key: ONYXKEYS.NVP_BLOCKED_FROM_CHAT,
-      
     },
 })(
     memo(
