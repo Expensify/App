@@ -1,26 +1,30 @@
+import type {ComponentMeta, ComponentStory} from '@storybook/react';
 import React from 'react';
 import Chase from '@assets/images/bankicons/chase.svg';
 import MenuItem from '@components/MenuItem';
+import type {MenuItemProps} from '@components/MenuItem';
 import variables from '@styles/variables';
+
+type MenuItemStory = ComponentStory<typeof MenuItem>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story = {
+const story: ComponentMeta<typeof MenuItem> = {
     title: 'Components/MenuItem',
     component: MenuItem,
 };
 
-function Template(args) {
+function Template(props: MenuItemProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <MenuItem {...args} />;
+    return <MenuItem {...props} />;
 }
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
+const Default: MenuItemStory = Template.bind({});
 Default.args = {
     title: 'Alberta Bobbeth Charleson',
     icon: Chase,
@@ -28,7 +32,7 @@ Default.args = {
     iconWidth: variables.iconSizeExtraLarge,
 };
 
-const Description = Template.bind({});
+const Description: MenuItemStory = Template.bind({});
 Description.args = {
     title: 'Alberta Bobbeth Charleson',
     description: 'Account ending in 1111',
@@ -37,7 +41,7 @@ Description.args = {
     iconWidth: variables.iconSizeExtraLarge,
 };
 
-const RightIcon = Template.bind({});
+const RightIcon: MenuItemStory = Template.bind({});
 RightIcon.args = {
     title: 'Alberta Bobbeth Charleson',
     icon: Chase,
@@ -46,7 +50,7 @@ RightIcon.args = {
     shouldShowRightIcon: true,
 };
 
-const RightIconAndDescription = Template.bind({});
+const RightIconAndDescription: MenuItemStory = Template.bind({});
 RightIconAndDescription.args = {
     title: 'Alberta Bobbeth Charleson',
     description: 'Account ending in 1111',
@@ -56,7 +60,7 @@ RightIconAndDescription.args = {
     shouldShowRightIcon: true,
 };
 
-const RightIconAndDescriptionWithLabel = Template.bind({});
+const RightIconAndDescriptionWithLabel: MenuItemStory = Template.bind({});
 RightIconAndDescriptionWithLabel.args = {
     label: 'Account number',
     title: 'Alberta Bobbeth Charleson',
@@ -67,7 +71,7 @@ RightIconAndDescriptionWithLabel.args = {
     shouldShowRightIcon: true,
 };
 
-const Selected = Template.bind({});
+const Selected: MenuItemStory = Template.bind({});
 Selected.args = {
     title: 'Alberta Bobbeth Charleson',
     description: 'Account ending in 1111',
@@ -78,7 +82,7 @@ Selected.args = {
     isSelected: true,
 };
 
-const BadgeText = Template.bind({});
+const BadgeText: MenuItemStory = Template.bind({});
 BadgeText.args = {
     title: 'Alberta Bobbeth Charleson',
     icon: Chase,
@@ -88,7 +92,7 @@ BadgeText.args = {
     badgeText: '$0.00',
 };
 
-const Focused = Template.bind({});
+const Focused: MenuItemStory = Template.bind({});
 Focused.args = {
     title: 'Alberta Bobbeth Charleson',
     icon: Chase,
@@ -98,7 +102,7 @@ Focused.args = {
     focused: true,
 };
 
-const Disabled = Template.bind({});
+const Disabled: MenuItemStory = Template.bind({});
 Disabled.args = {
     title: 'Alberta Bobbeth Charleson',
     icon: Chase,
@@ -108,17 +112,17 @@ Disabled.args = {
     disabled: true,
 };
 
-const BrickRoadIndicatorSuccess = Template.bind({});
-BrickRoadIndicatorSuccess.args = {
+const BrickRoadIndicatorInfo: MenuItemStory = Template.bind({});
+BrickRoadIndicatorInfo.args = {
     title: 'Alberta Bobbeth Charleson',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,
     shouldShowRightIcon: true,
-    brickRoadIndicator: 'success',
+    brickRoadIndicator: 'info',
 };
 
-const BrickRoadIndicatorFailure = Template.bind({});
+const BrickRoadIndicatorFailure: MenuItemStory = Template.bind({});
 BrickRoadIndicatorFailure.args = {
     title: 'Alberta Bobbeth Charleson',
     icon: Chase,
@@ -128,7 +132,7 @@ BrickRoadIndicatorFailure.args = {
     brickRoadIndicator: 'error',
 };
 
-const ErrorMessage = Template.bind({});
+const ErrorMessage: MenuItemStory = Template.bind({});
 ErrorMessage.args = {
     title: 'Alberta Bobbeth Charleson',
     icon: Chase,
@@ -149,7 +153,7 @@ export {
     BadgeText,
     Focused,
     Disabled,
-    BrickRoadIndicatorSuccess,
+    BrickRoadIndicatorInfo,
     BrickRoadIndicatorFailure,
     RightIconAndDescriptionWithLabel,
     ErrorMessage,

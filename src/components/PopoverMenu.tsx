@@ -215,4 +215,4 @@ function PopoverMenu({
 PopoverMenu.displayName = 'PopoverMenu';
 
 export default React.memo(PopoverMenu);
-export type {PopoverMenuItem};
+export type {PopoverMenuItem, PopoverMenuProps};

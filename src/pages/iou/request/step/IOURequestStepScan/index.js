@@ -76,6 +76,9 @@ function IOURequestStepScan({
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
+    const trackRef = useRef(null);
+
+    const getScreenshotTimeoutRef = useRef(null);
 
     const [videoConstraints, setVideoConstraints] = useState(null);
     const tabIndex = 1;
@@ -90,38 +93,42 @@ function IOURequestStepScan({
             return;
         }
 
-        navigator.mediaDevices.getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}}).then((stream) => {
-            _.forEach(stream.getTracks(), (track) => track.stop());
-            // Only Safari 17+ supports zoom constraint
-            if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
-                const deviceId = _.chain(stream.getTracks())
-                    .map((track) => track.getSettings())
-                    .find((setting) => setting.zoom === 1)
-                    .get('deviceId')
-                    .value();
-                if (deviceId) {
-                    setVideoConstraints({deviceId});
+        const defaultConstraints = {facingMode: {exact: 'environment'}};
+        navigator.mediaDevices
+            .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
+            .then((stream) => {
+                _.forEach(stream.getTracks(), (track) => track.stop());
+                // Only Safari 17+ supports zoom constraint
+                if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
+                    const deviceId = _.chain(stream.getTracks())
+                        .map((track) => track.getSettings())
+                        .find((setting) => setting.zoom === 1)
+                        .get('deviceId')
+                        .value();
+                    if (deviceId) {
+                        setVideoConstraints({deviceId});
+                        return;
+                    }
+                }
+                if (!navigator.mediaDevices.enumerateDevices) {
+                    setVideoConstraints(defaultConstraints);
                     return;
                 }
-            }
-            if (!navigator.mediaDevices.enumerateDevices) {
-                setVideoConstraints({facingMode: {exact: 'environment'}});
-                return;
-            }
-            navigator.mediaDevices.enumerateDevices().then((devices) => {
-                const lastBackDeviceId = _.chain(devices)
-                    .filter((item) => item.kind === 'videoinput')
-                    .last()
-                    .get('deviceId', '')
-                    .value();
+                navigator.mediaDevices.enumerateDevices().then((devices) => {
+                    const lastBackDeviceId = _.chain(devices)
+                        .filter((item) => item.kind === 'videoinput')
+                        .last()
+                        .get('deviceId', '')
+                        .value();
 
-                if (!lastBackDeviceId) {
-                    setVideoConstraints({facingMode: {exact: 'environment'}});
-                    return;
-                }
-                setVideoConstraints({deviceId: lastBackDeviceId});
-            });
-        });
+                    if (!lastBackDeviceId) {
+                        setVideoConstraints(defaultConstraints);
+                        return;
+                    }
+                    setVideoConstraints({deviceId: lastBackDeviceId});
+                });
+            })
+            .catch(() => setVideoConstraints(defaultConstraints));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTabActive]);
 
@@ -172,7 +179,7 @@ function IOURequestStepScan({
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
-        if (isFromGlobalCreate) {
+        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -212,11 +219,24 @@ function IOURequestStepScan({
         navigateToConfirmationStep();
     };
 
-    const capturePhoto = useCallback(() => {
-        if (!cameraRef.current.getScreenshot) {
+    const setupCameraPermissionsAndCapabilities = (stream) => {
+        setCameraPermissionState('granted');
+
+        const [track] = stream.getVideoTracks();
+        const capabilities = track.getCapabilities();
+        if (capabilities.torch) {
+            trackRef.current = track;
+        }
+        setIsTorchAvailable(!!capabilities.torch);
+    };
+
+    const getScreenshot = useCallback(() => {
+        if (!cameraRef.current) {
             return;
         }
+
         const imageBase64 = cameraRef.current.getScreenshot();
+
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64, filename);
         const source = URL.createObjectURL(file);
@@ -228,13 +248,50 @@ function IOURequestStepScan({
         }
 
         navigateToConfirmationStep();
-    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+
+    const clearTorchConstraints = useCallback(() => {
+        if (!trackRef.current) {
+            return;
+        }
+        trackRef.current.applyConstraints({
+            advanced: [{torch: false}],
+        });
+    }, []);
+
+    const capturePhoto = useCallback(() => {
+        if (trackRef.current && isFlashLightOn) {
+            trackRef.current
+                .applyConstraints({
+                    advanced: [{torch: true}],
+                })
+                .then(() => {
+                    getScreenshotTimeoutRef.current = setTimeout(() => {
+                        getScreenshot();
+                        clearTorchConstraints();
+                    }, 2000);
+                });
+            return;
+        }
+
+        getScreenshot();
+    }, [isFlashLightOn, getScreenshot, clearTorchConstraints]);
 
     const panResponder = useRef(
         PanResponder.create({
             onPanResponderTerminationRequest: () => false,
         }),
     ).current;
+
+    useEffect(
+        () => () => {
+            if (!getScreenshotTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(getScreenshotTimeoutRef.current);
+        },
+        [],
+    );
 
     const mobileCameraView = () => (
         <>
@@ -260,14 +317,12 @@ function IOURequestStepScan({
                 )}
                 {!_.isEmpty(videoConstraints) && (
                     <NavigationAwareCamera
-                        onUserMedia={() => setCameraPermissionState('granted')}
+                        onUserMedia={setupCameraPermissionsAndCapabilities}
                         onUserMediaError={() => setCameraPermissionState('denied')}
                         style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
                         ref={cameraRef}
                         screenshotFormat="image/png"
                         videoConstraints={videoConstraints}
-                        torchOn={isFlashLightOn}
-                        onTorchAvailability={setIsTorchAvailable}
                         forceScreenshotSourceSize
                         cameraTabIndex={tabIndex}
                     />

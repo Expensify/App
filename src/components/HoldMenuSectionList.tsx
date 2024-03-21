@@ -59,12 +59,7 @@ function HoldMenuSectionList() {
                     />
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
                         <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey)}</Text>
-                        <Text
-                            style={[styles.textNormal]}
-                            numberOfLines={3}
-                        >
-                            {translate(section.descriptionTranslationKey)}
-                        </Text>
+                        <Text style={[styles.textNormal]}>{translate(section.descriptionTranslationKey)}</Text>
                     </View>
                 </View>
             ))}

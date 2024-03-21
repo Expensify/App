@@ -484,9 +484,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 reimbursementAccount={reimbursementAccount}
                 continue={continueFunction}
                 policyName={policyName}
-                onBackButtonPress={() => {
-                    Navigation.goBack();
-                }}
+                onBackButtonPress={Navigation.goBack}
             />
         );
     }

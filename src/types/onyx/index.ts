@@ -11,6 +11,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -33,12 +34,11 @@ import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
-import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
@@ -91,6 +91,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    DismissedReferralBanners,
     Download,
     FrequentlyUsedEmoji,
     Fund,
@@ -158,7 +159,6 @@ export type {
     WorkspaceRateAndUnit,
     ReportUserIsTyping,
     PolicyReportField,
-    PolicyReportFields,
     RecentlyUsedReportFields,
     DecisionName,
     OriginalMessageIOU,

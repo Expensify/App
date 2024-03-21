@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
@@ -13,19 +13,18 @@ import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-const propTypes = {
-    onPress: PropTypes.func.isRequired,
+type VideoPlayerThumbnailProps = {
+    /** Url of thumbnail image. */
+    thumbnailUrl?: string;
 
-    accessibilityLabel: PropTypes.string.isRequired,
+    /** Callback executed on thumbnail press. */
+    onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
-    thumbnailUrl: PropTypes.string,
+    /** Accessibility label for the thumbnail. */
+    accessibilityLabel: string;
 };
 
-const defaultProps = {
-    thumbnailUrl: undefined,
-};
-
-function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
+function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
 
     return (
@@ -48,9 +47,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
                         onPress={onPress}
                         onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
-                        onLongPress={(event) =>
-                            showContextMenuForReport(event, anchor, (report && report.reportID) || '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))
-                        }
+                        onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                         shouldUseHapticsOnLongPress
                     >
                         <View style={[styles.videoThumbnailPlayButton]}>
@@ -69,8 +66,6 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
     );
 }
 
-VideoPlayerThumbnail.propTypes = propTypes;
-VideoPlayerThumbnail.defaultProps = defaultProps;
 VideoPlayerThumbnail.displayName = 'VideoPlayerThumbnail';
 
 export default VideoPlayerThumbnail;

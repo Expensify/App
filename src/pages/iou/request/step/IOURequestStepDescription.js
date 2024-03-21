@@ -16,7 +16,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,6 +50,21 @@ const propTypes = {
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /** The actions from the parent report */
+    reportActions: PropTypes.shape(reportActionPropTypes),
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }).isRequired,
+
+    /** The report attached to the transaction */
+    report: reportPropTypes,
 };
 
 const defaultProps = {
@@ -54,17 +73,22 @@ const defaultProps = {
     policy: null,
     policyTags: null,
     policyCategories: null,
+    reportActions: {},
+    report: {},
 };
 
 function IOURequestStepDescription({
     route: {
-        params: {action, iouType, reportID, backTo},
+        params: {action, iouType, reportID, backTo, reportActionID},
     },
     transaction,
     splitDraftTransaction,
     policy,
     policyTags,
     policyCategories,
+    reportActions,
+    session,
+    report,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -141,12 +165,19 @@ function IOURequestStepDescription({
         navigateBack();
     };
 
+    const reportAction = reportActions[report.parentReportActionID || reportActionID];
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const canEditSplitBill = isSplitBill && reportAction && session.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction));
     return (
         <StepScreenWrapper
             headerTitle={translate('common.description')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepDescription.displayName}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
@@ -204,6 +235,24 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        reportActions: {
+            key: ({
+                report,
+                route: {
+                    params: {action, iouType},
+                },
+            }) => {
+                let reportID = '0';
+                if (action === CONST.IOU.ACTION.EDIT) {
+                    reportID = iouType === CONST.IOU.TYPE.SPLIT ? report.reportID : report.parentReportID;
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+            },
+            canEvict: false,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(IOURequestStepDescription);

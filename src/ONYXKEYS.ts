@@ -16,9 +16,6 @@ const ONYXKEYS = {
     /** Holds the reportID for the report between the user and their account manager */
     ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
 
-    /** Boolean flag only true when first set */
-    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
-
     /** Holds an array of client IDs which is used for multi-tabs on web in order to know
      * which tab is the leader, and which ones are the followers */
     ACTIVE_CLIENTS: 'activeClients',
@@ -106,27 +103,52 @@ const ONYXKEYS = {
     STASHED_SESSION: 'stashedSession',
     BETAS: 'betas',
 
-    /** NVP keys
+    /** NVP keys */
+
+    /** Boolean flag only true when first set */
+    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'nvp_isFirstTimeNewExpensifyUser',
+
     /** Contains the user preference for the LHN priority mode */
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
     /** Contains the users's block expiration (if they have one) */
-    NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
+    NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
 
     /** A unique identifier that each user has that's used to send notifications */
-    NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
+    NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'nvp_private_pushNotificationID',
 
     /** The NVP with the last payment method used per policy */
-    NVP_LAST_PAYMENT_METHOD: 'nvp_lastPaymentMethod',
+    NVP_LAST_PAYMENT_METHOD: 'nvp_private_lastPaymentMethod',
 
     /** This NVP holds to most recent waypoints that a person has used when creating a distance request */
     NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
 
     /** This NVP will be `true` if the user has ever dismissed the engagement modal on either OldDot or NewDot. If it becomes true it should stay true forever. */
-    NVP_HAS_DISMISSED_IDLE_PANEL: 'hasDismissedIdlePanel',
+    NVP_HAS_DISMISSED_IDLE_PANEL: 'nvp_hasDismissedIdlePanel',
 
     /** This NVP contains the choice that the user made on the engagement modal */
-    NVP_INTRO_SELECTED: 'introSelected',
+    NVP_INTRO_SELECTED: 'nvp_introSelected',
+
+    /** This NVP contains the active policyID */
+    NVP_ACTIVE_POLICY_ID: 'nvp_expensify_activePolicyID',
+
+    /** This NVP contains the referral banners the user dismissed */
+    NVP_DISMISSED_REFERRAL_BANNERS: 'nvp_dismissedReferralBanners',
+
+    /** Indicates which locale should be used */
+    NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
+
+    /** Whether the user has tried focus mode yet */
+    NVP_TRY_FOCUS_MODE: 'nvp_tryFocusMode',
+
+    /** Whether the user has been shown the hold educational interstitial yet */
+    NVP_HOLD_USE_EXPLAINED: 'holdUseExplained',
+
+    /** Store preferred skintone for emoji */
+    PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
+
+    /** Store frequently used emojis for this user */
+    FREQUENTLY_USED_EMOJIS: 'nvp_expensify_frequentlyUsedEmojis',
 
     /** The NVP with the last distance rate used per policy */
     NVP_LAST_SELECTED_DISTANCE_RATES: 'lastSelectedDistanceRates',
@@ -153,9 +175,6 @@ const ONYXKEYS = {
     ONFIDO_TOKEN: 'onfidoToken',
     ONFIDO_APPLICANT_ID: 'onfidoApplicantID',
 
-    /** Indicates which locale should be used */
-    NVP_PREFERRED_LOCALE: 'preferredLocale',
-
     /** User's Expensify Wallet */
     USER_WALLET: 'userWallet',
 
@@ -177,12 +196,6 @@ const ONYXKEYS = {
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
 
-    /** Whether the user has tried focus mode yet */
-    NVP_TRY_FOCUS_MODE: 'tryFocusMode',
-
-    /** Whether the user has been shown the hold educational interstitial yet */
-    NVP_HOLD_USE_EXPLAINED: 'holdUseExplained',
-
     /** Boolean flag used to display the focus mode notification */
     FOCUS_MODE_NOTIFICATION: 'focusModeNotification',
 
@@ -194,12 +207,6 @@ const ONYXKEYS = {
 
     /** Stores information about the active reimbursement account being set up */
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
-
-    /** Store preferred skintone for emoji */
-    PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
-
-    /** Store frequently used emojis for this user */
-    FREQUENTLY_USED_EMOJIS: 'frequentlyUsedEmojis',
 
     /** Stores Workspace ID that will be tied to reimbursement account during setup */
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
@@ -294,8 +301,8 @@ const ONYXKEYS = {
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
-        POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
-        POLICY_REPORT_FIELDS: 'policyReportFields_',
+        POLICY_RECENTLY_USED_TAGS: 'nvp_recentlyUsedTags_',
+        OLD_POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
@@ -420,6 +427,10 @@ const ONYXKEYS = {
         POLICY_TAG_NAME_FORM_DRAFT: 'policyTagNameFormDraft',
         WORKSPACE_NEW_TAX_FORM: 'workspaceNewTaxForm',
         WORKSPACE_NEW_TAX_FORM_DRAFT: 'workspaceNewTaxFormDraft',
+        WORKSPACE_TAX_NAME_FORM: 'workspaceTaxNameForm',
+        WORKSPACE_TAX_NAME_FORM_DRAFT: 'workspaceTaxNameFormDraft',
+        WORKSPACE_TAX_VALUE_FORM: 'workspaceTaxValueForm',
+        WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
     },
 } as const;
 
@@ -471,6 +482,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM]: FormTypes.WorkspaceNewTaxForm;
     [ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM]: FormTypes.PolicyCreateDistanceRateForm;
+    [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
+    [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -486,7 +499,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
-    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportFields;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;
@@ -506,6 +518,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
     [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
+    [ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
@@ -561,6 +574,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONFIDO_TOKEN]: string;
     [ONYXKEYS.ONFIDO_APPLICANT_ID]: string;
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
+    [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
+    [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;

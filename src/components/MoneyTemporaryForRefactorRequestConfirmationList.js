@@ -251,6 +251,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
+    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
     const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
     const {unit, rate, currency} = mileageRate;
@@ -381,7 +382,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const splitOrRequestOptions = useMemo(() => {
         let text;
-        if (isTypeSplit && iouAmount === 0) {
+        if (isTypeTrackExpense) {
+            text = translate('iou.trackExpense');
+        } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.split');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
             text = translate('iou.request');
@@ -398,7 +401,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 value: iouType,
             },
         ];
-    }, [isTypeSplit, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
+    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount]);
 
     const selectedParticipants = useMemo(() => _.filter(pickedParticipants, (participant) => participant.selected), [pickedParticipants]);
     const personalDetailsOfPayee = useMemo(() => payeePersonalDetails || currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
@@ -446,7 +449,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         } else {
             const formattedSelectedParticipants = _.map(selectedParticipants, (participant) => ({
                 ...participant,
-                isDisabled: !participant.isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                isDisabled: !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
             }));
             sections.push({
                 title: translate('common.to'),
@@ -537,6 +540,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      */
     const navigateToReportOrUserDetail = (option) => {
         const activeRoute = Navigation.getActiveRouteWithoutParams();
+
+        if (option.isSelfDM) {
+            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
+            return;
+        }
 
         if (option.accountID) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));

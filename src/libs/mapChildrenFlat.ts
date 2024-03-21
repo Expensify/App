@@ -14,8 +14,12 @@ import React from 'react';
  *   return modifiedChild;
  * });
  */
-const mapChildrenFlat = <T, C>(...args: Parameters<typeof React.Children.map<T, C>>) => {
-    const mappedChildren = React.Children.map(...args);
+const mapChildrenFlat = <T, C>(element: C, fn: (child: C, index: number) => T) => {
+    if (typeof element === 'function') {
+        return element(false) as C;
+    }
+
+    const mappedChildren = React.Children.map(element, fn);
 
     if (Array.isArray(mappedChildren) && mappedChildren.length === 1) {
         return mappedChildren[0];

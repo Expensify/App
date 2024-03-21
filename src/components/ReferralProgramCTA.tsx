@@ -1,5 +1,6 @@
 import React from 'react';
 import type {ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -9,7 +10,7 @@ import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {DismissedReferralBanners} from '@src/types/onyx/Account';
+import type * as OnyxTypes from '@src/types/onyx';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
@@ -17,7 +18,7 @@ import Text from './Text';
 import Tooltip from './Tooltip';
 
 type ReferralProgramCTAOnyxProps = {
-    dismissedReferralBanners: DismissedReferralBanners;
+    dismissedReferralBanners: OnyxEntry<OnyxTypes.DismissedReferralBanners>;
 };
 
 type ReferralProgramCTAProps = ReferralProgramCTAOnyxProps & {
@@ -38,7 +39,7 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners, styl
         User.dismissReferralBanner(referralContentType);
     };
 
-    if (!referralContentType || dismissedReferralBanners[referralContentType]) {
+    if (!referralContentType || dismissedReferralBanners?.[referralContentType]) {
         return null;
     }
 
@@ -84,7 +85,6 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners, styl
 
 export default withOnyx<ReferralProgramCTAProps, ReferralProgramCTAOnyxProps>({
     dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data?.dismissedReferralBanners ?? {},
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
 })(ReferralProgramCTA);

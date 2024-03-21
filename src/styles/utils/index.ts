@@ -1541,7 +1541,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
 
     getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
-        ...styles.mr3,
         ...(isSelected && styles.checkedContainer),
         ...(isSelected && styles.borderColorFocus),
         ...(isDisabled && styles.cursorDisabled),

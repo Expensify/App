@@ -105,4 +105,4 @@ export default {
     updateNetworkCache,
     getNetworkCache,
 };
-export type {TestResult, NativeCommand};
+export type {TestResult, NativeCommand, NativeCommandPayload};

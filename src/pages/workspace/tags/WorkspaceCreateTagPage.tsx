@@ -18,6 +18,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -70,35 +71,40 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={CreateTagPage.displayName}
-                    shouldEnableMaxHeight
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={route.params.policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
                 >
-                    <HeaderWithBackButton
-                        title={translate('workspace.tags.addTag')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
-                    <FormProvider
-                        formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
-                        onSubmit={createTag}
-                        submitButtonText={translate('common.save')}
-                        validate={validate}
-                        style={[styles.mh5, styles.flex1]}
-                        enabledWhenOffline
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                        testID={CreateTagPage.displayName}
+                        shouldEnableMaxHeight
                     >
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            maxLength={CONST.TAG_NAME_LIMIT}
-                            label={translate('common.name')}
-                            accessibilityLabel={translate('common.name')}
-                            inputID={INPUT_IDS.TAG_NAME}
-                            role={CONST.ROLE.PRESENTATION}
-                            ref={inputCallbackRef}
+                        <HeaderWithBackButton
+                            title={translate('workspace.tags.addTag')}
+                            onBackButtonPress={Navigation.goBack}
                         />
-                    </FormProvider>
-                </ScreenWrapper>
+                        <FormProvider
+                            formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
+                            onSubmit={createTag}
+                            submitButtonText={translate('common.save')}
+                            validate={validate}
+                            style={[styles.mh5, styles.flex1]}
+                            enabledWhenOffline
+                        >
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                maxLength={CONST.TAG_NAME_LIMIT}
+                                label={translate('common.name')}
+                                accessibilityLabel={translate('common.name')}
+                                inputID={INPUT_IDS.TAG_NAME}
+                                role={CONST.ROLE.PRESENTATION}
+                                ref={inputCallbackRef}
+                            />
+                        </FormProvider>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );

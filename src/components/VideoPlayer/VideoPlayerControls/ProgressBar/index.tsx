@@ -1,25 +1,27 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
+import type {LayoutChangeEvent, ViewStyle} from 'react-native';
+import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-const propTypes = {
-    duration: PropTypes.number.isRequired,
+type ProgressBarProps = {
+    /** Total duration of a video. */
+    duration: number;
 
-    position: PropTypes.number.isRequired,
+    /** Position of progress pointer on the bar. */
+    position: number;
 
-    seekPosition: PropTypes.func.isRequired,
+    /** Function to seek to a specific position in the video. */
+    seekPosition: (newPosition: number) => void;
 };
 
-const defaultProps = {};
-
-function getProgress(currentPosition, maxPosition) {
+function getProgress(currentPosition: number, maxPosition: number): number {
     return Math.min(Math.max((currentPosition / maxPosition) * 100, 0), 100);
 }
 
-function ProgressBar({duration, position, seekPosition}) {
+function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     const styles = useThemeStyles();
     const {pauseVideo, playVideo, checkVideoPlaying} = usePlaybackContext();
     const [sliderWidth, setSliderWidth] = useState(1);
@@ -27,18 +29,18 @@ function ProgressBar({duration, position, seekPosition}) {
     const progressWidth = useSharedValue(0);
     const wasVideoPlayingOnCheck = useSharedValue(false);
 
-    const onCheckVideoPlaying = (isPlaying) => {
+    const onCheckVideoPlaying = (isPlaying: boolean) => {
         wasVideoPlayingOnCheck.value = isPlaying;
     };
 
-    const progressBarInteraction = (event) => {
+    const progressBarInteraction = (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload> | GestureStateChangeEvent<PanGestureHandlerEventPayload>) => {
         const progress = getProgress(event.x, sliderWidth);
         progressWidth.value = progress;
         runOnJS(seekPosition)((progress * duration) / 100);
     };
 
-    const onSliderLayout = (e) => {
-        setSliderWidth(e.nativeEvent.layout.width);
+    const onSliderLayout = (event: LayoutChangeEvent) => {
+        setSliderWidth(event.nativeEvent.layout.width);
     };
 
     const pan = Gesture.Pan()
@@ -66,7 +68,7 @@ function ProgressBar({duration, position, seekPosition}) {
         progressWidth.value = getProgress(position, duration);
     }, [duration, isSliderPressed, position, progressWidth]);
 
-    const progressBarStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`}));
+    const progressBarStyle: ViewStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`}));
 
     return (
         <GestureDetector gesture={pan}>
@@ -85,8 +87,6 @@ function ProgressBar({duration, position, seekPosition}) {
     );
 }
 
-ProgressBar.propTypes = propTypes;
-ProgressBar.defaultProps = defaultProps;
 ProgressBar.displayName = 'ProgressBar';
 
 export default ProgressBar;

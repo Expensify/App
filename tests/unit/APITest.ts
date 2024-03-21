@@ -1,28 +1,46 @@
-import Onyx from 'react-native-onyx';
-import _ from 'underscore';
-import CONST from '../../src/CONST';
-import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
-import * as API from '../../src/libs/API';
-import HttpUtils from '../../src/libs/HttpUtils';
-import * as MainQueue from '../../src/libs/Network/MainQueue';
-import * as NetworkStore from '../../src/libs/Network/NetworkStore';
-import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
-import * as Request from '../../src/libs/Request';
-import * as RequestThrottle from '../../src/libs/RequestThrottle';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import MockedOnyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
+import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import * as API from '@src/libs/API';
+import HttpUtils from '@src/libs/HttpUtils';
+import * as MainQueue from '@src/libs/Network/MainQueue';
+import * as NetworkStore from '@src/libs/Network/NetworkStore';
+import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+import * as Request from '@src/libs/Request';
+import * as RequestThrottle from '@src/libs/RequestThrottle';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
-jest.mock('../../src/libs/Log');
+const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
+
+jest.mock('@src/libs/Log');
 
 Onyx.init({
     keys: ONYXKEYS,
 });
 
+type Response = {
+    ok?: boolean;
+    status?: ValueOf<typeof CONST.HTTP_STATUS> | ValueOf<typeof CONST.JSON_CODE>;
+    jsonCode?: ValueOf<typeof CONST.JSON_CODE>;
+    json?: () => Promise<Response>;
+    title?: ValueOf<typeof CONST.ERROR_TITLE>;
+    type?: ValueOf<typeof CONST.ERROR_TYPE>;
+};
+
+type XhrCalls = Array<{
+    resolve: (value: Response | PromiseLike<Response>) => void;
+    reject: (value: unknown) => void;
+}>;
+
 const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
     MainQueue.clear();
@@ -53,8 +71,11 @@ describe('APITests', () => {
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
             .then(() => {
                 // When API Writes and Reads are called
+                // @ts-expect-error - mocking the parameter
                 API.write('mock command', {param1: 'value1'});
+                // @ts-expect-error - mocking the parameter
                 API.read('mock command', {param2: 'value2'});
+                // @ts-expect-error - mocking the parameter
                 API.write('mock command', {param3: 'value3'});
                 return waitForBatchedUpdates();
             })
@@ -89,7 +110,9 @@ describe('APITests', () => {
             })
                 .then(() => {
                     // When API Write commands are made
+                    // @ts-expect-error - mocking the parameter
                     API.write('mock command', {param1: 'value1'});
+                    // @ts-expect-error - mocking the parameter
                     API.write('mock command', {param2: 'value2'});
                     return waitForBatchedUpdates();
                 })
@@ -120,8 +143,8 @@ describe('APITests', () => {
 
     test('Write request should not be cleared until a backend response occurs', () => {
         // We're setting up xhr handler that will resolve calls programmatically
-        const xhrCalls = [];
-        const promises = [];
+        const xhrCalls: XhrCalls = [];
+        const promises: Array<Promise<Response>> = [];
 
         jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => {
             promises.push(
@@ -130,7 +153,7 @@ describe('APITests', () => {
                 }),
             );
 
-            return _.last(promises);
+            return promises.slice(-1)[0];
         });
 
         // Given we have some requests made while we're offline
@@ -138,7 +161,9 @@ describe('APITests', () => {
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
                 .then(() => {
                     // When API Write commands are made
+                    // @ts-expect-error - mocking the parameter
                     API.write('mock command', {param1: 'value1'});
+                    // @ts-expect-error - mocking the parameter
                     API.write('mock command', {param2: 'value2'});
                     return waitForBatchedUpdates();
                 })
@@ -148,14 +173,14 @@ describe('APITests', () => {
                 .then(waitForBatchedUpdates)
                 .then(() => {
                     // Then requests should remain persisted until the xhr call is resolved
-                    expect(_.size(PersistedRequests.getAll())).toEqual(2);
+                    expect(PersistedRequests.getAll().length).toEqual(2);
 
                     xhrCalls[0].resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
                     return waitForBatchedUpdates();
                 })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                    expect(PersistedRequests.getAll().length).toEqual(1);
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
 
                     // When a request fails it should be retried
@@ -163,7 +188,7 @@ describe('APITests', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                    expect(PersistedRequests.getAll().length).toEqual(1);
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
 
                     // We need to advance past the request throttle back off timer because the request won't be retried until then
@@ -177,32 +202,30 @@ describe('APITests', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    expect(_.size(PersistedRequests.getAll())).toEqual(0);
+                    expect(PersistedRequests.getAll().length).toEqual(0);
                 })
         );
     });
 
     // Given a retry response create a mock and run some expectations for retrying requests
-    const retryExpectations = (retryResponse) => {
-        let successfulResponse = {
+
+    const retryExpectations = (response: Response) => {
+        const successfulResponse: Response = {
             ok: true,
             jsonCode: CONST.JSON_CODE.SUCCESS,
-        };
-
-        // We have to mock response.json() too
-        successfulResponse = {
-            ...successfulResponse,
+            // We have to mock response.json() too
             json: () => Promise.resolve(successfulResponse),
         };
 
         // Given a mock where a retry response is returned twice before a successful response
-        global.fetch = jest.fn().mockResolvedValueOnce(retryResponse).mockResolvedValueOnce(retryResponse).mockResolvedValueOnce(successfulResponse);
+        global.fetch = jest.fn().mockResolvedValueOnce(response).mockResolvedValueOnce(response).mockResolvedValueOnce(successfulResponse);
 
         // Given we have a request made while we're offline
         return (
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
                 .then(() => {
                     // When API Write commands are made
+                    // @ts-expect-error - mocking the parameter
                     API.write('mock command', {param1: 'value1'});
                     return waitForNetworkPromises();
                 })
@@ -215,7 +238,7 @@ describe('APITests', () => {
                     expect(global.fetch).toHaveBeenCalledTimes(1);
 
                     // And we still have 1 persisted request since it failed
-                    expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                    expect(PersistedRequests.getAll().length).toEqual(1);
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
@@ -228,7 +251,7 @@ describe('APITests', () => {
                     expect(global.fetch).toHaveBeenCalledTimes(2);
 
                     // And we still have 1 persisted request since it failed
-                    expect(_.size(PersistedRequests.getAll())).toEqual(1);
+                    expect(PersistedRequests.getAll().length).toEqual(1);
                     expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
 
                     // We let the SequentialQueue process again after its wait time
@@ -241,7 +264,7 @@ describe('APITests', () => {
                     expect(global.fetch).toHaveBeenCalledTimes(3);
 
                     // The request succeeds so the queue is empty
-                    expect(_.size(PersistedRequests.getAll())).toEqual(0);
+                    expect(PersistedRequests.getAll().length).toEqual(0);
                 })
         );
     };
@@ -256,9 +279,9 @@ describe('APITests', () => {
 
     test('write requests are retried when Auth is down', () => {
         // Given the response data returned when auth is down
-        const responseData = {
+        const responseData: Response = {
             ok: true,
-            status: 200,
+            status: CONST.JSON_CODE.SUCCESS,
             jsonCode: CONST.JSON_CODE.EXP_ERROR,
             title: CONST.ERROR_TITLE.SOCKET,
             type: CONST.ERROR_TYPE.SOCKET,
@@ -289,6 +312,7 @@ describe('APITests', () => {
             waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
                 .then(() => {
+                    // @ts-expect-error - mocking the parameter
                     API.write('Mock', {param1: 'value1'});
                     return waitForBatchedUpdates();
                 })
@@ -297,7 +321,7 @@ describe('APITests', () => {
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const nonLogCalls = _.filter(xhr.mock.calls, ([commandName]) => commandName !== 'Log');
+                    const nonLogCalls = xhr.mock.calls.filter(([commandName]) => commandName !== 'Log');
 
                     // The request should be retried once and reauthenticate should be called the second time
                     // expect(xhr).toHaveBeenCalledTimes(3);
@@ -322,12 +346,19 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 6 persistable commands and one not persistable
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value1'});
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value2'});
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value3'});
+                // @ts-expect-error - mocking the parameter
                 API.read('MockCommand', {content: 'not-persisted'});
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value4'});
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value5'});
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value6'});
 
                 return waitForBatchedUpdates();
@@ -359,11 +390,17 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 6 persistable commands
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value1'});
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value2'});
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value3'});
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value4'});
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value5'});
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value6'});
                 return waitForBatchedUpdates();
             })
@@ -402,7 +439,14 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue both non-persistable and persistable commands that will trigger reauthentication and go offline at the same time
-                API.makeRequestWithSideEffects('AuthenticatePusher', {content: 'value1'});
+                API.makeRequestWithSideEffects('AuthenticatePusher', {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    socket_id: 'socket_id',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    channel_name: 'channel_name',
+                    shouldRetry: false,
+                    forceNetworkRequest: false,
+                });
 
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
                 expect(NetworkStore.isOffline()).toBe(false);
@@ -410,6 +454,7 @@ describe('APITests', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand');
                 expect(PersistedRequests.getAll().length).toBe(1);
                 expect(NetworkStore.isOffline()).toBe(true);
@@ -479,6 +524,7 @@ describe('APITests', () => {
                 NetworkStore.resetHasReadRequiredDataFromStorage();
 
                 // And queue a Write request while offline
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommand', {content: 'value1'});
 
                 // Then we should expect the request to get persisted
@@ -515,8 +561,11 @@ describe('APITests', () => {
                 expect(NetworkStore.isOffline()).toBe(false);
 
                 // WHEN we make a request that should be retried, one that should not, and another that should
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommandOne');
+                // @ts-expect-error - mocking the parameter
                 API.read('MockCommandTwo');
+                // @ts-expect-error - mocking the parameter
                 API.write('MockCommandThree');
 
                 // THEN the retryable requests should immediately be added to the persisted requests

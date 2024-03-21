@@ -71,11 +71,15 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
             const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+                IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+                return;
+            }
             IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
         }
 
         setIsDeleteModalVisible(false);
-    }, [parentReportAction, setIsDeleteModalVisible]);
+    }, [parentReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
@@ -84,7 +88,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction;
 
     // If the report supports adding transactions to it, then it also supports deleting transactions from it.
-    const canDeleteRequest = isActionOwner && ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
         const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
@@ -109,7 +113,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     if (canHoldOrUnholdRequest) {
         const isRequestIOU = parentReport?.type === 'iou';
         const isHoldCreator = ReportUtils.isHoldCreator(transaction, report?.reportID) && isRequestIOU;
-        const canModifyStatus = isPolicyAdmin || isActionOwner || isApprover;
+        const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
+        const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
         if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
