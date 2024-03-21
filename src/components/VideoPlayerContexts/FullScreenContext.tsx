@@ -22,11 +22,11 @@ function FullScreenContextProvider({children}: ChildrenProps) {
 }
 
 function useFullScreenContext() {
-    const context = useContext(Context);
-    if (context === undefined) {
-        throw new Error('usePlaybackContext must be used within a FullScreenContextProvider');
+    const fullscreenContext = useContext(Context);
+    if (!fullscreenContext) {
+        throw new Error('usePlaybackContext must be used within a PlaybackContextProvider');
     }
-    return context;
+    return fullscreenContext;
 }
 
 FullScreenContextProvider.displayName = 'FullScreenContextProvider';
