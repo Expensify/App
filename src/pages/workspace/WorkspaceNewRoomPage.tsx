@@ -35,7 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {NewRoomForm} from '@src/types/form/NewRoomForm';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {Account, Policy, Report as ReportType, Session} from '@src/types/onyx';
+import type {Policy, Report as ReportType, Session} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -53,7 +53,7 @@ type WorkspaceNewRoomPageOnyxProps = {
     session: OnyxEntry<Session>;
 
     /** policyID for main workspace */
-    activePolicyID: OnyxEntry<Required<Account>['activePolicyID']>;
+    activePolicyID: OnyxEntry<Required<string>>;
 };
 
 type WorkspaceNewRoomPageProps = WorkspaceNewRoomPageOnyxProps;
@@ -343,8 +343,7 @@ export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps
         key: ONYXKEYS.SESSION,
     },
     activePolicyID: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (account) => account?.activePolicyID ?? null,
+        key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
         initialValue: null,
     },
 })(WorkspaceNewRoomPage);

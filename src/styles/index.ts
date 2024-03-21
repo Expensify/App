@@ -1269,6 +1269,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        textLabelSupportingEmptyValue: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: FontUtils.fontWeight.normal,
+            color: theme.textSupporting,
+        },
+
         textLabelSupportingNormal: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -1447,9 +1454,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            borderRadius: 28,
-            height: 28,
-            width: 28,
+            borderRadius: variables.sidebarAvatarSize,
+            height: variables.sidebarAvatarSize,
+            width: variables.sidebarAvatarSize,
         },
 
         selectedAvatarBorder: {
