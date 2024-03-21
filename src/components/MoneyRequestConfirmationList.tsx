@@ -670,7 +670,14 @@ function MoneyRequestConfirmationList({
                 description={translate('common.description')}
                 onPress={() => {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            iouType,
+                            transaction?.transactionID ?? '',
+                            reportID,
+                            Navigation.getActiveRouteWithoutParams(),
+                            reportActionID,
+                        ),
                     );
                 }}
                 style={styles.moneyRequestMenuItem}
@@ -762,6 +769,7 @@ function MoneyRequestConfirmationList({
                                         transaction?.transactionID ?? '',
                                         reportID,
                                         Navigation.getActiveRouteWithoutParams(),
+                                        reportActionID,
                                     ),
                                 );
                             }}
