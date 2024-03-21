@@ -1,15 +1,11 @@
-import {deepEqual} from 'fast-equals';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import networkPropTypes from '@components/networkPropTypes';
-import {withNetwork} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import {useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -28,8 +24,6 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    network: networkPropTypes.isRequired,
-
     // eslint-disable-next-line react/forbid-prop-types
     policyMembers: PropTypes.object,
 
@@ -43,34 +37,18 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function SidebarLinksData({isFocused, insets, isLoadingApp, onLinkClick, priorityMode, network, policyMembers, currentUserPersonalDetails}) {
+function SidebarLinksData({isFocused, insets, isLoadingApp, onLinkClick, priorityMode, policyMembers, currentUserPersonalDetails}) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
-    const prevPriorityMode = usePrevious(priorityMode);
 
     const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, currentUserPersonalDetails.accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
 
-    const orderedReportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
     const {orderedReportIDs, currentReportID} = useReportIDs();
-
-    const optionListItems = useMemo(() => {
-        if (deepEqual(orderedReportIDsRef.current, orderedReportIDs)) {
-            return orderedReportIDsRef.current;
-        }
-
-        // 1. We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
-        // 2. If the user is offline, we need to update the reports unconditionally, since the loading of report data might be stuck in this case.
-        // 3. Changing priority mode to Most Recent will call OpenApp. If there is an existing reports and the priority mode is updated, we want to immediately update the list instead of waiting the OpenApp request to complete
-        if (!isLoading || !orderedReportIDsRef.current || network.isOffline || (orderedReportIDsRef.current && prevPriorityMode !== priorityMode)) {
-            orderedReportIDsRef.current = orderedReportIDs;
-        }
-        return orderedReportIDsRef.current || [];
-    }, [orderedReportIDs, isLoading, network.isOffline, prevPriorityMode, priorityMode]);
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;
@@ -91,7 +69,7 @@ function SidebarLinksData({isFocused, insets, isLoadingApp, onLinkClick, priorit
                 isActiveReport={isActiveReport}
                 isLoading={isLoading}
                 activeWorkspaceID={activeWorkspaceID}
-                optionListItems={optionListItems}
+                optionListItems={orderedReportIDs}
             />
         </View>
     );
@@ -104,7 +82,6 @@ SidebarLinksData.displayName = 'SidebarLinksData';
 export default compose(
     withCurrentUserPersonalDetails,
     withNavigationFocus,
-    withNetwork(),
     withOnyx({
         isLoadingApp: {
             key: ONYXKEYS.IS_LOADING_APP,
