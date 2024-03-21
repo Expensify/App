@@ -90,6 +90,8 @@ function ValuePage({
                                 defaultValue={value}
                                 onInputChange={setValue}
                                 hideCurrencySymbol
+                                // The default currency uses 2 decimal places, and we add 6 extra decimal places for the percentage
+                                extraDecimals={6}
                                 extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
                                 ref={inputCallbackRef}
                             />
