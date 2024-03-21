@@ -1341,6 +1341,7 @@ const CONST = {
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',
+            MOVE: 'move',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {

@@ -276,6 +276,13 @@ type OriginalMessageReimbursementQueued = {
     };
 };
 
+type OriginalMessageTrackedExpenseWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLETRACKEXPENSEWHISPER;
+    originalMessage: {
+        transactionID: string;
+    };
+};
+
 type OriginalMessageReimbursementDequeued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
     originalMessage: {
@@ -314,7 +321,8 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
-    | OriginalMessageMarkedReimbursed;
+    | OriginalMessageMarkedReimbursed
+    | OriginalMessageTrackedExpenseWhisper;
 
 export default OriginalMessage;
 export type {

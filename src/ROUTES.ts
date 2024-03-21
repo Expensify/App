@@ -313,8 +313,8 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}` as const,
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
-        route: 'create/:iouType/confirmation/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/confirmation/${transactionID}/${reportID}` as const,
+        route: ':action/:iouType/confirmation/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, action: ValueOf<typeof CONST.IOU.ACTION> = 'create') => `${action}/${iouType}/confirmation/${transactionID}/${reportID}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: 'create/:iouType/amount/:transactionID/:reportID',
@@ -362,9 +362,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/merchant/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
-        route: 'create/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/participants/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/participants/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '', action: ValueOf<typeof CONST.IOU.ACTION> = 'create') =>
+            getUrlWithBackToParam(`${action}/${iouType}/participants/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',

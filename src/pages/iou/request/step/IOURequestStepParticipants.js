@@ -32,7 +32,7 @@ const defaultProps = {
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {iouType, reportID, transactionID, action: iouAction},
     },
     transaction,
     transaction: {participants = []},
@@ -128,9 +128,9 @@ function IOURequestStepParticipants({
 
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID, iouAction));
         },
-        [iouType, transactionID, reportID],
+        [iouType, transactionID, reportID, iouAction],
     );
 
     const navigateBack = useCallback(() => {

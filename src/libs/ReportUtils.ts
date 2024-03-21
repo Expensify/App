@@ -12,6 +12,7 @@ import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import * as TransactionEdit from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +52,6 @@ import type {Receipt, TransactionChanges, WaypointCollection} from '@src/types/o
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import * as TransactionEdit from '@userActions/TransactionEdit';
 import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
@@ -5453,7 +5453,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
     }
     TransactionEdit.createBackupTransaction(transaction as Transaction);
 
-    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID))
+    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, CONST.IOU.ACTION.MOVE));
 }
 
 export {
