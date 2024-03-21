@@ -45,12 +45,12 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
     const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey] ?? [], [recentlyUsedReportFields, fieldKey]);
 
     const {sections, headerMessage} = useMemo(() => {
-        let headerMessage = '';
+        let newHeaderMessage = '';
         const newSections = [];
 
         if (searchValue) {
             const filteredOptions = fieldOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
-            headerMessage = !filteredOptions.length ? translate('common.noResultsFound') : '';
+            newHeaderMessage = !filteredOptions.length ? translate('common.noResultsFound') : '';
             newSections.push({
                 shouldShow: false,
                 data: filteredOptions.map((option) => ({
@@ -105,7 +105,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
             }
         }
 
-        return {sections: newSections, headerMessage};
+        return {sections: newSections, headerMessage: newHeaderMessage};
     }, [fieldValue, fieldOptions, recentlyUsedOptions, searchValue, translate]);
 
     return (
