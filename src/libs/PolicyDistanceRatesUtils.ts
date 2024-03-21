@@ -5,7 +5,7 @@ import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import * as MoneyRequestUtils from './MoneyRequestUtils';
 import * as NumberUtils from './NumberUtils';
 
-type RateValueForm = typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM | typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM;
+type RateValueForm = typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM | typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
 
 function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: string, toLocaleDigit: (arg: string) => string): FormInputErrors<RateValueForm> {
     const errors: FormInputErrors<RateValueForm> = {};
