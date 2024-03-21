@@ -20,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
@@ -83,6 +84,7 @@ function BankAccountStep(props) {
         props.policyID,
         ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
     )}`;
+    const loginNames = _.keys(props.loginList);
 
     const removeExistingBankAccountDetails = () => {
         const bankAccountData = {
@@ -180,6 +182,16 @@ function BankAccountStep(props) {
                                 >
                                     {props.translate('bankAccount.validateAccountError.phrase2')}
                                 </TextLink>
+                                <TextLink
+                                    fontSize={variables.fontSizeLabel}
+                                    onPress={() => {
+                                        const login = props.loginList[loginNames[0]];
+
+                                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login.partnerUserID || loginNames[0]));
+                                    }}
+                                >
+                                    {props.translate('bankAccount.validateAccountError.phrase3')}
+                                </TextLink>
                                 .
                             </Text>
                         </View>
@@ -220,6 +232,9 @@ export default compose(
         },
         isPlaidDisabled: {
             key: ONYXKEYS.IS_PLAID_DISABLED,
+        },
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
     }),
 )(BankAccountStep);

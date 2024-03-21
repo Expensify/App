@@ -390,6 +390,13 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
                 isLoading: true,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER,
+            value: {
+                validated: true,
+            },
+        },
     ];
     const successData: OnyxUpdate[] = [
         {
