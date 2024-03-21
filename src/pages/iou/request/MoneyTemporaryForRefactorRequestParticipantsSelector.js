@@ -198,15 +198,18 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      *
      * @param {Object} option
      */
-    const addSingleParticipant = (option) => {
-        onParticipantsAdded([
-            {
-                ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
-                selected: true,
-            },
-        ]);
-        onFinish();
-    };
+    const addSingleParticipant = useCallback(
+        (option) => {
+            onParticipantsAdded([
+                {
+                    ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
+                    selected: true,
+                },
+            ]);
+            onFinish();
+        },
+        [onFinish, onParticipantsAdded],
+    );
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -268,13 +271,22 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouType !== CONST.IOU.TYPE.SEND;
 
-    const handleConfirmSelection = useCallback(() => {
-        if (shouldShowSplitBillErrorMessage) {
-            return;
-        }
+    const handleConfirmSelection = useCallback(
+        (keyEvent, option) => {
+            const shouldAddSingleParticipant = option && !participants.length;
+            if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
+                return;
+            }
 
-        onFinish(CONST.IOU.TYPE.SPLIT);
-    }, [shouldShowSplitBillErrorMessage, onFinish]);
+            if (shouldAddSingleParticipant) {
+                addSingleParticipant(option);
+                return;
+            }
+
+            onFinish(CONST.IOU.TYPE.SPLIT);
+        },
+        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, participants],
+    );
 
     const footerContent = useMemo(
         () => (
@@ -371,8 +383,7 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTempora
 
 export default withOnyx({
     dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data.dismissedReferralBanners || {},
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
