@@ -25,6 +25,7 @@ type OriginalMessageActionName =
     | 'TASKREOPENED'
     | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
+    | 'ACTION_TRIPPREVIEW'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
@@ -292,6 +293,13 @@ type OriginalMessageMoved = {
     };
 };
 
+type OriginalMessageTripRoomPreview = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW;
+    originalMessage: {
+        // @TODO: Add types here
+    };
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -313,7 +321,8 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
-    | OriginalMessageMarkedReimbursed;
+    | OriginalMessageMarkedReimbursed
+    | OriginalMessageTripRoomPreview;
 
 export default OriginalMessage;
 export type {

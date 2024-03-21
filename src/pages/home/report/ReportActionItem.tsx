@@ -434,6 +434,19 @@ function ReportActionItem({
                     isWhisper={isWhisper}
                 />
             );
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW) {
+            children = (
+                <TripRoomPreview
+                    // @TODO: create a new method to obtain iouReportID
+                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
+                    chatReportID={report.reportID}
+                    action={action}
+                    isHovered={hovered}
+                    contextMenuAnchor={popoverAnchorRef.current}
+                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    isWhisper={isWhisper}
+                />
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
             children = ReportUtils.isClosedExpenseReportWithNoExpenses(iouReport) ? (
                 <RenderHTML html={`<comment>${translate('parentReportAction.deletedReport')}</comment>`} />
