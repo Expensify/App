@@ -63,11 +63,7 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
             return;
         }
 
-        // Uncomment once Stage 1 Onboarding Flow is ready
-        //
-        // const onboardingFlowCompleted = hasProvidedPersonalDetails && hasSelectedPurpose;
-        //
-        const onboardingFlowCompleted = hasSelectedPurpose;
+        const onboardingFlowCompleted = hasProvidedPersonalDetails && hasSelectedPurpose;
 
         if (onboardingFlowCompleted) {
             onCompleted?.();
