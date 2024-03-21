@@ -154,6 +154,8 @@ type MenuItemBaseProps = {
     /** Text that appears above the title */
     label?: string;
 
+    isLabelHoverble?: boolean
+
     /** Label to be displayed on the right */
     rightLabel?: string;
 
@@ -284,6 +286,7 @@ function MenuItem(
         subtitle,
         shouldShowBasicTitle,
         label,
+        isLabelHoverable = true,
         rightLabel,
         shouldShowSelectedState = false,
         isSelected = false,
@@ -408,6 +411,12 @@ function MenuItem(
     };
 
     return (
+        <View>
+            {(!!label && !isLabelHoverable) && (
+                <View style={[styles.ph5]}>
+                    <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
+                </View>
+            )}
         <Hoverable>
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
@@ -437,7 +446,7 @@ function MenuItem(
                     {({pressed}) => (
                         <>
                             <View style={[styles.flexColumn, styles.flex1]}>
-                                {!!label && (
+                                {(!!label && isLabelHoverable) && (
                                     <View style={icon ? styles.mb2 : null}>
                                         <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
                                     </View>
@@ -594,7 +603,7 @@ function MenuItem(
                                     </View>
                                 )}
                                 {floatRightAvatars?.length > 0 && (
-                                    <View style={[styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : undefined, label ? styles.mt8 : undefined]}>
+                                    <View style={[styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : undefined]}>
                                         <MultipleAvatars
                                             isHovered={isHovered}
                                             isPressed={pressed}
@@ -642,6 +651,7 @@ function MenuItem(
                 </PressableWithSecondaryInteraction>
             )}
         </Hoverable>
+        </View>
     );
 }
 
