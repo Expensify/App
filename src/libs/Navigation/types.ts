@@ -182,6 +182,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAG_CREATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
+        policyID: string;
+        rateID: string;
+    };
     [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
         policyID: string;
         rateID: string;

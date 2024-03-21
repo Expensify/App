@@ -125,9 +125,9 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
     };
 
-    const editRate = (rate: RateForList) => {
+    const openRateDetails = (rate: RateForList) => {
         setSelectedDistanceRates([]);
-        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.getRoute(policyID, rate.value));
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.value));
     };
 
     const disableRates = () => {
@@ -301,7 +301,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                                 canSelectMultiple
                                 sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
                                 onCheckboxPress={toggleRate}
-                                onSelectRow={editRate}
+                                onSelectRow={openRateDetails}
                                 onSelectAll={toggleAllRates}
                                 onDismissError={dismissError}
                                 showScrollIndicator

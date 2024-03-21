@@ -640,6 +640,10 @@ const ROUTES = {
         route: 'settings/workspace/:policyID/distance-rates/settings',
         getRoute: (policyID: string) => `settings/workspace/${policyID}/distance-rates/settings` as const,
     },
+    WORKSPACE_DISTANCE_RATE_DETAILS: {
+        route: 'settings/workspace/:policyID/distance-rates/:rateID',
+        getRoute: (policyID: string, rateID: string) => `settings/workspace/${policyID}/distance-rates/${rateID}` as const,
+    },
     WORKSPACE_DISTANCE_RATE_EDIT: {
         route: 'settings/workspace/:policyID/distance-rates/:rateID/edit',
         getRoute: (policyID: string, rateID: string) => `settings/workspace/${policyID}/distance-rates/${rateID}/edit` as const,
