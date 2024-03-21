@@ -97,7 +97,7 @@ h2,
 h3,
 h4,
 h5,
-h6, 
+h6,
 summary {
     color: var(--color-text);
     font-weight: bold;
@@ -116,22 +116,22 @@ h6 {
     font-size: 1.5em;
 }
 
-details summary { 
+details summary {
     cursor: pointer;
     user-select: none;
 }
 
 details > summary {
-    list-style-image: url("/assets/images/arrow-right.svg");
+    list-style-image: url('/assets/images/arrow-right.svg');
 }
 
 details[open] > summary {
-    list-style-image: url("/assets/images/down.svg");
+    list-style-image: url('/assets/images/down.svg');
 }
 
-h1, 
+h1,
 summary {
-    font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-weight: 500;
     font-size: larger;
 }
@@ -151,7 +151,7 @@ select,
 textarea {
     line-height: 1.4;
     font-weight: 400;
-    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 16px;
     color: var(--color-text-supporting);
 }
@@ -159,7 +159,7 @@ textarea {
 button {
     border-radius: 12px;
     padding: 12px;
-    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 15px;
     font-weight: bold;
 
@@ -230,7 +230,6 @@ button {
         list-style: none;
     }
 
-
     #lhn-content {
         overflow: auto;
         display: none;
@@ -253,7 +252,6 @@ button {
             &::-webkit-scrollbar {
                 display: none;
             }
-
         }
 
         &.expanded {
@@ -338,7 +336,7 @@ button {
         margin-left: 420px;
         /* On wide screens, the padding needs to be equal to
         the view width, minus the content size, minus the lhn size, divided by two. */
-        padding: 52px calc((100vw - 1000px - 420px)/2) 0 calc((100vw - 1000px - 420px)/2);
+        padding: 52px calc((100vw - 1000px - 420px) / 2) 0 calc((100vw - 1000px - 420px) / 2);
     }
 
     ul,
@@ -419,7 +417,8 @@ button {
             flex-wrap: wrap;
         }
 
-        h1, summary {
+        h1,
+        summary {
             font-size: 1.5em;
             padding: 20px 0 12px 0;
         }
@@ -427,12 +426,12 @@ button {
         h2 {
             font-size: 1.125em;
             font-weight: 500;
-            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+            font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
         }
 
         h3 {
             font-size: 1em;
-            font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+            font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
         }
 
         h2,
@@ -449,7 +448,7 @@ button {
             border-left: 5px solid var(--color-button-background-hover);
 
             em:before {
-                content: "\“\a";
+                content: '\“\a';
                 white-space: pre;
                 font-size: 60px;
                 line-height: 1em;
@@ -458,7 +457,7 @@ button {
 
             p:first-child {
                 font-size: large;
-                font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+                font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
                 opacity: 0.8;
             }
         }
@@ -472,7 +471,8 @@ button {
             padding: 20px;
             margin-bottom: 20px;
             justify-content: space-between;
-            * > ol, ul {
+            * > ol,
+            ul {
                 padding: 0;
             }
 
@@ -494,11 +494,10 @@ button {
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100px;
             }
-
         }
 
         select {
-            background: url("/assets/images/down.svg") no-repeat right var(--color-button-background);
+            background: url('/assets/images/down.svg') no-repeat right var(--color-button-background);
             background-size: 12px;
             background-position-x: 85%;
             appearance: none !important;
@@ -515,7 +514,7 @@ button {
             display: flex;
             gap: 12px;
             align-items: center;
-        
+
             img {
                 height: 16px;
                 width: 16px;
@@ -527,7 +526,6 @@ button {
             }
         }
     }
-
 }
 
 .link {
@@ -541,7 +539,6 @@ button {
 }
 
 .lhn-items {
-
     ol,
     ul {
         padding-left: 32px;
@@ -585,7 +582,6 @@ button {
     }
 }
 
-
 .platform-cards-group {
     @extend .cards-group;
 
@@ -610,7 +606,7 @@ button {
 
     .row {
         display: flex;
-        flex-basis:100%;
+        flex-basis: 100%;
     }
 
     .body {
@@ -621,7 +617,7 @@ button {
     }
 
     h3.title {
-        font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     }
 
     h3.title,
@@ -760,7 +756,7 @@ button {
             padding-top: 0px;
         }
     }
-    h2  {
+    h2 {
         padding-bottom: 24px;
     }
     p {
@@ -819,7 +815,7 @@ button {
 
     h3 {
         color: var(--color-success);
-        font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
         font-size: 17px;
         font-weight: 500;
         padding: 0;
