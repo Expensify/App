@@ -5032,14 +5032,22 @@ function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string 
  * Put money request on HOLD
  */
 function putOnHold(transactionID: string, comment: string, reportID: string) {
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
+    const holdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
+    const commentReportAction = ReportUtils.buildOptimisticAddCommentReportAction(comment);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+                [holdReportAction.reportActionID]: holdReportAction as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [commentReportAction.reportActionID]: commentReportAction as ReportAction,
             },
         },
         {
@@ -5047,7 +5055,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 comment: {
-                    hold: createdReportAction.reportActionID,
+                    hold: holdReportAction.reportActionID,
                 },
             },
         },
@@ -5072,7 +5080,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
         {
             transactionID,
             comment,
-            reportActionID: createdReportAction.reportActionID,
+            reportActionID: holdReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
