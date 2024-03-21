@@ -121,7 +121,7 @@
     "react": "18.2.0",
     "react-beautiful-dnd": "^13.1.1",
     "react-collapse": "^5.1.0",
-    "react-content-loader": "^6.1.0",
+    "react-content-loader": "^7.0.0",
     "react-dom": "18.1.0",
     "react-error-boundary": "^4.0.11",
     "react-map-gl": "^7.1.3",
