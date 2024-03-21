@@ -61,8 +61,6 @@ type SuggestionsRef = {
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
     getSuggestions: () => Mention[] | Emoji[];
-    onComposerFocus: () => void;
-    onComposerBlur: () => void;
 };
 
 type ReportActionComposeOnyxProps = {
@@ -87,9 +85,12 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 
         /** Whether the report is ready for display */
         isReportReadyForDisplay?: boolean;
-    } & {
-        onComposerFocus: () => {};
-        onComposerBlur: () => {};
+
+        /** A method to call when the input is focus */
+        onComposerFocus: () => void;
+
+        /** A method to call when the input is blur */
+        onComposerBlur: () => void;
     };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will

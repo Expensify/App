@@ -52,9 +52,10 @@ type ReportFooterProps = ReportFooterOnyxProps & {
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
 
+    /** A method to call when the input is focus */
     onComposerFocus: () => void;
 
-    /** A method to call when the input is blue */
+    /** A method to call when the input is blur */
     onComposerBlur: () => void;
 };
 
