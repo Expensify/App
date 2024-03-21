@@ -5,12 +5,17 @@ import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ControlSelection from '@libs/ControlSelection';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -27,29 +32,26 @@ type TripRoomPreviewProps = TripRoomPreviewOnyxProps & {
     /** All the data of the action */
     action: ReportAction;
 
-    //   /** The associated chatReport */
-    //   chatReportID: string;
+    /** The associated chatReport */
+    chatReportID: string;
 
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string;
 
-    //   /** The report's policyID, used for Onyx subscription */
-    //   policyID: string;
-
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
 
-    //   /** Popover context menu anchor, used for showing context menu */
-    //   contextMenuAnchor?: ContextMenuAnchor;
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor?: ContextMenuAnchor;
 
-    //   /** Callback for updating context menu active state, used for showing context menu */
-    //   checkIfContextMenuActive?: () => void;
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive?: () => void;
 
-    //   /** Whether a message is a whisper */
-    //   isWhisper?: boolean;
+    /** Whether a message is a whisper */
+    isWhisper?: boolean;
 
-    //   /** Whether the corresponding report action item is hovered */
-    //   isHovered?: boolean;
+    /** Whether the corresponding report action item is hovered */
+    isHovered?: boolean;
 };
 
 type ReservationRowProps = {
@@ -105,7 +107,16 @@ function ReservationRow({reservation}: ReservationRowProps) {
     );
 }
 
-function TripRoomPreview({action, iouReportID, containerStyles}: TripRoomPreviewProps) {
+function TripRoomPreview({
+    action,
+    chatReportID,
+    iouReportID,
+    containerStyles,
+    contextMenuAnchor,
+    isHovered = false,
+    isWhisper = false,
+    checkIfContextMenuActive = () => {},
+}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -123,41 +134,55 @@ function TripRoomPreview({action, iouReportID, containerStyles}: TripRoomPreview
             // pendingAction={iouReport?.pendingFields?.preview}
             shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
             needsOffscreenAlphaCompositing
-            style={[styles.moneyRequestPreviewBox]}
         >
-            <View style={[styles.chatItemMessage, styles.p4, styles.gap5, containerStyles]}>
-                <View style={styles.expenseAndReportPreviewTextContainer}>
-                    <View style={styles.reportPreviewAmountSubtitleContainer}>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh16]}>Trip • December 15-20 </Text>
+            <View style={[styles.chatItemMessage, containerStyles]}>
+                <PressableWithoutFeedback
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+                    }}
+                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
+                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                    shouldUseHapticsOnLongPress
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
+                    role="button"
+                    accessibilityLabel={translate('iou.viewDetails')}
+                >
+                    <View style={[styles.moneyRequestPreviewBox, styles.p4, styles.gap5, isHovered || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                        <View style={styles.expenseAndReportPreviewTextContainer}>
+                            <View style={styles.reportPreviewAmountSubtitleContainer}>
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textLabelSupporting, styles.lh16]}>Trip • December 15-20 </Text>
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={styles.reportPreviewAmountSubtitleContainer}>
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={styles.textHeadlineH2}>$1,439.21</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textSupportingNormalSize, styles.lh20]}>Trip to San Francisco</Text>
+                                    </View>
+                                </View>
                             </View>
                         </View>
+                        <FlatList
+                            data={reservations}
+                            style={styles.gap3}
+                            renderItem={renderItem}
+                        />
+                        <Button
+                            medium
+                            success
+                            text={translate('travel.viewTrip')}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID))}
+                        />
                     </View>
-                    <View style={styles.reportPreviewAmountSubtitleContainer}>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.textHeadlineH2}>$1,439.21</Text>
-                            </View>
-                        </View>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textSupportingNormalSize, styles.lh20]}>Trip to San Francisco</Text>
-                            </View>
-                        </View>
-                    </View>
-                </View>
-                <FlatList
-                    data={reservations}
-                    style={styles.gap3}
-                    renderItem={renderItem}
-                />
-                <Button
-                    medium
-                    success
-                    text={translate('travel.viewTrip')}
-                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID))}
-                />
+                </PressableWithoutFeedback>
             </View>
         </OfflineWithFeedback>
     );

@@ -109,6 +109,10 @@ function ReportPreview({
     //     <TripRoomPreview
     //         action={action}
     //         iouReportID={iouReportID}
+    //         chatReportID={chatReportID}
+    //         isHovered={isHovered}
+    //         isWhisper={isWhisper}
+    //         checkIfContextMenuActive={checkIfContextMenuActive}
     //     />
     // );
 
