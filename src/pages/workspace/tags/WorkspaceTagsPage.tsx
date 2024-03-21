@@ -76,6 +76,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
             policyTagLists
                 .map((policyTagList) =>
                     Object.values(policyTagList.tags || [])
+                        .filter((value) => value.name == getCleanTagName(value.name))
                         .sort((a, b) => localeCompare(a.name, b.name))
                         .map((value) => ({
                             value: value.name,
