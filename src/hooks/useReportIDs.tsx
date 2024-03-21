@@ -47,7 +47,7 @@ function WithReportIDsContextProvider({
     /**
      * Only required to make unit tests work, since we
      * explicitly pass the currentReportID in LHNTestUtils
-     * to SidebarLinksData, so this context doesn't have an
+     * to SidebarLinksData, so this context doesn't have
      * access to currentReportID in that case.
      *
      * This is a workaround to have currentReportID available in testing environment.
