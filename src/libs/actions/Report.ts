@@ -1732,14 +1732,12 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     if (!conciergeChatReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
-        Welcome.onServerDataReady({
-            onReady: () => {
-                // If we don't have a chat with Concierge then create it
-                if (!checkIfCurrentPageActive()) {
-                    return;
-                }
-                navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
-            },
+        Welcome.onServerDataReady().then(() => {
+            // If we don't have a chat with Concierge then create it
+            if (!checkIfCurrentPageActive()) {
+                return;
+            }
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModal(conciergeChatReportID);

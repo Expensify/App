@@ -36,10 +36,8 @@ const isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
     resolveOnboardingFlowStatus = resolve;
 });
 
-function onServerDataReady({onReady}: ServerDataReadyProps): Promise<void> {
-    return isServerDataReadyPromise.then(() => {
-        onReady();
-    });
+function onServerDataReady(): Promise<void> {
+    return isServerDataReadyPromise;
 }
 
 /**
