@@ -8,6 +8,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -18,7 +19,6 @@ import PendingMapView from './MapView/PendingMapView';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import ThumbnailImage from './ThumbnailImage';
-import CONST from '@src/CONST';
 
 type DistanceEReceiptProps = {
     /** The transaction for the distance request */
