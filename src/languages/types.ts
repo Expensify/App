@@ -295,6 +295,8 @@ type LogSizeParams = {size: number};
 
 type HeldRequestParams = {comment: string};
 
+type DistanceRateOperationsParams = {count: number};
+
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
@@ -313,6 +315,7 @@ export type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
+    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
