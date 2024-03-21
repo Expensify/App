@@ -1,8 +1,7 @@
 import type {ParamListBase} from '@react-navigation/routers';
 import type {StackNavigationOptions} from '@react-navigation/stack';
-import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
-import useThemeStyles from '@hooks/useThemeStyles';
+import {createStackNavigator} from '@react-navigation/stack';
+import React from 'react';
 import type {
     AddPersonalBankAccountNavigatorParamList,
     DetailsNavigatorParamList,
@@ -36,6 +35,7 @@ import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type {ThemeStyles} from '@src/styles';
 import useModalScreenOptions from './useModalScreenOptions';
+import WorkspaceSettingsModalStackNavigator from './WorkspaceSettingsModalStackNavigator';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -175,25 +175,6 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.INTRO_SCHOOL_PRINCIPAL]: () => require('@pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
     [SCREENS.I_AM_A_TEACHER]: () => require('@pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
 });
-
-const WorkspaceSettingsModalStackNavigator = createModalStackNavigator(
-    {
-        [SCREENS.WORKSPACE.PROFILE]: () => require('@pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.CARD]: () => require('@pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.WORKFLOWS]: () => require('@pages/workspace/workflows/WorkspaceWorkflowsPage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.REIMBURSE]: () => require('@pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.BILLS]: () => require('@pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.INVOICES]: () => require('@pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.TRAVEL]: () => require('@pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.MEMBERS]: () => require('@pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.CATEGORIES]: () => require('@pages/workspace/categories/WorkspaceCategoriesPage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.MORE_FEATURES]: () => require('@pages/workspace/WorkspaceMoreFeaturesPage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.TAGS]: () => require('@pages/workspace/tags/WorkspaceTagsPage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.TAXES]: () => require('@pages/workspace/taxes/WorkspaceTaxesPage').default as React.ComponentType,
-        [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require('@pages/workspace/distanceRates/PolicyDistanceRatesPage').default as React.ComponentType,
-    },
-    (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
-);
 
 const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
     [SCREENS.WORKSPACE_SWITCHER.ROOT]: () => require('@pages/WorkspaceSwitcherPage').default as React.ComponentType,
