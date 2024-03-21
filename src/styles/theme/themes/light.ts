@@ -116,7 +116,7 @@ const lightTheme = {
         },
         [SCREENS.SETTINGS.WORKSPACES]: {
             backgroundColor: colors.productLight100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.WALLET.ROOT]: {
             backgroundColor: colors.productLight100,
