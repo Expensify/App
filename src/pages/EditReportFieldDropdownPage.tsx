@@ -42,12 +42,12 @@ type ReportFieldDropdownData = {
     keyForList: string;
     searchText: string;
     tooltipText: string;
-}
+};
 
 type ReportFieldDropdownSectionItem = {
     data: ReportFieldDropdownData[];
     shouldShow: boolean;
-    title?: string,
+    title?: string;
 };
 
 function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue, fieldOptions, recentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
