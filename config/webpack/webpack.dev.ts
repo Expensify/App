@@ -2,11 +2,11 @@
 import path from 'path';
 import portfinder from 'portfinder';
 import {TimeAnalyticsPlugin} from 'time-analytics-webpack-plugin';
-import type webpack from 'webpack';
+import type {Configuration} from 'webpack';
 import {DefinePlugin} from 'webpack';
-import type * as webpackDevServer from 'webpack-dev-server';
+import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
 import {merge} from 'webpack-merge';
-import type {EnvFile, WebpackConfig} from './types';
+import type {EnvFile} from './types';
 import getCommonConfig from './webpack.common';
 
 const BASE_PORT = 8082;
@@ -14,11 +14,11 @@ const BASE_PORT = 8082;
 /**
  * Configuration for the local dev server
  */
-const getConfig = (env: EnvFile = {}): Promise<WebpackConfig> =>
+const getConfig = (env: EnvFile = {}): Promise<Configuration> =>
     portfinder.getPortPromise({port: BASE_PORT}).then((port) => {
         // Check if the USE_WEB_PROXY variable has been provided
         // and rewrite any requests to the local proxy server
-        const proxySettings: Pick<webpackDevServer.Configuration, 'proxy'> =
+        const proxySettings: Pick<DevServerConfiguration, 'proxy'> =
             process.env.USE_WEB_PROXY === 'false'
                 ? {}
                 : {
@@ -76,10 +76,9 @@ const getConfig = (env: EnvFile = {}): Promise<WebpackConfig> =>
                     /([\\/]node_modules[\\/](?!react-native-onyx))/,
                 ],
             },
-        } as webpack.Configuration);
+        });
 
         return TimeAnalyticsPlugin.wrap(config);
     });
 
 export default getConfig;
-export type {EnvFile};

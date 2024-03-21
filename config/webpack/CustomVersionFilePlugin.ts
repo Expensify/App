@@ -12,9 +12,12 @@ class CustomVersionFilePlugin {
             const versionPath = path.join(__dirname, '/../../dist/version.json');
             fs.mkdir(path.dirname(versionPath), {recursive: true}, (dirErr) => {
                 if (dirErr) {
+                    console.error('Error creating version.json directory', dirErr);
                     return;
                 }
-                fs.writeFile(versionPath, JSON.stringify({version: APP_VERSION}), {encoding: 'utf8'}, () => {});
+                fs.writeFile(versionPath, JSON.stringify({version: APP_VERSION}), {encoding: 'utf8'}, (err) => {
+                    console.error('Error writing to version.json', err);
+                });
             });
         });
     }

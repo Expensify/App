@@ -4,9 +4,8 @@ import type {Configuration} from 'webpack';
 import webpack from 'webpack';
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias, import/no-relative-packages -- alias imports don't work for webpack
 import {dependencies as desktopDependencies} from '../../desktop/package.json';
-import type {WebpackConfig} from './types';
+import type {EnvFile} from './types';
 import getCommonConfig from './webpack.common';
-import type {EnvFile} from './webpack.dev';
 
 /**
  * Desktop creates 2 configurations in parallel
@@ -14,7 +13,7 @@ import type {EnvFile} from './webpack.dev';
  * 2. web - the app content that would be rendered in electron
  * Everything is placed in desktop/dist and ready for packaging
  */
-const getConfig = (env: EnvFile = {}): WebpackConfig[] => {
+const getConfig = (env: EnvFile = {}): Configuration[] => {
     const rendererConfig = getCommonConfig({...env, platform: 'desktop'});
     const outputPath = path.resolve(__dirname, '../../desktop/dist');
 
