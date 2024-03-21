@@ -23,6 +23,9 @@ type BaseModalProps = Partial<ModalProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
+    /** Function to call when the user presses on the modal backdrop */
+    onBackdropPress?: () => void;
+
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
@@ -59,6 +62,9 @@ type BaseModalProps = Partial<ModalProps> & {
      * See: https://github.com/react-native-modal/react-native-modal/pull/116
      * */
     hideModalContentWhileAnimating?: boolean;
+
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 
     /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
     shouldUseCustomBackdrop?: boolean;

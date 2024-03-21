@@ -4,6 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
+import desktopLoginRedirect from '@libs/desktopLoginRedirect';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -43,6 +44,11 @@ function ValidateLoginPage({
 
         // The user has initiated the sign in process on the same browser, in another tab.
         Session.signInWithValidateCode(Number(accountID), validateCode);
+
+        // Since on Desktop we don't have multi-tab functionality to handle the login flow,
+        // we need to `popToTop` the stack after `signInWithValidateCode` in order to
+        // perform login for both 2FA and non-2FA accounts.
+        desktopLoginRedirect(autoAuthState, isSignedIn);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
