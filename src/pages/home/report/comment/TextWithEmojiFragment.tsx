@@ -2,9 +2,12 @@ import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {splitTextWithEmojis} from '@libs/EmojiUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type ComponentProps = {
@@ -14,9 +17,12 @@ type ComponentProps = {
     styleAsDeleted?: boolean;
     styleAsMuted?: boolean;
     isSmallScreenWidth?: boolean;
+    isEdited?: boolean;
 };
-function TextWithEmojiFragment({text, textContainsOnlyEmojis, passedStyles, styleAsDeleted, styleAsMuted, isSmallScreenWidth}: ComponentProps) {
+function TextWithEmojiFragment({text, textContainsOnlyEmojis, passedStyles, styleAsDeleted, styleAsMuted, isSmallScreenWidth, isEdited}: ComponentProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const theme = useTheme();
     const processedTextArray = splitTextWithEmojis(text);
 
     return (
@@ -37,6 +43,24 @@ function TextWithEmojiFragment({text, textContainsOnlyEmojis, passedStyles, styl
                         {word}
                     </Text>
                 ),
+            )}
+
+            {isEdited && (
+                <>
+                    <Text
+                        style={[textContainsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    >
+                        {' '}
+                    </Text>
+                    <Text
+                        fontSize={variables.fontSizeSmall}
+                        color={theme.textSupporting}
+                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, passedStyles]}
+                    >
+                        {translate('reportActionCompose.edited')}
+                    </Text>
+                </>
             )}
         </View>
     );

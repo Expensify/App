@@ -653,18 +653,33 @@ const splitTextWithEmojis = (text: string): string[] => {
         increment = 0;
     }
 
-    tmpResult.forEach((char: string) => {
-        // @ts-expect-error -- we are looping through previously processed array so at execution time object will not be undefined
-        if (char.codePointAt(0) <= 0xffff) {
+    for (let j = 0; j <= tmpResult.length; j++) {
+        if (!tmpResult[j]?.codePointAt(0)) {
+            // eslint-disable-next-line no-continue -- prevent error for empty chars
+            continue;
+        }
+        if (tmpResult[j] === ' ') {
+            tmpString += tmpResult[j];
+            processedArray.push(tmpString);
+            tmpString = '';
+            // eslint-disable-next-line no-continue -- skip rest of the checks in current iteration
+            continue;
+        }
+        // @ts-expect-error -- ensured in 1st 'if' that object won't be undefined
+        if (tmpResult[j].codePointAt(0) <= 0xffff) {
             // is BMP character
-            tmpString += char;
+            tmpString += tmpResult[j];
+            if (j === tmpResult.length - 1) {
+                processedArray.push(tmpString);
+            }
         } else {
             processedArray.push(tmpString);
-            processedArray.push(char);
+            processedArray.push(tmpResult[j]);
             tmpString = '';
         }
-    });
-    return processedArray;
+    }
+    // remove empty characters from array
+    return processedArray.filter((item) => item);
 };
 
 export {

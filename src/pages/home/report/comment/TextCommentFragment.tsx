@@ -86,37 +86,40 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                     passedStyles={style}
                     styleAsDeleted={styleAsDeleted}
                     styleAsMuted={styleAsMuted}
+                    isEdited={fragment.isEdited}
                 />
             ) : (
-                <Text
-                    style={[
-                        textContainsOnlyEmojis ? styles.onlyEmojisText : undefined,
-                        styles.ltr,
-                        style,
-                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
-                        styleAsMuted ? styles.colorMuted : undefined,
-                        !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
-                    ]}
-                >
-                    {message}
-                </Text>
-            )}
-
-            {fragment.isEdited && (
                 <>
                     <Text
-                        style={[textContainsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
-                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        style={[
+                            textContainsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                            styles.ltr,
+                            style,
+                            styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                            styleAsMuted ? styles.colorMuted : undefined,
+                            !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                        ]}
                     >
-                        {' '}
+                        {message}
                     </Text>
-                    <Text
-                        fontSize={variables.fontSizeSmall}
-                        color={theme.textSupporting}
-                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, style]}
-                    >
-                        {translate('reportActionCompose.edited')}
-                    </Text>
+
+                    {fragment.isEdited && (
+                        <>
+                            <Text
+                                style={[textContainsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            >
+                                {' '}
+                            </Text>
+                            <Text
+                                fontSize={variables.fontSizeSmall}
+                                color={theme.textSupporting}
+                                style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, style]}
+                            >
+                                {translate('reportActionCompose.edited')}
+                            </Text>
+                        </>
+                    )}
                 </>
             )}
         </Text>
