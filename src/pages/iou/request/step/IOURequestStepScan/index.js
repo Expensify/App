@@ -274,7 +274,7 @@ function IOURequestStepScan({
         }
 
         navigateToConfirmationStep();
-    }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
 
     const clearTorchConstraints = useCallback(() => {
         if (!trackRef.current) {
