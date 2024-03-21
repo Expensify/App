@@ -207,7 +207,10 @@ function ReportPreview({
 
     const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
 
-    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, chatReport, policy) && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL, [iouReport, chatReport, policy]);
+    const shouldShowApproveButton = useMemo(
+        () => IOU.canApproveIOU(iouReport, chatReport, policy) && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        [iouReport, chatReport, policy],
+    );
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);

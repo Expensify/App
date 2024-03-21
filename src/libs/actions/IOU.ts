@@ -4515,7 +4515,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
     if (policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && iouReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         shouldBeApproved = true;
     }
-    
+
     return isPayer && !isOpenExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable && !shouldBeApproved;
 }
 
