@@ -65,7 +65,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
     }, []);
 
     return (
-        <View>
+        <>
             {allAncestors.map((ancestor) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}
@@ -88,7 +88,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                     {!ancestor.shouldHideThreadDividerLine && <View style={[styles.threadDividerLine]} />}
                 </OfflineWithFeedback>
             ))}
-        </View>
+        </>
     );
 }
 

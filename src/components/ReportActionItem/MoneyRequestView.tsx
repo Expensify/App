@@ -232,205 +232,197 @@ function MoneyRequestView({
     );
 
     return (
-        <View>
-            <View>
-                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-                {(showMapAsImage || hasReceipt) && (
-                    <OfflineWithFeedback
-                        pendingAction={pendingAction}
-                        errors={transaction?.errors}
-                        errorRowStyles={[styles.ml4]}
-                        onClose={() => {
-                            if (!transaction?.transactionID) {
-                                return;
-                            }
-                            Transaction.clearError(transaction.transactionID);
-                        }}
-                    >
-                        <View style={styles.moneyRequestViewImage}>
-                            {showMapAsImage ? (
-                                <ConfirmedRoute transaction={transaction} />
-                            ) : (
-                                <ReportActionItemImage
-                                    thumbnail={receiptURIs?.thumbnail}
-                                    image={receiptURIs?.image}
-                                    isLocalFile={receiptURIs?.isLocalFile}
-                                    filename={receiptURIs?.filename}
-                                    transaction={transaction}
-                                    enablePreviewModal
-                                />
-                            )}
-                        </View>
-                    </OfflineWithFeedback>
-                )}
-                {!hasReceipt && canEditReceipt && (
-                    <ReceiptEmptyState
-                        hasError={hasErrors}
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    CONST.IOU.TYPE.REQUEST,
-                                    transaction?.transactionID ?? '',
-                                    report.reportID,
-                                    Navigation.getActiveRouteWithoutParams(),
-                                ),
-                            )
+        <>
+            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+            {(showMapAsImage || hasReceipt) && (
+                <OfflineWithFeedback
+                    pendingAction={pendingAction}
+                    errors={transaction?.errors}
+                    errorRowStyles={[styles.ml4]}
+                    onClose={() => {
+                        if (!transaction?.transactionID) {
+                            return;
                         }
-                    />
-                )}
-                {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
+                        Transaction.clearError(transaction.transactionID);
+                    }}
+                >
+                    <View style={styles.moneyRequestViewImage}>
+                        {showMapAsImage ? (
+                            <ConfirmedRoute transaction={transaction} />
+                        ) : (
+                            <ReportActionItemImage
+                                thumbnail={receiptURIs?.thumbnail}
+                                image={receiptURIs?.image}
+                                isLocalFile={receiptURIs?.isLocalFile}
+                                filename={receiptURIs?.filename}
+                                transaction={transaction}
+                                enablePreviewModal
+                            />
+                        )}
+                    </View>
+                </OfflineWithFeedback>
+            )}
+            {!hasReceipt && canEditReceipt && (
+                <ReceiptEmptyState
+                    hasError={hasErrors}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                CONST.IOU.ACTION.EDIT,
+                                CONST.IOU.TYPE.REQUEST,
+                                transaction?.transactionID ?? '',
+                                report.reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
+                        )
+                    }
+                />
+            )}
+            {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
+                <MenuItemWithTopDescription
+                    title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
+                    shouldShowTitleIcon={isSettled}
+                    titleIcon={Expensicons.Checkmark}
+                    description={amountDescription}
+                    titleStyle={styles.textHeadlineH2}
+                    interactive={canEditAmount}
+                    shouldShowRightIcon={canEditAmount}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                    brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    error={getErrorForField('amount')}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.description')}
+                    shouldParseTitle
+                    title={transactionDescription}
+                    interactive={canEdit}
+                    shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                    }
+                    wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                    brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    error={getErrorForField('comment')}
+                    numberOfLinesTitle={0}
+                />
+            </OfflineWithFeedback>
+            {isDistanceRequest ? (
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                     <MenuItemWithTopDescription
-                        title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
-                        shouldShowTitleIcon={isSettled}
-                        titleIcon={Expensicons.Checkmark}
-                        description={amountDescription}
-                        titleStyle={styles.textHeadlineH2}
-                        interactive={canEditAmount}
-                        shouldShowRightIcon={canEditAmount}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                        brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        error={getErrorForField('amount')}
+                        description={translate('common.distance')}
+                        title={transactionMerchant}
+                        interactive={canEditDistance}
+                        shouldShowRightIcon={canEditDistance}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
                     />
                 </OfflineWithFeedback>
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
+            ) : (
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
                     <MenuItemWithTopDescription
-                        description={translate('common.description')}
-                        shouldParseTitle
-                        title={transactionDescription}
+                        description={translate('common.merchant')}
+                        title={isEmptyMerchant ? '' : transactionMerchant}
+                        interactive={canEditMerchant}
+                        shouldShowRightIcon={canEditMerchant}
+                        titleStyle={styles.flex1}
+                        onPress={() =>
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                        }
+                        brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        error={getErrorForField('merchant')}
+                    />
+                </OfflineWithFeedback>
+            )}
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.date')}
+                    title={transactionDate}
+                    interactive={canEditDate}
+                    shouldShowRightIcon={canEditDate}
+                    titleStyle={styles.flex1}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                    }
+                    brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    error={getErrorForField('date')}
+                />
+            </OfflineWithFeedback>
+            {shouldShowCategory && (
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
+                    <MenuItemWithTopDescription
+                        description={translate('common.category')}
+                        title={transactionCategory}
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
                         onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
-                            )
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
                         }
-                        wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                        brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        error={getErrorForField('comment')}
-                        numberOfLinesTitle={0}
+                        brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        error={getErrorForField('category')}
                     />
                 </OfflineWithFeedback>
-                {isDistanceRequest ? (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+            )}
+            {shouldShowTag &&
+                policyTagLists.map(({name}, index) => (
+                    <OfflineWithFeedback
+                        key={name}
+                        pendingAction={getPendingFieldAction('tag')}
+                    >
                         <MenuItemWithTopDescription
-                            description={translate('common.distance')}
-                            title={transactionMerchant}
-                            interactive={canEditDistance}
-                            shouldShowRightIcon={canEditDistance}
-                            titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
-                        />
-                    </OfflineWithFeedback>
-                ) : (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
-                        <MenuItemWithTopDescription
-                            description={translate('common.merchant')}
-                            title={isEmptyMerchant ? '' : transactionMerchant}
-                            interactive={canEditMerchant}
-                            shouldShowRightIcon={canEditMerchant}
-                            titleStyle={styles.flex1}
-                            onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
-                                )
-                            }
-                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={getErrorForField('merchant')}
-                        />
-                    </OfflineWithFeedback>
-                )}
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
-                    <MenuItemWithTopDescription
-                        description={translate('common.date')}
-                        title={transactionDate}
-                        interactive={canEditDate}
-                        shouldShowRightIcon={canEditDate}
-                        titleStyle={styles.flex1}
-                        onPress={() =>
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
-                        }
-                        brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        error={getErrorForField('date')}
-                    />
-                </OfflineWithFeedback>
-                {shouldShowCategory && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
-                        <MenuItemWithTopDescription
-                            description={translate('common.category')}
-                            title={transactionCategory}
+                            description={name ?? translate('common.tag')}
+                            title={TransactionUtils.getTagForDisplay(transaction, index)}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+                                    ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
                                 )
                             }
-                            brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={getErrorForField('category')}
+                            brickRoadIndicator={getErrorForField('tag', {tagListIndex: index, tagListName: name}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
                         />
                     </OfflineWithFeedback>
-                )}
-                {shouldShowTag &&
-                    policyTagLists.map(({name}, index) => (
-                        <OfflineWithFeedback
-                            key={name}
-                            pendingAction={getPendingFieldAction('tag')}
-                        >
-                            <MenuItemWithTopDescription
-                                description={name ?? translate('common.tag')}
-                                title={TransactionUtils.getTagForDisplay(transaction, index)}
-                                interactive={canEdit}
-                                shouldShowRightIcon={canEdit}
-                                titleStyle={styles.flex1}
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
-                                    )
-                                }
-                                brickRoadIndicator={getErrorForField('tag', {tagListIndex: index, tagListName: name}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                error={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
+                ))}
+            {isCardTransaction && (
+                <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
+                    <MenuItemWithTopDescription
+                        description={translate('iou.card')}
+                        title={cardProgramName}
+                        titleStyle={styles.flex1}
+                    />
+                </OfflineWithFeedback>
+            )}
+            {shouldShowBillable && (
+                <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <View>
+                        <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
+                        {!!getErrorForField('billable') && (
+                            <ViolationMessages
+                                violations={getViolationsForField('billable')}
+                                containerStyle={[styles.mt1]}
+                                textStyle={[styles.ph0]}
+                                isLast
                             />
-                        </OfflineWithFeedback>
-                    ))}
-                {isCardTransaction && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
-                        <MenuItemWithTopDescription
-                            description={translate('iou.card')}
-                            title={cardProgramName}
-                            titleStyle={styles.flex1}
-                        />
-                    </OfflineWithFeedback>
-                )}
-                {shouldShowBillable && (
-                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
-                        <View>
-                            <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
-                            {!!getErrorForField('billable') && (
-                                <ViolationMessages
-                                    violations={getViolationsForField('billable')}
-                                    containerStyle={[styles.mt1]}
-                                    textStyle={[styles.ph0]}
-                                    isLast
-                                />
-                            )}
-                        </View>
-                        <Switch
-                            accessibilityLabel={translate('common.billable')}
-                            isOn={!!transactionBillable}
-                            onToggle={saveBillable}
-                        />
+                        )}
                     </View>
-                )}
-            </View>
+                    <Switch
+                        accessibilityLabel={translate('common.billable')}
+                        isOn={!!transactionBillable}
+                        onToggle={saveBillable}
+                    />
+                </View>
+            )}
             <SpacerView
                 shouldShow={shouldShowHorizontalRule}
                 style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
             />
-        </View>
+        </>
     );
 }
 
