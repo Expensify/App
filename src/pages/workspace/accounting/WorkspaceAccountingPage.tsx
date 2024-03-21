@@ -21,7 +21,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 
 function WorkspaceAccountingPage() {
     const theme = useTheme();
@@ -73,7 +72,6 @@ function WorkspaceAccountingPage() {
                 title: translate('workspace.accounting.xero'),
                 rightComponent: (
                     <Button
-                        onPress={() => {}}
                         style={[styles.pl2, styles.justifyContentCenter]}
                         text={translate('workspace.accounting.setup')}
                         small
@@ -82,50 +80,50 @@ function WorkspaceAccountingPage() {
                 ),
             },
         ],
-        [openQBOsync, styles.pl2, styles.sectionMenuItemTopDescription, translate],
+        [openQBOsync, styles.pl2, styles.justifyContentCenter, styles.sectionMenuItemTopDescription, translate],
     );
 
-    const qboConnectionMenuItems: MenuItemProps[] = useMemo(() => {
-        if (isSyncInProgress) {
-            return [
-                {
-                    iconRight: Expensicons.DownArrow,
-                    shouldShowRightIcon: true,
-                    description: translate('workspace.accounting.other'),
-                    wrapperStyle: [styles.sectionMenuItemTopDescription],
-                },
-            ];
-        }
-        return [
-            {
-                icon: Expensicons.Pencil,
-                iconRight: Expensicons.ArrowRight,
-                shouldShowRightIcon: true,
-                title: translate('workspace.accounting.import'),
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-            },
-            {
-                icon: Expensicons.Send,
-                iconRight: Expensicons.ArrowRight,
-                shouldShowRightIcon: true,
-                title: translate('workspace.accounting.export'),
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-            },
-            {
-                icon: Expensicons.Gear,
-                iconRight: Expensicons.ArrowRight,
-                shouldShowRightIcon: true,
-                title: translate('workspace.accounting.advanced'),
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-            },
+    const qboConnectionMenuItems: MenuItemProps[] = useMemo(
+        () =>
+            isSyncInProgress
+                ? []
+                : [
+                      {
+                          icon: Expensicons.Pencil,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.import'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                      },
+                      {
+                          icon: Expensicons.Send,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.export'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                      },
+                      {
+                          icon: Expensicons.Gear,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.advanced'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                      },
+                  ],
+        [isSyncInProgress, styles.sectionMenuItemTopDescription, translate],
+    );
+
+    const otherConnectionMenuItems: MenuItemProps[] = useMemo(
+        () => [
             {
                 iconRight: Expensicons.DownArrow,
                 shouldShowRightIcon: true,
                 description: translate('workspace.accounting.other'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             },
-        ];
-    }, [isSyncInProgress, styles.sectionMenuItemTopDescription, translate]);
+        ],
+        [styles.sectionMenuItemTopDescription, translate],
+    );
 
     const threeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
@@ -217,7 +215,7 @@ function WorkspaceAccountingPage() {
                             </View>
                         )}
                         <MenuItemList
-                            menuItems={policyIsConnectedToAccountingSystem ? qboConnectionMenuItems : connectionsMenuItems}
+                            menuItems={policyIsConnectedToAccountingSystem ? [...qboConnectionMenuItems, ...otherConnectionMenuItems] : connectionsMenuItems}
                             shouldUseSingleExecution
                         />
                     </Section>
