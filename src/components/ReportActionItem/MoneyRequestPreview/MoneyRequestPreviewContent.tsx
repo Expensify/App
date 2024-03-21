@@ -170,8 +170,10 @@ function MoneyRequestPreviewContent({
                 message += ` • ${translate('violations.reviewRequired')}`;
             } else if (isAmountMissing) {
                 message += ` • ${translate('iou.missingAmount')}`;
-            } else {
+            } else if (isMerchantMissing) {
                 message += ` • ${translate('iou.missingMerchant')}`;
+            } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
+                message += ` • ${translate('iou.hold')}`;
             }
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
             message += ` • ${translate('iou.approved')}`;
