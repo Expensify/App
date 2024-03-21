@@ -18,6 +18,8 @@ type ReportCommentNotificationData = {
     shouldScrollToLastUnread?: boolean;
     roomName?: string;
     onyxData?: OnyxServerUpdate[];
+    lastUpdateID?: number;
+    previousUpdateID?: number;
 };
 
 /**

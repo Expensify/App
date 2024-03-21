@@ -17,7 +17,7 @@ import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
     const styles = useThemeStyles();
     const pagerRef = useRef(null);
     const [page, setPage] = useState();
@@ -102,10 +102,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [setShouldShowArrows],
     );
 
-    const goBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
     const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
 
     if (page == null) {
@@ -143,7 +139,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                         activeSource={activeSource}
                         onRequestToggleArrows={toggleArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                        onClose={goBack}
+                        onClose={onClose}
                         ref={pagerRef}
                     />
                 </>

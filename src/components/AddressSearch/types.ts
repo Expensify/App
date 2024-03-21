@@ -17,8 +17,8 @@ type RenamedInputKeysProps = {
     street2: string;
     city: string;
     state: string;
-    lat: string;
-    lng: string;
+    lat?: string;
+    lng?: string;
     zipCode: string;
     address?: string;
     country?: string;

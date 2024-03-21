@@ -6,6 +6,7 @@ type PayMoneyRequestParams = {
     reportActionID: string;
     paymentMethodType: PaymentMethodType;
     full: boolean;
+    amount?: number;
 };
 
 export default PayMoneyRequestParams;

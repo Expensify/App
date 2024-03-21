@@ -58,3 +58,5 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
 Header.displayName = 'Header';
 
 export default Header;
+
+export type {HeaderProps};

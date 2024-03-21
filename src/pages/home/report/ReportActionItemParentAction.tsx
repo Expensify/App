@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -16,12 +15,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItem from './ReportActionItem';
 
-type ReportActionItemParentActionOnyxProps = {
-    /** The current report is displayed */
-    report: OnyxEntry<OnyxTypes.Report>;
-};
-
-type ReportActionItemParentActionProps = ReportActionItemParentActionOnyxProps & {
+type ReportActionItemParentActionProps = {
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
@@ -31,9 +25,15 @@ type ReportActionItemParentActionProps = ReportActionItemParentActionOnyxProps &
     /** The id of the report */
     // eslint-disable-next-line react/no-unused-prop-types
     reportID: string;
+
+    /** The current report is displayed */
+    report: OnyxEntry<OnyxTypes.Report>;
+
+    /** Report actions belonging to the report's parent */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 };
 
-function ReportActionItemParentAction({report, index = 0, shouldHideThreadDividerLine = false}: ReportActionItemParentActionProps) {
+function ReportActionItemParentAction({report, parentReportAction, index = 0, shouldHideThreadDividerLine = false}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -83,8 +83,8 @@ function ReportActionItemParentAction({report, index = 0, shouldHideThreadDivide
                     onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
                 >
                     <ReportActionItem
-                        // @ts-expect-error TODO: Remove this once ReportActionItem (https://github.com/Expensify/App/issues/31982) is migrated to TypeScript.
                         onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID))}
+                        parentReportAction={parentReportAction}
                         report={ancestor.report}
                         action={ancestor.reportAction}
                         displayAsGroup={false}
@@ -101,8 +101,4 @@ function ReportActionItemParentAction({report, index = 0, shouldHideThreadDivide
 
 ReportActionItemParentAction.displayName = 'ReportActionItemParentAction';
 
-export default withOnyx<ReportActionItemParentActionProps, ReportActionItemParentActionOnyxProps>({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-})(ReportActionItemParentAction);
+export default ReportActionItemParentAction;
