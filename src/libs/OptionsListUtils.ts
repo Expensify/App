@@ -841,12 +841,7 @@ function getEnabledCategoriesCount(options: PolicyCategories): number {
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
-    const output = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
-
-    return {
-        output,
-        parsedPhoneNumber,
-    };
+    return parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
 }
 
 /**
@@ -1505,7 +1500,8 @@ function getOptions(
     let recentReportOptions = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
     const reportMapForAccountIDs: Record<number, Report> = {};
-    const {output: searchValue, parsedPhoneNumber} = getSearchValueForPhoneOrEmail(searchInputValue);
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = Object.values(reports ?? {}).filter((report) => {
@@ -2094,7 +2090,7 @@ function formatSectionsFromSearchTerm(
  * Filters options based on the search input value
  */
 function filterOptions(options: GetOptions, searchInputValue: string): GetOptions {
-    const {output: searchValue} = getSearchValueForPhoneOrEmail(searchInputValue);
+    const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
     const createFilter = (items: ReportUtils.OptionData[], keys: ReadonlyArray<KeyOption<ReportUtils.OptionData>>, term: string) =>
