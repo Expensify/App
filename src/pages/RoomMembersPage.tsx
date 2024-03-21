@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -35,6 +36,7 @@ import type {Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import SearchInputManager from './workspace/SearchInputManager';
 
 type RoomMembersPageOnyxProps = {
     session: OnyxEntry<Session>;
@@ -53,6 +55,19 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
+    const isFocusedScreen = useIsFocused();
+
+    useEffect(() => {
+        setSearchValue(SearchInputManager.searchInput);
+    }, [isFocusedScreen]);
+
+    useEffect(
+        () => () => {
+            SearchInputManager.searchInput = '';
+        },
+        [],
+    );
 
     /**
      * Get members for the current room
@@ -274,7 +289,10 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             textInputLabel={translate('optionsSelector.findMember')}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
-                            onChangeText={setSearchValue}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchValue(value);
+                            }}
                             headerMessage={headerMessage}
                             onSelectRow={(item) => toggleUser(item)}
                             onSelectAll={() => toggleAllUsers(data)}
