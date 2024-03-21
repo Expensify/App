@@ -491,7 +491,7 @@ function ReportScreen({
             return;
         }
         // Ensures the optimistic report is created successfully
-        if (reportID !== report.reportID) {
+        if (reportIDFromRoute !== report.reportID) {
             return;
         }
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
