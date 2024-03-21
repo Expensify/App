@@ -79,10 +79,10 @@
 
 /* This input is in #___gcse_0 search bar */
 input#gsc-i-id1.gsc-input {
-    background-color: var(--color-appBG);
+    background-color: var(--color-appBG) !important;
     padding: 15px 0px 0px !important;
     pointer-events: auto;
-    color: var(--color-text);
+    color: var(--color-text) !important;
     font-family: "ExpensifyNeue", "Segoe UI Emoji", "Noto Color Emoji" !important;
 }
 
@@ -160,9 +160,18 @@ label.search-label {
 }
 
 .gsc-control-cse {
-    background-color: var(--color-appBG);
-    border: var(--color-appBG);
+    background-color: var(--color-appBG) !important;
+    border: var(--color-appBG) !important;
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif !important;
+}
+
+.gsc-webResult.gsc-result {
+    border-color: var(--color-appBG) !important;
+    background-color: var(--color-appBG) !important;
+}
+
+.gs-webResult.gs-result a.gs-title:link{
+    color: var(--color-link) !important;
 }
 
 /* Hide the scrollbar */
@@ -181,6 +190,7 @@ label.search-label {
     margin-right: 20px;
     border-radius: 25px;
     background-color: var(--color-button-success-background);
+    border-color: var(--color-appBG) !important;
     cursor: pointer;
     width: 40px;
     height: 40px;
