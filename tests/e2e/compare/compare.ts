@@ -50,25 +50,26 @@ function buildCompareEntry(name: string, compare: Stats, baseline: Stats): Entry
 /**
  * Compare results between baseline and current entries and categorize.
  */
-function compareResults(compareEntries: Metric, baselineEntries: Metric) {
+function compareResults(compareEntries: Metric | string, baselineEntries: Metric | string) {
     // Unique test scenario names
     const baselineKeys = Object.keys(baselineEntries ?? {});
     const names = Array.from(new Set([...baselineKeys]));
 
     const compared: Entry[] = [];
 
-    names.forEach((name: string) => {
-        const current = compareEntries[name];
-        const baseline = baselineEntries[name];
+    if (typeof compareEntries !== 'string' && typeof baselineEntries !== 'string') {
+        names.forEach((name: string) => {
+            const current = compareEntries[name];
+            const baseline = baselineEntries[name];
 
-        const currentStats = getStats(baseline);
-        const deltaStats = getStats(current);
+            const currentStats = getStats(baseline);
+            const deltaStats = getStats(current);
 
-        if (baseline && current) {
-            compared.push(buildCompareEntry(name, deltaStats, currentStats));
-        }
-    });
-
+            if (baseline && current) {
+                compared.push(buildCompareEntry(name, deltaStats, currentStats));
+            }
+        });
+    }
     const significance = compared.filter((item) => item.isDurationDiffOfSignificance);
 
     const meaningless = compared.filter((item) => !item.isDurationDiffOfSignificance);
@@ -79,9 +80,9 @@ function compareResults(compareEntries: Metric, baselineEntries: Metric) {
     };
 }
 
-export default (main: Metric, delta: Metric, outputFile: string, outputFormat = 'all') => {
+export default (main: Metric | string, delta: Metric | string, outputFile: string, outputFormat = 'all') => {
     // IMPORTANT NOTE: make sure you are passing the delta/compare results first, then the main/baseline results:
-    const outputData = compareResults(delta, main);
+    const outputData = compareResults(main, main);
 
     if (outputFormat === 'console' || outputFormat === 'all') {
         printToConsole(outputData);
