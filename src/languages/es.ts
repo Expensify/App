@@ -688,7 +688,7 @@ export default {
         enableWallet: 'Habilitar Billetera',
         holdRequest: 'Bloquear solicitud',
         unholdRequest: 'Desbloquear solicitud',
-        heldRequest: ({comment}: HeldRequestParams) => `bloqueó esta solicitud con el comentario: ${comment}`,
+        heldRequest: 'bloqueó esta solicitud con el comentario:',
         unheldRequest: 'desbloqueó esta solicitud',
         explainHold: 'Explica la razón para bloquear esta solicitud.',
         reason: 'Razón',

@@ -5032,7 +5032,8 @@ function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string 
  * Put money request on HOLD
  */
 function putOnHold(transactionID: string, comment: string, reportID: string) {
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
+    const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -5040,6 +5041,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+                [createdReportActionComment.reportActionID]: createdReportActionComment as ReportAction,
             },
         },
         {
@@ -5073,6 +5075,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
             transactionID,
             comment,
             reportActionID: createdReportAction.reportActionID,
+            commentReportActionID: createdReportActionComment.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
