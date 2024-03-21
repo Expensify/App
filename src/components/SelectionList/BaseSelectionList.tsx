@@ -9,6 +9,7 @@ import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import {PressableWithFeedback} from '@components/Pressable';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import SectionList from '@components/SectionList';
 import ShowMoreButton from '@components/ShowMoreButton';
@@ -61,6 +62,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
+        checkmarkPosition,
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
@@ -119,7 +121,8 @@ function BaseSelectionList<TItem extends ListItem>(
                 });
 
                 // If disabled, add to the disabled indexes array
-                if (!!section.isDisabled || item.isDisabled) {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (!!section.isDisabled || item.isDisabled || item.isDisabledCheckbox) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;
@@ -329,6 +332,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
+                checkmarkPosition={checkmarkPosition}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
             />
@@ -451,11 +455,22 @@ function BaseSelectionList<TItem extends ListItem>(
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, onConfirm ?? selectFocusedOption, {
-        captureOnInputs: true,
-        shouldBubble: !flattenedSections.allOptions[focusedIndex],
-        isActive: !disableKeyboardShortcuts && isFocused,
-    });
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
+        (e) => {
+            const focusedOption = flattenedSections.allOptions[focusedIndex];
+            if (onConfirm) {
+                onConfirm(e, focusedOption);
+                return;
+            }
+            selectFocusedOption();
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: !flattenedSections.allOptions[focusedIndex],
+            isActive: !disableKeyboardShortcuts && isFocused,
+        },
+    );
 
     return (
         <ArrowKeyFocusManager
@@ -509,18 +524,30 @@ function BaseSelectionList<TItem extends ListItem>(
                         ) : (
                             <>
                                 {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                                    <View style={[styles.peopleRow, styles.userSelectNone, styles.ph4, styles.pb3, listHeaderWrapperStyle]}>
-                                        <Checkbox
-                                            isChecked={flattenedSections.allSelected}
-                                            onPress={selectAllRow}
-                                            disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                            accessibilityLabel={translate('workspace.people.selectAll')}
-                                        />
-                                        {customListHeader ?? (
-                                            <View style={[styles.flex1]}>
-                                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                                            </View>
-                                        )}
+                                    <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle]}>
+                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                            <Checkbox
+                                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                                isChecked={flattenedSections.allSelected}
+                                                onPress={selectAllRow}
+                                                disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                            />
+                                            {!customListHeader && (
+                                                <PressableWithFeedback
+                                                    style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
+                                                    onPress={selectAllRow}
+                                                    accessibilityLabel={translate('workspace.people.selectAll')}
+                                                    role="button"
+                                                    accessibilityState={{checked: flattenedSections.allSelected}}
+                                                    disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                                    onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                                                >
+                                                    <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                                </PressableWithFeedback>
+                                            )}
+                                        </View>
+                                        {customListHeader}
                                     </View>
                                 )}
                                 {!headerMessage && !canSelectMultiple && customListHeader}
@@ -554,6 +581,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             <FixedFooter style={[styles.mtAuto]}>
                                 <Button
                                     success
+                                    large
                                     style={[styles.w100]}
                                     text={confirmButtonText || translate('common.confirm')}
                                     onPress={onConfirm}
