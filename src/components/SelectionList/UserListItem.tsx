@@ -79,7 +79,7 @@ function UserListItem({
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
                                 {item.isSelected && (
