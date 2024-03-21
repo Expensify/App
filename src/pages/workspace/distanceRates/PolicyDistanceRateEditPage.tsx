@@ -51,8 +51,8 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const rate = customUnit.rates[rateID];
     const currency = rate.currency ?? CONST.CURRENCY.USD;
-    const canDeleteRate = Object.keys(customUnit.rates).length > 1;
-    const canDisableRate = Object.values(customUnit.rates).filter((r) => r.enabled).length > 1;
+    const canDeleteRate = Object.values(customUnit.rates).filter((distanceRate) => distanceRate.enabled).length > 1;
+    const canDisableRate = Object.values(customUnit.rates).filter((distanceRate) => distanceRate.enabled).length > 1;
     const errorFields = rate.errorFields;
 
     const showRateModal = () => {
@@ -70,12 +70,7 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     };
 
     const toggleRate = () => {
-        if (!rate.enabled) {
-            Policy.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate.enabled}]);
-            return;
-        }
-
-        if (canDisableRate) {
+        if (!rate.enabled || canDisableRate) {
             Policy.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate.enabled}]);
         } else {
             setIsWarningModalVisible(true);
@@ -106,7 +101,7 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     ];
 
     const clearErrorFields = (fieldName: keyof Rate) => {
-        Policy.clearPolicyRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
+        Policy.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
     return (
