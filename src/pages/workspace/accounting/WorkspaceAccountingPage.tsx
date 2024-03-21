@@ -23,12 +23,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-type WorkspaceMenuItem = MenuItemProps & {
-    translationKey?: TranslationPaths;
-    descriptionTranslationKey?: TranslationPaths;
-    onButtonPress?: () => void;
-};
-
 function WorkspaceAccountingPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -49,12 +43,11 @@ function WorkspaceAccountingPage() {
         setPolicyIsConnectedToAccountingSystem(true);
     }, []);
 
-    const connectionsMenuItems: WorkspaceMenuItem[] = useMemo(
+    const connectionsMenuItems: MenuItemProps[] = useMemo(
         () => [
             {
                 icon: Expensicons.QBORound,
                 interactive: false,
-                onPress: openQBOsync,
                 iconHeight: variables.iconSizeExtraLarge,
                 iconWidth: variables.iconSizeExtraLarge,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -63,7 +56,7 @@ function WorkspaceAccountingPage() {
                 rightComponent: (
                     <Button
                         onPress={openQBOsync}
-                        style={[styles.pl2]}
+                        style={[styles.pl2, styles.justifyContentCenter]}
                         text={translate('workspace.accounting.setup')}
                         small
                     />
@@ -73,7 +66,6 @@ function WorkspaceAccountingPage() {
                 icon: Expensicons.XeroRound,
                 interactive: false,
                 disabled: true,
-                onPress: () => {},
                 iconHeight: variables.iconSizeExtraLarge,
                 iconWidth: variables.iconSizeExtraLarge,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -82,7 +74,7 @@ function WorkspaceAccountingPage() {
                 rightComponent: (
                     <Button
                         onPress={() => {}}
-                        style={[styles.pl2]}
+                        style={[styles.pl2, styles.justifyContentCenter]}
                         text={translate('workspace.accounting.setup')}
                         small
                         isDisabled
@@ -93,11 +85,10 @@ function WorkspaceAccountingPage() {
         [openQBOsync, styles.pl2, styles.sectionMenuItemTopDescription, translate],
     );
 
-    const qboConnectionMenuItems: WorkspaceMenuItem[] = useMemo(() => {
+    const qboConnectionMenuItems: MenuItemProps[] = useMemo(() => {
         if (isSyncInProgress) {
             return [
                 {
-                    key: 'workspace.accounting.other',
                     iconRight: Expensicons.DownArrow,
                     shouldShowRightIcon: true,
                     description: translate('workspace.accounting.other'),
@@ -130,7 +121,7 @@ function WorkspaceAccountingPage() {
             {
                 iconRight: Expensicons.DownArrow,
                 shouldShowRightIcon: true,
-                title: translate('workspace.accounting.other'),
+                description: translate('workspace.accounting.other'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             },
         ];
@@ -226,7 +217,7 @@ function WorkspaceAccountingPage() {
                             </View>
                         )}
                         <MenuItemList
-                            menuItems={!policyIsConnectedToAccountingSystem ? connectionsMenuItems : qboConnectionMenuItems}
+                            menuItems={policyIsConnectedToAccountingSystem ? qboConnectionMenuItems : connectionsMenuItems}
                             shouldUseSingleExecution
                         />
                     </Section>
