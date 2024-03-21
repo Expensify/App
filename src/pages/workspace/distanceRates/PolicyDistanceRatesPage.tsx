@@ -182,7 +182,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         if (selectedDistanceRates.length === Object.values(customUnitRates).length) {
             setSelectedDistanceRates([]);
         } else {
-            setSelectedDistanceRates([...Object.values(customUnitRates)]);
+            setSelectedDistanceRates([...Object.values(customUnitRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)]);
         }
     };
 
