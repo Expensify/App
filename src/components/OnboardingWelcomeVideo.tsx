@@ -76,9 +76,9 @@ function OnboardingWelcomeVideo() {
         }
     };
 
-    const setVideoStatus = (e: VideoPlaybackStatusEventType) => {
-        setIsVideoLoaded(e.isLoaded);
-    };
+    const setVideoStatus = useCallback((event: VideoPlaybackStatusEventType) => {
+        setIsVideoLoaded(event.isLoaded);
+    }, []);
 
     const getWelcomeVideo = () => {
         const aspectRatio = videoAspectRatio || VIDEO_ASPECT_RATIO;
