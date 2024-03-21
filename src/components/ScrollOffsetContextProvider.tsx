@@ -1,7 +1,11 @@
 import type {ParamListBase, RouteProp} from '@react-navigation/native';
-import React, {createContext, useCallback, useMemo, useRef} from 'react';
+import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+import type {PriorityMode} from '@src/types/onyx';
 
 type ScrollOffsetContextValue = {
     /** Save scroll offset of flashlist on given screen */
@@ -14,7 +18,12 @@ type ScrollOffsetContextValue = {
     cleanStaleScrollOffsets: (state: State) => void;
 };
 
-type ScrollOffsetContextProviderProps = {
+type ScrollOffsetContextProviderOnyxProps = {
+    /** The chat priority mode */
+    priorityMode: PriorityMode;
+};
+
+type ScrollOffsetContextProviderProps = ScrollOffsetContextProviderOnyxProps & {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
@@ -35,8 +44,24 @@ function getKey(route: RouteProp<ParamListBase> | NavigationPartialRoute): strin
     return `${route.name}-global`;
 }
 
-export default function ScrollOffsetContextProvider(props: ScrollOffsetContextProviderProps) {
+function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetContextProviderProps) {
     const scrollOffsetsRef = useRef<Record<string, number>>({});
+    const previousPriorityMode = useRef<PriorityMode>(priorityMode);
+
+    useEffect(() => {
+        if (previousPriorityMode.current === priorityMode) {
+            return;
+        }
+
+        // If the priority mode changes, we need to clear the scroll offsets for the home screens because it affects the size of the elements and scroll positions wouldn't be correct.
+        for (const key of Object.keys(scrollOffsetsRef.current)) {
+            if (key.includes(SCREENS.HOME)) {
+                delete scrollOffsetsRef.current[key];
+            }
+        }
+
+        previousPriorityMode.current = priorityMode;
+    }, [priorityMode]);
 
     const saveScrollOffset: ScrollOffsetContextValue['saveScrollOffset'] = useCallback((route, scrollOffset) => {
         scrollOffsetsRef.current[getKey(route)] = scrollOffset;
@@ -75,8 +100,14 @@ export default function ScrollOffsetContextProvider(props: ScrollOffsetContextPr
         [saveScrollOffset, getScrollOffset, cleanStaleScrollOffsets],
     );
 
-    return <ScrollOffsetContext.Provider value={contextValue}>{props.children}</ScrollOffsetContext.Provider>;
+    return <ScrollOffsetContext.Provider value={contextValue}>{children}</ScrollOffsetContext.Provider>;
 }
+
+export default withOnyx<ScrollOffsetContextProviderProps, ScrollOffsetContextProviderOnyxProps>({
+    priorityMode: {
+        key: ONYXKEYS.NVP_PRIORITY_MODE,
+    },
+})(ScrollOffsetContextProvider);
 
 export {ScrollOffsetContext};
 
