@@ -154,7 +154,7 @@ type MenuItemBaseProps = {
     /** Text that appears above the title */
     label?: string;
 
-    isLabelHoverble?: boolean
+    isLabelHoverable?: boolean
 
     /** Label to be displayed on the right */
     rightLabel?: string;
