@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -142,18 +142,17 @@ function FloatingActionButtonAndPopover(props) {
 
     const prevIsFocused = usePrevious(props.isFocused);
 
-    let avatars;
-    let quickActionReport;
-    if (props.quickAction) {
-        const quickActionReportID = props.quickAction.chatReportID;
-        quickActionReport = ReportUtils.getReport(quickActionReportID);
-        if (quickActionReport) {
-            avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
+    const quickActionReport = useMemo(() => {
+        return props.quickAction ? ReportUtils.getReport(props.quickAction.chatReportID) : 0;
+    }, [props.quickAction]);
 
-            // Remove the user's own avatar if there are others
-            avatars = _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
+    const quickActionAvatars = useMemo(() => {
+        if (quickActionReport) {
+            const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
+            return avatars.length <=1 ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
         }
-    }
+        return [];
+    }, [quickActionReport]);
 
     const navigateToQuickAction = () => {
         switch (props.quickAction.action) {
@@ -328,8 +327,8 @@ function FloatingActionButtonAndPopover(props) {
                                   text: translate(getQuickActionTitle(props.quickAction.action)),
                                   label: translate('quickAction.shortcut'),
                                   isLabelHoverable: false,
-                                  floatRightAvatars: avatars,
-                                  floatRightAvatarSize: avatars.length > 1 ? CONST.AVATAR_SIZE.SMALLER : CONST.AVATAR_SIZE.SMALL,
+                                  floatRightAvatars: quickActionAvatars,
+                                  floatRightAvatarSize: quickActionAvatars.length > 1 ? CONST.AVATAR_SIZE.SMALLER : CONST.AVATAR_SIZE.SMALL,
                                   description: ReportUtils.getReportName(quickActionReport),
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
