@@ -165,7 +165,7 @@ button {
 
     &.success {
         background-color: var(--color-button-success-background);
-        color: var(--color-text);
+        color: var(--color-button-text);
         width: 100%;
         border-radius: 100px;
         padding-left: 20px;
@@ -945,7 +945,7 @@ button {
 }
 
 #platform-tabs > .active {
-    color: var(--color-text);
+    color: var(--color-button-text);
     background-color: var(--color-button-background);
 }
 
