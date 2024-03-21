@@ -75,7 +75,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
-            {allAncestors.map((ancestor, ancestorIndex) => (
+            {allAncestors.map((ancestor) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}
                     shouldDisableOpacity={Boolean(ancestor.reportAction?.pendingAction)}
@@ -84,10 +84,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                     errorRowStyles={[styles.ml10, styles.mr2]}
                     onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
                 >
-                    <ThreadDivider
-                        ancestor={ancestor}
-                        style={ancestorIndex === 0 ? [styles.mt2, styles.mb2] : undefined}
-                    />
+                    <ThreadDivider ancestor={ancestor} />
                     <ReportActionItem
                         onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))}
                         parentReportAction={parentReportAction}

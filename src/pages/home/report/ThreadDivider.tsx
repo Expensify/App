@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -17,18 +16,15 @@ import ROUTES from '@src/ROUTES';
 type ThreadDividerProps = {
     /** Thread ancestor */
     ancestor: Ancestor;
-
-    /** Extra styles to pass to View wrapper */
-    style?: StyleProp<ViewStyle>;
 };
 
-function ThreadDivider({ancestor, style}: ThreadDividerProps) {
+function ThreadDivider({ancestor}: ThreadDividerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mt3, styles.mb1, style]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mt3, styles.mb1]}>
             <PressableWithoutFeedback
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor?.report?.parentReportID ?? ''))}
                 accessibilityLabel={translate('threads.thread')}
