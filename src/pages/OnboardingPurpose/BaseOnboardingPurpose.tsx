@@ -129,15 +129,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
                             />
                         </View>
                     </ScrollView>
-                    <View style={[styles.mb5, paddingHorizontal]}>
-                        <Button
-                            large
-                            success
-                            onPress={completeEngagement}
-                            isDisabled={!selectedPurpose}
-                            text={translate('common.continue')}
-                        />
-                    </View>
+                    <Button
+                        large
+                        success
+                        onPress={completeEngagement}
+                        isDisabled={!selectedPurpose}
+                        text={translate('common.continue')}
+                        style={[styles.mb5, paddingHorizontal]}
+                    />
                 </View>
             )}
         </SafeAreaConsumer>
