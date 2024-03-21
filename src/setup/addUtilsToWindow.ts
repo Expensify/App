@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import * as Environment from '@libs/Environment/Environment';
-import * as Session from '@userActions/Session';
 import markAllPolicyReportsAsRead from '@libs/markAllPolicyReportsAsRead';
+import * as Session from '@userActions/Session';
 
 /**
  * This is used to inject development/debugging utilities into the window object on web and desktop.
