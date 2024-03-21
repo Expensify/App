@@ -75,7 +75,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
-            {allAncestors.map((ancestor, index) => (
+            {allAncestors.map((ancestor, ancestorIndex) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}
                     shouldDisableOpacity={Boolean(ancestor.reportAction?.pendingAction)}
@@ -86,7 +86,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                 >
                     <ThreadDivider
                         ancestor={ancestor}
-                        style={index === 0 ? [styles.mt2, styles.mb2] : undefined}
+                        style={ancestorIndex === 0 ? [styles.mt2, styles.mb2] : undefined}
                     />
                     <ReportActionItem
                         onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))}

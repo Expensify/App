@@ -1,6 +1,10 @@
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,12 +13,9 @@ import type {Ancestor} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import Icon from '../../../components/Icon';
-import {PressableWithoutFeedback} from '../../../components/Pressable';
-import Text from '../../../components/Text';
 
 type ThreadDividerProps = {
-    /** Thread ancestor **/
+    /** Thread ancestor */
     ancestor: Ancestor;
 
     /** Extra styles to pass to View wrapper */

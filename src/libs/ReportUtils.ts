@@ -5217,7 +5217,6 @@ function getAllAncestorReportActions(report: Report | null | undefined, shouldHi
 
     // Store the child of parent report
     let currentReport = report;
-    let currentUnread = shouldHideThreadDividerLine;
 
     while (parentReportID) {
         const parentReport = getReport(parentReportID);
@@ -5237,7 +5236,6 @@ function getAllAncestorReportActions(report: Report | null | undefined, shouldHi
         parentReportActionID = parentReport?.parentReportActionID;
         if (!isEmptyObject(parentReport)) {
             currentReport = parentReport;
-            currentUnread = isParentReportActionUnread;
         }
     }
 

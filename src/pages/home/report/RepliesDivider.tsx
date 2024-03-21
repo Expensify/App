@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 type RepliesDividerProps = {
-    /** Whether we should hide thread divider line **/
+    /** Whether we should hide thread divider line */
     shouldHideThreadDividerLine: boolean;
 };
 
