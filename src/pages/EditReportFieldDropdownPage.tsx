@@ -37,6 +37,19 @@ type EditReportFieldDropdownPageOnyxProps = {
 
 type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProps & EditReportFieldDropdownPageOnyxProps;
 
+type ReportFieldDropdownData = {
+    text: string;
+    keyForList: string;
+    searchText: string;
+    tooltipText: string;
+}
+
+type ReportFieldDropdownSectionItem = {
+    data: ReportFieldDropdownData[];
+    shouldShow: boolean;
+    title?: string,
+};
+
 function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue, fieldOptions, recentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const styles = useThemeStyles();
@@ -46,7 +59,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
 
     const {sections, headerMessage} = useMemo(() => {
         let newHeaderMessage = '';
-        const newSections = [];
+        const newSections: ReportFieldDropdownSectionItem[] = [];
 
         if (searchValue) {
             const filteredOptions = fieldOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
