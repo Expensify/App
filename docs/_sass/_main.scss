@@ -62,12 +62,12 @@ html,
 body {
     height: 100%;
     min-height: 100%;
-    background: $color-appBG;
-    color: $color-text-supporting;
+    background: var(--color-appBG);
+    color: var(--color-text-supporting);
 }
 
 hr {
-    background: $color-borders;
+    background: var(--color-borders);
     border: none;
     display: inline-block;
     width: 24px;
@@ -84,7 +84,7 @@ em {
 }
 
 a {
-    color: $color-link;
+    color: var(--color-link);
     text-decoration: none;
 
     img {
@@ -99,7 +99,7 @@ h4,
 h5,
 h6, 
 summary {
-    color: $color-text;
+    color: var(--color-text);
     font-weight: bold;
     padding-bottom: 12px;
 }
@@ -153,7 +153,7 @@ textarea {
     font-weight: 400;
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
     font-size: 16px;
-    color: $color-text-supporting;
+    color: var(--color-text-supporting);
 }
 
 button {
@@ -164,15 +164,15 @@ button {
     font-weight: bold;
 
     &.success {
-        background-color: $color-button-success-background;
-        color: $color-text;
+        background-color: var(--color-button-success-background);
+        color: var(--color-text);
         width: 100%;
         border-radius: 100px;
         padding-left: 20px;
         padding-right: 20px;
 
         &:hover {
-            background-color: $color-button-success-background-hover;
+            background-color: var(--color-button-success-background-hover);
             cursor: pointer;
         }
 
@@ -205,9 +205,9 @@ button {
 
 #lhn {
     position: fixed;
-    background-color: $color-highlightBG;
+    background-color: var(--color-highlightBG);
     box-sizing: border-box;
-    border-right-color: $color-borders;
+    border-right-color: var(--color-borders);
     border-right-width: 1px;
     border-style: solid;
     width: 100%;
@@ -307,7 +307,7 @@ button {
 
     .selected {
         font-weight: bold;
-        color: $color-text;
+        color: var(--color-text);
     }
 
     .hide {
@@ -383,7 +383,7 @@ button {
             // Box shadow is used here because border-radius and border-collapse don't work together. It leads to double borders.
             // https://stackoverflow.com/questions/628301/the-border-radius-property-and-border-collapsecollapse-dont-mix-how-can-i-use
             border-style: hidden;
-            box-shadow: 0 0 0 1px $color-borders;
+            box-shadow: 0 0 0 1px var(--color-borders);
         }
 
         th:first-child {
@@ -405,12 +405,12 @@ button {
         th,
         td {
             padding: 6px 13px;
-            border: 1px solid $color-borders;
+            border: 1px solid var(--color-borders);
         }
 
         thead tr th {
             font-weight: bold;
-            background-color: $color-highlightBG;
+            background-color: var(--color-highlightBG);
         }
 
         .img-wrap {
@@ -446,14 +446,14 @@ button {
             margin-bottom: 20px;
             padding-top: 20px;
             padding-left: 5%;
-            border-left: 5px solid #1B5744;
+            border-left: 5px solid var(--color-button-background-hover);
 
             em:before {
                 content: "\“\a";
                 white-space: pre;
                 font-size: 60px;
                 line-height: 1em;
-                color: #03d47c;
+                color: var(--color-accent);
             }
 
             p:first-child {
@@ -464,7 +464,7 @@ button {
         }
 
         .selector-container {
-            background-color: $color-highlightBG;
+            background-color: var(--color-highlightBG);
             display: flex;
             flex-direction: row-reverse;
             gap: 20px;
@@ -485,7 +485,7 @@ button {
             height: 28px;
             border-radius: 20px;
             padding: 0px 26px 0px 12px;
-            color: $color-text;
+            color: var(--color-text);
             font-size: 11px;
             font-weight: 700;
             text-align: center;
@@ -498,7 +498,7 @@ button {
         }
 
         select {
-            background: url("/assets/images/down.svg") no-repeat right $color-button-background;
+            background: url("/assets/images/down.svg") no-repeat right var(--color-button-background);
             background-size: 12px;
             background-position-x: 85%;
             appearance: none !important;
@@ -510,8 +510,8 @@ button {
             padding: 12px;
             margin-bottom: 20px;
             border-radius: 8px;
-            background-color: $color-highlightBG;
-            color: $color-text;
+            background-color: var(--color-highlightBG);
+            color: var(--color-text);
             display: flex;
             gap: 12px;
             align-items: center;
@@ -532,11 +532,11 @@ button {
 
 .link {
     display: inline;
-    color: $color-text-supporting;
+    color: var(--color-text-supporting);
     cursor: pointer;
 
     &:hover {
-        color: $color-link;
+        color: var(--color-link);
     }
 }
 
@@ -565,7 +565,7 @@ button {
 
     .selected-article {
         font-weight: bold;
-        color: $color-text;
+        color: var(--color-text);
     }
 
     .home-link {
@@ -601,11 +601,11 @@ button {
     padding: 28px;
     font-weight: 700;
     cursor: pointer;
-    color: $color-text;
-    background-color: $color-highlightBG;
+    color: var(--color-text);
+    background-color: var(--color-highlightBG);
 
     &:hover {
-        background-color: $color-row-hover;
+        background-color: var(--color-row-hover);
     }
 
     .row {
@@ -704,14 +704,14 @@ button {
     }
 
     p.description {
-        color: $color-text-supporting;
+        color: var(--color-text-supporting);
         padding: 20px 0 20px 0;
     }
 
     p.url {
         padding: 0;
         font-size: 0.8em;
-        color: $color-text-supporting;
+        color: var(--color-text-supporting);
     }
 }
 
@@ -733,7 +733,7 @@ button {
 
     p.description {
         padding: 0;
-        color: $color-text-supporting;
+        color: var(--color-text-supporting);
 
         &.with-min-height {
             min-height: 68px;
@@ -818,7 +818,7 @@ button {
     }
 
     h3 {
-        color: $color-success;
+        color: var(--color-success);
         font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
         font-size: 17px;
         font-weight: 500;
@@ -836,13 +836,13 @@ button {
             margin: 0 0 8px;
 
             a {
-                color: $color-text-supporting;
+                color: var(--color-text-supporting);
                 display: block;
                 padding: 4px 0;
                 word-break: break-word;
 
                 &:hover {
-                    color: $color-link;
+                    color: var(--color-link);
                 }
             }
         }
@@ -852,21 +852,21 @@ button {
         padding-bottom: 20px;
 
         a {
-            color: $color-text-supporting;
+            color: var(--color-text-supporting);
             display: inline-block;
 
             &:hover {
-                color: $color-link;
+                color: var(--color-link);
             }
         }
     }
 
     &__fine-print {
-        color: $color-text-supporting;
+        color: var(--color-text-supporting);
         font-size: 10px;
 
         a {
-            color: $color-link;
+            color: var(--color-link);
         }
     }
 
@@ -945,8 +945,8 @@ button {
 }
 
 #platform-tabs > .active {
-    color: $color-text;
-    background-color: $color-button-background;
+    color: var(--color-text);
+    background-color: var(--color-button-background);
 }
 
 .hidden {

@@ -7,7 +7,7 @@
 }
 
 #sidebar-search {
-    background-color: $color-appBG;
+    background-color: var(--color-appBG);
     width: 375px;
     position: fixed;
     display: flex;
@@ -67,7 +67,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: $color-overlay;
+    background-color: var(--color-overlay);
     z-index: 1;
 }
 
@@ -79,22 +79,22 @@
 
 /* This input is in #___gcse_0 search bar */
 input#gsc-i-id1.gsc-input {
-    background-color: $color-appBG;
+    background-color: var(--color-appBG);
     padding: 15px 0px 0px !important;
     pointer-events: auto;
-    color: #E7ECE9;
+    color: var(--color-text);
     font-family: "ExpensifyNeue", "Segoe UI Emoji", "Noto Color Emoji" !important;
 }
 
 /* These below #gsc-iw-id1, .gsc-input-box & .gsib_a are inner wrapper of search bar input */
 #gsc-iw-id1 {
-    background-color: $color-appBG;
-    border-bottom: $color-borders 2px solid;
+    background-color: var(--color-appBG);
+    border-bottom: var(--color-borders) 2px solid;
     border-bottom-left-radius: 0px;
     pointer-events: none;
 
     &:focus-within {
-        border-bottom: $color-accent 2px solid;
+        border-bottom: var(--color-accent) 2px solid;
     }
 }
 
@@ -111,12 +111,12 @@ input#gsc-i-id1.gsc-input {
 }
 /* This is the close icon on search bar */
 .gsib_b .gsst_a .gscb_a {
-    color: $color-icons;
+    color: var(--color-icons);
     padding: 8px 6px 0px 6px !important;
     pointer-events: auto;
 
     &:hover {
-        color: $color-text;
+        color: var(--color-text);
     }
 }
 
@@ -124,7 +124,7 @@ input#gsc-i-id1.gsc-input {
 .gsst_a:hover {
 
     .gscb_a {
-        color: $color-text !important;
+        color: var(--color-text) !important;
     }
 }
 
@@ -144,7 +144,7 @@ label.search-label {
     transform: translateY(-50%);
     left: 20px;
     pointer-events: none;
-    color: $color-text-supporting;
+    color: var(--color-text-supporting);
     transform-origin: left top;
     user-select: none;
     transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1), top 500ms;
@@ -160,8 +160,8 @@ label.search-label {
 }
 
 .gsc-control-cse {
-    background-color: $color-appBG;
-    border: $color-appBG;
+    background-color: var(--color-appBG);
+    border: var(--color-appBG);
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif !important;
 }
 
@@ -180,18 +180,18 @@ label.search-label {
     margin-left: 15px;
     margin-right: 20px;
     border-radius: 25px;
-    background-color: $color-button-success-background;
+    background-color: var(--color-button-success-background);
     cursor: pointer;
     width: 40px;
     height: 40px;
 }
 
 .gsc-search-button.gsc-search-button-v2:hover {
-    background-color: $color-button-success-background-hover;
+    background-color: var(--color-button-success-background-hover);
 }
 
 .gsc-search-button.gsc-search-button-v2 svg {
-    fill: $color-text;
+    fill: var(--color-text);
     height: auto;
     width: auto;
 }
@@ -213,13 +213,13 @@ label.search-label {
 
 /* Change Font result Paragraph color */
 .gsc-results .gs-webResult:not(.gs-no-results-result):not(.gs-error-result) .gs-snippet, .gs-fileFormatType {
-    color: $color-text-supporting;
+    color: var(--color-text-supporting);
 }
 
 
 /* Change the color of the Google Search Suggestion font */
 .gs-spelling.gs-result {
-    color: $color-text;
+    color: var(--color-text);
 }
 
 /* Pagination related style */
@@ -234,7 +234,7 @@ label.search-label {
     border-radius: 25px;
     display: inline-block;
     line-height: 2.5;
-    background-color: $color-accent;
+    background-color: var(--color-accent);
     font-weight: bold;
     font-size: 11px;
 }
@@ -243,28 +243,28 @@ label.search-label {
 /* Change the color & background of Google Search Pagination */
 .gsc-cursor-next-page,
 .gsc-cursor-final-page {
-    color: $color-text;
-    background-color: $color-appBG;
+    color: var(--color-text);
+    background-color: var(--color-appBG);
 }
 
 /* Change the color & background of Google Search Current Page */
 .gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page.gsc-cursor-current-page {
-    background-color: $color-accent;
-    color: $color-text;
+    background-color: var(--color-accent);
+    color: var(--color-text);
 
     &:hover {
         text-decoration: none;
-        background-color: $color-accent;
+        background-color: var(--color-accent);
     }
 }
 
 /* Change the color & background of Google Search of Other Page */
 .gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
-    background-color: $color-button-background;
-    color: $color-text;
+    background-color: var(--color-button-background);
+    color: var(--color-text);
 
     &:hover {
-        background-color: $color-button-background-hover;
+        background-color: var(--color-button-background-hover);
         text-decoration: none;
     }
 }
