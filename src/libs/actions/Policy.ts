@@ -3670,19 +3670,16 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: CONST.DEFAULT_TAX.RATES,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
                     taxRates: {
+                        ...CONST.DEFAULT_TAX,
                         taxes: {
-                            ...Object.keys(CONST.DEFAULT_TAX.RATES.taxes).reduce(
+                            ...Object.keys(CONST.DEFAULT_TAX.taxes).reduce(
                                 (prevTaxesData, taxKey) => ({
                                     ...prevTaxesData,
-                                    [taxKey]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                                    [taxKey]: {
+                                        ...CONST.DEFAULT_TAX.taxes[taxKey],
+                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    },
                                 }),
                                 {},
                             ),
@@ -3698,7 +3695,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     taxRates: {
                         taxes: {
-                            ...Object.keys(CONST.DEFAULT_TAX.RATES.taxes).reduce(
+                            ...Object.keys(CONST.DEFAULT_TAX.taxes).reduce(
                                 (prevTaxesData, taxKey) => ({
                                     ...prevTaxesData,
                                     [taxKey]: {pendingAction: null},
@@ -3720,6 +3717,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         ],
     };
+    console.log('111111111111111111', {taxRatesData});
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const shouldAddDefaultTaxRatesData = (!policy?.taxRates || isEmptyObject(policy.taxRates)) && enabled;
     const onyxData: OnyxData = {
@@ -3769,7 +3767,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
     if (shouldAddDefaultTaxRatesData) {
-        parameters.taxFields = JSON.stringify(CONST.DEFAULT_TAX.RATES);
+        parameters.taxFields = JSON.stringify(CONST.DEFAULT_TAX);
     }
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 

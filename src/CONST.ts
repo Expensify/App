@@ -4133,20 +4133,18 @@ const CONST = {
         INITIAL_URL: 'INITIAL_URL',
     },
     DEFAULT_TAX: {
-        RATES: {
-            defaultExternalID: 'id_TAX_EXEMPT',
-            defaultValue: '0%',
-            foreignTaxDefault: 'id_TAX_EXEMPT',
-            name: 'Tax',
-            taxes: {
-                id_TAX_EXEMPT: {
-                    name: 'Tax exempt',
-                    value: '0%',
-                },
-                id_TAX_RATE_1: {
-                    name: 'Tax rate 1',
-                    value: '5%',
-                },
+        defaultExternalID: 'id_TAX_EXEMPT',
+        defaultValue: '0%',
+        foreignTaxDefault: 'id_TAX_EXEMPT',
+        name: 'Tax',
+        taxes: {
+            id_TAX_EXEMPT: {
+                name: 'Tax exempt',
+                value: '0%',
+            },
+            id_TAX_RATE_1: {
+                name: 'Tax rate 1',
+                value: '5%',
             },
         },
     },
