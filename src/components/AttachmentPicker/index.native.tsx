@@ -33,17 +33,6 @@ type Item = {
     pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
 };
 
-type FileData = {
-    fileName?: string;
-    name?: string | undefined;
-    fileCopyUri?: string;
-    uri?: string;
-    width?: number;
-    height?: number;
-    size?: number;
-    type?: string;
-};
-
 /**
  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
  * for ImagePicker configuration options
@@ -289,9 +278,12 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             const fileDataObject: FileResponse = {
                 name: fileDataName ?? '',
                 uri: fileDataUri,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 size: ('size' in fileData && fileData.size) || ('fileSize' in fileData && fileData.fileSize) || null,
                 type: fileData.type ?? '',
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 width: ('width' in fileData && fileData.width) || undefined,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 height: ('height' in fileData && fileData.height) || undefined,
             };
             if (fileDataName && Str.isImage(fileDataName)) {
