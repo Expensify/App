@@ -1,5 +1,4 @@
 :root {
-    // UI Colors
     --color-text: #002e22;
     --color-button-text: #fff;
     --color-text-supporting: #76847e;
@@ -21,7 +20,6 @@
 
 @media (prefers-color-scheme: dark) {
     :root {
-        // UI Colors
         --color-text: #e7ece9;
         --color-button-text: #fff;
         --color-text-supporting: #afbbb0;
