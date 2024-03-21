@@ -19,8 +19,8 @@ type EditReportFieldDatePageProps = {
     /** Name of the policy report field */
     fieldName: string;
 
-    /** ID of the policy report field */
-    fieldID: string;
+    /** Key of the policy report field */
+    fieldKey: string;
 
     /** Flag to indicate if the field can be left blank */
     isRequired: boolean;
@@ -29,7 +29,7 @@ type EditReportFieldDatePageProps = {
     onSubmit: (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => void;
 };
 
-function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, fieldID}: EditReportFieldDatePageProps) {
+function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, fieldKey}: EditReportFieldDatePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef<AnimatedTextInputRef>(null);
@@ -37,12 +37,12 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM> = {};
-            if (isRequired && value[fieldID].trim() === '') {
-                errors[fieldID] = 'common.error.fieldRequired';
+            if (isRequired && value[fieldKey].trim() === '') {
+                errors[fieldKey] = 'common.error.fieldRequired';
             }
             return errors;
         },
-        [fieldID, isRequired],
+        [fieldKey, isRequired],
     );
 
     return (
@@ -67,8 +67,8 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
                     {/* @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript. */}
                     <InputWrapper<unknown>
                         InputComponent={DatePicker}
-                        inputID={fieldID}
-                        name={fieldID}
+                        inputID={fieldKey}
+                        name={fieldKey}
                         defaultValue={fieldValue}
                         label={fieldName}
                         accessibilityLabel={fieldName}

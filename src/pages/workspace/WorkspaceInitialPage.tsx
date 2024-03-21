@@ -194,6 +194,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             icon: Expensicons.Tax,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAXES,
+            brickRoadIndicator: PolicyUtils.hasTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
@@ -255,7 +256,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includeSafeAreaPaddingBottom={false}
-            style={[styles.pb0]}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}

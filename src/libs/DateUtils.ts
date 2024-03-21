@@ -27,7 +27,8 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, format as tzFormat, utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz';
-import {enGB, es} from 'date-fns/locale';
+import enGB from 'date-fns/locale/en-GB';
+import es from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
