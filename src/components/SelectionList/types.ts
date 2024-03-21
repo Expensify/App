@@ -109,7 +109,7 @@ type ListItem = {
     isMultilineSupported?: boolean;
 
     /** The search value from the selection list */
-    searchText?: string;
+    searchText?: string | null;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {
