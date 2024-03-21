@@ -1806,7 +1806,7 @@ export default {
             accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
             accountsSwitchDescription: 'New categories imported from QuickBooks Online to Expensify will be either enabled or disabled by default.',
             classesDescription: 'Choose whether to import classes, and see where classes are displayed.',
-            customersDescription: 'Choose whether to import Customers/Projects and see where customers/projects are displayed.'
+            customersDescription: 'Choose whether to import Customers/Projects and see where customers/projects are displayed.',
         },
         type: {
             free: 'Free',

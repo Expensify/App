@@ -1833,7 +1833,7 @@ export default {
             accountsSwitchTitle: 'Habilite el plan de cuentas recién importado.',
             accountsSwitchDescription: 'Las nuevas categorías importadas de QuickBooks Online a Expensify estarán habilitadas o deshabilitadas de forma predeterminada.',
             classesDescription: 'Elija si desea importar clases y vea dónde se muestran las clases.',
-            customersDescription: 'Elija si desea importar Clientes/Proyectos y ver dónde se muestran los clientes/proyectos.'
+            customersDescription: 'Elija si desea importar Clientes/Proyectos y ver dónde se muestran los clientes/proyectos.',
         },
         type: {
             free: 'Gratis',
