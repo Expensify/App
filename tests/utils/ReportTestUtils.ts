@@ -61,10 +61,10 @@ const getMockedReportActionsMap = (length = 100): ReportActions => {
         const reportAction = {
             ...createRandomReportAction(reportID),
             actionName,
-            previousReportActionID: index.toString(),
             originalMessage: {
                 linkedReportID: reportID.toString(),
             },
+            previousReportActionID: index.toString(),
         } as ReportAction;
 
         return {[reportID]: reportAction};
