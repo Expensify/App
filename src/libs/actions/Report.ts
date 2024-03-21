@@ -1724,15 +1724,6 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
 }
 
 /**
- * A simple getter that returns Concierge chat ID.
- * Returns undefined until Concierge chat is fetched.
- *
- */
-function getConciergeChatReportID() {
-    return conciergeChatReportID;
-}
-
-/**
  * Navigates to the 1:1 report with Concierge
  */
 function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true) {
@@ -2967,7 +2958,6 @@ export {
     deleteReportComment,
     navigateToConciergeChat,
     setReportWithDraft,
-    getConciergeChatReportID,
     addPolicyReport,
     deleteReport,
     navigateToConciergeChatAndDeleteReport,

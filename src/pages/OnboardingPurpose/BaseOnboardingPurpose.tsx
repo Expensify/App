@@ -71,11 +71,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
 
         Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
 
-        if (!Report.getConciergeChatReportID()) {
-            Navigation.resetToHome();
-        } else if (isSmallScreenWidth) {
-            // Only navigate to concierge chat when central pane is visible
-            // Otherwise stay on the chats screen.
+        // Only navigate to concierge chat when central pane is visible
+        // Otherwise stay on the chats screen.
+        if (isSmallScreenWidth) {
             Navigation.navigate(ROUTES.ROOT);
         } else {
             Report.navigateToConciergeChat();
