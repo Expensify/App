@@ -3,11 +3,11 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Banner from './Banner';
 
-function ArchivedReportFooter() {
+function BlockedReportFooter() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const text = 'Note: You have been banned from communicating in this channel';
+    const text = translate('youHaveBeenBanned');
 
     return (
         <Banner
@@ -18,6 +18,6 @@ function ArchivedReportFooter() {
     );
 }
 
-ArchivedReportFooter.displayName = 'ArchivedReportFooter';
+BlockedReportFooter.displayName = 'ArchivedReportFooter';
 
-export default ArchivedReportFooter;
+export default BlockedReportFooter;

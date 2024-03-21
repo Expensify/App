@@ -516,6 +516,7 @@ export default {
         hereAlternateText: 'Notificar a todos los que estén en linea de esta sala',
     },
     newMessages: 'Mensajes nuevos',
+    youHaveBeenBanned: 'Nota: Se te ha prohibido comunicarte en este canal',
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
