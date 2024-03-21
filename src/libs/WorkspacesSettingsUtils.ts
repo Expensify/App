@@ -92,8 +92,9 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyM
 
 function hasWorkspaceSettingsRBR(policy: Policy) {
     const policyMemberError = allPolicyMembers ? hasPolicyMemberError(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]) : false;
+    const taxRateError = hasTaxRateError(policy);
 
-    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError;
+    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
 }
 
 function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
