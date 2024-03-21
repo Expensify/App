@@ -2878,7 +2878,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                         tags: {
                             [tagName]: {
                                 name: tagName,
-                                enabled: false,
+                                enabled: true,
                                 errors: null,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                             },
