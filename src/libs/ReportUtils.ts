@@ -5207,7 +5207,7 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
     );
 }
 
-function getAllAncestorReportActions(report: Report | null | undefined, shouldHideThreadDividerLine: boolean): Ancestor[] {
+function getAllAncestorReportActions(report: Report | null | undefined): Ancestor[] {
     if (!report) {
         return [];
     }

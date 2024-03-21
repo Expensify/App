@@ -50,7 +50,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                 onyxSubscribe({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${ancestorReportID}`,
                     callback: () => {
-                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report, shouldHideThreadDividerLine));
+                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report));
                     },
                 }),
             );
@@ -58,7 +58,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                 onyxSubscribe({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportID}`,
                     callback: () => {
-                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report, shouldHideThreadDividerLine));
+                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report));
                     },
                 }),
             );
