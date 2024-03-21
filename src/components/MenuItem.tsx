@@ -326,6 +326,7 @@ function MenuItem(
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const floatRightAvatarsMargin = floatRightAvatars?.length > 1 ? [styles.mr2, styles.mb5] : [styles.mrn3];
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
@@ -607,7 +608,7 @@ function MenuItem(
                                         </View>
                                     )}
                                     {floatRightAvatars?.length > 0 && (
-                                        <View style={[styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : undefined]}>
+                                        <View style={[styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : floatRightAvatarsMargin]}>
                                             <MultipleAvatars
                                                 isHovered={isHovered}
                                                 isPressed={pressed}
