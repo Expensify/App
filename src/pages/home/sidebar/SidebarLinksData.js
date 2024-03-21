@@ -149,24 +149,12 @@ function SidebarLinksData({
                 transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
-                reportIDsWithErrors,
-                canUseViolations,
             ),
-        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportIDsWithErrors, canUseViolations],
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
     );
 
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(
-            null,
-            chatReports,
-            betas,
-            policies,
-            priorityMode,
-            allReportActions,
-            transactionViolations,
-            activeWorkspaceID,
-            policyMemberAccountIDs,
-        );
+        const reportIDs = optionItemsMemoized;
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
@@ -179,7 +167,7 @@ function SidebarLinksData({
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
+    }, [optionItemsMemoized, isLoading, network.isOffline, prevPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
