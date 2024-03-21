@@ -641,8 +641,8 @@ function openReport(
         idempotencyKey: `${SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT}_${reportID}`,
     };
 
-    if (newReportObject.chatType === CONST.REPORT.CHAT_TYPE.GROUP_CHAT) {
-        parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP_CHAT;
+    if (newReportObject.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
+        parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = participantAccountIDList.join(',');
         parameters.reportName = newReportObject.reportName ?? '';
@@ -795,7 +795,7 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
             newChat = ReportUtils.buildOptimisticChatReport(
                 participantAccountIDs,
                 reportName,
-                CONST.REPORT.CHAT_TYPE.GROUP_CHAT,
+                CONST.REPORT.CHAT_TYPE.GROUP,
                 undefined,
                 undefined,
                 undefined,

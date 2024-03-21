@@ -934,7 +934,7 @@ function isSelfDM(report: OnyxEntry<Report>): boolean {
 }
 
 function isGroupChat(report: OnyxEntry<Report>): boolean {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.GROUP_CHAT;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.GROUP;
 }
 
 /**
@@ -1716,8 +1716,7 @@ function getIcons(
             source: getDefaultGroupAvatar(),
             id: report?.ownerAccountID,
             type: CONST.ICON_TYPE_AVATAR,
-            name: personalDetails?.[report?.ownerAccountID ?? -1]?.displayName ?? '',
-            fallbackIcon: personalDetails?.[report?.ownerAccountID ?? -1]?.fallbackIcon,
+            name: report?.reportName ?? '',
         };
         return [groupChatIcon];
     }
@@ -3617,7 +3616,7 @@ function buildOptimisticChatReport(
 
         return {...reportParticipants, [accountID]: participant};
     }, {} as Participants);
-    const isGroup = chatType === CONST.REPORT.CHAT_TYPE.GROUP_CHAT;
+    const isGroup = chatType === CONST.REPORT.CHAT_TYPE.GROUP;
     const currentTime = DateUtils.getDBTime();
     const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
     return {

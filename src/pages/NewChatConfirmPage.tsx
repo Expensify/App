@@ -105,7 +105,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         if (!newGroupDraft) {
             return;
         }
-        Report.navigateToAndOpenReport(newGroupDraft.participantLogins, true, '');
+        Report.navigateToAndOpenReport(newGroupDraft.participantLogins, true, groupName);
     };
 
     const navigateBack = () => {

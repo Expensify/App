@@ -170,10 +170,10 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     const createChat = (option: OptionData) => {
         let login = '';
 
-        if (selectedOptions.length === 1) {
-            login = selectedOptions[0].login ?? '';
-        } else if (option.login) {
+        if (option.login) {
             login = option.login;
+        } else if (selectedOptions.length === 1) {
+            login = selectedOptions[0].login ?? '';
         }
 
         if (!login) {
