@@ -26,7 +26,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps, TRef>
 ): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const {report, route} = props;
+        const {report = {reportID: ''}, route} = props;
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE).includes(route.params?.iouType);
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
