@@ -1,6 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -25,7 +26,13 @@ Onyx.connect({
 });
 
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
-    let displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
+    let displayName = passedPersonalDetails?.displayName ?? '';
+
+    // If the displayName starts with the merged account prefix, remove it.
+    if (displayName.startsWith(CONST.MERGED_ACCOUNT_PREFIX)) {
+        // Remove the merged account prefix from the displayName.
+        displayName = displayName.substring(CONST.MERGED_ACCOUNT_PREFIX.length);
+    }
 
     // If the displayName is not set by the user, the backend sets the diplayName same as the login so
     // we need to remove the sms domain from the displayName if it is an sms login.
@@ -37,9 +44,10 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
         displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
     }
 
-    const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
-
-    return displayName || defaultValue || fallbackValue;
+    if (displayName) {
+        return displayName;
+    }
+    return defaultValue || (shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '');
 }
 
 /**
@@ -242,7 +250,7 @@ function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDe
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
  */
-function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
+function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: CurrentUserPersonalDetails): FirstAndLastName {
     // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (firstName || lastName) {
