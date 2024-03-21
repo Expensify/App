@@ -691,7 +691,7 @@ export default {
         hold: 'Hold',
         holdRequest: 'Hold request',
         unholdRequest: 'Unhold request',
-        heldRequest: 'held this request with the comment:',
+        heldRequest: 'held this request',
         unheldRequest: 'unheld this request',
         explainHold: "Explain why you're holding this request.",
         reason: 'Reason',
