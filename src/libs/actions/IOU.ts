@@ -643,6 +643,7 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingFields: null,
                 errorFields: null,
+                isOptimisticReport: false,
             },
         });
     }
@@ -3638,7 +3639,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     if (updatedReportPreviewAction?.message?.[0]) {
         updatedReportPreviewAction.message[0].text = messageText;
-        updatedReportPreviewAction.message[0].html = shouldDeleteIOUReport ? '' : messageText;
+        updatedReportPreviewAction.message[0].deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
     }
 
     if (updatedReportPreviewAction && reportPreviewAction?.childMoneyRequestCount && reportPreviewAction?.childMoneyRequestCount > 0) {
@@ -3743,12 +3744,10 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
-                [reportPreviewAction?.reportActionID ?? '']: shouldDeleteIOUReport
-                    ? null
-                    : {
-                          pendingAction: null,
-                          errors: null,
-                      },
+                [reportPreviewAction?.reportActionID ?? '']: {
+                    pendingAction: null,
+                    errors: null,
+                },
             },
         },
     ];
