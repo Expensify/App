@@ -1,4 +1,5 @@
 /// <reference types="@welldone-software/why-did-you-render" />
+// Implements Why Did You Render (WDYR) in Dev, setup according to: https://github.com/welldone-software/why-did-you-render?tab=readme-ov-file#setup
 import React from 'react';
 import Config from 'react-native-config';
 
