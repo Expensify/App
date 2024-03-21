@@ -22,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from "@src/types/onyx";
+import FullScreenLoadingIndicator from "@components/FullscreenLoadingIndicator";
 
 type WorkspaceOwnershipChangeChecksOnyxProps = {
     /** Personal details of all users */
@@ -54,7 +55,6 @@ function WorkspaceOwnerChangeCheckPage({route, personalDetails, policy}: Workspa
         const ownershipChecks = WorkspaceSettingsUtils.getOwnershipChecks(error);
 
         PolicyActions.requestWorkspaceOwnerChange(policyID, ownershipChecks);
-        Navigation.dismissModal();
     }, [accountID, error, policyID]);
 
     const {title, text, buttonText} = WorkspaceSettingsUtils.getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
@@ -71,14 +71,20 @@ function WorkspaceOwnerChangeCheckPage({route, personalDetails, policy}: Workspa
                         }}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.pb5, styles.ph5]}>
-                        <Text style={[styles.textHeadline, styles.mt3, styles.mb5]}>{title}</Text>
-                        <Text style={styles.flex1}>{text}</Text>
-                        <Button
-                            success
-                            large
-                            onPress={confirm}
-                            text={buttonText}
-                        />
+                        {policy?.isLoading
+                            ? <FullScreenLoadingIndicator />
+                            : (
+                                <>
+                                    <Text style={[styles.textHeadline, styles.mt3, styles.mb5]}>{title}</Text>
+                                    <Text style={styles.flex1}>{text}</Text>
+                                    <Button
+                                        success
+                                        large
+                                        onPress={confirm}
+                                        text={buttonText}
+                                    />
+                                </>
+                            )}
                     </View>
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>

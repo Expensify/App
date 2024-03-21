@@ -317,7 +317,7 @@ function getOwnershipChecksDisplayText(
 }
 
 function redirectOnChangeOwnerErrorUpdate(policy: OnyxTypes.Policy | null, policyID: string, accountID: number) {
-    if (!policy) {
+    if (!policy || policy?.isLoading) {
         return;
     }
 

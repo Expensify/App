@@ -1049,23 +1049,18 @@ function addBillingCardAndRequestPolicyOwnerChange(
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-            value: {
-                isLoading: true,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: null,
+                isLoading: true,
             },
         },
     ];
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 isLoading: false,
             },
@@ -1075,7 +1070,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 isLoading: false,
             },
