@@ -1,7 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
@@ -11,53 +12,49 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import validateRateValue from '@libs/PolicyDistanceRatesUtils';
-import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import {createPolicyDistanceRate, generateCustomUnitID} from '@userActions/Policy';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
-import type {Rate} from '@src/types/onyx/Policy';
-import type Policy from '@src/types/onyx/Policy';
+import INPUT_IDS from '@src/types/form/PolicyDistanceRateEditForm';
+import type * as OnyxTypes from '@src/types/onyx';
 
-type CreateDistanceRatePageOnyxProps = {
-    policy: OnyxEntry<Policy>;
+type PolicyDistanceRateEditPageOnyxProps = {
+    /** Policy details */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-type CreateDistanceRatePageProps = CreateDistanceRatePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
+type PolicyDistanceRateEditPageProps = PolicyDistanceRateEditPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_EDIT>;
 
-function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
+function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const policyID = route.params.policyID;
-    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const customUnits = policy?.customUnits ?? {};
-    const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID ?? '';
-    const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, currency, toLocaleDigit),
-        [currency, toLocaleDigit],
-    );
+    const policyID = route.params.policyID;
+    const rateID = route.params.rateID;
+    const customUnits = policy?.customUnits ?? {};
+    const customUnit = customUnits[Object.keys(customUnits)[0]];
+    const rate = customUnit.rates[rateID];
+    const currency = rate.currency ?? CONST.CURRENCY.USD;
+    const currentRateValue = (rate.rate ?? 0).toString();
 
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
-        const newRate: Rate = {
-            currency,
-            name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
-            rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
-            customUnitRateID,
-            enabled: true,
-        };
-
-        createPolicyDistanceRate(policyID, customUnitID, newRate);
+    const submitRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
+        Policy.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
+        Keyboard.dismiss();
         Navigation.goBack();
     };
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, currency, toLocaleDigit),
+        [currency, toLocaleDigit],
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -67,26 +64,33 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
                 >
                     <ScreenWrapper
+                        style={[styles.pb0]}
+                        includePaddingTop={false}
                         includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={CreateDistanceRatePage.displayName}
+                        testID={PolicyDistanceRateEditPage.displayName}
                     >
-                        <HeaderWithBackButton title={translate('workspace.distanceRates.addRate')} />
+                        <HeaderWithBackButton
+                            title={translate('workspace.distanceRates.rate')}
+                            shouldShowBackButton
+                            onBackButtonPress={() => Navigation.goBack()}
+                        />
                         <FormProvider
-                            formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
+                            formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM}
                             submitButtonText={translate('common.save')}
-                            onSubmit={submit}
+                            onSubmit={submitRate}
                             validate={validate}
                             enabledWhenOffline
                             style={[styles.flexGrow1]}
                             shouldHideFixErrorsAlert
                             submitFlexEnabled={false}
                             submitButtonStyles={[styles.mh5, styles.mt0]}
+                            disablePressOnEnter={false}
                         >
                             <InputWrapperWithRef
                                 InputComponent={AmountForm}
                                 inputID={INPUT_IDS.RATE}
                                 extraDecimals={1}
+                                defaultValue={(parseFloat(currentRateValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(3)}
                                 isCurrencyPressable={false}
                                 currency={currency}
                                 ref={inputCallbackRef}
@@ -99,10 +103,10 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     );
 }
 
-CreateDistanceRatePage.displayName = 'CreateDistanceRatePage';
+PolicyDistanceRateEditPage.displayName = 'PolicyDistanceRateEditPage';
 
-export default withOnyx<CreateDistanceRatePageProps, CreateDistanceRatePageOnyxProps>({
+export default withOnyx<PolicyDistanceRateEditPageProps, PolicyDistanceRateEditPageOnyxProps>({
     policy: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
     },
-})(CreateDistanceRatePage);
+})(PolicyDistanceRateEditPage);

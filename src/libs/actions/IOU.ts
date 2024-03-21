@@ -631,6 +631,7 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingFields: null,
                 errorFields: null,
+                isOptimisticReport: false,
             },
         });
     }
