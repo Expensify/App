@@ -79,9 +79,19 @@ function getOrderedReportIDs(
     let reportsToDisplay = allReportsDictValues.filter((report) => {
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
         const parentReportActions = allReportActions?.[parentReportActionsKey];
+        const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
         const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
         const doesReportHaveViolations =
             betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        const isHidden = report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        const isFocused = report?.reportID === currentReportId;
+        const hasErrors = Object.keys(OptionsListUtils.getAllReportErrors(report, reportActions) ?? {}).length !== 0;
+        const hasBrickError = hasErrors || doesReportHaveViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        const shouldOverrideHidden = hasBrickError || isFocused || report.isPinned;
+        if (isHidden && !shouldOverrideHidden) {
+            return false;
+        }
+
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
