@@ -1,18 +1,19 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import {utcToZonedTime} from 'date-fns-tz';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
-import CONST from '../../src/CONST';
-import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
-import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
-import * as Report from '../../src/libs/actions/Report';
-import * as User from '../../src/libs/actions/User';
-import DateUtils from '../../src/libs/DateUtils';
-import Log from '../../src/libs/Log';
-import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
-import * as ReportUtils from '../../src/libs/ReportUtils';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import CONST from '@src/CONST';
+import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import * as Report from '@src/libs/actions/Report';
+import * as User from '@src/libs/actions/User';
+import DateUtils from '@src/libs/DateUtils';
+import Log from '@src/libs/Log';
+import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+import * as ReportUtils from '@src/libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -20,8 +21,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const UTC = 'UTC';
-jest.mock('../../src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('../../src/libs/actions/Report');
+jest.mock('@src/libs/actions/Report', () => {
+    const originalModule = jest.requireActual<Report>('@src/libs/actions/Report');
 
     return {
         ...originalModule,
@@ -35,7 +36,6 @@ describe('actions/Report', () => {
         PusherHelper.setup();
         Onyx.init({
             keys: ONYXKEYS,
-            registerStorageEventListener: () => {},
         });
     });
 
@@ -52,12 +52,13 @@ describe('actions/Report', () => {
     afterEach(PusherHelper.teardown);
 
     it('should store a new report action in Onyx when onyxApiUpdate event is handled via Pusher', () => {
+        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
-        const REPORT_ID = 1;
-        let reportActionID;
+        const REPORT_ID = '1';
+        let reportActionID: string;
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
@@ -68,7 +69,7 @@ describe('actions/Report', () => {
             shouldShow: true,
         };
 
-        let reportActions;
+        let reportActions: OnyxEntry<OnyxTypes.ReportActions>;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val),
@@ -88,7 +89,7 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const resultAction = _.first(_.values(reportActions));
+                const resultAction: OnyxEntry<OnyxTypes.ReportAction> = Object.values(reportActions ?? {})[0];
                 reportActionID = resultAction.reportActionID;
 
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
@@ -125,12 +126,12 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Verify there is only one action and our optimistic comment has been removed
-                expect(_.size(reportActions)).toBe(1);
+                expect(Object.keys(reportActions ?? {}).length).toBe(1);
 
-                const resultAction = reportActions[reportActionID];
+                const resultAction = reportActions?.[reportActionID];
 
                 // Verify that our action is no longer in the loading state
-                expect(resultAction.pendingAction).toBeUndefined();
+                expect(resultAction?.pendingAction).toBeUndefined();
             });
     });
 
@@ -139,10 +140,10 @@ describe('actions/Report', () => {
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
 
-        let reportIsPinned;
+        let reportIsPinned: boolean;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
-            callback: (val) => (reportIsPinned = lodashGet(val, 'isPinned')),
+            callback: (val) => (reportIsPinned = val?.isPinned ?? false),
         });
 
         // Set up Onyx with some test user data
@@ -167,6 +168,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
+                // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
                 global.fetch = TestHelper.getGlobalFetchMock();
 
                 // WHEN we add enough logs to send a packet
@@ -186,27 +188,28 @@ describe('actions/Report', () => {
             .then(() => {
                 // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const addCommentCalls = _.filter(global.fetch.mock.calls, (callArguments) => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
+                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments) => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
                 expect(addCommentCalls.length).toBe(1);
             });
     });
 
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         jest.useFakeTimers();
+        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
         const REPORT_ID = '1';
-        let report;
-        let reportActionCreatedDate;
-        let currentTime;
+        let report: OnyxEntry<OnyxTypes.Report>;
+        let reportActionCreatedDate: string;
+        let currentTime: string;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: (val) => (report = val),
         });
 
-        let reportActions;
+        let reportActions: OnyxTypes.ReportActions;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (val) => (reportActions = val),
+            callback: (val) => (reportActions = val ?? {}),
         });
 
         const USER_1_LOGIN = 'user@test.com';
@@ -276,7 +279,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // The report will be read
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(utcToZonedTime(report.lastReadTime, UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
+                expect(utcToZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
 
                 // And no longer show the green dot for unread mentions in the LHN
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
@@ -290,7 +293,7 @@ describe('actions/Report', () => {
                 // Then the report will be unread and show the green dot for unread mentions in LHN
                 expect(ReportUtils.isUnread(report)).toBe(true);
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
-                expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
+                expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
                 jest.advanceTimersByTime(10);
@@ -302,8 +305,8 @@ describe('actions/Report', () => {
                 // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
-                expect(utcToZonedTime(report.lastReadTime, UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
-                expect(report.lastMessageText).toBe('Current User Comment 1');
+                expect(utcToZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
+                expect(report?.lastMessageText).toBe('Current User Comment 1');
 
                 // When another comment is added by the current user
                 jest.advanceTimersByTime(10);
@@ -314,8 +317,8 @@ describe('actions/Report', () => {
             .then(() => {
                 // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(utcToZonedTime(report.lastReadTime, UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
-                expect(report.lastMessageText).toBe('Current User Comment 2');
+                expect(utcToZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
+                expect(report?.lastMessageText).toBe('Current User Comment 2');
 
                 // When another comment is added by the current user
                 jest.advanceTimersByTime(10);
@@ -326,8 +329,8 @@ describe('actions/Report', () => {
             .then(() => {
                 // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(utcToZonedTime(report.lastReadTime, UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
-                expect(report.lastMessageText).toBe('Current User Comment 3');
+                expect(utcToZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(utcToZonedTime(currentTime, UTC).getTime());
+                expect(report?.lastMessageText).toBe('Current User Comment 3');
 
                 const USER_1_BASE_ACTION = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
@@ -340,7 +343,7 @@ describe('actions/Report', () => {
                 };
 
                 jest.advanceTimersByTime(10);
-                const optimisticReportActions = {
+                const optimisticReportActions: OnyxUpdate = {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                     value: {
@@ -350,12 +353,14 @@ describe('actions/Report', () => {
                             created: DateUtils.getDBTime(Date.now() - 2),
                             reportActionID: '200',
                         },
+
                         300: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
                             created: DateUtils.getDBTime(Date.now() - 1),
                             reportActionID: '300',
                         },
+
                         400: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
@@ -366,7 +371,10 @@ describe('actions/Report', () => {
                 };
                 jest.advanceTimersByTime(10);
                 reportActionCreatedDate = DateUtils.getDBTime();
-                optimisticReportActions.value[400].created = reportActionCreatedDate;
+
+                if (optimisticReportActions.value?.[400]) {
+                    optimisticReportActions.value[400].created = reportActionCreatedDate;
+                }
 
                 // When we emit the events for these pending created actions to update them to not pending
                 PusherHelper.emitOnyxUpdate([
@@ -394,7 +402,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then no change will occur
-                expect(report.lastReadTime).toBe(reportActionCreatedDate);
+                expect(report?.lastReadTime).toBe(reportActionCreatedDate);
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
@@ -404,7 +412,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // Then we should expect the report to be to be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
-                expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
+                expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
                 Report.deleteReportComment(REPORT_ID, {...reportActions[400]});
@@ -412,7 +420,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(report.lastMessageText).toBe('Current User Comment 2');
+                expect(report?.lastMessageText).toBe('Current User Comment 2');
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
         return setPromise;
@@ -424,6 +432,7 @@ describe('actions/Report', () => {
          * already in the comment and the user deleted it on purpose.
          */
 
+        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
 
         // User edits comment to add link
@@ -536,11 +545,12 @@ describe('actions/Report', () => {
     });
 
     it('should properly toggle reactions on a message', () => {
+        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
-        const REPORT_ID = 1;
+        const REPORT_ID = '1';
         const EMOJI_CODE = '👍';
         const EMOJI_SKIN_TONE = 2;
         const EMOJI_NAME = '+1';
@@ -550,20 +560,20 @@ describe('actions/Report', () => {
             types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
         };
 
-        let reportActions;
+        let reportActions: OnyxTypes.ReportActions;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (val) => (reportActions = val),
+            callback: (val) => (reportActions = val ?? {}),
         });
-        const reportActionsReactions = {};
+        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
             callback: (val, key) => {
-                reportActionsReactions[key] = val;
+                reportActionsReactions[key] = val ?? {};
             },
         });
-        let reportAction;
-        let reportActionID;
+        let reportAction: OnyxTypes.ReportAction;
+        let reportActionID: string;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -579,15 +589,15 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                reportAction = _.first(_.values(reportActions));
+                reportAction = Object.values(reportActions)[0];
                 reportActionID = reportAction.reportActionID;
 
                 // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                reportAction = _.first(_.values(reportActions));
+                reportAction = Object.values(reportActions)[0];
 
                 // Expect the reaction to exist in the reportActionsReactions collection
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -597,8 +607,8 @@ describe('actions/Report', () => {
                 expect(reportActionReaction).toHaveProperty(EMOJI.name);
 
                 // Expect the emoji to have the user accountID
-                const reportActionReactionEmoji = reportActionReaction[EMOJI.name];
-                expect(reportActionReactionEmoji.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
+                const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
+                expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
                 // Now we remove the reaction
                 Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
@@ -608,23 +618,23 @@ describe('actions/Report', () => {
                 // Expect the reaction to have null where the users reaction used to be
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
+                expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             })
             .then(() => {
-                reportAction = _.first(_.values(reportActions));
+                reportAction = Object.values(reportActions)[0];
 
                 // Add the same reaction to the same report action with a different skintone
-                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 return waitForBatchedUpdates()
                     .then(() => {
-                        reportAction = _.first(_.values(reportActions));
+                        reportAction = Object.values(reportActions)[0];
 
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                         Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
                         return waitForBatchedUpdates();
                     })
                     .then(() => {
-                        reportAction = _.first(_.values(reportActions));
+                        reportAction = Object.values(reportActions)[0];
 
                         // Expect the reaction to exist in the reportActionsReactions collection
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -634,11 +644,11 @@ describe('actions/Report', () => {
                         expect(reportActionReaction).toHaveProperty(EMOJI.name);
 
                         // Expect the emoji to have the user accountID
-                        const reportActionReactionEmoji = reportActionReaction[EMOJI.name];
-                        expect(reportActionReactionEmoji.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
+                        const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
+                        expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
                         // Expect two different skintone reactions
-                        const reportActionReactionEmojiUserSkinTones = reportActionReactionEmoji.users[TEST_USER_ACCOUNT_ID].skinTones;
+                        const reportActionReactionEmojiUserSkinTones = reportActionReactionEmoji?.users[TEST_USER_ACCOUNT_ID].skinTones;
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('-1');
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('2');
 
@@ -650,17 +660,18 @@ describe('actions/Report', () => {
                         // Expect the reaction to have null where the users reaction used to be
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                        expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
+                        expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
                     });
             });
     });
 
     it("shouldn't add the same reaction twice when changing preferred skin color and reaction doesn't support skin colors", () => {
+        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
-        const REPORT_ID = 1;
+        const REPORT_ID = '1';
         const EMOJI_CODE = '😄';
         const EMOJI_NAME = 'smile';
         const EMOJI = {
@@ -668,20 +679,20 @@ describe('actions/Report', () => {
             name: EMOJI_NAME,
         };
 
-        let reportActions;
+        let reportActions: OnyxTypes.ReportActions = {};
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: (val) => (reportActions = val),
+            callback: (val) => (reportActions = val ?? {}),
         });
-        const reportActionsReactions = {};
+        const reportActionsReactions: OnyxCollection<OnyxTypes.ReportActionReactions> = {};
         Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
             callback: (val, key) => {
-                reportActionsReactions[key] = val;
+                reportActionsReactions[key] = val ?? {};
             },
         });
 
-        let resultAction;
+        let resultAction: OnyxTypes.ReportAction;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -697,14 +708,14 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                resultAction = _.first(_.values(reportActions));
+                resultAction = Object.values(reportActions)[0];
 
                 // Add a reaction to the comment
                 Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                resultAction = _.first(_.values(reportActions));
+                resultAction = Object.values(reportActions)[0];
 
                 // Now we toggle the reaction while the skin tone has changed.
                 // As the emoji doesn't support skin tones, the emoji
@@ -717,7 +728,7 @@ describe('actions/Report', () => {
                 // Expect the reaction to have null where the users reaction used to be
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`];
-                expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
+                expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             });
     });
 });
