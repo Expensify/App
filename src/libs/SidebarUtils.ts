@@ -205,6 +205,7 @@ function getOptionData({
         phoneNumber: null,
         isUnread: null,
         isUnreadWithMention: null,
+        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isPinned: false,
@@ -219,7 +220,6 @@ function getOptionData({
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
         isDeletedParentAction: false,
-        hasDraftComment: false,
     };
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails)) as PersonalDetails[];
