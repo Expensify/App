@@ -3,7 +3,7 @@ import path from 'path';
 import assertions from './assertions/finishReleaseCycleAssertions';
 import mocks from './mocks/finishReleaseCycleMocks';
 import ExtendedAct from './utils/ExtendedAct';
-import type {MockJob, MockJobs} from './utils/JobMocker';
+import type {MockJobs} from './utils/JobMocker';
 import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
