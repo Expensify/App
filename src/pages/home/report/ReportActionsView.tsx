@@ -265,7 +265,7 @@ function ReportActionsView({
 
     useEffect(() => {
         // Ensures the optimistic report is created successfully
-        if (route?.params?.reportID !== report.reportID) {
+        if (route?.params?.reportID !== reportID) {
             return;
         }
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -282,7 +282,7 @@ function ReportActionsView({
                 interactionTask.cancel();
             };
         }
-    }, [report.pendingFields, report.reportID, didSubscribeToReportTypingEvents, route]);
+    }, [report.pendingFields, didSubscribeToReportTypingEvents, route, reportID]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
