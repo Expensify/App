@@ -24,7 +24,7 @@ const useEmojiPickerMenu = () => {
     const [preferredSkinTone] = usePreferredEmojiSkinTone();
     const {windowHeight} = useWindowDimensions(true);
     const StyleUtils = useStyleUtils();
-    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight);
+    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight * 0.95);
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);
