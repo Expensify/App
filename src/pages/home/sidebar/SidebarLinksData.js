@@ -138,18 +138,7 @@ function SidebarLinksData({
     const isLoading = isLoadingApp;
 
     const optionItemsMemoized = useMemo(
-        () =>
-            SidebarUtils.getOrderedReportIDs(
-                null,
-                chatReports,
-                betas,
-                policies,
-                priorityMode,
-                allReportActions,
-                transactionViolations,
-                activeWorkspaceID,
-                policyMemberAccountIDs,
-            ),
+        () => SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
         [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
     );
 
@@ -167,7 +156,7 @@ function SidebarLinksData({
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [optionItemsMemoized, isLoading, network.isOffline, prevPriorityMode]);
+    }, [optionItemsMemoized, priorityMode, isLoading, network.isOffline, prevPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
