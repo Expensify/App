@@ -26,7 +26,6 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    HeldRequestParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
