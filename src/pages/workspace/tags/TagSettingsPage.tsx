@@ -21,8 +21,10 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -67,61 +69,66 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={TagSettingsPage.displayName}
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={route.params.policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
                 >
-                    <HeaderWithBackButton
-                        title={route.params.tagName}
-                        shouldShowThreeDotsButton
-                        shouldSetModalVisibility={false}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Trashcan,
-                                text: translate('workspace.tags.deleteTag'),
-                                onSelected: () => setIsDeleteTagModalOpen(true),
-                            },
-                        ]}
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.tags.deleteTag')}
-                        isVisible={isDeleteTagModalOpen}
-                        onConfirm={deleteTagAndHideModal}
-                        onCancel={() => setIsDeleteTagModalOpen(false)}
-                        shouldSetModalVisibility={false}
-                        prompt={translate('workspace.tags.deleteTagConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <View style={styles.flexGrow1}>
-                        <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorMessageField(currentPolicyTag)}
-                            pendingAction={currentPolicyTag.pendingFields?.enabled}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => Policy.clearPolicyTagErrors(route.params.policyID, route.params.tagName)}
-                        >
-                            <View style={[styles.mt2, styles.mh5]}>
-                                <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text>{translate('workspace.tags.enableTag')}</Text>
-                                    <Switch
-                                        isOn={currentPolicyTag.enabled}
-                                        accessibilityLabel={translate('workspace.tags.enableTag')}
-                                        onToggle={updateWorkspaceTagEnabled}
-                                    />
-                                </View>
-                            </View>
-                        </OfflineWithFeedback>
-                        <MenuItemWithTopDescription
-                            title={currentPolicyTag.name}
-                            description={translate(`workspace.tags.tagName`)}
-                            onPress={navigateToEditTag}
-                            shouldShowRightIcon
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                        testID={TagSettingsPage.displayName}
+                    >
+                        <HeaderWithBackButton
+                            title={route.params.tagName}
+                            shouldShowThreeDotsButton
+                            shouldSetModalVisibility={false}
+                            threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                            threeDotsMenuItems={[
+                                {
+                                    icon: Trashcan,
+                                    text: translate('workspace.tags.deleteTag'),
+                                    onSelected: () => setIsDeleteTagModalOpen(true),
+                                },
+                            ]}
                         />
-                    </View>
-                </ScreenWrapper>
+                        <ConfirmModal
+                            title={translate('workspace.tags.deleteTag')}
+                            isVisible={isDeleteTagModalOpen}
+                            onConfirm={deleteTagAndHideModal}
+                            onCancel={() => setIsDeleteTagModalOpen(false)}
+                            shouldSetModalVisibility={false}
+                            prompt={translate('workspace.tags.deleteTagConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
+                        <View style={styles.flexGrow1}>
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorMessageField(currentPolicyTag)}
+                                pendingAction={currentPolicyTag.pendingFields?.enabled}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => Policy.clearPolicyTagErrors(route.params.policyID, route.params.tagName)}
+                            >
+                                <View style={[styles.mt2, styles.mh5]}>
+                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                        <Text>{translate('workspace.tags.enableTag')}</Text>
+                                        <Switch
+                                            isOn={currentPolicyTag.enabled}
+                                            accessibilityLabel={translate('workspace.tags.enableTag')}
+                                            onToggle={updateWorkspaceTagEnabled}
+                                        />
+                                    </View>
+                                </View>
+                            </OfflineWithFeedback>
+                            <MenuItemWithTopDescription
+                                title={currentPolicyTag.name}
+                                description={translate(`workspace.tags.tagName`)}
+                                onPress={navigateToEditTag}
+                                shouldShowRightIcon
+                            />
+                        </View>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
