@@ -1509,7 +1509,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    thread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
+                    thread = ReportUtils.buildTransactionThread(iouAction, iouReport);
                     Onyx.set(`report_${thread.reportID}`, thread);
                     return waitForBatchedUpdates();
                 })
@@ -1643,7 +1643,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    thread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
+                    thread = ReportUtils.buildTransactionThread(iouAction, iouReport);
                     Onyx.set(`report_${thread.reportID}`, thread);
                     return waitForBatchedUpdates();
                 })
@@ -2214,7 +2214,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // Given a transaction thread
-            thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+            thread = ReportUtils.buildTransactionThread(createIOUAction, {reportID: IOU_REPORT_ID});
 
             expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
@@ -2231,7 +2231,7 @@ describe('actions/IOU', () => {
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
 
             // When Opening a thread report with the given details
-            Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
+            Report.openReport(thread.reportID, '', userLogins, thread, createIOUAction.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -2295,7 +2295,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // Given a transaction thread
-            thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+            thread = ReportUtils.buildTransactionThread(createIOUAction, {reportID: IOU_REPORT_ID});
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -2310,7 +2310,7 @@ describe('actions/IOU', () => {
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
 
             // When Opening a thread report with the given details
-            Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
+            Report.openReport(thread.reportID, '', userLogins, thread, createIOUAction.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -2374,13 +2374,13 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Given a transaction thread
-            thread = ReportUtils.buildTransactionThread(createIOUAction);
+            thread = ReportUtils.buildTransactionThread(createIOUAction, {reportID: IOU_REPORT_ID});
 
             expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             jest.advanceTimersByTime(10);
-            Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
+            Report.openReport(thread.reportID, '', userLogins, thread, createIOUAction.reportActionID);
             await waitForBatchedUpdates();
 
             Onyx.connect({
@@ -2460,7 +2460,7 @@ describe('actions/IOU', () => {
             // Given a thread report
 
             jest.advanceTimersByTime(10);
-            thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+            thread = ReportUtils.buildTransactionThread(createIOUAction, {reportID: IOU_REPORT_ID});
 
             expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
@@ -2472,7 +2472,7 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
-            Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
+            Report.openReport(thread.reportID, '', userLogins, thread, createIOUAction.reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -2686,7 +2686,7 @@ describe('actions/IOU', () => {
             // Given a thread report
 
             jest.advanceTimersByTime(10);
-            thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+            thread = ReportUtils.buildTransactionThread(createIOUAction, {reportID: IOU_REPORT_ID});
 
             expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
@@ -2698,7 +2698,7 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
-            Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
+            Report.openReport(thread.reportID, '', userLogins, thread, createIOUAction.reportActionID);
             await waitForBatchedUpdates();
 
             const allReportActions = await new Promise((resolve) => {
