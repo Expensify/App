@@ -60,6 +60,9 @@ const ONYXKEYS = {
     /** Contains all the private personal details of the user */
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
+    /** REPORT_METADATA is a perf optimization used to hold loading states. See REPORT_METADATA. */
+    PERSONAL_DETAILS_METADATA: 'personalDetailsMetadata',
+
     /** Contains all the info for Tasks */
     TASK: 'task',
 
@@ -546,6 +549,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.INPUT_FOCUSED]: boolean;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
+    [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
     [ONYXKEYS.WORKSPACE_RATE_AND_UNIT]: OnyxTypes.WorkspaceRateAndUnit;
     [ONYXKEYS.CURRENCY_LIST]: OnyxTypes.CurrencyList;
