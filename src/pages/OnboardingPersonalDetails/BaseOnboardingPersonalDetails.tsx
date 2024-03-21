@@ -34,7 +34,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {shouldUseNarrowLayout} = useOnboardingLayout();
 
     const saveAndNavigate = useCallback((values: FormOnyxValues<'displayNameForm'>) => {
-        PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim(), {preventGoBack: true});
+        PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
     }, []);
