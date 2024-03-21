@@ -3,7 +3,6 @@ import React, {forwardRef, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {PopoverContext} from '@components/PopoverProvider';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,16 +31,14 @@ function PopoverWithoutOverlay(
     const StyleUtils = useStyleUtils();
     const {onOpen, close} = useContext(PopoverContext);
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const insets = useSafeAreaInsets();
-
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
         StyleUtils.getModalStyles(
             'popover',
             {
                 windowWidth,
                 windowHeight,
-                isSmallScreenWidth,
+                isSmallScreenWidth: false,
             },
             anchorPosition,
             innerContainerStyle,
