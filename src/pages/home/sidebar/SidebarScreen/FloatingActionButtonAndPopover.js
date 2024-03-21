@@ -144,10 +144,15 @@ function FloatingActionButtonAndPopover(props) {
 
     const prevIsFocused = usePrevious(props.isFocused);
 
-    const quickActionReport = props.quickAction ? ReportUtils.getReport(props.quickAction.chatReportID) : 0;
+    const quickActionReport = useMemo(() => (props.quickAction ? ReportUtils.getReport(props.quickAction.chatReportID) : 0), [props.quickAction]);
 
-    const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
-    const quickActionAvatars = avatars.length <= 1 ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
+    const quickActionAvatars = useMemo(() => {
+        if (quickActionReport) {
+            const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
+            return avatars.length <= 1 ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
+        }
+        return [];
+    }, [props.personalDetails, props.session.accountID, props.quickAction]);
 
     const navigateToQuickAction = () => {
         switch (props.quickAction.action) {
