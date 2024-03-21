@@ -233,7 +233,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     };
 
     const validateAndCompleteAttachmentSelection = useCallback(
-        (fileData: Asset & DocumentPickerResponse) => {
+        (fileData: Asset | DocumentPickerResponse) => {
             if (fileData.width === -1 || fileData.height === -1) {
                 showImageCorruptionAlert();
                 return Promise.resolve();
@@ -255,12 +255,15 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Array<Asset & DocumentPickerResponse> = []): Promise<void> | undefined => {
+        (attachments: Asset[] | DocumentPickerResponse[] | void = []): Promise<void> | undefined => {
+            if(!attachments){
+                onCanceled.current();
+                return Promise.resolve();
+            }
             if (attachments.length === 0) {
                 onCanceled.current();
                 return Promise.resolve();
             }
-
             const fileData = attachments[0];
 
             if (!fileData) {
@@ -268,9 +271,11 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 return Promise.resolve();
             }
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if ((fileData.fileName || fileData.name) && Str.isImage(fileData.fileName || fileData.name || '')) {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                RNImage.getSize(fileData.fileCopyUri || fileData.uri, (width, height) => {
+            const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) 
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const fileDataUri = ('fileCopyUri' in fileData && fileData.fileCopyUri) || ('uri' in fileData && fileData.uri) || ''
+            if (fileDataName && Str.isImage(fileDataName)) {
+                RNImage.getSize(fileDataUri, (width, height) => {
                     fileData.width = width;
                     fileData.height = height;
                     validateAndCompleteAttachmentSelection(fileData);
@@ -295,7 +300,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             onModalHide.current = () => {
                 setTimeout(() => {
                     item.pickAttachment()
-                        .then((result) => pickAttachment(result as Array<Asset & DocumentPickerResponse>))
+                        .then((result) => pickAttachment(result))
                         .catch(console.error)
                         .finally(() => delete onModalHide.current);
                 }, 200);
