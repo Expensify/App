@@ -3158,6 +3158,16 @@ export default {
         welcomeMessage: 'Bienvenido a Expensify',
         welcomeSubtitle: '¿Qué te gustaría hacer?',
     },
+    onboardingBottomMessage: {
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
+            phrase1: 'Chat with your setup specialist in ',
+            phrase2: ' for help',
+        },
+        default: {
+            phrase1: 'Message ',
+            phrase2: ' for help with setup',
+        },
+    },
     manageTeams: {
         [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Aprobación multinivel',
         [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Codificación personalizada de gastos',
