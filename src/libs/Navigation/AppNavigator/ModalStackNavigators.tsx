@@ -43,8 +43,13 @@ type Screens = Partial<Record<Screen, () => React.ComponentType>>;
  *
  * @param screens key/value pairs where the key is the name of the screen and the value is a functon that returns the lazy-loaded component
  * @param getScreenOptions optional function that returns the screen options, override the default options
+ * @param shouldScreenRender optional function that takes a screen name and returns whether or not it should render
  */
-function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens, getScreenOptions?: (styles: ThemeStyles) => StackNavigationOptions): React.ComponentType {
+function createModalStackNavigator<TStackParams extends ParamListBase>(
+    screens: Screens,
+    getScreenOptions?: (styles: ThemeStyles) => StackNavigationOptions,
+    shouldScreenRender: (screen: Screen) => boolean = (screen) => Boolean(screen),
+): React.ComponentType {
     const ModalStackNavigator = createStackNavigator<TStackParams>();
 
     function ModalStack() {
@@ -61,13 +66,15 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
 
         return (
             <ModalStackNavigator.Navigator screenOptions={getScreenOptions?.(styles) ?? defaultSubRouteOptions}>
-                {Object.keys(screens as Required<Screens>).map((name) => (
-                    <ModalStackNavigator.Screen
-                        key={name}
-                        name={name}
-                        getComponent={(screens as Required<Screens>)[name as Screen]}
-                    />
-                ))}
+                {(Object.keys(screens) as Screen[])
+                    .filter((name) => shouldScreenRender(name))
+                    .map((name) => (
+                        <ModalStackNavigator.Screen
+                            key={name}
+                            name={name}
+                            getComponent={(screens as Required<Screens>)[name as Screen]}
+                        />
+                    ))}
             </ModalStackNavigator.Navigator>
         );
     }
@@ -202,6 +209,7 @@ const WorkspaceSettingsModalStackNavigator = createModalStackNavigator(
         [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require('../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default as React.ComponentType,
     },
     (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
+    (screen) => screen !== SCREENS.WORKSPACE.DISTANCE_RATES,
 );
 
 const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
