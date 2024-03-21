@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -33,6 +34,7 @@ type ReportWelcomeTextProps = ReportWelcomeTextOnyxProps & {
 function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {canUseTrackExpense} = usePermissions();
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
@@ -42,7 +44,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs, canUseTrackExpense);
     const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
     const reportName = ReportUtils.getReportName(report);
@@ -158,9 +160,9 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
-                    <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>
-                )}
+                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) ||
+                    moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST) ||
+                    moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK_EXPENSE)) && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
             </View>
         </>
     );

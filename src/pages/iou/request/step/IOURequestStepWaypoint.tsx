@@ -1,10 +1,10 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import type {TextInput} from 'react-native';
+import {View} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -124,8 +124,10 @@ function IOURequestStepWaypoint({
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
-                address: waypointValue,
-                name: values.name,
+                address: waypointValue ?? '',
+                name: values.name ?? '',
+                lat: values.lat ?? 0,
+                lng: values.lng ?? 0,
             };
             saveWaypoint(waypoint);
         }
@@ -142,10 +144,10 @@ function IOURequestStepWaypoint({
 
     const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
-            lat: values.lat,
-            lng: values.lng,
-            address: values.address,
-            name: values.name,
+            lat: values.lat ?? 0,
+            lng: values.lng ?? 0,
+            address: values.address ?? '',
+            name: values.name ?? '',
         };
 
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
