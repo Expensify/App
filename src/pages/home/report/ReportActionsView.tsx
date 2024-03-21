@@ -282,7 +282,7 @@ function ReportActionsView({
                 interactionTask.cancel();
             };
         }
-    }, [report.pendingFields, report.reportID, didSubscribeToReportTypingEvents, reportID, route]);
+    }, [report.pendingFields, report.reportID, didSubscribeToReportTypingEvents, route]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
