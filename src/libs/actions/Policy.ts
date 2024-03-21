@@ -3670,7 +3670,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
     if (shouldAddDefaultTaxRatesData) {
-        parameters.taxFields = CONST.DEFAULT_TAX.RATES;
+        parameters.taxFields = JSON.stringify(CONST.DEFAULT_TAX.RATES);
     }
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
