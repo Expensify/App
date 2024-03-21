@@ -182,6 +182,14 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAG_CREATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
+        policyID: string;
+        rateID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
     };
@@ -192,6 +200,22 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAGS_EDIT]: {
         policyID: string;
         tagName: string;
+    };
+    [SCREENS.WORKSPACE.TAG_EDIT]: {
+        policyID: string;
+        tagName: string;
+    };
+    [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAXES_SETTINGS_CUSTOM_TAX_NAME]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
@@ -204,6 +228,9 @@ type SettingsNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
@@ -219,6 +246,21 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
         backTo: Routes;
+    };
+    [SCREENS.WORKSPACE.TAX_CREATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TAX_EDIT]: {
+        policyID: string;
+        taxID: string;
+    };
+    [SCREENS.WORKSPACE.TAX_NAME]: {
+        policyID: string;
+        taxID: string;
+    };
+    [SCREENS.WORKSPACE.TAX_VALUE]: {
+        policyID: string;
+        taxID: string;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -281,7 +323,6 @@ type RoomInviteNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
-    [SCREENS.MONEY_REQUEST.ROOT]: undefined;
     [SCREENS.MONEY_REQUEST.AMOUNT]: undefined;
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
@@ -343,6 +384,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes | undefined;
         action: ValueOf<typeof CONST.IOU.ACTION>;
         pageIndex: string;
+        transactionID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
