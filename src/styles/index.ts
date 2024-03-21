@@ -1563,9 +1563,20 @@ const styles = (theme: ThemeColors) =>
                 right: 0,
             } satisfies ViewStyle),
 
+        emojisAndTextWrapper: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            width: '100%',
+        },
+
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
+        },
+
+        emojisWithinText: {
+            fontSize: variables.fontSizeEmojisWithinText,
         },
 
         onlyEmojisTextLineHeight: {

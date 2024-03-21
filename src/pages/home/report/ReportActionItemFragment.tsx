@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import {View} from 'react-native';
 import type {AvatarProps} from '@components/Avatar';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -8,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
+import {splitTextWithEmojis} from '@libs/EmojiUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -157,18 +159,31 @@ function ReportActionItemFragment({
                 );
             }
 
+            const containEmoji = CONST.REGEX.EMOJIS.test(fragment.text);
+            let processedTextArray: string[] = [];
+            if (containEmoji) {
+                processedTextArray = splitTextWithEmojis(fragment.text);
+            }
             return (
                 <UserDetailsTooltip
                     accountID={accountID}
                     delegateAccountID={delegateAccountID}
                     icon={actorIcon}
                 >
-                    <Text
-                        numberOfLines={isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
-                    >
-                        {fragment.text}
-                    </Text>
+                    {containEmoji ? (
+                        <View style={styles.emojisAndTextWrapper}>
+                            {processedTextArray.map((word: string) =>
+                                CONST.REGEX.EMOJIS.test(word) ? <Text style={styles.emojisWithinText}>{word}</Text> : <Text style={styles.chatItemMessageHeaderSender}>{word}</Text>,
+                            )}
+                        </View>
+                    ) : (
+                        <Text
+                            numberOfLines={isSingleLine ? 1 : undefined}
+                            style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
+                        >
+                            {fragment.text}
+                        </Text>
+                    )}
                 </UserDetailsTooltip>
             );
         }
