@@ -179,12 +179,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         } else if (type === CONST.NAVIGATION.TYPE.UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
-            // If this action is navigating to the ModalNavigator and the last route on the root navigator is not already opened ModalNavigator then push
+            // If this action is navigating to ModalNavigator or FullScreenNavigator and the last route on the root navigator is not already opened Navigator then push
         } else if ((action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR || isModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
             if (isModalNavigator(topRouteName)) {
                 dismissModal(navigation);
             }
-            action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+
             // If this RHP has mandatory central pane and bottom tab screens defined we need to push them.
             const {adaptedState, metainfo} = getAdaptedStateFromPath(path, linkingConfig.config);
             if (adaptedState && (metainfo.isCentralPaneAndBottomTabMandatory || metainfo.isFullScreenNavigatorMandatory)) {
@@ -198,6 +198,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
                 return;
             }
+            action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
             // If path contains a policyID, we should invoke the navigate function
