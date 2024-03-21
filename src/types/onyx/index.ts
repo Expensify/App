@@ -34,12 +34,11 @@ import type {PersonalDetailsList} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
-import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
@@ -160,7 +159,6 @@ export type {
     WorkspaceRateAndUnit,
     ReportUserIsTyping,
     PolicyReportField,
-    PolicyReportFields,
     RecentlyUsedReportFields,
     DecisionName,
     OriginalMessageIOU,
