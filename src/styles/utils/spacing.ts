@@ -485,6 +485,10 @@ export default {
         paddingRight: 32,
     },
 
+    pr10: {
+        paddingRight: 40,
+    },
+
     pr15: {
         paddingRight: 60,
     },
