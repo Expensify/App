@@ -1764,6 +1764,7 @@ export default {
             reimburse: 'Reembolsos',
             categories: 'Categorías',
             tags: 'Etiquetas',
+            reportFields: 'Campos de informe',
             taxes: 'Impuestos',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
@@ -1803,12 +1804,16 @@ export default {
             customers: 'Clientes/Proyectos',
             imported: 'Importado',
             taxes: 'Impuestos',
+            displayedAs: 'Mostrado como',
             notImported: 'No importado',
             importedAsTags: 'Importado, mostrado como etiquetas',
-            importedAsReportFields: 'Importado, mostrado como categorías',
+            importedAsReportFields: 'Importado, mostrado como campos de informe',
             accountsDescription: 'El plan de cuentas se importa como categorías cuando se conecta a una integración contable; esto no se puede desactivar.',
             accountsSwitchTitle: 'Habilite el plan de cuentas recién importado.',
             accountsSwitchDescription: 'Las nuevas categorías importadas de QuickBooks Online a Expensify estarán habilitadas o deshabilitadas de forma predeterminada.',
+            classesDescription: 'Elija si desea importar clases y vea dónde se muestran las clases.',
+            customersDescription: 'Elija si desea importar Clientes/Proyectos y ver dónde se muestran los clientes/proyectos.'
+
         },
         type: {
             free: 'Gratis',

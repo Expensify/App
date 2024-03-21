@@ -8,7 +8,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
@@ -18,7 +17,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {enableNewCategories} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     return (
         <ScreenWrapper
@@ -26,10 +25,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
             shouldEnableMaxHeight
             testID={QuickbooksChartOfAccountsPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.qbo.accounts')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButton title={translate('workspace.qbo.accounts')} />
             <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
                 <Text
                     fontSize={variables.fontSizeLabel}
@@ -47,7 +43,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                             {translate('workspace.qbo.accountsSwitchDescription')}
                         </Text>
                     </View>
-                    <OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
                         <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                             <Switch
                                 accessibilityLabel={translate('workspace.qbo.accounts')}

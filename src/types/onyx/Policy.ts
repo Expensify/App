@@ -136,12 +136,12 @@ type QBOConnectionData = {
     vendors: Vendor[];
 };
 
-type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
+type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD' | false | true;
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
  */
-type QBOConnectionConfig = {
+type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     realmId: string;
     companyName: string;
     autoSync: {
@@ -167,10 +167,12 @@ type QBOConnectionConfig = {
     lastConfigurationTime: number;
     syncTax: boolean;
     enableNewCategories: boolean;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
     export: {
         exporter: string;
     };
-};
+}>;
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;

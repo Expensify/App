@@ -3402,34 +3402,38 @@ function updatePolicyConnectionConfig(policyID: string, connectionName: string, 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {
-                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
                 connections: {
                     quickbooksOnline: {
                         config: {
                             [settingName]: settingValue,
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
                         },
                     },
                 },
             },
         },
     ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                errorFields: {
-                    [settingName]: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
-                },
-                pendingFields: {
-                    [settingName]: null,
-                },
                 connections: {
                     quickbooksOnline: {
                         config: {
                             [settingName]: settingValue,
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                            },
                         },
                     },
                 },
@@ -3442,13 +3446,16 @@ function updatePolicyConnectionConfig(policyID: string, connectionName: string, 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {
-                    [settingName]: null,
-                },
                 connections: {
                     quickbooksOnline: {
                         config: {
                             [settingName]: settingValue,
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
                         },
                     },
                 },
