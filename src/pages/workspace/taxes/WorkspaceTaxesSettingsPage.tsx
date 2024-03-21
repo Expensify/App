@@ -11,9 +11,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -55,31 +57,36 @@ function WorkspaceTaxesSettingsPage({
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper
-                    testID={WorkspaceTaxesSettingsPage.displayName}
-                    style={styles.defaultModalContainer}
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
                 >
-                    <ScrollView contentContainerStyle={styles.flexGrow1}>
-                        <HeaderWithBackButton title={translate('common.settings')} />
-                        <View style={styles.flex1}>
-                            {menuItems.map((item) => (
-                                <OfflineWithFeedback
-                                    key={item.description}
-                                    pendingAction={item.pendingAction}
-                                >
-                                    <MenuItemWithTopDescription
-                                        shouldShowRightIcon
-                                        title={item.title}
-                                        description={item.description}
-                                        style={[styles.moneyRequestMenuItem]}
-                                        titleStyle={styles.flex1}
-                                        onPress={item.action}
-                                    />
-                                </OfflineWithFeedback>
-                            ))}
-                        </View>
-                    </ScrollView>
-                </ScreenWrapper>
+                    <ScreenWrapper
+                        testID={WorkspaceTaxesSettingsPage.displayName}
+                        style={styles.defaultModalContainer}
+                    >
+                        <ScrollView contentContainerStyle={styles.flexGrow1}>
+                            <HeaderWithBackButton title={translate('common.settings')} />
+                            <View style={styles.flex1}>
+                                {menuItems.map((item) => (
+                                    <OfflineWithFeedback
+                                        key={item.description}
+                                        pendingAction={item.pendingAction}
+                                    >
+                                        <MenuItemWithTopDescription
+                                            shouldShowRightIcon
+                                            title={item.title}
+                                            description={item.description}
+                                            style={[styles.moneyRequestMenuItem]}
+                                            titleStyle={styles.flex1}
+                                            onPress={item.action}
+                                        />
+                                    </OfflineWithFeedback>
+                                ))}
+                            </View>
+                        </ScrollView>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
