@@ -4512,7 +4512,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
     let shouldBeApproved = false;
-    if (policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && iouReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+    if (iouReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED || iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
         shouldBeApproved = true;
     }
 
