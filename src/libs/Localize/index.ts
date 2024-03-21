@@ -72,6 +72,11 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
     }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
 );
 
+type TranslatedValue = {
+    value: string;
+    isValidKey: boolean;
+};
+
 /**
  * Helper function to get the translated string for given
  * locale and phrase. This function is used to avoid
@@ -95,7 +100,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     phraseKey: TKey,
     fallbackLanguage: 'en' | 'es' | null = null,
     ...phraseParameters: PhraseParameters<Phrase<TKey>>
-): string | null {
+): TranslatedValue {
     // Get the cache for the above locale
     const cacheForLocale = translationCache.get(language);
 
@@ -105,29 +110,29 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
 
     // If the phrase is already translated, return the translated value
     if (valueFromCache) {
-        return valueFromCache;
+        return {value: valueFromCache, isValidKey: true};
     }
 
     const translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
-            return translatedPhrase(...phraseParameters);
+            return {value: translatedPhrase(...phraseParameters), isValidKey: true};
         }
 
         // We set the translated value in the cache only for the phrases without parameters.
         cacheForLocale?.set(phraseKey, translatedPhrase);
-        return translatedPhrase;
+        return {value: translatedPhrase, isValidKey: true};
     }
 
     if (!fallbackLanguage) {
-        return null;
+        return {value: '', isValidKey: false};
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
     const fallbacktranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...phraseParameters);
 
-    if (fallbacktranslatedPhrase) {
+    if (fallbacktranslatedPhrase.isValidKey) {
         return fallbacktranslatedPhrase;
     }
 
@@ -151,9 +156,9 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
     // Phrase is not found in full locale, search it in fallback language e.g. es
     const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
 
-    const translatedPhrase = getTranslatedPhrase(language, phraseKey, languageAbbreviation, ...phraseParameters);
-    if (translatedPhrase !== null && translatedPhrase !== undefined) {
-        return translatedPhrase;
+    const {value, isValidKey} = getTranslatedPhrase(language, phraseKey, languageAbbreviation, ...phraseParameters);
+    if (isValidKey) {
+        return value;
     }
 
     // Phrase is not found in default language, on production and staging log an alert to server
