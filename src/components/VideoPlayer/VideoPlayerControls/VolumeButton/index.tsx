@@ -1,6 +1,7 @@
-import PropTypes from 'prop-types';
 import React, {memo, useCallback, useState} from 'react';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
 import Hoverable from '@components/Hoverable';
@@ -10,18 +11,16 @@ import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as NumberUtils from '@libs/NumberUtils';
-import stylePropTypes from '@styles/stylePropTypes';
 
-const propTypes = {
-    style: stylePropTypes.isRequired,
-    small: PropTypes.bool,
+type VolumeButtonProps = {
+    /** Style for the volume button. */
+    style?: StyleProp<ViewStyle>;
+
+    /** Is button icon small. */
+    small?: boolean;
 };
 
-const defaultProps = {
-    small: false,
-};
-
-const getVolumeIcon = (volume) => {
+const getVolumeIcon = (volume: number) => {
     if (volume === 0) {
         return Expensicons.Mute;
     }
@@ -31,7 +30,7 @@ const getVolumeIcon = (volume) => {
     return Expensicons.VolumeHigh;
 };
 
-function VolumeButton({style, small}) {
+function VolumeButton({style, small = false}: VolumeButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateVolume, volume} = useVolumeContext();
@@ -39,12 +38,12 @@ function VolumeButton({style, small}) {
     const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(volume.value)});
     const [isSliderBeingUsed, setIsSliderBeingUsed] = useState(false);
 
-    const onSliderLayout = useCallback((e) => {
-        setSliderHeight(e.nativeEvent.layout.height);
+    const onSliderLayout = useCallback((event: LayoutChangeEvent) => {
+        setSliderHeight(event.nativeEvent.layout.height);
     }, []);
 
     const changeVolumeOnPan = useCallback(
-        (event) => {
+        (event: GestureStateChangeEvent<PanGestureHandlerEventPayload> | GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
             const val = NumberUtils.roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
             volume.value = NumberUtils.clamp(val, 0, 1);
         },
@@ -65,7 +64,7 @@ function VolumeButton({style, small}) {
 
     const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.value * 100}%`}));
 
-    const updateIcon = useCallback((vol) => {
+    const updateIcon = useCallback((vol: number) => {
         setVolumeIcon({icon: getVolumeIcon(vol)});
     }, []);
 
@@ -98,7 +97,6 @@ function VolumeButton({style, small}) {
                         tooltipText={volume.value === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
                         onPress={() => updateVolume(volume.value === 0 ? 1 : 0)}
                         src={volumeIcon.icon}
-                        fill={styles.white}
                         small={small}
                         shouldForceRenderingTooltipBelow
                     />
@@ -108,8 +106,6 @@ function VolumeButton({style, small}) {
     );
 }
 
-VolumeButton.propTypes = propTypes;
-VolumeButton.defaultProps = defaultProps;
 VolumeButton.displayName = 'VolumeButton';
 
 export default memo(VolumeButton);
