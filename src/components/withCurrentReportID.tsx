@@ -41,13 +41,9 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
         (state: NavigationState) => {
             const reportID = Navigation.getTopmostReportId(state) ?? '';
 
-            /**
-             * This is to make sure we don't set the reportID as undefined when
-             * switching between chat list and settings tab. The settings tab
-             * includes multiple screens and we don't want to set the reportID
-             * to falsy value when switching between them.
-             *
-             * Doing so avoids an unnecessary re-render of `useReportIDs`.
+            /*
+             * Make sure we don't make the reportID undefined when switching between the chat list and settings tab.
+             * This helps prevent unnecessary re-renders.
              */
             const params = state?.routes?.[state.index]?.params;
             if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
