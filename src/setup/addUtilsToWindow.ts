@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import * as Environment from '@libs/Environment/Environment';
 import * as Session from '@userActions/Session';
+import markAllPolicyReportsAsRead from '@libs/markAllPolicyReportsAsRead';
 
 /**
  * This is used to inject development/debugging utilities into the window object on web and desktop.
@@ -44,5 +45,9 @@ export default function addUtilsToWindow() {
         };
 
         window.setSupportToken = Session.setSupportAuthToken;
+
+        // Workaround to give employees the ability to mark reports as read via the JS console
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
     });
 }
