@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
-    "@expensify/react-native-live-markdown": "github:j-piasecki/react-native-live-markdown#6857364f7dd4cb8f1c1bc18c1aded50f8ce96f8c",
+    "@expensify/react-native-live-markdown": "github:j-piasecki/react-native-live-markdown#fca8341b8afc8966e69e002147db1cc7717d2e50",
     "@expo/metro-runtime": "~3.1.1",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-getcanonicallocales": "^2.2.0",
