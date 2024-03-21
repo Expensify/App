@@ -3670,16 +3670,19 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
+                    taxRates: CONST.DEFAULT_TAX,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
                     taxRates: {
-                        ...CONST.DEFAULT_TAX,
                         taxes: {
                             ...Object.keys(CONST.DEFAULT_TAX.taxes).reduce(
                                 (prevTaxesData, taxKey) => ({
                                     ...prevTaxesData,
-                                    [taxKey]: {
-                                        ...CONST.DEFAULT_TAX.taxes[taxKey],
-                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                    },
+                                    [taxKey]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                                 }),
                                 {},
                             ),
@@ -3717,7 +3720,6 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
             },
         ],
     };
-    console.log('111111111111111111', {taxRatesData});
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const shouldAddDefaultTaxRatesData = (!policy?.taxRates || isEmptyObject(policy.taxRates)) && enabled;
     const onyxData: OnyxData = {
