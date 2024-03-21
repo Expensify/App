@@ -29,14 +29,11 @@ type MoneyReportViewProps = {
     /** Policy that the report belongs to */
     policy: OnyxEntry<Policy>;
 
-    /** Policy report fields */
-    policyReportFields: PolicyReportField[];
-
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
 };
 
-function MoneyReportView({report, policy, policyReportFields, shouldShowHorizontalRule}: MoneyReportViewProps) {
+function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -60,9 +57,9 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
     ];
 
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
-        const fields = ReportUtils.getAvailableReportFields(report, policyReportFields);
+        const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
-    }, [policyReportFields, report]);
+    }, [policy, report]);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
@@ -75,13 +72,14 @@ function MoneyReportView({report, policy, policyReportFields, shouldShowHorizont
                                 const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
                                 const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
                                 const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
+                                const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
 
                                 return (
                                     <OfflineWithFeedback
-                                        pendingAction={report.pendingFields?.[reportField.fieldID]}
-                                        errors={report.errorFields?.[reportField.fieldID]}
+                                        pendingAction={report.pendingFields?.[fieldKey]}
+                                        errors={report.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}
-                                        key={`menuItem-${reportField.fieldID}`}
+                                        key={`menuItem-${fieldKey}`}
                                     >
                                         <MenuItemWithTopDescription
                                             description={Str.UCFirst(reportField.name)}
