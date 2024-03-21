@@ -43,71 +43,69 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
     const {getSafeAreaMargins} = useStyleUtils();
     const {translate} = useLocalize();
     const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey] ?? [], [recentlyUsedReportFields, fieldKey]);
-    const [headerMessage, setHeaderMessage] = useState('');
 
-    const sections = useMemo(() => {
+    const {sections, headerMessage} = useMemo(() => {
+        let headerMessage = '';
+        const newSections = [];
+
         if (searchValue) {
             const filteredOptions = fieldOptions.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
-            setHeaderMessage(!filteredOptions.length ? translate('common.noResultsFound') : '');
-            return [
-                {
+            headerMessage = !filteredOptions.length ? translate('common.noResultsFound') : '';
+            newSections.push({
+                shouldShow: false,
+                data: filteredOptions.map((option) => ({
+                    text: option,
+                    keyForList: option,
+                    searchText: option,
+                    tooltipText: option,
+                })),
+            });
+        } else {
+            const selectedValue = fieldValue;
+            if (selectedValue) {
+                newSections.push({
                     shouldShow: false,
-                    data: filteredOptions.map((option) => ({
+                    data: [
+                        {
+                            text: selectedValue,
+                            keyForList: selectedValue,
+                            searchText: selectedValue,
+                            tooltipText: selectedValue,
+                        },
+                    ],
+                });
+            }
+
+            const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((option) => option !== selectedValue);
+            if (filteredRecentlyUsedOptions.length > 0) {
+                newSections.push({
+                    title: translate('common.recents'),
+                    shouldShow: true,
+                    data: filteredRecentlyUsedOptions.map((option) => ({
                         text: option,
                         keyForList: option,
                         searchText: option,
                         tooltipText: option,
                     })),
-                },
-            ];
+                });
+            }
+
+            const filteredFieldOptions = fieldOptions.filter((option) => option !== selectedValue);
+            if (filteredFieldOptions.length > 0) {
+                newSections.push({
+                    title: translate('common.all'),
+                    shouldShow: true,
+                    data: filteredFieldOptions.map((option) => ({
+                        text: option,
+                        keyForList: option,
+                        searchText: option,
+                        tooltipText: option,
+                    })),
+                });
+            }
         }
 
-        const newSections = [];
-
-        const selectedValue = fieldValue;
-        if (selectedValue) {
-            newSections.push({
-                shouldShow: false,
-                data: [
-                    {
-                        text: selectedValue,
-                        keyForList: selectedValue,
-                        searchText: selectedValue,
-                        tooltipText: selectedValue,
-                    },
-                ],
-            });
-        }
-
-        const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((option) => option !== selectedValue);
-        if (filteredRecentlyUsedOptions.length > 0) {
-            newSections.push({
-                title: translate('common.recents'),
-                shouldShow: true,
-                data: filteredRecentlyUsedOptions.map((option) => ({
-                    text: option,
-                    keyForList: option,
-                    searchText: option,
-                    tooltipText: option,
-                })),
-            });
-        }
-
-        const filteredFieldOptions = fieldOptions.filter((option) => option !== selectedValue);
-        if (filteredFieldOptions.length > 0) {
-            newSections.push({
-                title: translate('common.all'),
-                shouldShow: true,
-                data: filteredFieldOptions.map((option) => ({
-                    text: option,
-                    keyForList: option,
-                    searchText: option,
-                    tooltipText: option,
-                })),
-            });
-        }
-
-        return newSections;
+        return {sections: newSections, headerMessage};
     }, [fieldValue, fieldOptions, recentlyUsedOptions, searchValue, translate]);
 
     return (
