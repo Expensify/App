@@ -87,7 +87,7 @@ function ReportActionItemImage({
     } else {
         propsObj = {
             isThumbnail,
-            ...(isThumbnail && {iconSize: isSingleImage ? 'medium' : ('small' as IconSize), fileExtension}),
+            ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
             source: thumbnail ?? image ?? '',
         };
     }
