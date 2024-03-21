@@ -18,7 +18,6 @@ import doInteractionTask from '@libs/DoInteractionTask';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -186,9 +185,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
      * Navigates to create group confirm page
      */
     const navigateToConfirmPage = () => {
-        const selectedLogins: string[] = selectedOptions.map((option: OptionData) => option.login).filter((login): login is string => login !== null && login !== undefined);
+        const selectedParticipants = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
         if (personalData && personalData.login) {
-            const logins = [...selectedLogins, personalData.login];
+            const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
 
             Report.setGroupDraft(logins);
             Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
@@ -243,13 +242,13 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             return;
         }
         updateOptions();
-        if (newGroupDraft?.participantLogins) {
-            const accountIDs = PersonalDetailsUtils.getAccountIDsByLogins(newGroupDraft?.participantLogins ?? []);
+        if (newGroupDraft?.participants) {
+            const accountIDs = newGroupDraft?.participants.map((participant: {accountID: number}) => participant.accountID);
             const invitedUsersPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
             const groupSelectedOptions = OptionsListUtils.getMemberInviteOptions(invitedUsersPersonalDetails).personalDetails;
             setSelectedOptions(groupSelectedOptions);
         }
-    }, [didScreenTransitionEnd, updateOptions, newGroupDraft?.participantLogins, personalDetails]);
+    }, [didScreenTransitionEnd, updateOptions, personalDetails, newGroupDraft?.participants]);
 
     const {inputCallbackRef} = useAutoFocusInput();
 

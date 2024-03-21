@@ -17,14 +17,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as GroupChatUtils from '@libs/GroupChatUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
@@ -43,24 +42,23 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(newGroupDraft?.participantLogins ?? []);
-    const selectedOptions = useMemo((): OptionData[] => {
-        const invitedUsersPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails);
-        const members = OptionsListUtils.getMemberInviteOptions(invitedUsersPersonalDetails);
-        const currentUserOptionData = members.currentUserOption;
-        if (!currentUserOptionData) {
-            return members.personalDetails;
+    const participantAccountIDs = newGroupDraft?.participants.map((participant: {accountID: number}) => participant.accountID);
+    const selectedOptions = useMemo((): Participant[] => {
+        let options: Participant[] = [];
+        if (newGroupDraft?.participants) {
+            options = newGroupDraft?.participants.map((participant: {accountID: number; login: string}) =>
+                OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, allPersonalDetails),
+            );
         }
-        const options = [...members.personalDetails, currentUserOptionData];
         return options;
-    }, [participantAccountIDs, allPersonalDetails]);
+    }, [allPersonalDetails, newGroupDraft?.participants]);
 
     const groupName = GroupChatUtils.getGroupChatName(participantAccountIDs ?? []);
 
     const sections: Section[] = useMemo(
         () =>
             selectedOptions
-                .map((selectedOption: OptionData) => {
+                .map((selectedOption: Participant) => {
                     const accountID = selectedOption.accountID;
                     const isAdmin = personalData.accountID === accountID;
                     let roleBadge = null;
@@ -97,15 +95,16 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         if (!newGroupDraft) {
             return;
         }
-        const newSelectedLogins = newGroupDraft.participantLogins.filter((participantLogin) => participantLogin !== option.value);
-        Report.setGroupDraft(newSelectedLogins);
+        const newSelectedParticipants = newGroupDraft.participants.filter((participant) => participant.login !== option.value);
+        Report.setGroupDraft(newSelectedParticipants);
     };
 
     const createGroup = () => {
         if (!newGroupDraft) {
             return;
         }
-        Report.navigateToAndOpenReport(newGroupDraft.participantLogins, true, groupName);
+        const logins: string[] = newGroupDraft.participants.map((participant: {login: string}) => participant.login);
+        Report.navigateToAndOpenReport(logins, true, groupName);
     };
 
     const navigateBack = () => {
