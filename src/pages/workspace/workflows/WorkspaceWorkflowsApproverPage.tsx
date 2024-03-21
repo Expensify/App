@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -17,15 +18,18 @@ import compose from '@libs/compose';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -34,11 +38,13 @@ type WorkspaceWorkflowsApproverPageOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxProps & WithPolicyAndFullscreenLoadingProps;
+type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxProps &
+    WithPolicyAndFullscreenLoadingProps &
+    StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVER>;
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
-function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsApproverPageProps) {
+function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApproverPageProps) {
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
     const [searchTerm, setSearchTerm] = useState('');
@@ -161,33 +167,38 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceWorkflowsApproverPage.displayName}
+        <FeatureEnabledAccessOrNotFoundWrapper
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <FullPageNotFoundView
-                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={WorkspaceWorkflowsApproverPage.displayName}
             >
-                <HeaderWithBackButton
-                    title={translate('workflowsPage.approver')}
-                    subtitle={policyName}
-                    onBackButtonPress={Navigation.goBack}
-                />
-                <SelectionList
-                    sections={sections}
-                    textInputLabel={translate('optionsSelector.findMember')}
-                    textInputValue={searchTerm}
-                    onChangeText={setSearchTerm}
-                    headerMessage={headerMessage}
-                    ListItem={UserListItem}
-                    onSelectRow={setPolicyApprover}
-                    showScrollIndicator
-                />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+                <FullPageNotFoundView
+                    shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
+                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                >
+                    <HeaderWithBackButton
+                        title={translate('workflowsPage.approver')}
+                        subtitle={policyName}
+                        onBackButtonPress={Navigation.goBack}
+                    />
+                    <SelectionList
+                        sections={sections}
+                        textInputLabel={translate('optionsSelector.findMember')}
+                        textInputValue={searchTerm}
+                        onChangeText={setSearchTerm}
+                        headerMessage={headerMessage}
+                        ListItem={UserListItem}
+                        onSelectRow={setPolicyApprover}
+                        showScrollIndicator
+                    />
+                </FullPageNotFoundView>
+            </ScreenWrapper>
+        </FeatureEnabledAccessOrNotFoundWrapper>
     );
 }
 

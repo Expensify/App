@@ -98,7 +98,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
         <ScreenWrapper testID={ExitSurveyResponsePage.displayName}>
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
