@@ -1,11 +1,10 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import type {TextInput} from 'react-native';
+import {View} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -27,12 +26,12 @@ import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route as Routes} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepWaypointOnyxProps = {
@@ -43,18 +42,9 @@ type IOURequestStepWaypointOnyxProps = {
 };
 
 type IOURequestStepWaypointProps = {
-    route: {
-        params: {
-            iouType: ValueOf<typeof CONST.IOU.TYPE>;
-            transactionID: string;
-            reportID: string;
-            backTo: Routes | undefined;
-            action: ValueOf<typeof CONST.IOU.ACTION>;
-            pageIndex: string;
-        };
-    };
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-} & IOURequestStepWaypointOnyxProps;
+} & IOURequestStepWaypointOnyxProps &
+    WithWritableReportOrNotFoundProps;
 
 function IOURequestStepWaypoint({
     route: {
@@ -124,28 +114,30 @@ function IOURequestStepWaypoint({
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
-                address: waypointValue,
-                name: values.name,
+                address: waypointValue ?? '',
+                name: values.name ?? '',
+                lat: values.lat ?? 0,
+                lng: values.lng ?? 0,
             };
             saveWaypoint(waypoint);
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
-        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID));
     };
 
     const deleteStopAndHideModal = () => {
         Transaction.removeWaypoint(transaction, pageIndex, true);
         setIsDeleteStopModalOpen(false);
-        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID));
     };
 
     const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
-            lat: values.lat,
-            lng: values.lng,
-            address: values.address,
-            name: values.name,
+            lat: values.lat ?? 0,
+            lng: values.lng ?? 0,
+            address: values.address ?? '',
+            name: values.name ?? '',
         };
 
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
@@ -168,7 +160,7 @@ function IOURequestStepWaypoint({
                     title={translate(waypointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
+                        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID));
                     }}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}

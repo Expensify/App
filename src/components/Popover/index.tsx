@@ -92,6 +92,7 @@ function Popover(props: PopoverProps) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onClose={onCloseWithPopoverContext}
+            shouldHandleNavigationBack={props.shouldHandleNavigationBack}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
             popoverAnchorPosition={isSmallScreenWidth ? undefined : anchorPosition}
             fullscreen={isSmallScreenWidth ? true : fullscreen}
