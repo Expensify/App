@@ -33,9 +33,12 @@ type ReportActionItemParentActionProps = {
 
     /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+
+    /** Whether we should display "Replies" divider */
+    shouldDisplayReplyDivider: boolean;
 };
 
-function ReportActionItemParentAction({report, parentReportAction, index = 0, shouldHideThreadDividerLine = false}: ReportActionItemParentActionProps) {
+function ReportActionItemParentAction({report, parentReportAction, index = 0, shouldHideThreadDividerLine = false, shouldDisplayReplyDivider}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -97,7 +100,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                     />
                 </OfflineWithFeedback>
             ))}
-            <RepliesDivider shouldHideThreadDividerLine={shouldHideThreadDividerLine} />
+            {shouldDisplayReplyDivider && <RepliesDivider shouldHideThreadDividerLine={shouldHideThreadDividerLine} />}
         </View>
     );
 }
