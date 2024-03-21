@@ -194,6 +194,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                     root.dispatch(diffAction);
                 }
             }
+            // All actions related to FullScreenNavigator are pushed when comparing differences between rootState and adaptedState.
+            if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
+                return;
+            }
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
             // If path contains a policyID, we should invoke the navigate function

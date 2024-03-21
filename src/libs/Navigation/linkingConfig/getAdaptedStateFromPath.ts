@@ -236,8 +236,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - default central pane on desktop layout
         // - found fullscreen
 
-        metainfo.isFullScreenNavigatorMandatory = false;
-
         const routes = [];
         routes.push(
             createBottomTabNavigator(
