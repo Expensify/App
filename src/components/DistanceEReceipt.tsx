@@ -18,6 +18,7 @@ import PendingMapView from './MapView/PendingMapView';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import ThumbnailImage from './ThumbnailImage';
+import CONST from '@src/CONST';
 
 type DistanceEReceiptProps = {
     /** The transaction for the distance request */
@@ -63,7 +64,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                                 style={[styles.w100, styles.h100]}
                                 isAuthTokenRequired
                                 shouldDynamicallyResize={false}
-                                objectPosition
+                                objectPosition={CONST.IMAGE_OBJECT_POSITION.TOP}
                             />
                         )}
                     </View>
