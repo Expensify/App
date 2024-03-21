@@ -56,7 +56,6 @@ function WorkspaceTaxesSettingsForeignCurrency({
                                 <View style={[styles.mb4, styles.flex1]}>
                                     <TaxPicker
                                         selectedTaxRate={policy?.taxRates?.foreignTaxDefault}
-                                        taxRates={policy?.taxRates}
                                         insets={insets}
                                         onSubmit={submit}
                                     />
