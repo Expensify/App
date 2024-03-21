@@ -77,6 +77,7 @@ function IOURequestStepScan({
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
     const trackRef = useRef(null);
+    const isQueriedPermissionStateRef = useRef(null);
 
     const getScreenshotTimeoutRef = useRef(null);
 
@@ -97,6 +98,7 @@ function IOURequestStepScan({
         navigator.mediaDevices
             .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
             .then((stream) => {
+                setCameraPermissionState('granted');
                 _.forEach(stream.getTracks(), (track) => track.stop());
                 // Only Safari 17+ supports zoom constraint
                 if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
@@ -149,7 +151,8 @@ function IOURequestStepScan({
             })
             .catch(() => {
                 setCameraPermissionState('denied');
-            });
+            })
+            .finally(() => (isQueriedPermissionStateRef.current = true));
         // We only want to get the camera permission status when the component is mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTabActive]);
@@ -319,14 +322,14 @@ function IOURequestStepScan({
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
-                {(cameraPermissionState === 'prompt' || !cameraPermissionState) && (
+                {((cameraPermissionState === 'prompt' && !isQueriedPermissionStateRef.current) || (cameraPermissionState === 'granted' && _.isEmpty(videoConstraints))) && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
                         color={theme.textSupporting}
                     />
                 )}
-                {cameraPermissionState === 'denied' && (
+                {cameraPermissionState !== 'granted' && isQueriedPermissionStateRef.current && (
                     <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
                         <Icon
                             src={Hand}
@@ -336,9 +339,17 @@ function IOURequestStepScan({
                         />
                         <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                         <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
+                        <Button
+                            medium
+                            success
+                            text={translate('common.continue')}
+                            accessibilityLabel={translate('common.continue')}
+                            style={[styles.p9, styles.pt5]}
+                            onPress={capturePhoto}
+                        />
                     </View>
                 )}
-                {!_.isEmpty(videoConstraints) && (
+                {cameraPermissionState === 'granted' && !_.isEmpty(videoConstraints) && (
                     <NavigationAwareCamera
                         onUserMedia={setupCameraPermissionsAndCapabilities}
                         onUserMediaError={() => setCameraPermissionState('denied')}
