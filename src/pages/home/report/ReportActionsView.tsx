@@ -445,6 +445,7 @@ function ReportActionsView({
             ) as OnyxTypes.ReportAction;
             moneyRequestActions.push(optimisticIOUAction);
             actions.splice(actions.length - 1, 0, optimisticIOUAction);
+
         }
 
         // Update pending action of created action if we have some requests that are pending
