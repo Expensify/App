@@ -11,6 +11,9 @@ import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+import type * as OnyxTypes from "@src/types/onyx";
+import Navigation from "@navigation/Navigation";
+import ROUTES from "@src/ROUTES";
 
 type CheckingMethod = () => boolean;
 
@@ -313,6 +316,23 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
+function redirectOnChangeOwnerErrorUpdate(policy: OnyxTypes.Policy | null, policyID: string, accountID: number) {
+    if (!policy) {
+        return;
+    }
+
+    if (!policy?.errorFields?.changeOwner) {
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        return;
+    }
+
+    const changeOwnerErrors = Object.keys(policy.errorFields.changeOwner);
+
+    if (changeOwnerErrors && changeOwnerErrors.length > 0 && changeOwnerErrors[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
+        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+    }
+}
+
 export {
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
@@ -324,5 +344,6 @@ export {
     getUnitTranslationKey,
     getOwnershipChecks,
     getOwnershipChecksDisplayText,
+    redirectOnChangeOwnerErrorUpdate,
 };
 export type {BrickRoad};

@@ -3,7 +3,6 @@ import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -22,11 +21,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type * as OnyxTypes from "@src/types/onyx";
 
 type WorkspaceOwnershipChangeChecksOnyxProps = {
     /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type WorkspaceMemberDetailsPageProps = WithPolicyOnyxProps &
@@ -41,22 +40,10 @@ function WorkspaceOwnerChangeCheckPage({route, personalDetails, policy}: Workspa
     const accountID = route.params.accountID;
     const error = route.params.error;
 
-    useEffect(() => {
-        if (!policy) {
-            return;
-        }
-
-        if (!policy?.errorFields?.changeOwner) {
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-            return;
-        }
-
-        const changeOwnerErrors = Object.keys(policy.errorFields.changeOwner);
-
-        if (changeOwnerErrors && changeOwnerErrors.length > 0 && changeOwnerErrors[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-        }
-    }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
+    useEffect(
+        () => WorkspaceSettingsUtils.redirectOnChangeOwnerErrorUpdate(policy, policyID, accountID),
+        [accountID, policy, policy?.errorFields?.changeOwner, policyID]
+    );
 
     const confirm = useCallback(() => {
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {

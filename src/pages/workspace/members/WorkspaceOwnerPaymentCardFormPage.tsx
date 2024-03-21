@@ -35,6 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 import WorkspaceOwnerPaymentCardCurrencyModal from './WorkspaceOwnerPaymentCardCurrencyModal';
+import * as WorkspaceSettingsUtils from "@libs/WorkspacesSettingsUtils";
 
 type WorkspaceOwnerPaymentCardFormPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_PAYMENT_CARD_FORM>;
 
@@ -65,22 +66,10 @@ function WorkspaceOwnerPaymentCardFormPage({policy, route}: WorkspaceOwnerPaymen
         [],
     );
 
-    useEffect(() => {
-        if (!policy) {
-            return;
-        }
-
-        if (!policy?.errorFields?.changeOwner) {
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-            return;
-        }
-
-        const changeOwnerErrors = Object.keys(policy.errorFields.changeOwner);
-
-        if (changeOwnerErrors && changeOwnerErrors.length > 0 && changeOwnerErrors[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-        }
-    }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
+    useEffect(
+        () => WorkspaceSettingsUtils.redirectOnChangeOwnerErrorUpdate(policy, policyID, accountID),
+        [accountID, policy, policy?.errorFields?.changeOwner, policyID]
+    );
 
     const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
