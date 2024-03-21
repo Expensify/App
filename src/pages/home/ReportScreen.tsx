@@ -37,6 +37,7 @@ import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import shouldFetchReport from '@libs/shouldFetchReport';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as ComposerActions from '@userActions/Composer';
@@ -263,7 +264,11 @@ function ReportScreen({
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions;
     const isOptimisticDelete = report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
-    const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
+
+    // If there's a non-404 error for the report we should show it instead of blocking the screen
+    const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
+    const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
+
     const isLoading = !reportIDFromRoute || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(
         () =>
@@ -356,8 +361,12 @@ function ReportScreen({
             return;
         }
 
+        if (!shouldFetchReport(report)) {
+            return;
+        }
+
         fetchReport();
-    }, [report.reportID, reportMetadata?.isLoadingInitialReportActions, fetchReport, reportIDFromRoute]);
+    }, [report, reportMetadata?.isLoadingInitialReportActions, fetchReport, reportIDFromRoute]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
