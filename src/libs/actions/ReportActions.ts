@@ -58,8 +58,8 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
 
 /**
  * 
-ignore: undefined means we want to check both parent and children report actions
-ignore: parent or child means we want to ignore check parent or child report actions because we already check them before
+ignore: `undefined` means we want to check both parent and children report actions
+ignore: `parent` or `child` means we want to ignore checking parent or child report actions because they've been previously checked
  */
 function clearAllRelatedReportActionErrors(reportID: string, reportAction: ReportAction | null, ignore?: IgnoreDirection, keys?: string[]) {
     const errorKeys = keys ?? Object.keys(reportAction?.errors ?? {});
@@ -86,4 +86,7 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
     }
 }
 
-export {clearReportActionErrors, clearAllRelatedReportActionErrors};
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    clearAllRelatedReportActionErrors,
+};
