@@ -35,6 +35,7 @@ import type {
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type {ThemeStyles} from '@src/styles';
+import useModalScreenOptions from './useModalScreenOptions';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -48,19 +49,9 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
     const ModalStackNavigator = createStackNavigator<TStackParams>();
 
     function ModalStack() {
-        const styles = useThemeStyles();
-
-        const defaultSubRouteOptions = useMemo(
-            (): StackNavigationOptions => ({
-                cardStyle: styles.navigationScreenCardStyle,
-                headerShown: false,
-                cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-            }),
-            [styles],
-        );
-
+        const screenOptions = useModalScreenOptions(getScreenOptions);
         return (
-            <ModalStackNavigator.Navigator screenOptions={getScreenOptions?.(styles) ?? defaultSubRouteOptions}>
+            <ModalStackNavigator.Navigator screenOptions={screenOptions}>
                 {Object.keys(screens as Required<Screens>).map((name) => (
                     <ModalStackNavigator.Screen
                         key={name}
