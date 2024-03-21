@@ -2131,6 +2131,16 @@ const styles = (theme: ThemeColors) =>
             width: 200,
         },
 
+        chatItemPDFAttachmentLoading: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            textAlign: 'center',
+            verticalAlign: 'middle',
+            opacity: 1,
+        },
+
         sidebarVisible: {
             borderRightWidth: 1,
         },

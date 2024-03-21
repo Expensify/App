@@ -64,6 +64,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                         file={{name: displayName}}
                         shouldShowDownloadIcon={!isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
+                        isUsedAsChatAttachment
                     />
                 </PressableWithoutFeedback>
             )}

@@ -62,9 +62,14 @@ const propTypes = {
     /** The id of the report action related to the attachment */
     reportActionID: PropTypes.string,
 
+    /** Whether the attachment is currently being hovered over */
     isHovered: PropTypes.bool,
 
+    /** The duration of the video */
     optionalVideoDuration: PropTypes.number,
+
+    /** Whether the attachment is being used as a chat attachment */
+    isUsedAsChatAttachment: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -79,6 +84,7 @@ const defaultProps = {
     reportActionID: '',
     isHovered: false,
     optionalVideoDuration: 0,
+    isUsedAsChatAttachment: false,
 };
 
 function AttachmentView({
@@ -101,6 +107,7 @@ function AttachmentView({
     reportActionID,
     isHovered,
     optionalVideoDuration,
+    isUsedAsChatAttachment,
 }) {
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
@@ -108,6 +115,7 @@ function AttachmentView({
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file && Str.isVideo(file.name));
+    const [isPdfFailedToLoad, setIsPdfFailedToLoad] = useState(false);
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
@@ -157,7 +165,7 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if (!isPdfFailedToLoad && ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename'))))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         const onPDFLoadComplete = (path) => {
@@ -184,9 +192,12 @@ function AttachmentView({
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={onPDFLoadComplete}
-                    errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedInCarousel={isUsedInCarousel}
+                    isUsedAsChatAttachment={isUsedAsChatAttachment}
+                    onError={() => {
+                        setIsPdfFailedToLoad(true);
+                    }}
                 />
             </View>
         );

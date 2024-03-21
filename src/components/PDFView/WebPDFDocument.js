@@ -5,16 +5,11 @@ import {Document} from 'react-pdf';
 import {VariableSizeList as List} from 'react-window';
 import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import Text from '@components/Text';
 import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import PageRenderer from './WebPDFPageRenderer';
 
 const propTypes = {
-    /** Index of the PDF page to be displayed passed by VariableSizeList */
-    errorLabelStyles: stylePropTypes,
-    /** Returns translated string for given locale and phrase */
-    translate: PropTypes.func.isRequired,
     /** The source URL from which to load PDF file to be displayed */
     sourceURL: PropTypes.string.isRequired,
     /** Callback invoked when the PDF document is loaded successfully */
@@ -48,10 +43,11 @@ const propTypes = {
      * - `undefined` if password isn't needed to view the PDF file
      * - `null` if the password is required but hasn't been provided yet */
     password: PropTypes.string,
+    /** Callback invoked when the PDF document fails to load */
+    onError: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
-    errorLabelStyles: [],
     numPages: null,
     listStyle: undefined,
     password: undefined,
@@ -59,8 +55,6 @@ const defaultProps = {
 
 const WebPDFDocument = memo(
     ({
-        errorLabelStyles,
-        translate,
         sourceURL,
         onDocumentLoadSuccess,
         pageViewportsLength,
@@ -76,6 +70,7 @@ const WebPDFDocument = memo(
         listStyle,
         initiatePasswordChallenge,
         password,
+        onError,
     }) => {
         const onPassword = useCallback(
             (callback, reason) => {
@@ -95,7 +90,7 @@ const WebPDFDocument = memo(
         return (
             <Document
                 loading={<FullScreenLoadingIndicator />}
-                error={<Text style={errorLabelStyles}>{translate('attachmentView.failedToLoadPDF')}</Text>}
+                onLoadError={onError}
                 file={sourceURL}
                 options={{
                     cMapUrl: 'cmaps/',
