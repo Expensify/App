@@ -3937,11 +3937,11 @@ function shouldReportBeInOptionList({
     }
 
     // Retrieve the draft comment for the report and convert it to a boolean
-    const hasDraft = hasValidDraftComment(report.reportID);
+    const hasDraftComment = hasValidDraftComment(report.reportID);
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (hasDraft || requiresAttentionFromCurrentUser(report)) {
+    if (hasDraftComment || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
