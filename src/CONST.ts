@@ -359,6 +359,7 @@ const CONST = {
         NOT_INSTALLED: 'not-installed',
     },
     TAX_RATES: {
+        CUSTOM_NAME_MAX_LENGTH: 8,
         NAME_MAX_LENGTH: 50,
     },
     PLATFORM: {
@@ -3416,6 +3417,9 @@ const CONST = {
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
+
+    MOBILE_PAGINATION_SIZE: 15,
+    WEB_PAGINATION_SIZE: 50,
 
     /** Dimensions for illustration shown in Confirmation Modal */
     CONFIRM_CONTENT_SVG_SIZE: {
