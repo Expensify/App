@@ -3,7 +3,7 @@ import path from 'path';
 import assertions from './assertions/finishReleaseCycleAssertions';
 import mocks from './mocks/finishReleaseCycleMocks';
 import ExtendedAct from './utils/ExtendedAct';
-import type {MockJob} from './utils/JobMocker';
+import type {MockJob, MockJobs} from './utils/JobMocker';
 import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
@@ -72,7 +72,7 @@ describe('test workflow finishReleaseCycle', () => {
                             updateProduction: mocks.FINISHRELEASECYCLE__UPDATEPRODUCTION__STEP_MOCKS,
                             updateStaging: mocks.FINISHRELEASECYCLE__UPDATESTAGING__STEP_MOCKS,
                         };
-                        const testMockJobs: Record<string, MockJob> = {
+                        const testMockJobs: MockJobs = {
                             createNewPatchVersion: {
                                 steps: mocks.FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS,
                                 outputs: {
