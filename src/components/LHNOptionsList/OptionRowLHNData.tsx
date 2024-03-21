@@ -37,7 +37,7 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData>();
 
-    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction ?? null);
+    const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction ?? null);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -48,7 +48,7 @@ function OptionRowLHNData({
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!hasViolations,
+            hasViolations: !!shouldDisplayViolations,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
