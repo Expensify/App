@@ -39,7 +39,7 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
                 text: 'email@test.com',
             },
         ],
-        previousReportActionID: '1',
+        previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
         reportActionID: index.toString(),
         reportActionTimestamp: 1696243169753,
         sequenceNumber: 0,
