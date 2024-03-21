@@ -92,4 +92,12 @@ function clamp(value: number, min: number, max: number): number {
     return Math.min(Math.max(value, min), max);
 }
 
-export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundDownToLargestMultiple, roundToTwoDecimalPlaces, clamp};
+function generateNewRandomInt(old: number, min: number, max: number): number {
+    let newNum = old;
+    while (newNum === old) {
+        newNum = generateRandomInt(min, max);
+    }
+    return newNum;
+}
+
+export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundDownToLargestMultiple, roundToTwoDecimalPlaces, clamp, generateNewRandomInt};

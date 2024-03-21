@@ -97,6 +97,7 @@ function ManageTeamsExpensesModal() {
                     <View style={styles.flexRow}>
                         <Button
                             medium={isExtraSmallScreenHeight}
+                            large={!isExtraSmallScreenHeight}
                             style={[styles.flexGrow1, styles.mr1, styles.mtAuto]}
                             text={translate('common.no')}
                             onPress={completeEngagement}
@@ -104,6 +105,7 @@ function ManageTeamsExpensesModal() {
                         <Button
                             pressOnEnter
                             medium={isExtraSmallScreenHeight}
+                            large={!isExtraSmallScreenHeight}
                             style={[styles.flexGrow1, styles.ml1, styles.mtAuto]}
                             text={translate('common.yes')}
                             onPress={navigateToExpensifyClassicPage}

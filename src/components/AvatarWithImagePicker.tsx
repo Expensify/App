@@ -54,6 +54,9 @@ type AvatarWithImagePickerProps = {
     /** Additional style props for disabled picker */
     disabledStyle?: StyleProp<ViewStyle>;
 
+    /** Additional style props for the edit icon */
+    editIconStyle?: StyleProp<ViewStyle>;
+
     /** Executed once an image has been selected */
     onImageSelected?: (file: File | CustomRNImageManipulatorResult) => void;
 
@@ -120,6 +123,7 @@ function AvatarWithImagePicker({
     DefaultAvatar = () => null,
     style,
     disabledStyle,
+    editIconStyle,
     pendingAction,
     errors,
     errorRowStyles,
@@ -283,11 +287,12 @@ function AvatarWithImagePicker({
 
     return (
         <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
-            <View style={[styles.pRelative, avatarStyle]}>
+            <View style={styles.w100}>
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
                     errors={errors}
                     errorRowStyles={errorRowStyles}
+                    style={type === CONST.ICON_TYPE_AVATAR && styles.alignItemsCenter}
                     onClose={onErrorClose}
                 >
                     <Tooltip
@@ -306,6 +311,7 @@ function AvatarWithImagePicker({
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                             disabledStyle={disabledStyle}
+                            style={[styles.pRelative, avatarStyle]}
                             ref={anchorRef}
                         >
                             <View>
@@ -323,7 +329,7 @@ function AvatarWithImagePicker({
                                 )}
                             </View>
                             {!disabled && (
-                                <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                                     <Icon
                                         src={Expensicons.Pencil}
                                         width={variables.iconSizeSmall}
