@@ -2,10 +2,11 @@ import Str from 'expensify-common/lib/str';
 import lodashCompact from 'lodash/compact';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Alert, Image as RNImage, View} from 'react-native';
+import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
+import ImageSize from 'react-native-image-size';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -268,7 +269,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
             }
             const fileData = _.first(attachments);
             if (Str.isImage(fileData.fileName || fileData.name)) {
-                RNImage.getSize(fileData.fileCopyUri || fileData.uri, (width, height) => {
+                ImageSize.getSize(fileData.fileCopyUri || fileData.uri).then(({width, height}) => {
                     fileData.width = width;
                     fileData.height = height;
                     return validateAndCompleteAttachmentSelection(fileData);
