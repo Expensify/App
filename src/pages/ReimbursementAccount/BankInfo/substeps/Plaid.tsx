@@ -11,7 +11,6 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccountActions from '@userActions/ReimbursementAccount';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -88,21 +87,20 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
         >
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once AddPlaidBankAccount (https://github.com/Expensify/App/issues/25119) is migrated to TypeScript
                 InputComponent={AddPlaidBankAccount}
                 text={translate('bankAccount.plaidBodyCopy')}
                 onSelect={(plaidAccountID: string) => {
                     ReimbursementAccountActions.updateReimbursementAccountDraft({plaidAccountID});
                 }}
                 plaidData={plaidData}
-                onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                onExitPlaid={() => {
+                    BankAccounts.setBankAccountSubStep(null);
+                }}
                 allowDebit
                 bankAccountID={bankAccountID}
                 selectedPlaidAccountID={selectedPlaidAccountID}
                 isDisplayedInNewVBBA
                 inputID={BANK_INFO_STEP_KEYS.SELECTED_PLAID_ACCOUNT_ID}
-                inputMode={CONST.INPUT_MODE.TEXT}
-                style={[styles.mt5]}
                 defaultValue={selectedPlaidAccountID}
             />
         </FormProvider>

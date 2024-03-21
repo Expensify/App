@@ -336,6 +336,7 @@ function WorkspaceInvitePage({
                     showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetailsProp)}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     footerContent={footerContent}
+                    checkmarkPosition={CONST.DIRECTION.RIGHT}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

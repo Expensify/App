@@ -51,9 +51,6 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
 
@@ -66,25 +63,13 @@ const propTypes = {
 
 const defaultProps = {
     participants: [],
-    safeAreaPaddingBottomStyle: {},
     reports: {},
     betas: [],
     isDistanceRequest: false,
     isSearchingForReports: false,
 };
 
-function MoneyRequestParticipantsSelector({
-    betas,
-    participants,
-    reports,
-    navigateToRequest,
-    navigateToSplit,
-    onAddParticipants,
-    safeAreaPaddingBottomStyle,
-    iouType,
-    isDistanceRequest,
-    isSearchingForReports,
-}) {
+function MoneyRequestParticipantsSelector({betas, participants, reports, navigateToRequest, navigateToSplit, onAddParticipants, iouType, isDistanceRequest, isSearchingForReports}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
@@ -308,6 +293,7 @@ function MoneyRequestParticipantsSelector({
                         text={translate('iou.addToSplit')}
                         onPress={handleConfirmSelection}
                         pressOnEnter
+                        large
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
@@ -347,23 +333,21 @@ function MoneyRequestParticipantsSelector({
     );
 
     return (
-        <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-            <SelectionList
-                onConfirm={handleConfirmSelection}
-                sections={sections}
-                ListItem={UserListItem}
-                textInputValue={searchTerm}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputHint={offlineMessage}
-                onChangeText={setSearchTermAndSearchInServer}
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                onSelectRow={addSingleParticipant}
-                footerContent={footerContent}
-                headerMessage={headerMessage}
-                showLoadingPlaceholder={isSearchingForReports}
-                rightHandSideComponent={itemRightSideComponent}
-            />
-        </View>
+        <SelectionList
+            onConfirm={handleConfirmSelection}
+            sections={sections}
+            ListItem={UserListItem}
+            textInputValue={searchTerm}
+            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputHint={offlineMessage}
+            onChangeText={setSearchTermAndSearchInServer}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            onSelectRow={addSingleParticipant}
+            footerContent={footerContent}
+            headerMessage={headerMessage}
+            showLoadingPlaceholder={isSearchingForReports}
+            rightHandSideComponent={itemRightSideComponent}
+        />
     );
 }
 
