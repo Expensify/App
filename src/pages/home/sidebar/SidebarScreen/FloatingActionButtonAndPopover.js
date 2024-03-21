@@ -150,7 +150,7 @@ function FloatingActionButtonAndPopover(props) {
             return avatars.length <= 1 ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
         }
         return [];
-    }, [props.personalDetails, props.session.accountID, quickActionReport]);
+    }, [props.personalDetails, props.session.accountID, props.quickAction]);
 
     const navigateToQuickAction = () => {
         switch (props.quickAction.action) {
