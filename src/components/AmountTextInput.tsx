@@ -57,6 +57,8 @@ function AmountTextInput(
             role={CONST.ROLE.PRESENTATION}
             onKeyPress={onKeyPress as (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
+            autoCorrect={false}
+            spellCheck={false}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
