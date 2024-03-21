@@ -176,7 +176,6 @@ function getOptionData({
     policy,
     parentReportAction,
     hasViolations,
-    hasDraftComment,
 }: {
     report: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
@@ -185,7 +184,6 @@ function getOptionData({
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
-    hasDraftComment?: boolean;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -207,7 +205,6 @@ function getOptionData({
         phoneNumber: null,
         isUnread: null,
         isUnreadWithMention: null,
-        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isPinned: false,
@@ -222,6 +219,7 @@ function getOptionData({
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
         isDeletedParentAction: false,
+        hasDraftComment: false,
     };
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails)) as PersonalDetails[];
@@ -249,7 +247,7 @@ function getOptionData({
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
     result.isUnread = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
-    result.hasDraftComment = hasDraftComment ?? hasValidDraftComment(report.reportID);
+    result.hasDraftComment = hasValidDraftComment(report.reportID);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
