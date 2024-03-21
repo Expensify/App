@@ -4,16 +4,15 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Phrase, PhraseParameters} from './Localize';
+import Navigation from './Navigation/Navigation';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
-import type * as OnyxTypes from "@src/types/onyx";
-import Navigation from "@navigation/Navigation";
-import ROUTES from "@src/ROUTES";
 
 type CheckingMethod = () => boolean;
 
@@ -217,38 +216,6 @@ function getUnitTranslationKey(unit: Unit): TranslationPaths {
 
 /**
  * @param error workspace change owner error
- * @returns request ownership change parameters object
- */
-function getOwnershipChecks(error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) {
-    if (error === CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
-        return {
-            shouldClearOutstandingBalance: true,
-        };
-    }
-
-    if (error === CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT) {
-        return {
-            shouldTransferAmountOwed: true,
-        };
-    }
-
-    if (error === CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION) {
-        return {
-            shouldTransferSubscription: true,
-        };
-    }
-
-    if (error === CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION) {
-        return {
-            shouldTransferSingleSubscription: true,
-        };
-    }
-
-    return {};
-}
-
-/**
- * @param error workspace change owner error
  * @param translate translation function
  * @param policy policy object
  * @param accountLogin account login/email
@@ -316,7 +283,7 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
-function redirectOnChangeOwnerErrorUpdate(policy: OnyxTypes.Policy | null, policyID: string, accountID: number) {
+function redirectOnChangeOwnerErrorUpdate(policy: Policy | null, policyID: string, accountID: number) {
     if (!policy || policy?.isLoading) {
         return;
     }
@@ -342,7 +309,6 @@ export {
     hasWorkspaceSettingsRBR,
     getChatTabBrickRoad,
     getUnitTranslationKey,
-    getOwnershipChecks,
     getOwnershipChecksDisplayText,
     redirectOnChangeOwnerErrorUpdate,
 };

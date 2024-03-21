@@ -248,6 +248,14 @@ Onyx.connect({
     callback: (val) => (allPolicyCategories = val),
 });
 
+let policyOwnershipChecks: Record<string, PolicyOwnershipChangeChecks>;
+Onyx.connect({
+    key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
+    callback: (value) => {
+        policyOwnershipChecks = value ?? {};
+    },
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -985,7 +993,35 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
-function requestWorkspaceOwnerChange(policyID: string, ownershipChecks?: PolicyOwnershipChangeChecks) {
+function requestWorkspaceOwnerChange(policyID: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
+    const ownershipChecks = {...policyOwnershipChecks?.[policyID]} ?? {};
+
+    const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
+
+    if (changeOwnerErrors && changeOwnerErrors.length > 0) {
+        const currentError = changeOwnerErrors[0];
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
+            ownershipChecks.shouldClearOutstandingBalance = true;
+        }
+
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT) {
+            ownershipChecks.shouldTransferAmountOwed = true;
+        }
+
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION) {
+            ownershipChecks.shouldTransferSubscription = true;
+        }
+
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION) {
+            ownershipChecks.shouldTransferSingleSubscription = true;
+        }
+
+        Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, {
+            [policyID]: ownershipChecks,
+        });
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1028,8 +1064,9 @@ function requestWorkspaceOwnerChange(policyID: string, ownershipChecks?: PolicyO
 function clearWorkspaceOwnerChangeFlow(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {changeOwner: null},
-        pendingAction: null,
+        isLoading: false,
     });
+    Onyx.set(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, null);
 }
 
 function addBillingCardAndRequestPolicyOwnerChange(

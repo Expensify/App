@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -21,8 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from "@src/types/onyx";
-import FullScreenLoadingIndicator from "@components/FullscreenLoadingIndicator";
+import type * as OnyxTypes from '@src/types/onyx';
 
 type WorkspaceOwnershipChangeChecksOnyxProps = {
     /** Personal details of all users */
@@ -41,10 +41,7 @@ function WorkspaceOwnerChangeCheckPage({route, personalDetails, policy}: Workspa
     const accountID = route.params.accountID;
     const error = route.params.error;
 
-    useEffect(
-        () => WorkspaceSettingsUtils.redirectOnChangeOwnerErrorUpdate(policy, policyID, accountID),
-        [accountID, policy, policy?.errorFields?.changeOwner, policyID]
-    );
+    useEffect(() => WorkspaceSettingsUtils.redirectOnChangeOwnerErrorUpdate(policy, policyID, accountID), [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
 
     const confirm = useCallback(() => {
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
@@ -52,9 +49,7 @@ function WorkspaceOwnerChangeCheckPage({route, personalDetails, policy}: Workspa
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
         }
 
-        const ownershipChecks = WorkspaceSettingsUtils.getOwnershipChecks(error);
-
-        PolicyActions.requestWorkspaceOwnerChange(policyID, ownershipChecks);
+        PolicyActions.requestWorkspaceOwnerChange(policyID);
     }, [accountID, error, policyID]);
 
     const {title, text, buttonText} = WorkspaceSettingsUtils.getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
@@ -71,20 +66,20 @@ function WorkspaceOwnerChangeCheckPage({route, personalDetails, policy}: Workspa
                         }}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.pb5, styles.ph5]}>
-                        {policy?.isLoading
-                            ? <FullScreenLoadingIndicator />
-                            : (
-                                <>
-                                    <Text style={[styles.textHeadline, styles.mt3, styles.mb5]}>{title}</Text>
-                                    <Text style={styles.flex1}>{text}</Text>
-                                    <Button
-                                        success
-                                        large
-                                        onPress={confirm}
-                                        text={buttonText}
-                                    />
-                                </>
-                            )}
+                        {policy?.isLoading ? (
+                            <FullScreenLoadingIndicator />
+                        ) : (
+                            <>
+                                <Text style={[styles.textHeadline, styles.mt3, styles.mb5]}>{title}</Text>
+                                <Text style={styles.flex1}>{text}</Text>
+                                <Button
+                                    success
+                                    large
+                                    onPress={confirm}
+                                    text={buttonText}
+                                />
+                            </>
+                        )}
                     </View>
                 </ScreenWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
