@@ -191,16 +191,12 @@ function createTaskAndNavigate(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: {
-                errorFields: {
-                    createTask: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
-                },
-            },
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
-            value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
+            value: null,
         },
     ];
 
