@@ -75,10 +75,10 @@ function WorkspaceOwnerPaymentCardFormPage({policy, route}: WorkspaceOwnerPaymen
             return;
         }
 
-        const keys = Object.keys(policy.errorFields.changeOwner);
+        const changeOwnerErrors = Object.keys(policy.errorFields.changeOwner);
 
-        if (keys && keys.length > 0 && keys[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, keys[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+        if (changeOwnerErrors && changeOwnerErrors.length > 0 && changeOwnerErrors[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
         }
     }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
 
