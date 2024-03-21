@@ -90,6 +90,7 @@ const States = {
     ATTACHMENTS_POPOVER_WITH_KEYBOARD_CLOSED: 'attachmentsPopoverWithKeyboardClosed',
     MODAL_DELETED: 'modalDeleted',
     MODAL_WITH_KEYBOARD_OPEN_DELETED: 'modalWithKeyboardOpenDeleted',
+    EDIT_MESSAGE: 'editMessage',
 };
 
 const STATE_MACHINE = {
@@ -141,6 +142,7 @@ const STATE_MACHINE = {
         [Actions.MEASURE_EMOJI_PICKER_POPOVER]: States.KEYBOARD_POPOVER_OPEN,
         [Actions.OPEN_EMOJI_PICKER_POPOVER]: States.EMOJI_PICKER_POPOVER_WITH_KEYBOARD_OPEN,
         [Actions.SHOW_DELETE_CONFIRM_MODAL]: States.MODAL_WITH_KEYBOARD_OPEN_DELETED,
+        [Actions.EDIT_REPORT]: States.EDIT_MESSAGE,
     },
     [States.MODAL_WITH_KEYBOARD_OPEN_DELETED]: {
         [Actions.MEASURE_CONFIRM_MODAL]: States.MODAL_WITH_KEYBOARD_OPEN_DELETED,
@@ -176,6 +178,9 @@ const STATE_MACHINE = {
     [States.KEYBOARD_CLOSED_POPOVER]: {
         [Actions.OPEN_KEYBOARD]: States.KEYBOARD_OPEN,
         [Actions.END_TRANSITION]: States.KEYBOARD_OPEN,
+    },
+    [States.EDIT_MESSAGE]: {
+        [Actions.CLOSE_KEYBOARD]: States.IDLE,
     },
 };
 
