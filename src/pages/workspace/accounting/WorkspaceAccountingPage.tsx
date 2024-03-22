@@ -5,7 +5,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -155,18 +154,7 @@ function WorkspaceAccountingPage() {
                       },
                   ]),
         ],
-        [
-            translate,
-            styles.flex1,
-            theme.spinner,
-            styles.flexRow,
-            isSyncInProgress,
-            threeDotsMenuItems,
-            threeDotsMenuPosition,
-            styles.popoverMenuIcon,
-            threeDotsMenuContainerRef,
-            styles.sectionMenuItemTopDescription,
-        ],
+        [translate, theme.spinner, isSyncInProgress, threeDotsMenuItems, threeDotsMenuPosition, styles.popoverMenuIcon, threeDotsMenuContainerRef, styles.sectionMenuItemTopDescription],
     );
 
     const otherConnectionMenuItems: MenuItemProps[] = useMemo(
