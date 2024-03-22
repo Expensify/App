@@ -29,17 +29,22 @@ const buildDurationDetailsEntry = (entry: Entry) =>
         .filter(Boolean)
         .join('<br/><br/>');
 
-const formatEntryDuration = (entry: Entry) => {
-    if (entry.baseline && entry.current) {
-        return format.formatDurationDiffChange(entry);
+const formatEntryDuration = (entry: Entry): string => {
+    let formattedDuration = '';
+
+    if ('baseline' in entry && 'current' in entry) {
+        formattedDuration = format.formatDurationDiffChange(entry);
     }
-    if (entry.baseline) {
-        return format.formatDuration(entry.baseline.mean);
+
+    if ('baseline' in entry) {
+        formattedDuration = format.formatDuration(entry.baseline.mean);
     }
-    if (entry.current) {
-        return format.formatDuration(entry.current.mean);
+
+    if ('current' in entry) {
+        formattedDuration = format.formatDuration(entry.current.mean);
     }
-    return '';
+
+    return formattedDuration;
 };
 
 const buildDetailsTable = (entries: Entry[]) => {
