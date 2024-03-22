@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {updatePolicyTaxValue, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -35,6 +36,7 @@ function ValuePage({
 }: ValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const [value, setValue] = useState(currentTaxRate?.value?.replace('%', ''));
 
@@ -89,6 +91,7 @@ function ValuePage({
                                 onInputChange={setValue}
                                 hideCurrencySymbol
                                 extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                                ref={inputCallbackRef}
                             />
                         </FormProvider>
                     </ScreenWrapper>
