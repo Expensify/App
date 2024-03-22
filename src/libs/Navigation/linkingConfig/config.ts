@@ -295,6 +295,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
                         },
@@ -353,6 +359,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAX_CREATE]: {
                             path: ROUTES.WORKSPACE_TAX_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAX_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_NAME]: {
+                            path: ROUTES.WORKSPACE_TAX_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_VALUE]: {
+                            path: ROUTES.WORKSPACE_TAX_VALUE.route,
                         },
                     },
                 },
