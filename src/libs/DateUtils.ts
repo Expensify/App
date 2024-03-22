@@ -14,6 +14,7 @@ import {
     isAfter,
     isBefore,
     isSameDay,
+    isSameMonth,
     isSameSecond,
     isSameYear,
     isValid,
@@ -767,6 +768,31 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
     return getDate(currentDate);
 }
 
+/**
+ * Returns a formatted date range from date 1 to date 2.
+ * Dates are formatted as follows:
+ * 1. When both dates refer to the same day: Mar 17
+ * 2. When both dates refer to the same month: Mar 17-20
+ * 3. When both dates refer to the same year: Feb 28 to Mar 1
+ * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
+ */
+function getFormattedDateRange(date1: Date, date2: Date): string {
+    if (isSameDay(date1, date2)) {
+        // Dates are from the same day
+        return format(date1, 'MMM d');
+    }
+    if (isSameMonth(date1, date2)) {
+        // Dates in the same month and year, differ by days
+        return `${format(date1, 'MMM d')} - ${format(date2, 'd')}`;
+    }
+    if (isSameYear(date1, date2)) {
+        // Dates are in the same year, differ by months
+        return `${format(date1, 'MMM d')} to ${format(date2, 'MMM d')}`;
+    }
+    // Dates differ by years, months, days
+    return `${format(date1, 'MMM d, yyyy')} to ${format(date2, 'MMM d, yyyy')}`;
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -813,6 +839,7 @@ const DateUtils = {
     formatToSupportedTimezone,
     enrichMoneyRequestTimestamp,
     getLastBusinessDayOfMonth,
+    getFormattedDateRange,
 };
 
 export default DateUtils;

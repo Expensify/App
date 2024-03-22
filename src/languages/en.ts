@@ -2597,5 +2597,6 @@ export default {
         hotel: 'Hotel',
         car: 'Car',
         viewTrip: 'View trip',
+        trip: 'Trip',
     },
 } satisfies TranslationBase;

@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
+import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -22,6 +23,20 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+import type {BasicTripInfo} from '@src/types/onyx/TripDetails';
+
+const basicTripInfo: BasicTripInfo = {
+    tripId: '6926658168',
+    tripName: 'JFK SFO Trip',
+    tripDescription: 'JFK SFO Business Trip',
+    applicationId: '97ab27fa-30e2-43e3-92a3-160e80f4c0d5',
+    startDate: {
+        iso8601: '2017-05-1',
+    },
+    endDate: {
+        iso8601: '2017-05-28',
+    },
+};
 
 type TripRoomPreviewOnyxProps = {
     /** All the transactions, used to update ReportPreview label and status */
@@ -129,6 +144,8 @@ function TripRoomPreview({
         .filter((item) => item.length > 0)
         .flat();
 
+    const dateInfo = DateUtils.getFormattedDateRange(new Date(basicTripInfo.startDate.iso8601), new Date(basicTripInfo.endDate.iso8601));
+
     return (
         <OfflineWithFeedback
             // pendingAction={iouReport?.pendingFields?.preview}
@@ -153,7 +170,9 @@ function TripRoomPreview({
                             <View style={styles.reportPreviewAmountSubtitleContainer}>
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textLabelSupporting, styles.lh16]}>Trip • December 15-20 </Text>
+                                        <Text style={[styles.textLabelSupporting, styles.lh16]}>
+                                            {translate('travel.trip')} • {dateInfo}
+                                        </Text>
                                     </View>
                                 </View>
                             </View>
@@ -165,7 +184,7 @@ function TripRoomPreview({
                                 </View>
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textSupportingNormalSize, styles.lh20]}>Trip to San Francisco</Text>
+                                        <Text style={[styles.textSupportingNormalSize, styles.lh20]}>{basicTripInfo.tripName}</Text>
                                     </View>
                                 </View>
                             </View>
