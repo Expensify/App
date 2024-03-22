@@ -5,7 +5,6 @@ import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
-import type {TaxRatesWithDefault} from './types/onyx';
 
 type RateAndUnit = {
     unit: string;
@@ -4148,7 +4147,7 @@ const CONST = {
                 value: '5%',
             },
         },
-    } as TaxRatesWithDefault,
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
