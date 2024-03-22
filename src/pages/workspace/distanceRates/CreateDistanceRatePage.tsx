@@ -49,7 +49,7 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         const newRate: Rate = {
             currency,
-            name: getOptimisticRateName(customUnits[customUnitID].rates),
+            name: getOptimisticRateName(customUnits[customUnitID]?.rates),
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,
