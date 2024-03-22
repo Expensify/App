@@ -6,7 +6,6 @@ import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react
 import {View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import useHighlightToggle from '@hooks/useHighlightToggle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -149,11 +148,8 @@ type MenuItemBaseProps = {
     /** Whether item is focused or active */
     focused?: boolean;
 
-    /** Temporarily focus the item indicating an action (like setting enable) occured */
-    shouldHighlight?: boolean;
-
-    /** The duration to highlight the item */
-    highlightDuration?: number;
+    /** Style for the highlighted state */
+    highlightStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /** Should we disable this menu item? */
     disabled?: boolean;
@@ -283,8 +279,7 @@ function MenuItem(
         success = false,
         focused = false,
         disabled = false,
-        shouldHighlight = false,
-        highlightDuration = 2000,
+        highlightStyle = {},
         title,
         subtitle,
         shouldShowBasicTitle,
@@ -325,7 +320,6 @@ function MenuItem(
     const [html, setHtml] = useState('');
     const titleRef = useRef('');
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
-    const highlighted = useHighlightToggle(shouldHighlight, highlightDuration);
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
@@ -420,13 +414,14 @@ function MenuItem(
                     onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={onSecondaryInteraction}
+                    wrapperStyle={highlightStyle}
                     style={({pressed}) =>
                         [
                             containerStyle,
                             errorText ? styles.pb5 : {},
                             combinedStyle,
                             !interactive && styles.cursorDefault,
-                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(highlighted || focused || isHovered, pressed, success, disabled, interactive), true),
+                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                             !focused && (isHovered || pressed) && hoverAndPressStyle,
                             ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                             shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
@@ -476,11 +471,7 @@ function MenuItem(
                                                         displayInDefaultIconColor
                                                             ? undefined
                                                             : iconFill ??
-                                                              StyleUtils.getIconFillColor(
-                                                                  getButtonState(highlighted || focused || isHovered, pressed, success, disabled, interactive),
-                                                                  true,
-                                                                  isPaneMenu,
-                                                              )
+                                                              StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true, isPaneMenu)
                                                     }
                                                 />
                                             )}
