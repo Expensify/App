@@ -47,11 +47,12 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
+            const newDescription = parser.htmlToMarkdown(parser.replace(values.description));
             // report.description might contain CRLF from the server
-            if (StringUtils.normalizeCRLF(values.description) !== StringUtils.normalizeCRLF(report?.description) && !isEmptyObject(report)) {
+            if (StringUtils.normalizeCRLF(newDescription) !== StringUtils.normalizeCRLF(report?.description) && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
-                Task.editTask(report, {description: values.description});
+                Task.editTask(report, {description: newDescription});
             }
 
             Navigation.dismissModal(report?.reportID);
