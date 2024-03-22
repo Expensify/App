@@ -12,6 +12,7 @@ function assertValidateActorJobExecuted(workflowResult: Step[], didExecute = tru
         }
     });
 }
+
 function assertCreateNewVersionJobExecuted(workflowResult: Step[], semverLevel = 'BUILD', didExecute = true, isSuccessful = true) {
     const steps = [
         createStepAssertion('Run turnstyle', true, null, 'CREATENEWVERSION', 'Run turnstyle', [{key: 'poll-interval-seconds', value: '10'}], [{key: 'GITHUB_TOKEN', value: '***'}]),

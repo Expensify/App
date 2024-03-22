@@ -5,7 +5,7 @@ function assertChecklistJobExecuted(workflowResult: Step[], didExecute = true) {
     const steps = [
         createStepAssertion('Checkout', true, null, 'CHECKLIST', 'Checkout'),
         createStepAssertion('authorChecklist.ts', true, null, 'CHECKLIST', 'Running authorChecklist.ts', [{key: 'GITHUB_TOKEN', value: '***'}], []),
-    ];
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
