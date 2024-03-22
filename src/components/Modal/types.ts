@@ -63,6 +63,9 @@ type BaseModalProps = Partial<ModalProps> & {
      * */
     hideModalContentWhileAnimating?: boolean;
 
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
+
     /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
     shouldUseCustomBackdrop?: boolean;
 };
