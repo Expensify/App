@@ -1,18 +1,14 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const draftCommentMap: Record<string, OnyxEntry<string>> = {};
+let draftCommentMap: OnyxCollection<string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    callback: (value, key) => {
-        if (!key) {
-            return;
-        }
-
-        const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, '');
-        draftCommentMap[reportID] = value;
+    callback: (nextVal) => {
+        draftCommentMap = nextVal;
     },
+    waitForCollectionCallback: true,
 });
 
 /**
@@ -20,8 +16,8 @@ Onyx.connect({
  * Note: You should use the HOCs/hooks to get onyx data, instead of using this directly.
  * A valid use-case of this function is outside React components, like in utility functions.
  */
-function getDraftComment(reportID: string): OnyxEntry<string> {
-    return draftCommentMap[reportID];
+function getDraftComment(reportID: string): OnyxEntry<string> | null | undefined {
+    return draftCommentMap?.[ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + reportID];
 }
 
 /**
