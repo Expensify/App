@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, StyleProp, View as RNView, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, View as RNView, StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -110,7 +110,7 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
                         isLoading={!!formState?.isLoading}
-                        message={typeof errorMessage === 'string' && isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
+                        message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}

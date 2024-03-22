@@ -4,7 +4,7 @@ import lodashHas from 'lodash/has';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {GetRouteForDraftParams, GetRouteParams} from '@libs/API/parameters';
+import type {GetRouteParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -218,26 +218,13 @@ function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): Ony
  * Gets the route for a set of waypoints
  * Used so we can generate a map view of the provided waypoints
  */
-function getRoute(transactionID: string, waypoints: WaypointCollection) {
+function getRoute(transactionID: string, waypoints: WaypointCollection, isDraft: boolean) {
     const parameters: GetRouteParams = {
         transactionID,
         waypoints: JSON.stringify(waypoints),
     };
 
-    API.read(READ_COMMANDS.GET_ROUTE, parameters, getOnyxDataForRouteRequest(transactionID));
-}
-
-/**
- * Gets the route for a set of waypoints
- * Used so we can generate a map view of the provided waypoints
- */
-function getRouteForDraft(transactionID: string, waypoints: WaypointCollection) {
-    const parameters: GetRouteForDraftParams = {
-        transactionID,
-        waypoints: JSON.stringify(waypoints),
-    };
-
-    API.read(READ_COMMANDS.GET_ROUTE_FOR_DRAFT, parameters, getOnyxDataForRouteRequest(transactionID, true));
+    API.read(isDraft ? READ_COMMANDS.GET_ROUTE_FOR_DRAFT : READ_COMMANDS.GET_ROUTE, parameters, getOnyxDataForRouteRequest(transactionID, isDraft));
 }
 
 /**
@@ -277,4 +264,4 @@ function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, getRouteForDraft, updateWaypoints, clearError};
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError};
