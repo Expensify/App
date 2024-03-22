@@ -2,10 +2,10 @@
  * @jest-environment node
  */
 import * as core from '@actions/core';
+import run from '@github/actions/javascript/checkDeployBlockers/checkDeployBlockers';
+import type {InternalOctokit} from '@github/libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
 import asMutable from '@src/types/utils/asMutable';
-import run from '../../.github/actions/javascript/checkDeployBlockers/checkDeployBlockers';
-import type {InternalOctokit} from '../../.github/libs/GithubUtils';
-import GithubUtils from '../../.github/libs/GithubUtils';
 
 type CommentData = {body: string};
 

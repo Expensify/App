@@ -1,10 +1,10 @@
 import * as core from '@actions/core';
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import {when} from 'jest-when';
+import ghAction from '@github/actions/javascript/postTestBuildComment/postTestBuildComment';
+import type {CreateCommentResponse} from '@github/libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
 import asMutable from '@src/types/utils/asMutable';
-import ghAction from '../../.github/actions/javascript/postTestBuildComment/postTestBuildComment';
-import type {CreateCommentResponse} from '../../.github/libs/GithubUtils';
-import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const createCommentMock = jest.spyOn(GithubUtils, 'createComment');

@@ -5,8 +5,8 @@
  */
 import * as core from '@actions/core';
 import type {Writable} from 'type-fest';
-import type {InternalOctokit, ListForRepoMethod} from '../../.github/libs/GithubUtils';
-import GithubUtils from '../../.github/libs/GithubUtils';
+import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
