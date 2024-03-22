@@ -11,10 +11,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
  */
 function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
     // redirect_uri needs to be in kebab case convention because that's how it's passed to the backend
-    const {redirectURI} = getPlaidLinkTokenParameters();
+    const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
 
     const params: OpenPlaidBankLoginParams = {
         redirectURI,
+        androidPackage,
         allowDebit,
         bankAccountID,
     };

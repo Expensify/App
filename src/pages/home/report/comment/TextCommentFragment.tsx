@@ -28,6 +28,9 @@ type TextCommentFragmentProps = {
     /** Should this message fragment be styled as deleted? */
     styleAsDeleted: boolean;
 
+    /** Should this message fragment be styled as muted */
+    styleAsMuted?: boolean;
+
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
@@ -38,7 +41,7 @@ type TextCommentFragmentProps = {
     iouMessage?: string;
 };
 
-function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
+function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {html = '', text} = fragment;
@@ -54,8 +57,11 @@ function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAs
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
         const htmlContent = containsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
+        let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
 
-        const htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
+        if (styleAsMuted) {
+            htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
+        }
 
         return (
             <RenderCommentHTML
@@ -79,6 +85,7 @@ function TextCommentFragment({fragment, styleAsDeleted, source, style, displayAs
                     styles.ltr,
                     style,
                     styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                    styleAsMuted ? styles.colorMuted : undefined,
                     !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
                 ]}
             >

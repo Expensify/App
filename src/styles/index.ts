@@ -538,7 +538,7 @@ const styles = (theme: ThemeColors) =>
         button: {
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.buttonBorderRadius,
-            minHeight: variables.componentSizeLarge,
+            minHeight: variables.componentSizeNormal,
             justifyContent: 'center',
             alignItems: 'center',
             ...spacing.ph3,
@@ -577,23 +577,24 @@ const styles = (theme: ThemeColors) =>
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeSmall,
-            paddingHorizontal: 14,
+            minWidth: variables.componentSizeSmall,
+            paddingHorizontal: 12,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
-            paddingRight: 16,
-            paddingLeft: 16,
+            minWidth: variables.componentSizeNormal,
+            paddingHorizontal: 16,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
-            paddingRight: 10,
-            paddingLeft: 10,
+            minWidth: variables.componentSizeLarge,
+            paddingHorizontal: 20,
             backgroundColor: theme.buttonDefaultBG,
         },
 
@@ -754,7 +755,7 @@ const styles = (theme: ThemeColors) =>
             height: 140,
         },
 
-        pickerSmall: (backgroundColor = theme.highlightBG) =>
+        pickerSmall: (disabled = false, backgroundColor = theme.highlightBG) =>
             ({
                 inputIOS: {
                     fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -796,7 +797,7 @@ const styles = (theme: ThemeColors) =>
                     height: 26,
                     opacity: 1,
                     backgroundColor,
-                    ...cursor.cursorPointer,
+                    ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
                 },
                 inputAndroid: {
                     fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -1268,6 +1269,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        textLabelSupportingEmptyValue: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: FontUtils.fontWeight.normal,
+            color: theme.textSupporting,
+        },
+
         textLabelSupportingNormal: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -1446,10 +1454,16 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            backgroundColor: theme.icon,
+            borderRadius: variables.sidebarAvatarSize,
+            height: variables.sidebarAvatarSize,
+            width: variables.sidebarAvatarSize,
+        },
+
+        selectedAvatarBorder: {
+            padding: 2,
+            borderWidth: 2,
             borderRadius: 20,
-            height: variables.componentSizeNormal,
-            width: variables.componentSizeNormal,
+            borderColor: theme.success,
         },
 
         statusIndicator: (backgroundColor = theme.danger) =>
@@ -1459,10 +1473,10 @@ const styles = (theme: ThemeColors) =>
                 borderRadius: 8,
                 borderWidth: 2,
                 position: 'absolute',
-                right: -2,
-                top: -1,
-                height: 16,
-                width: 16,
+                right: -4,
+                top: -3,
+                height: 12,
+                width: 12,
                 zIndex: 10,
             } satisfies ViewStyle),
 
@@ -1516,25 +1530,23 @@ const styles = (theme: ThemeColors) =>
         },
 
         breadcrumsContainer: {
-            height: 24,
+            minHeight: 24,
         },
 
         breadcrumb: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeh1,
-            lineHeight: variables.lineHeightSizeh1,
+            fontSize: variables.breadcrumbsFontSize,
             ...headlineFont,
         },
 
         breadcrumbStrong: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.breadcrumbsFontSize,
         },
 
         breadcrumbSeparator: {
             color: theme.icon,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh1,
+            fontSize: variables.breadcrumbsFontSize,
             ...headlineFont,
         },
 
@@ -2091,6 +2103,10 @@ const styles = (theme: ThemeColors) =>
         editChatItemEmojiWrapper: {
             marginRight: 3,
             alignSelf: 'flex-end',
+        },
+
+        customMarginButtonWithMenuItem: {
+            marginRight: variables.bankButtonMargin,
         },
 
         composerSizeButton: {
@@ -2654,6 +2670,12 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pt0,
         },
 
+        workspaceSettingsSectionContainer: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.border,
+            ...spacing.pt4,
+        },
+
         centralPaneAnimation: {
             height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
         },
@@ -3092,13 +3114,20 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonDefaultBG,
-            borderColor: theme.cardBG,
             borderRadius: 20,
             borderWidth: 3,
             color: theme.textReversed,
             height: 40,
             width: 40,
             justifyContent: 'center',
+        },
+
+        smallEditIconWorkspace: {
+            borderColor: theme.cardBG,
+        },
+
+        smallEditIconAccount: {
+            borderColor: theme.appBG,
         },
 
         smallAvatarEditIcon: {
@@ -3429,6 +3458,12 @@ const styles = (theme: ThemeColors) =>
         invisibleOverlay: {
             backgroundColor: theme.transparent,
             zIndex: 1000,
+        },
+
+        invisibleImage: {
+            opacity: 0,
+            width: 200,
+            height: 200,
         },
 
         reportDropOverlay: {
@@ -4646,6 +4681,7 @@ const styles = (theme: ThemeColors) =>
         videoPlayerTimeComponentWidth: {
             width: 40,
         },
+
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
         updateAnimation: {
