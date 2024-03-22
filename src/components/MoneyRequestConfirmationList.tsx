@@ -665,7 +665,14 @@ function MoneyRequestConfirmationList({
                 description={translate('common.description')}
                 onPress={() => {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            iouType,
+                            transaction?.transactionID ?? '',
+                            reportID,
+                            Navigation.getActiveRouteWithoutParams(),
+                            reportActionID,
+                        ),
                     );
                 }}
                 style={styles.moneyRequestMenuItem}
@@ -714,7 +721,17 @@ function MoneyRequestConfirmationList({
                             description={translate('common.distance')}
                             style={styles.moneyRequestMenuItem}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DISTANCE.getRoute(iouType, reportID))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction?.transactionID ?? '',
+                                        reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
+                                )
+                            }
                             disabled={didConfirm || !canEditDistance}
                             interactive={!isReadOnly}
                         />
@@ -757,6 +774,7 @@ function MoneyRequestConfirmationList({
                                         transaction?.transactionID ?? '',
                                         reportID,
                                         Navigation.getActiveRouteWithoutParams(),
+                                        reportActionID,
                                     ),
                                 );
                             }}
