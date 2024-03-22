@@ -244,8 +244,12 @@ function MoneyRequestView({
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                {shouldShowNotesViolations && <ReceiptAuditHeader notes={noteTypeViolations} />}
-                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+                {hasReceipt && (
+                    <ReceiptAuditHeader
+                        notes={noteTypeViolations}
+                        showAuditMessage={shouldShowNotesViolations}
+                    />
+                )}
                 {(showMapAsImage || hasReceipt) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
@@ -291,7 +295,7 @@ function MoneyRequestView({
                     />
                 )}
                 {shouldShowNotesViolations && <ReceiptAuditMessages notes={noteTypeViolations} />}
-                {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
+                <ViolationMessages violations={getViolationsForField('receipt')} />
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
