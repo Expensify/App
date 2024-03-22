@@ -65,7 +65,6 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(backTo);
     };
 
-    const taxRates = lodashGet(policy, 'taxRates', {});
     const selectedTaxRate = TransactionUtils.getDefaultTaxName(taxRates, transaction);
 
     const updateTaxRates = (taxes) => {
