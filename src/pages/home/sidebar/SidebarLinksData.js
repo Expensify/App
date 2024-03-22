@@ -151,6 +151,8 @@ function SidebarLinksData({
             transactionViolations,
             activeWorkspaceID,
             policyMemberAccountIDs,
+            // Passing it down as we need to re-calculate the list when the drafts are updated
+            reportsDrafts,
         );
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
