@@ -310,7 +310,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                                 subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                             />
                         )}
-                        {!shouldShowEmptyState && (
+                        {!shouldShowEmptyState && !isLoading && (
                             <SelectionList
                                 canSelectMultiple
                                 sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
