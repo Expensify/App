@@ -19,7 +19,13 @@ type Card = {
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
         cardTitle?: string; // used only for virtual limit cards
         issuedBy?: string;
-    }
+        hasCustomUnapprovedExpenseLimit?: string;
+        unapprovedExpenseLimit?: string;
+        feedCountry?: string;
+        isVirtual?: string;
+        previousState?: string;
+        expirationDate?: string;
+    };
 };
 
 type TCardDetails = {
