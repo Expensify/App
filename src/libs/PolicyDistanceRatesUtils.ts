@@ -29,7 +29,7 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: stri
  * @param rates
  */
 function getOptimisticRateName(rates: Record<string, Rate>): string {
-    const existingRatesWithSameName = Object.values(rates).filter((rate) => (rate.name ?? '').startsWith(CONST.CUSTOM_UNITS.DEFAULT_RATE));
+    const existingRatesWithSameName = Object.values(rates ?? {}).filter((rate) => (rate.name ?? '').startsWith(CONST.CUSTOM_UNITS.DEFAULT_RATE));
     return existingRatesWithSameName.length ? `${CONST.CUSTOM_UNITS.DEFAULT_RATE} ${existingRatesWithSameName.length + 1}` : CONST.CUSTOM_UNITS.DEFAULT_RATE;
 }
 

@@ -70,6 +70,7 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
                         includeSafeAreaPaddingBottom={false}
                         style={[styles.defaultModalContainer]}
                         testID={CreateDistanceRatePage.displayName}
+                        shouldEnableMaxHeight
                     >
                         <HeaderWithBackButton title={translate('workspace.distanceRates.addRate')} />
                         <FormProvider
@@ -82,6 +83,7 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
                             shouldHideFixErrorsAlert
                             submitFlexEnabled={false}
                             submitButtonStyles={[styles.mh5, styles.mt0]}
+                            disablePressOnEnter={false}
                         >
                             <InputWrapperWithRef
                                 InputComponent={AmountForm}
