@@ -1,55 +1,58 @@
-import PropTypes from 'prop-types';
+import type {Video} from 'expo-av';
+import type {MutableRefObject} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
-import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertMillisecondsToTime} from '@components/VideoPlayer/utils';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
 
-const propTypes = {
-    duration: PropTypes.number.isRequired,
+type VideoPlayerControlsProps = {
+    /** Duration of a video. */
+    duration: number;
 
-    position: PropTypes.number.isRequired,
+    /** Position of progress pointer. */
+    position: number;
 
-    url: PropTypes.string.isRequired,
+    /** Url of a video. */
+    url: string;
 
-    videoPlayerRef: refPropTypes.isRequired,
+    /** Ref for video player. */
+    videoPlayerRef: MutableRefObject<Video>;
 
-    isPlaying: PropTypes.bool.isRequired,
+    /** Is video playing. */
+    isPlaying: boolean;
 
-    // Defines if component should have small icons and tighter spacing inline
-    small: PropTypes.bool,
+    /** Defines if component should have small icons and tighter spacing inline. */
+    small?: boolean;
 
-    style: stylePropTypes,
+    /** Style of video player controls. */
+    style?: StyleProp<ViewStyle>;
 
-    showPopoverMenu: PropTypes.func.isRequired,
+    /** Function called to show popover menu. */
+    showPopoverMenu: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
-    togglePlayCurrentVideo: PropTypes.func.isRequired,
+    /** Function to play and pause the video.  */
+    togglePlayCurrentVideo: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
-const defaultProps = {
-    small: false,
-    style: undefined,
-};
-
-function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small, style, showPopoverMenu, togglePlayCurrentVideo}) {
+function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small = false, style, showPopoverMenu, togglePlayCurrentVideo}: VideoPlayerControlsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
-    const onLayout = (e) => {
-        setShouldShowTime(e.nativeEvent.layout.width > CONST.VIDEO_PLAYER.HIDE_TIME_TEXT_WIDTH);
+    const onLayout = (event: LayoutChangeEvent) => {
+        setShouldShowTime(event.nativeEvent.layout.width > CONST.VIDEO_PLAYER.HIDE_TIME_TEXT_WIDTH);
     };
 
     const enterFullScreenMode = useCallback(() => {
@@ -58,7 +61,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
     }, [updateCurrentlyPlayingURL, url, videoPlayerRef]);
 
     const seekPosition = useCallback(
-        (newPosition) => {
+        (newPosition: number) => {
             videoPlayerRef.current.setStatusAsync({positionMillis: newPosition});
         },
         [videoPlayerRef],
@@ -116,8 +119,6 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
     );
 }
 
-VideoPlayerControls.propTypes = propTypes;
-VideoPlayerControls.defaultProps = defaultProps;
 VideoPlayerControls.displayName = 'VideoPlayerControls';
 
 export default VideoPlayerControls;
