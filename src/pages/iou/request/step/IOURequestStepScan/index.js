@@ -77,7 +77,7 @@ function IOURequestStepScan({
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
     const trackRef = useRef(null);
-    const isQueriedPermissionStateRef = useRef(null);
+    const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
 
     const getScreenshotTimeoutRef = useRef(null);
 
@@ -138,6 +138,7 @@ function IOURequestStepScan({
     }, []);
 
     useEffect(() => {
+        console.log(isTabActive);
         if (!Browser.isMobile() || !isTabActive) {
             return;
         }
@@ -152,7 +153,9 @@ function IOURequestStepScan({
             .catch(() => {
                 setCameraPermissionState('denied');
             })
-            .finally(() => (isQueriedPermissionStateRef.current = true));
+            .finally(() => {
+                setIsQueriedPermissionState(true);
+            });
         // We only want to get the camera permission status when the component is mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTabActive]);
@@ -322,14 +325,14 @@ function IOURequestStepScan({
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
-                {((cameraPermissionState === 'prompt' && !isQueriedPermissionStateRef.current) || (cameraPermissionState === 'granted' && _.isEmpty(videoConstraints))) && (
+                {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && _.isEmpty(videoConstraints))) && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
                         color={theme.textSupporting}
                     />
                 )}
-                {cameraPermissionState !== 'granted' && isQueriedPermissionStateRef.current && (
+                {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
                     <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
                         <Icon
                             src={Hand}
