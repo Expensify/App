@@ -101,7 +101,7 @@ function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps
         >
             <HeaderWithBackButton
                 title={translate('contacts.contactMethods')}
-                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
