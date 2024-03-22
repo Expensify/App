@@ -98,6 +98,11 @@ function TroubleshootPage({shouldStoreLogs, capturedLogs}: TroubleshootPageProps
 
     const onToggleClientSideLogging = () => {
         if (shouldStoreLogs) {
+            if (!capturedLogs) {
+                Console.disableLoggingAndFlushLogs();
+                return;
+            }
+
             const logs = Object.values(capturedLogs as Log[]);
             const logsWithParsedMessages = parseStringifyMessages(logs);
             localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));

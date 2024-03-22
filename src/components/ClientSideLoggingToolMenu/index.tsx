@@ -16,6 +16,8 @@ function ClientSideLoggingToolMenu({capturedLogs, shouldStoreLogs}: ClientSideLo
         } else {
             if (!capturedLogs) {
                 Alert.alert('No logs to share', 'There are no logs to share');
+                Console.disableLoggingAndFlushLogs();
+                return;
             }
             const logs = Object.values(capturedLogs as Log[]);
             const logsWithParsedMessages = parseStringifyMessages(logs);
