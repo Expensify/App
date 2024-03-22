@@ -29,7 +29,6 @@ function OptionRowLHNData({
     lastReportActionTransaction = {},
     transactionViolations,
     canUseViolations,
-    reportErrors,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -38,18 +37,18 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData>();
 
-    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction ?? null);
+    const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction ?? null);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
+            reportActions,
             personalDetails,
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            reportErrors,
-            hasViolations: !!hasViolations,
+            hasViolations: !!shouldDisplayViolations,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -73,7 +72,6 @@ function OptionRowLHNData({
         transactionViolations,
         canUseViolations,
         receiptTransactions,
-        reportErrors,
     ]);
 
     useEffect(() => {

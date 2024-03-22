@@ -131,6 +131,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                     )}
                     <Button
                         success
+                        large
                         text={translate('common.next')}
                         onPress={() => {
                             if (!account?.codesAreCopied) {
