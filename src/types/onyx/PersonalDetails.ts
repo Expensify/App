@@ -1,7 +1,6 @@
 import type {AvatarSource} from '@libs/UserUtils';
 import type TIMEZONES from '@src/TIMEZONES';
 import type * as OnyxCommon from './OnyxCommon';
-import type Report from './Report';
 
 type SelectedTimezone = (typeof TIMEZONES)[number];
 
@@ -80,9 +79,6 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Status of the current user from their personal details */
     status?: Status;
-
-    /** Chat report with assignee of task */
-    assigneeChatReport?: Report;
 }>;
 
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
