@@ -20,7 +20,6 @@ export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMess
 export type {default as GetNewerActionsParams} from './GetNewerActionsParams';
 export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
 export type {default as GetReportPrivateNoteParams} from './GetReportPrivateNoteParams';
-export type {default as GetRouteForDraftParams} from './GetRouteForDraftParams';
 export type {default as GetRouteParams} from './GetRouteParams';
 export type {default as GetStatementPDFParams} from './GetStatementPDFParams';
 export type {default as HandleRestrictedEventParams} from './HandleRestrictedEventParams';
@@ -164,6 +163,7 @@ export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceRei
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as RenamePolicyTaglist} from './RenamePolicyTaglist';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
@@ -183,9 +183,16 @@ export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMore
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as SetPolicyDistanceRatesDefaultCategoryParams} from './SetPolicyDistanceRatesDefaultCategoryParams';
+export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
+export type {default as SetPolicyDistanceRatesEnabledParams} from './SetPolicyDistanceRatesEnabledParams';
+export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDistanceRatesParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
+export type {default as SetPolicyTaxesEnabledParams} from './SetPolicyTaxesEnabledParams';
+export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams';
+export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValueParams';
 export type {default as RenamePolicyTagsParams} from './RenamePolicyTagsParams';
 export type {default as DeletePolicyTagsParams} from './DeletePolicyTagsParams';
 export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
+export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';

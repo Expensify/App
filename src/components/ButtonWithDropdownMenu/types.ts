@@ -12,6 +12,8 @@ type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BUL
 
 type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES>;
 
+type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES>;
+
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
@@ -20,6 +22,7 @@ type DropdownOption<TValueType> = {
     iconHeight?: number;
     iconDescription?: string;
     onSelected?: () => void;
+    disabled?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -73,4 +76,4 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-export type {PaymentType, WorkspaceMemberBulkActionType, WorkspaceDistanceRatesBulkActionType, DropdownOption, ButtonWithDropdownMenuProps};
+export type {PaymentType, WorkspaceMemberBulkActionType, WorkspaceDistanceRatesBulkActionType, DropdownOption, ButtonWithDropdownMenuProps, WorkspaceTaxRatesBulkActionType};

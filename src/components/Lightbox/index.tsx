@@ -112,7 +112,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                 return;
             }
 
-            setContentSize({width: width * PixelRatio.get(), height: height * PixelRatio.get()});
+            setContentSize({width, height});
         },
         [contentSize, setContentSize],
     );
