@@ -19,7 +19,6 @@ function OptionRowLHNData({
     reportActions,
     personalDetails = {},
     preferredLocale = CONST.LOCALES.DEFAULT,
-    comment,
     policy,
     receiptTransactions,
     parentReportAction,

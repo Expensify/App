@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as DraftCommentUtils from '@libs/DraftCommentUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -60,7 +61,7 @@ function LHNOptionsList({
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`] ?? null;
             const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID ?? '' : '';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
-            const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
+            const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
             const lastReportAction = sortedReportActions[0];
 
@@ -87,7 +88,7 @@ function LHNOptionsList({
                     isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
-                    comment={itemComment}
+                    hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
                     canUseViolations={canUseViolations}
                     onLayout={onLayoutItem}

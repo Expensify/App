@@ -51,7 +51,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {hasValidDraftComment} from './DraftCommentStore';
+import {hasValidDraftComment} from './DraftCommentUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -377,7 +377,6 @@ type OptionData = {
     phoneNumber?: string | null;
     isUnread?: boolean | null;
     isUnreadWithMention?: boolean | null;
-    hasDraftComment?: boolean | null;
     keyForList?: string | null;
     searchText?: string | null;
     isIOUReportOwner?: boolean | null;
