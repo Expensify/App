@@ -277,6 +277,7 @@ function getOwnershipChecksDisplayText(
             break;
         default:
             title = '';
+            text = '';
             buttonText = '';
             break;
     }
