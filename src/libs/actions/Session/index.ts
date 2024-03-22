@@ -432,7 +432,7 @@ function beginGoogleSignIn(token: string | null) {
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(email: string, shortLivedAuthToken: string, authToken: string) {
+function signInWithShortLivedAuthToken(email: string, shortLivedAuthToken: string, authToken: string, encryptedAuthToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams();
 
     // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
@@ -442,8 +442,7 @@ function signInWithShortLivedAuthToken(email: string, shortLivedAuthToken: strin
 
     if (authToken) {
         Onyx.update(optimisticData);
-        //TODO: Figure out encrypted AuthTokens, images will not load without them
-        updateSessionAuthTokens(authToken, "");
+        updateSessionAuthTokens(authToken, encryptedAuthToken);
         NetworkStore.setAuthToken(authToken ?? null);
         Onyx.update(finallyData);
         return;
