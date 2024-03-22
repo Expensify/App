@@ -188,7 +188,7 @@ function ComposerWithSuggestions({
     const debouncedSaveReportComment = useMemo(
         () =>
             _.debounce((selectedReportID, newComment) => {
-                Report.saveReportComment(selectedReportID, newComment || '');
+                Report.saveReportDraftComment(selectedReportID, newComment);
             }, 1000),
         [],
     );
@@ -288,7 +288,7 @@ function ComposerWithSuggestions({
             if (shouldDebounceSaveComment) {
                 debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
-                Report.saveReportComment(reportID, newCommentConverted || '');
+                Report.saveReportDraftComment(reportID, newCommentConverted);
             }
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);

@@ -1041,9 +1041,10 @@ function togglePinnedState(reportID: string, isPinnedChat: boolean) {
 /**
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
+ * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
-function saveReportComment(reportID: string, comment: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
+function saveReportDraftComment(reportID: string, comment: string | null) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment || null);
 }
 
 /** Saves the number of lines for the comment */
@@ -2906,7 +2907,7 @@ export {
     subscribeToReportLeavingEvents,
     unsubscribeFromReportChannel,
     unsubscribeFromLeavingRoomReportChannel,
-    saveReportComment,
+    saveReportDraftComment,
     saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     broadcastUserIsLeavingRoom,
