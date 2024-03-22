@@ -1,14 +1,14 @@
 import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import type {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
-import React, { ReactNode } from 'react';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type { TabSelectorProps } from '@components/TabSelector/TabSelector';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
-import { TabSelectorProps } from '@components/TabSelector/TabSelector';
 
 type OnyxTabNavigatorOnyxProps = {
     selectedTab: OnyxEntry<string>;
@@ -25,7 +25,7 @@ type OnyxTabNavigatorProps = OnyxTabNavigatorOnyxProps &
         /** A function triggered when a tab has been selected */
         onTabSelected?: (newIouType: string) => void;
 
-        tabBar: (props: TabSelectorProps) => ReactNode
+        tabBar: (props: TabSelectorProps) => React.ReactNode
 
         screenListeners?: ScreenListeners<NavigationState, MaterialTopTabNavigationEventMap>;
     };

@@ -4,10 +4,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
-import NewChatPage from './NewChatPage';
-import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 import useLocalize from '@hooks/useLocalize';
 import { useNavigation } from '@react-navigation/native';
+import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
+import NewChatPage from './NewChatPage';
 
 
 function NewChatSelectorPage() {
