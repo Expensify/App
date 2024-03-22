@@ -548,10 +548,10 @@ function ReportScreen({
         });
     }, [reportMetadata?.isLoadingInitialReportActions]);
 
-    const onLinkPress = () => {
+    const navigateToEndOfReport = useCallback(() => {
         Navigation.setParams({reportActionID: ''});
         fetchReport();
-    };
+    }, [fetchReport]);
 
     const isLinkedReportActionDeleted = useMemo(() => {
         if (!reportActionIDFromRoute || !sortedAllReportActions) {
@@ -570,7 +570,7 @@ function ReportScreen({
                 title={translate('notFound.notHere')}
                 shouldShowLink
                 linkKey="notFound.noAccess"
-                onLinkPress={onLinkPress}
+                onLinkPress={navigateToEndOfReport}
             />
         );
     }
