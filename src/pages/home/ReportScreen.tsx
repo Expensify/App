@@ -243,7 +243,9 @@ function ReportScreen({
         return currentRangeOfReportActions;
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
-    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger. If we have cached reportActions, they will be shown immediately. We aim to display a loader first, then fetch relevant reportActions, and finally show them.
+    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
+    // If we have cached reportActions, they will be shown immediately.
+    // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
     useLayoutEffect(() => {
         setLinkingToMessage(!!reportActionIDFromRoute);
     }, [route, reportActionIDFromRoute]);
