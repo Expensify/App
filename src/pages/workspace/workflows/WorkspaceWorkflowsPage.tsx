@@ -264,7 +264,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const isLoading = reimbursementAccount?.isLoading && policy?.reimbursementChoice === undefined
+    const isLoading = reimbursementAccount?.isLoading && policy?.reimbursementChoice === undefined;
 
     return (
         <FeatureEnabledAccessOrNotFoundWrapper
