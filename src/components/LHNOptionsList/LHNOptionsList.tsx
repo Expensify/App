@@ -2,11 +2,12 @@ import {useRoute} from '@react-navigation/native';
 import type {FlashListProps} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
-import React, {memo, useCallback, useContext, useMemo, useRef} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
@@ -117,6 +118,21 @@ function LHNOptionsList({
     );
 
     const extraData = useMemo(() => [reportActions, reports, policy, personalDetails, data.length], [reportActions, reports, policy, personalDetails, data.length]);
+
+    const previousOptionMode = usePrevious(optionMode);
+
+    useEffect(() => {
+        if (previousOptionMode === null || previousOptionMode === optionMode || !flashListRef.current) {
+            return;
+        }
+
+        if (!flashListRef.current) {
+            return;
+        }
+
+        // If the option mode changes want to scroll to the top of the list because rendered items will have different height.
+        flashListRef.current.scrollToOffset({offset: 0});
+    }, [previousOptionMode, optionMode]);
 
     const onScroll = useCallback<NonNullable<FlashListProps<string>['onScroll']>>(
         (e) => {
