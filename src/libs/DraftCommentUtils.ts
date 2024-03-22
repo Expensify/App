@@ -39,4 +39,11 @@ function hasValidDraftComment(reportID: string): boolean {
     return isValidDraftComment(getDraftComment(reportID));
 }
 
-export {getDraftComment, isValidDraftComment, hasValidDraftComment};
+/**
+ * Prepares a draft comment by trimming it and returning null if it's empty.
+ */
+function prepareDraftComment(comment: string | null) {
+    return comment?.trim() || null;
+}
+
+export {getDraftComment, isValidDraftComment, hasValidDraftComment, prepareDraftComment};
