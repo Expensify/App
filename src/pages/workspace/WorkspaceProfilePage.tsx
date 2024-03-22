@@ -140,7 +140,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 type={CONST.ICON_TYPE_WORKSPACE}
                                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                                 style={[
-                                    isSmallScreenWidth ? styles.mb1 : styles.mb3,
+                                    policy?.errorFields?.avatar ?? isSmallScreenWidth ? styles.mb1 : styles.mb3,
                                     isSmallScreenWidth ? styles.mtn17 : styles.mtn20,
                                     styles.alignItemsStart,
                                     styles.sectionMenuItemTopDescription,
@@ -158,7 +158,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 originalFileName={policy?.originalFileName}
                                 disabled={readOnly}
                                 disabledStyle={styles.cursorDefault}
-                                errorRowStyles={undefined}
+                                errorRowStyles={styles.mt3}
                             />
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <MenuItemWithTopDescription
