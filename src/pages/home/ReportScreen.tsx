@@ -234,7 +234,7 @@ function ReportScreen({
 
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
-    const [isLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
+    const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
     const reportActions = useMemo(() => {
         if (!sortedAllReportActions.length) {
             return [];
@@ -247,7 +247,7 @@ function ReportScreen({
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
     useLayoutEffect(() => {
-        setLinkingToMessage(!!reportActionIDFromRoute);
+        setIsLinkingToMessage(!!reportActionIDFromRoute);
     }, [route, reportActionIDFromRoute]);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -544,7 +544,7 @@ function ReportScreen({
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
-            setLinkingToMessage(false);
+            setIsLinkingToMessage(false);
         });
     }, [reportMetadata?.isLoadingInitialReportActions]);
 
