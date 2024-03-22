@@ -2089,7 +2089,7 @@ export default {
             updateToUSD: 'Update to USD',
         },
         changeOwner: {
-            changeOwnerPageTitle: 'Change owner',
+            changeOwnerPageTitle: 'Transfer owner',
             addPaymentCardTitle: 'Enter your payment card to transfer ownership',
             addPaymentCardButtonText: 'Accept terms & add payment card',
             addPaymentCardReadAndAcceptTextPart1: 'Read and accept',
