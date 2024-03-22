@@ -741,12 +741,16 @@ function createOption(
  * Get the option for a given report.
  */
 function getReportOption(participant: Participant): ReportUtils.OptionData {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+    let report = ReportUtils.getReport(participant.reportID);
+
+    if (isEmptyObject(report)) {
+        report = null;
+    }
 
     const option = createOption(
         report?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
-        report ?? null,
+        report,
         {},
         {
             showChatPreviewLine: false,
