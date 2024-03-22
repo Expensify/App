@@ -3670,19 +3670,16 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    taxRates: CONST.DEFAULT_TAX,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
                     taxRates: {
+                        ...CONST.DEFAULT_TAX,
                         taxes: {
                             ...Object.keys(CONST.DEFAULT_TAX.taxes).reduce(
                                 (prevTaxesData, taxKey) => ({
                                     ...prevTaxesData,
-                                    [taxKey]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                                    [taxKey]: {
+                                        ...CONST.DEFAULT_TAX.taxes[taxKey],
+                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    },
                                 }),
                                 {},
                             ),

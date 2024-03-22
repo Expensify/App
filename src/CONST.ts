@@ -3,6 +3,7 @@ import dateAdd from 'date-fns/add';
 import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
+import type {TaxRatesWithDefault} from '@src/types/onyx';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
@@ -4147,7 +4148,7 @@ const CONST = {
                 value: '5%',
             },
         },
-    },
+    } as TaxRatesWithDefault,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
