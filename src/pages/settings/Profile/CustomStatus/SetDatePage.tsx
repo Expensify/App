@@ -1,38 +1,41 @@
-import lodashGet from 'lodash/get';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@libs/actions/User';
-import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
+import type * as OnyxTypes from '@src/types/onyx';
 
-const propTypes = {
-    ...withLocalizePropTypes,
+type SetDatePageOnyxProps = {
+    customStatus: OnyxEntry<OnyxTypes.CustomStatusDraft>;
 };
 
-function SetDatePage({translate, customStatus}) {
-    const styles = useThemeStyles();
-    const customClearAfter = lodashGet(customStatus, 'clearAfter', '');
+type SetDatePageProps = SetDatePageOnyxProps;
 
-    const onSubmit = (v) => {
+function SetDatePage({customStatus}: SetDatePageProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const customClearAfter = customStatus?.clearAfter ?? '';
+
+    const onSubmit = (v: {dateTime: string}) => {
         User.updateDraftCustomStatus({clearAfter: DateUtils.combineDateAndTime(customClearAfter, v.dateTime)});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
-    const validate = useCallback((values) => {
-        const requiredFields = ['dateTime'];
-        const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM>) => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME]);
         const dateError = ValidationUtils.getDatePassedError(values.dateTime);
 
         if (values.dateTime && dateError) {
@@ -58,7 +61,6 @@ function SetDatePage({translate, customStatus}) {
                 submitButtonText={translate('common.save')}
                 validate={validate}
                 enabledWhenOffline
-                shouldUseDefaultValue
             >
                 <InputWrapper
                     InputComponent={DatePicker}
@@ -72,17 +74,10 @@ function SetDatePage({translate, customStatus}) {
     );
 }
 
-SetDatePage.propTypes = propTypes;
 SetDatePage.displayName = 'SetDatePage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        customStatus: {
-            key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
-        },
-        clearDateForm: {
-            key: `${ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM}Draft`,
-        },
-    }),
-)(SetDatePage);
+export default withOnyx<SetDatePageProps, SetDatePageOnyxProps>({
+    customStatus: {
+        key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
+    },
+})(SetDatePage);
