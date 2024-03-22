@@ -32,15 +32,13 @@ type StatusClearAfterPageProps = StatusClearAfterPageOnyxProps;
  * @param data -  either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
  * @returns
  */
-function getSelectedStatusType(data: string | boolean) {
+function getSelectedStatusType(data: string): CustomStatusTypes {
     switch (data) {
         case DateUtils.getEndOfToday():
             return CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY;
         case CONST.CUSTOM_STATUS_TYPES.NEVER:
         case '':
             return CONST.CUSTOM_STATUS_TYPES.NEVER;
-        case false:
-            return CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY;
         default:
             return CONST.CUSTOM_STATUS_TYPES.CUSTOM;
     }
