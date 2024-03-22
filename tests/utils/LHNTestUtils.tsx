@@ -142,11 +142,14 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
     const timestamp = Date.now() - millisecondsInThePast;
     const created = DateUtils.getDBTime(timestamp);
+    const previousReportActionID = lastFakeReportActionID;
+    const reportActionID = ++lastFakeReportActionID;
 
     return {
         actor,
         actorAccountID: 1,
-        reportActionID: `${++lastFakeReportActionID}`,
+        reportActionID: `${reportActionID}`,
+        previousReportActionID: `${previousReportActionID}`,
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         shouldShow: true,
         created,
@@ -183,7 +186,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
             },
         ],
         originalMessage: {
-            childReportID: `${++lastFakeReportActionID}`,
+            childReportID: `${reportActionID}`,
             emojiReactions: {
                 heart: {
                     createdAt: '2023-08-28 15:27:52',
@@ -282,6 +285,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <SidebarLinksData
+                // @ts-expect-error TODO: Remove this once SidebarLinksData (https://github.com/Expensify/App/issues/25220) is migrated to TypeScript.
                 onLinkClick={() => {}}
                 insets={{
                     top: 0,
@@ -289,7 +293,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
                     right: 0,
                     bottom: 0,
                 }}
-                // @ts-expect-error - normally this comes from withCurrentReportID hoc, but here we are just mocking this
+                isSmallScreenWidth={false}
                 currentReportID={currentReportID}
             />
         </ComposeProviders>

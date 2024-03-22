@@ -37,6 +37,9 @@ type PopoverProps = BaseModalProps &
 
         /** Whether we want to show the popover on the right side of the screen */
         fromSidebarMediumScreen?: boolean;
+
+        /** Whether handle navigation back when modal show. */
+        shouldHandleNavigationBack?: boolean;
     };
 
 type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
