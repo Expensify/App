@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import stylePropTypes from '@styles/stylePropTypes';
@@ -44,21 +43,18 @@ function IconButton({src, fill, onPress, style, hoverStyle, tooltipText, small, 
             text={tooltipText}
             shouldForceRenderingBelow={shouldForceRenderingTooltipBelow}
         >
-            <Hoverable>
-                {(isHovered) => (
-                    <PressableWithoutFeedback
-                        accessibilityLabel={tooltipText}
-                        onPress={onPress}
-                        style={[styles.videoIconButton, isHovered && [styles.videoIconButtonHovered, hoverStyle], style]}
-                    >
-                        <Icon
-                            src={src}
-                            fill={fill}
-                            small={small}
-                        />
-                    </PressableWithoutFeedback>
-                )}
-            </Hoverable>
+            <PressableWithFeedback
+                accessibilityLabel={tooltipText}
+                onPress={onPress}
+                style={[styles.videoIconButton, style]}
+                hoverStyle={[styles.videoIconButtonHovered, hoverStyle]}
+            >
+                <Icon
+                    src={src}
+                    fill={fill}
+                    small={small}
+                />
+            </PressableWithFeedback>
         </Tooltip>
     );
 }

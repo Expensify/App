@@ -399,7 +399,7 @@ function ReportScreen({
         });
         return () => {
             interactionTask.cancel();
-            if (!didSubscribeToReportLeavingEvents) {
+            if (!didSubscribeToReportLeavingEvents.current) {
                 return;
             }
 
@@ -488,6 +488,10 @@ function ReportScreen({
 
     useEffect(() => {
         if (!ReportUtils.isValidReportIDFromPath(reportIDFromRoute)) {
+            return;
+        }
+        // Ensures the optimistic report is created successfully
+        if (reportIDFromRoute !== report.reportID) {
             return;
         }
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
