@@ -332,7 +332,11 @@ function ReportScreen({
     }, [report, reportIDFromRoute]);
 
     const shouldShowSkeleton =
-        isLinkingToMessage || !isCurrentReportLoadedFromOnyx || (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) || isLoading || (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
+        isLinkingToMessage ||
+        !isCurrentReportLoadedFromOnyx ||
+        (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
+        isLoading ||
+        (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
 
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
 

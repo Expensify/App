@@ -1783,6 +1783,31 @@ describe('ReportActionsUtils', () => {
             input.pop();
             expect(result).toStrictEqual(expectedResult.reverse());
         });
+
+        it('give an empty input ID and the report actions only contain created action with pending action is add it will return the created report action', () => {
+            const input: ReportAction[] = [
+                // Given these sortedReportActions
+                {
+                    reportActionID: '1',
+                    previousReportActionID: undefined,
+                    created: '2022-11-13 22:27:01.825',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    message: [
+                        {
+                            style: 'normal',
+                            text: 'created this report',
+                            type: 'text',
+                        },
+                    ],
+                },
+            ];
+
+            const expectedResult = input;
+            // Reversing the input array to simulate descending order sorting as per our data structure
+            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), '');
+            expect(result).toStrictEqual(expectedResult.reverse());
+        });
     });
 
     describe('getLastVisibleAction', () => {
