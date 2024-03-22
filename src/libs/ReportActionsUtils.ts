@@ -621,6 +621,10 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null | 
  * are ready for display in the ReportActionView.
  */
 function getCombinedReportActionsForDisplay(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[]): ReportAction[] {
+    if (_.isEmpty(transactionThreadReportActions)) {
+        return reportActions;
+    }
+
     // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action
     const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 

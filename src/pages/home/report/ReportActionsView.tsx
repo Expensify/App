@@ -103,24 +103,7 @@ function ReportActionsView({
     const prevIsSmallScreenWidthRef = useRef(isSmallScreenWidth);
     const reportID = report.reportID;
     const isLoading = (!!reportActionID && isLoadingInitialReportActions) || !isReadyForCommentLinking;
-
-    /**
-     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
-     * displaying.
-     */
-    const fetchNewerAction = useCallback(
-        (newestReportAction: OnyxTypes.ReportAction) => {
-            if (isLoadingNewerReportActions || isLoadingInitialReportActions) {
-                return;
-            }
-
-            Report.getNewerActions(reportID, newestReportAction.reportActionID);
-        },
-        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportID],
-    );
-
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-
     const openReportIfNecessary = () => {
         if (!shouldFetchReport(report)) {
             return;
@@ -149,17 +132,18 @@ function ReportActionsView({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route, isLoadingInitialReportActions]);
 
+    const combinedReportActions = ReportActionsUtils.getCombinedReportActionsForDisplay(allReportActions, transactionThreadReportActions);
     const indexOfLinkedAction = useMemo(() => {
         if (!reportActionID || isLoading) {
             return -1;
         }
 
-        return allReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
-    }, [allReportActions, transactionThreadReportActions, currentReportActionID, reportActionID, isLoading]);
+        return combinedReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
+    }, [combinedReportActions, currentReportActionID, reportActionID, isLoading]);
 
     const reportActions = useMemo(() => {
         if (!reportActionID) {
-            return allReportActions;
+            return combinedReportActions;
         }
 
         if (isLoading || indexOfLinkedAction === -1) {
@@ -167,16 +151,50 @@ function ReportActionsView({
         }
 
         if (isFirstLinkedActionRender.current) {
-            return allReportActions.slice(indexOfLinkedAction);
+            return combinedReportActions.slice(indexOfLinkedAction);
         }
         const paginationSize = getInitialPaginationSize;
-        return allReportActions.slice(Math.max(indexOfLinkedAction - paginationSize, 0));
+        return combinedReportActions.slice(Math.max(indexOfLinkedAction - paginationSize, 0));
 
         // currentReportActionID is needed to trigger batching once the report action has been positioned
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActionID, allReportActions, transactionThreadReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
+    }, [reportActionID, combinedReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
 
-    const hasMoreCached = reportActions.length < allReportActions.length;
+    const reportActionIDMap = useMemo(() => {
+        const reportActionIDs = allReportActions.map((action) => action.reportActionID);
+        return reportActions.map((action) => ({
+            reportActionID: action.reportActionID,
+            reportID: reportActionIDs.includes(action.reportActionID) ? reportID : transactionThreadReport?.reportID,
+        }));
+    }, [allReportActions, reportID, transactionThreadReport, reportActions]);
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
+     */
+    const fetchNewerAction = useCallback(
+        (newestReportAction: OnyxTypes.ReportAction) => {
+            if (isLoadingNewerReportActions || isLoadingInitialReportActions) {
+                return;
+            }
+
+            // If this is a one transaction report, ensure we load newer actions for both this report and the report associated with the transaction
+            if (!lodashIsEmpty(transactionThreadReport)) {
+                // Get newer actions based on the newest reportAction for the current report
+                const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
+                Report.getNewerActions(newestActionCurrentReport?.reportID ?? '0', newestActionCurrentReport?.reportActionID ?? '0');
+
+                // Get newer actions based on the newest reportAction for the transaction thread report
+                const newestActionTransactionThreadReport = reportActionIDMap.find((item) => item.reportID === transactionThreadReport.reportID);
+                Report.getNewerActions(newestActionTransactionThreadReport?.reportID ?? '0', newestActionTransactionThreadReport?.reportActionID ?? '0');
+            } else {
+                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+            }
+        },
+        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportID, transactionThreadReport, reportActionIDMap],
+    );
+
+    const hasMoreCached = reportActions.length < combinedReportActions.length;
     const newestReportAction = useMemo(() => reportActions?.[0], [reportActions]);
     const handleReportActionPagination = useCallback(
         ({firstReportActionID}: {firstReportActionID: string}) => {
@@ -195,7 +213,7 @@ function ReportActionsView({
 
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
-    const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated; 
+    const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
@@ -310,9 +328,20 @@ function ReportActionsView({
         if (!oldestReportAction || hasCreatedAction) {
             return;
         }
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID]);
+
+        if (!lodashIsEmpty(transactionThreadReport)) {
+            // Get newer actions based on the newest reportAction for the current report
+            const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
+            Report.getNewerActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
+
+            // Get newer actions based on the newest reportAction for the transaction thread report
+            const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
+            Report.getNewerActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
+        } else {
+            // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
+            Report.getOlderActions(reportID, oldestReportAction.reportActionID);
+        }
+    }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID, reportActionIDMap, transactionThreadReport]);
 
     const loadNewerChats = useCallback(() => {
         if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
