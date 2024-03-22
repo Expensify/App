@@ -198,6 +198,14 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
         .sort((tagA, tagB) => tagA.orderWeight - tagB.orderWeight);
 }
 
+function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof PolicyTagList> {
+    if (isEmptyObject(policyTagList)) {
+        return [];
+    }
+
+    return Object.keys(policyTagList).sort((key1, key2) => policyTagList[key1].orderWeight - policyTagList[key2].orderWeight);
+}
+
 /**
  * Gets a tag list of a policy by a tag index
  */
@@ -317,6 +325,7 @@ export {
     getIneligibleInvitees,
     getTagLists,
     getTagListName,
+    getSortedTagKeys,
     canEditTaxRate,
     getTagList,
     getCleanedTagName,
