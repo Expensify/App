@@ -47,7 +47,7 @@ function TaxPicker({selectedTaxRate = '', policy, insets, onSubmit}: TaxPickerPr
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const getTaxName = useCallback((key: string) => taxRates?.taxes[key].name, [taxRates?.taxes]);
+    const getTaxName = useCallback((key: string) => taxRates?.taxes[key]?.name, [taxRates?.taxes]);
 
     const selectedOptions = useMemo(() => {
         if (!selectedTaxRate) {

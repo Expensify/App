@@ -162,12 +162,10 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
                 Navigation.dismissModal();
                 return;
             }
-            // optimisticall set tax amount.
-            IOU.setMoneyRequestTaxAmount(transaction.transactionID, getTaxAmount(-newAmount, transactionTaxCode, taxRates));
             IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount, policy, policyTags, policyCategories);
             Navigation.dismissModal();
         },
-        [transaction, report, policy, policyTags, policyCategories, taxRates, transactionTaxCode],
+        [transaction, report, policy, policyTags, policyCategories],
     );
 
     const saveTag = useCallback(

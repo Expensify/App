@@ -62,7 +62,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmount(taxAmount);
+    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmount(Math.abs(taxAmount));
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -102,7 +102,7 @@ function MoneyRequestAmountForm(
 
     const forwardDeletePressedRef = useRef(false);
 
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, currency);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(Math.abs(taxAmount), currency);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
