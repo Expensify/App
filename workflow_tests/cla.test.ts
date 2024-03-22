@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {Step} from '@kie/act-js';
-import type {MockGithub} from '@kie/mock-github';
+import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
 import kieMockGithub from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/claAssertions';
@@ -8,16 +8,11 @@ import mocks from './mocks/claMocks';
 import eAct from './utils/ExtendedAct';
 import utils from './utils/utils';
 
-type File = {
-    src: string;
-    dest: string;
-};
-
 jest.setTimeout(90 * 1000);
 
 let mockGithub: MockGithub | undefined;
 
-const FILES_TO_COPY_INTO_TEST_REPO: File[] = [
+const FILES_TO_COPY_INTO_TEST_REPO: CreateRepositoryFile[] = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
         src: path.resolve(__dirname, '..', '.github', 'workflows', 'cla.yml'),
@@ -71,9 +66,9 @@ describe('test workflow cla', () => {
                 },
             };
             it('workflow executes, CLA assistant step not run', async () => {
-                const repoPath: string = mockGithub?.repo.getPath('testClaWorkflowRepo') ?? '';
-                const workflowPath: string = path.join(repoPath, '.github', 'workflows', 'cla.yml');
-                let act: eAct.ExtendedAct = new eAct.ExtendedAct(repoPath, workflowPath);
+                const repoPath = mockGithub?.repo.getPath('testClaWorkflowRepo') ?? '';
+                const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
 
                 // @ts-expect-error TODO: Remove this once Workflow Utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
@@ -106,9 +101,9 @@ describe('test workflow cla', () => {
                 },
             };
             it('workflow executes, CLA assistant step run', async () => {
-                const repoPath: string = mockGithub?.repo.getPath('testClaWorkflowRepo') ?? '';
-                const workflowPath: string = path.join(repoPath, '.github', 'workflows', 'cla.yml');
-                let act: eAct.ExtendedAct = new eAct.ExtendedAct(repoPath, workflowPath);
+                const repoPath = mockGithub?.repo.getPath('testClaWorkflowRepo') ?? '';
+                const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
 
                 // @ts-expect-error TODO: Remove this once Workflow Utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
@@ -141,9 +136,9 @@ describe('test workflow cla', () => {
                 },
             };
             it('workflow executes, CLA assistant step run', async () => {
-                const repoPath: string = mockGithub?.repo.getPath('testClaWorkflowRepo') ?? '';
-                const workflowPath: string = path.join(repoPath, '.github', 'workflows', 'cla.yml');
-                let act: eAct.ExtendedAct = new eAct.ExtendedAct(repoPath, workflowPath);
+                const repoPath = mockGithub?.repo.getPath('testClaWorkflowRepo') ?? '';
+                const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
 
                 // @ts-expect-error TODO: Remove this once Workflow Utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
@@ -175,9 +170,9 @@ describe('test workflow cla', () => {
                 },
             };
             it('workflow executes, CLA assistant step still run', async () => {
-                const repoPath: string = mockGithub?.repo.getPath('testClaWorkflowRepo') ?? '';
-                const workflowPath: string = path.join(repoPath, '.github', 'workflows', 'cla.yml');
-                let act: eAct.ExtendedAct = new eAct.ExtendedAct(repoPath, workflowPath);
+                const repoPath = mockGithub?.repo.getPath('testClaWorkflowRepo') ?? '';
+                const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
 
                 // @ts-expect-error TODO: Remove this once Workflow Utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
@@ -204,9 +199,9 @@ describe('test workflow cla', () => {
                 ref: 'main',
             };
 
-            const repoPath: string = mockGithub?.repo.getPath('testClaWorkflowRepo') ?? '';
-            const workflowPath: string = path.join(repoPath, '.github', 'workflows', 'cla.yml');
-            let act: eAct.ExtendedAct = new eAct.ExtendedAct(repoPath, workflowPath);
+            const repoPath = mockGithub?.repo.getPath('testClaWorkflowRepo') ?? '';
+            const workflowPath = path.join(repoPath, '.github', 'workflows', 'cla.yml');
+            let act = new eAct.ExtendedAct(repoPath, workflowPath);
 
             // @ts-expect-error TODO: Remove this once Workflow Utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
             act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
