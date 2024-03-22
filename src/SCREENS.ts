@@ -155,7 +155,6 @@ const SCREENS = {
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
-        DISTANCE: 'Money_Request_Distance',
         RECEIPT: 'Money_Request_Receipt',
     },
 
@@ -253,6 +252,8 @@ const SCREENS = {
         QUICKBOOKSONLINE_CUSTOMERS: 'Workspace_Accounting_QuickbooksOnline_Import_Customers',
         QUICKBOOKSONLINE_LOCATIONS: 'Workspace_Accounting_QuickbooksOnline_Import_Locations',
         QUICKBOOKSONLINE_TAXES: 'Workspace_Accounting_QuickbooksOnline_Import_Taxes',
+        DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
+        DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
     },
 
     EDIT_REQUEST: {
