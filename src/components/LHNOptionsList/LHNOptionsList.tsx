@@ -110,7 +110,10 @@ function LHNOptionsList({
         ],
     );
 
-    const extraData = useMemo(() => [reportActions, reports, policy, personalDetails, data.length], [reportActions, reports, policy, personalDetails, data.length]);
+    const extraData = useMemo(
+        () => [reportActions, reports, policy, personalDetails, data.length, draftComments],
+        [reportActions, reports, policy, personalDetails, data.length, draftComments],
+    );
 
     return (
         <View style={style ?? styles.flex1}>
