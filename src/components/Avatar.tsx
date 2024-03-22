@@ -95,7 +95,7 @@ function Avatar({
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
 
-    const avatarSource = (imageError || !source) ? fallbackAvatar : source;
+    const avatarSource = imageError || !source ? fallbackAvatar : source;
 
     return (
         <View style={[containerStyles, styles.pointerEventsNone]}>
