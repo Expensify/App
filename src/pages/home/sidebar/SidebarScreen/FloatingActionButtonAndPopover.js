@@ -211,7 +211,7 @@ function FloatingActionButtonAndPopover(props) {
                         text: translate('newTaskPage.assignTask'),
                         onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                     },
-                    ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
+                    ...(!props.isLoading && !Policy.hasActiveChatEnabledPolicies(props.allPolicies)
                         ? [
                               {
                                   displayInDefaultIconColor: true,

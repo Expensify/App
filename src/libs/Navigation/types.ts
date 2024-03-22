@@ -183,6 +183,14 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAG_CREATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
+        policyID: string;
+        rateID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
     };
@@ -377,6 +385,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes | undefined;
         action: ValueOf<typeof CONST.IOU.ACTION>;
         pageIndex: string;
+        transactionID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -394,9 +403,12 @@ type MoneyRequestNavigatorParamList = {
         waypointIndex: string;
         threadReportID: number;
     };
-    [SCREENS.MONEY_REQUEST.DISTANCE]: {
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
+        action: string;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.RECEIPT]: {
         iouType: string;

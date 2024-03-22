@@ -93,38 +93,42 @@ function IOURequestStepScan({
             return;
         }
 
-        navigator.mediaDevices.getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}}).then((stream) => {
-            _.forEach(stream.getTracks(), (track) => track.stop());
-            // Only Safari 17+ supports zoom constraint
-            if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
-                const deviceId = _.chain(stream.getTracks())
-                    .map((track) => track.getSettings())
-                    .find((setting) => setting.zoom === 1)
-                    .get('deviceId')
-                    .value();
-                if (deviceId) {
-                    setVideoConstraints({deviceId});
+        const defaultConstraints = {facingMode: {exact: 'environment'}};
+        navigator.mediaDevices
+            .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
+            .then((stream) => {
+                _.forEach(stream.getTracks(), (track) => track.stop());
+                // Only Safari 17+ supports zoom constraint
+                if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
+                    const deviceId = _.chain(stream.getTracks())
+                        .map((track) => track.getSettings())
+                        .find((setting) => setting.zoom === 1)
+                        .get('deviceId')
+                        .value();
+                    if (deviceId) {
+                        setVideoConstraints({deviceId});
+                        return;
+                    }
+                }
+                if (!navigator.mediaDevices.enumerateDevices) {
+                    setVideoConstraints(defaultConstraints);
                     return;
                 }
-            }
-            if (!navigator.mediaDevices.enumerateDevices) {
-                setVideoConstraints({facingMode: {exact: 'environment'}});
-                return;
-            }
-            navigator.mediaDevices.enumerateDevices().then((devices) => {
-                const lastBackDeviceId = _.chain(devices)
-                    .filter((item) => item.kind === 'videoinput')
-                    .last()
-                    .get('deviceId', '')
-                    .value();
+                navigator.mediaDevices.enumerateDevices().then((devices) => {
+                    const lastBackDeviceId = _.chain(devices)
+                        .filter((item) => item.kind === 'videoinput')
+                        .last()
+                        .get('deviceId', '')
+                        .value();
 
-                if (!lastBackDeviceId) {
-                    setVideoConstraints({facingMode: {exact: 'environment'}});
-                    return;
-                }
-                setVideoConstraints({deviceId: lastBackDeviceId});
-            });
-        });
+                    if (!lastBackDeviceId) {
+                        setVideoConstraints(defaultConstraints);
+                        return;
+                    }
+                    setVideoConstraints({deviceId: lastBackDeviceId});
+                });
+            })
+            .catch(() => setVideoConstraints(defaultConstraints));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTabActive]);
 
