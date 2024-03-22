@@ -77,26 +77,21 @@ function WithReportIDsContextProvider({
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
-
-    // We need to make sure the current report is in the list of reports, but we do not want
-    // to have to re-generate the list every time the currentReportID changes. To do that
-    // we first generate the list as if there was no current report, then we check if
-    // the current report is missing from the list, which should very rarely happen. In this
-    // case we re-generate the list a 2nd time with the current report included.
-    const orderedReportIDsWithCurrentReport = useMemo(() => {
+    const contextValue: ReportIDsContextValue = useMemo(() => {
+        // We need to make sure the current report is in the list of reports, but we do not want
+        // to have to re-generate the list every time the currentReportID changes. To do that
+        // we first generate the list as if there was no current report, then we check if
+        // the current report is missing from the list, which should very rarely happen. In this
+        // case we re-generate the list a 2nd time with the current report included.
         if (derivedCurrentReportID && !orderedReportIDs.includes(derivedCurrentReportID)) {
-            return getOrderedReportIDs(derivedCurrentReportID);
+            return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? ''};
         }
-        return orderedReportIDs;
-    }, [getOrderedReportIDs, derivedCurrentReportID, orderedReportIDs]);
 
-    const contextValue = useMemo(
-        () => ({
-            orderedReportIDs: orderedReportIDsWithCurrentReport,
+        return {
+            orderedReportIDs: getOrderedReportIDs(),
             currentReportID: derivedCurrentReportID ?? '',
-        }),
-        [orderedReportIDsWithCurrentReport, derivedCurrentReportID],
-    );
+        };
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID]);
 
     return <ReportIDsContext.Provider value={contextValue}>{children}</ReportIDsContext.Provider>;
 }
