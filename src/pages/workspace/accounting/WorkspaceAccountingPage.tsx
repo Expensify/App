@@ -80,9 +80,56 @@ function WorkspaceAccountingPage() {
         [openQBOsync, styles.pl2, styles.justifyContentCenter, styles.sectionMenuItemTopDescription, translate],
     );
 
+    const threeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = useMemo(
+        () => [
+            {
+                icon: Expensicons.Sync,
+                text: translate('workspace.accounting.syncNow'),
+                onSelected: () => {},
+            },
+            {
+                icon: Expensicons.Trashcan,
+                text: translate('workspace.accounting.disconnect'),
+                onSelected: () => setIsDisconnectModalOpen(true),
+            },
+        ],
+        [translate],
+    );
+
     const qboConnectionMenuItems: MenuItemProps[] = useMemo(
-        () =>
-            isSyncInProgress
+        () => [
+            {
+                icon: Expensicons.QBORound,
+                iconType: 'avatar',
+                interactive: false,
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                shouldShowRightComponent: true,
+                title: translate('workspace.accounting.qbo'),
+                description: translate(isSyncInProgress ? 'workspace.accounting.importing' : 'workspace.accounting.lastSync'),
+                rightComponent: isSyncInProgress ? (
+                    <ActivityIndicator
+                        style={[styles.popoverMenuIcon]}
+                        color={theme.spinner}
+                    />
+                ) : (
+                    <View ref={threeDotsMenuContainerRef}>
+                        <ThreeDotsMenu
+                            onIconPress={() => {
+                                threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                                    setThreeDotsMenuPosition({
+                                        horizontal: x + width,
+                                        vertical: y + height,
+                                    });
+                                });
+                            }}
+                            menuItems={threeDotsMenuItems}
+                            anchorPosition={threeDotsMenuPosition}
+                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                        />
+                    </View>
+                ),
+            },
+            ...(isSyncInProgress
                 ? []
                 : [
                       {
@@ -106,8 +153,20 @@ function WorkspaceAccountingPage() {
                           title: translate('workspace.accounting.advanced'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                       },
-                  ],
-        [isSyncInProgress, styles.sectionMenuItemTopDescription, translate],
+                  ]),
+        ],
+        [
+            translate,
+            styles.flex1,
+            theme.spinner,
+            styles.flexRow,
+            isSyncInProgress,
+            threeDotsMenuItems,
+            threeDotsMenuPosition,
+            styles.popoverMenuIcon,
+            threeDotsMenuContainerRef,
+            styles.sectionMenuItemTopDescription,
+        ],
     );
 
     const otherConnectionMenuItems: MenuItemProps[] = useMemo(
@@ -122,19 +181,6 @@ function WorkspaceAccountingPage() {
         ],
         [styles.sectionMenuItemTopDescription, translate],
     );
-
-    const threeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
-        {
-            icon: Expensicons.Sync,
-            text: translate('workspace.accounting.syncNow'),
-            onSelected: () => {},
-        },
-        {
-            icon: Expensicons.Trashcan,
-            text: translate('workspace.accounting.disconnect'),
-            onSelected: () => setIsDisconnectModalOpen(true),
-        },
-    ];
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
@@ -175,41 +221,6 @@ function WorkspaceAccountingPage() {
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
                     >
-                        {policyIsConnectedToAccountingSystem && (
-                            <View
-                                ref={threeDotsMenuContainerRef}
-                                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}
-                            >
-                                <MenuItem
-                                    title={translate('workspace.accounting.qbo')}
-                                    description={translate(isSyncInProgress ? 'workspace.accounting.importing' : 'workspace.accounting.lastSync')}
-                                    icon={Expensicons.QBORound}
-                                    iconType="avatar"
-                                    wrapperStyle={[isSmallScreenWidth ? {...styles.ph8, ...styles.mhn8} : styles.sectionMenuItemTopDescription]}
-                                    interactive={false}
-                                />
-                                {isSyncInProgress ? (
-                                    <ActivityIndicator
-                                        style={[styles.popoverMenuIcon]}
-                                        color={theme.spinner}
-                                    />
-                                ) : (
-                                    <ThreeDotsMenu
-                                        onIconPress={() => {
-                                            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                                setThreeDotsMenuPosition({
-                                                    horizontal: x + width,
-                                                    vertical: y + height,
-                                                });
-                                            });
-                                        }}
-                                        menuItems={threeDotsMenuItems}
-                                        anchorPosition={threeDotsMenuPosition}
-                                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                    />
-                                )}
-                            </View>
-                        )}
                         <MenuItemList
                             menuItems={policyIsConnectedToAccountingSystem ? [...qboConnectionMenuItems, ...otherConnectionMenuItems] : connectionsMenuItems}
                             shouldUseSingleExecution
