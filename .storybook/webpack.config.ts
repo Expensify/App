@@ -1,5 +1,7 @@
 /* eslint-disable no-underscore-dangle */
+
 /* eslint-disable no-param-reassign */
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import dotenv from 'dotenv';
 import path from 'path';
@@ -63,7 +65,7 @@ const webpackConfig = ({config}: {config: Configuration}) => {
             (rule): rule is RuleSetRule =>
                 typeof rule !== 'boolean' && typeof rule !== 'string' && typeof rule !== 'number' && !!rule?.test && rule.test instanceof RegExp && rule.test.test('.svg'),
         );
-        if (fileLoaderRule?.exclude) {
+        if (fileLoaderRule) {
             fileLoaderRule.exclude = /\.svg$/;
         }
         config.module.rules?.push({
