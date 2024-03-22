@@ -263,8 +263,6 @@ function ReportScreen({
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isEmptyChat = useMemo((): boolean => reportActions.length === 0, [reportActions]);
-    // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions;
     const isOptimisticDelete = report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 
     // If there's a non-404 error for the report we should show it instead of blocking the screen
@@ -334,7 +332,7 @@ function ReportScreen({
     }, [report, reportIDFromRoute]);
 
     const shouldShowSkeleton =
-        isLinkingToMessage || !isCurrentReportLoadedFromOnyx || isLoadingInitialReportActions || isLoading || (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
+        isLinkingToMessage || !isCurrentReportLoadedFromOnyx || (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) || isLoading || (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
 
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
 
