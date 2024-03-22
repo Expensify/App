@@ -1,9 +1,8 @@
-const _ = require('underscore');
-const core = require('@actions/core');
-const github = require('@actions/github');
-const ActionUtils = require('../../../libs/ActionUtils');
-const GitUtils = require('../../../libs/GitUtils').default;
-const GithubUtils = require('../../../libs/GithubUtils');
+import core from '@actions/core';
+import github from '@actions/github';
+import ActionUtils from '../../../libs/ActionUtils';
+import GithubUtils from '../../../libs/GithubUtils';
+import GitUtils from '../../../libs/GitUtils';
 
 async function run() {
     try {
@@ -23,7 +22,7 @@ async function run() {
             })
         ).data.workflow_runs;
 
-        const priorTag = _.first(completedDeploys).head_branch;
+        const priorTag = completedDeploys[0].head_branch;
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
         const prList = await GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
         console.log(`Found the pull request list: ${prList}`);

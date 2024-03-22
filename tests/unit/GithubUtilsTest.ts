@@ -20,6 +20,18 @@ type PullRequest = {
     url: string;
     number: number;
     isVerified: boolean;
+    merged?: boolean;
+    head?: {
+        repo: {
+            html_url: string;
+        };
+        sha: string;
+    };
+    merged_by?: {
+        login: string;
+    };
+    merge_commit_sha?: string;
+    html_url?: string;
 };
 
 type Label = {
@@ -628,3 +640,6 @@ describe('GithubUtils', () => {
         ])('getReleaseBody("%s")', (input, expectedOutput) => expect(GithubUtils.getReleaseBody(input)).toBe(expectedOutput));
     });
 });
+
+// eslint-disable-next-line import/prefer-default-export
+export type {PullRequest};
