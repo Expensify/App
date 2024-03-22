@@ -16,8 +16,8 @@ const isMobile = Browser.isMobile();
  * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
  */
 export default function (useCachedViewportHeight = false): WindowDimensions {
-    const {isFullscreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenContext) ?? {
-        isFullscreenRef: useRef(false),
+    const {isFullScreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenContext) ?? {
+        isFullScreenRef: useRef(false),
         lockedWindowDimensionsRef: useRef<WindowDimensions | null>(null),
         lockWindowDimensions: () => {},
         unlockWindowDimensions: () => {},
@@ -102,7 +102,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         isSmallScreen,
     };
 
-    if (!lockedWindowDimensionsRef.current && !isFullscreenRef.current) {
+    if (!lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
         return windowDimensions;
     }
 
@@ -125,7 +125,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const didScreenReturnToOriginalSize = lockedWindowDimensionsRef.current.windowWidth === windowWidth && lockedWindowDimensionsRef.current.windowHeight === windowHeight;
 
     // if video exits fullscreen mode, unlock the window dimensions
-    if (lockedWindowDimensionsRef.current && !isFullscreenRef.current && didScreenReturnToOriginalSize) {
+    if (lockedWindowDimensionsRef.current && !isFullScreenRef.current && didScreenReturnToOriginalSize) {
         const lastLockedWindowDimensions = {...lockedWindowDimensionsRef.current};
         unlockWindowDimensions();
         return lastLockedWindowDimensions;

@@ -53,7 +53,7 @@ function BaseVideoPlayer({
         updateCurrentlyPlayingURL,
         videoResumeTryNumber,
     } = usePlaybackContext();
-    const {isFullscreenRef} = useFullScreenContext();
+    const {isFullScreenRef} = useFullScreenContext();
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -134,7 +134,7 @@ function BaseVideoPlayer({
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
             if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
-                isFullscreenRef.current = false;
+                isFullScreenRef.current = false;
                 // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
                 // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
                 if (videoStateRef.current && videoStateRef.current.isPlaying) {
@@ -144,7 +144,7 @@ function BaseVideoPlayer({
                 }
             }
         },
-        [isFullscreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
+        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
     );
 
     const bindFunctions = useCallback(() => {
@@ -168,15 +168,15 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || isFullscreenRef.current) {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || isFullScreenRef.current) {
             return;
         }
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isUploading, isFullscreenRef]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isUploading, isFullScreenRef]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (url !== currentlyPlayingURL || !sharedElement || isFullscreenRef.current) {
+        if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
             return;
         }
 
@@ -201,7 +201,7 @@ function BaseVideoPlayer({
             newParentRef.childNodes[0].remove();
             originalParent.appendChild(sharedElement);
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullscreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     return (
         <>

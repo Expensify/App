@@ -6,7 +6,7 @@ import type {FullScreenContext} from './types';
 const Context = React.createContext<FullScreenContext | null>(null);
 
 function FullScreenContextProvider({children}: ChildrenProps) {
-    const isFullscreenRef = useRef(false);
+    const isFullScreenRef = useRef(false);
     const lockedWindowDimensionsRef = useRef<WindowDimensions | null>(null);
 
     const lockWindowDimensions = useCallback((newWindowDimensions: WindowDimensions) => {
@@ -17,14 +17,14 @@ function FullScreenContextProvider({children}: ChildrenProps) {
         lockedWindowDimensionsRef.current = null;
     }, []);
 
-    const contextValue = useMemo(() => ({isFullscreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions}), [lockWindowDimensions, unlockWindowDimensions]);
+    const contextValue = useMemo(() => ({isFullScreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions}), [lockWindowDimensions, unlockWindowDimensions]);
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
 function useFullScreenContext() {
     const fullscreenContext = useContext(Context);
     if (!fullscreenContext) {
-        throw new Error('usePlaybackContext must be used within a PlaybackContextProvider');
+        throw new Error('useFullScreenContext must be used within a FullScreenContextProvider');
     }
     return fullscreenContext;
 }
