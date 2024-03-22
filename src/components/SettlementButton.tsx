@@ -144,6 +144,7 @@ function SettlementButton({
     const chatReport = ReportUtils.getReport(chatReportID);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
     const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
+    const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
@@ -187,7 +188,7 @@ function SettlementButton({
         if (isExpenseReport && shouldShowPaywithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
-        if (isExpenseReport && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+        if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
 
