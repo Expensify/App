@@ -19,6 +19,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as Console from '@libs/actions/Console';
+import {parseStringifyMessages} from '@libs/Console';
+import type {Log} from '@libs/Console';
+import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -51,11 +54,12 @@ type BaseMenuItem = {
 
 type TroubleshootPageOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
+    capturedLogs: OnyxEntry<Record<number, Log>>;
 };
 
 type TroubleshootPageProps = TroubleshootPageOnyxProps;
 
-function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
+function TroubleshootPage({shouldStoreLogs, capturedLogs}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -92,6 +96,17 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
             .reverse();
     }, [shouldStoreLogs, translate, waitForNavigate]);
 
+    const onToggleClientSideLogging = () => {
+        if (shouldStoreLogs) {
+            const logs = Object.values(capturedLogs as Log[]);
+            const logsWithParsedMessages = parseStringifyMessages(logs);
+            localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
+            Console.disableLoggingAndFlushLogs();
+        } else {
+            Console.setShouldStoreLogs(true);
+        }
+    };
+
     return (
         <IllustratedHeaderPageLayout
             title={translate('initialSettingsPage.aboutPage.troubleshoot')}
@@ -117,7 +132,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                     <Switch
                         accessibilityLabel="Client side logging"
                         isOn={!!shouldStoreLogs}
-                        onToggle={() => (shouldStoreLogs ? Console.disableLoggingAndFlushLogs() : Console.setShouldStoreLogs(true))}
+                        onToggle={onToggleClientSideLogging}
                     />
                 </TestToolRow>
             </View>
@@ -154,5 +169,8 @@ TroubleshootPage.displayName = 'TroubleshootPage';
 export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
     shouldStoreLogs: {
         key: ONYXKEYS.SHOULD_STORE_LOGS,
+    },
+    capturedLogs: {
+        key: ONYXKEYS.LOGS,
     },
 })(TroubleshootPage);
