@@ -41,7 +41,8 @@ export default () => {
             if (
                 !(typeof value === 'object' && !!value) ||
                 !('type' in value) ||
-                (!(value.type === CONST.ONYX_UPDATE_TYPES.HTTPS && value.request && value.response) && !(value.type === CONST.ONYX_UPDATE_TYPES.PUSHER && value.updates))
+                (!(value.type === CONST.ONYX_UPDATE_TYPES.HTTPS && value.request && value.response) &&
+                    !((value.type === CONST.ONYX_UPDATE_TYPES.PUSHER || value.type === CONST.ONYX_UPDATE_TYPES.AIRSHIP) && value.updates))
             ) {
                 console.debug('[OnyxUpdateManager] Invalid format found for updates, cleaning and unpausing the queue');
                 Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
@@ -81,7 +82,7 @@ export default () => {
                     previousUpdateIDFromServer,
                     lastUpdateIDAppliedToClient,
                 });
-                canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+                canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer);
             }
 
             canUnpauseQueuePromise.finally(() => {

@@ -32,6 +32,9 @@ type BaseReactionsProps = {
 
     /** Id of the ReportAction for EmojiPicker. */
     reportActionID: string;
+
+    /** Function to update emoji picker state */
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 type BaseQuickEmojiReactionsOnyxProps = {
@@ -53,6 +56,8 @@ type QuickEmojiReactionsProps = BaseReactionsProps & {
      * in which this component is rendered.
      */
     closeContextMenu: (callback: CloseContextMenuCallback) => void;
+
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 export type {BaseQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps, QuickEmojiReactionsProps, OpenPickerCallback, CloseContextMenuCallback, PickerRefElement};

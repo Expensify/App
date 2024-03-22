@@ -51,9 +51,11 @@ type MultiGestureCanvasProps = ChildrenProps & {
     onSwipeDown?: OnSwipeDownCallback;
 };
 
+const defaultContentSize = {width: 1, height: 1};
+
 function MultiGestureCanvas({
     canvasSize,
-    contentSize = {width: 1, height: 1},
+    contentSize: contentSizeProp,
     zoomRange: zoomRangeProp,
     isActive = true,
     children,
@@ -66,6 +68,7 @@ function MultiGestureCanvas({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const contentSize = contentSizeProp ?? defaultContentSize;
     const shouldDisableTransformationGesturesFallback = useSharedValue(false);
     const shouldDisableTransformationGestures = shouldDisableTransformationGesturesProp ?? shouldDisableTransformationGesturesFallback;
 
@@ -224,6 +227,8 @@ function MultiGestureCanvas({
                 },
                 {scale: totalScale.value},
             ],
+            // Hide the image if the size is not ready yet
+            opacity: contentSizeProp?.width ? 1 : 0,
         };
     });
 

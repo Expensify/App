@@ -15,6 +15,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 import shouldReplayVideo from './shouldReplayVideo';
+import * as VideoUtils from './utils';
 import VideoPlayerControls from './VideoPlayerControls';
 
 const isMobileSafari = Browser.isMobileSafari();
@@ -49,7 +50,8 @@ function BaseVideoPlayer({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isBuffering, setIsBuffering] = useState(true);
-    const [sourceURL] = useState(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url));
+    // we add "#t=0.001" at the end of the URL to skip first milisecond of the video and always be able to show proper video preview when video is paused at the beginning
+    const [sourceURL] = useState(VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const videoPlayerRef = useRef(null);
@@ -60,6 +62,7 @@ function BaseVideoPlayer({
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => url.startsWith(prefix));
+    const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -81,7 +84,7 @@ function BaseVideoPlayer({
         setIsPopoverVisible(false);
     };
 
-    // fix for iOS mWeb: preventing iOS native player edfault behavior from pausing the video when exiting fullscreen
+    // fix for iOS mWeb: preventing iOS native player default behavior from pausing the video when exiting fullscreen
     const preventPausingWhenExitingFullscreen = useCallback(
         (isVideoPlaying) => {
             if (videoResumeTryNumber.current === 0 || isVideoPlaying) {
@@ -120,6 +123,7 @@ function BaseVideoPlayer({
     const handleFullscreenUpdate = useCallback(
         (e) => {
             onFullscreenUpdate(e);
+
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
             if (!isPlaying || e.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
@@ -138,15 +142,37 @@ function BaseVideoPlayer({
     const bindFunctions = useCallback(() => {
         currentVideoPlayerRef.current._onPlaybackStatusUpdate = handlePlaybackStatusUpdate;
         currentVideoPlayerRef.current._onFullscreenUpdate = handleFullscreenUpdate;
-        // update states after binding
+
+        // Update states after binding
         currentVideoPlayerRef.current.getStatusAsync().then((status) => {
             handlePlaybackStatusUpdate(status);
         });
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
 
     useEffect(() => {
+        if (!isUploading) {
+            return;
+        }
+
+        // If we are uploading a new video, we want to immediately set the video player ref.
         currentVideoPlayerRef.current = videoPlayerRef.current;
-    }, [url, currentVideoPlayerRef]);
+    }, [url, currentVideoPlayerRef, isUploading]);
+
+    useEffect(() => {
+        shouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
+    }, [shouldUseSharedVideoElement]);
+
+    useEffect(
+        () => () => {
+            if (shouldUseSharedVideoElementRef.current) {
+                return;
+            }
+
+            // If it's not a shared video player, clear the video player ref.
+            currentVideoPlayerRef.current = null;
+        },
+        [currentVideoPlayerRef],
+    );
 
     // update shared video elements
     useEffect(() => {

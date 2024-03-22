@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {memo, useEffect, useState} from 'react';
-import {ActivityIndicator, ScrollView, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
@@ -9,6 +9,7 @@ import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -78,6 +79,7 @@ const defaultProps = {
     reportActionID: '',
     isHovered: false,
     optionalVideoDuration: 0,
+    fallbackSource: Expensicons.Gallery,
 };
 
 function AttachmentView({
@@ -101,7 +103,7 @@ function AttachmentView({
     isHovered,
     optionalVideoDuration,
 }) {
-    const {updateCurrentlyPlayingURL, currentVideoPlayerRef} = usePlaybackContext();
+    const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -114,17 +116,6 @@ function AttachmentView({
         }
         updateCurrentlyPlayingURL(isVideo ? source : null);
     }, [isFocused, isVideo, source, updateCurrentlyPlayingURL, file, isUsedInAttachmentModal]);
-
-    // This should ensure we clean up any video references when closing the attachment modal as these only existed here in memory during attachment preview.
-    useEffect(
-        () => () => {
-            if (!isVideo) {
-                return;
-            }
-            currentVideoPlayerRef.current = null;
-        },
-        [isVideo, currentVideoPlayerRef],
-    );
 
     const [imageError, setImageError] = useState(false);
 
@@ -211,6 +202,21 @@ function AttachmentView({
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
     const isImage = typeof source === 'number' || Str.isImage(source);
     if (isImage || (file && Str.isImage(file.name))) {
+        if (imageError) {
+            // AttachmentViewImage can't handle icon fallbacks, so we need to handle it here
+            if (typeof fallbackSource === 'number' || _.isFunction(fallbackSource)) {
+                return (
+                    <Icon
+                        src={fallbackSource}
+                        height={variables.defaultAvatarPreviewSize}
+                        width={variables.defaultAvatarPreviewSize}
+                        additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
+                        fill={theme.border}
+                    />
+                );
+            }
+        }
+
         return (
             <AttachmentViewImage
                 url={imageError ? fallbackSource : source}
