@@ -323,7 +323,7 @@ function ReportScreen({
     /**
      * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
      */
-    const isReportReadyForDisplay = useMemo((): boolean => {
+    const isCurrentReportLoadedFromOnyx = useMemo((): boolean => {
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = report && report.reportID !== reportIDFromRoute;
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
@@ -331,12 +331,12 @@ function ReportScreen({
 
     const shouldShowSkeleton =
         isLinkingToMessage ||
-        !isReportReadyForDisplay ||
+        !isCurrentReportLoadedFromOnyx ||
         (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
         isLoading ||
         (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
 
-    const shouldShowReportActionList = isReportReadyForDisplay && !isLoading;
+    const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -616,7 +616,7 @@ function ReportScreen({
                                 shouldShowCloseButton
                             />
                         )}
-                        <DragAndDropProvider isDisabled={!isReportReadyForDisplay || !ReportUtils.canUserPerformWriteAction(report)}>
+                        <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !ReportUtils.canUserPerformWriteAction(report)}>
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
@@ -638,7 +638,7 @@ function ReportScreen({
                                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {shouldShowSkeleton && <ReportActionsSkeletonView />}
 
-                                {isReportReadyForDisplay ? (
+                                {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
                                         report={report}
                                         pendingAction={reportPendingAction}
