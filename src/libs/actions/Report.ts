@@ -1044,7 +1044,7 @@ function togglePinnedState(reportID: string, isPinnedChat: boolean) {
  * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
 function saveReportDraftComment(reportID: string, comment: string | null) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment || null);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment?.trim() || null);
 }
 
 /** Saves the number of lines for the comment */
