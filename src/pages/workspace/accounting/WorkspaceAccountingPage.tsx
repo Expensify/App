@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 // import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorPosition} from '@styles/index';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 function WorkspaceAccountingPage() {
@@ -46,9 +45,8 @@ function WorkspaceAccountingPage() {
         () => [
             {
                 icon: Expensicons.QBORound,
+                iconType: 'avatar',
                 interactive: false,
-                iconHeight: variables.iconSizeExtraLarge,
-                iconWidth: variables.iconSizeExtraLarge,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: translate('workspace.accounting.qbo'),
@@ -63,10 +61,9 @@ function WorkspaceAccountingPage() {
             },
             {
                 icon: Expensicons.XeroRound,
+                iconType: 'avatar',
                 interactive: false,
                 disabled: true,
-                iconHeight: variables.iconSizeExtraLarge,
-                iconWidth: variables.iconSizeExtraLarge,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: translate('workspace.accounting.xero'),
@@ -187,8 +184,7 @@ function WorkspaceAccountingPage() {
                                     title={translate('workspace.accounting.qbo')}
                                     description={translate(isSyncInProgress ? 'workspace.accounting.importing' : 'workspace.accounting.lastSync')}
                                     icon={Expensicons.QBORound}
-                                    iconHeight={variables.avatarSizeNormal}
-                                    iconWidth={variables.avatarSizeNormal}
+                                    iconType='avatar'
                                     wrapperStyle={[styles.ph8, styles.mhn8]}
                                     interactive={false}
                                 />
