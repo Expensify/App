@@ -2,11 +2,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-let draftCommentMap: OnyxCollection<string> = {};
+let draftCommentCollection: OnyxCollection<string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
     callback: (nextVal) => {
-        draftCommentMap = nextVal;
+        draftCommentCollection = nextVal;
     },
     waitForCollectionCallback: true,
 });
@@ -17,7 +17,7 @@ Onyx.connect({
  * A valid use-case of this function is outside React components, like in utility functions.
  */
 function getDraftComment(reportID: string): OnyxEntry<string> | null | undefined {
-    return draftCommentMap?.[ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + reportID];
+    return draftCommentCollection?.[ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + reportID];
 }
 
 /**
