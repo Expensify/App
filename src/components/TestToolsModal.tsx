@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
@@ -12,6 +13,7 @@ import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
 import Modal from './Modal';
 import ProfilingToolMenu from './ProfilingToolMenu';
 import TestToolMenu from './TestToolMenu';
+import Text from './Text';
 
 type TestToolsModalOnyxProps = {
     /** Whether the test tools modal is open */
@@ -24,6 +26,7 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
     const {isDevelopment} = useEnvironment();
     const {windowWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
+    const styles = useThemeStyles();
 
     return (
         <Modal
@@ -33,8 +36,14 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
         >
             <View style={[StyleUtils.getTestToolsModalStyle(windowWidth)]}>
                 {isDevelopment && <TestToolMenu />}
-                <ClientSideLoggingToolMenu />
+                <Text
+                    style={[styles.textLabelSupporting, styles.mt4, styles.mb3]}
+                    numberOfLines={1}
+                >
+                    Release options
+                </Text>
                 <ProfilingToolMenu />
+                <ClientSideLoggingToolMenu />
             </View>
         </Modal>
     );

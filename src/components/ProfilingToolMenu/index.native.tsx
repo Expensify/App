@@ -142,13 +142,6 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
 
     return (
         <>
-            <Text
-                style={[styles.textLabelSupporting, styles.mt4, styles.mb3]}
-                numberOfLines={1}
-            >
-                Release options
-            </Text>
-
             <TestToolRow title="Use Profiling">
                 <Switch
                     accessibilityLabel="Use Profiling"
@@ -156,15 +149,17 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
                     onToggle={onToggleProfiling}
                 />
             </TestToolRow>
-            <Text style={[styles.textLabelSupporting, styles.mb4]}>{!!pathIOS && `path: ${pathIOS}`}</Text>
             {!!pathIOS && (
-                <TestToolRow title="Profile trace">
-                    <Button
-                        small
-                        text="Share"
-                        onPress={onDownloadProfiling}
-                    />
-                </TestToolRow>
+                <>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${pathIOS}`}</Text>
+                    <TestToolRow title="Profile trace">
+                        <Button
+                            small
+                            text="Share"
+                            onPress={onDownloadProfiling}
+                        />
+                    </TestToolRow>
+                </>
             )}
         </>
     );
