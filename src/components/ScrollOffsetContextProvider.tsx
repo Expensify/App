@@ -1,6 +1,7 @@
 import type {ParamListBase, RouteProp} from '@react-navigation/native';
 import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import usePrevious from '@hooks/usePrevious';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,10 +47,10 @@ function getKey(route: RouteProp<ParamListBase> | NavigationPartialRoute): strin
 
 function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetContextProviderProps) {
     const scrollOffsetsRef = useRef<Record<string, number>>({});
-    const previousPriorityMode = useRef<PriorityMode>(priorityMode);
+    const previousPriorityMode = usePrevious(priorityMode);
 
     useEffect(() => {
-        if (previousPriorityMode.current === priorityMode) {
+        if (previousPriorityMode === null || previousPriorityMode === priorityMode) {
             return;
         }
 
@@ -59,9 +60,7 @@ function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetConte
                 delete scrollOffsetsRef.current[key];
             }
         }
-
-        previousPriorityMode.current = priorityMode;
-    }, [priorityMode]);
+    }, [priorityMode, previousPriorityMode]);
 
     const saveScrollOffset: ScrollOffsetContextValue['saveScrollOffset'] = useCallback((route, scrollOffset) => {
         scrollOffsetsRef.current[getKey(route)] = scrollOffset;
@@ -87,10 +86,6 @@ function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetConte
         }
     }, []);
 
-    /**
-     * The context this component exposes to child components
-     * @returns currentReportID to share between central pane and LHN
-     */
     const contextValue = useMemo(
         (): ScrollOffsetContextValue => ({
             saveScrollOffset,
