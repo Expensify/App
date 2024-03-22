@@ -280,6 +280,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
                 shouldSkipVBBACall
                 isLoading={isLoading}
+                shouldUseScrollView
             >
                 <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
