@@ -23,8 +23,8 @@ function RadioListItem({
 }: RadioListItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const fullTitle = isMultilineSupported ? item.text.trimStart() : item.text;
-    const indentsLength = item.text.length - fullTitle.length;
+    const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
+    const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
 
     return (
@@ -48,7 +48,7 @@ function RadioListItem({
                 <View style={[styles.flex1, styles.alignItemsStart]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
-                        text={item.text ?? ''}
+                        text={fullTitle ?? ''}
                         style={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
