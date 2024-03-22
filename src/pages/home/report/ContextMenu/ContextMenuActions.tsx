@@ -27,7 +27,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, ReportAction, ReportActionReactions, Report as ReportType} from '@src/types/onyx';
+import type {Beta, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -65,6 +65,7 @@ type ShouldShow = (
 
 type ContextMenuActionPayload = {
     reportAction: ReportAction;
+    transaction?: OnyxEntry<Transaction>;
     reportID: string;
     draftMessage: string;
     selection: string;
@@ -339,7 +340,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, selection, reportID}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, reportID}) => {
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = ReportActionsUtils.getReportActionMessageText(reportAction);
@@ -363,7 +364,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReport);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
+                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction, transaction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
