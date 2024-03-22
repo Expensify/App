@@ -58,7 +58,9 @@ function SAMLSignInPage({credentials, account}: SAMLSignInPageProps) {
                     title=""
                     onBackButtonPress={() => {
                         Session.clearSignInData();
-                        Navigation.navigate(ROUTES.HOME);
+                        Navigation.isNavigationReady().then(() => {
+                            Navigation.goBack();
+                        });
                     }}
                 />
             )}

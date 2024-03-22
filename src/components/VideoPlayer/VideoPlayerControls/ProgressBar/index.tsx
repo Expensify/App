@@ -7,12 +7,17 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type ProgressBarProps = {
+    /** Total duration of a video. */
     duration: number;
+
+    /** Position of progress pointer on the bar. */
     position: number;
+
+    /** Function to seek to a specific position in the video. */
     seekPosition: (newPosition: number) => void;
 };
 
-function getProgress(currentPosition: number, maxPosition: number) {
+function getProgress(currentPosition: number, maxPosition: number): number {
     return Math.min(Math.max((currentPosition / maxPosition) * 100, 0), 100);
 }
 
@@ -63,7 +68,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         progressWidth.value = getProgress(position, duration);
     }, [duration, isSliderPressed, position, progressWidth]);
 
-    const progressBarStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`} as ViewStyle));
+    const progressBarStyle: ViewStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`}));
 
     return (
         <GestureDetector gesture={pan}>

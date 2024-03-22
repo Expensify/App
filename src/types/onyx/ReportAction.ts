@@ -70,6 +70,9 @@ type Message = {
 
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+
+    /** The time this report action was deleted */
+    deleted?: string;
 };
 
 type ImageMetadata = {
@@ -197,6 +200,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
+
+    /** Error associated with the report action */
+    error?: string;
 
     /** Whether the report action is attachment */
     isAttachment?: boolean;

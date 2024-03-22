@@ -1,5 +1,5 @@
 import React, {memo, useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -46,7 +46,7 @@ type MultipleAvatarsProps = {
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltip?: boolean;
 
     /** Whether avatars are displayed with the highlighted background color instead of the app background color. This is primarily the case for IOU previews. */
@@ -57,8 +57,8 @@ type MultipleAvatarsProps = {
 };
 
 type AvatarStyles = {
-    singleAvatarStyle: ViewStyle;
-    secondAvatarStyles: ViewStyle;
+    singleAvatarStyle: ViewStyle & ImageStyle;
+    secondAvatarStyles: ViewStyle & ImageStyle;
 };
 
 type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;

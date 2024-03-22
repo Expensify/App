@@ -1,20 +1,24 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TaskUtils from '@libs/TaskUtils';
+import type {ReportAction} from '@src/types/onyx';
 
 type TaskActionProps = {
     /** Name of the reportAction action */
-    actionName: string;
+    action: OnyxEntry<ReportAction>;
 };
 
-function TaskAction({actionName}: TaskActionProps) {
+function TaskAction({action}: TaskActionProps) {
     const styles = useThemeStyles();
+    const message = TaskUtils.getTaskReportActionMessage(action);
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-            <Text style={[styles.chatItemMessage, styles.colorMuted]}>{TaskUtils.getTaskReportActionMessage(actionName)}</Text>
+            {message.html ? <RenderHTML html={`<muted-text>${message.html}</muted-text>`} /> : <Text style={[styles.chatItemMessage, styles.colorMuted]}>{message.text}</Text>}
         </View>
     );
 }

@@ -14,8 +14,13 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type VideoPlayerThumbnailProps = {
-    thumbnailUrl: string | undefined;
+    /** Url of thumbnail image. */
+    thumbnailUrl?: string;
+
+    /** Callback executed on thumbnail press. */
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+
+    /** Accessibility label for the thumbnail. */
     accessibilityLabel: string;
 };
 
@@ -43,6 +48,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: Video
                         onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                        shouldUseHapticsOnLongPress
                     >
                         <View style={[styles.videoThumbnailPlayButton]}>
                             <Icon

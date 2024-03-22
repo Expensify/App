@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import CONST from '@src/CONST';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoDimensions = {
@@ -19,15 +18,26 @@ type VideoDimensions = {
 };
 
 type VideoPlayerPreviewProps = {
+    /** Url to a video. */
     videoUrl: string;
+
+    /** Dimension of a video. */
     videoDimensions: VideoDimensions;
+
+    /** Duration of a video. */
     videoDuration: number;
+
+    /** Url to a thumbnail image. */
     thumbnailUrl?: string;
+
+    /** Name of a video file. */
     fileName: string;
+
+    /** Callback executed when modal is pressed. */
     onShowModalPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
-function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions = CONST.VIDEO_PLAYER.DEFAULT_VIDEO_DIMENSIONS, videoDuration = 0, onShowModalPress}: VideoPlayerPreviewProps) {
+function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, videoDuration, onShowModalPress}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -36,10 +46,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions =
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
 
-    // onVideoLoaded is passed to VideoPlayer, then BaseVideoPlayer and then as a prop onReadyForDisplay of Video.
-    // Therefore, the type of the event should be VideoReadyForDisplayEvent, however it does not include srcElement in its definition,
-    // as srcElement is present only for web implementation of Video. VideoPlayerPreview is used only for web.
-
+    // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
+    // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
     const onVideoLoaded = (event: VideoReadyForDisplayEvent & {srcElement: HTMLVideoElement}) => {
         setMeasuredDimensions({width: event.srcElement.videoWidth, height: event.srcElement.videoHeight});
     };

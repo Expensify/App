@@ -7,7 +7,7 @@ import Animated from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
-import convertMillisecondsToTime from '@components/VideoPlayer/utils';
+import {convertMillisecondsToTime} from '@components/VideoPlayer/utils';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,15 +16,31 @@ import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
 
 type VideoPlayerControlsProps = {
+    /** Duration of a video. */
     duration: number;
+
+    /** Position of progress pointer. */
     position: number;
+
+    /** Url of a video. */
     url: string;
+
+    /** Ref for video player. */
     videoPlayerRef: MutableRefObject<Video | null>;
+
+    /** Is video playing. */
     isPlaying: boolean;
-    // Defines if component should have small icons and tighter spacing inline
-    small: boolean;
-    style: StyleProp<ViewStyle>;
+
+    /** Defines if component should have small icons and tighter spacing inline. */
+    small?: boolean;
+
+    /** Style of video player controls. */
+    style?: StyleProp<ViewStyle>;
+
+    /** Function called to show popover menu. */
     showPopoverMenu: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+
+    /** Function to play and pause the video.  */
     togglePlayCurrentVideo: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 

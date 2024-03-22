@@ -51,8 +51,8 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: [dobInputID],
-        isEditing,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     return (

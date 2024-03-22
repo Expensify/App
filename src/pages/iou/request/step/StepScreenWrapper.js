@@ -43,12 +43,8 @@ const defaultProps = {
 function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper, shouldShowNotFoundPage, includeSafeAreaPaddingBottom}) {
     const styles = useThemeStyles();
 
-    if (shouldShowNotFoundPage) {
-        return <FullPageNotFoundView shouldShow />;
-    }
-
     if (!shouldShowWrapper) {
-        return children;
+        return <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>{children}</FullPageNotFoundView>;
     }
 
     return (
@@ -59,22 +55,24 @@ function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTrans
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
         >
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
-                <View style={[styles.flex1]}>
-                    <HeaderWithBackButton
-                        title={headerTitle}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                    {
-                        // If props.children is a function, call it to provide the insets to the children.
-                        _.isFunction(children)
-                            ? children({
-                                  insets,
-                                  safeAreaPaddingBottomStyle,
-                                  didScreenTransitionEnd,
-                              })
-                            : children
-                    }
-                </View>
+                <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
+                    <View style={[styles.flex1]}>
+                        <HeaderWithBackButton
+                            title={headerTitle}
+                            onBackButtonPress={onBackButtonPress}
+                        />
+                        {
+                            // If props.children is a function, call it to provide the insets to the children.
+                            _.isFunction(children)
+                                ? children({
+                                      insets,
+                                      safeAreaPaddingBottomStyle,
+                                      didScreenTransitionEnd,
+                                  })
+                                : children
+                        }
+                    </View>
+                </FullPageNotFoundView>
             )}
         </ScreenWrapper>
     );

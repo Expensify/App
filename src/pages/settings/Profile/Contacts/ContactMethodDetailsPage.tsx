@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, ScrollView, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -13,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -28,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {LoginList, SecurityGroup, Session as TSession} from '@src/types/onyx';
+import type {LoginList, Policy, SecurityGroup, Session as TSession} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
@@ -48,11 +49,14 @@ type ContactMethodDetailsPageOnyxProps = {
 
     /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
+
+    /** The list of this user's policies */
+    policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'owner'>>;
 };
 
 type ContactMethodDetailsPageProps = ContactMethodDetailsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
-function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, securityGroups, isLoadingReportData = true, route}: ContactMethodDetailsPageProps) {
+function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, securityGroups, isLoadingReportData = true, route, policies}: ContactMethodDetailsPageProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
     const themeStyles = useThemeStyles();
@@ -88,8 +92,8 @@ function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, s
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        User.setContactMethodAsDefault(contactMethod);
-    }, [contactMethod]);
+        User.setContactMethodAsDefault(contactMethod, policies);
+    }, [contactMethod, policies]);
 
     /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
@@ -301,5 +305,13 @@ export default withOnyx<ContactMethodDetailsPageProps, ContactMethodDetailsPageO
     },
     isLoadingReportData: {
         key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+        selector: (data) => ({
+            id: data?.id ?? '',
+            ownerAccountID: data?.ownerAccountID,
+            owner: data?.owner ?? '',
+        }),
     },
 })(ContactMethodDetailsPage);
