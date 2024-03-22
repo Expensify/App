@@ -167,6 +167,10 @@ export default {
         marginLeft: 24,
     },
 
+    ml7: {
+        marginLeft: 28,
+    },
+
     ml8: {
         marginLeft: 32,
     },
@@ -189,6 +193,10 @@ export default {
 
     mln5: {
         marginLeft: -20,
+    },
+
+    mln6: {
+        marginLeft: -24,
     },
 
     mln8: {
@@ -241,6 +249,10 @@ export default {
 
     mtAuto: {
         marginTop: 'auto',
+    },
+
+    mtn1: {
+        marginTop: -4,
     },
 
     mtn2: {
@@ -313,6 +325,14 @@ export default {
 
     mbn1: {
         marginBottom: -4,
+    },
+
+    mbn3: {
+        marginBottom: -12,
+    },
+
+    mbn5: {
+        marginBottom: -20,
     },
 
     p0: {
@@ -463,6 +483,10 @@ export default {
 
     pr9: {
         paddingRight: 32,
+    },
+
+    pr10: {
+        paddingRight: 40,
     },
 
     pr15: {

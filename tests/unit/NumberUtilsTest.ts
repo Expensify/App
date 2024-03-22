@@ -5,7 +5,7 @@ describe('libs/NumberUtils', () => {
         const id = NumberUtils.rand64();
         expect(typeof id).toBe('string');
         // eslint-disable-next-line no-undef
-        expect(BigInt(id)).toBeLessThanOrEqual(BigInt(9223372036854775807n));
+        expect(BigInt(id)).toBeLessThanOrEqual(BigInt('9223372036854775807'));
         // eslint-disable-next-line no-undef
         expect(BigInt(id)).toBeGreaterThanOrEqual(0);
     });

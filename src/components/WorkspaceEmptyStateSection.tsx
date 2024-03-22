@@ -22,27 +22,25 @@ function WorkspaceEmptyStateSection({icon, subtitle, title}: WorkspaceEmptyState
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
-        <>
-            <View style={[styles.pageWrapper, styles.cardSectionContainer, styles.workspaceSection, styles.ph8, isSmallScreenWidth ? styles.pv10 : styles.pv12]}>
-                <Icon
-                    src={icon}
-                    width={184}
-                    height={116}
-                />
+        <View style={[styles.pageWrapper, styles.cardSectionContainer, styles.workspaceSection, styles.ph8, isSmallScreenWidth ? styles.pv10 : styles.pv12]}>
+            <Icon
+                src={icon}
+                width={184}
+                height={116}
+            />
 
-                <View style={[styles.w100, styles.pt5]}>
-                    <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mh1, styles.flexShrink1]}>
-                        <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>{title}</Text>
-                    </View>
-
-                    {!!subtitle && (
-                        <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mt1, styles.mh1]}>
-                            <Text style={[styles.textNormal, styles.emptyCardSectionSubtitle]}>{subtitle}</Text>
-                        </View>
-                    )}
+            <View style={[styles.w100, styles.pt5]}>
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mh1, styles.flexShrink1]}>
+                    <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>{title}</Text>
                 </View>
+
+                {!!subtitle && (
+                    <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mt1, styles.mh1]}>
+                        <Text style={[styles.textNormal, styles.emptyCardSectionSubtitle]}>{subtitle}</Text>
+                    </View>
+                )}
             </View>
-        </>
+        </View>
     );
 }
 WorkspaceEmptyStateSection.displayName = 'WorkspaceEmptyStateSection';

@@ -31,7 +31,7 @@ type Icon = {
     type: AvatarType;
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
-    name: string;
+    name?: string;
 
     /** Avatar id */
     id?: number | string;

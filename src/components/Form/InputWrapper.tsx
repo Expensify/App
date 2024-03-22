@@ -2,12 +2,16 @@ import type {ComponentPropsWithoutRef, ComponentType, ForwardedRef} from 'react'
 import React, {forwardRef, useContext} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
+import type RoomNameInputProps from '@components/RoomNameInput/types';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import FormContext from './FormContext';
 import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
 
-const textInputBasedComponents: ComponentType[] = [TextInput, RoomNameInput];
+type TextInputBasedComponents = [ComponentType<BaseTextInputProps>, ComponentType<RoomNameInputProps>];
+
+const textInputBasedComponents: TextInputBasedComponents = [TextInput, RoomNameInput];
 
 type ComputedComponentSpecificRegistrationParams = {
     shouldSubmitForm: boolean;

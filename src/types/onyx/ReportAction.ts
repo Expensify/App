@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -69,6 +70,9 @@ type Message = {
 
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+
+    /** The time this report action was deleted */
+    deleted?: string;
 };
 
 type ImageMetadata = {
@@ -122,6 +126,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     previousReportActionID?: string;
 
     actorAccountID?: number;
+
+    /** The account of the last message's actor */
+    actor?: string;
 
     /** Person who created the action */
     person?: Person[];
@@ -181,7 +188,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: File | EmptyObject;
+    attachmentInfo?: FileObject | EmptyObject;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
@@ -193,6 +200,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
+
+    /** Error associated with the report action */
+    error?: string;
 
     /** Whether the report action is attachment */
     isAttachment?: boolean;

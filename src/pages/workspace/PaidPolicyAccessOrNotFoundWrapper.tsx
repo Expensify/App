@@ -53,7 +53,7 @@ function PaidPolicyAccessOrNotFoundComponent(props: PaidPolicyAccessOrNotFoundCo
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(props.policyID))} />;
     }
 
-    return <>{typeof props.children === 'function' ? props.children(props) : props.children}</>;
+    return typeof props.children === 'function' ? props.children(props) : props.children;
 }
 
 export default withOnyx<PaidPolicyAccessOrNotFoundComponentProps, PaidPolicyAccessOrNotFoundOnyxProps>({

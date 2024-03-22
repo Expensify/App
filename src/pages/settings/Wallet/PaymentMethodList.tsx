@@ -36,7 +36,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {FormattedSelectedPaymentMethodIcon} from './WalletPage/types';
 
 type PaymentMethodListOnyxProps = {
     /** List of bank accounts */
@@ -99,7 +99,14 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     shouldShowEmptyListMessage?: boolean;
 
     /** What to do when a menu item is pressed */
-    onPress: (event?: GestureResponderEvent | KeyboardEvent, accountType?: string, accountData?: AccountData, icon?: IconAsset, isDefault?: boolean, methodID?: number) => void;
+    onPress: (
+        event?: GestureResponderEvent | KeyboardEvent,
+        accountType?: string,
+        accountData?: AccountData,
+        icon?: FormattedSelectedPaymentMethodIcon,
+        isDefault?: boolean,
+        methodID?: number,
+    ) => void;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -236,12 +243,25 @@ function PaymentMethodList({
                 (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(paymentMethod.errors),
             );
         }
-
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
             const isMethodActive = isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod);
             return {
                 ...paymentMethod,
-                onPress: (e: GestureResponderEvent) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.icon, paymentMethod.isDefault, paymentMethod.methodID),
+                onPress: (e: GestureResponderEvent) =>
+                    onPress(
+                        e,
+                        paymentMethod.accountType,
+                        paymentMethod.accountData,
+                        {
+                            icon: paymentMethod.icon,
+                            iconHeight: paymentMethod?.iconHeight,
+                            iconWidth: paymentMethod?.iconWidth,
+                            iconStyles: paymentMethod?.iconStyles,
+                            iconSize: paymentMethod?.iconSize,
+                        },
+                        paymentMethod.isDefault,
+                        paymentMethod.methodID,
+                    ),
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
@@ -338,7 +358,6 @@ function PaymentMethodList({
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             isDisabled={isLoadingPaymentMethods || isFormOffline}
                             style={[styles.mh4, styles.buttonCTA]}
-                            iconStyles={[styles.buttonCTAIcon]}
                             key="addPaymentMethodButton"
                             success
                             shouldShowRightIcon

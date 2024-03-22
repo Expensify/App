@@ -1,5 +1,6 @@
-import RNImageManipulator from '@oguzhnatly/react-native-image-manipulator';
+import {manipulateAsync} from 'expo-image-manipulator';
 import RNFetchBlob from 'react-native-blob-util';
+import getSaveFormat from './getSaveFormat';
 import type {CropOrRotateImage} from './types';
 
 /**
@@ -7,7 +8,10 @@ import type {CropOrRotateImage} from './types';
  */
 const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
     new Promise((resolve) => {
-        RNImageManipulator.manipulate(uri, actions, options).then((result) => {
+        const format = getSaveFormat(options.type);
+        // We need to remove the base64 value from the result, as it is causing crashes on Release builds.
+        // More info: https://github.com/Expensify/App/issues/37963#issuecomment-1989260033
+        manipulateAsync(uri, actions, {compress: options.compress, format}).then(({base64, ...result}) => {
             RNFetchBlob.fs.stat(result.uri.replace('file://', '')).then(({size}) => {
                 resolve({
                     ...result,

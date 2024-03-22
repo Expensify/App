@@ -98,53 +98,51 @@ function Section({
     const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? illustration?.backgroundColor ?? theme.appBG);
 
     return (
-        <>
-            <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
-                {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
-                    <IconSection
-                        icon={icon}
-                        iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
-                    />
-                )}
-                {!!illustration && (
-                    <View style={[styles.w100, styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, illustrationContainerStyle]}>
-                        <View style={[styles.cardSectionIllustration, illustrationStyle]}>
-                            <Lottie
-                                source={illustration}
-                                style={styles.h100}
-                                webStyle={styles.h100}
-                                autoPlay
-                                loop
-                            />
-                        </View>
-                        {overlayContent?.()}
+        <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
+            {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
+                <IconSection
+                    icon={icon}
+                    iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
+                />
+            )}
+            {!!illustration && (
+                <View style={[styles.w100, styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, illustrationContainerStyle]}>
+                    <View style={[styles.cardSectionIllustration, illustrationStyle]}>
+                        <Lottie
+                            source={illustration}
+                            style={styles.h100}
+                            webStyle={styles.h100}
+                            autoPlay
+                            loop
+                        />
                     </View>
-                )}
-                <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
-                        <View style={[styles.flexShrink1]}>
-                            <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>
-                        </View>
-                        {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
-                            <IconSection
-                                icon={icon}
-                                iconContainerStyles={iconContainerStyles}
-                            />
-                        )}
-                    </View>
-
-                    {!!subtitle && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt2, subtitleStyles]}>
-                            <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
-                        </View>
-                    )}
-
-                    <View style={[styles.w100, childrenStyles]}>{children}</View>
-
-                    <View style={[styles.w100]}>{!!menuItems && <MenuItemList menuItems={menuItems} />}</View>
+                    {overlayContent?.()}
                 </View>
+            )}
+            <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
+                    <View style={[styles.flexShrink1]}>
+                        <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>
+                    </View>
+                    {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
+                        <IconSection
+                            icon={icon}
+                            iconContainerStyles={iconContainerStyles}
+                        />
+                    )}
+                </View>
+
+                {!!subtitle && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt2, subtitleStyles]}>
+                        <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
+                    </View>
+                )}
+
+                <View style={[styles.w100, childrenStyles]}>{children}</View>
+
+                <View style={[styles.w100]}>{!!menuItems && <MenuItemList menuItems={menuItems} />}</View>
             </View>
-        </>
+        </View>
     );
 }
 Section.displayName = 'Section';

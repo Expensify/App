@@ -159,7 +159,7 @@ function appendTimeToFileName(fileName: string): string {
  * @param path - the blob url of the locally uploaded file
  * @param fileName - name of the file to read
  */
-const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () => {}) =>
+const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () => {}, fileType = '') =>
     new Promise((resolve) => {
         if (!path) {
             resolve();
@@ -176,7 +176,9 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
                 }
                 res.blob()
                     .then((blob) => {
-                        const file = new File([blob], cleanFileName(fileName), {type: blob.type});
+                        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+                        // In this case, let us fallback on fileType provided by the caller of this function.
+                        const file = new File([blob], cleanFileName(fileName), {type: blob.type || fileType});
                         file.source = path;
                         // For some reason, the File object on iOS does not have a uri property
                         // so images aren't uploaded correctly to the backend

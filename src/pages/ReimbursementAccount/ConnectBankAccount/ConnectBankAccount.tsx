@@ -39,7 +39,7 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account, p
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(false, true);
+    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
     const bankAccountState = reimbursementAccount.achData?.state ?? '';
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep

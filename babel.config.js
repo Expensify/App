@@ -68,6 +68,7 @@ const metro = {
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',
                     '@userActions': './src/libs/actions',
+                    '@desktop': './desktop',
                 },
             },
         ],
@@ -81,7 +82,7 @@ const metro = {
 };
 
 /*
- * We use Flipper, <React.Profiler> and react-native-performance to capture/monitor stats
+ * We use <React.Profiler> and react-native-performance to capture/monitor stats
  * By default <React.Profiler> is disabled in production as it adds small overhead
  * When CAPTURE_METRICS is set we're explicitly saying that we want to capture metrics
  * To enable the <Profiler> for release builds we add these aliases */
