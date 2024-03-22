@@ -204,7 +204,7 @@ const ROUTES = {
     },
     REPORT_ATTACHMENTS: {
         route: 'r/:reportID/attachment',
-        getRoute: (reportID: string, source: string) => `r/${reportID}/attachment?source=${encodeURI(source)}` as const,
+        getRoute: (reportID: string, source: string) => `r/${reportID}/attachment?source=${encodeURIComponent(source)}` as const,
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -637,8 +637,16 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates/new` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
-        route: 'settings/workspace/:policyID/distance-rates/settings',
-        getRoute: (policyID: string) => `settings/workspace/${policyID}/distance-rates/settings` as const,
+        route: 'settings/workspaces/:policyID/distance-rates/settings',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates/settings` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_DETAILS: {
+        route: 'settings/workspaces/:policyID/distance-rates/:rateID',
+        getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_EDIT: {
+        route: 'settings/workspaces/:policyID/distance-rates/:rateID/edit',
+        getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {

@@ -286,6 +286,10 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
             ...spacing.pr4,
         },
+        emojiTooltipWrapper: {
+            ...spacing.p2,
+            borderRadius: 8,
+        },
 
         mentionSuggestionsAvatarContainer: {
             width: 24,

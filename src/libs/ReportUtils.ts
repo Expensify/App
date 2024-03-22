@@ -3787,7 +3787,7 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
  * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticHoldReportAction(comment: string, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
+function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): OptimisticHoldReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
@@ -3797,10 +3797,37 @@ function buildOptimisticHoldReportAction(comment: string, created = DateUtils.ge
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: Localize.translateLocal('iou.heldRequest', {comment}),
+                text: Localize.translateLocal('iou.heldRequest'),
             },
+        ],
+        person: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
+ * @param [created] - Action created time
+ */
+function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
                 text: comment,
             },
         ],
@@ -5421,6 +5448,22 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number): boolean {
+    const policy = getPolicy(report?.policyID);
+    const {preventSelfApproval} = policy;
+
+    const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
+
+    return !(preventSelfApproval && isOwner);
+}
+
+function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
+    const policy = getPolicy(report?.policyID);
+    const {submitsTo} = policy;
+
+    return isAllowedToApproveExpenseReport(report, submitsTo);
+}
+
 /**
  * What missing payment method does this report action indicate, if any?
  */
@@ -5649,6 +5692,7 @@ export {
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
     buildOptimisticHoldReportAction,
+    buildOptimisticHoldReportActionComment,
     buildOptimisticUnHoldReportAction,
     shouldDisplayThreadReplies,
     shouldDisableThread,
@@ -5672,6 +5716,8 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    isAllowedToSubmitDraftExpenseReport,
+    isAllowedToApproveExpenseReport,
     findSelfDMReportID,
     getIndicatedMissingPaymentMethod,
     isJoinRequestInAdminRoom,
