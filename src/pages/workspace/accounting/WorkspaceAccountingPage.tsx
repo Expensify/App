@@ -189,7 +189,7 @@ function WorkspaceAccountingPage() {
                                     icon={Expensicons.QBORound}
                                     iconHeight={variables.avatarSizeNormal}
                                     iconWidth={variables.avatarSizeNormal}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    wrapperStyle={[styles.ph8, styles.mhn8]}
                                     interactive={false}
                                 />
                                 {isSyncInProgress ? (
