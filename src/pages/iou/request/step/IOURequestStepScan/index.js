@@ -138,7 +138,6 @@ function IOURequestStepScan({
     }, []);
 
     useEffect(() => {
-        console.log(isTabActive);
         if (!Browser.isMobile() || !isTabActive) {
             return;
         }
