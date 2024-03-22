@@ -249,11 +249,13 @@ Onyx.connect({
 });
 
 let policyExpenseReports: OnyxCollection<Report> = {};
+let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (reports) => {
         policyExpenseReports = reports;
+        allReports = reports;
     },
 });
 
@@ -519,7 +521,8 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
  */
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
     return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
-        ? lastActorDetails.firstName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+        ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+          lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
         : '';
 }
 
@@ -567,6 +570,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             ReportUtils.isChatReport(report),
             null,
             true,
+            lastReportAction,
         );
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
@@ -729,6 +733,35 @@ function createOption(
     result.subtitle = subtitle;
 
     return result;
+}
+
+/**
+ * Get the option for a given report.
+ */
+function getReportOption(participant: Participant): ReportUtils.OptionData {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+
+    const option = createOption(
+        report?.visibleChatMemberAccountIDs ?? [],
+        allPersonalDetails ?? {},
+        report ?? null,
+        {},
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+    );
+
+    // Update text & alternateText because createOption returns workspace name only if report is owned by the user
+    if (option.isSelfDM) {
+        option.alternateText = Localize.translateLocal('reportActionsView.yourSpace');
+    } else {
+        option.text = ReportUtils.getPolicyName(report);
+        option.alternateText = Localize.translateLocal('workspace.common.workspace');
+    }
+    option.selected = participant.selected;
+    option.isSelected = participant.selected;
+    return option;
 }
 
 /**
@@ -1011,8 +1044,8 @@ function getCategoryListSections(
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledWithoutSelectedCategories = sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name));
-    const numberOfVisibleCategories = enabledWithoutSelectedCategories.length + selectedOptions.length;
+    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
+    const numberOfVisibleCategories = filteredCategories.length + selectedOptionNames.length;
 
     if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
         categorySections.push({
@@ -1020,7 +1053,7 @@ function getCategoryListSections(
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(enabledWithoutSelectedCategories),
+            data: getCategoryOptionTree(filteredCategories, false, selectedOptionNames),
         });
 
         return categorySections;
@@ -1046,8 +1079,6 @@ function getCategoryListSections(
 
         indexOffset += filteredRecentlyUsedCategories.length;
     }
-
-    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
@@ -2072,6 +2103,7 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
     getShareLogOptions,
+    getReportOption,
     getTaxRatesSection,
 };
 
