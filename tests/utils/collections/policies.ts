@@ -14,7 +14,7 @@ export default function createRandomPolicy(index: number): Policy {
             enabled: randBoolean(),
         },
         autoReportingOffset: 1,
-        preventSelfApprovalEnabled: randBoolean(),
+        preventSelfApproval: randBoolean(),
         submitsTo: index,
         outputCurrency: randCurrencyCode(),
         role: rand(Object.values(CONST.POLICY.ROLE)),

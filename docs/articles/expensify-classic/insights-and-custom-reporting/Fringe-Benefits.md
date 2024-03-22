@@ -12,7 +12,7 @@ First, you’ll need to add these two tags to your Workspace:
 1) Number of Internal Attendees
 2) Number of External Attendees 
 
-These tags must be named exactly as written above, ensuring there are no extra spaces at the beginning or at the end. You’ll need to set the tags to be  numbers 00 - 10 or whatever number you wish to go up to (up to the maximum number of attendees you would expect at any one time), one tag per number i.e. “01”, “02”, “03” etc. These tags can be added in addition to those that are pulled in from your accounting solution. Follow these [instructions](https://help.expensify.com/articles/expensify-classic/workspace-and-domain-settings/Tags) to add tags.
+These tags must be named exactly as written above, ensuring there are no extra spaces at the beginning or at the end. You’ll need to set the tags to be  numbers 00 - 10 or whatever number you wish to go up to (up to the maximum number of attendees you would expect at any one time), one tag per number i.e. “01”, “02”, “03” etc. These tags can be added in addition to those that are pulled in from your accounting solution. Follow these [instructions](https://help.expensify.com/articles/expensify-classic/workspaces/Tags) to add tags.
 
 ## Add Payroll Code
 Go to **Settings > Workspaces > Group > _Workspace Name_ > Categories** and within the categories you wish to track FBT against, select **Edit Category** and add the code “TAG”:

@@ -18,6 +18,7 @@ function RadioListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    checkmarkPosition,
     isMultilineSupported = false,
 }: RadioListItemProps) {
     const styles = useThemeStyles();
@@ -40,19 +41,21 @@ function RadioListItem({
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
+            checkmarkPosition={checkmarkPosition}
             keyForList={item.keyForList}
         >
             <>
                 <View style={[styles.flex1, styles.alignItemsStart]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
-                        text={fullTitle}
+                        text={item.text ?? ''}
                         style={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
                             isMultilineSupported ? styles.preWrap : styles.pre,
                             item.alternateText ? styles.mb1 : null,
+                            isDisabled && styles.colorMuted,
                             isMultilineSupported ? {paddingLeft} : null,
                         ]}
                         numberOfLines={isMultilineSupported ? 2 : 1}

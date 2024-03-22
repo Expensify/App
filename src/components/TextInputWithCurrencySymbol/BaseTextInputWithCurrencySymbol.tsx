@@ -20,6 +20,9 @@ function BaseTextInputWithCurrencySymbol(
         onSelectionChange = () => {},
         onKeyPress = () => {},
         isCurrencyPressable = true,
+        hideCurrencySymbol = false,
+        extraSymbol,
+        ...rest
     }: TextInputWithCurrencySymbolProps,
     ref: React.ForwardedRef<BaseTextInputRef>,
 ) {
@@ -28,7 +31,7 @@ function BaseTextInputWithCurrencySymbol(
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(selectedCurrencyCode);
     const styles = useThemeStyles();
 
-    const currencySymbolButton = (
+    const currencySymbolButton = !hideCurrencySymbol && (
         <CurrencySymbolButton
             currencySymbol={currencySymbol ?? ''}
             onCurrencyButtonPress={onCurrencyButtonPress}
@@ -58,6 +61,8 @@ function BaseTextInputWithCurrencySymbol(
             }}
             onKeyPress={onKeyPress}
             style={styles.pr1}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
         />
     );
 
@@ -66,6 +71,7 @@ function BaseTextInputWithCurrencySymbol(
             <>
                 {currencySymbolButton}
                 {amountTextInput}
+                {extraSymbol}
             </>
         );
     }
@@ -74,6 +80,7 @@ function BaseTextInputWithCurrencySymbol(
         <>
             {amountTextInput}
             {currencySymbolButton}
+            {extraSymbol}
         </>
     );
 }

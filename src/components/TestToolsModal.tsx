@@ -2,11 +2,14 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useEnvironment from '@hooks/useEnvironment';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Modal from './Modal';
+import ProfilingToolMenu from './ProfilingToolMenu';
 import TestToolMenu from './TestToolMenu';
 
 type TestToolsModalOnyxProps = {
@@ -17,7 +20,9 @@ type TestToolsModalOnyxProps = {
 type TestToolsModalProps = TestToolsModalOnyxProps;
 
 function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
-    const styles = useThemeStyles();
+    const {isDevelopment} = useEnvironment();
+    const {windowWidth} = useWindowDimensions();
+    const StyleUtils = useStyleUtils();
 
     return (
         <Modal
@@ -25,8 +30,9 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
             type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
             onClose={toggleTestToolsModal}
         >
-            <View style={[styles.settingsPageBody, styles.p5]}>
-                <TestToolMenu />
+            <View style={[StyleUtils.getTestToolsModalStyle(windowWidth)]}>
+                {isDevelopment && <TestToolMenu />}
+                <ProfilingToolMenu />
             </View>
         </Modal>
     );
