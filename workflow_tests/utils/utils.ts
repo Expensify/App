@@ -6,7 +6,7 @@ import type ExtendedAct from './ExtendedAct';
 
 type EventOptions = {
     action?: string;
-    ref?: string
+    ref?: string;
 };
 
 type StepAssertionInputEntry = {key: string; value: string};
