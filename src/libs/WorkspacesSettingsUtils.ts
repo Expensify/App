@@ -290,13 +290,16 @@ function redirectOnChangeOwnerErrorUpdate(policy: Policy | null, policyID: strin
         return;
     }
 
-    if (!policy?.errorFields?.changeOwner) {
-        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID));
+    if (!policy.errorFields?.changeOwner && policy.errorFields) {
+        // there are some errors but not related to change owner flow - show an error page
+        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.getRoute(policyID, accountID));
         return;
     }
 
-    if (!policy.errorFields.changeOwner && policy.errorFields) {
-        // TODO: redirect to the generic error page
+    if (!policy?.errorFields?.changeOwner) {
+        // no errors - show a success page
+        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID));
+        return;
     }
 
     const changeOwnerErrors = Object.keys(policy.errorFields.changeOwner);

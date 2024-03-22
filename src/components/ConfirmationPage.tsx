@@ -1,5 +1,6 @@
 import React from 'react';
-import {TextStyle, View} from 'react-native';
+import type {TextStyle} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
@@ -34,7 +35,16 @@ type ConfirmationPageProps = {
     descriptionStyle?: TextStyle;
 };
 
-function ConfirmationPage({animation = LottieAnimations.Fireworks, heading, description, buttonText = '', onButtonPress = () => {}, shouldShowButton = false, headingStyle, descriptionStyle}: ConfirmationPageProps) {
+function ConfirmationPage({
+    animation = LottieAnimations.Fireworks,
+    heading,
+    description,
+    buttonText = '',
+    onButtonPress = () => {},
+    shouldShowButton = false,
+    headingStyle,
+    descriptionStyle,
+}: ConfirmationPageProps) {
     const styles = useThemeStyles();
 
     return (

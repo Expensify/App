@@ -618,8 +618,11 @@ const ROUTES = {
     },
     WORKSPACE_OWNER_CHANGE_SUCCESS: {
         route: 'settings/workspaces/:policyID/change-owner/:accountID/success',
-        getRoute: (policyID: string, accountID: number) =>
-            `settings/workspaces/${policyID}/change-owner/${accountID}/success` as const,
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/success` as const,
+    },
+    WORKSPACE_OWNER_CHANGE_ERROR: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/failure',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/failure` as const,
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         route: 'settings/workspaces/:policyID/change-owner/:accountID/:error',

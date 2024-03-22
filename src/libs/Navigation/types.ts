@@ -222,7 +222,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
         policyID: string;
         accountID: number;
-    },
+    };
+    [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
+        policyID: string;
+        accountID: number;
+    };
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
         policyID: string;
         accountID: number;

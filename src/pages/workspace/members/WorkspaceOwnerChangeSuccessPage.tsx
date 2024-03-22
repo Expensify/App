@@ -1,20 +1,20 @@
-import React, {useCallback} from "react";
-import HeaderWithBackButton from "@components/HeaderWithBackButton";
-import * as PolicyActions from "@userActions/Policy";
-import Navigation from "@navigation/Navigation";
-import ROUTES from "@src/ROUTES";
-import PaidPolicyAccessOrNotFoundWrapper from "@pages/workspace/PaidPolicyAccessOrNotFoundWrapper";
-import ScreenWrapper from "@components/ScreenWrapper";
-import AdminPolicyAccessOrNotFoundWrapper from "@pages/workspace/AdminPolicyAccessOrNotFoundWrapper";
-import useLocalize from "@hooks/useLocalize";
-import type {StackScreenProps} from "@react-navigation/stack";
-import type {SettingsNavigatorParamList} from "@navigation/types";
-import type SCREENS from "@src/SCREENS";
-import ConfirmationPage from "@components/ConfirmationPage";
-import LottieAnimations from "@components/LottieAnimations";
-import useThemeStyles from "@hooks/useThemeStyles";
+import type {StackScreenProps} from '@react-navigation/stack';
+import React, {useCallback} from 'react';
+import ConfirmationPage from '@components/ConfirmationPage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LottieAnimations from '@components/LottieAnimations';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@navigation/types';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import * as PolicyActions from '@userActions/Policy';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-type WorkspaceOwnerChangeSuccessPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
+type WorkspaceOwnerChangeSuccessPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS>;
 
 function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPageProps) {
     const styles = useThemeStyles();

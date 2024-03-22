@@ -283,6 +283,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
                             path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,
                         },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.route,
+                        },
                         [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
                             path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
                         },
