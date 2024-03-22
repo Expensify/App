@@ -9,16 +9,17 @@ type Card = {
     availableSpend: number;
     domainName: string;
     lastFourPAN?: string;
-    cardDisplayName: string;
-    limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
-    isAdminIssuedVirtualCard: boolean;
     isVirtual: boolean;
-    isExpensifyCard: boolean;
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
     cardholderFirstName: string;
     cardholderLastName: string;
     errors?: OnyxCommon.Errors;
     isLoading?: boolean;
+    nameValuePairs?: {
+        limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+        cardTitle?: string; // used only for virtual limit cards
+        issuedBy?: string;
+    }
 };
 
 type TCardDetails = {
