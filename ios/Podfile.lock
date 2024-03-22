@@ -39,7 +39,7 @@ PODS:
     - React-Core
   - Expo (50.0.4):
     - ExpoModulesCore
-  - ExpoImage (1.10.1):
+  - ExpoImage (1.11.0):
     - ExpoModulesCore
     - SDWebImage (~> 5.17.0)
     - SDWebImageAVIFCoder (~> 0.10.1)
@@ -1790,7 +1790,7 @@ SPEC CHECKSUMS:
   EXAV: 09a4d87fa6b113fbb0ada3aade6799f78271cb44
   EXImageLoader: 55080616b2fe9da19ef8c7f706afd9814e279b6b
   Expo: 1e3bcf9dd99de57a636127057f6b488f0609681a
-  ExpoImage: 1cdaa65a6a70bb01067e21ad1347ff2d973885f5
+  ExpoImage: 390c524542b258f8173f475c1cc71f016444a7be
   ExpoImageManipulator: c1d7cb865eacd620a35659f3da34c70531f10b59
   ExpoModulesCore: 96d1751929ad10622773bb729ab28a8423f0dd0c
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
@@ -1921,7 +1921,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 0a6794d1974aed5d653d0d0cb900493e2583e35a
-  Yoga: 13c8ef87792450193e117976337b8527b49e8c03
+  Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
 
 PODFILE CHECKSUM: a431c146e1501391834a2f299a74093bac53b530
 
