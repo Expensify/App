@@ -185,7 +185,7 @@ function WorkspaceAccountingPage() {
                                     description={translate(isSyncInProgress ? 'workspace.accounting.importing' : 'workspace.accounting.lastSync')}
                                     icon={Expensicons.QBORound}
                                     iconType="avatar"
-                                    wrapperStyle={[styles.ph8, styles.mhn8]}
+                                    wrapperStyle={[isSmallScreenWidth ? {...styles.ph8, ...styles.mhn8} : styles.sectionMenuItemTopDescription]}
                                     interactive={false}
                                 />
                                 {isSyncInProgress ? (
