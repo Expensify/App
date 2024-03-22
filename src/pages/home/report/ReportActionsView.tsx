@@ -20,6 +20,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
+import shouldFetchReport from '@libs/shouldFetchReport';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
@@ -27,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
@@ -116,13 +116,19 @@ function ReportActionsView({
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
 
     const openReportIfNecessary = () => {
-        const createChatError = report.errorFields?.createChat;
-        // If the report is optimistic (AKA not yet created) we don't need to call openReport again
-        if (!!report.isOptimisticReport || !isEmptyObject(createChatError)) {
+        if (!shouldFetchReport(report)) {
             return;
         }
 
         Report.openReport(reportID, reportActionID);
+    };
+
+    const reconnectReportIfNecessary = () => {
+        if (!shouldFetchReport(report)) {
+            return;
+        }
+
+        Report.reconnect(reportID);
     };
 
     useLayoutEffect(() => {
@@ -226,7 +232,7 @@ function ReportActionsView({
             if (isReportFullyVisible) {
                 openReportIfNecessary();
             } else {
-                Report.reconnect(reportID);
+                reconnectReportIfNecessary();
             }
         }
         // update ref with current network state
@@ -240,7 +246,7 @@ function ReportActionsView({
             if (isReportFullyVisible) {
                 openReportIfNecessary();
             } else {
-                Report.reconnect(reportID);
+                reconnectReportIfNecessary();
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
