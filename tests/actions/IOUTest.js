@@ -744,17 +744,33 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise((resolve) => {
                                 ReportActions.clearAllRelatedReportActionErrors(iouReportID, iouAction);
-                                ReportActions.clearAllRelatedReportActionErrors(transactionThreadReport.reportID, transactionThreadAction);
                                 resolve();
                             }),
                     )
 
-                    // Then the reportAction should be removed from Onyx
+                    // Then the reportAction from chat report should be removed from Onyx
                     .then(
                         () =>
                             new Promise((resolve) => {
                                 const connectionID = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                                    waitForCollectionCallback: true,
+                                    callback: (reportActionsForReport) => {
+                                        Onyx.disconnect(connectionID);
+                                        iouAction = _.find(reportActionsForReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                                        expect(iouAction).toBeFalsy();
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+
+                    // Then the reportAction from iou report should be removed from Onyx
+                    .then(
+                        () =>
+                            new Promise((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                     waitForCollectionCallback: true,
                                     callback: (reportActionsForReport) => {
                                         Onyx.disconnect(connectionID);
