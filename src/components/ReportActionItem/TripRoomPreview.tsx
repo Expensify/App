@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -25,6 +24,7 @@ import type {ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 import type {BasicTripInfo} from '@src/types/onyx/TripDetails';
 
+// @TODO: Dummy data used for testing purposes only. Remove when real data is available for testing.
 const basicTripInfo: BasicTripInfo = {
     tripId: '6926658168',
     tripName: 'JFK SFO Trip',
@@ -38,12 +38,7 @@ const basicTripInfo: BasicTripInfo = {
     },
 };
 
-type TripRoomPreviewOnyxProps = {
-    /** All the transactions, used to update ReportPreview label and status */
-    // transactions: OnyxCollection<Transaction>;
-};
-
-type TripRoomPreviewProps = TripRoomPreviewOnyxProps & {
+type TripRoomPreviewProps = {
     /** All the data of the action */
     action: ReportAction;
 
@@ -86,6 +81,10 @@ function ReservationRow({reservation}: ReservationRowProps) {
                 return Expensicons.Bed;
             case CONST.RESERVATION_TYPE.CAR:
                 return Expensicons.CarWithKey;
+            case CONST.RESERVATION_TYPE.MISC:
+                return Expensicons.LuggageWithLines;
+            case CONST.RESERVATION_TYPE.RAIL:
+                return Expensicons.Train;
             default:
                 return Expensicons.CarWithKey;
         }
@@ -101,7 +100,7 @@ function ReservationRow({reservation}: ReservationRowProps) {
                     fill={theme.icon}
                 />
             </View>
-            <View style={styles.tripReserviationInfoContainer}>
+            <View style={[styles.flex1, styles.tripReserviationInfoContainer]}>
                 <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{translate(`travel.${reservation.type}`)}</Text>
                 {reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
@@ -115,13 +114,17 @@ function ReservationRow({reservation}: ReservationRowProps) {
                         <Text style={styles.labelStrong}>{reservation.end.shortName}</Text>
                     </View>
                 ) : (
-                    <Text style={styles.labelStrong}>{reservation.start.address}</Text>
+                    <Text
+                        numberOfLines={1}
+                        style={styles.labelStrong}
+                    >
+                        {reservation.start.address}
+                    </Text>
                 )}
             </View>
         </View>
     );
 }
-
 function TripRoomPreview({
     action,
     chatReportID,
@@ -145,6 +148,23 @@ function TripRoomPreview({
         .flat();
 
     const dateInfo = DateUtils.getFormattedDateRange(new Date(basicTripInfo.startDate.iso8601), new Date(basicTripInfo.endDate.iso8601));
+
+    const getDisplayAmount = (): string => {
+        // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
+        let displayAmount = '';
+        const actionMessage = action.message?.[0]?.text ?? '';
+        const splits = actionMessage.split(' ');
+
+        splits.forEach((split) => {
+            if (!/\d/.test(split)) {
+                return;
+            }
+
+            displayAmount = split;
+        });
+
+        return displayAmount;
+    };
 
     return (
         <OfflineWithFeedback
@@ -179,7 +199,7 @@ function TripRoomPreview({
                             <View style={styles.reportPreviewAmountSubtitleContainer}>
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={styles.textHeadlineH2}>$1,439.21</Text>
+                                        <Text style={styles.textHeadlineH2}>{getDisplayAmount()}</Text>
                                     </View>
                                 </View>
                                 <View style={styles.flexRow}>
@@ -209,8 +229,4 @@ function TripRoomPreview({
 
 TripRoomPreview.displayName = 'TripRoomPreview';
 
-export default withOnyx<TripRoomPreviewProps, TripRoomPreviewOnyxProps>({
-    // transactions: {
-    //     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    // },
-})(TripRoomPreview);
+export default TripRoomPreview;

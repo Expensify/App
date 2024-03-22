@@ -32,7 +32,9 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
-import TripRoomPreview from './TripRoomPreview';
+
+// @TODO: Used for testing purposes only. Uncomment to test. Remove when real data is available for testing.
+// import TripRoomPreview from './TripRoomPreview';
 
 type ReportPreviewOnyxProps = {
     /** The policy tied to the money request report */
@@ -105,6 +107,7 @@ function ReportPreview({
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
 
+    // @TODO: Used for testing purposes only. Uncomment to test. Remove when real data is available for testing.
     // return (
     //     <TripRoomPreview
     //         action={action}
@@ -113,6 +116,7 @@ function ReportPreview({
     //         isHovered={isHovered}
     //         isWhisper={isWhisper}
     //         checkIfContextMenuActive={checkIfContextMenuActive}
+    //         containerStyles={containerStyles}
     //     />
     // );
 

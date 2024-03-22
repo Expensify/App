@@ -93,6 +93,7 @@ import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
+import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
@@ -145,6 +146,7 @@ import Task from '@assets/images/task.svg';
 import Tax from '@assets/images/tax.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -322,4 +324,6 @@ export {
     Bed,
     CarWithKey,
     DocumentPlus,
+    Train,
+    LuggageWithLines,
 };

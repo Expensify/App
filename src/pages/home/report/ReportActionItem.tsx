@@ -443,6 +443,7 @@ function ReportActionItem({
                     action={action}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
+                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     isWhisper={isWhisper}
                 />
@@ -678,10 +679,6 @@ function ReportActionItem({
 
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
-
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW) {
-        return <TripRoomPreview />;
-    }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
