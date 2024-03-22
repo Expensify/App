@@ -369,7 +369,7 @@ function AddressSearch(
                         query={query}
                         requestUrl={{
                             useOnPlatform: 'all',
-                            url: isOffline ? '' : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                            url: isOffline ? '' : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces?proxyUrl='}),
                         }}
                         textInputProps={{
                             InputComp: TextInput,
@@ -455,3 +455,5 @@ function AddressSearch(
 AddressSearch.displayName = 'AddressSearchWithRef';
 
 export default forwardRef(AddressSearch);
+
+export type {AddressSearchProps};
