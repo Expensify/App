@@ -273,6 +273,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         style={[styles.defaultModalContainer]}
                         testID={WorkspaceCategoriesPage.displayName}
                         shouldShowOfflineIndicatorInWideScreen
+                        offlineIndicatorStyle={styles.mtAuto}
                     >
                         <HeaderWithBackButton
                             icon={Illustrations.FolderOpen}
