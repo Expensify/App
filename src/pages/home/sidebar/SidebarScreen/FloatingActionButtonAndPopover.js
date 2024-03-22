@@ -216,7 +216,7 @@ function FloatingActionButtonAndPopover(props) {
                         text: translate('sidebarScreen.saveTheWorld'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
-                    ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
+                    ...(!props.isLoading && !Policy.hasActiveChatEnabledPolicies(props.allPolicies)
                         ? [
                               {
                                   displayInDefaultIconColor: true,
