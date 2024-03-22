@@ -1,12 +1,12 @@
-/// <reference types="@welldone-software/why-did-you-render" />
-// Implements Why Did You Render (WDYR) in Dev, setup according to: https://github.com/welldone-software/why-did-you-render?tab=readme-ov-file#setup
+// Implements Why Did You Render (WDYR) in Dev
+import type WhyDidYouRender from '@welldone-software/why-did-you-render';
 import React from 'react';
 import Config from 'react-native-config';
 
 const useWDYR = Config?.USE_WDYR === 'true';
 
 if (useWDYR) {
-    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    const whyDidYouRender = require<typeof WhyDidYouRender>('@welldone-software/why-did-you-render');
     whyDidYouRender(React, {
         // Enable tracking in all pure components by default
         trackAllPureComponents: true,
