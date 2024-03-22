@@ -2,7 +2,7 @@ import {fireEvent, screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
-import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
@@ -14,7 +14,8 @@ import ReportActionsList from '@src/pages/home/report/ReportActionsList';
 import {ReportAttachmentsProvider} from '@src/pages/home/report/ReportAttachmentsContext';
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
 import variables from '@src/styles/variables';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
+import createRandomReportAction from '../utils/collections/reportActions';
+import * as LHNTestUtilsModule from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -22,20 +23,29 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 const mockedNavigate = jest.fn();
 
-jest.mock('@src/components/withNavigationFocus', <TProps extends WithNavigationFocusProps>() => (Component: ComponentType<TProps>) => {
-    function WithNavigationFocus(props: Omit<TProps, keyof WithNavigationFocusProps>) {
-        return (
-            <Component
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps)}
-                isFocused={false}
-            />
-        );
-    }
+jest.mock('@src/components/WithCurrentUserPersonalDetails', () => {
+    // Lazy loading of LHNTestUtils
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const lazyLoadLHNTestUtils = () => require('../utils/LHNTestUtils');
 
-    WithNavigationFocus.displayName = 'WithNavigationFocus';
+    return <TProps extends WithCurrentUserPersonalDetailsProps>(Component: ComponentType<TProps>) => {
+        function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
+            const currentUserAccountID = 5;
+            const LHNTestUtils = lazyLoadLHNTestUtils(); // Load LHNTestUtils here
 
-    return WithNavigationFocus;
+            return (
+                <Component
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...(props as TProps)}
+                    currentUserPersonalDetails={LHNTestUtils.fakePersonalDetails[currentUserAccountID]}
+                />
+            );
+        }
+
+        WrappedComponent.displayName = 'WrappedComponent';
+
+        return WrappedComponent;
+    };
 });
 
 jest.mock('@react-navigation/native', () => {
@@ -78,22 +88,21 @@ afterEach(() => {
     PusherHelper.teardown();
 });
 
-const currentUserAccountID = 5;
-
 function ReportActionsListWrapper() {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, WindowDimensionsProvider, ReportAttachmentsProvider]}>
             <ReactionListContext.Provider value={mockRef}>
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList
+                        parentReportAction={createRandomReportAction(1)}
                         sortedReportActions={ReportTestUtils.getMockedSortedReportActions(500)}
-                        report={LHNTestUtils.getFakeReport()}
+                        report={LHNTestUtilsModule.getFakeReport()}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
-                        loadMoreChats={mockLoadChats}
+                        onContentSizeChange={() => {}}
+                        listID={1}
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
-                        currentUserPersonalDetails={LHNTestUtils.fakePersonalDetails[currentUserAccountID]}
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>
@@ -112,7 +121,7 @@ test('[ReportActionsList] should render ReportActionsList with 500 reportActions
     return waitForBatchedUpdates()
         .then(() =>
             Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
             }),
         )
         .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
@@ -150,7 +159,7 @@ test('[ReportActionsList] should scroll and click some of the reports', () => {
     return waitForBatchedUpdates()
         .then(() =>
             Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
             }),
         )
         .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
