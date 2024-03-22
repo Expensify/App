@@ -33,6 +33,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -167,6 +168,7 @@ function ReportActionItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const {canUseSpotnanaTravel} = usePermissions();
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
 
@@ -434,7 +436,7 @@ function ReportActionItem({
                     isWhisper={isWhisper}
                 />
             );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW && canUseSpotnanaTravel) {
             children = (
                 <TripRoomPreview
                     // @TODO: create a new method to obtain iouReportID
