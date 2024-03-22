@@ -217,6 +217,7 @@ function WorkspaceOwnerPaymentCardFormPage({policy, route}: WorkspaceOwnerPaymen
                                                         value={currency}
                                                         inputStyle={isHovered && styles.cursorPointer}
                                                         hideFocusedState
+                                                        caretHidden
                                                     />
                                                 )}
                                             </Hoverable>
