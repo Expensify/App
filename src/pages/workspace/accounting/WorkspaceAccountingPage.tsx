@@ -184,7 +184,7 @@ function WorkspaceAccountingPage() {
                                     title={translate('workspace.accounting.qbo')}
                                     description={translate(isSyncInProgress ? 'workspace.accounting.importing' : 'workspace.accounting.lastSync')}
                                     icon={Expensicons.QBORound}
-                                    iconType='avatar'
+                                    iconType="avatar"
                                     wrapperStyle={[styles.ph8, styles.mhn8]}
                                     interactive={false}
                                 />
