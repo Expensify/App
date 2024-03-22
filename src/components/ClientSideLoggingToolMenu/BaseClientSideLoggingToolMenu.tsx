@@ -1,17 +1,14 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ClientSideLoggingToolMenuOnyxProps} from './types';
 
-type BaseClientSideLoggingToolMenuOnyxProps = {
-    /** Whether or not logs should be stored */
-    shouldStoreLogs: OnyxEntry<boolean>;
-};
+type BaseClientSideLoggingToolMenuOnyxProps = Pick<ClientSideLoggingToolMenuOnyxProps, 'shouldStoreLogs'>;
 
 type BaseClientSideLoggingToolProps = {
     file?: {path: string; newFileName: string; size: number};
