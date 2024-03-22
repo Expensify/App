@@ -137,6 +137,7 @@ function WorkspaceAccountingPage() {
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.import'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: () => {},
                       },
                       {
                           icon: Expensicons.Send,
@@ -144,6 +145,7 @@ function WorkspaceAccountingPage() {
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.export'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: () => {},
                       },
                       {
                           icon: Expensicons.Gear,
@@ -151,6 +153,7 @@ function WorkspaceAccountingPage() {
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.advanced'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: () => {},
                       },
                   ]),
         ],
@@ -165,6 +168,7 @@ function WorkspaceAccountingPage() {
                 shouldShowRightIcon: true,
                 description: translate('workspace.accounting.other'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
+                onPress: () => {},
             },
         ],
         [styles.sectionMenuItemTopDescription, translate],
