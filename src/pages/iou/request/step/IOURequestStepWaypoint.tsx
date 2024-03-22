@@ -1,6 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
-import {Platform} from 'react-native';
 import type {TextInput} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -15,10 +14,10 @@ import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
+import useSubmitButtonVisibility from '@hooks/useSubmitButtonVisibility';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -67,13 +66,12 @@ function IOURequestStepWaypoint({
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
+    const {isSubmitButtonVisible, showSubmitButton, hideSubmitButton, formStyle} = useSubmitButtonVisibility();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {keyboardHeight} = useKeyboardState();
-    const [isSubmitButtonVisible, setIsSubmitButtonVisible] = useState(true);
     const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
     const allWaypoints = transaction?.comment.waypoints ?? {};
@@ -167,11 +165,7 @@ function IOURequestStepWaypoint({
             onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
             testID={IOURequestStepWaypoint.displayName}
-            style={[styles.overflowHidden]}
-            // This keeps the submit button at the bottom of the screen on iOS
-            // shouldEnableKeyboardAvoidingView={Platform.OS !== 'ios'}
-            // This keeps the submit button at the bottom of the screen on android
-            // shouldEnableMinHeight={Platform.OS === 'android'}
+            style={styles.overflowHidden}
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -203,14 +197,12 @@ function IOURequestStepWaypoint({
                     danger
                 />
                 <FormProvider
-                    style={[styles.flex1, styles.mh5, Platform.OS === 'android' ? styles.mb5 : null]}
+                    style={[styles.flex1, styles.mh5, formStyle]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
                     submitFlexEnabled={false}
-                    // This keeps the list of waypoints above the keyboard on android
-                    // submitButtonStyles={Platform.OS === 'android' ? styles.mb5 : null}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     isSubmitButtonVisible={isSubmitButtonVisible}
@@ -229,8 +221,8 @@ function IOURequestStepWaypoint({
                         label={translate('distance.address')}
                         defaultValue={waypointAddress}
                         onPress={selectWaypoint}
-                        onFocus={() => setIsSubmitButtonVisible(false)}
-                        onBlur={() => setIsSubmitButtonVisible(true)}
+                        onFocus={hideSubmitButton}
+                        onBlur={showSubmitButton}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         renamedInputKeys={{
                             address: `waypoint${pageIndex}`,
