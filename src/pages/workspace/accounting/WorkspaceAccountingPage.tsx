@@ -116,6 +116,7 @@ function WorkspaceAccountingPage() {
     const otherConnectionMenuItems: MenuItemProps[] = useMemo(
         () => [
             {
+                key: 'workspace.accounting.other',
                 iconRight: Expensicons.DownArrow,
                 shouldShowRightIcon: true,
                 description: translate('workspace.accounting.other'),
