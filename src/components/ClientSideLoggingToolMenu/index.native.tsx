@@ -2,13 +2,7 @@ import React, {useState} from 'react';
 import {Alert} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Share from 'react-native-share';
-import Button from '@components/Button';
-import Switch from '@components/Switch';
-import TestToolRow from '@components/TestToolRow';
-import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as Console from '@libs/actions/Console';
 import {parseStringifyMessages} from '@libs/Console';
 import type {Log} from '@libs/Console';
@@ -16,22 +10,11 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import localFileCreate from '@libs/localFileCreate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-type CapturedLogs = Record<number, Log>;
-
-type ClientSideLoggingToolMenuOnyxProps = {
-    /** Logs captured on the current device */
-    capturedLogs: OnyxEntry<CapturedLogs>;
-
-    /** Whether or not logs should be stored */
-    shouldStoreLogs: OnyxEntry<boolean>;
-};
-
-type ClientSideLoggingToolProps = ClientSideLoggingToolMenuOnyxProps;
+import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
+import type {ClientSideLoggingToolMenuOnyxProps, ClientSideLoggingToolProps} from './types';
 
 function ClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs}: ClientSideLoggingToolProps) {
     const [file, setFile] = useState<{path: string; newFileName: string; size: number}>();
-    const styles = useThemeStyles();
 
     const onToggle = () => {
         if (!shouldStoreLogs) {
@@ -71,27 +54,11 @@ function ClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs}: ClientSideLo
     };
 
     return (
-        <>
-            <TestToolRow title="Client side logging">
-                <Switch
-                    accessibilityLabel="Client side logging"
-                    isOn={!!shouldStoreLogs}
-                    onToggle={onToggle}
-                />
-            </TestToolRow>
-            {!!file && (
-                <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${file.path}`}</Text>
-                    <TestToolRow title="Logs">
-                        <Button
-                            small
-                            text="Share"
-                            onPress={shareLogs}
-                        />
-                    </TestToolRow>
-                </>
-            )}
-        </>
+        <BaseClientSideLoggingToolMenu
+            file={file}
+            onToggleSwitch={onToggle}
+            onShareLogs={shareLogs}
+        />
     );
 }
 
