@@ -2124,6 +2124,8 @@ export default {
             failedToClearBalanceTitle: 'Failed to clear balance',
             failedToClearBalanceButtonText: 'OK',
             failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
+            successTitle: 'Woohoo! All set.',
+            successDescription: 'You\'re now the owner if this workspace.',
         },
     },
     getAssistancePage: {

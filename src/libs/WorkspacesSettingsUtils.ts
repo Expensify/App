@@ -291,8 +291,12 @@ function redirectOnChangeOwnerErrorUpdate(policy: Policy | null, policyID: strin
     }
 
     if (!policy?.errorFields?.changeOwner) {
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID));
         return;
+    }
+
+    if (!policy.errorFields.changeOwner && policy.errorFields) {
+        // TODO: redirect to the generic error page
     }
 
     const changeOwnerErrors = Object.keys(policy.errorFields.changeOwner);

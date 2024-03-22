@@ -616,6 +616,11 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/add-payment-card/:accountID',
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/add-payment-card/${accountID}` as const,
     },
+    WORKSPACE_OWNER_CHANGE_SUCCESS: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/success',
+        getRoute: (policyID: string, accountID: number) =>
+            `settings/workspaces/${policyID}/change-owner/${accountID}/success` as const,
+    },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         route: 'settings/workspaces/:policyID/change-owner/:accountID/:error',
         getRoute: (policyID: string, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) =>
