@@ -326,7 +326,7 @@ function MenuItem(
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
-    const floatRightAvatarsStyle = floatRightAvatars?.length > 1 ? [styles.mr2, styles.alignItemsCenter] : [styles.mrn3, styles.justifyContentCenter];
+    const floatRightAvatarsStyle = floatRightAvatars?.length > 1 ? [styles.mr2, styles.alignItemsCenter] : [styles.mrn2, styles.justifyContentCenter];
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [

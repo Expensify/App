@@ -123,7 +123,7 @@ export default {
         marginRight: 32,
     },
 
-    mrn3: {
+    mrn2: {
         marginRight: -8,
     },
 
