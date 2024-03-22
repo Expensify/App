@@ -265,7 +265,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     if (id) {
         index = sortedReportActions.findIndex((obj) => obj.reportActionID === id);
     } else {
-        index = sortedReportActions.findIndex((obj) => obj.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        index = sortedReportActions.findIndex((obj) => obj.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || obj.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
     }
 
     if (index === -1) {
