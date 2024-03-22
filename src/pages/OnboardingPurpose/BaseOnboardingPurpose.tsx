@@ -43,7 +43,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [selectedPurpose, setSelectedPurpose] = useState<SelectedPurposeType>(undefined);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const theme = useTheme();
 
     const paddingHorizontal = shouldUseNarrowLayout ? styles.ph8 : styles.ph5;
@@ -110,7 +110,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
+                <View style={[{maxHeight: windowHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
                     <View style={shouldUseNarrowLayout && styles.mh3}>
                         <HeaderWithBackButton
                             shouldShowBackButton
