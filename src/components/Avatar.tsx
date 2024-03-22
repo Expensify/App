@@ -84,7 +84,7 @@ function Avatar({
     // We pass the color styles down to the SVG for the workspace and fallback avatar.
     const useFallBackAvatar = imageError || source === Expensicons.FallbackAvatar;
 
-    let iconColors: SVGAvatarColorStyle;
+    let iconColors;
     if (isWorkspace) {
         iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(name);
     } else if (useFallBackAvatar) {
