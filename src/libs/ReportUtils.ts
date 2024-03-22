@@ -5448,6 +5448,22 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number): boolean {
+    const policy = getPolicy(report?.policyID);
+    const {preventSelfApproval} = policy;
+
+    const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
+
+    return !(preventSelfApproval && isOwner);
+}
+
+function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
+    const policy = getPolicy(report?.policyID);
+    const {submitsTo} = policy;
+
+    return isAllowedToApproveExpenseReport(report, submitsTo);
+}
+
 /**
  * What missing payment method does this report action indicate, if any?
  */
@@ -5700,6 +5716,8 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    isAllowedToSubmitDraftExpenseReport,
+    isAllowedToApproveExpenseReport,
     findSelfDMReportID,
     getIndicatedMissingPaymentMethod,
     isJoinRequestInAdminRoom,
