@@ -69,7 +69,7 @@ function createMockStep(
     jobId: string | null = null,
     inputs: string[] | null = null,
     inEnvs: string[] | null = null,
-    outputs: Record<string, string> | null = null,
+    outputs: Record<string, string | boolean | number> | null = null,
     outEnvs: Record<string, string> | null = null,
     isSuccessful = true,
     id: string | null = null,

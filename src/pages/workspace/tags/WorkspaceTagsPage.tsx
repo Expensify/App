@@ -264,6 +264,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         style={[styles.defaultModalContainer]}
                         testID={WorkspaceTagsPage.displayName}
                         shouldShowOfflineIndicatorInWideScreen
+                        offlineIndicatorStyle={styles.mtAuto}
                     >
                         <HeaderWithBackButton
                             icon={Illustrations.Tag}
