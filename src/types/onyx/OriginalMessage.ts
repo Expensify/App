@@ -37,6 +37,11 @@ type OriginalMessageHold = {
     originalMessage: unknown;
 };
 
+type OriginalMessageHoldComment = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT;
+    originalMessage: unknown;
+};
+
 type OriginalMessageUnHold = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD;
     originalMessage: unknown;
@@ -305,6 +310,7 @@ type OriginalMessage =
     | OriginalMessageClosed
     | OriginalMessageCreated
     | OriginalMessageHold
+    | OriginalMessageHoldComment
     | OriginalMessageUnHold
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList
