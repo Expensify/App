@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AvatarSizeName} from '@styles/utils';
-import type IconAsset from '@src/types/utils/IconAsset';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Icon from './Icon';
@@ -40,7 +39,7 @@ type AvatarProps = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL.
      * If the avatar is type === workspace, this fallback icon will be ignored and decided based on the name prop.
      */
-    fallbackIcon?: IconAsset;
+    fallbackIcon?: AvatarSource;
 
     /** Used to locate fallback icon in end-to-end tests. */
     fallbackIconTestID?: string;
