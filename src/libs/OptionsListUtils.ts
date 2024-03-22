@@ -741,16 +741,12 @@ function createOption(
  * Get the option for a given report.
  */
 function getReportOption(participant: Participant): ReportUtils.OptionData {
-    let report = ReportUtils.getReport(participant.reportID);
-
-    if (isEmptyObject(report)) {
-        report = null;
-    }
+    const report = ReportUtils.getReport(participant.reportID);
 
     const option = createOption(
         report?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
-        report,
+        !isEmptyObject(report) ? report : null,
         {},
         {
             showChatPreviewLine: false,
