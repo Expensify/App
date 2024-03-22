@@ -4623,3 +4623,5 @@ export {
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
 };
+
+export type {NewCustomUnit};
