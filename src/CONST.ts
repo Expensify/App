@@ -4144,7 +4144,7 @@ const CONST = {
                 value: '0%',
             },
             id_TAX_RATE_1: {
-                name: 'Tax rate 1',
+                name: 'Tax Rate 1',
                 value: '5%',
             },
         },
