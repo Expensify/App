@@ -16,10 +16,10 @@ type CountrySelectorProps = {
     errorText?: MaybePhraseKey;
 
     /** Callback called when the country changes. */
-    onInputChange: (value?: string) => void;
+    onInputChange?: (value?: string) => void;
 
     /** Current selected country  */
-    value?: Country;
+    value?: Country | '';
 
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -29,7 +29,7 @@ type CountrySelectorProps = {
     onBlur?: () => void;
 };
 
-function CountrySelector({errorText = '', value: countryCode, onInputChange, onBlur}: CountrySelectorProps, ref: ForwardedRef<View>) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
