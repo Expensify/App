@@ -46,7 +46,9 @@ function WorkspaceOwnerChangeCheckPage({route, personalDetails, policy}: Workspa
     const confirm = useCallback(() => {
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
             // cannot transfer ownership if there are failed settlements, or we cannot clear the balance
+            PolicyActions.clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+            return;
         }
 
         PolicyActions.requestWorkspaceOwnerChange(policyID);

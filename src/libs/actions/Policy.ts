@@ -1075,11 +1075,11 @@ function requestWorkspaceOwnerChange(policyID: string) {
 }
 
 function clearWorkspaceOwnerChangeFlow(policyID: string) {
+    Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, null);
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {changeOwner: null},
         isLoading: false,
     });
-    Onyx.set(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, null);
 }
 
 function addBillingCardAndRequestPolicyOwnerChange(
