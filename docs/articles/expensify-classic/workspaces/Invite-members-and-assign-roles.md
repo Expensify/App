@@ -45,7 +45,8 @@ To send an email invitation to your workspace,
 6. Enter the phone number or email address of the person you’re inviting. 
 
 {% include info.html %}
-If you’re inviting multiple people who will be assigned the same role, you can enter multiple email addresses or phone numbers by separating them with a comma.{% include end-info.html %}
+If you’re inviting multiple people who will be assigned the same role, you can enter multiple email addresses or phone numbers by separating them with a comma.
+{% include end-info.html %}
 
 7. Select a role for the new member. The following table shows the permissions available for each role:
 
