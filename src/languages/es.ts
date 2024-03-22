@@ -1834,6 +1834,10 @@ export default {
             accountsSwitchDescription: 'Las nuevas categorías importadas de QuickBooks Online a Expensify estarán habilitadas o deshabilitadas de forma predeterminada.',
             classesDescription: 'Elija si desea importar clases y vea dónde se muestran las clases.',
             customersDescription: 'Elija si desea importar Clientes/Proyectos y ver dónde se muestran los clientes/proyectos.',
+            locationsDescription: 'Elija si desea importar ubicaciones y vea dónde se muestran las ubicaciones.',
+            taxesDescription: 'Elija si desea importar tasas impositivas y valores predeterminados de impuestos desde su integración contable.',
+            locationsAdditionalDescription:
+                'Las ubicaciones se importan como etiquetas. Esto limita la exportación de informes de gastos como facturas de proveedores o cheques a QuickBooks Online. Para desbloquear estas opciones de exportación, deshabilite. Las ubicaciones se importan o actualizan al Plan de control para exportar ubicaciones codificadas como un campo de informe.',
         },
         type: {
             free: 'Gratis',

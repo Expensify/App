@@ -14,7 +14,6 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 
-// Fake page will be removed after normal on will be implemented
 function QuickbooksClassesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
