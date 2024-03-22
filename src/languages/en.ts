@@ -1791,9 +1791,9 @@ export default {
         },
         qbo: {
             import: 'Import',
-            importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify',
+            importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
             classes: 'Classes',
-            accounts: 'Chart of Accounts',
+            accounts: 'Chart of accounts',
             locations: 'Locations',
             taxes: 'Taxes',
             customers: 'Customers/Projects',
@@ -1806,11 +1806,11 @@ export default {
             accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
             accountsSwitchDescription: 'New categories imported from QuickBooks Online to Expensify will be either enabled or disabled by default.',
             classesDescription: 'Choose whether to import classes, and see where classes are displayed.',
-            customersDescription: 'Choose whether to import Customers/Projects and see where customers/projects are displayed.',
+            customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
             locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             locationsAdditionalDescription:
-                'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable. Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
+                'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
         },
         type: {
             free: 'Free',
