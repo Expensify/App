@@ -84,7 +84,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const tagList = useMemo<PolicyForList[]>(
         () => policyTagLists
             .map((policyTagList) =>
-                _.sortBy(Object.values(policyTagList.tags || []), 'name')
+                _.sortBy(Object.values(policyTagList.tags || []), 'name', localeCompare)
                     .map((value) => ({
                         value: value.name,
                         text: value.name,

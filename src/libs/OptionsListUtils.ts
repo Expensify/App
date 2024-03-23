@@ -918,14 +918,8 @@ function sortCategories(categories: Record<string, Category>): Category[] {
  * Sorts tags alphabetically by name.
  */
 function sortTags(tags: Record<string, Tag> | Tag[]) {
-    let sortedTags;
-
-    if (Array.isArray(tags)) {
-        sortedTags = _.sortBy(tags, 'name');
-    } else {
-        sortedTags = _.sortBy(Object.values(tags), 'name');
-    }
-
+    const tagsArray = Array.isArray(tags) ? tags : Object.values(tags);
+    const sortedTags = _.sortBy(tagsArray, 'name', localeCompare);
     return sortedTags;
 }
 /**
