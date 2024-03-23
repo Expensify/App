@@ -17,6 +17,7 @@ import Tooltip from '@components/Tooltip';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -79,6 +80,7 @@ function ReportActionItemMessageEdit(
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const prevDraftMessage = usePrevious(draftMessage);
 
     const getInitialDraft = () => {
         if (draftMessage === action?.message?.[0].html) {
@@ -124,11 +126,11 @@ function ReportActionItemMessageEdit(
     const draftRef = useRef(draft);
 
     useEffect(() => {
-        if (ReportActionsUtils.isDeletedAction(action) || (action.message && draftMessage === action.message[0].html)) {
+        if (ReportActionsUtils.isDeletedAction(action) || Boolean(action.message && draftMessage === action.message[0].html) || Boolean(prevDraftMessage === draftMessage)) {
             return;
         }
         setDraft(Str.htmlDecode(draftMessage));
-    }, [draftMessage, action]);
+    }, [draftMessage, action, prevDraftMessage]);
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
