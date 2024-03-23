@@ -114,7 +114,7 @@ const WebPDFDocument = memo(
                         estimatedItemSize={estimatedItemSize}
                         itemCount={numPages}
                         itemSize={calculatePageHeight}
-                        itemData={{pageWidth, calculatePageHeight, getDevicePixelRatio, estimatedItemSize}}
+                        itemData={{pageWidth, calculatePageHeight, getDevicePixelRatio, estimatedItemSize, containerHeight, numPages}}
                     >
                         {PageRenderer}
                     </List>
