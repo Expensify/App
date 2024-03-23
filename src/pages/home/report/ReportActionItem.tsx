@@ -62,7 +62,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {OriginalMessageActionableMentionWhisper, OriginalMessageJoinPolicyChangeLog, OriginalMessageActionableTrackedExpenseWhisper} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageActionableMentionWhisper, OriginalMessageActionableTrackedExpenseWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';

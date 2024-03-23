@@ -355,5 +355,5 @@ export type {
     OriginalMessageReimbursementDequeued,
     DecisionName,
     PaymentMethodType,
-    OriginalMessageActionableTrackedExpenseWhisper
+    OriginalMessageActionableTrackedExpenseWhisper,
 };
