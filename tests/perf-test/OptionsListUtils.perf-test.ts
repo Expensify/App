@@ -86,77 +86,75 @@ describe('OptionsListUtils', () => {
 
 /* formatSectionsFromSearchTerm performance tests */
 describe('formatSectionsFromSearchTerm', () => {
-    beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-        });
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, personalDetails);
-    });
-
-    afterAll(() => Onyx.clear());
-
-    test('Test with an empty search term and a large number of selectedOptions', async () => {
-        const selectedOptions = Array.from({length: SELECTED_OPTIONS_COUNT}, (_, i) => ({
-            accountID: i.toString(),
+    test('[OptionsListUtils] formatSectionsFromSearchTerm with an empty search term and a large number of selectedOptions', async () => {
+        const selectedOptions: ReportUtils.OptionData[] = Array.from({length: SELECTED_OPTIONS_COUNT}, (_, i) => ({
+            login: `user${i}@example.com`,
             searchText: `Option ${i}`,
+            reportID: `report_${i}`,
         }));
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('', selectedOptions, [], [], false),
+            formatSectionsFromSearchTerm('', selectedOptions, [], [], false, 0, personalDetails, false),
         );
     });
 
-    test('Test with a search term that matches a subset of a large selectedOptions array', async () => {
-        const selectedOptions = Array.from({length: SELECTED_OPTIONS_COUNT}, (_, i) => ({
-            accountID: i.toString(),
+    test('[OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches a subset of a large selectedOptions array', async () => {
+        const selectedOptions: ReportUtils.OptionData[] = Array.from({length: SELECTED_OPTIONS_COUNT}, (_, i) => ({
+            login: `user${i}@example.com`,
             searchText: i % 2 === 0 ? 'John Smith' : `Option ${i}`,
+            reportID: `report_${i}`,
         }));
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('john', selectedOptions, [], [], false),
+            formatSectionsFromSearchTerm('john', selectedOptions, [], [], false, 0, personalDetails, false),
         );
     });
 
-    test('Test with a search term that matches recent reports but not personal details', async () => {
+    test('[OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches recent reports but not personal details', async () => {
         const selectedOptions: ReportUtils.OptionData[] = [];
-        const filteredRecentReports = Array.from({length: RECENT_REPORTS_COUNT}, (_, i) => ({
-            accountID: i.toString(),
+        const filteredRecentReports: ReportUtils.OptionData[] = Array.from({length: RECENT_REPORTS_COUNT}, (_, i) => ({
+            login: `user${i}@example.com`,
             searchText: `Recent Report ${i}`,
+            reportID: `report_${i}`,
         }));
         const filteredPersonalDetails: ReportUtils.OptionData[] = [];
         
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('recent', selectedOptions, filteredRecentReports, filteredPersonalDetails, false),
+            formatSectionsFromSearchTerm('recent', selectedOptions, filteredRecentReports, filteredPersonalDetails, false, 0, personalDetails, false),
         );
     });
 
-    test('Test with a search term that matches personal details but not recent reports', async () => {
+    test('OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches personal details but not recent reports', async () => {
         const selectedOptions: ReportUtils.OptionData[] = [];
         const filteredRecentReports: ReportUtils.OptionData[] = [];
-        const filteredPersonalDetails = Array.from({length: PERSONAL_DETAILS_COUNT}, (_, i) => ({
-            accountID: i.toString(),
+        const filteredPersonalDetails: ReportUtils.OptionData[] = Array.from({length: PERSONAL_DETAILS_COUNT}, (_, i) => ({
+            login: `user${i}@example.com`,
             searchText: `Personal Detail ${i}`,
+            reportID: `report_${i}`,
         }));
         
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('personal', selectedOptions, filteredRecentReports, filteredPersonalDetails, false),
+            formatSectionsFromSearchTerm('personal', selectedOptions, filteredRecentReports, filteredPersonalDetails, false, 0, personalDetails, false),
         );
     });
 
-    test('Test with a search term that matches neither recent reports nor personal details', async () => {
-        const selectedOptions = Array.from({length: 10}, (_, i) => ({
-            accountID: i.toString(),
+    test('[OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches neither recent reports nor personal details', async () => {
+        const selectedOptions: ReportUtils.OptionData[] = Array.from({length: 10}, (_, i) => ({
+            login: `user${i}@example.com`,
             searchText: `Option ${i}`,
+            reportID: `report_${i}`,
         }));
-        const filteredRecentReports = Array.from({length: RECENT_REPORTS_COUNT}, (_, i) => ({
-            accountID: (i + 10).toString(), 
+        const filteredRecentReports: ReportUtils.OptionData[] = Array.from({length: RECENT_REPORTS_COUNT}, (_, i) => ({
+            login: `user${i + 10}@example.com`,
             searchText: `Recent Report ${i}`,
+            reportID: `report_${i + 10}`,
         }));
-        const filteredPersonalDetails = Array.from({length: PERSONAL_DETAILS_COUNT}, (_, i) => ({
-            accountID: (i + 110).toString(),
-            searchText: `Personal Detail ${i}`,  
+        const filteredPersonalDetails: ReportUtils.OptionData[] = Array.from({length: PERSONAL_DETAILS_COUNT}, (_, i) => ({
+            login: `user${i + 110}@example.com`,
+            searchText: `Personal Detail ${i}`,
+            reportID: `report_${i + 110}`,
         }));
         
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('unmatched', selectedOptions, filteredRecentReports, filteredPersonalDetails, false),
+            formatSectionsFromSearchTerm('unmatched', selectedOptions, filteredRecentReports, filteredPersonalDetails, false, 0, personalDetails, false),
         );
     });
 });
