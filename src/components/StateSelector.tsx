@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
