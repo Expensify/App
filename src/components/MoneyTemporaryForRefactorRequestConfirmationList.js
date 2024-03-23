@@ -626,7 +626,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
-                addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                 currency={iouCurrencyCode}
                 policyID={policyID}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
