@@ -124,7 +124,8 @@ function getDistanceMerchant(
 
     const formattedDistance = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate);
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const ratePerUnit = PolicyUtils.getUnitRateValue({rate}, toLocaleDigit);
+    const ratePerUnit = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate});
+
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
