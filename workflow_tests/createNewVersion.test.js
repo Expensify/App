@@ -1,13 +1,12 @@
-import {MockGithub} from '@kie/mock-github';
-import path from 'path';
-import assertions from './assertions/createNewVersionAssertions';
-import mocks from './mocks/createNewVersionMocks';
-import ExtendedAct from './utils/ExtendedAct';
-import * as utils from './utils/utils';
+const path = require('path');
+const kieMockGithub = require('@kie/mock-github');
+const utils = require('./utils/utils');
+const assertions = require('./assertions/createNewVersionAssertions');
+const mocks = require('./mocks/createNewVersionMocks');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000); // 90 sec
-let mockGithub: MockGithub;
-
+let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
@@ -17,7 +16,7 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 ];
 
 describe('test workflow createNewVersion', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
@@ -25,7 +24,7 @@ describe('test workflow createNewVersion', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new MockGithub({
+        mockGithub = new kieMockGithub.MockGithub({
             repo: {
                 testCreateNewVersionWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,
@@ -57,7 +56,7 @@ describe('test workflow createNewVersion', () => {
         describe('actor is admin', () => {
             const validateActorMockSteps = mocks.CREATENEWVERSION__VALIDATEACTOR__ADMIN__STEP_MOCKS;
             it('executes full workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') ?? '';
+                const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -80,7 +79,7 @@ describe('test workflow createNewVersion', () => {
         describe('actor is writer', () => {
             const validateActorMockSteps = mocks.CREATENEWVERSION__VALIDATEACTOR__WRITER__STEP_MOCKS;
             it('executes full workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') ?? '';
+                const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -103,7 +102,7 @@ describe('test workflow createNewVersion', () => {
         describe('actor is reader', () => {
             const validateActorMockSteps = mocks.CREATENEWVERSION__VALIDATEACTOR__NO_PERMISSION__STEP_MOCKS;
             it('stops after validation', async () => {
-                const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') ?? '';
+                const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -125,7 +124,7 @@ describe('test workflow createNewVersion', () => {
 
         describe('one step fails', () => {
             it('announces failure on Slack', async () => {
-                const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') ?? '';
+                const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
@@ -134,7 +133,7 @@ describe('test workflow createNewVersion', () => {
                     validateActor: mocks.CREATENEWVERSION__VALIDATEACTOR__ADMIN__STEP_MOCKS,
                     createNewVersion: utils.deepCopy(mocks.CREATENEWVERSION__CREATENEWVERSION__STEP_MOCKS),
                 };
-                testMockSteps.createNewVersion[5] = utils.createMockStep('Commit new version', 'Commit new version', 'CREATENEWVERSION', [], [], {}, {}, false);
+                testMockSteps.createNewVersion[5] = utils.createMockStep('Commit new version', 'Commit new version', 'CREATENEWVERSION', [], [], [], [], false);
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                     mockSteps: testMockSteps,
@@ -147,7 +146,7 @@ describe('test workflow createNewVersion', () => {
         });
 
         it('chooses source branch depending on the SEMVER_LEVEL', async () => {
-            const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') ?? '';
+            const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml');
             let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, {SEMVER_LEVEL: 'MAJOR'});
