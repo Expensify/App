@@ -720,7 +720,7 @@ function ReportActionItem({
                     message = 'parentReportAction.deletedRequest';
                 }
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.justifyContentEnd]}>
+                    <View>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
@@ -749,7 +749,7 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+                    <View>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
@@ -767,7 +767,7 @@ function ReportActionItem({
                 );
             }
             return (
-                <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+                <View>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                         <TaskView
