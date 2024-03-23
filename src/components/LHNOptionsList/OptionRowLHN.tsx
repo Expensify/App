@@ -107,9 +107,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const report = ReportUtils.getReport(optionItem.reportID ?? '');
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : null);
 
-    const isGroupChat =
-        ReportUtils.isGroupChat(optionItem) ||
-        (optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.chatType && !optionItem.isThread && (optionItem.displayNamesWithTooltips?.length ?? 0) > 2);
+    const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
+
     const fullTitle = isGroupChat ? getGroupChatName(report?.participantAccountIDs ?? []) : optionItem.text;
 
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;

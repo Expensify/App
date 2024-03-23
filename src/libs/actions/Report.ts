@@ -640,7 +640,7 @@ function openReport(
         idempotencyKey: `${SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT}_${reportID}`,
     };
 
-    if (newReportObject.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
+    if (ReportUtils.isGroupChat(newReportObject)) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = participantAccountIDList.join(',');

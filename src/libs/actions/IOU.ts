@@ -103,6 +103,7 @@ type SplitData = {
     reportActionID: string;
     policyID?: string;
     createdReportActionID?: string;
+    chatType?: string;
 };
 
 type SplitsAndOnyxData = {
@@ -2270,7 +2271,27 @@ function createSplitsAndOnyxData(
     if (!existingSplitChatReport) {
         existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
     }
-    const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    let newChat: ReportUtils.OptimisticChatReport = {};
+
+    if (!existingSplitChatReport) {
+        if (participants.length > 1) {
+            newChat = ReportUtils.buildOptimisticChatReport(
+                participantAccountIDs,
+                '',
+                CONST.REPORT.CHAT_TYPE.GROUP,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            );
+        } else {
+            newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+        }
+    }
+    const splitChatReport = existingSplitChatReport ?? newChat;
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -2599,6 +2620,7 @@ function createSplitsAndOnyxData(
         transactionID: splitTransaction.transactionID,
         reportActionID: splitIOUReportAction.reportActionID,
         policyID: splitChatReport.policyID,
+        chatType: splitChatReport.chatType,
     };
 
     if (!existingSplitChatReport) {
@@ -2721,7 +2743,7 @@ function splitBillAndOpenReport(
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
-        chatType: participants.length > 1 ? CONST.REPORT.CHAT_TYPE.GROUP : '',
+        chatType: splitData.chatType,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);

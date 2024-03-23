@@ -3704,7 +3704,6 @@ function buildOptimisticChatReport(
 
         return {...reportParticipants, [accountID]: participant};
     }, {} as Participants);
-    const isGroup = chatType === CONST.REPORT.CHAT_TYPE.GROUP;
     const currentTime = DateUtils.getDBTime();
     const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
     return {
@@ -3725,10 +3724,10 @@ function buildOptimisticChatReport(
         parentReportActionID,
         parentReportID,
         // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
-        participantAccountIDs: !isGroup ? participantList : undefined,
-        visibleChatMemberAccountIDs: !isGroup ? participantList : undefined,
+        participantAccountIDs: participantList,
+        visibleChatMemberAccountIDs: participantList,
         // For group chats we need to have participants object as we are migrating away from `participantAccountIDs` and `visibleChatMemberAccountIDs`. See https://github.com/Expensify/App/issues/34692
-        participants: isGroup ? participants : undefined,
+        participants,
         policyID,
         reportID: generateReportID(),
         reportName,
@@ -4768,7 +4767,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     if (
         (isChatRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && hasMultipleOtherParticipants) ||
-        isGroupChat(report) ||
+        (isGroupChat(report) && otherParticipants.length > 0) ||
         (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
     ) {
         options = [CONST.IOU.TYPE.SPLIT];
