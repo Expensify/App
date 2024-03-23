@@ -1,5 +1,4 @@
 import {rand} from '@ngneat/falso';
-import Onyx from 'react-native-onyx';
 import type * as NativeNavigation from '@react-navigation/native';
 import {measureFunction} from 'reassure';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
