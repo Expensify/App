@@ -153,6 +153,7 @@ function IOURequestStepParticipants({
                     iouType={iouType}
                     iouRequestType={iouRequestType}
                     didScreenTransitionEnd={didScreenTransitionEnd}
+                    iouAction={iouAction}
                 />
             )}
         </StepScreenWrapper>

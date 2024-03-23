@@ -62,6 +62,9 @@ const propTypes = {
 
     /** Whether the parent screen transition has ended */
     didScreenTransitionEnd: PropTypes.bool,
+
+    /** The action of the IOU, i.e. create, split, move */
+    iouAction: PropTypes.oneOf(_.values(CONST.IOU.ACTION)),
 };
 
 const defaultProps = {
@@ -71,6 +74,7 @@ const defaultProps = {
     betas: [],
     dismissedReferralBanners: {},
     didScreenTransitionEnd: false,
+    iouAction: CONST.IOU.ACTION.CREATE,
 };
 
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
@@ -84,6 +88,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     iouRequestType,
     dismissedReferralBanners,
     didScreenTransitionEnd,
+    iouAction,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -120,7 +125,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
             // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to request money from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.TYPE.REQUEST,
+            iouType === CONST.IOU.TYPE.REQUEST && iouAction !== CONST.IOU.ACTION.MOVE,
 
             canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
