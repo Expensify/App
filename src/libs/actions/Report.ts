@@ -2984,7 +2984,9 @@ function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: On
         reportActionID: reportAction.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.DISMISS_ACTIONABLE_WHISPER, params, {optimisticData, failureData});
+    console.log(reportAction)
+
+    // API.write(WRITE_COMMANDS.DISMISS_ACTIONABLE_WHISPER, params, {optimisticData, failureData});
 }
 
 export {

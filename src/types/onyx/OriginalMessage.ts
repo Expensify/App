@@ -281,10 +281,11 @@ type OriginalMessageReimbursementQueued = {
     };
 };
 
-type OriginalMessageTrackedExpenseWhisper = {
+type OriginalMessageActionableTrackedExpenseWhisper = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLETRACKEXPENSEWHISPER;
     originalMessage: {
         transactionID: string;
+        lastModified: string;
         //  todo: add constants for tracking expense whisper resolution
         resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>;
     };
@@ -330,7 +331,7 @@ type OriginalMessage =
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
     | OriginalMessageMarkedReimbursed
-    | OriginalMessageTrackedExpenseWhisper;
+    | OriginalMessageActionableTrackedExpenseWhisper;
 
 export default OriginalMessage;
 export type {
@@ -354,4 +355,5 @@ export type {
     OriginalMessageReimbursementDequeued,
     DecisionName,
     PaymentMethodType,
+    OriginalMessageActionableTrackedExpenseWhisper
 };

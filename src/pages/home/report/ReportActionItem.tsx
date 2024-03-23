@@ -62,7 +62,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {OriginalMessageActionableMentionWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageActionableMentionWhisper, OriginalMessageJoinPolicyChangeLog, OriginalMessageActionableTrackedExpenseWhisper} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -372,12 +372,13 @@ function ReportActionItem({
         }
 
         if (ReportActionsUtils.isActionableTrackExpense(action)) {
+            const transactionID = (action?.originalMessage as OriginalMessageActionableTrackedExpenseWhisper['originalMessage'])?.transactionID;
             return [
                 {
                     text: 'actionableMentionTrackExpense.request',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-request`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(action?.originalMessage?.transactionID, report.reportID);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID);
                     },
                     isMediumSized: true,
                 },
@@ -815,7 +816,12 @@ function ReportActionItem({
     }
 
     // if action is actionable mention whisper and resolved by user, then we don't want to render anything
-    if ((ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action)) && (action.originalMessage?.resolution ?? null)) {
+    if (ReportActionsUtils.isActionableMentionWhisper(action) && (action.originalMessage.resolution ?? null)) {
+        return null;
+    }
+
+    // if action is actionable track expense whisper and resolved by user, then we don't want to render anything
+    if (ReportActionsUtils.isActionableTrackExpense(action) && (action.originalMessage as OriginalMessageActionableTrackedExpenseWhisper['originalMessage']).resolution) {
         return null;
     }
 
