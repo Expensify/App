@@ -1,11 +1,11 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
@@ -34,9 +34,6 @@ type CommonListItemProps<TItem> = {
 
     /** Component to display on the right side */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
-
-    /** Direction of checkmark to show */
-    checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
 
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
@@ -147,11 +144,13 @@ type UserListItemProps = ListItemProps & {
     FooterComponent?: ReactElement;
 };
 
+type InviteMemberListItemProps = UserListItemProps;
+
 type RadioListItemProps = ListItemProps;
 
 type TableListItemProps = ListItemProps;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -270,9 +269,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Component to display on the right side of each child */
     rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
 
-    /** Direction of checkmark to show */
-    checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
-
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
 
@@ -321,6 +317,7 @@ export type {
     UserListItemProps,
     RadioListItemProps,
     TableListItemProps,
+    InviteMemberListItemProps,
     ListItem,
     ListItemProps,
     FlattenedSectionsReturn,
