@@ -1,6 +1,6 @@
 import React, {useContext, useEffect} from 'react';
 import {NativeModules} from 'react-native';
-import InitialUrlContext from '@libs/InitialUrlContext';
+import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
 
 type AppNavigatorProps = {
@@ -9,7 +9,7 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
-    const initUrl = useContext(InitialUrlContext);
+    const initUrl = useContext(InitialURLContext);
 
     useEffect(() => {
         if (!NativeModules.HybridAppModule || !initUrl) {

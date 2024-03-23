@@ -30,6 +30,7 @@ import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
+import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -489,80 +490,84 @@ const isChannelMuted = (reportId: string) =>
 function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
-    const reportIDs = reportActionsOnly.map((value) => value.key.split('_')[1]);
+    const reportID = reportActionsOnly
+        .map((value) => value.key.split('_')[1])
+        .find((reportKey) => reportKey === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus());
 
-    Promise.all(reportIDs.map((reportID) => isChannelMuted(reportID)))
-        .then((muted) => muted.every((isMuted) => isMuted))
-        .then((isSoundMuted) => {
-            if (isSoundMuted) {
-                return;
+    if (!reportID) {
+        return;
+    }
+
+    isChannelMuted(reportID).then((isSoundMuted) => {
+        if (isSoundMuted) {
+            return;
+        }
+
+        try {
+            const flatten = reportActionsOnly.flatMap((update) => {
+                const value = update.value as OnyxCollection<ReportAction>;
+
+                if (!value) {
+                    return [];
+                }
+
+                return Object.values(value);
+            }) as ReportAction[];
+
+            for (const data of flatten) {
+                // Someone completes a task
+                if (data.actionName === 'TASKCOMPLETED') {
+                    return playSound(SOUNDS.SUCCESS);
+                }
             }
 
-            try {
-                const flatten = reportActionsOnly.flatMap((update) => {
-                    const value = update.value as OnyxCollection<ReportAction>;
+            const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
 
-                    if (!value) {
-                        return [];
-                    }
-
-                    return Object.values(value);
-                }) as ReportAction[];
-
-                for (const data of flatten) {
-                    // Someone completes a task
-                    if (data.actionName === 'TASKCOMPLETED') {
-                        return playSound(SOUNDS.SUCCESS);
-                    }
+            for (const message of types) {
+                // someone sent money
+                if ('IOUDetails' in message) {
+                    return playSound(SOUNDS.SUCCESS);
                 }
 
-                const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
-
-                for (const message of types) {
-                    // someone sent money
-                    if ('IOUDetails' in message) {
-                        return playSound(SOUNDS.SUCCESS);
-                    }
-
-                    // mention user
-                    if ('html' in message && typeof message.html === 'string' && message.html.includes(`<mention-user>@${currentEmail}</mention-user>`)) {
-                        return playSoundExcludingMobile(SOUNDS.ATTENTION);
-                    }
-
-                    // mention @here
-                    if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
-                        return playSoundExcludingMobile(SOUNDS.ATTENTION);
-                    }
-
-                    // assign a task
-                    if ('taskReportID' in message) {
-                        return playSound(SOUNDS.ATTENTION);
-                    }
-
-                    // request money
-                    if ('IOUTransactionID' in message) {
-                        return playSound(SOUNDS.ATTENTION);
-                    }
-
-                    // Someone completes a money request
-                    if ('IOUReportID' in message) {
-                        return playSound(SOUNDS.SUCCESS);
-                    }
-
-                    // plain message
-                    if ('html' in message) {
-                        return playSoundExcludingMobile(SOUNDS.RECEIVE);
-                    }
-                }
-            } catch (e) {
-                let errorMessage = String(e);
-                if (e instanceof Error) {
-                    errorMessage = e.message;
+                // mention user
+                if ('html' in message && typeof message.html === 'string' && message.html.includes(`<mention-user>@${currentEmail}</mention-user>`)) {
+                    return playSoundExcludingMobile(SOUNDS.ATTENTION);
                 }
 
-                Log.client(`Unexpected error occurred while parsing the data to play a sound: ${errorMessage}`);
+                // mention @here
+                if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
+                    return playSoundExcludingMobile(SOUNDS.ATTENTION);
+                }
+
+                // assign a task
+                if ('taskReportID' in message) {
+                    return playSound(SOUNDS.ATTENTION);
+                }
+
+                // request money
+                if ('IOUTransactionID' in message) {
+                    return playSound(SOUNDS.ATTENTION);
+                }
+
+                // Someone completes a money request
+                if ('IOUReportID' in message) {
+                    return playSound(SOUNDS.SUCCESS);
+                }
+
+                // plain message
+                if ('html' in message) {
+                    return playSoundExcludingMobile(SOUNDS.RECEIVE);
+                }
             }
-        });
+        } catch (e) {
+            let errorMessage = String(e);
+            if (e instanceof Error) {
+                errorMessage = e.message;
+            }
+
+            Log.client(`Unexpected error occurred while parsing the data to play a sound: ${errorMessage}`);
+        }
+    });
 }
 
 /**
@@ -960,11 +965,9 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
+            key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
             value: {
-                dismissedReferralBanners: {
-                    [type]: true,
-                },
+                [type]: true,
             },
         },
     ];
