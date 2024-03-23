@@ -19,7 +19,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import setCursorPosition from './setCursorPosition';
 
-type MinHrRefs = {hourRef: TextInput | null; minuteRef: TextInput | null};
+type MinuteHourRefs = {hourRef: TextInput | null; minuteRef: TextInput | null};
 
 type TimePickerProps = {
     /** Default value for the inputs */
@@ -103,7 +103,7 @@ function clearSelectedValue(value: string, selection: {start: number; end: numbe
     setSelection({start: newCursorPosition, end: newCursorPosition});
 }
 
-function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: TimePickerProps, ref: ForwardedRef<MinHrRefs>) {
+function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: TimePickerProps, ref: ForwardedRef<MinuteHourRefs>) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -368,7 +368,6 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
             if (isMinuteFocused && selectionMinute.start === 0) {
                 // Check e to be truthy to avoid crashing on Android (e is undefined there)
                 e?.preventDefault();
-
                 focusHourInputOnLastCharacter();
             }
         },
