@@ -1,12 +1,14 @@
-const path = require('path');
-const kieMockGithub = require('@kie/mock-github');
-const utils = require('./utils/utils');
-const assertions = require('./assertions/lintAssertions');
-const mocks = require('./mocks/lintMocks');
-const ExtendedAct = require('./utils/ExtendedAct').default;
+import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import {MockGithub} from '@kie/mock-github';
+import path from 'path';
+import assertions from './assertions/lintAssertions';
+import mocks from './mocks/lintMocks';
+import ExtendedAct from './utils/ExtendedAct';
+import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
-let mockGithub;
+let mockGithub: MockGithub;
+
 const FILES_TO_COPY_INTO_TEST_REPO = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
@@ -19,7 +21,7 @@ describe('test workflow lint', () => {
     const githubToken = 'dummy_github_token';
     const actor = 'Dummy Actor';
 
-    beforeAll(async () => {
+    beforeAll(() => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
@@ -27,7 +29,7 @@ describe('test workflow lint', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new kieMockGithub.MockGithub({
+        mockGithub = new MockGithub({
             repo: {
                 testLintWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,
@@ -47,13 +49,14 @@ describe('test workflow lint', () => {
         const event = 'workflow_call';
         const eventOptions = {};
         it('runs the lint', async () => {
-            const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') || '';
+            const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
             let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
-            const testMockSteps = {
+            const testMockSteps: MockStep = {
                 lint: mocks.LINT__LINT__STEP_MOCKS,
             };
+
             const result = await act.runEvent(event, {
                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                 mockSteps: testMockSteps,
@@ -66,13 +69,14 @@ describe('test workflow lint', () => {
         describe('actor is OSBotify', () => {
             const testActor = 'OSBotify';
             it('runs the lint', async () => {
-                const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     lint: mocks.LINT__LINT__STEP_MOCKS,
                 };
+
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                     mockSteps: testMockSteps,
@@ -91,13 +95,14 @@ describe('test workflow lint', () => {
                 action: 'opened',
             };
             it('runs the lint', async () => {
-                const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     lint: mocks.LINT__LINT__STEP_MOCKS,
                 };
+
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                     mockSteps: testMockSteps,
@@ -110,13 +115,14 @@ describe('test workflow lint', () => {
             describe('actor is OSBotify', () => {
                 const testActor = 'OSBotify';
                 it('does not run the lint', async () => {
-                    const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') || '';
+                    const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') ?? '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
                     let act = new ExtendedAct(repoPath, workflowPath);
                     act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                     const testMockSteps = {
                         lint: mocks.LINT__LINT__STEP_MOCKS,
                     };
+
                     const result = await act.runEvent(event, {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                         mockSteps: testMockSteps,
@@ -133,13 +139,14 @@ describe('test workflow lint', () => {
                 action: 'synchronize',
             };
             it('runs the lint', async () => {
-                const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     lint: mocks.LINT__LINT__STEP_MOCKS,
                 };
+
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                     mockSteps: testMockSteps,
