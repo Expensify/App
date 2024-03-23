@@ -1,5 +1,6 @@
+import {useIsFocused} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
@@ -19,7 +20,7 @@ type StateSelectorProps = {
     errorText?: MaybePhraseKey;
 
     /** Current selected state  */
-    value?: State;
+    value?: State | '';
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string) => void;
@@ -30,24 +31,33 @@ type StateSelectorProps = {
     /** Any additional styles to apply */
     wrapperStyle?: MenuItemProps['wrapperStyle'];
 
-    /** whether to use state from url, for cases when url value is passed from parent */
-    shouldUseStateFromUrl?: boolean;
+    /** Callback to call when the picker modal is dismissed */
+    onBlur?: () => void;
 
     /** object to get route details from */
     stateSelectorRoute?: typeof ROUTES.SETTINGS_ADDRESS_STATE | typeof ROUTES.MONEY_REQUEST_STATE_SELECTOR;
 };
 
 function StateSelector(
-    {errorText, shouldUseStateFromUrl = true, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE}: StateSelectorProps,
+    {errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE}: StateSelectorProps,
     ref: ForwardedRef<View>,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const stateFromUrl = useGeographicalStateFromRoute();
-    const [stateToDisplay, setStateToDisplay] = useState<State | ''>('');
+
+    const didOpenStateSelector = useRef(false);
+    const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (!shouldUseStateFromUrl || !stateFromUrl) {
+        if (isFocused && didOpenStateSelector.current) {
+            didOpenStateSelector.current = false;
+            if (!stateFromUrl) {
+                onBlur?.();
+            }
+        }
+
+        if (!stateFromUrl) {
             return;
         }
 
@@ -55,29 +65,13 @@ function StateSelector(
         if (onInputChange) {
             onInputChange(stateFromUrl);
         }
-        setStateToDisplay(stateFromUrl);
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [stateFromUrl, shouldUseStateFromUrl]);
-
-    useEffect(() => {
-        if (!stateCode) {
-            return;
-        }
-
-        if (onInputChange) {
-            // This will cause the form to revalidate and remove any error related to state name
-            onInputChange(stateCode);
-        }
-
-        // This enforces the state selector to use the state from address instead of the state from URL
         Navigation.setParams({state: undefined});
-        setStateToDisplay(stateCode);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [stateCode]);
+    }, [stateFromUrl, onBlur, isFocused]);
 
-    const title = stateToDisplay && Object.keys(COMMON_CONST.STATES).includes(stateToDisplay) ? translate(`allStates.${stateToDisplay}.stateName`) : '';
+    const title = stateCode && Object.keys(COMMON_CONST.STATES).includes(stateCode) ? translate(`allStates.${stateCode}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
@@ -92,6 +86,7 @@ function StateSelector(
                 description={label || translate('common.state')}
                 onPress={() => {
                     const activeRoute = Navigation.getActiveRoute();
+                    didOpenStateSelector.current = true;
                     Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
                 }}
                 wrapperStyle={wrapperStyle}
