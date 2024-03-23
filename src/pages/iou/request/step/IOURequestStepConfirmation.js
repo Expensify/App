@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {format} from 'date-fns';
 import _ from 'underscore';
 import categoryPropTypes from '@components/categoryPropTypes';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -81,7 +82,7 @@ function IOURequestStepConfirmation({
     policyCategories,
     report,
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {iouType, reportID, transactionID, action: iouAction},
     },
     transaction,
 }) {
@@ -546,9 +547,10 @@ function IOURequestStepConfirmation({
                             policyID={report.policyID}
                             bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                             iouMerchant={transaction.merchant}
-                            iouCreated={transaction.created}
+                            iouCreated={format(new Date(transaction.created), 'yyyy-MM-dd')}
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                            iouAction={iouAction}
                         />
                     </View>
                 </View>

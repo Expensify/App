@@ -134,8 +134,8 @@ function IOURequestStepParticipants({
     );
 
     const navigateBack = useCallback(() => {
-        IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID);
-    }, [iouRequestType, iouType, transactionID, reportID]);
+        IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, iouAction);
+    }, [iouRequestType, iouType, transactionID, reportID, iouAction]);
 
     return (
         <StepScreenWrapper
