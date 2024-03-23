@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -67,6 +67,7 @@ function WorkspaceInvitePage({
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const firstRenderRef = useRef(true);
     const navigation = useNavigation<StackNavigationProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>>();
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetailsProp);
@@ -120,12 +121,16 @@ function WorkspaceInvitePage({
         });
 
         const newSelectedOptions: MemberForList[] = [];
-        Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
-            if (!(login in detailsMap)) {
-                return;
-            }
-            newSelectedOptions.push({...detailsMap[login], isSelected: true});
-        });
+        if (firstRenderRef.current) {
+            // We only want to add the saved selected user on first render
+            firstRenderRef.current = false;
+            Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
+                if (!(login in detailsMap)) {
+                    return;
+                }
+                newSelectedOptions.push({...detailsMap[login], isSelected: true});
+            });
+        }
         selectedOptions.forEach((option) => {
             newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
         });
