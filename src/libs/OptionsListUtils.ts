@@ -53,6 +53,7 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
+import _ from 'underscore';
 
 type Tag = {
     enabled: boolean;
@@ -920,14 +921,13 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
     let sortedTags;
 
     if (Array.isArray(tags)) {
-        sortedTags = tags.sort((a, b) => localeCompare(a.name, b.name));
+        sortedTags = _.sortBy(tags, 'name');
     } else {
-        sortedTags = Object.values(tags).sort((a, b) => localeCompare(a.name, b.name));
+        sortedTags = _.sortBy(Object.values(tags), 'name');
     }
 
     return sortedTags;
 }
-
 /**
  * Builds the options for the category tree hierarchy via indents
  *
