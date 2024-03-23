@@ -753,7 +753,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): Imag
     if (isSmallScreenWidth) {
         return {
             height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '200%',
+            width: '100%',
             position: 'absolute',
             top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP - CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
         };

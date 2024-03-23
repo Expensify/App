@@ -615,6 +615,7 @@ const CONST = {
                 EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
+                HOLDCOMMENT: 'HOLDCOMMENT',
                 IOU: 'IOU',
                 INTEGRATIONSMESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGERATTACHRECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
@@ -4116,6 +4117,22 @@ const CONST = {
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
+    },
+    DEFAULT_TAX: {
+        defaultExternalID: 'id_TAX_EXEMPT',
+        defaultValue: '0%',
+        foreignTaxDefault: 'id_TAX_EXEMPT',
+        name: 'Tax',
+        taxes: {
+            id_TAX_EXEMPT: {
+                name: 'Tax exempt',
+                value: '0%',
+            },
+            id_TAX_RATE_1: {
+                name: 'Tax Rate 1',
+                value: '5%',
+            },
+        },
     },
 } as const;
 

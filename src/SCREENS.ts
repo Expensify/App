@@ -155,7 +155,6 @@ const SCREENS = {
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
-        DISTANCE: 'Money_Request_Distance',
         RECEIPT: 'Money_Request_Receipt',
     },
 

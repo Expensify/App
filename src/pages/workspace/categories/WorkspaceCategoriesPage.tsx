@@ -273,6 +273,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         style={[styles.defaultModalContainer]}
                         testID={WorkspaceCategoriesPage.displayName}
                         shouldShowOfflineIndicatorInWideScreen
+                        offlineIndicatorStyle={styles.mtAuto}
                     >
                         <HeaderWithBackButton
                             icon={Illustrations.FolderOpen}
@@ -309,7 +310,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                                 subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                             />
                         )}
-                        {!shouldShowEmptyState && (
+                        {!shouldShowEmptyState && !isLoading && (
                             <SelectionList
                                 canSelectMultiple
                                 sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
