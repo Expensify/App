@@ -69,9 +69,12 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(moneyRequestReport, chatReport, policy), [moneyRequestReport, chatReport, policy]);
 
+    const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
+
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
+    const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
@@ -123,6 +126,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
+                            shouldDisableApproveButton={shouldDisableApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
                             isDisabled={!canAllowSettlement}
@@ -137,6 +141,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             text={translate('common.submit')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
+                            isDisabled={shouldDisableSubmitButton}
                         />
                     </View>
                 )}
@@ -155,6 +160,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
+                            shouldDisableApproveButton={shouldDisableApproveButton}
                             formattedAmount={formattedAmount}
                             isDisabled={!canAllowSettlement}
                         />
@@ -168,6 +174,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                             text={translate('common.submit')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
+                            isDisabled={shouldDisableSubmitButton}
                         />
                     </View>
                 )}

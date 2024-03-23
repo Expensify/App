@@ -107,7 +107,7 @@ function IOURequestStepWaypoint({
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.removeWaypoint(transaction, pageIndex, true);
+            Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -123,13 +123,13 @@ function IOURequestStepWaypoint({
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
     };
 
     const deleteStopAndHideModal = () => {
-        Transaction.removeWaypoint(transaction, pageIndex, true);
+        Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
         setIsDeleteStopModalOpen(false);
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
     };
 
     const selectWaypoint = (values: Waypoint) => {
@@ -145,7 +145,7 @@ function IOURequestStepWaypoint({
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     };
 
     return (
@@ -160,7 +160,7 @@ function IOURequestStepWaypoint({
                     title={translate(waypointDescriptionKey)}
                     shouldShowBackButton
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transactionID, reportID));
+                        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
                     }}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
