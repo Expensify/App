@@ -1784,7 +1784,7 @@ describe('ReportActionsUtils', () => {
             expect(result).toStrictEqual(expectedResult.reverse());
         });
 
-        it('give an empty input ID and the report actions only contain the actions with pending action is add it will return all actions', () => {
+        it('given an empty input ID and the report only contains pending actions, it will return all actions', () => {
             const input: ReportAction[] = [
                 // Given these sortedReportActions
                 {
