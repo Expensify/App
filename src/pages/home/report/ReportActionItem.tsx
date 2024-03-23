@@ -364,9 +364,8 @@ function ReportActionItem({
 
         if (
             !(
-                (ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) ||
-                (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice) ||
-                ReportActionsUtils.isActionableTrackExpense(action)
+                ((ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action)) && isWhisperResolution) ||
+                (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice)
             )
         ) {
             return [];
@@ -397,7 +396,7 @@ function ReportActionItem({
                 {
                     text: 'actionableMentionTrackExpense.nothing',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
-                    onPress: () => console.log('Nothing'),
+                    onPress: () => Report.dismissTrackExpenseActionableWhisper(report.reportID, action),
                     isMediumSized: true,
                 },
             ];
@@ -816,7 +815,7 @@ function ReportActionItem({
     }
 
     // if action is actionable mention whisper and resolved by user, then we don't want to render anything
-    if (ReportActionsUtils.isActionableMentionWhisper(action) && (action.originalMessage.resolution ?? null)) {
+    if ((ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action)) && (action.originalMessage?.resolution ?? null)) {
         return null;
     }
 

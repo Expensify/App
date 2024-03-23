@@ -5516,6 +5516,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
     if (isEmpty(transaction)) {
         return;
     }
+
     TransactionEdit.createBackupTransaction(transaction as Transaction);
 
     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, CONST.IOU.ACTION.MOVE));

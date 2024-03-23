@@ -285,6 +285,8 @@ type OriginalMessageTrackedExpenseWhisper = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLETRACKEXPENSEWHISPER;
     originalMessage: {
         transactionID: string;
+        //  todo: add constants for tracking expense whisper resolution
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>;
     };
 };
 
