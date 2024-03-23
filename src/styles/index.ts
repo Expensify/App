@@ -286,6 +286,10 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
             ...spacing.pr4,
         },
+        emojiTooltipWrapper: {
+            ...spacing.p2,
+            borderRadius: 8,
+        },
 
         mentionSuggestionsAvatarContainer: {
             width: 24,
@@ -1450,9 +1454,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            borderRadius: 28,
-            height: 28,
-            width: 28,
+            borderRadius: variables.sidebarAvatarSize,
+            height: variables.sidebarAvatarSize,
+            width: variables.sidebarAvatarSize,
         },
 
         selectedAvatarBorder: {
@@ -4099,9 +4103,12 @@ const styles = (theme: ThemeColors) =>
             gap: 16,
         },
 
+        reportActionItemImagesContainer: {
+            margin: 4,
+        },
+
         reportActionItemImages: {
             flexDirection: 'row',
-            margin: 4,
             borderRadius: 12,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
