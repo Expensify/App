@@ -194,6 +194,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_DISTANCE_RATES_ENABLED: 'SetPolicyDistanceRatesEnabled',
     DELETE_POLICY_DISTANCE_RATES: 'DeletePolicyDistanceRates',
     DISMISS_ACTIONABLE_WHISPER: 'DismissActionableWhisper',
+    CONVERT_TRACKED_EXPENSE_TO_REQUEST: 'ConvertTrackedExpenseToRequest',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;

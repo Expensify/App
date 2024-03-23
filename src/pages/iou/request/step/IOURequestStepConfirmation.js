@@ -198,6 +198,7 @@ function IOURequestStepConfirmation({
      */
     const requestMoney = useCallback(
         (selectedParticipants, trimmedComment, receiptObj, gpsPoints) => {
+            const isConvertingFromTrackExpenseToRequest = iouAction === CONST.IOU.ACTION.MOVE;
             IOU.requestMoney(
                 report,
                 transaction.amount,
@@ -218,9 +219,21 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 gpsPoints,
+                isConvertingFromTrackExpenseToRequest,
             );
         },
-        [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+        [
+            report,
+            transaction,
+            transactionTaxCode,
+            transactionTaxAmount,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            policy,
+            policyTags,
+            policyCategories,
+            iouAction,
+        ],
     );
 
     /**

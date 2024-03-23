@@ -2071,6 +2071,7 @@ function requestMoney(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints = undefined,
+    isConvertingFromTrackExpenseToRequest = undefined,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -2091,7 +2092,7 @@ function requestMoney(
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation(
-        currentChatReport,
+        isConvertingFromTrackExpenseToRequest ? {} : currentChatReport,
         participant,
         comment,
         amount,
@@ -2110,38 +2111,67 @@ function requestMoney(
         payeeEmail,
         moneyRequestReportID,
     );
+
+    // console.log('payerAccountID', payerAccountID);
+    // console.log('payerEmail', payerEmail);
+    // console.log('iouReport', iouReport);
+    // console.log('chatReport', chatReport);
+    // console.log('transaction', transaction);
+    // console.log('iouAction', iouAction);
+    // console.log('createdChatReportActionID', createdChatReportActionID);
+    // console.log('createdIOUReportActionID', createdIOUReportActionID);
+    // console.log('reportPreviewAction', reportPreviewAction);
+    // console.log('transactionThreadReportID', transactionThreadReportID);
+    // console.log('createdReportActionIDForThread', createdReportActionIDForThread);
+    // console.log('onyxData', onyxData);
+
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
-    const parameters: RequestMoneyParams = {
-        debtorEmail: payerEmail,
-        debtorAccountID: payerAccountID,
-        amount,
-        currency,
-        comment,
-        created: currentCreated,
-        merchant,
-        iouReportID: iouReport.reportID,
-        chatReportID: chatReport.reportID,
-        transactionID: transaction.transactionID,
-        reportActionID: iouAction.reportActionID,
-        createdChatReportActionID,
-        createdIOUReportActionID,
-        reportPreviewReportActionID: reportPreviewAction.reportActionID,
-        receipt,
-        receiptState: receipt?.state,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
-        gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
-        transactionThreadReportID,
-        createdReportActionIDForThread,
-    };
+    if (isConvertingFromTrackExpenseToRequest) {
+        const parameters = {
+            payerAccountID,
+            iouReportID: iouReport.reportID,
+            chatReportID: chatReport.reportID,
+            transactionID: transaction.transactionID,
+            reportActionID: iouAction.reportActionID,
+            createdChatReportActionID,
+            createdIOUReportActionID,
+            reportPreviewReportActionID: reportPreviewAction.reportActionID,
+        };
+        API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, onyxData);
+    } else {
+        const parameters: RequestMoneyParams = {
+            debtorEmail: payerEmail,
+            debtorAccountID: payerAccountID,
+            amount,
+            currency,
+            comment,
+            created: currentCreated,
+            merchant,
+            iouReportID: iouReport.reportID,
+            chatReportID: chatReport.reportID,
+            transactionID: transaction.transactionID,
+            reportActionID: iouAction.reportActionID,
+            createdChatReportActionID,
+            createdIOUReportActionID,
+            reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            receipt,
+            receiptState: receipt?.state,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
+            gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+            transactionThreadReportID,
+            createdReportActionIDForThread,
+        };
 
-    API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
-    resetMoneyRequestInfo();
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+        resetMoneyRequestInfo();
+    }
     Navigation.dismissModal(activeReportID);
     Report.notifyNewAction(activeReportID, payeeAccountID);
 }

@@ -1365,6 +1365,7 @@ const CONST = {
             DELETE: 'delete',
             APPROVE: 'approve',
             TRACK: 'track',
+            MOVE: 'move',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
