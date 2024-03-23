@@ -385,7 +385,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE]: Parameters.UpdatePolicyDistanceRateValueParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED]: Parameters.SetPolicyDistanceRatesEnabledParams;
     [WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES]: Parameters.DeletePolicyDistanceRatesParams;
-    [WRITE_COMMANDS.DISMISS_ACTIONABLE_WHISPER]: Parameters.DismissActionableWhisperParams;
+    [WRITE_COMMANDS.DISMISS_ACTIONABLE_WHISPER]: Parameters.DismissTrackExpenseActionableWhisperParams;
 };
 
 const READ_COMMANDS = {

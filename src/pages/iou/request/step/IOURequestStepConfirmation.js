@@ -1,9 +1,9 @@
+import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {format} from 'date-fns';
 import _ from 'underscore';
 import categoryPropTypes from '@components/categoryPropTypes';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
