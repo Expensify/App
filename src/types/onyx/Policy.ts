@@ -183,9 +183,7 @@ type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
-type ConnectionConfig = {
-    [K in keyof Connections]: Connections[K]['config'];
-}[keyof Connections];
+type ConnectionConfig = Connections[keyof Connections] extends Connection<unknown, infer Config> ? Config : never;
 
 type ConnectionName = keyof Connections;
 
