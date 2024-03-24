@@ -797,7 +797,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
                     onPress={() =>
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouAction, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()), iouAction === CONST.IOU.ACTION.CATEGORIZE ? CONST.NAVIGATION.ACTION_TYPE.PUSH : undefined)
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouAction, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            iouAction === CONST.IOU.ACTION.CATEGORIZE ? CONST.NAVIGATION.ACTION_TYPE.PUSH : undefined,
+                        )
                     }
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}

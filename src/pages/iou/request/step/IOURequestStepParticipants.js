@@ -1,6 +1,6 @@
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import _ from 'underscore';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
@@ -32,12 +32,12 @@ const defaultProps = {
 
 function IOURequestStepParticipants({
     route: {
-        params: { iouType, reportID, transactionID, action: iouAction },
+        params: {iouType, reportID, transactionID, action: iouAction},
     },
     transaction,
-    transaction: { participants = [] },
+    transaction: {participants = []},
 }) {
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const navigation = useNavigation();
     const selectedReportID = useRef(reportID);
     const numberOfParticipants = useRef(participants.length);
@@ -62,7 +62,7 @@ function IOURequestStepParticipants({
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     useEffect(() => {
-        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, () => { }, iouRequestType, iouType, transactionID, reportID, receiptType);
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, () => {}, iouRequestType, iouType, transactionID, reportID, receiptType);
     }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID]);
 
     const updateRouteParams = useCallback(() => {
@@ -153,7 +153,7 @@ function IOURequestStepParticipants({
             testID={IOURequestStepParticipants.displayName}
             includeSafeAreaPaddingBottom
         >
-            {({ didScreenTransitionEnd }) => (
+            {({didScreenTransitionEnd}) => (
                 <MoneyRequestParticipantsSelector
                     participants={isSplitRequest ? participants : []}
                     onParticipantsAdded={addParticipant}
