@@ -201,7 +201,7 @@ function IOURequestStepConfirmation({
             const isConvertingFromTrackExpenseToRequest = iouAction === CONST.IOU.ACTION.MOVE;
             IOU.requestMoney(
                 report,
-                transaction.amount,
+                TransactionUtils.getAmount(transaction, undefined, [CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(iouAction)),
                 transaction.currency,
                 transaction.created,
                 transaction.merchant,
@@ -537,7 +537,7 @@ function IOURequestStepConfirmation({
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                             selectedParticipants={participants}
-                            iouAmount={transaction.amount}
+                            iouAmount={TransactionUtils.getAmount(transaction, undefined, true)}
                             iouComment={lodashGet(transaction, 'comment.comment', '')}
                             iouCurrencyCode={transaction.currency}
                             iouIsBillable={transaction.billable}
