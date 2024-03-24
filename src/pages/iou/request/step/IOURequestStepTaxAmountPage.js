@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -58,10 +58,10 @@ const getTaxAmount = (transaction, defaultTaxValue) => {
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
     },
     transaction,
-    transaction: {currency},
+    transaction: {currency: originalCurrency},
     report,
     policy,
 }) {
@@ -70,27 +70,11 @@ function IOURequestStepTaxAmountPage({
     const textInput = useRef(null);
     const isEditing = Navigation.getActiveRoute().includes('taxAmount');
 
+    const currency = selectedCurrency || originalCurrency;
+
     const focusTimeoutRef = useRef(null);
 
-    const isSaveButtonPressed = useRef(false);
-    const originalCurrency = useRef(null);
     const taxRates = lodashGet(policy, 'taxRates', {});
-
-    useEffect(() => {
-        if (transaction.originalCurrency) {
-            originalCurrency.current = transaction.originalCurrency;
-        } else {
-            originalCurrency.current = currency;
-            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currency);
-        }
-        return () => {
-            if (isSaveButtonPressed.current) {
-                return;
-            }
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current, true);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -116,11 +100,10 @@ function IOURequestStepTaxAmountPage({
     };
 
     const updateTaxAmount = (currentAmount) => {
-        isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits);
 
-        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency || CONST.CURRENCY.USD, true);
+        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);
