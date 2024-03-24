@@ -20,8 +20,10 @@
         android:resizeableActivity="false"
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true"
         tools:replace="android:supportsRtl">
 
+        <profileable android:shell="true"/>
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"

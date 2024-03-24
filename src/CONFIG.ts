@@ -80,7 +80,7 @@ export default {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
     },
-    CAPTURE_METRICS: get(Config, 'CAPTURE_METRICS', 'false') === 'true',
+    CAPTURE_METRICS: true, // get(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: get(Config, 'ONYX_METRICS', 'false') === 'true',
     DEV_PORT: process.env.PORT ?? 8082,
     E2E_TESTING: get(Config, 'E2E_TESTING', 'false') === 'true',

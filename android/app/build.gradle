@@ -151,7 +151,7 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            productFlavors.production.signingConfig signingConfigs.release
+            productFlavors.production.signingConfig signingConfigs.debug
             shrinkResources enableProguardInReleaseBuilds
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
@@ -162,7 +162,7 @@ android {
             // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode. 
             productFlavors.all { flavor ->
                 // All release builds should be signed with the release config ...
-                flavor.signingConfig signingConfigs.release
+                flavor.signingConfig signingConfigs.debug
             }
             // ... except for the e2e flavor, which we maybe want to build locally:
             productFlavors.e2e.signingConfig signingConfigs.debug
