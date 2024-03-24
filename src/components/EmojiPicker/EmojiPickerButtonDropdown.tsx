@@ -19,6 +19,10 @@ type EmojiPickerButtonDropdownProps = {
     /** Flag to disable the emoji picker button */
     isDisabled?: boolean;
 
+    accessibilityLabel?: string;
+
+    role?: string;
+
     onModalHide: EmojiPickerAction.OnModalHideValue;
 
     onInputChange: (emoji: string) => void;
@@ -31,7 +35,8 @@ type EmojiPickerButtonDropdownProps = {
 };
 
 function EmojiPickerButtonDropdown(
-    {isDisabled = false, onModalHide, onInputChange, value, disabled, style}: EmojiPickerButtonDropdownProps,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    {isDisabled = false, onModalHide, onInputChange, value, disabled, style, ...otherProps}: EmojiPickerButtonDropdownProps,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ref: ForwardedRef<AnimatedTextInputRef>,
 ) {
