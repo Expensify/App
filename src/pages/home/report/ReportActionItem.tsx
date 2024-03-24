@@ -379,14 +379,14 @@ function ReportActionItem({
                     text: 'actionableMentionTrackExpense.request',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-request`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.MOVE);
                     },
                     isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
-                    onPress: () => console.log('Categorize'),
+                    onPress: () => ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.CATEGORIZE),
                     isMediumSized: true,
                 },
                 {

@@ -5511,7 +5511,7 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
 
-function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string) {
+function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>): void {
     const transaction = getTransaction(transactionID);
     if (isEmpty(transaction)) {
         return;
@@ -5519,7 +5519,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
 
     TransactionEdit.createBackupTransaction(transaction as Transaction);
 
-    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, CONST.IOU.ACTION.MOVE));
+    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, actionName));
 }
 
 export {

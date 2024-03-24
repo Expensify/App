@@ -1343,6 +1343,7 @@ const CONST = {
             EDIT: 'edit',
             CREATE: 'create',
             MOVE: 'move',
+            CATEGORIZE: 'categorize',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {
