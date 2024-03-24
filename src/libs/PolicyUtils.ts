@@ -4,13 +4,13 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
-type UnitRate = {rate: number};
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -34,7 +34,7 @@ function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean 
  *  Check if the policy has any tax rate errors.
  */
 function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
-    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0);
+    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0 || Object.values(taxRate?.errorFields ?? {}).some(Boolean));
 }
 
 /**
@@ -65,7 +65,7 @@ function hasCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
-function getNumericValue(value: number, toLocaleDigit: (arg: string) => string): number | string {
+function getNumericValue(value: number | string, toLocaleDigit: (arg: string) => string): number | string {
     const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
     if (Number.isNaN(numValue)) {
         return NaN;
@@ -81,7 +81,7 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
 }
 
-function getUnitRateValue(customUnitRate: UnitRate, toLocaleDigit: (arg: string) => string) {
+function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Rate) {
     return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit);
 }
 
@@ -239,7 +239,7 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
  * Note: Free policies have "instant" submit always enabled.
  */
 function isInstantSubmitEnabled(policy: OnyxEntry<Policy> | EmptyObject): boolean {
-    return policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || policy?.type === CONST.POLICY.TYPE.FREE;
+    return policy?.type === CONST.POLICY.TYPE.FREE || (policy?.autoReporting === true && policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
 }
 
 /**
@@ -276,6 +276,26 @@ function goBackFromInvalidPolicy() {
     Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
 }
 
+/** Get a tax with given ID from policy */
+function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefined {
+    return policy?.taxRates?.taxes?.[taxID];
+}
+
+/**
+ * Whether the tax rate can be deleted and disabled
+ */
+function canEditTaxRate(policy: Policy, taxID: string): boolean {
+    return policy.taxRates?.defaultExternalID !== taxID;
+}
+
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
+        return Boolean(policy?.tax?.trackingEnabled);
+    }
+
+    return Boolean(policy?.[featureName]);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -296,6 +316,7 @@ export {
     getIneligibleInvitees,
     getTagLists,
     getTagListName,
+    canEditTaxRate,
     getTagList,
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
@@ -306,7 +327,9 @@ export {
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    isPolicyFeatureEnabled,
     hasTaxRateError,
+    getTaxByID,
     hasPolicyCategoriesError,
 };
 
