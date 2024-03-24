@@ -1,7 +1,9 @@
 import Str from 'expensify-common/lib/str';
 import lodashSortBy from 'lodash/sortBy';
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
@@ -10,11 +12,13 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import * as Report from '@libs/actions/Report';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
@@ -38,8 +42,15 @@ const defaultSuggestionsValues: SuggestionValues = {
     mentionPrefix: '',
 };
 
+type SuggestionMentionOnyxProps = {
+    /** The last selected mention suggestion */
+    lastSelectedMentionSuggestion: OnyxEntry<string>;
+};
+
+type SuggestionMentionProps = SuggestionProps & SuggestionMentionOnyxProps;
+
 function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused}: SuggestionProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused, lastSelectedMentionSuggestion, reportID}: SuggestionMentionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
@@ -109,8 +120,9 @@ function SuggestionMention(
                 ...prevState,
                 suggestedMentions: [],
             }));
+            Report.saveReportDraftLastMention(reportID, mentionCode);
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection, formatLoginPrivateDomain],
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix.length, formatLoginPrivateDomain, updateComment, setSelection, reportID],
     );
 
     /**
@@ -242,6 +254,11 @@ function SuggestionMention(
             let suggestionWord = '';
             let prefix: string;
 
+            if (lastSelectedMentionSuggestion && (lastWord === lastSelectedMentionSuggestion || (!lastWord && secondToLastWord === lastSelectedMentionSuggestion))) {
+                resetSuggestions();
+                return;
+            }
+
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
             if (lastWord.startsWith('@')) {
                 atSignIndex = leftString.lastIndexOf(lastWord) + afterLastBreakLineIndex;
@@ -277,10 +294,14 @@ function SuggestionMention(
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused],
+        [isComposerFocused, value, lastSelectedMentionSuggestion, reportID, setHighlightedMentionIndex, resetSuggestions, getMentionOptions, personalDetails],
     );
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if ((!value && lastSelectedMentionSuggestion) || (lastSelectedMentionSuggestion && !value.includes(lastSelectedMentionSuggestion))) {
+            Report.saveReportDraftLastMention(reportID, '');
+        }
         if (value.length < previousValue.length) {
             // A workaround to not show the suggestions list when the user deletes a character before the mention.
             // It is caused by a buggy behavior of the TextInput on iOS. Should be fixed after migration to Fabric.
@@ -288,7 +309,7 @@ function SuggestionMention(
             return;
         }
         calculateMentionSuggestion(selection.end);
-    }, [selection, value, previousValue, calculateMentionSuggestion]);
+    }, [selection, value, previousValue, calculateMentionSuggestion, lastSelectedMentionSuggestion, reportID]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -338,4 +359,8 @@ function SuggestionMention(
 
 SuggestionMention.displayName = 'SuggestionMention';
 
-export default forwardRef(SuggestionMention);
+export default withOnyx<SuggestionMentionProps & RefAttributes<SuggestionsRef>, SuggestionMentionOnyxProps>({
+    lastSelectedMentionSuggestion: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.LAST_SELECTED_MENTION_SUGGESTION}${reportID}`,
+    },
+})(forwardRef(SuggestionMention));
