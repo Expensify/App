@@ -20,6 +20,7 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {policyPropTypes} from '@src/pages/workspace/withPolicy';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
@@ -125,6 +126,12 @@ function IOURequestStepCategory({
         }
 
         IOU.setMoneyRequestCategory(transactionID, updatedCategory);
+
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, report.reportID, action));
+            return;
+        }
+
         navigateBack();
     };
 
