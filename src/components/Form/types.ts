@@ -9,6 +9,7 @@ import type AmountTextInput from '@components/AmountTextInput';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountrySelector from '@components/CountrySelector';
 import type DatePicker from '@components/DatePicker';
+import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type Picker from '@components/Picker';
 import type RadioButtons from '@components/RadioButtons';
 import type RoomNameInput from '@components/RoomNameInput';
@@ -47,7 +48,8 @@ type ValidInputs =
     | typeof RadioButtons
     | typeof AmountPicker
     | typeof TextPicker
-    | typeof AddPlaidBankAccount;
+    | typeof AddPlaidBankAccount
+    | typeof EmojiPickerButtonDropdown;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country';
 type ValueTypeMap = {

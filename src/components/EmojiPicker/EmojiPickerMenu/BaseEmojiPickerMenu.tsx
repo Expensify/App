@@ -4,6 +4,7 @@ import React, {useMemo} from 'react';
 import type {ForwardedRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
@@ -12,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {EmojiPickerList, EmojiPickerListItem, HeaderIndice} from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
-import type {OnyxValue} from '@src/ONYXKEYS';
 
 type BaseEmojiPickerMenuProps = {
     /** Indicates if the emoji list is filtered or not */
@@ -34,7 +34,7 @@ type BaseEmojiPickerMenuProps = {
     renderItem: ListRenderItem<EmojiPickerListItem>;
 
     /** Extra data to be passed to the list for re-rendering */
-    extraData?: Array<EmojiPickerList | OnyxValue<'preferredEmojiSkinTone'> | ((skinTone: number) => void)>;
+    extraData?: Array<EmojiPickerList | OnyxEntry<string | number> | ((skinTone: number) => void)>;
 
     /** Array of indices for the sticky headers */
     stickyHeaderIndices?: number[];
