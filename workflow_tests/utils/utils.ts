@@ -2,7 +2,7 @@ import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
-import type {ExtendedAct} from './ExtendedAct';
+import type ExtendedAct from './ExtendedAct';
 
 type EventOptions = {
     action?: string;
@@ -69,7 +69,7 @@ function createMockStep(
     jobId: string | null = null,
     inputs: string[] | null = null,
     inEnvs: string[] | null = null,
-    outputs: Record<string, string> | null = null,
+    outputs: Record<string, string | boolean | number> | null = null,
     outEnvs: Record<string, string> | null = null,
     isSuccessful = true,
     id: string | null = null,

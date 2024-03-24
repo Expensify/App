@@ -3,7 +3,7 @@ import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/verifySignedCommitsAssertions';
 import mocks from './mocks/verifySignedCommitsMocks';
-import * as eAct from './utils/ExtendedAct';
+import ExtendedAct from './utils/ExtendedAct';
 import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
@@ -51,7 +51,7 @@ describe('test workflow verifySignedCommits', () => {
         it('test stub', async () => {
             const repoPath = mockGithub.repo.getPath('testVerifySignedCommitsWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 verifySignedCommits: mocks.VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__STEP_MOCKS,
@@ -74,7 +74,7 @@ describe('test workflow verifySignedCommits', () => {
         it('test stub', async () => {
             const repoPath = mockGithub.repo.getPath('testVerifySignedCommitsWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 verifySignedCommits: mocks.VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__STEP_MOCKS,

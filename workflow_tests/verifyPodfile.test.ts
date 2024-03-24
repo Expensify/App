@@ -3,7 +3,7 @@ import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/verifyPodfileAssertions';
 import mocks from './mocks/verifyPodfileMocks';
-import * as eAct from './utils/ExtendedAct';
+import ExtendedAct from './utils/ExtendedAct';
 import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
@@ -52,7 +52,7 @@ describe('test workflow verifyPodfile', () => {
         it('executes workflow', async () => {
             const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             act = utils.setJobRunners(act, {verify: 'ubuntu-latest'}, workflowPath);
             const testMockSteps = {
@@ -71,7 +71,7 @@ describe('test workflow verifyPodfile', () => {
             it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 act = utils.setJobRunners(act, {verify: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
@@ -96,7 +96,7 @@ describe('test workflow verifyPodfile', () => {
         it('executes workflow', async () => {
             const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') ?? '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             act = utils.setJobRunners(act, {verify: 'ubuntu-latest'}, workflowPath);
             const testMockSteps = {
@@ -115,7 +115,7 @@ describe('test workflow verifyPodfile', () => {
             it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 act = utils.setJobRunners(act, {verify: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
