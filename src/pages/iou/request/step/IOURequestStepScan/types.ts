@@ -4,7 +4,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type IOURequestStepProps = {
-    route: RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.SCAN_TAB>;
+    route: RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>;
     report: OnyxTypes.Report;
     transaction: OnyxTypes.Transaction;
 };
