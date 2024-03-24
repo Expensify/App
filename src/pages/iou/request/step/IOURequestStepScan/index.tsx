@@ -57,11 +57,11 @@ function IOURequestStepScan({
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef<Webcam>(null);
-    const trackRef = useRef(null);
+    const trackRef = useRef<MediaStreamTrack | null>(null);
 
-    const getScreenshotTimeoutRef = useRef(null);
+    const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const [videoConstraints, setVideoConstraints] = useState(null);
+    const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const tabIndex = 1;
     const isTabActive = useTabNavigatorFocus({tabIndex});
 
@@ -70,22 +70,30 @@ function IOURequestStepScan({
      * The last deviceId is of regular len camera.
      */
     useEffect(() => {
-        if (!_.isEmpty(videoConstraints) || !isTabActive || !Browser.isMobile()) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (videoConstraints || !isTabActive || !Browser.isMobile()) {
             return;
         }
 
         const defaultConstraints = {facingMode: {exact: 'environment'}};
         navigator.mediaDevices
+            // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
             .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
             .then((stream) => {
-                _.forEach(stream.getTracks(), (track) => track.stop());
+                // Stop all tracks
+                stream.getTracks().forEach((track) => track.stop());
+
                 // Only Safari 17+ supports zoom constraint
                 if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
-                    const deviceId = _.chain(stream.getTracks())
-                        .map((track) => track.getSettings())
-                        .find((setting) => setting.zoom === 1)
-                        .get('deviceId')
-                        .value();
+                    let deviceId;
+                    for (const track of stream.getTracks()) {
+                        const setting = track.getSettings();
+                        // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
+                        if (setting.zoom === 1) {
+                            deviceId = setting.deviceId;
+                            break;
+                        }
+                    }
                     if (deviceId) {
                         setVideoConstraints({deviceId});
                         return;
@@ -96,12 +104,14 @@ function IOURequestStepScan({
                     return;
                 }
                 navigator.mediaDevices.enumerateDevices().then((devices) => {
-                    const lastBackDeviceId = _.chain(devices)
-                        .filter((item) => item.kind === 'videoinput')
-                        .last()
-                        .get('deviceId', '')
-                        .value();
-
+                    let lastBackDeviceId = '';
+                    for (let i = devices.length - 1; i >= 0; i--) {
+                        const device = devices[i];
+                        if (device.kind === 'videoinput') {
+                            lastBackDeviceId = device.deviceId;
+                            break;
+                        }
+                    }
                     if (!lastBackDeviceId) {
                         setVideoConstraints(defaultConstraints);
                         return;
@@ -198,15 +208,16 @@ function IOURequestStepScan({
         navigateToConfirmationStep();
     };
 
-    const setupCameraPermissionsAndCapabilities = (stream) => {
+    const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
         setCameraPermissionState('granted');
 
         const [track] = stream.getVideoTracks();
         const capabilities = track.getCapabilities();
-        if (capabilities.torch) {
+
+        if ('torch' in capabilities && capabilities.torch) {
             trackRef.current = track;
         }
-        setIsTorchAvailable(!!capabilities.torch);
+        setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);
     };
 
     const getScreenshot = useCallback(() => {
@@ -234,6 +245,7 @@ function IOURequestStepScan({
             return;
         }
         trackRef.current.applyConstraints({
+            // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
             advanced: [{torch: false}],
         });
     }, []);
@@ -242,6 +254,7 @@ function IOURequestStepScan({
         if (trackRef.current && isFlashLightOn) {
             trackRef.current
                 .applyConstraints({
+                    // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
                     advanced: [{torch: true}],
                 })
                 .then(() => {
@@ -294,7 +307,7 @@ function IOURequestStepScan({
                         <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
                     </View>
                 )}
-                {!_.isEmpty(videoConstraints) && (
+                {videoConstraints && (
                     <NavigationAwareCamera
                         onUserMedia={setupCameraPermissionsAndCapabilities}
                         onUserMediaError={() => setCameraPermissionState('denied')}
@@ -304,6 +317,11 @@ function IOURequestStepScan({
                         videoConstraints={videoConstraints}
                         forceScreenshotSourceSize
                         cameraTabIndex={tabIndex}
+                        audio={false}
+                        disablePictureInPicture={false}
+                        imageSmoothing={false}
+                        mirrored={false}
+                        screenshotQuality={0}
                     />
                 )}
             </View>
