@@ -59,7 +59,7 @@ function IOURequestStepCurrency({
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const optionsSelectorRef = useRef();
-    const currency = selectedCurrency || originalCurrency;
+    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     const navigateBack = (selectedCurrencyValue = undefined) => {
         // If the currency selection was done from the confirmation step (eg. + > request money > manual > confirm > amount > currency)

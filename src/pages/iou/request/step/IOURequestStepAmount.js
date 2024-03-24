@@ -77,7 +77,7 @@ function IOURequestStepAmount({
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
     const iouRequestType = getRequestType(transaction);
-    const currency = selectedCurrency || originalCurrency;
+    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     const taxRates = lodashGet(policy, 'taxRates', {});
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));

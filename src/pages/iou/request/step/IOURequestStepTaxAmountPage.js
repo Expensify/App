@@ -70,7 +70,7 @@ function IOURequestStepTaxAmountPage({
     const textInput = useRef(null);
     const isEditing = Navigation.getActiveRoute().includes('taxAmount');
 
-    const currency = selectedCurrency || originalCurrency;
+    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     const focusTimeoutRef = useRef(null);
 
