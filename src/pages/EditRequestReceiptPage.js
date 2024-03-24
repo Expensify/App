@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -7,9 +8,22 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestStepScan from './iou/request/step/IOURequestStepScan';
-import type IOURequestStepProps from './iou/request/step/IOURequestStepScan/types';
 
-function EditRequestReceiptPage({route}: IOURequestStepProps) {
+const propTypes = {
+    /** React Navigation route */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** The type of IOU report, i.e. bill, request, send */
+            iouType: PropTypes.string,
+
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
+};
+
+function EditRequestReceiptPage({route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -28,10 +42,7 @@ function EditRequestReceiptPage({route}: IOURequestStepProps) {
                             title={translate('common.receipt')}
                             onBackButtonPress={Navigation.goBack}
                         />
-                        <IOURequestStepScan
-                            // @ts-expect-error HOCs which are used in the component aren't migrated to TS
-                            route={route}
-                        />
+                        <IOURequestStepScan route={route} />
                     </View>
                 </DragAndDropProvider>
             )}
@@ -39,6 +50,7 @@ function EditRequestReceiptPage({route}: IOURequestStepProps) {
     );
 }
 
+EditRequestReceiptPage.propTypes = propTypes;
 EditRequestReceiptPage.displayName = 'EditRequestReceiptPage';
 
 export default EditRequestReceiptPage;
