@@ -1,10 +1,8 @@
 import type {FileObject} from '@components/AttachmentModal';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-// This can be either a string, function, or number
 type AttachmentSource = string | IconAsset | number;
 
-// The object shape for the attachment
 type Attachment = {
     /** Report action ID of the attachment */
     reportActionID?: string;

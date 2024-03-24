@@ -110,8 +110,7 @@ function AttachmentView({
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if ((maybeIcon && typeof source === 'number') || typeof source === 'function') {
+    if (typeof source === 'function' || (maybeIcon && typeof source === 'number')) {
         let iconFillColor: ColorValue | undefined = '';
         let additionalStyles: ViewStyle[] = [];
         if (isWorkspaceAvatar && file) {
