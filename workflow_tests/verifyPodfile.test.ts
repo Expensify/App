@@ -2,7 +2,7 @@
 import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/verifyPodfileAssertions';
-import mocks from './mocks/verifyPodfileMocks';
+import * as mocks from './mocks/verifyPodfileMocks';
 import ExtendedAct from './utils/ExtendedAct';
 import * as utils from './utils/utils';
 
