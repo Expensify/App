@@ -7,7 +7,7 @@ on:
 jobs:
   lockStagingDeploys:
     if: ${{ github.event.label.name == '🔐 LockCashDeploys 🔐' && contains(github.event.issue.labels.*.name, 'StagingDeployCash') && github.actor != 'OSBotify' }}
-    runs-on: macos-12
+    runs-on: macos-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4

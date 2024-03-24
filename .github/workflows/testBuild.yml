@@ -137,7 +137,7 @@ jobs:
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
       DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
-    runs-on: macos-13-xlarge
+    runs-on: macos-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -228,7 +228,7 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-    runs-on: macos-12-xl
+    runs-on: macos-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
