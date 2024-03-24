@@ -1,13 +1,12 @@
-import {MockGithub} from '@kie/mock-github';
-import path from 'path';
-import assertions from './assertions/deployBlockerAssertions';
-import mocks from './mocks/deployBlockerMocks';
-import ExtendedAct from './utils/ExtendedAct';
-import * as utils from './utils/utils';
+const path = require('path');
+const kieMockGithub = require('@kie/mock-github');
+const utils = require('./utils/utils');
+const assertions = require('./assertions/deployBlockerAssertions');
+const mocks = require('./mocks/deployBlockerMocks');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
-let mockGithub: MockGithub;
-
+let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
@@ -24,7 +23,7 @@ describe('test workflow deployBlocker', () => {
         SLACK_WEBHOOK: 'dummy_slack_webhook',
     };
 
-    beforeAll(() => {
+    beforeAll(async () => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
@@ -32,7 +31,7 @@ describe('test workflow deployBlocker', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new MockGithub({
+        mockGithub = new kieMockGithub.MockGithub({
             repo: {
                 testDeployBlockerWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,
@@ -58,7 +57,6 @@ describe('test workflow deployBlocker', () => {
             issue: {
                 title: 'Labeled issue title',
                 number: '1234',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'http://issue.html.url',
             },
         };
@@ -66,7 +64,7 @@ describe('test workflow deployBlocker', () => {
             const testEventOptions = utils.deepCopy(eventOptions);
             testEventOptions.label = {name: 'DeployBlockerCash'};
             it('runs the workflow and announces success on Slack', async () => {
-                const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') ?? '';
+                const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, testEventOptions, secrets, githubToken, {}, {});
@@ -92,7 +90,7 @@ describe('test workflow deployBlocker', () => {
             });
             describe('one step fails', () => {
                 it('announces failure on Slack', async () => {
-                    const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') ?? '';
+                    const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml');
                     let act = new ExtendedAct(repoPath, workflowPath);
                     act = utils.setUpActParams(act, event, testEventOptions, secrets, githubToken, {}, {});
@@ -132,7 +130,7 @@ describe('test workflow deployBlocker', () => {
             const testEventOptions = utils.deepCopy(eventOptions);
             testEventOptions.label = {name: 'Different Label'};
             it('does not run workflow', async () => {
-                const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') ?? '';
+                const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, testEventOptions, secrets, githubToken, {}, {});

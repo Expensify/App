@@ -1,13 +1,12 @@
-import {MockGithub} from '@kie/mock-github';
-import path from 'path';
-import assertions from './assertions/deployAssertions';
-import mocks from './mocks/deployMocks';
-import ExtendedAct from './utils/ExtendedAct';
-import * as utils from './utils/utils';
+const path = require('path');
+const kieMockGithub = require('@kie/mock-github');
+const utils = require('./utils/utils');
+const assertions = require('./assertions/deployAssertions');
+const mocks = require('./mocks/deployMocks');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
-let mockGithub: MockGithub;
-
+let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
@@ -17,7 +16,7 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 ];
 
 describe('test workflow deploy', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
@@ -25,7 +24,7 @@ describe('test workflow deploy', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new MockGithub({
+        mockGithub = new kieMockGithub.MockGithub({
             repo: {
                 testDeployWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,
@@ -49,7 +48,7 @@ describe('test workflow deploy', () => {
     };
     describe('push', () => {
         it('to main - nothing triggered', async () => {
-            const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') ?? '';
+            const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
             let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
@@ -76,7 +75,7 @@ describe('test workflow deploy', () => {
         });
 
         it('to staging - deployStaging triggered', async () => {
-            const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') ?? '';
+            const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
             let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
@@ -103,7 +102,7 @@ describe('test workflow deploy', () => {
         });
 
         it('to production - deployProduction triggered', async () => {
-            const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') ?? '';
+            const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
             let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
@@ -131,7 +130,7 @@ describe('test workflow deploy', () => {
     });
 
     it('different event than push - workflow does not execute', async () => {
-        const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') ?? '';
+        const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
         let act = new ExtendedAct(repoPath, workflowPath);
         const testMockSteps = {
