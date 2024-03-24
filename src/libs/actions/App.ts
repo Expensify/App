@@ -31,6 +31,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import * as Policy from './Policy';
 import * as Session from './Session';
 import Timing from './Timing';
@@ -74,6 +75,41 @@ Onyx.connect({
             openApp();
         }
         priorityMode = nextPriorityMode;
+    },
+});
+
+const KEYS_TO_PRESERVE: OnyxKey[] = [
+    ONYXKEYS.ACCOUNT,
+    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+    ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.MODAL,
+    ONYXKEYS.NETWORK,
+    ONYXKEYS.SESSION,
+    ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+    ONYXKEYS.NVP_TRY_FOCUS_MODE,
+    ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.CREDENTIALS,
+];
+
+let previousResetRequired: boolean|null = false;
+Onyx.connect({
+    key: ONYXKEYS.RESET_REQUIRED,
+    callback: (isResetRequired) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (previousResetRequired || !isResetRequired) {
+            return;
+        }
+
+        previousResetRequired = isResetRequired;
+        Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+            // Set this to false to reset the flag for this client
+            Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
+
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            openApp();
+        });
     },
 });
 
@@ -529,4 +565,5 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
+    KEYS_TO_PRESERVE,
 };
