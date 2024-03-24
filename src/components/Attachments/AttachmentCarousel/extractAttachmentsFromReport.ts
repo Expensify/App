@@ -7,14 +7,26 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
-/** Constructs the initial component state from report actions */
+/**
+ * Constructs the initial component state from report actions
+ */
 function extractAttachmentsFromReport(parentReportAction?: OnyxEntry<ReportAction>, reportActions?: OnyxEntry<ReportActions>) {
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
     const attachments: Attachment[] = [];
 
+    // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate
+    // and navigating back (<) shows the image preceding the first instance, not the selected duplicate's position.
+    const uniqueSources = new Set();
+
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
             if (name === 'video') {
+                const source = tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
+                if (uniqueSources.has(source)) {
+                    return;
+                }
+
+                uniqueSources.add(source);
                 const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
@@ -30,7 +42,20 @@ function extractAttachmentsFromReport(parentReportAction?: OnyxEntry<ReportActio
             if (name === 'img' && attribs.src) {
                 const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
-                const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
+                if (uniqueSources.has(source)) {
+                    return;
+                }
+
+                uniqueSources.add(source);
+                let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
+
+                // Public image URLs might lack a file extension in the source URL, without an extension our
+                // AttachmentView fails to recognize them as images and renders fallback content instead.
+                // We apply this small hack to add an image extension and ensure AttachmentView renders the image.
+                const fileInfo = FileUtils.splitExtensionFromFileName(fileName);
+                if (!fileInfo.fileExtension) {
+                    fileName = `${fileInfo.fileName || 'image'}.jpg`;
+                }
 
                 // By iterating actions in chronological order and prepending each attachment
                 // we ensure correct order of attachments even across actions with multiple attachments.
