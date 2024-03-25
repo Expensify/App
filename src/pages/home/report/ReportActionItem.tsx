@@ -683,13 +683,10 @@ function ReportActionItem({
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
-<<<<<<< HEAD
     // if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW) {
     //     return <TripRoomPreview />;
     // }
 
-=======
->>>>>>> travel/trip-room-preview
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
