@@ -1286,7 +1286,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             const isReimburser = session?.email === policy?.reimburserEmail;
-            return isReimburser && (isApproved || isManager);
+            return (!policy?.reimburserEmail || isReimburser) && (isApproved || isManager);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
             return isAdmin && (isApproved || isManager);
