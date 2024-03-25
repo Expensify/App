@@ -217,6 +217,9 @@ function BaseVideoPlayer({
                             <PressableWithoutFeedback
                                 accessibilityRole="button"
                                 onPress={() => {
+                                    if (isFullScreenRef.current) {
+                                        return;
+                                    }
                                     togglePlayCurrentVideo();
                                 }}
                                 style={styles.flex1}
