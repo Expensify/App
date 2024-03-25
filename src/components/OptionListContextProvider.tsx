@@ -51,15 +51,20 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         }
 
         const lastUpdatedReport = ReportUtils.getLastUpdatedReport();
+
+        if (!lastUpdatedReport) {
+            return;
+        }
+
         const newOption = OptionsListUtils.createOptionFromReport(lastUpdatedReport, personalDetails);
         const replaceIndex = options.reports.findIndex((option) => option.reportID === lastUpdatedReport.reportID);
 
-        if (replaceIndex === undefined) {
+        if (replaceIndex === -1) {
             return;
         }
 
         setOptions((prevOptions) => {
-            const newOptions = prevOptions;
+            const newOptions = {...prevOptions};
             newOptions.reports[replaceIndex] = newOption;
             return newOptions;
         });

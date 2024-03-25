@@ -512,7 +512,7 @@ Onyx.connect({
     },
 });
 
-let lastUpdatedReport: Report;
+let lastUpdatedReport: OnyxEntry<Report>;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -525,7 +525,7 @@ Onyx.connect({
     },
 });
 
-function getLastUpdatedReport() {
+function getLastUpdatedReport(): OnyxEntry<Report> {
     return lastUpdatedReport;
 }
 

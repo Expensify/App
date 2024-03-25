@@ -178,7 +178,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                                 description={shareDestination?.displayName ? shareDestination.subtitle : translate('newTaskPage.shareSomewhere')}
                                 icon={shareDestination?.icons}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
-                                interactive
+                                interactive={!task?.parentReportID}
                                 shouldShowRightIcon={!task?.parentReportID}
                                 titleWithTooltips={shareDestination?.shouldUseFullTitleToDisplay ? undefined : shareDestination?.displayNamesWithTooltips}
                             />

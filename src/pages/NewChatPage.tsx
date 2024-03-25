@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -24,12 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type NewChatPageWithOnyxProps = {
-    /** All reports shared with the user */
-    reports: OnyxCollection<OnyxTypes.Report>;
-
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** An object that holds data about which referral banners have been dismissed */
@@ -45,7 +39,7 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
+function NewChatPage({betas, isGroupChat, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
     const {translate} = useLocalize();
 
     const styles = useThemeStyles();
@@ -207,7 +201,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         setFilteredUserToInvite(userToInvite);
         // props.betas is not added as dependency since it doesn't change during the component lifecycle
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reports, personalDetails, searchTerm]);
+    }, [options, searchTerm]);
 
     useEffect(() => {
         const interactionTask = doInteractionTask(() => {
@@ -264,7 +258,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                             headerMessage={headerMessage}
                             boldStyle
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            shouldShowOptions={areOptionsInitialized && didScreenTransitionEnd}
+                            shouldShowOptions={areOptionsInitialized}
                             shouldShowConfirmButton
                             shouldShowReferralCTA={!dismissedReferralBanners?.[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
@@ -289,12 +283,6 @@ NewChatPage.displayName = 'NewChatPage';
 export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
     dismissedReferralBanners: {
         key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     betas: {
         key: ONYXKEYS.BETAS,

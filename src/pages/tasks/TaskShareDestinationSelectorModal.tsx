@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -48,11 +48,14 @@ const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>
     }, []);
 
 function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDestinationSelectorModalProps) {
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {options: optionList, areOptionsInitialized} = useOptionsList();
+    const {options: optionList, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
@@ -64,9 +67,7 @@ function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDes
             };
         }
         const filteredReports = reportFilter(optionList.reports);
-
         const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], debouncedSearchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
-
         const headerMessage = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, debouncedSearchValue);
 
         const sections =
@@ -98,29 +99,28 @@ function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDes
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID="TaskShareDestinationSelectorModal"
+            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
-            {({didScreenTransitionEnd}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('newTaskPage.shareSomewhere')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+            <>
+                <HeaderWithBackButton
+                    title={translate('newTaskPage.shareSomewhere')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+                />
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <SelectionList
+                        ListItem={UserListItem}
+                        sections={areOptionsInitialized ? options.sections : []}
+                        onSelectRow={selectReportHandler}
+                        onChangeText={setSearchValue}
+                        textInputValue={searchValue}
+                        headerMessage={options.headerMessage}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? options.sections.length === 0 : !didScreenTransitionEnd}
+                        isLoadingNewOptions={isSearchingForReports ?? undefined}
+                        textInputHint={textInputHint}
                     />
-                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <SelectionList
-                            ListItem={UserListItem}
-                            sections={(!areOptionsInitialized && didScreenTransitionEnd) || areOptionsInitialized ? options.sections : []}
-                            onSelectRow={selectReportHandler}
-                            onChangeText={setSearchValue}
-                            textInputValue={searchValue}
-                            headerMessage={options.headerMessage}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? options.sections.length === 0 : !didScreenTransitionEnd}
-                            isLoadingNewOptions={isSearchingForReports ?? undefined}
-                            textInputHint={textInputHint}
-                        />
-                    </View>
-                </>
-            )}
+                </View>
+            </>
         </ScreenWrapper>
     );
 }

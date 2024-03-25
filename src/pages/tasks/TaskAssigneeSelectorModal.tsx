@@ -209,26 +209,24 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             includeSafeAreaPaddingBottom={false}
             testID={TaskAssigneeSelectorModal.displayName}
         >
-            {({didScreenTransitionEnd}) => (
-                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                    <HeaderWithBackButton
-                        title={translate('task.assignee')}
-                        onBackButtonPress={handleBackButtonPress}
+            <FullPageNotFoundView shouldShow={isTaskNonEditable}>
+                <HeaderWithBackButton
+                    title={translate('task.assignee')}
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <SelectionList
+                        sections={areOptionsInitialized ? sections : []}
+                        ListItem={UserListItem}
+                        onSelectRow={selectReport}
+                        onChangeText={onChangeText}
+                        textInputValue={searchValue}
+                        headerMessage={headerMessage}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        showLoadingPlaceholder={!areOptionsInitialized}
                     />
-                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <SelectionList
-                            sections={(!areOptionsInitialized && didScreenTransitionEnd) || areOptionsInitialized ? sections : []}
-                            ListItem={UserListItem}
-                            onSelectRow={selectReport}
-                            onChangeText={onChangeText}
-                            textInputValue={searchValue}
-                            headerMessage={headerMessage}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            showLoadingPlaceholder={!areOptionsInitialized && !didScreenTransitionEnd}
-                        />
-                    </View>
-                </FullPageNotFoundView>
-            )}
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
