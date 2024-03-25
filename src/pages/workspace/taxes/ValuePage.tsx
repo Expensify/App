@@ -36,6 +36,7 @@ function ValuePage({
 }: ValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const [value, setValue] = useState(currentTaxRate?.value?.replace('%', ''));
     const {inputCallbackRef} = useAutoFocusInput();
