@@ -60,10 +60,10 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         [policy?.customUnits],
     );
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
-    const canDeleteSelectedRates = selectedDistanceRates.length !== Object.values(customUnitRates).length;
-    const canDisableSelectedRates = Object.values(customUnitRates)
-        .filter((rate: Rate) => !selectedDistanceRates.includes(rate))
-        .some((rate) => rate.enabled);
+    // Filter out rates that are pending deletion
+    const allSelectableRates = Object.values(customUnitRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const canDeleteSelectedRates = selectedDistanceRates.length !== allSelectableRates.length;
+    const canDisableSelectedRates = allSelectableRates.filter((rate: Rate) => !selectedDistanceRates.includes(rate)).some((rate) => rate.enabled);
 
     function fetchDistanceRates() {
         Policy.openPolicyDistanceRatesPage(policyID);
@@ -179,8 +179,6 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const toggleAllRates = () => {
-        const allSelectableRates = Object.values(customUnitRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-
         if (selectedDistanceRates.length === allSelectableRates.length) {
             setSelectedDistanceRates([]);
         } else {
