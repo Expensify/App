@@ -1,5 +1,6 @@
 import React from 'react';
 import {Alert} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
@@ -7,17 +8,8 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Console from '@libs/actions/Console';
 import {parseStringifyMessages} from '@libs/Console';
-import type {Log} from '@src/types/onyx';
-import type {ClientSideLoggingToolProps} from './types';
-
-type BaseClientSideLoggingToolProps = {
-    /** Locally created file */
-    file?: {path: string; newFileName: string; size: number};
-    /** Action to run when pressing Share button */
-    onShareLogs?: () => void;
-    /** Action to run when toggling the switch */
-    onToggleSwitch: (logs: Log[]) => void;
-} & ClientSideLoggingToolProps;
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {BaseClientSideLoggingToolMenuOnyxProps, BaseClientSideLoggingToolProps} from './types';
 
 function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onToggleSwitch}: BaseClientSideLoggingToolProps) {
     const onToggle = () => {
@@ -36,6 +28,7 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
         const logsWithParsedMessages = parseStringifyMessages(logs);
 
         onToggleSwitch(logsWithParsedMessages);
+        Console.disableLoggingAndFlushLogs();
     };
     const styles = useThemeStyles();
     return (
@@ -65,4 +58,11 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
 
 BaseClientSideLoggingToolMenu.displayName = 'BaseClientSideLoggingToolMenu';
 
-export default BaseClientSideLoggingToolMenu;
+export default withOnyx<BaseClientSideLoggingToolProps, BaseClientSideLoggingToolMenuOnyxProps>({
+    capturedLogs: {
+        key: ONYXKEYS.LOGS,
+    },
+    shouldStoreLogs: {
+        key: ONYXKEYS.SHOULD_STORE_LOGS,
+    },
+})(BaseClientSideLoggingToolMenu);

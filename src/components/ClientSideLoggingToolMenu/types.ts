@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {CapturedLogs} from '@src/types/onyx';
+import type {CapturedLogs, Log} from '@src/types/onyx';
 
-type ClientSideLoggingToolMenuOnyxProps = {
+type BaseClientSideLoggingToolMenuOnyxProps = {
     /** Logs captured on the current device */
     capturedLogs: OnyxEntry<CapturedLogs>;
 
@@ -9,6 +9,13 @@ type ClientSideLoggingToolMenuOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
 };
 
-type ClientSideLoggingToolProps = ClientSideLoggingToolMenuOnyxProps;
+type BaseClientSideLoggingToolProps = {
+    /** Locally created file */
+    file?: {path: string; newFileName: string; size: number};
+    /** Action to run when pressing Share button */
+    onShareLogs?: () => void;
+    /** Action to run when toggling the switch */
+    onToggleSwitch: (logs: Log[]) => void;
+} & BaseClientSideLoggingToolMenuOnyxProps;
 
-export type {ClientSideLoggingToolMenuOnyxProps, ClientSideLoggingToolProps};
+export type {BaseClientSideLoggingToolMenuOnyxProps, BaseClientSideLoggingToolProps};
