@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {GestureResponderEvent, NativeModules, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -226,6 +226,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
      */
     const generalMenuItemsData: Menu = useMemo(() => {
         const signOutTranslationKey = Session.isSupportAuthToken() && Session.hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+        const shouldShowSignOut = !NativeModules.HybridAppModule;
         const defaultMenu: Menu = {
             sectionStyle: {
                 ...styles.pt4,
@@ -247,15 +248,19 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     icon: Expensicons.Info,
                     routeName: ROUTES.SETTINGS_ABOUT,
                 },
-                {
-                    translationKey: signOutTranslationKey,
-                    icon: Expensicons.Exit,
-                    action: () => {
-                        signOut(false);
-                    },
-                },
             ],
         };
+
+        // We should only show the SignOut button on non-HybridApp clients
+        if (shouldShowSignOut) {
+            defaultMenu.items.push({
+                translationKey: signOutTranslationKey,
+                icon: Expensicons.Exit,
+                action: () => {
+                    signOut(false);
+                },
+            },)
+        }
 
         return defaultMenu;
     }, [styles.pt4, signOut]);

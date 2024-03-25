@@ -49,8 +49,8 @@ import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 import type Session from '@src/types/onyx/Session';
+import updateSessionAuthTokens from "./updateSessionAuthTokens";
 import clearCache from './clearCache';
-import updateSessionAuthTokens from "@userActions/Session/updateSessionAuthTokens";
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
@@ -433,7 +433,7 @@ function beginGoogleSignIn(token: string | null) {
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(email: string, shortLivedAuthToken: string, authToken: string, encryptedAuthToken: string) {
+function signInWithShortLivedAuthToken(email: string, shortLivedAuthToken: string, authToken?: string, encryptedAuthToken?: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams();
 
     // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
@@ -449,7 +449,7 @@ function signInWithShortLivedAuthToken(email: string, shortLivedAuthToken: strin
         return;
     }
 
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, oldPartnerUserID, skipReauthentication: true}, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken: shortLivedAuthToken, oldPartnerUserID, skipReauthentication: true}, {optimisticData, finallyData});
 }
 
 /**
