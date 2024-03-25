@@ -234,7 +234,7 @@ function ReportScreen({
 
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
-    const [isLinkingToMessage, setLinkingToMessage] = useState(!!reportActionIDFromRoute);
+    const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
     const reportActions = useMemo(() => {
         if (!sortedAllReportActions.length) {
             return [];
@@ -243,9 +243,11 @@ function ReportScreen({
         return currentRangeOfReportActions;
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
-    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger. If we have cached reportActions, they will be shown immediately. We aim to display a loader first, then fetch relevant reportActions, and finally show them.
+    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
+    // If we have cached reportActions, they will be shown immediately.
+    // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
     useLayoutEffect(() => {
-        setLinkingToMessage(!!reportActionIDFromRoute);
+        setIsLinkingToMessage(!!reportActionIDFromRoute);
     }, [route, reportActionIDFromRoute]);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -261,15 +263,12 @@ function ReportScreen({
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isEmptyChat = useMemo((): boolean => reportActions.length === 0, [reportActions]);
-    // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions;
     const isOptimisticDelete = report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 
     // If there's a non-404 error for the report we should show it instead of blocking the screen
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
-    const isLoading = !reportIDFromRoute || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(
         () =>
             reportActions.length
@@ -325,16 +324,34 @@ function ReportScreen({
     /**
      * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
      */
-    const isReportReadyForDisplay = useMemo((): boolean => {
+    const isCurrentReportLoadedFromOnyx = useMemo((): boolean => {
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = report && report.reportID !== reportIDFromRoute;
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
+    const isLoading = !ReportUtils.isValidReportIDFromPath(reportIDFromRoute) || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
-        isLinkingToMessage || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
-
-    const shouldShowReportActionList = isReportReadyForDisplay && !isLoading;
+        isLinkingToMessage ||
+        !isCurrentReportLoadedFromOnyx ||
+        (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
+        isLoading ||
+        (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
+    const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(
+        (): boolean =>
+            !shouldShowSkeleton &&
+            ((!wasReportAccessibleRef.current &&
+                !firstRenderRef.current &&
+                !report.reportID &&
+                !isOptimisticDelete &&
+                !reportMetadata?.isLoadingInitialReportActions &&
+                !userLeavingStatus) ||
+                shouldHideReport ||
+                (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute))),
+        [shouldShowSkeleton, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, reportIDFromRoute],
+    );
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -524,34 +541,19 @@ function ReportScreen({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
-        (): boolean =>
-            (!wasReportAccessibleRef.current &&
-                !firstRenderRef.current &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !reportMetadata?.isLoadingInitialReportActions &&
-                !isLoading &&
-                !userLeavingStatus) ||
-            shouldHideReport ||
-            (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute)),
-        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus, reportIDFromRoute],
-    );
-
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
-            setLinkingToMessage(false);
+            setIsLinkingToMessage(false);
         });
     }, [reportMetadata?.isLoadingInitialReportActions]);
 
-    const onLinkPress = () => {
+    const navigateToEndOfReport = useCallback(() => {
         Navigation.setParams({reportActionID: ''});
         fetchReport();
-    };
+    }, [fetchReport]);
 
     const isLinkedReportActionDeleted = useMemo(() => {
         if (!reportActionIDFromRoute || !sortedAllReportActions) {
@@ -570,7 +572,7 @@ function ReportScreen({
                 title={translate('notFound.notHere')}
                 shouldShowLink
                 linkKey="notFound.noAccess"
-                onLinkPress={onLinkPress}
+                onLinkPress={navigateToEndOfReport}
             />
         );
     }
@@ -618,7 +620,7 @@ function ReportScreen({
                                 shouldShowCloseButton
                             />
                         )}
-                        <DragAndDropProvider isDisabled={!isReportReadyForDisplay || !ReportUtils.canUserPerformWriteAction(report)}>
+                        <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !ReportUtils.canUserPerformWriteAction(report)}>
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
@@ -640,7 +642,7 @@ function ReportScreen({
                                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {shouldShowSkeleton && <ReportActionsSkeletonView />}
 
-                                {isReportReadyForDisplay ? (
+                                {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
                                         report={report}
                                         pendingAction={reportPendingAction}
