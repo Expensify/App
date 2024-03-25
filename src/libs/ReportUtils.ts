@@ -55,11 +55,13 @@ import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import originalGetReportPolicyID from './getReportPolicyID';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import {isEmailPublicDomain} from './LoginUtils';
+import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
@@ -2772,6 +2774,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         if (parentReportActionMessage && isArchivedRoom(report)) {
             return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
         }
+        if (ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
+            return ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
+        }
         return parentReportActionMessage;
     }
 
@@ -4619,7 +4624,7 @@ function getReportIDFromLink(url: string | null): string {
  * Get the report policyID given a reportID
  */
 function getReportPolicyID(reportID?: string): string | undefined {
-    return getReport(reportID)?.policyID;
+    return originalGetReportPolicyID(reportID);
 }
 
 /**
