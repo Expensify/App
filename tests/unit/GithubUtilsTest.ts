@@ -355,7 +355,7 @@ describe('GithubUtils', () => {
             },
             {
                 number: 6,
-                title: '[Internal QA] Test Internal QA PR',
+                title: '[Internal QA] Another Test Internal QA PR',
                 html_url: 'https://github.com/Expensify/App/pull/6',
                 user: {login: 'testUser'},
                 labels: [
@@ -368,14 +368,7 @@ describe('GithubUtils', () => {
                         color: 'f29513',
                     },
                 ],
-                assignees: [
-                    {
-                        login: 'octocat',
-                    },
-                    {
-                        login: 'hubot',
-                    },
-                ],
+                assignees: [],
             },
             {
                 number: 7,
@@ -392,16 +385,12 @@ describe('GithubUtils', () => {
                         color: 'f29513',
                     },
                 ],
-                assignees: [
-                    {
-                        login: 'octocat',
-                    },
-                    {
-                        login: 'hubot',
-                    },
-                ],
+                assignees: [],
             },
         ];
+        const mockInternalQaPR = {
+            merged_by: {login: 'octocat'},
+        };
         const mockGithub = jest.fn(() => ({
             getOctokit: () => ({
                 rest: {
@@ -410,6 +399,7 @@ describe('GithubUtils', () => {
                     },
                     pulls: {
                         list: jest.fn().mockResolvedValue({data: mockPRs}),
+                        get: jest.fn().mockResolvedValue({data: mockInternalQaPR}),
                     },
                 },
                 paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
@@ -445,7 +435,7 @@ describe('GithubUtils', () => {
         const internalQAHeader = '\r\n\r\n**Internal QA:**';
         const lineBreak = '\r\n';
         const lineBreakDouble = '\r\n\r\n';
-        const assignOctocatHubot = ' - @octocat @hubot';
+        const assignOctocat = ' - @octocat';
         const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
         // eslint-disable-next-line max-len
         const timingDashboardVerification =
@@ -467,8 +457,11 @@ describe('GithubUtils', () => {
             `${lineBreak}`;
 
         test('Test no verified PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList).then((issueBody) => {
-                expect(issueBody).toBe(
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+                expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
                         `${lineBreak}${openCheckbox}${basePRList[0]}` +
@@ -481,12 +474,17 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
+                expect(issue.issueAssignees).toEqual([]);
             });
         });
 
         test('Test some verified PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]]).then((issueBody) => {
-                expect(issueBody).toBe(
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [basePRList[0]]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
+                expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[0]}` +
@@ -499,12 +497,17 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
+                expect(issue.issueAssignees).toEqual([]);
             });
         });
 
         test('Test all verified PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList).then((issueBody) => {
-                expect(issueBody).toBe(
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
+                expect(issue.issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
@@ -512,12 +515,17 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
+                expect(issue.issueAssignees).toEqual([]);
             });
         });
 
         test('Test no resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList).then((issueBody) => {
-                expect(issueBody).toBe(
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
+                expect(issue.issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployBlockerHeader}` +
                         `${lineBreak}${openCheckbox}${baseDeployBlockerList[0]}` +
@@ -528,12 +536,17 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}${lineBreak}` +
                         `${lineBreak}${ccApplauseLeads}`,
                 );
+                expect(issue.issueAssignees).toEqual([]);
             });
         });
 
         test('Test some resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]]).then((issueBody) => {
-                expect(issueBody).toBe(
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
+                expect(issue.issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployBlockerHeader}` +
                         `${lineBreak}${closedCheckbox}${baseDeployBlockerList[0]}` +
@@ -544,12 +557,16 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
+                expect(issue.issueAssignees).toEqual([]);
             });
         });
 
         test('Test all resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList).then((issueBody) => {
-                expect(issueBody).toBe(
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+                expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${closedCheckbox}${basePRList[2]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[0]}` +
@@ -565,12 +582,17 @@ describe('GithubUtils', () => {
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
+                expect(issue.issueAssignees).toEqual([]);
             });
         });
 
         test('Test internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList]).then((issueBody) => {
-                expect(issueBody).toBe(
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
+                expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
                         `${lineBreak}${openCheckbox}${basePRList[0]}` +
@@ -578,20 +600,25 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${basePRList[4]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
                         `${lineBreak}${internalQAHeader}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocatHubot}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}` +
+                        `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocat}` +
+                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocat}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
+                expect(issue.issueAssignees).toEqual(['octocat']);
             });
         });
 
         test('Test some verified internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList[0]]).then((issueBody) => {
-                expect(issueBody).toBe(
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList[0]]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
+                expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
                         `${lineBreak}${openCheckbox}${basePRList[0]}` +
@@ -599,14 +626,15 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${basePRList[4]}` +
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
                         `${lineBreak}${internalQAHeader}` +
-                        `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocatHubot}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}` +
+                        `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocat}` +
+                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocat}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
+                expect(issue.issueAssignees).toEqual(['octocat']);
             });
         });
     });

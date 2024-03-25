@@ -269,7 +269,9 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     }
 
     if (index === -1) {
-        return [];
+        // if no non-pending action is found, that means all actions on the report are optimistic
+        // in this case, we'll assume the whole chain of reportActions is continuous and return it in its entirety
+        return id ? [] : sortedReportActions;
     }
 
     let startIndex = index;

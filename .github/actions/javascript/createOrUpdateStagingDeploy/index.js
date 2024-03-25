@@ -49,8 +49,11 @@ async function run() {
 
         // Next, we generate the checklist body
         let checklistBody = '';
+        let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
-            checklistBody = await GithubUtils.generateStagingDeployCashBody(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
+            checklistBody = issueBody;
+            checklistAssignees = issueAssignees;
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.reduce(
@@ -103,7 +106,7 @@ async function run() {
             }
 
             const didVersionChange = newVersionTag !== currentChecklistData.tag;
-            checklistBody = await GithubUtils.generateStagingDeployCashBody(
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersionTag,
                 _.pluck(PRList, 'url'),
                 _.pluck(_.where(PRList, {isVerified: true}), 'url'),
@@ -114,6 +117,8 @@ async function run() {
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,
             );
+            checklistBody = issueBody;
+            checklistAssignees = issueAssignees;
         }
 
         // Finally, create or update the checklist
@@ -128,7 +133,7 @@ async function run() {
                 ...defaultPayload,
                 title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
                 labels: [CONST.LABELS.STAGING_DEPLOY],
-                assignees: [CONST.APPLAUSE_BOT],
+                assignees: [CONST.APPLAUSE_BOT].concat(checklistAssignees),
             });
             console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
             return newChecklist;
@@ -14933,7 +14938,7 @@ class GithubUtils {
         });
     }
     /**
-     * Generate the issue body for a StagingDeployCash.
+     * Generate the issue body and assignees for a StagingDeployCash.
      *
      * @param tag
      * @param PRList - The list of PR URLs which are included in this StagingDeployCash
@@ -14945,74 +14950,74 @@ class GithubUtils {
      * @param [isFirebaseChecked]
      * @param [isGHStatusChecked]
      */
-    static generateStagingDeployCashBody(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
+    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
-            // The format of this map is following:
-            // {
-            //    'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
-            //    'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ]
-            // }
-            const internalQAPRMap = Array.isArray(data)
-                ? data
-                    .filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA)))
-                    .reduce((map, pr) => {
-                    // eslint-disable-next-line no-param-reassign
-                    map[pr.html_url] = pr.assignees?.map((assignee) => assignee.login).filter(Boolean);
-                    return map;
-                }, {})
-                : {};
-            console.log('Found the following Internal QA PRs:', internalQAPRMap);
-            const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((pr) => pr.html_url) : [];
-            console.log('Found the following NO QA PRs:', noQAPRs);
-            const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...noQAPRs])];
-            const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
-            const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
-            // Tag version and comparison URL
-            // eslint-disable-next-line max-len
-            let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
-            // PR list
-            if (!(0, EmptyObject_1.isEmptyObject)(sortedPRList)) {
-                issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
-                sortedPRList.forEach((URL) => {
-                    issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
-                    issueBody += ` ${URL}\r\n`;
-                });
-                issueBody += '\r\n\r\n';
-            }
-            // Internal QA PR list
-            if (!(0, EmptyObject_1.isEmptyObject)(internalQAPRMap)) {
-                console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
-                issueBody += '**Internal QA:**\r\n';
-                Object.keys(internalQAPRMap).forEach((URL) => {
-                    const assignees = internalQAPRMap[URL];
-                    const assigneeMentions = assignees?.reduce((memo, assignee) => `${memo} @${assignee}`, '');
-                    issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
-                    issueBody += `${URL}`;
-                    issueBody += ` -${assigneeMentions}`;
-                    issueBody += '\r\n';
-                });
-                issueBody += '\r\n\r\n';
-            }
-            // Deploy blockers
-            if (!(0, EmptyObject_1.isEmptyObject)(deployBlockers)) {
-                issueBody += '**Deploy Blockers:**\r\n';
-                sortedDeployBlockers.forEach((URL) => {
-                    issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
-                    issueBody += URL;
-                    issueBody += '\r\n';
-                });
-                issueBody += '\r\n\r\n';
-            }
-            issueBody += '**Deployer verifications:**';
-            // eslint-disable-next-line max-len
-            issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
-            // eslint-disable-next-line max-len
-            issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
-            // eslint-disable-next-line max-len
-            issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
-            issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
-            return issueBody;
+            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
+            return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({ url: pr.html_url, mergerLogin })))).then((results) => {
+                // The format of this map is following:
+                // {
+                //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
+                //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
+                // }
+                const internalQAPRMap = results.reduce((acc, { url, mergerLogin }) => {
+                    acc[url] = mergerLogin;
+                    return acc;
+                }, {});
+                console.log('Found the following Internal QA PRs:', internalQAPRMap);
+                const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
+                console.log('Found the following NO QA PRs:', noQAPRs);
+                const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...noQAPRs])];
+                const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
+                const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
+                // Tag version and comparison URL
+                // eslint-disable-next-line max-len
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
+                // PR list
+                if (sortedPRList.length > 0) {
+                    issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
+                    sortedPRList.forEach((URL) => {
+                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                        issueBody += ` ${URL}\r\n`;
+                    });
+                    issueBody += '\r\n\r\n';
+                }
+                // Internal QA PR list
+                if (!(0, EmptyObject_1.isEmptyObject)(internalQAPRMap)) {
+                    console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
+                    issueBody += '**Internal QA:**\r\n';
+                    Object.keys(internalQAPRMap).forEach((URL) => {
+                        const merger = internalQAPRMap[URL];
+                        const mergerMention = `@${merger}`;
+                        issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `${URL}`;
+                        issueBody += ` - ${mergerMention}`;
+                        issueBody += '\r\n';
+                    });
+                    issueBody += '\r\n\r\n';
+                }
+                // Deploy blockers
+                if (deployBlockers.length > 0) {
+                    issueBody += '**Deploy Blockers:**\r\n';
+                    sortedDeployBlockers.forEach((URL) => {
+                        issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
+                        issueBody += URL;
+                        issueBody += '\r\n';
+                    });
+                    issueBody += '\r\n\r\n';
+                }
+                issueBody += '**Deployer verifications:**';
+                // eslint-disable-next-line max-len
+                issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
+                // eslint-disable-next-line max-len
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                // eslint-disable-next-line max-len
+                issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
+                issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
+                const issueAssignees = [...new Set(Object.values(internalQAPRMap))];
+                const issue = { issueBody, issueAssignees };
+                return issue;
+            });
         })
             .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
     }
@@ -15036,6 +15041,15 @@ class GithubUtils {
         })
             .then((prList) => prList.filter((pr) => pullRequestNumbers.includes(pr.number)))
             .catch((err) => console.error('Failed to get PR list', err));
+    }
+    static getPullRequestMergerLogin(pullRequestNumber) {
+        return this.octokit.pulls
+            .get({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+        })
+            .then(({ data: pullRequest }) => pullRequest.merged_by?.login);
     }
     static getPullRequestBody(pullRequestNumber) {
         return this.octokit.pulls
