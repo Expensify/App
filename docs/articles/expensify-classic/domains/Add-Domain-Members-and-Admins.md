@@ -1,6 +1,6 @@
 ---
 title: Add Domain Members and Admins
-description: description
+description: Add members and admins to a domain
 ---
 <div id="expensify-classic" markdown="1">
 
