@@ -2,6 +2,7 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import _ from 'lodash';
 import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -100,6 +101,8 @@ function StateSelectionPage() {
                     Navigation.goBack(backToRoute);
                 }}
             />
+            {/* This empty, non-harmful view fixes the issue with SelectionList scrolling and shouldUseDynamicMaxToRenderPerBatch. It can be removed without consequences if a solution for SelectionList is found. See comment https://github.com/Expensify/App/pull/36770#issuecomment-2017028096*/}
+            <View />
 
             <SelectionList
                 onSelectRow={selectCountryState}
