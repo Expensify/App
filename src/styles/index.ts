@@ -4734,8 +4734,8 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        tripReserviationInfoContainer: {
-            gap: 2,
+        tripDescriptionMargin: {
+            marginBottom: 2,
         },
     } satisfies Styles);
 

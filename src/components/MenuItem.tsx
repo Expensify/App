@@ -1,6 +1,6 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {ImageContentFit} from 'expo-image';
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ForwardedRef, ReactElement, ReactNode} from 'react';
 import React, {forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -160,6 +160,12 @@ type MenuItemBaseProps = {
     /** Text to display for the item */
     title?: string;
 
+    /** Component to display as the title */
+    titleComponent?: ReactElement;
+
+    /** Any additional styles to apply to the container for title components */
+    titleContainerStyle?: StyleProp<ViewStyle>;
+
     /** A right-aligned subtitle for this menu option */
     subtitle?: string | number;
 
@@ -277,6 +283,8 @@ function MenuItem(
         focused = false,
         disabled = false,
         title,
+        titleComponent,
+        titleContainerStyle,
         subtitle,
         shouldShowBasicTitle,
         label,
@@ -502,7 +510,7 @@ function MenuItem(
                                             />
                                         </View>
                                     )}
-                                    <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
+                                    <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu), titleContainerStyle]}>
                                         {!!description && shouldShowDescriptionOnTop && (
                                             <Text
                                                 style={descriptionTextStyles}
@@ -526,6 +534,7 @@ function MenuItem(
                                                     {renderTitleContent()}
                                                 </Text>
                                             )}
+                                            {titleComponent}
                                             {shouldShowTitleIcon && titleIcon && (
                                                 <View style={[styles.ml2]}>
                                                     <Icon

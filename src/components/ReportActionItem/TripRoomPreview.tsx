@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -76,39 +77,46 @@ function ReservationRow({reservation}: ReservationRowProps) {
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
 
-    return (
-        <View style={[styles.flexRow, styles.gap3]}>
-            <View style={styles.tripReservationIconContainer}>
+    const titleComponent =
+        reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                <Text style={styles.labelStrong}>{reservation.start.shortName}</Text>
                 <Icon
-                    src={reservationIcon}
+                    src={Expensicons.ArrowRightLong}
                     width={variables.iconSizeSmall}
                     height={variables.iconSizeSmall}
                     fill={theme.icon}
                 />
+                <Text style={styles.labelStrong}>{reservation.end.shortName}</Text>
             </View>
-            <View style={[styles.flex1, styles.tripReserviationInfoContainer]}>
-                <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{translate(`travel.${reservation.type}`)}</Text>
-                {reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                        <Text style={styles.labelStrong}>{reservation.start.shortName}</Text>
-                        <Icon
-                            src={Expensicons.ArrowRightLong}
-                            width={variables.iconSizeSmall}
-                            height={variables.iconSizeSmall}
-                            fill={theme.icon}
-                        />
-                        <Text style={styles.labelStrong}>{reservation.end.shortName}</Text>
-                    </View>
-                ) : (
-                    <Text
-                        numberOfLines={1}
-                        style={styles.labelStrong}
-                    >
-                        {reservation.start.address}
-                    </Text>
-                )}
-            </View>
-        </View>
+        ) : (
+            <Text
+                numberOfLines={1}
+                style={styles.labelStrong}
+            >
+                {reservation.start.address}
+            </Text>
+        );
+
+    return (
+        <MenuItemWithTopDescription
+            description={translate(`travel.${reservation.type}`)}
+            descriptionTextStyle={[styles.textSupportingSmallSize, styles.lh14, styles.tripDescriptionMargin]}
+            titleComponent={titleComponent}
+            titleContainerStyle={styles.justifyContentStart}
+            secondaryIcon={reservationIcon}
+            shouldShowRightIcon={false}
+            wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
+            shouldGreyOutWhenDisabled={false}
+            numberOfLinesTitle={0}
+            interactive={false}
+            shouldStackHorizontally={false}
+            hoverAndPressStyle={false}
+            iconHeight={variables.iconSizeSmall}
+            iconWidth={variables.iconSizeSmall}
+            iconStyles={[styles.tripReservationIconContainer, styles.mr2]}
+            secondaryIconFill={theme.icon}
+        />
     );
 }
 function TripRoomPreview({
@@ -157,14 +165,11 @@ function TripRoomPreview({
         >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
-                    }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, styles.cursorDefault]}
                     role="button"
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
