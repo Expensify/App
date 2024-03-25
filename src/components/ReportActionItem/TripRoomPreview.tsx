@@ -1,55 +1,69 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PressableWithoutFeedback} from '@components/Pressable';
+import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ControlSelection from '@libs/ControlSelection';
+import DateUtils from '@libs/DateUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TripReservationUtils from '@libs/TripReservationUtils';
+import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+import type {BasicTripInfo} from '@src/types/onyx/TripDetails';
 
-type TripRoomPreviewOnyxProps = {
-    /** All the transactions, used to update ReportPreview label and status */
-    // transactions: OnyxCollection<Transaction>;
+// @TODO: Dummy data used for testing purposes only. Remove when real data is available for testing.
+const basicTripInfo: BasicTripInfo = {
+    tripId: '6926658168',
+    tripName: 'JFK SFO Trip',
+    tripDescription: 'JFK SFO Business Trip',
+    applicationId: '97ab27fa-30e2-43e3-92a3-160e80f4c0d5',
+    startDate: {
+        iso8601: '2017-05-1',
+    },
+    endDate: {
+        iso8601: '2017-05-28',
+    },
 };
 
-type TripRoomPreviewProps = TripRoomPreviewOnyxProps & {
+type TripRoomPreviewProps = {
     /** All the data of the action */
     action: ReportAction;
 
-    //   /** The associated chatReport */
-    //   chatReportID: string;
+    /** The associated chatReport */
+    chatReportID: string;
 
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string;
 
-    //   /** The report's policyID, used for Onyx subscription */
-    //   policyID: string;
-
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
 
-    //   /** Popover context menu anchor, used for showing context menu */
-    //   contextMenuAnchor?: ContextMenuAnchor;
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor?: ContextMenuAnchor;
 
-    //   /** Callback for updating context menu active state, used for showing context menu */
-    //   checkIfContextMenuActive?: () => void;
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive?: () => void;
 
-    //   /** Whether a message is a whisper */
-    //   isWhisper?: boolean;
+    /** Whether a message is a whisper */
+    isWhisper?: boolean;
 
-    //   /** Whether the corresponding report action item is hovered */
-    //   isHovered?: boolean;
+    /** Whether the corresponding report action item is hovered */
+    isHovered?: boolean;
 };
 
 type ReservationRowProps = {
@@ -61,51 +75,60 @@ function ReservationRow({reservation}: ReservationRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const reservationIcon = useMemo(() => {
-        switch (reservation.type) {
-            case CONST.RESERVATION_TYPE.FLIGHT:
-                return Expensicons.Plane;
-            case CONST.RESERVATION_TYPE.HOTEL:
-                return Expensicons.Bed;
-            case CONST.RESERVATION_TYPE.CAR:
-                return Expensicons.CarWithKey;
-            default:
-                return Expensicons.CarWithKey;
-        }
-    }, [reservation.type]);
+    const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
 
-    return (
-        <View style={[styles.flexRow, styles.gap3]}>
-            <View style={styles.tripReservationIconContainer}>
+    const titleComponent =
+        reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                <Text style={styles.labelStrong}>{reservation.start.shortName}</Text>
                 <Icon
-                    src={reservationIcon}
+                    src={Expensicons.ArrowRightLong}
                     width={variables.iconSizeSmall}
                     height={variables.iconSizeSmall}
                     fill={theme.icon}
                 />
+                <Text style={styles.labelStrong}>{reservation.end.shortName}</Text>
             </View>
-            <View style={styles.tripReserviationInfoContainer}>
-                <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{translate(`travel.${reservation.type}`)}</Text>
-                {reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                        <Text style={styles.labelStrong}>{reservation.start.shortName}</Text>
-                        <Icon
-                            src={Expensicons.ArrowRightLong}
-                            width={variables.iconSizeSmall}
-                            height={variables.iconSizeSmall}
-                            fill={theme.icon}
-                        />
-                        <Text style={styles.labelStrong}>{reservation.end.shortName}</Text>
-                    </View>
-                ) : (
-                    <Text style={styles.labelStrong}>{reservation.start.address}</Text>
-                )}
-            </View>
-        </View>
+        ) : (
+            <Text
+                numberOfLines={1}
+                style={styles.labelStrong}
+            >
+                {reservation.start.address}
+            </Text>
+        );
+
+    return (
+        <MenuItemWithTopDescription
+            description={translate(`travel.${reservation.type}`)}
+            descriptionTextStyle={[styles.textSupportingSmallSize, styles.lh14, styles.tripDescriptionMargin]}
+            titleComponent={titleComponent}
+            titleContainerStyle={styles.justifyContentStart}
+            secondaryIcon={reservationIcon}
+            shouldShowRightIcon={false}
+            wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
+            shouldGreyOutWhenDisabled={false}
+            numberOfLinesTitle={0}
+            interactive={false}
+            shouldStackHorizontally={false}
+            hoverAndPressStyle={false}
+            iconHeight={variables.iconSizeSmall}
+            iconWidth={variables.iconSizeSmall}
+            iconStyles={[styles.tripReservationIconContainer, styles.mr2]}
+            secondaryIconFill={theme.icon}
+        />
     );
 }
-
-function TripRoomPreview({action, iouReportID, containerStyles}: TripRoomPreviewProps) {
+function TripRoomPreview({
+    action,
+    chatReportID,
+    iouReportID,
+    containerStyles,
+    contextMenuAnchor,
+    isHovered = false,
+    isWhisper = false,
+    checkIfContextMenuActive = () => {},
+}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -113,51 +136,80 @@ function TripRoomPreview({action, iouReportID, containerStyles}: TripRoomPreview
 
     const renderItem = ({item}: {item: Reservation}) => <ReservationRow reservation={item} />;
 
-    const reservations: Reservation[] = tripTransactions
-        .map((item) => item?.reservationList ?? [])
-        .filter((item) => item.length > 0)
-        .flat();
+    const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
+
+    const dateInfo = DateUtils.getFormattedDateRange(new Date(basicTripInfo.startDate.iso8601), new Date(basicTripInfo.endDate.iso8601));
+
+    const getDisplayAmount = (): string => {
+        // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
+        let displayAmount = '';
+        const actionMessage = action.message?.[0]?.text ?? '';
+        const splits = actionMessage.split(' ');
+
+        splits.forEach((split) => {
+            if (!/\d/.test(split)) {
+                return;
+            }
+
+            displayAmount = split;
+        });
+
+        return displayAmount;
+    };
 
     return (
         <OfflineWithFeedback
             // pendingAction={iouReport?.pendingFields?.preview}
             shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
             needsOffscreenAlphaCompositing
-            style={[styles.moneyRequestPreviewBox]}
         >
-            <View style={[styles.chatItemMessage, styles.p4, styles.gap5, containerStyles]}>
-                <View style={styles.expenseAndReportPreviewTextContainer}>
-                    <View style={styles.reportPreviewAmountSubtitleContainer}>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh16]}>Trip • December 15-20 </Text>
+            <View style={[styles.chatItemMessage, containerStyles]}>
+                <PressableWithoutFeedback
+                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
+                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                    shouldUseHapticsOnLongPress
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, styles.cursorDefault]}
+                    role="button"
+                    accessibilityLabel={translate('iou.viewDetails')}
+                >
+                    <View style={[styles.moneyRequestPreviewBox, styles.p4, styles.gap5, isHovered || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                        <View style={styles.expenseAndReportPreviewTextContainer}>
+                            <View style={styles.reportPreviewAmountSubtitleContainer}>
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textLabelSupporting, styles.lh16]}>
+                                            {translate('travel.trip')} • {dateInfo}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={styles.reportPreviewAmountSubtitleContainer}>
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={styles.textHeadlineH2}>{getDisplayAmount()}</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textSupportingNormalSize, styles.lh20]}>{basicTripInfo.tripName}</Text>
+                                    </View>
+                                </View>
                             </View>
                         </View>
+                        <FlatList
+                            data={reservations}
+                            style={styles.gap3}
+                            renderItem={renderItem}
+                        />
+                        <Button
+                            medium
+                            success
+                            text={translate('travel.viewTrip')}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID))}
+                        />
                     </View>
-                    <View style={styles.reportPreviewAmountSubtitleContainer}>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.textHeadlineH2}>$1,439.21</Text>
-                            </View>
-                        </View>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textSupportingNormalSize, styles.lh20]}>Trip to San Francisco</Text>
-                            </View>
-                        </View>
-                    </View>
-                </View>
-                <FlatList
-                    data={reservations}
-                    style={styles.gap3}
-                    renderItem={renderItem}
-                />
-                <Button
-                    medium
-                    success
-                    text={translate('travel.viewTrip')}
-                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID))}
-                />
+                </PressableWithoutFeedback>
             </View>
         </OfflineWithFeedback>
     );
@@ -165,8 +217,4 @@ function TripRoomPreview({action, iouReportID, containerStyles}: TripRoomPreview
 
 TripRoomPreview.displayName = 'TripRoomPreview';
 
-export default withOnyx<TripRoomPreviewProps, TripRoomPreviewOnyxProps>({
-    // transactions: {
-    //     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    // },
-})(TripRoomPreview);
+export default TripRoomPreview;

@@ -25,6 +25,7 @@ type OriginalMessageActionName =
     | 'TASKREOPENED'
     | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
+    | 'ACTION_TRIPPREVIEW'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
@@ -34,6 +35,11 @@ type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '
 
 type OriginalMessageHold = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLD;
+    originalMessage: unknown;
+};
+
+type OriginalMessageHoldComment = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT;
     originalMessage: unknown;
 };
 
@@ -292,6 +298,13 @@ type OriginalMessageMoved = {
     };
 };
 
+type OriginalMessageTripRoomPreview = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW;
+    originalMessage: {
+        // @TODO: Add types here
+    };
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -301,6 +314,7 @@ type OriginalMessage =
     | OriginalMessageClosed
     | OriginalMessageCreated
     | OriginalMessageHold
+    | OriginalMessageHoldComment
     | OriginalMessageUnHold
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList
@@ -313,7 +327,8 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
-    | OriginalMessageMarkedReimbursed;
+    | OriginalMessageMarkedReimbursed
+    | OriginalMessageTripRoomPreview;
 
 export default OriginalMessage;
 export type {

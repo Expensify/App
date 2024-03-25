@@ -34,6 +34,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -60,6 +61,7 @@ import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -98,9 +100,6 @@ type ReportActionItemOnyxProps = {
 
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
-
-    /** All policy report fields */
-    policyReportFields: OnyxEntry<OnyxTypes.PolicyReportFields>;
 
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -158,7 +157,6 @@ function ReportActionItem({
     userWallet,
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
-    policyReportFields,
     policy,
     onPress = undefined,
 }: ReportActionItemProps) {
@@ -171,6 +169,7 @@ function ReportActionItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const {canUseSpotnanaTravel} = usePermissions();
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
 
@@ -416,7 +415,10 @@ function ReportActionItem({
             isIOUReport(action) &&
             action.originalMessage &&
             // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
-            (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT || isSendingMoney)
+            (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
+                action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
+                isSendingMoney)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
@@ -432,6 +434,20 @@ function ReportActionItem({
                     contextMenuAnchor={popoverAnchorRef.current}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
+                    isWhisper={isWhisper}
+                />
+            );
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW && canUseSpotnanaTravel) {
+            children = (
+                <TripRoomPreview
+                    // @TODO: create a new method to obtain iouReportID
+                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
+                    chatReportID={report.reportID}
+                    action={action}
+                    isHovered={hovered}
+                    contextMenuAnchor={popoverAnchorRef.current}
+                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
+                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     isWhisper={isWhisper}
                 />
             );
@@ -519,7 +535,9 @@ function ReportActionItem({
             // This handles all historical actions from OldDot that we just want to display the message text
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMessageOfOldDotReportAction(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest', {comment: action.message?.[1].text ?? ''})} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT) {
+            children = <ReportActionItemBasicMessage message={action.message?.[0].text ?? ''} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldRequest')} />;
         } else {
@@ -665,16 +683,27 @@ function ReportActionItem({
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
+<<<<<<< HEAD
     // if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW) {
     //     return <TripRoomPreview />;
     // }
 
+=======
+>>>>>>> travel/trip-room-preview
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
             if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+                let message: TranslationPaths;
+                if (isReversedTransaction) {
+                    message = 'parentReportAction.reversedTransaction';
+                } else if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+                    message = 'parentReportAction.deletedExpense';
+                } else {
+                    message = 'parentReportAction.deletedRequest';
+                }
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.justifyContentEnd]}>
+                    <View>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
@@ -683,9 +712,7 @@ function ReportActionItem({
                                     showHeader
                                     report={report}
                                 >
-                                    <RenderHTML
-                                        html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`}
-                                    />
+                                    <RenderHTML html={`<comment>${translate(message)}</comment>`} />
                                 </ReportActionItemSingle>
                                 <View style={styles.threadDividerLine} />
                             </OfflineWithFeedback>
@@ -705,7 +732,7 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+                    <View>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
@@ -723,7 +750,7 @@ function ReportActionItem({
                 );
             }
             return (
-                <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+                <View>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                         <TaskView
@@ -895,10 +922,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         },
         initialValue: {} as OnyxTypes.Report,
     },
-    policyReportFields: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? 0}`,
-        initialValue: {},
-    },
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
         initialValue: {} as OnyxTypes.Policy,
@@ -939,8 +962,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.report?.total === nextProps.report?.total &&
             prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
-            lodashIsEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
-            lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
             lodashIsEqual(prevProps.policy, nextProps.policy) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
