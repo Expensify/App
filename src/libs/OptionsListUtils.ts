@@ -920,11 +920,7 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
     const tagsArray = Array.isArray(tags) ? tags : Object.values(tags);
 
     // Use lodash's sortBy to ensure consistency with oldDot.
-    return lodashSortBy(
-        tagsArray.filter((tag) => 'name' in tag),
-        'name',
-        localeCompare,
-    );
+    return lodashSortBy(tagsArray, 'name', localeCompare) as Tag[];
 }
 
 /**
