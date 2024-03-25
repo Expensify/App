@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
@@ -15,6 +15,7 @@ import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TripReservationUtils from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -73,22 +74,7 @@ function ReservationRow({reservation}: ReservationRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const reservationIcon = useMemo(() => {
-        switch (reservation.type) {
-            case CONST.RESERVATION_TYPE.FLIGHT:
-                return Expensicons.Plane;
-            case CONST.RESERVATION_TYPE.HOTEL:
-                return Expensicons.Bed;
-            case CONST.RESERVATION_TYPE.CAR:
-                return Expensicons.CarWithKey;
-            case CONST.RESERVATION_TYPE.MISC:
-                return Expensicons.LuggageWithLines;
-            case CONST.RESERVATION_TYPE.RAIL:
-                return Expensicons.Train;
-            default:
-                return Expensicons.CarWithKey;
-        }
-    }, [reservation.type]);
+    const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
 
     return (
         <View style={[styles.flexRow, styles.gap3]}>
@@ -142,10 +128,7 @@ function TripRoomPreview({
 
     const renderItem = ({item}: {item: Reservation}) => <ReservationRow reservation={item} />;
 
-    const reservations: Reservation[] = tripTransactions
-        .map((item) => item?.reservationList ?? [])
-        .filter((item) => item.length > 0)
-        .flat();
+    const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 
     const dateInfo = DateUtils.getFormattedDateRange(new Date(basicTripInfo.startDate.iso8601), new Date(basicTripInfo.endDate.iso8601));
 
