@@ -4,7 +4,6 @@ import type {OptionData} from '@libs/ReportUtils';
 
 type OptionsListData = SectionListData<OptionData, Section>;
 type OptionsListDataWithIndexOffset = SectionListData<OptionData, SectionWithIndexOffset>;
-
 type OptionsList = SectionList<OptionData, SectionWithIndexOffset>;
 
 type Section = {
