@@ -9,6 +9,7 @@ import withNavigation from '@components/withNavigation';
 import withNavigationFocus from '@components/withNavigationFocus';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -75,6 +76,7 @@ function FloatingActionButtonAndPopover(props) {
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef(null);
+    const {canUseTrackExpense} = usePermissions();
 
     const prevIsFocused = usePrevious(props.isFocused);
 
@@ -166,7 +168,7 @@ function FloatingActionButtonAndPopover(props) {
                         text: translate('iou.requestMoney'),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
-                                IOU.startMoneyRequest_temporaryForRefactor(
+                                IOU.startMoneyRequest(
                                     CONST.IOU.TYPE.REQUEST,
                                     // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                     // for all of the routes in the creation flow.
@@ -177,21 +179,44 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.Send,
                         text: translate('iou.sendMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                IOU.startMoneyRequest(
+                                    CONST.IOU.TYPE.SEND,
+                                    // When starting to create a send money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ReportUtils.generateReportID(),
+                                ),
+                            ),
                     },
-                    ...[
-                        {
-                            icon: Expensicons.Task,
-                            text: translate('newTaskPage.assignTask'),
-                            onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                        },
-                    ],
+                    ...(canUseTrackExpense
+                        ? [
+                              {
+                                  icon: Expensicons.DocumentPlus,
+                                  text: translate('iou.trackExpense'),
+                                  onSelected: () =>
+                                      interceptAnonymousUser(() =>
+                                          IOU.startMoneyRequest(
+                                              CONST.IOU.TYPE.TRACK_EXPENSE,
+                                              // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
+                                              // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
+                                              ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                                          ),
+                                      ),
+                              },
+                          ]
+                        : []),
+                    {
+                        icon: Expensicons.Task,
+                        text: translate('newTaskPage.assignTask'),
+                        onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
+                    },
                     {
                         icon: Expensicons.Heart,
                         text: translate('sidebarScreen.saveTheWorld'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
-                    ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
+                    ...(!props.isLoading && !Policy.hasActiveChatEnabledPolicies(props.allPolicies)
                         ? [
                               {
                                   displayInDefaultIconColor: true,

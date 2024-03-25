@@ -3,7 +3,7 @@ const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/preDeployAssertions');
 const mocks = require('./mocks/preDeployMocks');
-const eAct = require('./utils/ExtendedAct');
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
 let mockGithub;
@@ -47,7 +47,7 @@ describe('test workflow preDeploy', () => {
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
 
         // instantiate Act in the context of the test repo and given workflow file
-        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+        let act = new ExtendedAct(repoPath, workflowPath);
 
         // set run parameters
         act = utils.setUpActParams(
@@ -119,7 +119,7 @@ describe('test workflow preDeploy', () => {
     it('different event than push - workflow does not execute', async () => {
         const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+        let act = new ExtendedAct(repoPath, workflowPath);
         const testMockSteps = {
             confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
             chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
@@ -212,7 +212,7 @@ describe('test workflow preDeploy', () => {
         it('typecheck job failed - workflow exits', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -285,7 +285,7 @@ describe('test workflow preDeploy', () => {
         it('lint job failed - workflow exits', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -356,7 +356,7 @@ describe('test workflow preDeploy', () => {
         it('test job failed - workflow exits', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -427,7 +427,7 @@ describe('test workflow preDeploy', () => {
         it('lint and test job succeed - workflow continues', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
@@ -493,7 +493,7 @@ describe('test workflow preDeploy', () => {
             it('not automated PR - deploy skipped and comment left', async () => {
                 const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, 'push', {ref: 'refs/heads/main'}, {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'}, 'dummy_github_token');
                 const testMockSteps = {
                     confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
@@ -547,7 +547,7 @@ describe('test workflow preDeploy', () => {
             it('automated PR - deploy skipped, but no comment left', async () => {
                 const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, 'push', {ref: 'refs/heads/main'}, {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'}, 'dummy_github_token');
                 const testMockSteps = {
                     confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
@@ -603,7 +603,7 @@ describe('test workflow preDeploy', () => {
             it('not automated PR - proceed with deploy', async () => {
                 const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
                     'push',
@@ -667,7 +667,7 @@ describe('test workflow preDeploy', () => {
             it('automated PR - deploy skipped, but no comment left', async () => {
                 const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
                     'push',
@@ -731,7 +731,7 @@ describe('test workflow preDeploy', () => {
         it('one of updateStaging steps failed - failure announced in Slack', async () => {
             const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
                 'push',
