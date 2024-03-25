@@ -114,6 +114,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                     />
                     {isReceiptThumbnail && fileExtension && (
                         <Text
+                            selectable={false}
                             style={[
                                 styles.labelStrong,
                                 StyleUtils.getFontSizeStyle(labelFontSize),
