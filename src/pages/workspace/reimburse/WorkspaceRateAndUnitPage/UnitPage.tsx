@@ -38,7 +38,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
 
     const updateUnit = (unit: UnitItemType) => {
         Policy.setUnitForReimburseView(unit.value);
-        Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
+        Navigation.goBack(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
 
     const defaultValue = useMemo(() => {
