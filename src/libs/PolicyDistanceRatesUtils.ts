@@ -1,5 +1,7 @@
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {Rate} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import * as MoneyRequestUtils from './MoneyRequestUtils';
@@ -22,4 +24,13 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: stri
     return errors;
 }
 
-export default validateRateValue;
+/**
+ * Get the optimistic rate name in a way that matches BE logic
+ * @param rates
+ */
+function getOptimisticRateName(rates: Record<string, Rate>): string {
+    const existingRatesWithSameName = Object.values(rates ?? {}).filter((rate) => (rate.name ?? '').startsWith(CONST.CUSTOM_UNITS.DEFAULT_RATE));
+    return existingRatesWithSameName.length ? `${CONST.CUSTOM_UNITS.DEFAULT_RATE} ${existingRatesWithSameName.length}` : CONST.CUSTOM_UNITS.DEFAULT_RATE;
+}
+
+export {validateRateValue, getOptimisticRateName};
