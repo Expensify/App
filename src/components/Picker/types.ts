@@ -80,7 +80,7 @@ type BasePickerProps<TPickerValue> = {
     shouldShowOnlyTextWhenDisabled?: boolean;
 
     /** A callback method that is called when the value changes and it receives the selected value as an argument */
-    onInputChange: (value: TPickerValue, index?: number) => void;
+    onInputChange?: (value: TPickerValue, index?: number) => void;
 
     /** Size of a picker component */
     size?: PickerSize;
