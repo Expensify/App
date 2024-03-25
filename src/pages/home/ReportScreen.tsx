@@ -140,7 +140,7 @@ function ReportScreen({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const reportIDFromRoute = getReportID(route);
+    const reportIDFromRoute = route?.params?.reportID ?? '';
     const reportActionIDFromRoute = route?.params?.reportActionID ?? '';
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
@@ -330,28 +330,22 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !ReportUtils.isValidReportIDFromPath(reportIDFromRoute) || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
+        // (firstRenderRef.current && !!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute)) ||
         isLinkingToMessage ||
         !isCurrentReportLoadedFromOnyx ||
         (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
         isLoading ||
         (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
+
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
-        (): boolean =>
-            !shouldShowSkeleton &&
-            ((!wasReportAccessibleRef.current &&
-                !firstRenderRef.current &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !reportMetadata?.isLoadingInitialReportActions &&
-                !userLeavingStatus) ||
+    const shouldShowNotFoundPage =
+            !firstRenderRef.current &&
+            ((!wasReportAccessibleRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
                 shouldHideReport ||
-                (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute))),
-        [shouldShowSkeleton, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, reportIDFromRoute],
-    );
+                (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute)))
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
