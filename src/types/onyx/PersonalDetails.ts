@@ -79,7 +79,7 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 type PersonalDetailsMetadata = {
-    /** Whether we are loading the data via the API */
+    /** Whether we are waiting for the data to load via the API */
     isLoading?: boolean;
 };
 
