@@ -14,7 +14,13 @@ else
 fi
 
 if [[ -n $GCP_GEOLOCATION_API_KEY ]]; then
-  echo "$GCP_GEOLOCATION_API_KEY=" >> ENV_FILE
+  if grep -q "^GCP_GEOLOCATION_API_KEY=" "$ENV_FILE"; then
+      # Replace the value for the existing key
+      sed -i "s|^GCP_GEOLOCATION_API_KEY=.*$|GCP_GEOLOCATION_API_KEY=$GCP_GEOLOCATION_API_KEY|g" "$ENV_FILE"
+  else
+      # Add the key-value pair to the config file
+      echo "GCP_GEOLOCATION_API_KEY=$GCP_GEOLOCATION_API_KEY" >> "$ENV_FILE"
+  fi
 fi
 
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
