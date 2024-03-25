@@ -337,8 +337,21 @@ function ReportScreen({
         (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
         isLoading ||
         (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
-
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(
+        (): boolean =>
+            !isLoading &&
+            ((!wasReportAccessibleRef.current &&
+                !firstRenderRef.current &&
+                !report.reportID &&
+                !isOptimisticDelete &&
+                !reportMetadata?.isLoadingInitialReportActions &&
+                !userLeavingStatus) ||
+                shouldHideReport ||
+                (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute))),
+        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus, reportIDFromRoute],
+    );
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -527,21 +540,6 @@ function ReportScreen({
         markReadyForHydration();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
-        (): boolean =>
-            !isLoading &&
-            ((!wasReportAccessibleRef.current &&
-                !firstRenderRef.current &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !reportMetadata?.isLoadingInitialReportActions &&
-                !userLeavingStatus) ||
-                shouldHideReport ||
-                (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute))),
-        [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus, reportIDFromRoute],
-    );
 
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
