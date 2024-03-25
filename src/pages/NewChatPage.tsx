@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OptionsSelector from '@components/OptionsSelector';
@@ -15,37 +14,26 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import doInteractionTask from '@libs/DoInteractionTask';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 
-type NewChatPageWithOnyxProps = {
-    /** All reports shared with the user */
-    reports: OnyxCollection<OnyxTypes.Report>;
-
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
-    /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: OnyxEntry<OnyxTypes.DismissedReferralBanners>;
-
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: OnyxEntry<boolean>;
-};
-
-type NewChatPageProps = NewChatPageWithOnyxProps & {
+type NewChatPageProps = {
     isGroupChat: boolean;
 };
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
+function NewChatPage({isGroupChat}: NewChatPageProps) {
+    const [dismissedReferralBanners] = useOnyx(ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
@@ -284,21 +272,4 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
 
 NewChatPage.displayName = 'NewChatPage';
 
-export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
-    },
-})(NewChatPage);
+export default NewChatPage;
