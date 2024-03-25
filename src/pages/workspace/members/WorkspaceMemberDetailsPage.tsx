@@ -101,6 +101,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const startChangeOwnershipFlow = useCallback(() => {
         Policy.clearWorkspaceOwnerChangeFlow(policyID);
         Policy.requestWorkspaceOwnerChange(policyID);
+        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
     }, [policyID]);
 
     return (
