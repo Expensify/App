@@ -58,6 +58,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition = null, horizontal 
         return horizontal ? Number(scrollRef.current?.getScrollableNode()?.scrollLeft) : Number(scrollRef.current?.getScrollableNode()?.scrollTop);
     }, [horizontal]);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const getContentView = useCallback(() => scrollRef.current?.getScrollableNode()?.childNodes[0], []);
 
     const scrollToOffset = useCallback(
