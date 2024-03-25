@@ -33,9 +33,9 @@ const server = http.createServer((request: IncomingMessage, response: ServerResp
      * This is done because the staging api root is only intended for the proxy,
      * the actual server request must use the /api path.
      * For example,
-     * /api?command=OpenReport => request sent to production server
-     * /staging/api?command=OpenReport => request sent to staging server
-     * /staging-secure/api?command=OpenReport => request sent to secure staging server
+     * /api/OpenReport => request sent to production server
+     * /staging/api/OpenReport => request sent to staging server
+     * /staging-secure/api/OpenReport => request sent to secure staging server
      * /chat-attachments/46545... => request sent to production server
      * /receipts/w_... => request sent to production server
      * /staging/chat-attachments/46545... => request sent to staging server

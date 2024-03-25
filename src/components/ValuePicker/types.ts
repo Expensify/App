@@ -30,6 +30,9 @@ type ValueSelectorModalProps = {
     /** Function to call when the user closes the modal */
     onClose?: () => void;
 
+    /** Function to call when the user presses on the modal backdrop */
+    onBackdropPress?: () => void;
+
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 };
