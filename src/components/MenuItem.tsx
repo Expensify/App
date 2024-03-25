@@ -615,7 +615,7 @@ function MenuItem(
                                                 size={floatRightAvatarSize ?? fallbackAvatarSize}
                                                 fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
                                                 shouldStackHorizontally={shouldStackHorizontally}
-                                                isFocusMode={true}
+                                                isFocusMode
                                             />
                                         </View>
                                     )}
