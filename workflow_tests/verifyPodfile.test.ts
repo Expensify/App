@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/verifyPodfileAssertions';
@@ -22,7 +21,7 @@ describe('test workflow verifyPodfile', () => {
     const actor = 'Dummy Actor';
     const osbotifyActor = 'OSBotify';
 
-    beforeAll(async () => {
+    beforeAll(() => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();

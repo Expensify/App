@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-
-/* eslint-disable @typescript-eslint/require-await */
 import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/testBuildAssertions';
@@ -35,7 +33,7 @@ describe('test workflow testBuild', () => {
         MYAPP_UPLOAD_KEY_PASSWORD: 'dummy_myapp_upload_key_password',
     };
 
-    beforeAll(async () => {
+    beforeAll(() => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();

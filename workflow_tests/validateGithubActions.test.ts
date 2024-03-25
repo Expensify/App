@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/validateGithubActionsAssertions';
@@ -20,7 +19,7 @@ describe('test workflow validateGithubActions', () => {
     const githubToken = 'dummy_github_token';
     const actor = 'Dummy Actor';
 
-    beforeAll(async () => {
+    beforeAll(() => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
