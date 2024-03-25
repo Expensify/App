@@ -286,6 +286,10 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
             ...spacing.pr4,
         },
+        emojiTooltipWrapper: {
+            ...spacing.p2,
+            borderRadius: 8,
+        },
 
         mentionSuggestionsAvatarContainer: {
             width: 24,
@@ -1553,7 +1557,6 @@ const styles = (theme: ThemeColors) =>
 
         breadcrumbLogo: {
             top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
-            height: variables.lineHeightSizeh1,
         },
 
         LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
@@ -4104,9 +4107,12 @@ const styles = (theme: ThemeColors) =>
             gap: 16,
         },
 
+        reportActionItemImagesContainer: {
+            margin: 4,
+        },
+
         reportActionItemImages: {
             flexDirection: 'row',
-            margin: 4,
             borderRadius: 12,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
