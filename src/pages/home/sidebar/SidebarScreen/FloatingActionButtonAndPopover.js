@@ -343,7 +343,7 @@ function FloatingActionButtonAndPopover(props) {
                                   label: translate('quickAction.shortcut'),
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
-                                  floatRightAvatarSize: quickActionAvatars.length > 1 ? CONST.AVATAR_SIZE.SMALLER : CONST.AVATAR_SIZE.SMALL,
+                                  floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
                                   description: ReportUtils.getReportName(quickActionReport),
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
