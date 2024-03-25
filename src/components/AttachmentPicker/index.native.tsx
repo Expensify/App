@@ -80,7 +80,7 @@ const getDocumentPickerOptions = (type: string): DocumentPickerOptions<'ios' | '
  * send to the xhr will be handled properly.
  */
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
-    const fileName = fileData.name ?? 'chat_attachment';
+    const fileName = fileData.name || 'chat_attachment';
     const fileResult: FileObject = {
         name: FileUtils.cleanFileName(fileName),
         type: fileData.type,
