@@ -993,11 +993,11 @@ function getCategoryListSections(
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
 
     const categorySections: CategoryTreeSection[] = [];
-    const numberOfCategories = enabledCategories.length;
+    const numberOfEnabledCategories = enabledCategories.length;
 
     let indexOffset = 0;
 
-    if (numberOfCategories === 0 && selectedOptions.length > 0) {
+    if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
@@ -1047,9 +1047,8 @@ function getCategoryListSections(
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
-    const numberOfVisibleCategories = filteredCategories.length + selectedOptionNames.length;
 
-    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+    if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
