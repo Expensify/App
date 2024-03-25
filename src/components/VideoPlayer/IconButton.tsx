@@ -1,8 +1,7 @@
 import React from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -25,21 +24,18 @@ function IconButton({src, fill = 'white', onPress = () => {}, style = {}, hoverS
             text={tooltipText}
             shouldForceRenderingBelow={shouldForceRenderingTooltipBelow}
         >
-            <Hoverable>
-                {(isHovered) => (
-                    <PressableWithoutFeedback
-                        accessibilityLabel={tooltipText}
-                        onPress={onPress}
-                        style={[styles.videoIconButton, isHovered && [styles.videoIconButtonHovered, hoverStyle], style]}
-                    >
-                        <Icon
-                            src={src}
-                            fill={fill}
-                            small={small}
-                        />
-                    </PressableWithoutFeedback>
-                )}
-            </Hoverable>
+            <PressableWithFeedback
+                accessibilityLabel={tooltipText}
+                onPress={onPress}
+                style={[styles.videoIconButton, style]}
+                hoverStyle={[styles.videoIconButtonHovered, hoverStyle]}
+            >
+                <Icon
+                    src={src}
+                    fill={fill}
+                    small={small}
+                />
+            </PressableWithFeedback>
         </Tooltip>
     );
 }
