@@ -23,6 +23,7 @@ import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import TestToolsModal from './TestToolsModal';
+import withNavigationFallback from './withNavigationFallback';
 
 type ChildrenProps = {
     insets: EdgeInsets;
@@ -148,7 +149,6 @@ function ScreenWrapper(
 
     const panResponder = useRef(
         PanResponder.create({
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
             onPanResponderRelease: toggleTestToolsModal,
         }),
@@ -156,7 +156,6 @@ function ScreenWrapper(
 
     const keyboardDissmissPanResponder = useRef(
         PanResponder.create({
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
                 const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && isKeyboardShown && Browser.isMobile();
@@ -281,4 +280,4 @@ function ScreenWrapper(
 
 ScreenWrapper.displayName = 'ScreenWrapper';
 
-export default forwardRef(ScreenWrapper);
+export default withNavigationFallback(forwardRef(ScreenWrapper));

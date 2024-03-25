@@ -549,7 +549,7 @@ function AttachmentModal({
                                         // @ts-expect-error TODO: Remove this once Attachments (https://github.com/Expensify/App/issues/24969) is migrated to TypeScript.
                                         containerStyles={[styles.mh5]}
                                         source={sourceForAttachmentView}
-                                        isAuthTokenRequired={isAuthTokenRequired}
+                                        isAuthTokenRequired={isAuthTokenRequiredState}
                                         file={file}
                                         onToggleKeyboard={updateConfirmButtonVisibility}
                                         isWorkspaceAvatar={isWorkspaceAvatar}
@@ -569,6 +569,7 @@ function AttachmentModal({
                                 <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                     <Button
                                         success
+                                        large
                                         style={[styles.buttonConfirm, isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
                                         textStyles={[styles.buttonConfirmText]}
                                         text={translate('common.send')}

@@ -44,7 +44,6 @@ function WorkspaceCardVBANoECardView({user}: WorkspaceCardVBANoECardViewProps) {
                     }}
                     icon={Expensicons.Mail}
                     style={[styles.mt4]}
-                    iconStyles={[styles.buttonCTAIcon]}
                     shouldShowRightIcon
                     large
                     success

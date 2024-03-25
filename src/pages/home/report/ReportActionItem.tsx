@@ -53,12 +53,12 @@ import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Policy from '@userActions/Policy';
-import * as store from '@userActions/ReimbursementAccount/store';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -97,9 +97,6 @@ type ReportActionItemOnyxProps = {
 
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
-
-    /** All policy report fields */
-    policyReportFields: OnyxEntry<OnyxTypes.PolicyReportFields>;
 
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -157,7 +154,6 @@ function ReportActionItem({
     userWallet,
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
-    policyReportFields,
     policy,
     onPress = undefined,
 }: ReportActionItemProps) {
@@ -415,7 +411,10 @@ function ReportActionItem({
             isIOUReport(action) &&
             action.originalMessage &&
             // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
-            (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT || isSendingMoney)
+            (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
+                action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
+                isSendingMoney)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
@@ -470,27 +469,23 @@ function ReportActionItem({
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[report.ownerAccountID ?? -1]);
             const paymentType = action.originalMessage.paymentType ?? '';
 
-            const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(report.reportID) && !ReportUtils.isSettled(report.reportID);
-            const shouldShowAddCreditBankAccountButton = isSubmitterOfUnsettledReport && !store.hasCreditBankAccount() && paymentType !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-            const shouldShowEnableWalletButton =
-                isSubmitterOfUnsettledReport && (isEmptyObject(userWallet) || userWallet?.tierName === CONST.WALLET.TIER_NAME.SILVER) && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-
+            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, report.reportID, action);
             children = (
                 <ReportActionItemBasicMessage
                     message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
                 >
                     <>
-                        {shouldShowAddCreditBankAccountButton && (
+                        {missingPaymentMethod === 'bankAccount' && (
                             <Button
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
                                 onPress={() => BankAccounts.openPersonalBankAccountSetupView(report.reportID)}
                                 pressOnEnter
+                                large
                             />
                         )}
-
-                        {shouldShowEnableWalletButton && (
+                        {missingPaymentMethod === 'wallet' && (
                             <KYCWall
                                 onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
@@ -503,6 +498,7 @@ function ReportActionItem({
                                     <Button
                                         ref={buttonRef}
                                         success
+                                        large
                                         style={[styles.w100, styles.requestPreviewBox]}
                                         text={translate('iou.enableWallet')}
                                         onPress={triggerKYCFlow}
@@ -517,8 +513,13 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(action, report)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(report.reportID, action)} />;
+        } else if (ReportActionsUtils.isOldDotReportAction(action)) {
+            // This handles all historical actions from OldDot that we just want to display the message text
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMessageOfOldDotReportAction(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest', {comment: action.message?.[1].text ?? ''})} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT) {
+            children = <ReportActionItemBasicMessage message={action.message?.[0].text ?? ''} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldRequest')} />;
         } else {
@@ -668,8 +669,16 @@ function ReportActionItem({
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
             if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+                let message: TranslationPaths;
+                if (isReversedTransaction) {
+                    message = 'parentReportAction.reversedTransaction';
+                } else if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+                    message = 'parentReportAction.deletedExpense';
+                } else {
+                    message = 'parentReportAction.deletedRequest';
+                }
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.justifyContentEnd]}>
+                    <View>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
@@ -678,9 +687,7 @@ function ReportActionItem({
                                     showHeader
                                     report={report}
                                 >
-                                    <RenderHTML
-                                        html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`}
-                                    />
+                                    <RenderHTML html={`<comment>${translate(message)}</comment>`} />
                                 </ReportActionItemSingle>
                                 <View style={styles.threadDividerLine} />
                             </OfflineWithFeedback>
@@ -700,7 +707,7 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+                    <View>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
@@ -718,7 +725,7 @@ function ReportActionItem({
                 );
             }
             return (
-                <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+                <View>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                         <TaskView
@@ -735,7 +742,6 @@ function ReportActionItem({
                     <MoneyReportView
                         report={report}
                         policy={policy}
-                        policyReportFields={Object.values(policyReportFields ?? {})}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                     />
                 </OfflineWithFeedback>
@@ -882,10 +888,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         },
         initialValue: {} as OnyxTypes.Report,
     },
-    policyReportFields: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? 0}`,
-        initialValue: {},
-    },
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
         initialValue: {} as OnyxTypes.Policy,
@@ -926,8 +928,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.report?.total === nextProps.report?.total &&
             prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
-            lodashIsEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
-            lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
             lodashIsEqual(prevProps.policy, nextProps.policy) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );

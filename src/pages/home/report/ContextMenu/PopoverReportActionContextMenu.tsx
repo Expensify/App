@@ -3,7 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {Dimensions} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -12,7 +12,6 @@ import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuAction} from './ContextMenuActions';
@@ -30,7 +29,6 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
     return event;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
     const reportIDRef = useRef('0');
@@ -257,11 +255,17 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = () => (onComfirmDeleteModal.current = runAndResetCallback(onComfirmDeleteModal.current));
         const reportAction = reportActionRef.current;
-        if (ReportActionsUtils.isMoneyRequestAction(reportAction) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-            IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
+        if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+            if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
+                IOU.deleteTrackExpense(reportIDRef.current, reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
+            } else {
+                IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
+            }
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);
         }
+
+        DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
     }, []);
 
