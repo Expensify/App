@@ -1,14 +1,18 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Alert} from 'react-native';
+import RNFetchBlob from 'react-native-blob-util';
 import {withOnyx} from 'react-native-onyx';
+import Share from 'react-native-share';
 import * as Console from '@libs/actions/Console';
 import {parseStringifyMessages} from '@libs/Console';
-import localFileDownload from '@libs/localFileDownload';
+import localFileCreate from '@libs/localFileCreate';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
 import type {ClientSideLoggingToolMenuOnyxProps, ClientSideLoggingToolProps} from './types';
 
-function ClientSideLoggingToolMenu({capturedLogs, shouldStoreLogs}: ClientSideLoggingToolProps) {
+function ClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs}: ClientSideLoggingToolProps) {
+    const [file, setFile] = useState<{path: string; newFileName: string; size: number}>();
+
     const onToggle = () => {
         if (!shouldStoreLogs) {
             Console.setShouldStoreLogs(true);
@@ -17,21 +21,41 @@ function ClientSideLoggingToolMenu({capturedLogs, shouldStoreLogs}: ClientSideLo
 
         if (!capturedLogs) {
             Alert.alert('No logs to share', 'There are no logs to share');
-            Console.disableLoggingAndFlushLogs();
             return;
         }
 
         const logs = Object.values(capturedLogs);
         const logsWithParsedMessages = parseStringifyMessages(logs);
-
-        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
+        localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then((localFile) => {
+            RNFetchBlob.MediaCollection.copyToMediaStore(
+                {
+                    name: localFile.newFileName,
+                    parentFolder: '',
+                    mimeType: 'text/plain',
+                },
+                'Download',
+                localFile.path,
+            );
+            setFile(localFile);
+        });
         Console.disableLoggingAndFlushLogs();
+    };
+
+    const shareLogs = () => {
+        if (!file) {
+            return;
+        }
+        Share.open({
+            url: `file://${file.path}`,
+        });
     };
 
     return (
         <BaseClientSideLoggingToolMenu
-            onToggleSwitch={onToggle}
             shouldStoreLogs={shouldStoreLogs}
+            file={file}
+            onToggleSwitch={onToggle}
+            onShareLogs={shareLogs}
         />
     );
 }

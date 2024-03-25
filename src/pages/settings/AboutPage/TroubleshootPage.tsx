@@ -3,14 +3,13 @@ import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
+import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
-import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
-import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
@@ -18,10 +17,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import * as Console from '@libs/actions/Console';
-import {parseStringifyMessages} from '@libs/Console';
-import type {Log} from '@libs/Console';
-import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -54,12 +49,11 @@ type BaseMenuItem = {
 
 type TroubleshootPageOnyxProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
-    capturedLogs: OnyxEntry<Record<number, Log>>;
 };
 
 type TroubleshootPageProps = TroubleshootPageOnyxProps;
 
-function TroubleshootPage({shouldStoreLogs, capturedLogs}: TroubleshootPageProps) {
+function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -96,22 +90,6 @@ function TroubleshootPage({shouldStoreLogs, capturedLogs}: TroubleshootPageProps
             .reverse();
     }, [shouldStoreLogs, translate, waitForNavigate]);
 
-    const onToggleClientSideLogging = () => {
-        if (shouldStoreLogs) {
-            if (!capturedLogs) {
-                Console.disableLoggingAndFlushLogs();
-                return;
-            }
-
-            const logs = Object.values(capturedLogs as Log[]);
-            const logsWithParsedMessages = parseStringifyMessages(logs);
-            localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
-            Console.disableLoggingAndFlushLogs();
-        } else {
-            Console.setShouldStoreLogs(true);
-        }
-    };
-
     return (
         <IllustratedHeaderPageLayout
             title={translate('initialSettingsPage.aboutPage.troubleshoot')}
@@ -133,13 +111,7 @@ function TroubleshootPage({shouldStoreLogs, capturedLogs}: TroubleshootPageProps
                 </Text>
             </View>
             <View style={[styles.ml5, styles.mr8]}>
-                <TestToolRow title="Client side logging">
-                    <Switch
-                        accessibilityLabel="Client side logging"
-                        isOn={!!shouldStoreLogs}
-                        onToggle={onToggleClientSideLogging}
-                    />
-                </TestToolRow>
+                <ClientSideLoggingToolMenu />
             </View>
             <MenuItemList
                 menuItems={menuItems}
@@ -174,8 +146,5 @@ TroubleshootPage.displayName = 'TroubleshootPage';
 export default withOnyx<TroubleshootPageProps, TroubleshootPageOnyxProps>({
     shouldStoreLogs: {
         key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-    capturedLogs: {
-        key: ONYXKEYS.LOGS,
     },
 })(TroubleshootPage);

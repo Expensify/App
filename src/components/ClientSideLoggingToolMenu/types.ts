@@ -1,7 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Log} from '@libs/Console';
-
-type CapturedLogs = Record<number, Log>;
+import type {CapturedLogs} from '@src/types/onyx';
 
 type ClientSideLoggingToolMenuOnyxProps = {
     /** Logs captured on the current device */

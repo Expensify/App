@@ -23,8 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-
-type CapturedLogs = Record<number, Log>;
+import type {CapturedLogs} from '@src/types/onyx';
 
 type ConsolePageOnyxProps = {
     /** Logs captured on the current device */
