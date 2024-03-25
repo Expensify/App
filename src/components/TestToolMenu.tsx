@@ -39,7 +39,6 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
             >
                 Test Preferences
             </Text>
-
             {/* Option to switch between staging and default api endpoints.
         This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
         This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}

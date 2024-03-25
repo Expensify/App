@@ -17,7 +17,7 @@ type BigNumberPadProps = {
     id?: string;
 
     /** Whether long press is disabled */
-    isLongPressDisabled: boolean;
+    isLongPressDisabled?: boolean;
 };
 
 const padNumbers = [
@@ -71,6 +71,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                             <Button
                                 key={column}
                                 medium={isExtraSmallScreenHeight}
+                                large={!isExtraSmallScreenHeight}
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
                                 text={column === '<' ? column : toLocaleDigit(column)}

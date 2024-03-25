@@ -12,7 +12,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {GetPhysicalCardForm} from '@src/types/onyx';
+import type {GetPhysicalCardForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/GetPhysicalCardForm';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 type OnValidateResult = {
@@ -67,8 +68,8 @@ function GetPhysicalCardName({
         >
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="legalFirstName"
-                name="legalFirstName"
+                inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                name={INPUT_IDS.LEGAL_FIRST_NAME}
                 label={translate('getPhysicalCard.legalFirstName')}
                 aria-label={translate('getPhysicalCard.legalFirstName')}
                 role={CONST.ROLE.PRESENTATION}
@@ -78,8 +79,8 @@ function GetPhysicalCardName({
             />
             <InputWrapper
                 InputComponent={TextInput}
-                inputID="legalLastName"
-                name="legalLastName"
+                inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                name={INPUT_IDS.LEGAL_LAST_NAME}
                 label={translate('getPhysicalCard.legalLastName')}
                 aria-label={translate('getPhysicalCard.legalLastName')}
                 role={CONST.ROLE.PRESENTATION}

@@ -1,6 +1,6 @@
 import isEqual from 'lodash/isEqual';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, memo, useEffect, useRef} from 'react';
+import React, {forwardRef, memo, useEffect, useMemo, useRef} from 'react';
 import type {SectionListRenderItem} from 'react-native';
 import {View} from 'react-native';
 import OptionRow from '@components/OptionRow';
@@ -31,7 +31,7 @@ function BaseOptionsList(
         shouldHaveOptionSeparator = false,
         showTitleTooltip = false,
         optionHoveredStyle,
-        contentContainerStyles,
+        contentContainerStyles: contentContainerStylesProp,
         sectionHeaderStyle,
         showScrollIndicator = true,
         listContainerStyles: listContainerStylesProp,
@@ -51,6 +51,7 @@ function BaseOptionsList(
         nestedScrollEnabled = true,
         bounces = true,
         renderFooterContent,
+        safeAreaPaddingBottomStyle,
     }: BaseOptionListProps,
     ref: ForwardedRef<OptionsList>,
 ) {
@@ -64,7 +65,8 @@ function BaseOptionsList(
     const previousSections = usePrevious<OptionsListData[]>(sections);
     const didLayout = useRef(false);
 
-    const listContainerStyles = listContainerStylesProp ?? [styles.flex1];
+    const listContainerStyles = useMemo(() => listContainerStylesProp ?? [styles.flex1], [listContainerStylesProp, styles.flex1]);
+    const contentContainerStyles = useMemo(() => [safeAreaPaddingBottomStyle, contentContainerStylesProp], [contentContainerStylesProp, safeAreaPaddingBottomStyle]);
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
@@ -131,7 +133,6 @@ function BaseOptionsList(
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     const getItemLayout = (_data: OptionsListData[] | null, flatDataArrayIndex: number) => {
         if (!flattenedData.current[flatDataArrayIndex]) {
             flattenedData.current = buildFlatSectionArray();

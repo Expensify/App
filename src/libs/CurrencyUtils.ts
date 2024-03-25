@@ -111,6 +111,21 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
 }
 
 /**
+ * Given an amount, convert it to a string for display in the UI.
+ *
+ * @param amount – should be a float.
+ * @param currency - IOU currency
+ */
+function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRENCY.USD): string {
+    const convertedAmount = amount / 100.0;
+    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: getCurrencyDecimals(currency) + 1,
+    });
+}
+
+/**
  * Checks if passed currency code is a valid currency based on currency list
  */
 function isValidCurrencyCode(currencyCode: string): boolean {
@@ -127,5 +142,6 @@ export {
     convertToBackendAmount,
     convertToFrontendAmount,
     convertToDisplayString,
+    convertAmountToDisplayString,
     isValidCurrencyCode,
 };

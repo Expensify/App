@@ -11,7 +11,7 @@ import convertToLTR from '@libs/convertToLTR';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
+import type {ActionName, DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
@@ -50,17 +50,32 @@ type ReportActionItemFragmentProps = {
     /** Whether the report action type is 'APPROVED' or 'SUBMITTED'. Used to style system messages from Old Dot */
     isApprovedOrSubmittedReportAction?: boolean;
 
+    /** Whether the report action type is 'UNHOLD' or 'HOLD'. Used to style messages related to hold requests */
+    isHoldReportAction?: boolean;
+
     /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
     isFragmentContainingDisplayName?: boolean;
 
     /** The pending action for the report action */
     pendingAction?: OnyxCommon.PendingAction;
 
+    /** The report action name */
+    actionName?: ActionName;
+
     moderationDecision?: DecisionName;
 };
 
+const MUTED_ACTIONS = [
+    ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
+    CONST.REPORT.ACTIONS.TYPE.IOU,
+    CONST.REPORT.ACTIONS.TYPE.APPROVED,
+    CONST.REPORT.ACTIONS.TYPE.MOVED,
+    CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST,
+] as ActionName[];
+
 function ReportActionItemFragment({
     pendingAction,
+    actionName,
     fragment,
     accountID,
     iouMessage = '',
@@ -71,6 +86,7 @@ function ReportActionItemFragment({
     actorIcon = {},
     isThreadParentMessage = false,
     isApprovedOrSubmittedReportAction = false,
+    isHoldReportAction = false,
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
     moderationDecision,
@@ -101,6 +117,7 @@ function ReportActionItemFragment({
                         source={source}
                         html={fragment.html ?? ''}
                         addExtraMargin={!displayAsGroup}
+                        styleAsDeleted={!!(isOffline && isPendingDelete)}
                     />
                 );
             }
@@ -110,6 +127,7 @@ function ReportActionItemFragment({
                     source={source}
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}
+                    styleAsMuted={!!actionName && MUTED_ACTIONS.includes(actionName)}
                     iouMessage={iouMessage}
                     displayAsGroup={displayAsGroup}
                     style={style}
@@ -117,14 +135,29 @@ function ReportActionItemFragment({
             );
         }
         case 'TEXT': {
-            return isApprovedOrSubmittedReportAction ? (
-                <Text
-                    numberOfLines={isSingleLine ? 1 : undefined}
-                    style={[styles.chatItemMessage, styles.colorMuted]}
-                >
-                    {isFragmentContainingDisplayName ? convertToLTR(fragment.text) : fragment.text}
-                </Text>
-            ) : (
+            if (isApprovedOrSubmittedReportAction) {
+                return (
+                    <Text
+                        numberOfLines={isSingleLine ? 1 : undefined}
+                        style={[styles.chatItemMessage, styles.colorMuted]}
+                    >
+                        {isFragmentContainingDisplayName ? convertToLTR(fragment.text) : fragment.text}
+                    </Text>
+                );
+            }
+
+            if (isHoldReportAction) {
+                return (
+                    <Text
+                        numberOfLines={isSingleLine ? 1 : undefined}
+                        style={[styles.chatItemMessage]}
+                    >
+                        {isFragmentContainingDisplayName ? convertToLTR(fragment.text) : fragment.text}
+                    </Text>
+                );
+            }
+
+            return (
                 <UserDetailsTooltip
                     accountID={accountID}
                     delegateAccountID={delegateAccountID}

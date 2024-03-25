@@ -11,7 +11,6 @@ import {
     formatDistanceToNow,
     getDate,
     getDay,
-    getDayOfYear,
     isAfter,
     isBefore,
     isSameDay,
@@ -21,13 +20,15 @@ import {
     parse,
     set,
     setDefaultOptions,
+    startOfDay,
     startOfWeek,
     subDays,
     subMilliseconds,
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, format as tzFormat, utcToZonedTime, zonedTimeToUtc} from 'date-fns-tz';
-import {enGB, es} from 'date-fns/locale';
+import enGB from 'date-fns/locale/en-GB';
+import es from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -265,7 +266,7 @@ function formatToLongDateWithWeekday(datetime: string | Date): string {
  *
  * @returns Sunday
  */
-function formatToDayOfWeek(datetime: string): string {
+function formatToDayOfWeek(datetime: Date): string {
     return format(new Date(datetime), CONST.DATE.WEEKDAY_TIME_FORMAT);
 }
 
@@ -684,9 +685,8 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     if (!inputDate) {
         return '';
     }
-    const currentYear = getDayOfYear(new Date());
-    const inputYear = getDayOfYear(inputDate);
-    if (inputYear < currentYear) {
+
+    if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
         return 'common.error.invalidDateShouldBeFuture';
     }
     return '';

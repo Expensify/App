@@ -26,7 +26,7 @@ function GenericPressable(
         focusStyle = {},
         pressStyle = {},
         screenReaderActiveStyle = {},
-        shouldUseHapticsOnLongPress = false,
+        shouldUseHapticsOnLongPress = true,
         shouldUseHapticsOnPress = false,
         nextFocusRef,
         keyboardShortcut,
@@ -109,11 +109,18 @@ function GenericPressable(
             if (ref && 'current' in ref) {
                 ref.current?.blur();
             }
-            onPress(event);
-
+            const onPressResult = onPress(event);
             Accessibility.moveAccessibilityFocus(nextFocusRef);
+            return onPressResult;
         },
         [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled],
+    );
+
+    const onKeyboardShortcutPressHandler = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            onPressHandler(event);
+        },
+        [onPressHandler],
     );
 
     useEffect(() => {
@@ -121,8 +128,8 @@ function GenericPressable(
             return () => {};
         }
         const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut;
-        return KeyboardShortcut.subscribe(shortcutKey, onPressHandler, descriptionKey, modifiers, true, false, 0, false);
-    }, [keyboardShortcut, onPressHandler]);
+        return KeyboardShortcut.subscribe(shortcutKey, onKeyboardShortcutPressHandler, descriptionKey, modifiers, true, false, 0, false);
+    }, [keyboardShortcut, onKeyboardShortcutPressHandler]);
 
     return (
         <Pressable

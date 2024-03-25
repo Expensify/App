@@ -1,4 +1,4 @@
-import ELECTRON_EVENTS from '../../../../desktop/ELECTRON_EVENTS';
+import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 import BaseLocaleListener from './BaseLocaleListener';
 import type {LocaleListener, LocaleListenerConnect} from './types';
 

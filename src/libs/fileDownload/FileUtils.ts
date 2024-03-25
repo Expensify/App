@@ -80,14 +80,14 @@ function showCameraPermissionsAlert() {
  * Extracts a filename from a given URL and sanitizes it for file system usage.
  *
  * This function takes a URL as input and performs the following operations:
- * 1. Extracts the last segment of the URL, which could be a file name, a path segment,
- *    or a query string parameter.
+ * 1. Extracts the last segment of the URL.
  * 2. Decodes the extracted segment from URL encoding to a plain string for better readability.
  * 3. Replaces any characters in the decoded string that are illegal in file names
  *    with underscores.
  */
 function getFileName(url: string): string {
-    const fileName = url.split(/[#?/]/).pop() ?? '';
+    const fileName = url.split('/').pop()?.split('?')[0].split('#')[0] ?? '';
+
     if (!fileName) {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
@@ -111,7 +111,7 @@ function getFileType(fileUrl: string): string | undefined {
         return;
     }
 
-    const fileName = fileUrl.split('/').pop()?.split('?')[0].split('#')[0];
+    const fileName = getFileName(fileUrl);
 
     if (!fileName) {
         return;
@@ -159,7 +159,7 @@ function appendTimeToFileName(fileName: string): string {
  * @param path - the blob url of the locally uploaded file
  * @param fileName - name of the file to read
  */
-const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () => {}) =>
+const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () => {}, fileType = '') =>
     new Promise((resolve) => {
         if (!path) {
             resolve();
@@ -176,7 +176,9 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
                 }
                 res.blob()
                     .then((blob) => {
-                        const file = new File([blob], cleanFileName(fileName), {type: blob.type});
+                        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+                        // In this case, let us fallback on fileType provided by the caller of this function.
+                        const file = new File([blob], cleanFileName(fileName), {type: blob.type || fileType});
                         file.source = path;
                         // For some reason, the File object on iOS does not have a uri property
                         // so images aren't uploaded correctly to the backend

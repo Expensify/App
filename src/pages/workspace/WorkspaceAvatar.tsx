@@ -31,6 +31,7 @@ function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
             originalFileName={policy?.originalFileName ?? policy?.name ?? ''}
             shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
             isLoading={!Object.keys(policy ?? {}).length && !!isLoadingApp}
+            maybeIcon
         />
     );
 }

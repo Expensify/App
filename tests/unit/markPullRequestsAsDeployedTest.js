@@ -1,9 +1,9 @@
 /**
  * @jest-environment node
  */
-const _ = require('underscore');
-const GitUtils = require('../../.github/libs/GitUtils');
-const GithubUtils = require('../../.github/libs/GithubUtils');
+import _ from 'underscore';
+import GithubUtils from '../../.github/libs/GithubUtils';
+import GitUtils from '../../.github/libs/GitUtils';
 
 let run;
 

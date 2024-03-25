@@ -1,11 +1,11 @@
 import React from 'react';
 import type {ForwardedRef} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';
-import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 type AmountTextInputProps = {
     /** Formatted amount in local currency  */
@@ -21,7 +21,7 @@ type AmountTextInputProps = {
     selection?: TextSelection;
 
     /** Function to call when selection in text input is changed */
-    onSelectionChange?: () => void;
+    onSelectionChange?: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
 
     /** Style for the input */
     style?: StyleProp<TextStyle>;
@@ -30,11 +30,11 @@ type AmountTextInputProps = {
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Function to call to handle key presses in the text input */
-    onKeyPress?: () => void;
-};
+    onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
+} & Pick<BaseTextInputProps, 'autoFocus'>;
 
 function AmountTextInput(
-    {formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, touchableInputWrapperStyle, onKeyPress}: AmountTextInputProps,
+    {formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, touchableInputWrapperStyle, onKeyPress, ...rest}: AmountTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
@@ -43,6 +43,7 @@ function AmountTextInput(
             disableKeyboard
             autoGrow
             hideFocusedState
+            shouldInterceptSwipe
             inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, style]}
             textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             onChangeText={onChangeAmount}
@@ -54,8 +55,10 @@ function AmountTextInput(
             selection={selection}
             onSelectionChange={onSelectionChange}
             role={CONST.ROLE.PRESENTATION}
-            onKeyPress={onKeyPress}
+            onKeyPress={onKeyPress as (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
         />
     );
 }

@@ -16,7 +16,7 @@ type OnCancel = () => void;
 
 type ContextMenuType = ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
-type ContextMenuAnchor = View | RNText | null | undefined;
+type ContextMenuAnchor = View | RNText | HTMLDivElement | null | undefined;
 
 type ShowContextMenu = (
     type: ContextMenuType,
@@ -34,6 +34,8 @@ type ShowContextMenu = (
     isPinnedChat?: boolean,
     isUnreadChat?: boolean,
     disabledOptions?: ContextMenuAction[],
+    shouldCloseOnTarget?: boolean,
+    setIsEmojiPickerActive?: (state: boolean) => void,
 ) => void;
 
 type ReportActionContextMenu = {
@@ -113,6 +115,8 @@ function showContextMenu(
     isPinnedChat = false,
     isUnreadChat = false,
     disabledActions: ContextMenuAction[] = [],
+    shouldCloseOnTarget = false,
+    setIsEmojiPickerActive = () => {},
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -140,6 +144,8 @@ function showContextMenu(
         isPinnedChat,
         isUnreadChat,
         disabledActions,
+        shouldCloseOnTarget,
+        setIsEmojiPickerActive,
     );
 }
 

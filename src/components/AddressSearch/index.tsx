@@ -1,11 +1,12 @@
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {ActivityIndicator, Keyboard, LogBox, ScrollView, View} from 'react-native';
+import {ActivityIndicator, Keyboard, LogBox, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -271,8 +272,9 @@ function AddressSearch(
     };
 
     const renderHeaderComponent = () => (
+        // eslint-disable-next-line react/jsx-no-useless-fragment
         <>
-            {predefinedPlaces.length > 0 && (
+            {(predefinedPlaces?.length ?? 0) > 0 && (
                 <>
                     {/* This will show current location button in list if there are some recent destinations */}
                     {shouldShowCurrentLocationButton && (
@@ -339,7 +341,7 @@ function AddressSearch(
                         fetchDetails
                         suppressDefaultStyles
                         enablePoweredByContainer={false}
-                        predefinedPlaces={predefinedPlaces}
+                        predefinedPlaces={predefinedPlaces ?? undefined}
                         listEmptyComponent={listEmptyComponent}
                         listLoaderComponent={listLoader}
                         renderHeaderComponent={renderHeaderComponent}
@@ -348,8 +350,8 @@ function AddressSearch(
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
                             return (
                                 <View>
-                                    {title && <Text style={[styles.googleSearchText]}>{title}</Text>}
-                                    <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
+                                    {!!title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                    <Text style={[title ? styles.textLabelSupporting : styles.googleSearchText]}>{subtitle}</Text>
                                 </View>
                             );
                         }}
@@ -367,7 +369,7 @@ function AddressSearch(
                         query={query}
                         requestUrl={{
                             useOnPlatform: 'all',
-                            url: isOffline ? '' : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                            url: isOffline ? '' : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces?proxyUrl='}),
                         }}
                         textInputProps={{
                             InputComp: TextInput,
@@ -398,10 +400,10 @@ function AddressSearch(
                                 if (inputID) {
                                     onInputChange?.(text);
                                 } else {
-                                    onInputChange({street: text});
+                                    onInputChange?.({street: text});
                                 }
                                 // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
-                                if (!text && !predefinedPlaces.length) {
+                                if (!text && !predefinedPlaces?.length) {
                                     setDisplayListViewBorder(false);
                                 }
                             },
@@ -453,3 +455,5 @@ function AddressSearch(
 AddressSearch.displayName = 'AddressSearchWithRef';
 
 export default forwardRef(AddressSearch);
+
+export type {AddressSearchProps};

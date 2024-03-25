@@ -8,6 +8,7 @@ import OptionsList from '@components/OptionsList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import localeCompare from '@libs/LocaleCompare';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -45,11 +46,14 @@ const getAllParticipants = (
     ReportUtils.getVisibleMemberIDs(report)
         .map((accountID, index) => {
             const userPersonalDetail = personalDetails?.[accountID];
-            const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail?.login ?? '') ?? translate('common.hidden');
+            const userLogin =
+                !!userPersonalDetail?.login && !CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID) ? LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login) : translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
+            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
             return {
                 alternateText: userLogin,
+                pendingAction: pendingChatMember?.pendingAction,
                 displayName,
                 accountID: userPersonalDetail?.accountID ?? accountID,
                 icons: [
@@ -68,7 +72,7 @@ const getAllParticipants = (
                 reportID: report?.reportID ?? '',
             };
         })
-        .sort((a, b) => a.displayName.localeCompare(b.displayName.toLowerCase()));
+        .sort((a, b) => localeCompare(a.displayName, b.displayName));
 
 function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPageProps) {
     const {translate} = useLocalize();
@@ -76,7 +80,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
 
     const participants = getAllParticipants(report, personalDetails, translate).map((participant) => ({
         ...participant,
-        isDisabled: participant?.accountID ? ReportUtils.isOptimisticPersonalDetail(participant.accountID) : false,
+        isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? 0) || CONST.RESTRICTED_ACCOUNT_IDS.includes(participant.accountID ?? 0),
     }));
 
     return (
@@ -85,8 +89,9 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
             testID={ReportParticipantsPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report)}>
+                <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
                     <HeaderWithBackButton
+                        onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
                         title={translate(
                             ReportUtils.isChatRoom(report) ||
                                 ReportUtils.isPolicyExpenseChat(report) ||
@@ -112,7 +117,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
                                     if (!option.accountID) {
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID));
+                                    Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, report ? ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID) : undefined));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip

@@ -67,6 +67,7 @@ function Tooltip(
         shouldHandleScroll = false,
         shiftHorizontal = 0,
         shiftVertical = 0,
+        shouldForceRenderingBelow = false,
     }: TooltipProps,
     ref: ForwardedRef<BoundsObserver>,
 ) {
@@ -220,6 +221,7 @@ function Tooltip(
                     // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
                     // This prevents flickering/moving while remaining performant.
                     key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
+                    shouldForceRenderingBelow={shouldForceRenderingBelow}
                 />
             )}
 

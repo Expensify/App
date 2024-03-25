@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {OnyxFormValuesFields} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -14,6 +14,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/WorkspaceSettingsForm';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -24,7 +25,7 @@ function WorkspaceNamePage({policy}: Props) {
     const {translate} = useLocalize();
 
     const submit = useCallback(
-        (values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
             if (!policy || policy.isPolicyUpdating) {
                 return;
             }
@@ -36,8 +37,8 @@ function WorkspaceNamePage({policy}: Props) {
         [policy],
     );
 
-    const validate = useCallback((values: OnyxFormValuesFields<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
-        const errors: Record<string, string> = {};
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM> = {};
         const name = values.name.trim();
 
         if (!ValidationUtils.isRequiredFulfilled(name)) {
@@ -75,11 +76,10 @@ function WorkspaceNamePage({policy}: Props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         role={CONST.ROLE.PRESENTATION}
-                        inputID="name"
+                        inputID={INPUT_IDS.NAME}
                         label={translate('workspace.editor.nameInputLabel')}
                         accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                         defaultValue={policy?.name}
-                        maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                         spellCheck={false}
                         autoFocus
                     />

@@ -10,6 +10,14 @@ export default {
         height: '100%',
     },
 
+    h68: {
+        height: 272,
+    },
+
+    h13: {
+        height: 52,
+    },
+
     w15: {
         width: '15%',
     },
@@ -32,6 +40,14 @@ export default {
 
     mnw25: {
         minWidth: '25%',
+    },
+
+    mnw60: {
+        minWidth: '60%',
+    },
+
+    mnw100: {
+        minWidth: '100%',
     },
 
     mnw120: {
@@ -69,7 +85,6 @@ export default {
     mw100: {
         maxWidth: '100%',
     },
-
     wAuto: {
         width: 'auto',
     },

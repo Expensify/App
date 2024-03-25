@@ -11,12 +11,14 @@ import OptionsSelector from '@components/OptionsSelector';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -101,7 +103,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 return;
             }
 
-            const {policyID, isPolicyAdmin} = option;
+            const {policyID} = option;
 
             if (policyID) {
                 setSelectedOption(option);
@@ -111,7 +113,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
             setActiveWorkspaceID(policyID);
             Navigation.goBack();
             if (policyID !== activeWorkspaceID) {
-                Navigation.navigateWithSwitchPolicyID({policyID, isPolicyAdmin});
+                Navigation.navigateWithSwitchPolicyID({policyID});
             }
         },
         [activeWorkspaceID, setActiveWorkspaceID],
@@ -212,23 +214,26 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                             {translate('common.workspaces')}
                         </Text>
                     </View>
-                    <PressableWithFeedback
-                        accessible={false}
-                        role={CONST.ROLE.BUTTON}
-                        onPress={() => {
-                            App.createWorkspaceWithPolicyDraftAndNavigateToIt();
-                        }}
-                    >
-                        {({hovered}) => (
-                            <Icon
-                                src={Expensicons.Plus}
-                                width={12}
-                                height={12}
-                                additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
-                                fill={theme.icon}
-                            />
-                        )}
-                    </PressableWithFeedback>
+                    <Tooltip text={translate('workspace.new.newWorkspace')}>
+                        <PressableWithFeedback
+                            accessible={false}
+                            role={CONST.ROLE.BUTTON}
+                            onPress={() => {
+                                Navigation.goBack();
+                                interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt());
+                            }}
+                        >
+                            {({hovered}) => (
+                                <Icon
+                                    src={Expensicons.Plus}
+                                    width={12}
+                                    height={12}
+                                    additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
+                                    fill={theme.icon}
+                                />
+                            )}
+                        </PressableWithFeedback>
+                    </Tooltip>
                 </View>
 
                 {usersWorkspaces.length > 0 ? (
@@ -247,7 +252,6 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         highlightSelectedOptions
                         shouldShowOptions
                         autoFocus={false}
-                        disableFocusOptions={!activeWorkspaceID}
                         canSelectMultipleOptions={false}
                         shouldShowSubscript={false}
                         showTitleTooltip={false}

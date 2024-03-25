@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as Emojis from '@assets/emojis';
@@ -27,10 +27,17 @@ function EmojiSkinToneList() {
      * @param {object} skinToneEmoji
      */
     function updateSelectedSkinTone(skinToneEmoji) {
-        toggleIsSkinToneListVisible();
         setHighlightedIndex(skinToneEmoji.skinTone);
         setPreferredSkinTone(skinToneEmoji.skinTone);
     }
+
+    useEffect(() => {
+        if (!isSkinToneListVisible) {
+            return;
+        }
+        toggleIsSkinToneListVisible();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
+    }, [preferredSkinTone]);
 
     const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone);
     return (

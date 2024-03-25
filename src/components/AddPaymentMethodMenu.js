@@ -4,7 +4,6 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
-import compose from '@libs/compose';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
@@ -13,7 +12,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import * as Expensicons from './Icon/Expensicons';
 import PopoverMenu from './PopoverMenu';
 import refPropTypes from './refPropTypes';
-import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
     /** Should the component be visible? */
@@ -122,11 +120,8 @@ AddPaymentMethodMenu.propTypes = propTypes;
 AddPaymentMethodMenu.defaultProps = defaultProps;
 AddPaymentMethodMenu.displayName = 'AddPaymentMethodMenu';
 
-export default compose(
-    withWindowDimensions,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(AddPaymentMethodMenu);
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(AddPaymentMethodMenu);

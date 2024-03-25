@@ -11,6 +11,8 @@ type Config = {
     isActive?: boolean;
     itemsPerRow?: number;
     disableCyclicTraversal?: boolean;
+    disableHorizontalKeys?: boolean;
+    allowNegativeIndexes?: boolean;
 };
 
 type UseArrowKeyFocusManager = [number, (index: number) => void];
@@ -28,6 +30,7 @@ type UseArrowKeyFocusManager = [number, (index: number) => void];
  * @param [config.isActive] – Whether the component is ready and should subscribe to KeyboardShortcut
  * @param [config.itemsPerRow] – The number of items per row. If provided, the arrow keys will move focus horizontally as well as vertically
  * @param [config.disableCyclicTraversal] – Whether to disable cyclic traversal of the list. If true, the arrow keys will have no effect when the first or last item is focused
+ * @param [config.disableHorizontalKeys] – Whether to disable the right/left keys
  */
 export default function useArrowKeyFocusManager({
     maxIndex,
@@ -41,6 +44,8 @@ export default function useArrowKeyFocusManager({
     isActive,
     itemsPerRow,
     disableCyclicTraversal = false,
+    disableHorizontalKeys = false,
+    allowNegativeIndexes = false,
 }: Config): UseArrowKeyFocusManager {
     const allowHorizontalArrowKeys = !!itemsPerRow;
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
@@ -50,6 +55,14 @@ export default function useArrowKeyFocusManager({
             isActive,
         }),
         [isActive, shouldExcludeTextAreaNodes],
+    );
+
+    const horizontalArrowConfig = useMemo(
+        () => ({
+            excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
+            isActive: isActive && !disableHorizontalKeys,
+        }),
+        [isActive, shouldExcludeTextAreaNodes, disableHorizontalKeys],
     );
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -73,7 +86,13 @@ export default function useArrowKeyFocusManager({
             while (disabledIndexes.includes(newFocusedIndex)) {
                 newFocusedIndex -= allowHorizontalArrowKeys ? itemsPerRow : 1;
                 if (newFocusedIndex < 0) {
-                    break;
+                    if (disableCyclicTraversal) {
+                        if (!allowNegativeIndexes) {
+                            return actualIndex;
+                        }
+                        break;
+                    }
+                    newFocusedIndex = maxIndex;
                 }
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
@@ -82,7 +101,7 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex]);
+    }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex, allowNegativeIndexes]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
@@ -116,8 +135,11 @@ export default function useArrowKeyFocusManager({
                     newFocusedIndex += allowHorizontalArrowKeys ? itemsPerRow : 1;
                 }
 
-                if (newFocusedIndex < 0) {
-                    break;
+                if (newFocusedIndex > maxIndex) {
+                    if (disableCyclicTraversal) {
+                        return actualIndex;
+                    }
+                    newFocusedIndex = 0;
                 }
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
@@ -155,7 +177,7 @@ export default function useArrowKeyFocusManager({
         });
     }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, horizontalArrowConfig);
 
     const arrowRightCallback = useCallback(() => {
         if (maxIndex < 0 || !allowHorizontalArrowKeys) {
@@ -182,7 +204,7 @@ export default function useArrowKeyFocusManager({
         });
     }, [allowHorizontalArrowKeys, disableCyclicTraversal, disabledIndexes, maxIndex]);
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, arrowConfig);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, horizontalArrowConfig);
 
     // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndex is only exposed in case you want to reset focusedIndex or focus a specific item
     return [focusedIndex, setFocusedIndex];

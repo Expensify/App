@@ -4,7 +4,7 @@ const _ = require('underscore');
 const core = require('@actions/core');
 const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
-const GitUtils = require('../../../libs/GitUtils');
+const GitUtils = require('../../../libs/GitUtils').default;
 
 async function run() {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
@@ -40,8 +40,11 @@ async function run() {
 
         // Next, we generate the checklist body
         let checklistBody = '';
+        let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
-            checklistBody = await GithubUtils.generateStagingDeployCashBody(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
+            checklistBody = issueBody;
+            checklistAssignees = issueAssignees;
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.reduce(
@@ -94,7 +97,7 @@ async function run() {
             }
 
             const didVersionChange = newVersionTag !== currentChecklistData.tag;
-            checklistBody = await GithubUtils.generateStagingDeployCashBody(
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersionTag,
                 _.pluck(PRList, 'url'),
                 _.pluck(_.where(PRList, {isVerified: true}), 'url'),
@@ -105,6 +108,8 @@ async function run() {
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,
             );
+            checklistBody = issueBody;
+            checklistAssignees = issueAssignees;
         }
 
         // Finally, create or update the checklist
@@ -119,7 +124,7 @@ async function run() {
                 ...defaultPayload,
                 title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
                 labels: [CONST.LABELS.STAGING_DEPLOY],
-                assignees: [CONST.APPLAUSE_BOT],
+                assignees: [CONST.APPLAUSE_BOT].concat(checklistAssignees),
             });
             console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
             return newChecklist;

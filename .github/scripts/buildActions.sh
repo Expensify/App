@@ -25,6 +25,8 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/authorChecklist/authorChecklist.ts"
     "$ACTIONS_DIR/reviewerChecklist/reviewerChecklist.js"
     "$ACTIONS_DIR/validateReassureOutput/validateReassureOutput.js"
+    "$ACTIONS_DIR/getGraphiteString/getGraphiteString.js"
+    "$ACTIONS_DIR/getArtifactInfo/getArtifactInfo.js"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

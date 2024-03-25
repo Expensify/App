@@ -1,33 +1,32 @@
 import React, {useMemo} from 'react';
-import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, Report, Session} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 
 type PrivateNotesListPageOnyxProps = {
     /** All of the personal details for everyone */
     personalDetailsList: OnyxCollection<PersonalDetails>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
 };
 
-type PrivateNotesListPageProps = PrivateNotesListPageOnyxProps & {
-    /** The report currently being looked at */
-    report: Report;
-};
+type PrivateNotesListPageProps = WithReportAndPrivateNotesOrNotFoundProps &
+    PrivateNotesListPageOnyxProps & {
+        /** The report currently being looked at */
+        report: Report;
+    };
 
 type NoteListItem = {
     title: string;
@@ -89,7 +88,12 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <Text style={[styles.mb5, styles.ph5]}>{translate('privateNotes.personalNoteMessage')}</Text>
-            <ScrollView contentContainerStyle={styles.flexGrow1}>{privateNotes.map((item) => getMenuItem(item))}</ScrollView>
+            <ScrollView
+                contentContainerStyle={styles.flexGrow1}
+                bounces={false}
+            >
+                {privateNotes.map((item) => getMenuItem(item))}
+            </ScrollView>
         </ScreenWrapper>
     );
 }
@@ -100,9 +104,6 @@ export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(
     withOnyx<PrivateNotesListPageProps, PrivateNotesListPageOnyxProps>({
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     })(PrivateNotesListPage),
 );

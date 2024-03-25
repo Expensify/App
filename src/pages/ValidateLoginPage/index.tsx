@@ -9,19 +9,23 @@ import type {ValidateLoginPageOnyxNativeProps, ValidateLoginPageProps} from './t
 
 function ValidateLoginPage({
     route: {
-        params: {accountID, validateCode},
+        params: {accountID, validateCode, exitTo},
     },
     session,
 }: ValidateLoginPageProps<ValidateLoginPageOnyxNativeProps>) {
     useEffect(() => {
         // Wait till navigation becomes available
         Navigation.isNavigationReady().then(() => {
-            if (session?.authToken) {
+            if (session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS) {
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
+                if (exitTo) {
+                    Session.handleExitToNavigation(exitTo);
+                    return;
+                }
                 Navigation.goBack();
             } else {
-                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode);
+                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode, '', exitTo);
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps

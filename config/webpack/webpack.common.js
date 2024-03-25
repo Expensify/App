@@ -18,10 +18,11 @@ const includeModules = [
     '@react-native-picker',
     'react-native-modal',
     'react-native-gesture-handler',
-    'react-native-flipper',
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
     'react-native-view-shot',
+    '@react-native/assets',
+    'expo-av',
 ].join('|');
 
 const envToLogoSuffixMap = {
@@ -58,7 +59,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         publicPath: '/',
     },
     stats: {
-        warningsFilter: [],
+        // We can ignore the "module not installed" warning from lottie-react-native
+        // because we are not using the library for JSON format of Lottie animations.
+        warningsFilter: ['./node_modules/lottie-react-native/lib/module/LottieView/index.web.js'],
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -95,8 +98,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/apple-touch-icon.png'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
+                {from: 'web/gtm.js'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
+                {from: 'assets/sounds', to: 'sounds'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
@@ -200,7 +205,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         alias: {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
-
+            'react-native-sound': 'react-native-web-sound',
             // Module alias for web & desktop
             // https://webpack.js.org/configuration/resolve/#resolvealias
             '@assets': path.resolve(__dirname, '../../assets'),
@@ -213,6 +218,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
             '@src': path.resolve(__dirname, '../../src/'),
             '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
+            '@desktop': path.resolve(__dirname, '../../desktop'),
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
@@ -237,8 +243,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         ],
         fallback: {
             'process/browser': require.resolve('process/browser'),
+            crypto: false,
         },
     },
+
     optimization: {
         runtimeChunk: 'single',
         splitChunks: {

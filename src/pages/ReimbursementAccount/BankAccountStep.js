@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,6 +11,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -22,13 +23,14 @@ import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
+import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import BankAccountManualStep from './BankAccountManualStep';
-import BankAccountPlaidStep from './BankAccountPlaidStep';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import BankInfo from './BankInfo/BankInfo';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -65,6 +67,8 @@ const defaultProps = {
     policyID: '',
 };
 
+const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
+
 function BankAccountStep(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -80,24 +84,24 @@ function BankAccountStep(props) {
         ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
     )}`;
 
-    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return (
-            <BankAccountManualStep
-                reimbursementAccount={props.reimbursementAccount}
-                reimbursementAccountDraft={props.reimbursementAccountDraft}
-                onBackButtonPress={props.onBackButtonPress}
-                getDefaultStateForField={props.getDefaultStateForField}
-            />
-        );
-    }
+    const removeExistingBankAccountDetails = () => {
+        const bankAccountData = {
+            [bankInfoStepKeys.ROUTING_NUMBER]: '',
+            [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
+            [bankInfoStepKeys.PLAID_MASK]: '',
+            [bankInfoStepKeys.IS_SAVINGS]: '',
+            [bankInfoStepKeys.BANK_NAME]: '',
+            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
+            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
+        };
+        ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
+    };
 
-    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+    if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return (
-            <BankAccountPlaidStep
-                reimbursementAccount={props.reimbursementAccount}
-                reimbursementAccountDraft={props.reimbursementAccountDraft}
+            <BankInfo
                 onBackButtonPress={props.onBackButtonPress}
-                getDefaultStateForField={props.getDefaultStateForField}
+                policyID={props.policyID}
             />
         );
     }
@@ -131,19 +135,20 @@ function BankAccountStep(props) {
                         )}
                         <Button
                             icon={Expensicons.Bank}
+                            iconStyles={[styles.customMarginButtonWithMenuItem]}
                             text={props.translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => {
                                 if (props.isPlaidDisabled || !props.user.validated) {
                                     return;
                                 }
+                                removeExistingBankAccountDetails();
                                 BankAccounts.openPlaidView();
                             }}
                             isDisabled={props.isPlaidDisabled || !props.user.validated}
                             style={[styles.mt4]}
-                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
                             success
-                            large
+                            innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                         />
                         {Boolean(props.error) && <Text style={[styles.formError, styles.mh5]}>{props.error}</Text>}
                         <View style={[styles.mv3]}>
@@ -151,7 +156,10 @@ function BankAccountStep(props) {
                                 icon={Expensicons.Connect}
                                 title={props.translate('bankAccount.connectManually')}
                                 disabled={!props.user.validated}
-                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                                onPress={() => {
+                                    removeExistingBankAccountDetails();
+                                    BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+                                }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem]}
                             />
@@ -177,7 +185,7 @@ function BankAccountStep(props) {
                         </View>
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href="https://use.expensify.com/privacy">{props.translate('common.privacy')}</TextLink>
+                        <TextLink href={CONST.PRIVACY_URL}>{props.translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
                             onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
                             style={[styles.flexRow, styles.alignItemsCenter]}

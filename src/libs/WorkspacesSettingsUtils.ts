@@ -2,10 +2,12 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import * as OptionsListUtils from './OptionsListUtils';
-import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError} from './PolicyUtils';
+import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -72,12 +74,15 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
 };
 
 function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
-    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => !!policy));
+    // When attempting to open a policy with an invalid policyID, the policy collection is updated to include policy objects with error information.
+    // Only policies displayed on the policy list page should be verified. Otherwise, the user will encounter an RBR unrelated to any policies on the list.
+    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
 
     const cleanAllPolicyMembers = Object.fromEntries(Object.entries(policyMembers ?? {}).filter(([, policyMemberValues]) => !!policyMemberValues));
     const errorCheckingMethods: CheckingMethod[] = [
         () => Object.values(cleanPolicies).some(hasPolicyError),
         () => Object.values(cleanPolicies).some(hasCustomUnitsError),
+        () => Object.values(cleanPolicies).some(hasTaxRateError),
         () => Object.values(cleanAllPolicyMembers).some(hasPolicyMemberError),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
     ];
@@ -87,8 +92,9 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyM
 
 function hasWorkspaceSettingsRBR(policy: Policy) {
     const policyMemberError = allPolicyMembers ? hasPolicyMemberError(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]) : false;
+    const taxRateError = hasTaxRateError(policy);
 
-    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError;
+    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
 }
 
 function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
@@ -143,9 +149,9 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
 
     // The key in this map is the workspace id
     const workspacesBrickRoadsMap: Record<string, BrickRoad> = {};
-
     Object.values(allPolicies ?? {}).forEach((policy) => {
-        if (!policy) {
+        // Only policies which user has access to on the list should be checked. Policies that don't have an ID and contain only information about the errors aren't displayed anywhere.
+        if (!policy?.id) {
             return;
         }
 
@@ -193,6 +199,19 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
     return workspacesUnreadStatuses;
 }
 
+/**
+ * @param unit Unit
+ * @returns translation key for the unit
+ */
+function getUnitTranslationKey(unit: Unit): TranslationPaths {
+    const unitTranslationKeysStrategy: Record<Unit, TranslationPaths> = {
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: 'common.kilometers',
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: 'common.miles',
+    };
+
+    return unitTranslationKeysStrategy[unit];
+}
+
 export {
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
@@ -201,5 +220,6 @@ export {
     checkIfWorkspaceSettingsTabHasRBR,
     hasWorkspaceSettingsRBR,
     getChatTabBrickRoad,
+    getUnitTranslationKey,
 };
 export type {BrickRoad};

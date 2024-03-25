@@ -12,6 +12,9 @@ const propTypes = {
     /** The name of tag list we are getting tags for */
     tag: PropTypes.string.isRequired,
 
+    /** The index of a tag list */
+    tagIndex: PropTypes.number.isRequired,
+
     /** Callback to submit the selected tag */
     onSubmit: PropTypes.func.isRequired,
 

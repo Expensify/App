@@ -1,11 +1,11 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
 
 type TextSelection = {
     start: number;
     end?: number;
 };
 
-type ComposerProps = {
+type ComposerProps = TextInputProps & {
     /** identify id in the text input */
     id?: string;
 
@@ -31,7 +31,7 @@ type ComposerProps = {
     onNumberOfLinesChange?: (numberOfLines: number) => void;
 
     /** Callback method to handle pasting a file */
-    onPasteFile?: (file?: File) => void;
+    onPasteFile?: (file: File) => void;
 
     /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
@@ -73,12 +73,6 @@ type ComposerProps = {
 
     /** Whether the sull composer is open */
     isComposerFullSize?: boolean;
-
-    onKeyPress?: (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void;
-
-    onFocus?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
-
-    onBlur?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */
     shouldContainScroll?: boolean;

@@ -14,18 +14,6 @@ type ImageViewProps = {
     /** Handles errors while displaying the image */
     onError?: () => void;
 
-    /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
-    isUsedInCarousel?: boolean;
-
-    /** When "isUsedInCarousel" is set to true, determines whether there is only one item in the carousel */
-    isSingleCarouselItem?: boolean;
-
-    /** The index of the carousel item */
-    carouselItemIndex?: number;
-
-    /** The index of the currently active carousel item */
-    carouselActiveItemIndex?: number;
-
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
@@ -33,9 +21,4 @@ type ImageViewProps = {
     zoomRange?: ZoomRange;
 };
 
-type ImageLoadNativeEventData = {
-    width: number;
-    height: number;
-};
-
-export type {ImageViewProps, ImageLoadNativeEventData};
+export default ImageViewProps;

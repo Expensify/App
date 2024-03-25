@@ -9,15 +9,12 @@ import QRCode from '@components/QRCode';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import type {QRShareHandle, QRShareProps} from './types';
 
 function QRShare({url, title, subtitle, logo, logoRatio, logoMarginRatio}: QRShareProps, ref: ForwardedRef<QRShareHandle>) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isSmallScreenWidth} = useWindowDimensions();
 
     const [qrCodeSize, setQrCodeSize] = useState(1);
     const svgRef = useRef<Svg>();
@@ -32,11 +29,7 @@ function QRShare({url, title, subtitle, logo, logoRatio, logoMarginRatio}: QRSha
 
     const onLayout = (event: LayoutChangeEvent) => {
         const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
-        if (isSmallScreenWidth) {
-            setQrCodeSize(Math.max(1, containerWidth));
-            return;
-        }
-        setQrCodeSize(Math.max(1, Math.min(containerWidth, CONST.CENTRAL_PANE_ANIMATION_HEIGHT)));
+        setQrCodeSize(Math.max(1, containerWidth));
     };
 
     return (
