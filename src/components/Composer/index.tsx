@@ -161,18 +161,19 @@ function Composer(
         (event: ClipboardEvent) => {
             const isVisible = checkComposerVisibility();
             const isFocused = textInput.current?.isFocused();
+            const isContenteditableDivFocused = document.activeElement?.nodeName === 'DIV' && document.activeElement?.hasAttribute('contenteditable');
 
             if (!(isVisible || isFocused)) {
                 return true;
             }
 
-            if (textInput.current !== event.target && !(document.activeElement?.nodeName === 'DIV' && document.activeElement?.hasAttribute('contenteditable'))) {
+            if (textInput.current !== event.target && !(isContenteditableDivFocused && !event.clipboardData?.files.length)) {
                 const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
 
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
                 const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
-                if (isTargetInput) {
+                if (isTargetInput || (!isFocused && isContenteditableDivFocused && event.clipboardData?.files.length)) {
                     return true;
                 }
 
@@ -259,7 +260,7 @@ function Composer(
         updateNumberOfLines();
     }, [updateNumberOfLines]);
 
-    useHtmlPaste(textInput, handlePaste, false);
+    useHtmlPaste(textInput, handlePaste, true);
 
     useEffect(() => {
         if (typeof ref === 'function') {
