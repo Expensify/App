@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type { StepIdentifier } from '@kie/act-js';
-import { createMockStep } from '../utils/utils';
-
+import type {StepIdentifier} from '@kie/act-js';
+import {createMockStep} from '../utils/utils';
 
 // updateChecklist
 const DEPLOYBLOCKER__UPDATECHECKLIST__STEP_MOCK = createMockStep('updateChecklist', 'Run updateChecklist', 'UPDATECHECKLIST');

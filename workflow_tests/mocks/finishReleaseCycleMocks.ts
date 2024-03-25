@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type { StepIdentifier } from '@kie/act-js';
-import { createMockStep } from '../utils/utils';
-
+import type {StepIdentifier} from '@kie/act-js';
+import {createMockStep} from '../utils/utils';
 
 // validate
 const FINISHRELEASECYCLE__VALIDATE__CHECKOUT__STEP_MOCK = createMockStep('Checkout', 'Checkout', 'VALIDATE', ['ref', 'token']);
@@ -104,7 +103,7 @@ const FINISHRELEASECYCLE__VALIDATE__NOT_TEAM_MEMBER_BLOCKERS__STEP_MOCKS = [
     FINISHRELEASECYCLE__VALIDATE__CHECK_FOR_ANY_DEPLOY_BLOCKERS_TRUE__STEP_MOCK,
     FINISHRELEASECYCLE__VALIDATE__REOPEN_AND_COMMENT_ON_ISSUE_HAS_BLOCKERS__STEP_MOCK,
     FINISHRELEASECYCLE__VALIDATE__ANNOUNCE_FAILED_WORKFLOW_IN_SLACK__STEP_MOCK,
-] as const;
+];
 
 // updateproduction
 const FINISHRELEASECYCLE__UPDATEPRODUCTION__CHECKOUT__STEP_MOCK = createMockStep('Checkout', 'Checkout', 'UPDATEPRODUCTION', ['ref', 'token'], []);

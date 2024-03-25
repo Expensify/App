@@ -16,7 +16,6 @@ const LINT__LINT__STEP_MOCKS = [
     LINT__LINT__RUN_UNUSED_SEARCHER__STEP_MOCK,
 ] as const satisfies StepIdentifier[];
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
+export default {
     LINT__LINT__STEP_MOCKS,
 };

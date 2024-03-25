@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type { StepIdentifier } from '@kie/act-js';
-import { createMockStep } from '../utils/utils';
-
+import type {StepIdentifier} from '@kie/act-js';
+import {createMockStep} from '../utils/utils';
 
 const DEPLOY_STAGING__CHECKOUT__STEP_MOCK = createMockStep('Checkout staging branch', 'Checking out staging branch', 'DEPLOY_STAGING', ['ref', 'token']);
 const DEPLOY_STAGING__SETUP_GIT__STEP_MOCK = createMockStep('Setup git for OSBotify', 'Setting up git for OSBotify', 'DEPLOY_STAGING', [
