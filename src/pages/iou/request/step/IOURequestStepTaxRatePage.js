@@ -59,8 +59,7 @@ function IOURequestStepTaxRatePage({
     };
     const taxRates = lodashGet(policy, 'taxRates', {});
     const defaultTaxKey = taxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
-    const selectedTaxRate = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
+    const selectedTaxRate = (transaction.taxRate && transaction.taxRate.keyForList) || defaultTaxKey;
 
     const updateTaxRates = (taxes) => {
         const taxAmount = getTaxAmount(taxRates, taxes.text, transaction.amount);

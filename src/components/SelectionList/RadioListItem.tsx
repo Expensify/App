@@ -51,6 +51,7 @@ function RadioListItem({
                             styles.sidebarLinkTextBold,
                             isMultilineSupported ? styles.preWrap : styles.pre,
                             item.alternateText ? styles.mb1 : null,
+                            isDisabled && styles.colorMuted,
                         ]}
                         numberOfLines={isMultilineSupported ? 2 : 1}
                     />

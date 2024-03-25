@@ -286,6 +286,10 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
             ...spacing.pr4,
         },
+        emojiTooltipWrapper: {
+            ...spacing.p2,
+            borderRadius: 8,
+        },
 
         mentionSuggestionsAvatarContainer: {
             width: 24,
@@ -573,6 +577,7 @@ const styles = (theme: ThemeColors) =>
         buttonSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeSmall,
+            minWidth: variables.componentSizeSmall,
             paddingHorizontal: 12,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -580,6 +585,7 @@ const styles = (theme: ThemeColors) =>
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
+            minWidth: variables.componentSizeNormal,
             paddingHorizontal: 16,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -587,6 +593,7 @@ const styles = (theme: ThemeColors) =>
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeLarge,
+            minWidth: variables.componentSizeLarge,
             paddingHorizontal: 20,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -1262,6 +1269,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        textLabelSupportingEmptyValue: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: FontUtils.fontWeight.normal,
+            color: theme.textSupporting,
+        },
+
         textLabelSupportingNormal: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -1440,9 +1454,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            borderRadius: 28,
-            height: variables.componentSizeSmall,
-            width: variables.componentSizeSmall,
+            borderRadius: variables.sidebarAvatarSize,
+            height: variables.sidebarAvatarSize,
+            width: variables.sidebarAvatarSize,
         },
 
         selectedAvatarBorder: {
@@ -2089,6 +2103,10 @@ const styles = (theme: ThemeColors) =>
         editChatItemEmojiWrapper: {
             marginRight: 3,
             alignSelf: 'flex-end',
+        },
+
+        customMarginButtonWithMenuItem: {
+            marginRight: variables.bankButtonMargin,
         },
 
         composerSizeButton: {
@@ -3442,6 +3460,12 @@ const styles = (theme: ThemeColors) =>
             zIndex: 1000,
         },
 
+        invisibleImage: {
+            opacity: 0,
+            width: 200,
+            height: 200,
+        },
+
         reportDropOverlay: {
             backgroundColor: theme.dropUIBG,
             zIndex: 2,
@@ -4079,9 +4103,12 @@ const styles = (theme: ThemeColors) =>
             gap: 16,
         },
 
+        reportActionItemImagesContainer: {
+            margin: 4,
+        },
+
         reportActionItemImages: {
             flexDirection: 'row',
-            margin: 4,
             borderRadius: 12,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
