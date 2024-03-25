@@ -20,6 +20,9 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition' | key
 
     /** Whether we should change the vertical position if the popover's position is overflow */
     shoudSwitchPositionIfOverflow?: boolean;
+
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 };
 
 /**
@@ -53,6 +56,7 @@ function PopoverWithMeasuredContent({
         width: 0,
     },
     shoudSwitchPositionIfOverflow = false,
+    shouldHandleNavigationBack = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -135,6 +139,7 @@ function PopoverWithMeasuredContent({
 
     return isContentMeasured ? (
         <Popover
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
             isVisible={isVisible}
