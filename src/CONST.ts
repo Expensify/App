@@ -4150,6 +4150,8 @@ const CONST = {
             },
         },
     },
+
+    MAX_TAX_RATE_DECIMAL_PLACES: 4,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
