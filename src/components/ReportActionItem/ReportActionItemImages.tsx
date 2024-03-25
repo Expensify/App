@@ -71,7 +71,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                     const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
                     return (
                         <View
-                            key={`${index}-${image as string}`}
+                            key={`${index}-${image}`}
                             style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
                         >
                             <ReportActionItemImage
