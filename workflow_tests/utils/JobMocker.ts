@@ -1,35 +1,38 @@
+import type {GithubWorkflowStep, StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import type {PathOrFileDescriptor} from 'fs';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-type YamlMockJob = Omit<MockJob, 'runsOn'> & {'runs-on'?: string};
+type YamlStepIdentifier = Partial<StepIdentifier> & {
+    name: string;
+    id?: string;
+    inputs?: string[];
+    envs?: string[];
+    run?: GithubWorkflowStep | string;
+    with?: string;
+};
+
+type YamlMockJob = Omit<MockJob, 'runsOn' | 'steps'> & {
+    steps: YamlStepIdentifier[];
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'runs-on'?: string;
+};
 
 type YamlWorkflow = {
     jobs: Record<string, YamlMockJob>;
 };
 
 type MockJob = {
-    steps: MockJobStep[];
+    steps: StepIdentifier[];
     uses?: string;
     secrets?: string[];
     with?: string;
-    outputs?: string[];
+    outputs?: Record<string, string>;
     runsOn?: string;
 };
 
 type MockJobs = Record<string, MockJob>;
-
-type MockJobStep = {
-    id?: string;
-    name: string;
-    run?: string;
-    mockWith?: string;
-    with?: string;
-    envs?: string[];
-    inputs?: string[];
-};
 
 class JobMocker {
     workflowFile: string;
@@ -59,12 +62,12 @@ class JobMocker {
                     jobWith = job.with;
                     delete job.with;
                 }
-                job.steps = mockJob.steps.map((step) => {
-                    const mockStep: MockJobStep = {
-                        name: step.name,
+                job.steps = mockJob.steps.map((step: StepIdentifier) => {
+                    const mockStep: YamlStepIdentifier = {
+                        name: 'name' in step ? step.name : '',
                         run: step.mockWith,
                     };
-                    if (step.id) {
+                    if ('id' in step && step.id) {
                         mockStep.id = step.id;
                     }
                     if (jobWith) {
@@ -114,4 +117,4 @@ class JobMocker {
 }
 
 export default JobMocker;
-export type {MockJob, MockJobs, YamlWorkflow, YamlMockJob, MockJobStep};
+export type {MockJob, MockJobs, YamlWorkflow, YamlMockJob, YamlStepIdentifier};

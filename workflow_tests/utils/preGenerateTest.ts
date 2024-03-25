@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import {exit} from 'process';
 import yaml from 'yaml';
-import type {MockJobStep, YamlMockJob, YamlWorkflow} from './JobMocker';
+import type {YamlMockJob, YamlStepIdentifier, YamlWorkflow} from './JobMocker';
 
 const workflowsDirectory = path.resolve(__dirname, '..', '..', '.github', 'workflows');
 const workflowTestsDirectory = path.resolve(__dirname, '..');
@@ -97,7 +97,7 @@ describe('test workflow ${workflowName}', () => {
 });
 `;
 
-const mockStepTemplate = (stepMockName: string, step: MockJobStep, jobId: string | undefined) => `
+const mockStepTemplate = (stepMockName: string, step: YamlStepIdentifier, jobId: string | undefined) => `
 const ${stepMockName} = utils.createMockStep(
     '${step.name ?? ''}',
     '${step.name ?? ''}',
@@ -203,10 +203,10 @@ const parseWorkflowFile = (workflow: YamlWorkflow) => {
             steps: [],
         };
         job.steps.forEach((step) => {
-            const workflowStep = {
+            const workflowStep: YamlStepIdentifier = {
                 name: step.name,
-                inputs: Object.keys(step.with ?? {}),
-                envs: step.envs ?? [],
+                inputs: 'with' in step && step.with ? Object.keys(step.with) : [],
+                envs: 'envs' in step && step.envs ? step.envs : [],
             };
             workflowJobs[jobId].steps.push(workflowStep);
         });

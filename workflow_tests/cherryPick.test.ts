@@ -3,8 +3,9 @@ import * as kieMockGithub from '@kie/mock-github';
 import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/cherryPickAssertions';
-import mocks from './mocks/cherryPickMocks';
+import * as mocks from './mocks/cherryPickMocks';
 import ExtendedAct from './utils/ExtendedAct';
+import type {MockJobs} from './utils/JobMocker';
 import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
@@ -52,7 +53,6 @@ describe('test workflow cherryPick', () => {
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(
                     act,
-                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     event,
                     null,
                     {
@@ -70,7 +70,7 @@ describe('test workflow cherryPick', () => {
                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__FALSE__STEP_MOCKS,
                     cherryPick: mocks.getCherryPickMockSteps(true, false),
                 };
-                const testMockJobs = {
+                const testMockJobs: MockJobs = {
                     createNewVersion: {
                         steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                         outputs: {
@@ -105,7 +105,7 @@ describe('test workflow cherryPick', () => {
                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__FALSE__STEP_MOCKS,
                     cherryPick: mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts),
                 };
-                const testMockJobs = {
+                const testMockJobs: MockJobs = {
                     createNewVersion: {
                         steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                         outputs: {
@@ -117,7 +117,6 @@ describe('test workflow cherryPick', () => {
                 };
                 act = utils.setUpActParams(
                     act,
-                    // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                     event,
                     null,
                     {
@@ -158,7 +157,7 @@ describe('test workflow cherryPick', () => {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
                         testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                        const testMockJobs = {
+                        const testMockJobs: MockJobs = {
                             createNewVersion: {
                                 steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 outputs: {
@@ -170,7 +169,6 @@ describe('test workflow cherryPick', () => {
                         };
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             event,
                             null,
                             {
@@ -207,7 +205,7 @@ describe('test workflow cherryPick', () => {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
                         testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                        const testMockJobs = {
+                        const testMockJobs: MockJobs = {
                             createNewVersion: {
                                 steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 outputs: {
@@ -219,7 +217,6 @@ describe('test workflow cherryPick', () => {
                         };
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             event,
                             null,
                             {
@@ -259,7 +256,7 @@ describe('test workflow cherryPick', () => {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
                         testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                        const testMockJobs = {
+                        const testMockJobs: MockJobs = {
                             createNewVersion: {
                                 steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 outputs: {
@@ -271,7 +268,6 @@ describe('test workflow cherryPick', () => {
                         };
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             event,
                             null,
                             {
@@ -308,7 +304,7 @@ describe('test workflow cherryPick', () => {
                             validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                         };
                         testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                        const testMockJobs = {
+                        const testMockJobs: MockJobs = {
                             createNewVersion: {
                                 steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 outputs: {
@@ -320,7 +316,6 @@ describe('test workflow cherryPick', () => {
                         };
                         act = utils.setUpActParams(
                             act,
-                            // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                             event,
                             null,
                             {
@@ -358,7 +353,6 @@ describe('test workflow cherryPick', () => {
             let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(
                 act,
-                // @ts-expect-error TODO: Remove this once utils (https://github.com/Expensify/App/issues/32061) is migrated to TypeScript.
                 event,
                 null,
                 {
@@ -376,7 +370,7 @@ describe('test workflow cherryPick', () => {
                 validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
                 cherryPick: mocks.getCherryPickMockSteps(true, false),
             };
-            const testMockJobs = {
+            const testMockJobs: MockJobs = {
                 createNewVersion: {
                     steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                     outputs: {
