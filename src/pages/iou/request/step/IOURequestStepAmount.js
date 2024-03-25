@@ -184,6 +184,11 @@ function IOURequestStepAmount({
     };
 
     const saveAmountAndCurrency = ({amount}) => {
+        if (!isEditing) {
+            navigateToNextPage({amount});
+            return;
+        }
+
         const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
@@ -216,7 +221,7 @@ function IOURequestStepAmount({
                 amount={Math.abs(transactionAmount)}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
-                onSubmitButtonPress={isEditing ? saveAmountAndCurrency : navigateToNextPage}
+                onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
             />
         </StepScreenWrapper>
