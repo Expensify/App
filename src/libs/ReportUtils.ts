@@ -35,6 +35,7 @@ import type {
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
+    ActionName,
     ChangeLog,
     IOUMessage,
     OriginalMessageActionName,
@@ -109,6 +110,7 @@ type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.Ava
 type OptimisticAddCommentReportAction = Pick<
     ReportAction,
     | 'reportActionID'
+    | 'previousReportActionID'
     | 'actionName'
     | 'actorAccountID'
     | 'person'
@@ -173,6 +175,7 @@ type OptimisticIOUReportAction = Pick<
     | 'message'
     | 'person'
     | 'reportActionID'
+    | 'previousReportActionID'
     | 'shouldShow'
     | 'created'
     | 'pendingAction'
@@ -193,39 +196,86 @@ type ReportOfflinePendingActionAndErrors = {
 
 type OptimisticApprovedReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachment'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'previousReportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
 >;
 
 type OptimisticSubmittedReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachment'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'previousReportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
 >;
 
 type OptimisticHoldReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachment'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'previousReportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
 >;
 
 type OptimisticCancelPaymentReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'previousReportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
 type OptimisticEditedTaskReportAction = Pick<
     ReportAction,
-    'reportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'shouldShow' | 'message' | 'person'
+    'reportActionID' | 'previousReportActionID' | 'actionName' | 'pendingAction' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'shouldShow' | 'message' | 'person'
 >;
 
 type OptimisticClosedReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'pendingAction' | 'person' | 'reportActionID' | 'shouldShow'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'created'
+    | 'message'
+    | 'originalMessage'
+    | 'pendingAction'
+    | 'person'
+    | 'reportActionID'
+    | 'previousReportActionID'
+    | 'shouldShow'
 >;
 
 type OptimisticCreatedReportAction = OriginalMessageCreated &
-    Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'>;
+    Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'previousReportActionID' | 'shouldShow' | 'pendingAction'>;
 
 type OptimisticRenamedReportAction = OriginalMessageRenamed &
-    Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'>;
+    Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'previousReportActionID' | 'shouldShow' | 'pendingAction'>;
 
 type OptimisticChatReport = Pick<
     Report,
@@ -264,6 +314,7 @@ type OptimisticChatReport = Pick<
 type OptimisticTaskReportAction = Pick<
     ReportAction,
     | 'reportActionID'
+    | 'previousReportActionID'
     | 'actionName'
     | 'actorAccountID'
     | 'automatic'
@@ -298,7 +349,19 @@ type OptimisticWorkspaceChats = {
 
 type OptimisticModifiedExpenseReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'isAttachment' | 'message' | 'originalMessage' | 'person' | 'pendingAction' | 'reportActionID' | 'shouldShow'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'created'
+    | 'isAttachment'
+    | 'message'
+    | 'originalMessage'
+    | 'person'
+    | 'pendingAction'
+    | 'reportActionID'
+    | 'previousReportActionID'
+    | 'shouldShow'
 > & {reportID?: string};
 
 type OptimisticTaskReport = Pick<

@@ -125,7 +125,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     sequenceNumber?: number;
 
     /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
-    previousReportActionID?: string;
+    previousReportActionID: string | null;
 
     actorAccountID?: number;
 
