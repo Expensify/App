@@ -75,7 +75,10 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             <ScrollView contentContainerStyle={styles.pb2}>
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.importDescription')}</Text>
                 {sections.map((section) => (
-                    <OfflineWithFeedback key={section.description} pendingAction={section.pendingAction}>
+                    <OfflineWithFeedback
+                        key={section.description}
+                        pendingAction={section.pendingAction}
+                    >
                         <MenuItemWithTopDescription
                             title={quickbooksOnlineConfigTitles[`${section.title ?? false}`]}
                             description={section.description}
