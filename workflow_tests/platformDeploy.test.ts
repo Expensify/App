@@ -5,10 +5,13 @@ import path from 'path';
 import assertions from './assertions/platformDeployAssertions';
 import mocks from './mocks/platformDeployMocks';
 import ExtendedAct from './utils/ExtendedAct';
+import type {MockJobs} from './utils/JobMocker';
 import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
+
 let mockGithub: MockGithub;
+
 const FILES_TO_COPY_INTO_TEST_REPO: CreateRepositoryFile[] = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
@@ -102,7 +105,7 @@ describe('test workflow platformDeploy', () => {
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
                 };
-                const testMockJobs = {
+                const testMockJobs: MockJobs = {
                     deployChecklist: {
                         steps: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                         runsOn: 'ubuntu-latest',
@@ -186,7 +189,7 @@ describe('test workflow platformDeploy', () => {
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
                 };
-                const testMockJobs = {
+                const testMockJobs: MockJobs = {
                     deployChecklist: {
                         steps: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                         runsOn: 'ubuntu-latest',
@@ -270,7 +273,7 @@ describe('test workflow platformDeploy', () => {
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
                 };
-                const testMockJobs = {
+                const testMockJobs: MockJobs = {
                     deployChecklist: {
                         steps: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                         runsOn: 'ubuntu-latest',

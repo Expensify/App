@@ -5,10 +5,13 @@ import path from 'path';
 import assertions from './assertions/preDeployAssertions';
 import mocks from './mocks/preDeployMocks';
 import ExtendedAct from './utils/ExtendedAct';
+import type {MockJobs} from './utils/JobMocker';
 import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
+
 let mockGithub: MockGithub;
+
 const FILES_TO_COPY_INTO_TEST_REPO: CreateRepositoryFile[] = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
@@ -71,7 +74,7 @@ describe('test workflow preDeploy', () => {
             skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
             updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
         };
-        const testMockJobs = {
+        const testMockJobs: MockJobs = {
             typecheck: {
                 steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
                 runsOn: 'ubuntu-latest',
@@ -128,7 +131,7 @@ describe('test workflow preDeploy', () => {
             skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
             updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
         };
-        const testMockJobs = {
+        const testMockJobs: MockJobs = {
             typecheck: {
                 steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
                 runsOn: 'ubuntu-latest',
@@ -232,7 +235,7 @@ describe('test workflow preDeploy', () => {
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
             };
-            const testMockJobs = {
+            const testMockJobs: MockJobs = {
                 typecheck: {
                     steps: [utils.createMockStep('Run typecheck workflow', 'Running typecheck workflow - Typecheck workflow failed', 'TYPECHECK', null, null, null, null, false)],
                     runsOn: 'ubuntu-latest',
@@ -305,7 +308,7 @@ describe('test workflow preDeploy', () => {
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
             };
-            const testMockJobs = {
+            const testMockJobs: MockJobs = {
                 typecheck: {
                     steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
                     runsOn: 'ubuntu-latest',
@@ -376,7 +379,7 @@ describe('test workflow preDeploy', () => {
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
             };
-            const testMockJobs = {
+            const testMockJobs: MockJobs = {
                 typecheck: {
                     steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
                     runsOn: 'ubuntu-latest',
@@ -447,7 +450,7 @@ describe('test workflow preDeploy', () => {
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
             };
-            const testMockJobs = {
+            const testMockJobs: MockJobs = {
                 typecheck: {
                     steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
                     runsOn: 'ubuntu-latest',
@@ -503,7 +506,7 @@ describe('test workflow preDeploy', () => {
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                     updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 };
-                const testMockJobs = {
+                const testMockJobs: MockJobs = {
                     typecheck: {
                         steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
                         runsOn: 'ubuntu-latest',
@@ -557,7 +560,7 @@ describe('test workflow preDeploy', () => {
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                     updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 };
-                const testMockJobs = {
+                const testMockJobs: MockJobs = {
                     typecheck: {
                         steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
                         runsOn: 'ubuntu-latest',
@@ -623,7 +626,7 @@ describe('test workflow preDeploy', () => {
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                     updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 };
-                const testMockJobs = {
+                const testMockJobs: MockJobs = {
                     typecheck: {
                         steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
                         runsOn: 'ubuntu-latest',
@@ -686,7 +689,7 @@ describe('test workflow preDeploy', () => {
                     skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                     updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 };
-                const testMockJobs = {
+                const testMockJobs: MockJobs = {
                     typecheck: {
                         steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
                         runsOn: 'ubuntu-latest',
@@ -752,7 +755,7 @@ describe('test workflow preDeploy', () => {
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
             };
             testMockSteps.updateStaging[3].mockWith = 'exit 1';
-            const testMockJobs = {
+            const testMockJobs: MockJobs = {
                 typecheck: {
                     steps: mocks.TYPECHECK_JOB_MOCK_STEPS,
                     runsOn: 'ubuntu-latest',
