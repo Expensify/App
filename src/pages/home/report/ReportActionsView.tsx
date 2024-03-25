@@ -266,6 +266,10 @@ function ReportActionsView({
     }, [isSmallScreenWidth, reportActions, isReportFullyVisible]);
 
     useEffect(() => {
+        // Ensures the optimistic report is created successfully
+        if (route?.params?.reportID !== reportID) {
+            return;
+        }
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
@@ -280,7 +284,7 @@ function ReportActionsView({
                 interactionTask.cancel();
             };
         }
-    }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
+    }, [report.pendingFields, didSubscribeToReportTypingEvents, route, reportID]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
