@@ -112,8 +112,8 @@ function IOURequestStepConfirmation({
     const participants = useMemo(
         () =>
             _.map(transaction.participants, (participant) => {
-                const participantReportID = lodashGet(participant, 'reportID', '');
-                return participantReportID ? OptionsListUtils.getReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                const participantAccountID = lodashGet(participant, 'accountID', 0);
+                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }),
         [transaction.participants, personalDetails],
     );
