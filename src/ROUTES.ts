@@ -420,10 +420,6 @@ const ROUTES = {
     NEW_TASK_TITLE: 'new/task/title',
     NEW_TASK_DESCRIPTION: 'new/task/description',
 
-    ONBOARD: 'onboard',
-    ONBOARD_MANAGE_EXPENSES: 'onboard/manage-expenses',
-    ONBOARD_EXPENSIFY_CLASSIC: 'onboard/expensify-classic',
-
     TEACHERS_UNITE: 'teachersunite',
     I_KNOW_A_TEACHER: 'teachersunite/i-know-a-teacher',
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
@@ -654,6 +650,11 @@ const ROUTES = {
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
+    ONBOARDING_ROOT: 'onboarding',
+    ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
+    ONBOARDING_PURPOSE: 'onboarding/purpose',
+    WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
+
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,

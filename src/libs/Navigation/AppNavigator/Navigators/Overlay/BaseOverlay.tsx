@@ -6,22 +6,30 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type OverlayProps = {
+type BaseOverlayProps = {
+    /* Whether to use native styles tailored for native devices */
+    shouldUseNativeStyles: boolean;
+
     /* Callback to close the modal */
-    onPress: () => void;
+    onPress?: () => void;
+
+    onOverlayClick?: () => void;
 
     /* Returns whether a modal is displayed on the left side of the screen. By default, the modal is displayed on the right */
     isModalOnTheLeft?: boolean;
 };
 
-function Overlay({onPress, isModalOnTheLeft = false}: OverlayProps) {
+function BaseOverlay({shouldUseNativeStyles, onOverlayClick, onPress, isModalOnTheLeft = false}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const {translate} = useLocalize();
 
     return (
-        <Animated.View style={styles.overlayStyles(current, isModalOnTheLeft)}>
-            <View style={[styles.flex1, styles.flexColumn]}>
+        <Animated.View style={shouldUseNativeStyles ? styles.nativeOverlayStyles(current) : styles.overlayStyles(current, isModalOnTheLeft)}>
+            <View
+                onClick={onOverlayClick}
+                style={[styles.flex1, styles.flexColumn]}
+            >
                 {/* In the latest Electron version buttons can't be both clickable and draggable.
              That's why we added this workaround. Because of two Pressable components on the desktop app
              we have 30px draggable ba at the top and the rest of the dimmed area is clickable. On other devices,
@@ -48,6 +56,7 @@ function Overlay({onPress, isModalOnTheLeft = false}: OverlayProps) {
     );
 }
 
-Overlay.displayName = 'Overlay';
+BaseOverlay.displayName = 'BaseOverlay';
 
-export default Overlay;
+export type {BaseOverlayProps};
+export default BaseOverlay;

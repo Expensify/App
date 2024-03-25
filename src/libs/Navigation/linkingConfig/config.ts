@@ -80,6 +80,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.WELCOME_VIDEO.ROOT]: {
+                    path: ROUTES.WELCOME_VIDEO_ROOT,
+                    exact: true,
+                },
+            },
+        },
+        [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
+            path: ROUTES.ONBOARDING_ROOT,
+            initialRouteName: SCREENS.ONBOARDING.PERSONAL_DETAILS,
+            screens: {
+                [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+                    path: ROUTES.ONBOARDING_PERSONAL_DETAILS,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.PURPOSE]: {
+                    path: ROUTES.ONBOARDING_PURPOSE,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
@@ -433,13 +455,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.NEW_TASK.DETAILS]: ROUTES.NEW_TASK_DETAILS,
                         [SCREENS.NEW_TASK.TITLE]: ROUTES.NEW_TASK_TITLE,
                         [SCREENS.NEW_TASK.DESCRIPTION]: ROUTES.NEW_TASK_DESCRIPTION,
-                    },
-                },
-                [SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT]: {
-                    screens: {
-                        [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: ROUTES.ONBOARD,
-                        [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: ROUTES.ONBOARD_MANAGE_EXPENSES,
-                        [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: ROUTES.ONBOARD_EXPENSIFY_CLASSIC,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
