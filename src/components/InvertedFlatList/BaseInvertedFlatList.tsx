@@ -1,22 +1,36 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
-import type {FlatListProps} from 'react-native';
+import React, {forwardRef, useMemo} from 'react';
+import type {FlatListProps, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 
-const WINDOW_SIZE = 15;
+type BaseInvertedFlatListProps<T> = FlatListProps<T> & {
+    shouldEnableAutoScrollToTopThreshold?: boolean;
+};
+
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
-function BaseInvertedFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
+function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
+    const {shouldEnableAutoScrollToTopThreshold, ...rest} = props;
+
+    const maintainVisibleContentPosition = useMemo(() => {
+        const config: ScrollViewProps['maintainVisibleContentPosition'] = {
+            // This needs to be 1 to avoid using loading views as anchors.
+            minIndexForVisible: 1,
+        };
+
+        if (shouldEnableAutoScrollToTopThreshold) {
+            config.autoscrollToTopThreshold = AUTOSCROLL_TO_TOP_THRESHOLD;
+        }
+
+        return config;
+    }, [shouldEnableAutoScrollToTopThreshold]);
+
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...rest}
             ref={ref}
-            windowSize={WINDOW_SIZE}
-            maintainVisibleContentPosition={{
-                minIndexForVisible: 0,
-                autoscrollToTopThreshold: AUTOSCROLL_TO_TOP_THRESHOLD,
-            }}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
         />
     );
@@ -25,3 +39,5 @@ function BaseInvertedFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<Flat
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
 export default forwardRef(BaseInvertedFlatList);
+
+export {AUTOSCROLL_TO_TOP_THRESHOLD};
