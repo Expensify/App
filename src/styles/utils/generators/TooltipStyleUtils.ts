@@ -1,7 +1,7 @@
 import type {TextStyle, View, ViewStyle} from 'react-native';
 import {Animated} from 'react-native';
 import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
-import desktopHeaderHeight from '@styles/desktopHeaderHeight';
+import titleBarHeight from '@styles/titleBarHeight';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import positioning from '@styles/utils/positioning';
@@ -187,7 +187,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             // we'll display it beneath its wrapped component rather than above it as usual.
             shouldShowBelow =
                 shouldForceRenderingBelow ||
-                yOffset - tooltipHeight - POINTER_HEIGHT < GUTTER_WIDTH + desktopHeaderHeight ||
+                yOffset - tooltipHeight - POINTER_HEIGHT < GUTTER_WIDTH + titleBarHeight ||
                 !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight));
 
             // When the tooltip size is ready, we can start animating the scale.
