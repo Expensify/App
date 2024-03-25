@@ -60,7 +60,7 @@ const ONYXKEYS = {
     /** Contains all the private personal details of the user */
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
-    /** REPORT_METADATA is a perf optimization used to hold loading states. See REPORT_METADATA. */
+    /** PERSONAL_DETAILS_METADATA is a perf optimization used to hold loading states. For more explanation, see REPORT_METADATA. */
     PERSONAL_DETAILS_METADATA: 'personalDetailsMetadata',
 
     /** Contains all the info for Tasks */
