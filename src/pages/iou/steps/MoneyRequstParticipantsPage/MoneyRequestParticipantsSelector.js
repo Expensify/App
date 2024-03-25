@@ -196,25 +196,28 @@ function MoneyRequestParticipantsSelector({
      *
      * @param {Object} option
      */
-    const addSingleParticipant = (option) => {
-        if (participants.length) {
-            return;
-        }
-        onAddParticipants(
-            [
-                {
-                    accountID: option.accountID,
-                    login: option.login,
-                    isPolicyExpenseChat: option.isPolicyExpenseChat,
-                    reportID: option.reportID,
-                    selected: true,
-                    searchText: option.searchText,
-                },
-            ],
-            false,
-        );
-        navigateToRequest();
-    };
+    const addSingleParticipant = useCallback(
+        (option) => {
+            if (participants.length) {
+                return;
+            }
+            onAddParticipants(
+                [
+                    {
+                        accountID: option.accountID,
+                        login: option.login,
+                        isPolicyExpenseChat: option.isPolicyExpenseChat,
+                        reportID: option.reportID,
+                        selected: true,
+                        searchText: option.searchText,
+                    },
+                ],
+                false,
+            );
+            navigateToRequest();
+        },
+        [navigateToRequest, onAddParticipants, participants.length],
+    );
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -275,13 +278,23 @@ function MoneyRequestParticipantsSelector({
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = (canUseP2PDistanceRequests || !isDistanceRequest) && iouType !== CONST.IOU.TYPE.SEND;
 
-    const handleConfirmSelection = useCallback(() => {
-        if (shouldShowSplitBillErrorMessage) {
-            return;
-        }
+    const handleConfirmSelection = useCallback(
+        (keyEvent, option) => {
+            const shouldAddSingleParticipant = option && !participants.length;
 
-        navigateToSplit();
-    }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
+            if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
+                return;
+            }
+
+            if (shouldAddSingleParticipant) {
+                addSingleParticipant(option);
+                return;
+            }
+
+            navigateToSplit();
+        },
+        [shouldShowSplitBillErrorMessage, navigateToSplit, addSingleParticipant, participants.length],
+    );
 
     const footerContent = useMemo(
         () => (
@@ -373,8 +386,7 @@ MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default withOnyx({
     dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data.dismissedReferralBanners || {},
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
