@@ -20,6 +20,10 @@ const propTypes = {
         getDevicePixelRatio: PropTypes.func.isRequired,
         /** The estimated height of a single page in the document */
         estimatedItemSize: PropTypes.number.isRequired,
+        /** The number of pages in the document */
+        numPages: PropTypes.number.isRequired,
+        /** The height of the container view */
+        containerHeight: PropTypes.number.isRequired,
     }).isRequired,
 
     /** Additional style props passed by VariableSizeList */
@@ -28,13 +32,15 @@ const propTypes = {
 
 const WebPDFPageRenderer = memo(
     ({index: pageIndex, data, style}) => {
-        const {pageWidth, calculatePageHeight, getDevicePixelRatio, estimatedItemSize} = data;
+        const {pageWidth, calculatePageHeight, getDevicePixelRatio, estimatedItemSize, numPages, containerHeight} = data;
 
         const pageHeight = calculatePageHeight(pageIndex);
         const devicePixelRatio = getDevicePixelRatio(pageWidth, pageHeight);
 
+        const topPadding = numPages > 1 ? parseFloat(style.top) + PDFViewConstants.PAGE_BORDER : parseFloat((containerHeight - style.height) / 2);
         return (
-            <View style={{...style, top: `${parseFloat(style.top) + PDFViewConstants.PAGE_BORDER}px`}}>
+            <View style={{...style, top: `${topPadding}px`}}>
+                {' '}
                 <Page
                     key={`page_${pageIndex}`}
                     width={pageWidth}
