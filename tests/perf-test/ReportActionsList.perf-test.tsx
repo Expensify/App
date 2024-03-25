@@ -23,7 +23,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 const mockedNavigate = jest.fn();
 
-jest.mock('@src/components/WithCurrentUserPersonalDetails', () => {
+jest.mock('@components/withCurrentUserPersonalDetails', () => {
     // Lazy loading of LHNTestUtils
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const lazyLoadLHNTestUtils = () => require('../utils/LHNTestUtils');
