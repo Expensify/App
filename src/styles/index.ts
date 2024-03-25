@@ -4103,9 +4103,12 @@ const styles = (theme: ThemeColors) =>
             gap: 16,
         },
 
+        reportActionItemImagesContainer: {
+            margin: 4,
+        },
+
         reportActionItemImages: {
             flexDirection: 'row',
-            margin: 4,
             borderRadius: 12,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
