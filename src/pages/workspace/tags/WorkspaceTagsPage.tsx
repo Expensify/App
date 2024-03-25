@@ -266,6 +266,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         style={[styles.defaultModalContainer]}
                         testID={WorkspaceTagsPage.displayName}
                         shouldShowOfflineIndicatorInWideScreen
+                        offlineIndicatorStyle={styles.mtAuto}
                     >
                         <HeaderWithBackButton
                             icon={Illustrations.Tag}
@@ -302,7 +303,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                                 subtitle={translate('workspace.tags.emptyTags.subtitle')}
                             />
                         )}
-                        {tagList.length > 0 && (
+                        {tagList.length > 0 && !isLoading && (
                             <SelectionList
                                 canSelectMultiple
                                 sections={[{data: tagList, indexOffset: 0, isDisabled: false}]}
