@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import AttachmentView from '@components/Attachments/AttachmentView';
-import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
+import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
@@ -12,55 +12,27 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type CarouselItemProps = {
     /** Attachment required information such as the source and file name */
-    item: PropTypes.shape({
-        /** Report action ID of the attachment */
-        reportActionID: PropTypes.string,
-
-        /** Whether source URL requires authentication */
-        isAuthTokenRequired: PropTypes.bool,
-
-        /** URL to full-sized attachment or SVG function */
-        source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
-
-        /** Additional information about the attachment file */
-        file: PropTypes.shape({
-            /** File name of the attachment */
-            name: PropTypes.string.isRequired,
-        }).isRequired,
-
-        /** Whether the attachment has been flagged */
-        hasBeenFlagged: PropTypes.bool,
-
-        /** The id of the transaction related to the attachment */
-        transactionID: PropTypes.string,
-
-        duration: PropTypes.number,
-    }).isRequired,
+    item: Attachment;
 
     /** onPress callback */
-    onPress: PropTypes.func,
+    onPress?: () => void;
 
-    isModalHovered: PropTypes.bool,
+    /** Whether attachment carousel modal is hovered over */
+    isModalHovered?: boolean;
 
     /** Whether the attachment is currently being viewed in the carousel */
-    isFocused: PropTypes.bool.isRequired,
+    isFocused: boolean;
 };
 
-const defaultProps = {
-    onPress: undefined,
-    isModalHovered: false,
-};
-
-function CarouselItem({item, onPress, isFocused, isModalHovered}) {
+function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
-    // eslint-disable-next-line es/no-nullish-coalescing-operators
-    const [isHidden, setIsHidden] = useState(() => isAttachmentHidden(item.reportActionID) ?? item.hasBeenFlagged);
+    const [isHidden, setIsHidden] = useState(() => (item.reportActionID ? isAttachmentHidden(item.reportActionID) : item.hasBeenFlagged));
 
-    const renderButton = (style) => (
+    const renderButton = (style: StyleProp<ViewStyle>) => (
         <Button
             small
             style={style}
@@ -87,7 +59,8 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}) {
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                accessibilityLabel={item.file?.name || translate('attachmentView.unknownFilename')}
             >
                 {children}
             </PressableWithoutFeedback>
@@ -108,7 +81,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}) {
                     reportActionID={item.reportActionID}
                     isHovered={isModalHovered}
                     isFocused={isFocused}
-                    optionalVideoDuration={item.duration}
+                    duration={item.duration}
                 />
             </View>
 
@@ -121,8 +94,6 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}) {
     );
 }
 
-CarouselItem.propTypes = propTypes;
-CarouselItem.defaultProps = defaultProps;
 CarouselItem.displayName = 'CarouselItem';
 
 export default CarouselItem;

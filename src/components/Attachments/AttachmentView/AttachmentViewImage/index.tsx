@@ -1,26 +1,31 @@
 import React, {memo} from 'react';
 import ImageView from '@components/ImageView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import CONST from '@src/CONST';
-import {attachmentViewImageDefaultProps, attachmentViewImagePropTypes} from './propTypes';
+import type {AttachmentViewProps} from '..';
 
-const propTypes = {
-    ...attachmentViewImagePropTypes,
-    ...withLocalizePropTypes,
+type AttachmentViewImageProps = Pick<AttachmentViewProps, 'isAuthTokenRequired' | 'file' | 'onPress'> & {
+    url: string;
+
+    loadComplete: boolean;
+
+    isImage: boolean;
+
+    /** Function for handle on error */
+    onError?: () => void;
 };
 
-function AttachmentViewImage({url, file, isAuthTokenRequired, isFocused, loadComplete, onPress, onError, isImage, translate}) {
+function AttachmentViewImage({url, file, isAuthTokenRequired, loadComplete, onPress, onError, isImage}: AttachmentViewImageProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const children = (
         <ImageView
             onError={onError}
             url={url}
-            fileName={file.name}
+            fileName={file?.name ?? ''}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
-            isFocused={isFocused}
         />
     );
 
@@ -30,7 +35,8 @@ function AttachmentViewImage({url, file, isAuthTokenRequired, isFocused, loadCom
             disabled={loadComplete}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-            accessibilityLabel={file.name || translate('attachmentView.unknownFilename')}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            accessibilityLabel={file?.name || translate('attachmentView.unknownFilename')}
         >
             {children}
         </PressableWithoutFeedback>
@@ -39,8 +45,6 @@ function AttachmentViewImage({url, file, isAuthTokenRequired, isFocused, loadCom
     );
 }
 
-AttachmentViewImage.propTypes = propTypes;
-AttachmentViewImage.defaultProps = attachmentViewImageDefaultProps;
 AttachmentViewImage.displayName = 'AttachmentViewImage';
 
-export default compose(memo, withLocalize)(AttachmentViewImage);
+export default memo(AttachmentViewImage);
