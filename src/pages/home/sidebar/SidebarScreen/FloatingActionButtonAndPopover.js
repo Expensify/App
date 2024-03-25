@@ -347,7 +347,7 @@ function FloatingActionButtonAndPopover(props) {
                                   description: ReportUtils.getReportName(quickActionReport),
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
-                                  shouldShowSubscriptRightAvatar: true,
+                                  shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
                               },
                           ]
                         : []),

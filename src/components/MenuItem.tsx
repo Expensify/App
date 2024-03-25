@@ -36,7 +36,7 @@ import PressableWithSecondaryInteraction from './PressableWithSecondaryInteracti
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
-import SubscriptAvatar from "@components/SubscriptAvatar";
+import SubscriptAvatar from "./SubscriptAvatar";
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
