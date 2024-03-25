@@ -19,7 +19,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncClasses, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = syncClasses !== 'NONE' && syncClasses !== false;
+    const isSwitchOn = Boolean(syncClasses && syncClasses !== 'NONE');
     const isReportFieldsSelected = syncClasses === 'REPORT_FIELD';
     return (
         <ScreenWrapper

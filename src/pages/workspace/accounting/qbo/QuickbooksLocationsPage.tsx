@@ -23,7 +23,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const theme = useTheme();
     const policyID = policy?.id ?? '';
     const {syncLocations, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = syncLocations !== 'NONE' && syncLocations !== false;
+    const isSwitchOn = Boolean(syncLocations && syncLocations !== 'NONE');
     const isReportFieldsSelected = syncLocations === 'REPORT_FIELD';
     return (
         <ScreenWrapper

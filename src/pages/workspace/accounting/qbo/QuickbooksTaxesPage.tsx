@@ -18,7 +18,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = syncTaxes !== 'NONE' && syncTaxes !== false;
+    const isSwitchOn = Boolean(syncTaxes && syncTaxes !== 'NONE');
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}

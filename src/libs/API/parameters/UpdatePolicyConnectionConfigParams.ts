@@ -1,4 +1,4 @@
-type UpdateWorkspaceAccountingChartOfAccounts = {
+type UpdatePolicyConnectionConfigParams = {
     policyID: string;
     connectionName: string;
     settingName: string;
@@ -6,4 +6,4 @@ type UpdateWorkspaceAccountingChartOfAccounts = {
     idempotencyKey: string;
 };
 
-export default UpdateWorkspaceAccountingChartOfAccounts;
+export default UpdatePolicyConnectionConfigParams;

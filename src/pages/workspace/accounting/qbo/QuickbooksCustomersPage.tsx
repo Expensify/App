@@ -19,7 +19,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncCustomers, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = syncCustomers !== 'NONE' && syncCustomers !== false;
+    const isSwitchOn = Boolean(syncCustomers && syncCustomers !== 'NONE');
     const isReportFieldsSelected = syncCustomers === 'REPORT_FIELD';
     return (
         <ScreenWrapper

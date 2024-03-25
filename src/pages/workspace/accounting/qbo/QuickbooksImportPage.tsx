@@ -25,15 +25,15 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         REPORT_FIELD: translate('workspace.qbo.importedAsReportFields'),
     };
     const policyID = policy?.id ?? '';
-    const {syncClasses, syncCustomers, syncLocations, syncTaxes, syncAccounts, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncClasses, syncCustomers, syncLocations, syncTaxes, enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const sections = [
         {
             description: translate('workspace.qbo.accounts'),
             action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.syncAccounts),
-            title: syncAccounts,
-            pendingAction: pendingFields?.syncAccounts,
+            hasError: Boolean(policy?.errors?.enableNewCategories),
+            title: enableNewCategories,
+            pendingAction: pendingFields?.enableNewCategories,
         },
         {
             description: translate('workspace.qbo.classes'),

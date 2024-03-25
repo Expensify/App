@@ -3485,7 +3485,7 @@ function updatePolicyConnectionConfig(policyID: string, connectionName: string, 
         },
     ];
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CONNECTIONS_CONFIGURATION, parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 
 function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
