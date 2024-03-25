@@ -420,6 +420,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
+
+        /** Indicates if the Policy ownership change is successful */
+        isChangeOwnerSuccessful?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom'
 >;

@@ -1051,6 +1051,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
             value: {
                 errorFields: null,
                 isLoading: true,
+                isChangeOwnerSuccessful: false,
             },
         },
     ];
@@ -1061,6 +1062,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 isLoading: false,
+                isChangeOwnerSuccessful: true,
             },
         },
     ];
@@ -1071,6 +1073,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 isLoading: false,
+                isChangeOwnerSuccessful: false,
             },
         },
     ];
@@ -1086,8 +1089,9 @@ function requestWorkspaceOwnerChange(policyID: string) {
 function clearWorkspaceOwnerChangeFlow(policyID: string) {
     Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, null);
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        errorFields: {changeOwner: null},
+        errorFields: null,
         isLoading: false,
+        isChangeOwnerSuccessful: false,
     });
 }
 

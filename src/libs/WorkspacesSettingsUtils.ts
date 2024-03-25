@@ -296,13 +296,13 @@ function redirectOnChangeOwnerErrorUpdate(policy: Policy | null, policyID: strin
         return;
     }
 
-    if (!policy?.errorFields?.changeOwner) {
+    if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
         // no errors - show a success page
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID));
         return;
     }
 
-    const changeOwnerErrors = Object.keys(policy.errorFields.changeOwner);
+    const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
 
     if (changeOwnerErrors && changeOwnerErrors.length > 0 && changeOwnerErrors[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
