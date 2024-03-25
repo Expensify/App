@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import lodashSortBy from 'lodash/sortBy';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -36,8 +37,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import lodashSortBy from 'lodash/sortBy';
-
 
 type PolicyForList = {
     value: string;
@@ -82,10 +81,10 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
-        () => policyTagLists
-            .map((policyTagList) =>
-                lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare)
-                    .map((value) => ({
+        () =>
+            policyTagLists
+                .map((policyTagList) =>
+                    lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => ({
                         value: value.name,
                         text: value.name,
                         keyForList: value.name,
@@ -107,8 +106,8 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             </View>
                         ),
                     })),
-            )
-            .flat(),
+                )
+                .flat(),
         [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
     );
 
