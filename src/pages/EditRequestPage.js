@@ -17,7 +17,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
@@ -137,16 +136,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             <EditRequestReceiptPage
                 route={route}
                 transactionID={transaction.transactionID}
-            />
-        );
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE) {
-        return (
-            <EditRequestDistancePage
-                report={report}
-                transactionID={transaction.transactionID}
-                route={route}
             />
         );
     }

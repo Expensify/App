@@ -36,7 +36,6 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
-import * as NumberUtils from '@libs/NumberUtils';
 import Permissions from '@libs/Permissions';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -4485,30 +4484,6 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
-
-    if (isEmptyObject(iouReport)) {
-        return false;
-    }
-
-    const isPayer = ReportUtils.isPayer(
-        {
-            email: currentUserEmail,
-            accountID: userAccountID,
-        },
-        iouReport,
-    );
-
-    const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
-    const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
-
-    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
-    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(iouReport, policy);
-    return isPayer && !isOpenExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable;
-}
-
 function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
     if (isEmptyObject(chatReport)) {
         return false;
@@ -4533,6 +4508,36 @@ function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, cha
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
 
     return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled;
+}
+
+function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
+
+    if (isEmptyObject(iouReport)) {
+        return false;
+    }
+
+    if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        return false;
+    }
+
+    const isPayer = ReportUtils.isPayer(
+        {
+            email: currentUserEmail,
+            accountID: userAccountID,
+        },
+        iouReport,
+    );
+
+    const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
+    const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
+
+    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
+    const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
+    const shouldBeApproved = canApproveIOU(iouReport, chatReport, policy);
+
+    return isPayer && !isOpenExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable && !shouldBeApproved;
 }
 
 function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, excludedIOUReportID: string): boolean {
@@ -4934,7 +4939,7 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     const shouldAddAsReport = !isEmptyObject(chatReport) && ReportUtils.isSelfDM(chatReport);
     const participants: Participant[] =
         ReportUtils.isPolicyExpenseChat(chatReport) || shouldAddAsReport
-            ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(chatReport), selected: true}]
+            ? [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(chatReport), selected: true}]
             : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
@@ -4970,15 +4975,6 @@ function setMoneyRequestParticipants(participants: Participant[], isSplitRequest
 
 function setShownHoldUseExplanation() {
     Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
-}
-
-function setUpDistanceTransaction() {
-    const transactionID = NumberUtils.rand64();
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        transactionID,
-        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
-    });
-    Onyx.merge(ONYXKEYS.IOU, {transactionID});
 }
 
 /** Navigates to the next IOU page based on where the IOU request was started */
@@ -5031,7 +5027,8 @@ function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string 
  * Put money request on HOLD
  */
 function putOnHold(transactionID: string, comment: string, reportID: string) {
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
+    const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -5039,6 +5036,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+                [createdReportActionComment.reportActionID]: createdReportActionComment as ReportAction,
             },
         },
         {
@@ -5072,6 +5070,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
             transactionID,
             comment,
             reportActionID: createdReportAction.reportActionID,
+            commentReportActionID: createdReportActionComment.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
@@ -5194,7 +5193,6 @@ export {
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    setUpDistanceTransaction,
     setShownHoldUseExplanation,
     navigateToNextPage,
     updateMoneyRequestDate,
