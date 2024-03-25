@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
@@ -127,6 +128,7 @@ function WorkspacePageWithSections({
     const {isSmallScreenWidth} = useWindowDimensions();
     const firstRender = useRef(true);
     const isFocused = useIsFocused();
+    const prevPolicy = usePrevious(policy);
 
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
@@ -143,7 +145,11 @@ function WorkspacePageWithSections({
             return true;
         }
 
-        return (!isEmptyObject(policy) && !PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) || PolicyUtils.isPendingDeletePolicy(policy);
+        // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
+        return (
+            (!isEmptyObject(policy) && !PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) ||
+            (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy))
+        );
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, shouldShowNonAdmin]);
 

@@ -70,6 +70,9 @@ type Message = {
 
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+
+    /** The time this report action was deleted */
+    deleted?: string;
 };
 
 type ImageMetadata = {
