@@ -1,6 +1,5 @@
 import React from 'react';
 import {Alert} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
@@ -8,15 +7,17 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Console from '@libs/actions/Console';
 import {parseStringifyMessages} from '@libs/Console';
-import type {CapturedLogs, Log} from '@src/types/onyx';
+import type {Log} from '@src/types/onyx';
+import type {ClientSideLoggingToolProps} from './types';
 
 type BaseClientSideLoggingToolProps = {
-    shouldStoreLogs: OnyxEntry<boolean>;
-    capturedLogs: OnyxEntry<CapturedLogs>;
+    /** Locally created file */
     file?: {path: string; newFileName: string; size: number};
+    /** Action to run when pressing Share button */
     onShareLogs?: () => void;
+    /** Action to run when toggling the switch */
     onToggleSwitch: (logs: Log[]) => void;
-};
+} & ClientSideLoggingToolProps;
 
 function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onToggleSwitch}: BaseClientSideLoggingToolProps) {
     const onToggle = () => {
