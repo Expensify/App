@@ -193,6 +193,7 @@ function hasAuthToken(): boolean {
 }
 
 function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean) {
+    Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
         // We'll only call signOut if we're not stashing the session and this is not a supportal session,
