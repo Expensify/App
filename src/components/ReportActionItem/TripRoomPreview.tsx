@@ -114,7 +114,7 @@ function ReservationRow({reservation}: ReservationRowProps) {
             hoverAndPressStyle={false}
             iconHeight={variables.iconSizeSmall}
             iconWidth={variables.iconSizeSmall}
-            iconStyles={[styles.tripReservationIconContainer, styles.mr2]}
+            iconStyles={[styles.tripReservationIconContainer(false), styles.mr2]}
             secondaryIconFill={theme.icon}
         />
     );

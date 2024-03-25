@@ -2600,5 +2600,6 @@ export default {
         rail: 'Rail',
         viewTrip: 'View trip',
         trip: 'Trip',
+        tripSummary: 'Trip summary'
     },
 } satisfies TranslationBase;

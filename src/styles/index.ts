@@ -404,6 +404,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
+        textNormalBold: {
+            fontSize: variables.fontSizeNormal,
+            fontWeight: 'bold',
+        },
+
         textNormalThemeText: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
@@ -4725,14 +4730,14 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeXLarge,
         },
 
-        tripReservationIconContainer: {
-            width: 32,
-            height: 32,
+        tripReservationIconContainer: (isBiggerIcon: boolean) => ({
+            width: isBiggerIcon ? 40 : 32,
+            height: isBiggerIcon ? 40 : 32,
             backgroundColor: theme.overlay,
-            borderRadius: 32,
+            borderRadius: isBiggerIcon ? 40 : 32,
             alignItems: 'center',
             justifyContent: 'center',
-        },
+        }),
 
         tripDescriptionMargin: {
             marginBottom: 2,

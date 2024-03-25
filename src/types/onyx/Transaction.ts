@@ -274,5 +274,6 @@ export type {
     TaxRate,
     ReceiptSource,
     Reservation,
+    ReservationTimeDetails,
     ReservationType,
 };

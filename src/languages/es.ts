@@ -3095,5 +3095,6 @@ export default {
         rail: 'Carril',
         viewTrip: 'Ver viaje',
         trip: 'Viaje',
+        tripSummary: 'Resumen del viaje',
     },
 } satisfies EnglishTranslation;
