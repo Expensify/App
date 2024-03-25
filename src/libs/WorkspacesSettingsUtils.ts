@@ -234,6 +234,7 @@ function getOwnershipChecksDisplayText(
 
     const changeOwner = policy?.errorFields?.changeOwner;
     const subscription = changeOwner?.subscription as unknown as {ownerUserCount: number; totalUserCount: number};
+    const ownerOwesAmount = changeOwner?.ownerOwesAmount as unknown as {ownerEmail: string; amount: number; currency: string};
 
     switch (error) {
         case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
@@ -244,8 +245,8 @@ function getOwnershipChecksDisplayText(
         case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
             title = translate('workspace.changeOwner.ownerOwesAmountTitle');
             text = translate('workspace.changeOwner.ownerOwesAmountText', {
-                email: changeOwner?.ownerOwesAmount,
-                amount: '',
+                email: ownerOwesAmount?.ownerEmail,
+                amount: `${ownerOwesAmount?.amount} ${ownerOwesAmount?.currency}`,
             });
             buttonText = translate('workspace.changeOwner.ownerOwesAmountButtonText');
             break;
