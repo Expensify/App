@@ -1,4 +1,5 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import type {MutableRefObject} from 'react';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -225,7 +226,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             const editAction = () => {
                 if (!draftMessage) {
-                    Report.saveReportActionDraft(reportID, reportAction, getActionHtml(reportAction));
+                    Report.saveReportActionDraft(reportID, reportAction, Str.htmlDecode(getActionHtml(reportAction)));
                 } else {
                     Report.deleteReportActionDraft(reportID, reportAction);
                 }

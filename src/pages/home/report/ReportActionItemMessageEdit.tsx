@@ -87,7 +87,7 @@ function ReportActionItemMessageEdit(
             return parser.htmlToMarkdown(draftMessage).trim();
         }
         // We need to decode saved draft message because it's escaped before saving.
-        return Str.htmlDecode(draftMessage);
+        return draftMessage
     };
 
     const getInitialSelection = () => {
@@ -127,7 +127,7 @@ function ReportActionItemMessageEdit(
         if (ReportActionsUtils.isDeletedAction(action) || (action.message && draftMessage === action.message[0].html)) {
             return;
         }
-        setDraft(Str.htmlDecode(draftMessage));
+        setDraft(draftMessage);
     }, [draftMessage, action]);
 
     useEffect(() => {
