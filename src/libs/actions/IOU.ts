@@ -4484,30 +4484,6 @@ function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency:
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
-
-    if (isEmptyObject(iouReport)) {
-        return false;
-    }
-
-    const isPayer = ReportUtils.isPayer(
-        {
-            email: currentUserEmail,
-            accountID: userAccountID,
-        },
-        iouReport,
-    );
-
-    const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
-    const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
-
-    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
-    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(iouReport, policy);
-    return isPayer && !isOpenExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable;
-}
-
 function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
     if (isEmptyObject(chatReport)) {
         return false;
@@ -4532,6 +4508,36 @@ function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, cha
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
 
     return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled;
+}
+
+function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
+
+    if (isEmptyObject(iouReport)) {
+        return false;
+    }
+
+    if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        return false;
+    }
+
+    const isPayer = ReportUtils.isPayer(
+        {
+            email: currentUserEmail,
+            accountID: userAccountID,
+        },
+        iouReport,
+    );
+
+    const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
+    const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
+
+    const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
+    const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
+    const shouldBeApproved = canApproveIOU(iouReport, chatReport, policy);
+
+    return isPayer && !isOpenExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable && !shouldBeApproved;
 }
 
 function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, excludedIOUReportID: string): boolean {
