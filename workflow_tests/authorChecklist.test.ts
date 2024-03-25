@@ -3,7 +3,7 @@ import * as kieMockGithub from '@kie/mock-github';
 import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/authorChecklistAssertions';
-import * as mocks from './mocks/authorChecklistMocks';
+import mocks from './mocks/authorChecklistMocks';
 import ExtendedAct from './utils/ExtendedAct';
 import * as utils from './utils/utils';
 

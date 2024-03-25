@@ -3,7 +3,7 @@ import * as kieMockGithub from '@kie/mock-github';
 import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/cherryPickAssertions';
-import * as mocks from './mocks/cherryPickMocks';
+import mocks from './mocks/cherryPickMocks';
 import ExtendedAct from './utils/ExtendedAct';
 import type {MockJobs} from './utils/JobMocker';
 import * as utils from './utils/utils';

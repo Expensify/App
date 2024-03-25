@@ -3,7 +3,7 @@ import type {CreateRepositoryFile} from '@kie/mock-github';
 import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/failureNotifierAssertions';
-import * as mocks from './mocks/failureNotifierMocks';
+import mocks from './mocks/failureNotifierMocks';
 import ExtendedAct from './utils/ExtendedAct';
 
 jest.setTimeout(90 * 1000);
