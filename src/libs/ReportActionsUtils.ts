@@ -262,10 +262,12 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?: string): ReportAction[] {
     let index;
 
+    console.log('RORY_DEBUG sortedReportActions', sortedReportActions);
+
     if (id) {
         index = sortedReportActions.findIndex((obj) => obj.reportActionID === id);
     } else {
-        index = sortedReportActions.findIndex((obj) => obj.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        index = sortedReportActions.findIndex((obj) => obj.pendingAction === null);
     }
 
     if (index === -1) {
@@ -298,11 +300,13 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     //    This additional check is to include recently sent messages that might not yet be part of the established sequence.
     while (
         (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
-        sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        sortedReportActions[startIndex - 1]?.pendingAction !== null ||
         sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM
     ) {
         startIndex--;
     }
+
+    console.log('RORY_DEBUG continuous reportAction chain', sortedReportActions.slice(startIndex, endIndex + 1));
 
     return sortedReportActions.slice(startIndex, endIndex + 1);
 }
