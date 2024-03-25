@@ -269,7 +269,6 @@ function ReportScreen({
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
-    const isLoading = !reportIDFromRoute || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(
         () =>
             reportActions.length
@@ -331,6 +330,7 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
+    const isLoading = !ReportUtils.isValidReportIDFromPath(reportIDFromRoute) || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         isLinkingToMessage ||
         !isCurrentReportLoadedFromOnyx ||
