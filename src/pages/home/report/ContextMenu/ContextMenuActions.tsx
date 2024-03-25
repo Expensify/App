@@ -225,7 +225,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             const editAction = () => {
                 if (!draftMessage) {
-                    Report.saveReportActionDraft(reportID, reportAction, getActionHtml(reportAction));
+                    const parser = new ExpensiMark();
+                    Report.saveReportActionDraft(reportID, reportAction, parser.htmlToMarkdown(getActionHtml(reportAction)));
                 } else {
                     Report.deleteReportActionDraft(reportID, reportAction);
                 }
@@ -377,7 +378,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-                    Clipboard.setString(Localize.translateLocal('iou.heldRequest', {comment: reportAction.message?.[1]?.text ?? ''}));
+                    Clipboard.setString(Localize.translateLocal('iou.heldRequest'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.unheldRequest'));
                 } else if (content) {

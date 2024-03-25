@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {DismissedReferralBanners} from '@src/types/onyx/Account';
+import type * as OnyxTypes from '@src/types/onyx';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
@@ -17,7 +17,7 @@ import Text from './Text';
 import Tooltip from './Tooltip';
 
 type ReferralProgramCTAOnyxProps = {
-    dismissedReferralBanners: DismissedReferralBanners;
+    dismissedReferralBanners: OnyxEntry<OnyxTypes.DismissedReferralBanners>;
 };
 
 type ReferralProgramCTAProps = ReferralProgramCTAOnyxProps & {
@@ -26,11 +26,9 @@ type ReferralProgramCTAProps = ReferralProgramCTAOnyxProps & {
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
-
-    style?: StyleProp<ViewStyle>;
 };
 
-function ReferralProgramCTA({referralContentType, style, dismissedReferralBanners}: ReferralProgramCTAProps) {
+function ReferralProgramCTA({referralContentType, dismissedReferralBanners}: ReferralProgramCTAProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -39,7 +37,7 @@ function ReferralProgramCTA({referralContentType, style, dismissedReferralBanner
         User.dismissReferralBanner(referralContentType);
     };
 
-    if (!referralContentType || dismissedReferralBanners[referralContentType]) {
+    if (!referralContentType || dismissedReferralBanners?.[referralContentType]) {
         return null;
     }
 
@@ -48,7 +46,7 @@ function ReferralProgramCTA({referralContentType, style, dismissedReferralBanner
             onPress={() => {
                 Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
             }}
-            style={[styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}
+            style={[styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5]}
             accessibilityLabel="referral"
             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
         >
@@ -85,7 +83,6 @@ function ReferralProgramCTA({referralContentType, style, dismissedReferralBanner
 
 export default withOnyx<ReferralProgramCTAProps, ReferralProgramCTAOnyxProps>({
     dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data?.dismissedReferralBanners ?? {},
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
 })(ReferralProgramCTA);

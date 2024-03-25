@@ -36,6 +36,9 @@ const propTypes = {
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
 
+    /** An object that holds data about which referral banners have been dismissed */
+    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
+
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
         PropTypes.shape({
@@ -64,6 +67,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    dismissedReferralBanners: {},
     participants: [],
     safeAreaPaddingBottomStyle: {},
     reports: {},
@@ -74,6 +78,7 @@ const defaultProps = {
 
 function MoneyRequestParticipantsSelector({
     betas,
+    dismissedReferralBanners,
     participants,
     reports,
     navigateToRequest,
@@ -191,25 +196,28 @@ function MoneyRequestParticipantsSelector({
      *
      * @param {Object} option
      */
-    const addSingleParticipant = (option) => {
-        if (participants.length) {
-            return;
-        }
-        onAddParticipants(
-            [
-                {
-                    accountID: option.accountID,
-                    login: option.login,
-                    isPolicyExpenseChat: option.isPolicyExpenseChat,
-                    reportID: option.reportID,
-                    selected: true,
-                    searchText: option.searchText,
-                },
-            ],
-            false,
-        );
-        navigateToRequest();
-    };
+    const addSingleParticipant = useCallback(
+        (option) => {
+            if (participants.length) {
+                return;
+            }
+            onAddParticipants(
+                [
+                    {
+                        accountID: option.accountID,
+                        login: option.login,
+                        isPolicyExpenseChat: option.isPolicyExpenseChat,
+                        reportID: option.reportID,
+                        selected: true,
+                        searchText: option.searchText,
+                    },
+                ],
+                false,
+            );
+            navigateToRequest();
+        },
+        [navigateToRequest, onAddParticipants, participants.length],
+    );
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -270,21 +278,32 @@ function MoneyRequestParticipantsSelector({
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = (canUseP2PDistanceRequests || !isDistanceRequest) && iouType !== CONST.IOU.TYPE.SEND;
 
-    const handleConfirmSelection = useCallback(() => {
-        if (shouldShowSplitBillErrorMessage) {
-            return;
-        }
+    const handleConfirmSelection = useCallback(
+        (keyEvent, option) => {
+            const shouldAddSingleParticipant = option && !participants.length;
 
-        navigateToSplit();
-    }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
+            if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
+                return;
+            }
+
+            if (shouldAddSingleParticipant) {
+                addSingleParticipant(option);
+                return;
+            }
+
+            navigateToSplit();
+        },
+        [shouldShowSplitBillErrorMessage, navigateToSplit, addSingleParticipant, participants.length],
+    );
 
     const footerContent = useMemo(
         () => (
             <View>
-                <ReferralProgramCTA
-                    referralContentType={referralContentType}
-                    style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
-                />
+                {!dismissedReferralBanners[referralContentType] && (
+                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
+                        <ReferralProgramCTA referralContentType={referralContentType} />
+                    </View>
+                )}
 
                 {shouldShowSplitBillErrorMessage && (
                     <FormHelpMessage
@@ -300,12 +319,13 @@ function MoneyRequestParticipantsSelector({
                         text={translate('iou.addToSplit')}
                         onPress={handleConfirmSelection}
                         pressOnEnter
+                        large
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
+        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(
@@ -365,6 +385,9 @@ MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default withOnyx({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
+    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
