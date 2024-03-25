@@ -11,8 +11,6 @@ type Card = {
     lastFourPAN?: string;
     isVirtual: boolean;
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
-    cardholderFirstName: string;
-    cardholderLastName: string;
     errors?: OnyxCommon.Errors;
     isLoading?: boolean;
     nameValuePairs?: {
