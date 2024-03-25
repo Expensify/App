@@ -55,11 +55,13 @@ import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import originalGetReportPolicyID from './getReportPolicyID';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import {isEmailPublicDomain} from './LoginUtils';
+import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
@@ -1286,7 +1288,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             const isReimburser = session?.email === policy?.reimburserEmail;
-            return isReimburser && (isApproved || isManager);
+            return (!policy?.reimburserEmail || isReimburser) && (isApproved || isManager);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
             return isAdmin && (isApproved || isManager);
@@ -2772,6 +2774,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         if (parentReportActionMessage && isArchivedRoom(report)) {
             return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
         }
+        if (ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
+            return ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
+        }
         return parentReportActionMessage;
     }
 
@@ -3787,7 +3792,7 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
  * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticHoldReportAction(comment: string, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
+function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): OptimisticHoldReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
@@ -3797,10 +3802,37 @@ function buildOptimisticHoldReportAction(comment: string, created = DateUtils.ge
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: Localize.translateLocal('iou.heldRequest', {comment}),
+                text: Localize.translateLocal('iou.heldRequest'),
             },
+        ],
+        person: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
+ * @param [created] - Action created time
+ */
+function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
                 text: comment,
             },
         ],
@@ -4070,13 +4102,13 @@ function buildOptimisticTaskReport(
  * @param reportAction - the parent IOU report action from which to create the thread
  * @param moneyRequestReport - the report which the report action belongs to
  */
-function buildTransactionThread(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, moneyRequestReport: Report): OptimisticChatReport {
+function buildTransactionThread(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, moneyRequestReport: OnyxEntry<Report>): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
     return buildOptimisticChatReport(
         participantAccountIDs,
         getTransactionReportName(reportAction),
         undefined,
-        moneyRequestReport.policyID,
+        moneyRequestReport?.policyID,
         CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
@@ -4084,7 +4116,7 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction | Optimisti
         undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction?.reportActionID,
-        moneyRequestReport.reportID,
+        moneyRequestReport?.reportID,
     );
 }
 
@@ -4592,7 +4624,7 @@ function getReportIDFromLink(url: string | null): string {
  * Get the report policyID given a reportID
  */
 function getReportPolicyID(reportID?: string): string | undefined {
-    return getReport(reportID)?.policyID;
+    return originalGetReportPolicyID(reportID);
 }
 
 /**
@@ -5314,6 +5346,7 @@ function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
  * - The action is listed in the thread-disabled list
  * - The action is a split bill action
  * - The action is deleted and is not threaded
+ * - The report is archived and the action is not threaded
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
  */
@@ -5323,11 +5356,13 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
     const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
     const isIOUAction = ReportActionsUtils.isMoneyRequestAction(reportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+    const isArchivedReport = isArchivedRoom(getReport(reportID));
 
     return (
         CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName) ||
         isSplitBillAction ||
         (isDeletedAction && !reportAction?.childVisibleActionCount) ||
+        (isArchivedReport && !reportAction?.childVisibleActionCount) ||
         (isWhisperAction && !isReportPreviewAction && !isIOUAction) ||
         isThreadFirstChat(reportAction, reportID)
     );
@@ -5419,6 +5454,22 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         reimbursableTotal > 0 &&
         CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(report?.currency as CurrencyType);
     return isAutoReimbursable;
+}
+
+function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number): boolean {
+    const policy = getPolicy(report?.policyID);
+    const {preventSelfApproval} = policy;
+
+    const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
+
+    return !(preventSelfApproval && isOwner);
+}
+
+function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
+    const policy = getPolicy(report?.policyID);
+    const {submitsTo} = policy;
+
+    return isAllowedToApproveExpenseReport(report, submitsTo);
 }
 
 /**
@@ -5649,6 +5700,7 @@ export {
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
     buildOptimisticHoldReportAction,
+    buildOptimisticHoldReportActionComment,
     buildOptimisticUnHoldReportAction,
     shouldDisplayThreadReplies,
     shouldDisableThread,
@@ -5672,6 +5724,8 @@ export {
     canEditRoomVisibility,
     canEditPolicyDescription,
     getPolicyDescriptionText,
+    isAllowedToSubmitDraftExpenseReport,
+    isAllowedToApproveExpenseReport,
     findSelfDMReportID,
     getIndicatedMissingPaymentMethod,
     isJoinRequestInAdminRoom,
