@@ -1,12 +1,15 @@
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import Text from '@components/Text';
+import getCurrentData from './getCurrentData';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
 
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, textStyle, defaultRendererProps, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const flattenTextStyle = StyleSheet.flatten(textStyle);
     const {textDecorationLine, ...textStyles} = flattenTextStyle;
+
+    const data = getCurrentData(defaultRendererProps);
     const numberOfLines = defaultRendererProps.propsFromParent?.numberOfLines;
 
     return (
@@ -18,7 +21,7 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
                 numberOfLines={numberOfLines}
                 style={[boxModelStyle, textStyles]}
             >
-                {'data' in defaultRendererProps.tnode && defaultRendererProps.tnode.data}
+                {data}
             </Text>
         </TDefaultRenderer>
     );

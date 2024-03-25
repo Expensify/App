@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -243,8 +243,11 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
         session?.accountID,
     ]);
 
-    const renderOptionItem = ({item}: {item: ToggleSettingOptionRowProps}) => (
-        <View style={styles.mt7}>
+    const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
+        <View
+            style={styles.mt7}
+            key={`toggleSettingOptionItem-${index}`}
+        >
             <ToggleSettingOptionRow
                 icon={item.icon}
                 title={item.title}
@@ -277,6 +280,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
                 shouldSkipVBBACall
                 isLoading={isLoading}
+                shouldUseScrollView
             >
                 <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
@@ -286,11 +290,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                     >
                         <View>
                             <Text style={[styles.mt3, styles.textSupporting]}>{translate('workflowsPage.workflowDescription')}</Text>
-                            <FlatList
-                                data={optionItems}
-                                renderItem={renderOptionItem}
-                                keyExtractor={(item: ToggleSettingOptionRowProps) => item.title}
-                            />
+                            {optionItems.map(renderOptionItem)}
                             <ConfirmModal
                                 title={translate('workspace.bankAccount.workspaceCurrency')}
                                 isVisible={isCurrencyModalOpen}

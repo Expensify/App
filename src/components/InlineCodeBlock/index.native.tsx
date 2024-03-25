@@ -1,11 +1,13 @@
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getCurrentData from './getCurrentData';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
 import WrappedText from './WrappedText';
 
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
+    const data = getCurrentData(defaultRendererProps);
     const numberOfLines = defaultRendererProps.propsFromParent?.numberOfLines;
 
     return (
@@ -18,7 +20,7 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
                 wordStyles={[boxModelStyle, styles.codeWordStyle]}
                 numberOfLines={numberOfLines}
             >
-                {'data' in defaultRendererProps.tnode && defaultRendererProps.tnode.data}
+                {data}
             </WrappedText>
         </TDefaultRenderer>
     );
