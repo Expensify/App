@@ -1,17 +1,17 @@
+import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
 import {getViewableItems} from '@components/InvertedFlatList/BaseInvertedFlatList/index.e2e';
 import Timing from '@libs/actions/Timing';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
-import type {TestConfig} from '@libs/E2E/types';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-const test = (config: TestConfig) => {
+const test = (config: NativeConfig) => {
     console.debug('[E2E] Logging in for comment linking');
 
     const reportID = getConfigValueOrThrow('reportID', config);
@@ -40,6 +40,7 @@ const test = (config: TestConfig) => {
             }
 
             if (entry.name === CONST.TIMING.SWITCH_REPORT) {
+                console.debug('[E2E] Linking: 1');
                 setTimeout(() => {
                     const res = getViewableItems();
                     console.debug('[E2E] Viewable items retrieved, verifying correct message…');
