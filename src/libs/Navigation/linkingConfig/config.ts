@@ -295,6 +295,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
                         },
@@ -353,6 +359,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAX_CREATE]: {
                             path: ROUTES.WORKSPACE_TAX_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAX_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_NAME]: {
+                            path: ROUTES.WORKSPACE_TAX_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_VALUE]: {
+                            path: ROUTES.WORKSPACE_TAX_VALUE.route,
                         },
                     },
                 },
@@ -501,7 +516,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
-                        [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,

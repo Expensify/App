@@ -103,7 +103,6 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.WAYPOINT]: () => require('../../../pages/iou/MoneyRequestWaypointPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.DISTANCE]: () => require('../../../pages/iou/NewDistanceRequestPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.RECEIPT]: () => require('../../../pages/EditRequestReceiptPage').default as React.ComponentType,
 });
 
@@ -265,6 +264,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CATEGORY_EDIT]: () => require('../../../pages/workspace/categories/EditCategoryPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: () => require('../../../pages/workspace/distanceRates/CreateDistanceRatePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: () => require('../../../pages/workspace/distanceRates/PolicyDistanceRatesSettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: () => require('../../../pages/workspace/distanceRates/PolicyDistanceRateDetailsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: () => require('../../../pages/workspace/distanceRates/PolicyDistanceRateEditPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: () => require('../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAG_SETTINGS]: () => require('../../../pages/workspace/tags/TagSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_EDIT]: () => require('../../../pages/workspace/tags/WorkspaceEditTagsPage').default as React.ComponentType,
@@ -284,6 +285,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require('../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require('../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAX_EDIT]: () => require('../../../pages/workspace/taxes/WorkspaceEditTaxPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAX_NAME]: () => require('../../../pages/workspace/taxes/NamePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAX_VALUE]: () => require('../../../pages/workspace/taxes/ValuePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAX_CREATE]: () => require('../../../pages/workspace/taxes/WorkspaceCreateTaxPage').default as React.ComponentType,
 });
 
