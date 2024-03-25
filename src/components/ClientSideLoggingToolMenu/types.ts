@@ -11,4 +11,4 @@ type ClientSideLoggingToolMenuOnyxProps = {
 
 type ClientSideLoggingToolProps = ClientSideLoggingToolMenuOnyxProps;
 
-export type {CapturedLogs, ClientSideLoggingToolMenuOnyxProps, ClientSideLoggingToolProps};
+export type {ClientSideLoggingToolMenuOnyxProps, ClientSideLoggingToolProps};

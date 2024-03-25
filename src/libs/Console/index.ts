@@ -126,7 +126,7 @@ function createLog(text: string) {
  */
 const parseStringifyMessages = (logs: Log[]) => {
     if (isEmpty(logs)) {
-        return;
+        return logs;
     }
 
     return logs.map((log) => {

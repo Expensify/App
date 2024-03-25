@@ -1,9 +1,8 @@
 import React, {useState} from 'react';
-import {Alert} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Share from 'react-native-share';
 import * as Console from '@libs/actions/Console';
-import {parseStringifyMessages} from '@libs/Console';
+import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
@@ -12,20 +11,8 @@ import type {ClientSideLoggingToolMenuOnyxProps, ClientSideLoggingToolProps} fro
 function ClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs}: ClientSideLoggingToolProps) {
     const [file, setFile] = useState<{path: string; newFileName: string; size: number}>();
 
-    const onToggle = () => {
-        if (!shouldStoreLogs) {
-            Console.setShouldStoreLogs(true);
-            return;
-        }
-
-        if (!capturedLogs) {
-            Alert.alert('No logs to share', 'There are no logs to share');
-            return;
-        }
-
-        const logs = Object.values(capturedLogs);
-        const logsWithParsedMessages = parseStringifyMessages(logs);
-        localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then((localFile) => {
+    const onToggle = (logs: Log[]) => {
+        localFileCreate('logs', JSON.stringify(logs, null, 2)).then((localFile) => {
             setFile(localFile);
         });
         Console.disableLoggingAndFlushLogs();
@@ -43,6 +30,7 @@ function ClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs}: ClientSideLo
     return (
         <BaseClientSideLoggingToolMenu
             shouldStoreLogs={shouldStoreLogs}
+            capturedLogs={capturedLogs}
             file={file}
             onToggleSwitch={onToggle}
             onShareLogs={shareLogs}

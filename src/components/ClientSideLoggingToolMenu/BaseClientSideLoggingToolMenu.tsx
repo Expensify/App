@@ -1,19 +1,41 @@
 import React from 'react';
+import {Alert} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Console from '@libs/actions/Console';
+import {parseStringifyMessages} from '@libs/Console';
+import type {CapturedLogs, Log} from '@src/types/onyx';
 
 type BaseClientSideLoggingToolProps = {
     shouldStoreLogs: OnyxEntry<boolean>;
+    capturedLogs: OnyxEntry<CapturedLogs>;
     file?: {path: string; newFileName: string; size: number};
     onShareLogs?: () => void;
-    onToggleSwitch: () => void;
+    onToggleSwitch: (logs: Log[]) => void;
 };
 
-function BaseClientSideLoggingToolMenu({shouldStoreLogs, file, onShareLogs, onToggleSwitch}: BaseClientSideLoggingToolProps) {
+function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onToggleSwitch}: BaseClientSideLoggingToolProps) {
+    const onToggle = () => {
+        if (!shouldStoreLogs) {
+            Console.setShouldStoreLogs(true);
+            return;
+        }
+
+        if (!capturedLogs) {
+            Alert.alert('No logs to share', 'There are no logs to share');
+            Console.disableLoggingAndFlushLogs();
+            return;
+        }
+
+        const logs = Object.values(capturedLogs);
+        const logsWithParsedMessages = parseStringifyMessages(logs);
+
+        onToggleSwitch(logsWithParsedMessages);
+    };
     const styles = useThemeStyles();
     return (
         <>
@@ -21,7 +43,7 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, file, onShareLogs, onTo
                 <Switch
                     accessibilityLabel="Client side logging"
                     isOn={!!shouldStoreLogs}
-                    onToggle={onToggleSwitch}
+                    onToggle={onToggle}
                 />
             </TestToolRow>
             {!!file && (
