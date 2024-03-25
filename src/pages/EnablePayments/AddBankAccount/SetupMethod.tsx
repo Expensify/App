@@ -18,35 +18,28 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
+import type {PersonalBankAccount, PlaidData, User} from '@src/types/onyx';
 
-type AddPersonalBankAccountPageWithOnyxProps = {
-    /** Contains plaid data */
-    plaidData: OnyxEntry<PlaidData>;
-
-    /** The details about the Personal bank account we are adding saved in Onyx */
-    personalBankAccount: OnyxEntry<PersonalBankAccount>;
+type SetupMethodProps = {
+    user: OnyxEntry<User>;
+    isPlaidDisabled: boolean;
 };
 
 const plaidDesktopMessage = getPlaidDesktopMessage();
 const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.SETTINGS_ADD_BANK_ACCOUNT_REFACTOR}`;
 
-function ChooseMethod({isPlaidDisabled, user, onNext}: AddPersonalBankAccountPageWithOnyxProps) {
+function ChooseMethod({isPlaidDisabled, user}: SetupMethodProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
     return (
         <Section
             icon={Illustrations.MoneyWings}
-            title={translate('bankAccount.sendAndReceiveMoney')}
+            title={translate('bankAccount.addYourBankAccount')}
             titleStyles={[styles.textXLarge]}
         >
             <View style={[styles.mv3]}>
-                <Text>{translate('bankAccount.addBankAccountBodyPt1')}</Text>
-            </View>
-            <View style={[styles.mv3]}>
-                <Text>{translate('bankAccount.addBankAccountBodyPt2')}</Text>
+                <Text>{translate('bankAccount.addBankAccountBody')}</Text>
             </View>
             {!!plaidDesktopMessage && (
                 <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
@@ -56,8 +49,7 @@ function ChooseMethod({isPlaidDisabled, user, onNext}: AddPersonalBankAccountPag
             <Button
                 icon={Expensicons.Bank}
                 text={translate('bankAccount.addBankAccount')}
-                // @ts-ignore
-                onPress={onNext}
+                onPress={() => BankAccounts.openPersonalBankAccountSetupViewRefactor()}
                 isDisabled={isPlaidDisabled || !user.validated}
                 style={[styles.mt4, styles.mb2]}
                 iconStyles={styles.buttonCTAIcon}
@@ -72,13 +64,7 @@ function ChooseMethod({isPlaidDisabled, user, onNext}: AddPersonalBankAccountPag
 
 ChooseMethod.displayName = 'AddPersonalBankAccountPage';
 
-export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
+export default withOnyx<SetupMethodProps>({
     isPlaidDisabled: {
         key: ONYXKEYS.IS_PLAID_DISABLED,
     },

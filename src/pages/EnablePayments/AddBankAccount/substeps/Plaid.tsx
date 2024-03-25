@@ -22,7 +22,7 @@ type PlaidOnyxProps = {
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
+    personalBankAccountDraft: OnyxEntry<ReimbursementAccountForm>;
 
     /** Contains plaid data */
     plaidData: OnyxEntry<PlaidData>;
@@ -42,11 +42,11 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACC
     return errorFields;
 };
 
-function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidData}: PlaidProps) {
+function Plaid({personalBankAccountDraft, onNext, plaidData}: PlaidProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
+    const selectedPlaidAccountID = personalBankAccountDraft?.plaidAccountID ?? '';
 
     useEffect(() => {
         const plaidBankAccounts = plaidData?.bankAccounts ?? [];
@@ -58,9 +58,14 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
 
     const handleNextPress = useCallback(() => {
         onNext();
-    }, [plaidData, onNext]);
+    }, [onNext]);
 
     const bankAccountID = '';
+    console.log({
+        bank: plaidData?.bankAccounts,
+    });
+
+
 
     return (
         <FormProvider
@@ -73,18 +78,17 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
         >
             <InputWrapper
-                // @ts-expect-error TODO: Remove this once AddPlaidBankAccount (https://github.com/Expensify/App/issues/25119) is migrated to TypeScript
                 InputComponent={AddPlaidBankAccount}
                 text={translate('bankAccount.chooseAccountBody')}
                 onSelect={(plaidAccountID: string) => {
-                    ReimbursementAccountActions.updateReimbursementAccountDraft({plaidAccountID});
+                    BankAccounts.updateAddPersonalBankAccountDraft({plaidAccountID});
                 }}
                 plaidData={plaidData}
                 onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
                 allowDebit
+                isNewWalletFlow
                 bankAccountID={bankAccountID}
                 selectedPlaidAccountID={selectedPlaidAccountID}
-                isDisplayedInNewVBBA
                 inputID={BANK_INFO_STEP_KEYS.SELECTED_PLAID_ACCOUNT_ID}
                 inputMode={CONST.INPUT_MODE.TEXT}
                 style={[styles.mt5]}
@@ -101,8 +105,8 @@ export default withOnyx<PlaidProps, PlaidOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
+    personalBankAccountDraft: {
+        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT,
     },
     plaidData: {
         key: ONYXKEYS.PLAID_DATA,

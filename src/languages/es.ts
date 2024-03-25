@@ -1024,6 +1024,12 @@ export default {
         expensifyCard: 'Tarjeta Expensify',
         walletActivationPending: 'Estamos revisando su información, por favor vuelve en unos minutos.',
         walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
+        // TODO: spanish translations
+        addBankAccountBody: "Let's connect your bank account to Expensify so it’s easier than ever to send and receive payments directly in the app.",
+        chooseYourBankAccount: 'Choose your bank account.',
+        chooseAccountBody: 'Make sure that you select the right one.',
+        confirmYourBankAccount: 'Confirm your bank account.',
+        letsDoubleCheck: "Let's double check that everything looks right.",
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -1420,7 +1426,7 @@ export default {
         sendAndReceiveMoney: 'Send and receive money',
         thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo',
         // TODO: change for Spanish transations
-        addBankAccountBodyPt1: 'Add your bank account and we’ll connect it to your Expensify Wallet so you can send and receive money right in the app.',
+        addBankAccountBody: 'Add your bank account and we’ll connect it to your Expensify Wallet so you can send and receive money right in the app.',
         addBankAccountBodyPt2: 'Don’t worry, you’ll be able to withdraw funds from your wallet at any time.',
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',

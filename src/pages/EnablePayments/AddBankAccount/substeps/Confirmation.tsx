@@ -11,19 +11,14 @@ import useNetwork from '@hooks/useNetwork';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
+import type {PersonalBankAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ReimbursementAccount} from '@src/types/onyx';
 
 type ConfirmationOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
+    personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
 };
 
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
@@ -31,16 +26,21 @@ type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const BANK_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.BANK_ACCOUNT;
 
-function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
+function Confirmation({reimbursementAccount, personalBankAccountDraft, plaidData, onNext, onMove, userWallet}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const isLoading = reimbursementAccount?.isLoading ?? false;
-    const setupType = reimbursementAccount?.achData?.subStep ?? '';
+    console.log({plaidData});
+
+    const values = plaidData?.bankAccounts?.find((account) => account.plaidAccountID === personalBankAccountDraft.plaidAccountID);
+
+    console.log(values);
+
+    const isLoading = plaidData?.isLoading ?? false;
+    const setupType = userWallet.subStep ?? '';
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
-    const values = useMemo(() => getSubstepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
-    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
+    const error = ErrorUtils.getLatestErrorMessage(userWallet ?? {});
 
     const handleModifyAccountNumbers = () => {
         onMove(BANK_INFO_STEP_INDEXES.ACCOUNT_NUMBERS);
@@ -51,8 +51,8 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
             style={styles.pt0}
             contentContainerStyle={styles.flexGrow1}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('bankAccount.letsDoubleCheck')}</Text>
-            <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textSupporting]}>{translate('bankAccount.thisBankAccount')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('walletPage.confirmYourBankAccount')}</Text>
+            <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textSupporting]}>{translate('bankAccount.letsDoubleCheck')}</Text>
             {setupType === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL && (
                 <View style={[styles.mb5]}>
                     <MenuItemWithTopDescription
@@ -90,6 +90,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                     isLoading={isLoading}
                     isDisabled={isLoading || isOffline}
                     success
+                    large
                     style={[styles.w100]}
                     onPress={onNext}
                     text={translate('common.confirm')}
@@ -102,11 +103,13 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
 Confirmation.displayName = 'Confirmation';
 
 export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    plaidData: {
+        key: ONYXKEYS.PLAID_DATA,
     },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
+    personalBankAccountDraft: {
+        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT,
+    },
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
     },
 })(Confirmation);

@@ -90,6 +90,7 @@ function openPersonalBankAccountSetupViewRefactor(exitReportID?: string) {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
         }
+        Onyx.merge(ONYXKEYS.USER_WALLET, {subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
     });
 }
 
@@ -103,11 +104,17 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
 function clearPersonalBankAccount() {
     clearPlaid();
     Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+    Onyx.merge(ONYXKEYS.USER_WALLET, {subStep: null});
 }
 
 function clearOnfidoToken() {
     Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
     Onyx.merge(ONYXKEYS.ONFIDO_APPLICANT_ID, '');
+}
+
+
+function updateAddPersonalBankAccountDraft(bankData) {
+    Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT, bankData);
 }
 
 /**
@@ -538,7 +545,8 @@ export {
     validateBankAccount,
     verifyIdentityForBankAccount,
     setReimbursementAccountLoading,
-    openPersonalBankAccountSetupViewRefactor
+    openPersonalBankAccountSetupViewRefactor,
+    updateAddPersonalBankAccountDraft,
 };
 
 export type {BusinessAddress, PersonalAddress};
