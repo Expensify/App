@@ -288,6 +288,9 @@ function ComposerWithSuggestions(
 
     const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
+    // The ref to check whether the comment saving is in progress
+    const isCommentPendingSaved = useRef(false);
+
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
      * API is not called too often.
@@ -323,6 +326,7 @@ function ComposerWithSuggestions(
         () =>
             lodashDebounce((selectedReportID, newComment) => {
                 Report.saveReportComment(selectedReportID, newComment || '');
+                isCommentPendingSaved.current = false;
             }, 1000),
         [],
     );
@@ -433,6 +437,7 @@ function ComposerWithSuggestions(
 
             commentRef.current = newCommentConverted;
             if (shouldDebounceSaveComment) {
+                isCommentPendingSaved.current = true;
                 debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
                 Report.saveReportComment(reportID, newCommentConverted || '');
@@ -481,6 +486,7 @@ function ComposerWithSuggestions(
         // We don't really care about saving the draft the user was typing
         // We need to make sure an empty draft gets saved instead
         debouncedSaveReportComment.cancel();
+        isCommentPendingSaved.current = false;
 
         updateComment('');
         setTextInputShouldClear(true);
@@ -782,6 +788,7 @@ function ComposerWithSuggestions(
                     value={value}
                     updateComment={updateComment}
                     commentRef={commentRef}
+                    isCommentPendingSaved={isCommentPendingSaved}
                 />
             )}
 
