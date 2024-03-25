@@ -25,7 +25,6 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         return config;
     }, [shouldEnableAutoScrollToTopThreshold]);
 
-    console.debug(`[E2E] BaseInverted.NOT`);
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading

@@ -35,7 +35,7 @@ const test = (config: NativeConfig) => {
                 Timing.start(CONST.TIMING.SWITCH_REPORT);
                 Performance.markStart(CONST.TIMING.SWITCH_REPORT);
 
-                Navigation.navigate(ROUTES.REPORT_WITH_ID_AND_ACTION_ID.getRoute(linkedReportID, linkedReportActionID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(linkedReportID, linkedReportActionID));
                 return;
             }
 
