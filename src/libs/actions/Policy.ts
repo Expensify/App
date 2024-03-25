@@ -64,6 +64,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -121,7 +122,7 @@ type OptimisticCustomUnits = {
     outputCurrency: string;
 };
 
-type PoliciesRecord = Record<string, OnyxEntry<Policy>>;
+type PoliciesRecord = Record<string, OnyxEntry<PolicySelector>>;
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -267,8 +268,8 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Check if the user has any active free policies (aka workspaces)
  */
-function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<Policy>> | PoliciesRecord, includeOnlyFreePolicies = false): boolean {
-    const adminChatEnabledPolicies = Object.values(policies).filter(
+function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>> | OnyxCollection<PolicySelector>, includeOnlyFreePolicies = false): boolean {
+    const adminChatEnabledPolicies = Object.values(policies ?? {}).filter(
         (policy) =>
             policy &&
             ((policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN) ||

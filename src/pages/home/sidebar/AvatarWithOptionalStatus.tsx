@@ -1,25 +1,18 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
-const propTypes = {
+type AvatarWithOptionalStatusProps = {
     /** Emoji status */
-    emojiStatus: PropTypes.string,
+    emojiStatus?: string;
 
     /** Whether the avatar is selected */
-    isSelected: PropTypes.bool,
+    isSelected?: boolean;
 };
 
-const defaultProps = {
-    emojiStatus: '',
-    isSelected: false,
-};
-
-function AvatarWithOptionalStatus({emojiStatus, isSelected}) {
+function AvatarWithOptionalStatus({emojiStatus = '', isSelected = false}: AvatarWithOptionalStatusProps) {
     const styles = useThemeStyles();
 
     return (
@@ -37,7 +30,6 @@ function AvatarWithOptionalStatus({emojiStatus, isSelected}) {
     );
 }
 
-AvatarWithOptionalStatus.propTypes = propTypes;
-AvatarWithOptionalStatus.defaultProps = defaultProps;
 AvatarWithOptionalStatus.displayName = 'AvatarWithOptionalStatus';
+
 export default AvatarWithOptionalStatus;

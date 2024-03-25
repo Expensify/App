@@ -83,7 +83,7 @@ function ReportActionItemMessageEdit(
     const prevDraftMessage = usePrevious(draftMessage);
 
     const getInitialDraft = () => {
-        if (draftMessage === action?.message?.[0].html) {
+        if (draftMessage === action?.message?.[0]?.html) {
             // We only convert the report action message to markdown if the draft message is unchanged.
             const parser = new ExpensiMark();
             return parser.htmlToMarkdown(draftMessage).trim();
@@ -126,7 +126,7 @@ function ReportActionItemMessageEdit(
     const draftRef = useRef(draft);
 
     useEffect(() => {
-        if (ReportActionsUtils.isDeletedAction(action) || Boolean(action.message && draftMessage === action.message[0].html) || Boolean(prevDraftMessage === draftMessage)) {
+        if (ReportActionsUtils.isDeletedAction(action) || Boolean(action.message && draftMessage === action.message?.[0]?.html) || Boolean(prevDraftMessage === draftMessage)) {
             return;
         }
         setDraft(Str.htmlDecode(draftMessage));

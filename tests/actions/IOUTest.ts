@@ -2801,7 +2801,7 @@ describe('actions/IOU', () => {
                     callback: (reportActionsForReport) => {
                         Onyx.disconnect(connectionID);
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
-                        expect(createIOUAction?.message?.[0].isDeletedParentAction).toBeTruthy();
+                        expect(createIOUAction?.message?.[0]?.isDeletedParentAction).toBeTruthy();
                         resolve();
                     },
                 });
@@ -2820,7 +2820,7 @@ describe('actions/IOU', () => {
                     callback: (reportActionsForReport) => {
                         Onyx.disconnect(connectionID);
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
-                        expect(createIOUAction?.message?.[0].isDeletedParentAction).toBeTruthy();
+                        expect(createIOUAction?.message?.[0]?.isDeletedParentAction).toBeTruthy();
                         resolve();
                     },
                 });
@@ -2855,7 +2855,7 @@ describe('actions/IOU', () => {
 
             const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport?.reportID ?? '', iouReport?.reportID ?? '');
             expect(ioupreview).toBeTruthy();
-            expect(ioupreview?.message?.[0].text).toBe('rory@expensifail.com owes $300.00');
+            expect(ioupreview?.message?.[0]?.text).toBe('rory@expensifail.com owes $300.00');
 
             // When we delete the first money request
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
