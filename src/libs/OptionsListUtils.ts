@@ -1800,6 +1800,8 @@ function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: On
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
+        includeSelfDM: true,
+        includeThreads: true,
     });
 }
 
