@@ -107,6 +107,9 @@ type ListItem = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** The search value from the selection list */
+    searchText?: string | null;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {
@@ -229,7 +232,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     confirmButtonText?: string;
 
     /** Callback to fire when the confirm button is pressed */
-    onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: TItem) => void;
 
     /** Whether to show the vertical scroll indicator */
     showScrollIndicator?: boolean;
