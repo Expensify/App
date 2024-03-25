@@ -322,7 +322,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
 }
 
-function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number) {
+function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const originalTaxRate = {...policy?.taxRates?.taxes[taxID]};
     const stringTaxValue = `${taxValue}%`;
