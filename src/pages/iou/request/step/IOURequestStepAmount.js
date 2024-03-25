@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,6 +39,9 @@ const propTypes = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: transactionPropTypes,
 
+    /** The draft transaction object being modified in Onyx */
+    draftTransaction: transactionPropTypes,
+
     /** The policy of the report */
     policy: PropTypes.shape({
         /**
@@ -61,6 +65,7 @@ const defaultProps = {
     report: {},
     transaction: {},
     splitDraftTransaction: {},
+    draftTransaction: {},
     policy: {},
 };
 
@@ -76,7 +81,7 @@ function IOURequestStepAmount({
     },
     transaction,
     splitDraftTransaction,
-    transaction: {currency},
+    draftTransaction,
     policy,
 }) {
     const {translate} = useLocalize();
@@ -89,6 +94,7 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
+    const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction);
 
     const taxRates = lodashGet(policy, 'taxRates', {});
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
@@ -107,6 +113,19 @@ function IOURequestStepAmount({
     );
 
     useEffect(() => {
+        if (isEditing) {
+            // A temporary solution to not prevent users from editing the currency
+            // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
+            // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
+            TransactionEdit.createBackupTransaction(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
+
+            return () => {
+                if (isSaveButtonPressed.current) {
+                    return;
+                }
+                TransactionEdit.removeBackupTransaction(transaction.transactionID || '');
+            };
+        }
         if (transaction.originalCurrency) {
             originalCurrency.current = transaction.originalCurrency;
         } else {
@@ -220,6 +239,12 @@ export default compose(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        draftTransaction: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+            },
         },
     }),
 )(IOURequestStepAmount);

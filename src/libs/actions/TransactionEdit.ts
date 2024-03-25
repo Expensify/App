@@ -38,5 +38,4 @@ function restoreOriginalTransactionFromBackup(transactionID: string) {
         },
     });
 }
-
 export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup};

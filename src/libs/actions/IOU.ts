@@ -343,12 +343,13 @@ function setMoneyRequestCreated(transactionID: string, created: string, isDraft:
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestCurrency_temporaryForRefactor(transactionID: string, currency: string, removeOriginalCurrency = false) {
+function setMoneyRequestCurrency_temporaryForRefactor(transactionID: string, currency: string, removeOriginalCurrency = false, isEditing = false) {
+    const fieldToUpdate = isEditing ? 'modifiedCurrency' : 'currency';
     if (removeOriginalCurrency) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency, originalCurrency: null});
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency, originalCurrency: null});
         return;
     }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency});
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
