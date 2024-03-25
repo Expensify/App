@@ -6,7 +6,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import * as Expensicons from '@components/Icon/Expensicons';
-import Image from '@components/Image';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
@@ -97,9 +96,13 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
         );
     } else {
         receiptImageComponent = (
-            <Image
-                source={imageSource}
+            <ThumbnailImage
+                previewSourceURL={imageSource ?? ''}
                 style={[styles.w100, styles.h100]}
+                isAuthTokenRequired={false}
+                fallbackIcon={Expensicons.Receipt}
+                fallbackIconSize={isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge}
+                shouldDynamicallyResize={false}
                 objectPosition={CONST.IMAGE_OBJECT_POSITION.TOP}
             />
         );
