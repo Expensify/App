@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -144,11 +144,13 @@ function WorkspaceMembersPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedEmployees, policy?.owner, session?.accountID]);
 
-    useFocusEffect(
-        useCallback(() => {
-            getWorkspaceMembers();
-        }, [getWorkspaceMembers]),
-    );
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        getWorkspaceMembers();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFocused]);
 
     useEffect(() => {
         validateSelection();
