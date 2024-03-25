@@ -179,10 +179,12 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const toggleAllRates = () => {
-        if (selectedDistanceRates.length === Object.values(customUnitRates).length) {
+        const allSelectableRates = Object.values(customUnitRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        if (selectedDistanceRates.length === allSelectableRates.length) {
             setSelectedDistanceRates([]);
         } else {
-            setSelectedDistanceRates([...Object.values(customUnitRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)]);
+            setSelectedDistanceRates([...allSelectableRates]);
         }
     };
 
