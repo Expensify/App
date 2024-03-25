@@ -89,7 +89,7 @@ function ReportActionItemMessageEdit(
             return parser.htmlToMarkdown(draftMessage).trim();
         }
         // We need to decode saved draft message because it's escaped before saving.
-        return draftMessage
+        return draftMessage;
     };
 
     const getInitialSelection = () => {
