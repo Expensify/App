@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -11,7 +12,7 @@ type IgnoreDirection = 'parent' | 'child';
 function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
 
-    if (!reportAction.reportActionID) {
+    if (!reportAction?.reportActionID) {
         return;
     }
 
@@ -79,6 +80,7 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
 
     if (reportAction.childReportID && ignore !== 'child') {
         const childActions = ReportActionUtils.getAllReportActions(reportAction.childReportID);
+        console.log('childActions', childActions);
         Object.values(childActions).forEach((action) => {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
             clearAllRelatedReportActionErrors(reportAction.childReportID ?? '', action, 'parent', childErrorKeys);
@@ -88,5 +90,6 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
 
 export {
     // eslint-disable-next-line import/prefer-default-export
+    clearReportActionErrors,
     clearAllRelatedReportActionErrors,
 };
