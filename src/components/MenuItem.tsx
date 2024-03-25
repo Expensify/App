@@ -35,8 +35,8 @@ import MultipleAvatars from './MultipleAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
+import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
-import SubscriptAvatar from "./SubscriptAvatar";
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -631,7 +631,6 @@ function MenuItem(
                                                     isFocusMode
                                                 />
                                             )}
-
                                         </View>
                                     )}
                                     {!!brickRoadIndicator && (

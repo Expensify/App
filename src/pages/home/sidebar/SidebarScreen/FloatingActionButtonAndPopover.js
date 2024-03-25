@@ -149,7 +149,7 @@ function FloatingActionButtonAndPopover(props) {
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
             const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
-            return (avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport)) ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
+            return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
         }
         return [];
     }, [props.personalDetails, props.session.accountID, quickActionReport]);
