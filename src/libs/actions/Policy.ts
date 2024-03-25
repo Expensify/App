@@ -83,6 +83,7 @@ import type {
     ReimbursementAccount,
     Report,
     ReportAction,
+    TaxRatesWithDefault,
     Transaction,
 } from '@src/types/onyx';
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -3669,6 +3670,62 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 }
 
 function enablePolicyTaxes(policyID: string, enabled: boolean) {
+    const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
+    const taxRatesData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        ...defaultTaxRates,
+                        taxes: {
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (prevTaxesData, taxKey) => ({
+                                    ...prevTaxesData,
+                                    [taxKey]: {
+                                        ...defaultTaxRates.taxes[taxKey],
+                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    },
+                                }),
+                                {},
+                            ),
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (prevTaxesData, taxKey) => ({
+                                    ...prevTaxesData,
+                                    [taxKey]: {pendingAction: null},
+                                }),
+                                {},
+                            ),
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: undefined,
+                },
+            },
+        ],
+    };
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const shouldAddDefaultTaxRatesData = (!policy?.taxRates || isEmptyObject(policy.taxRates)) && enabled;
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3683,6 +3740,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.optimisticData ?? [] : []),
         ],
         successData: [
             {
@@ -3694,6 +3752,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []),
         ],
         failureData: [
             {
@@ -3708,11 +3767,14 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.failureData ?? [] : []),
         ],
     };
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
-
+    if (shouldAddDefaultTaxRatesData) {
+        parameters.taxFields = JSON.stringify(defaultTaxRates);
+    }
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled) {
@@ -4623,3 +4685,5 @@ export {
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
 };
+
+export type {NewCustomUnit};
