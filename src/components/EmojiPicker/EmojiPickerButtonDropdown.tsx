@@ -18,19 +18,12 @@ import CONST from '@src/CONST';
 type EmojiPickerButtonDropdownProps = {
     /** Flag to disable the emoji picker button */
     isDisabled?: boolean;
-
     accessibilityLabel?: string;
-
     role?: string;
-
     onModalHide: EmojiPickerAction.OnModalHideValue;
-
     onInputChange: (emoji: string) => void;
-
     value?: string;
-
     disabled?: boolean;
-
     style: StyleProp<ViewStyle>;
 };
 
