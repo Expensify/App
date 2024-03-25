@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import type {StepIdentifier} from '@kie/act-js';
 import {createMockStep} from '../utils/utils';
 
 // lint
@@ -13,7 +14,7 @@ const LINT__LINT__STEP_MOCKS = [
     LINT__LINT__LINT_JAVASCRIPT_WITH_ESLINT__STEP_MOCK,
     LINT__LINT__VERIFY_NO_PRETTIER__STEP_MOCK,
     LINT__LINT__RUN_UNUSED_SEARCHER__STEP_MOCK,
-] as const;
+] as const satisfies StepIdentifier[];
 
 export {
     // eslint-disable-next-line import/prefer-default-export
