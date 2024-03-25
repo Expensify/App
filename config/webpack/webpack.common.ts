@@ -9,6 +9,7 @@ import type {Configuration} from 'webpack';
 import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import CustomVersionFilePlugin from './CustomVersionFilePlugin';
+import type Env from './types';
 
 // require is necessary, there are no types for this package and the declaration file can't be seen by the build process which causes an error.
 const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
@@ -47,7 +48,7 @@ function mapEnvToLogoSuffix(envFile: string): string {
 /**
  * Get a production grade config for web or desktop
  */
-const getCommonConfig = ({envFile = '.env', platform = 'web'}): Configuration => ({
+const getCommonConfig = ({envFile = '.env', platform = 'web'}: Env): Configuration => ({
     mode: 'production',
     devtool: 'source-map',
     entry: {

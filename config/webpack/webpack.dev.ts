@@ -6,7 +6,7 @@ import type {Configuration} from 'webpack';
 import {DefinePlugin} from 'webpack';
 import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
 import {merge} from 'webpack-merge';
-import type {EnvFile} from './types';
+import type Env from './types';
 import getCommonConfig from './webpack.common';
 
 const BASE_PORT = 8082;
@@ -14,7 +14,7 @@ const BASE_PORT = 8082;
 /**
  * Configuration for the local dev server
  */
-const getConfig = (env: EnvFile = {}): Promise<Configuration> =>
+const getConfig = (env: Env): Promise<Configuration> =>
     portfinder.getPortPromise({port: BASE_PORT}).then((port) => {
         // Check if the USE_WEB_PROXY variable has been provided
         // and rewrite any requests to the local proxy server
