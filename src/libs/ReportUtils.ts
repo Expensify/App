@@ -876,13 +876,6 @@ function isPolicyExpenseChat(report: OnyxEntry<Report> | Participant | EmptyObje
 }
 
 /**
- * Whether the provided report belongs to a Control policy and is an expense chat
- */
-function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
-    return isPolicyExpenseChat(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
-}
-
-/**
  * Whether the provided report belongs to a Free, Collect or Control policy
  */
 function isGroupPolicy(report: OnyxEntry<Report>): boolean {
@@ -903,13 +896,6 @@ function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
  */
 function isPaidGroupPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
     return isPolicyExpenseChat(report) && isPaidGroupPolicy(report);
-}
-
-/**
- * Whether the provided report belongs to a Control policy and is an expense report
- */
-function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
 /**
@@ -1204,19 +1190,6 @@ function isAllowedToComment(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks if the current user is the admin of the policy given the policy expense chat.
- */
-function isPolicyExpenseChatAdmin(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
-    if (!isPolicyExpenseChat(report)) {
-        return false;
-    }
-
-    const policyRole = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.role;
-
-    return policyRole === CONST.POLICY.ROLE.ADMIN;
-}
-
-/**
  * Checks if the current user is the admin of the policy.
  */
 function isPolicyAdmin(policyID: string, policies: OnyxCollection<Policy>): boolean {
@@ -1258,13 +1231,6 @@ function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
  */
 function isThreadFirstChat(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
     return reportAction?.childReportID?.toString() === reportID;
-}
-
-/**
- * Checks if a report is a child report.
- */
-function isChildReport(report: OnyxEntry<Report>): boolean {
-    return isThread(report) || isTaskReport(report);
 }
 
 /**
@@ -4601,19 +4567,6 @@ function shouldShowFlagComment(reportAction: OnyxEntry<ReportAction>, report: On
 }
 
 /**
- * @param sortedAndFilteredReportActions - reportActions for the report, sorted newest to oldest, and filtered for only those that should be visible
- */
-function getNewMarkerReportActionID(report: OnyxEntry<Report>, sortedAndFilteredReportActions: ReportAction[]): string {
-    if (!isUnread(report)) {
-        return '';
-    }
-
-    const newMarkerIndex = lodashFindLastIndex(sortedAndFilteredReportActions, (reportAction) => (reportAction.created ?? '') > (report?.lastReadTime ?? ''));
-
-    return 'reportActionID' in sortedAndFilteredReportActions[newMarkerIndex] ? sortedAndFilteredReportActions[newMarkerIndex].reportActionID : '';
-}
-
-/**
  * Performs the markdown conversion, and replaces code points > 127 with C escape sequences
  * Used for compatibility with the backend auth validator for AddComment, and to account for MD in comments
  * @returns The comment's total length as seen from the backend
@@ -4688,13 +4641,6 @@ function getReportIDFromLink(url: string | null): string {
         return '';
     }
     return reportID;
-}
-
-/**
- * Get the report policyID given a reportID
- */
-function getReportPolicyID(reportID?: string): string | undefined {
-    return originalGetReportPolicyID(reportID);
 }
 
 /**
@@ -5611,7 +5557,6 @@ export {
     isClosedExpenseReportWithNoExpenses,
     isExpensifyOnlyParticipantInReport,
     canCreateTaskInReport,
-    isPolicyExpenseChatAdmin,
     isPolicyAdmin,
     isPublicRoom,
     isPublicAnnounceRoom,
@@ -5629,8 +5574,6 @@ export {
     isPolicyExpenseChat,
     isGroupPolicy,
     isPaidGroupPolicy,
-    isControlPolicyExpenseChat,
-    isControlPolicyExpenseReport,
     isPaidGroupPolicyExpenseChat,
     isPaidGroupPolicyExpenseReport,
     getIconsForParticipants,
@@ -5641,7 +5584,6 @@ export {
     getReport,
     getReportNotificationPreference,
     getReportIDFromLink,
-    getReportPolicyID,
     getRouteFromLink,
     getDeletedParentActionMessageForChatReport,
     getLastVisibleMessage,
@@ -5697,7 +5639,6 @@ export {
     isMoneyRequestReport,
     isMoneyRequest,
     chatIncludesChronos,
-    getNewMarkerReportActionID,
     canSeeDefaultRoom,
     getDefaultWorkspaceAvatar,
     getDefaultWorkspaceAvatarTestID,
@@ -5712,7 +5653,6 @@ export {
     isThread,
     isChatThread,
     isThreadFirstChat,
-    isChildReport,
     shouldReportShowSubscript,
     isReportDataReady,
     isValidReportIDFromPath,
