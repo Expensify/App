@@ -86,9 +86,7 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
         type: fileData.type,
         width: fileData.width,
         height: fileData.height,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         uri: fileData.uri,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         size: fileData.size,
     };
 
@@ -256,11 +254,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      */
     const pickAttachment = useCallback(
         (attachments: Asset[] | DocumentPickerResponse[] | void = []): Promise<void> | undefined => {
-            if (!attachments) {
-                onCanceled.current();
-                return Promise.resolve();
-            }
-            if (attachments.length === 0) {
+            if (!attachments || attachments.length === 0) {
                 onCanceled.current();
                 return Promise.resolve();
             }
@@ -270,22 +264,19 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 onCanceled.current();
                 return Promise.resolve();
             }
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
             const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) || '';
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const fileDataUri = ('fileCopyUri' in fileData && fileData.fileCopyUri) || ('uri' in fileData && fileData.uri) || '';
 
             const fileDataObject: FileResponse = {
                 name: fileDataName ?? '',
                 uri: fileDataUri,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 size: ('size' in fileData && fileData.size) || ('fileSize' in fileData && fileData.fileSize) || null,
                 type: fileData.type ?? '',
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 width: ('width' in fileData && fileData.width) || undefined,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 height: ('height' in fileData && fileData.height) || undefined,
             };
+            /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
             if (fileDataName && Str.isImage(fileDataName)) {
                 RNImage.getSize(fileDataUri, (width, height) => {
                     fileDataObject.width = width;
