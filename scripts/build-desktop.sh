@@ -13,7 +13,7 @@ else
   ENV_FILE=".env"
 fi
 
-if [[ -n $GCP_GEOLOCATION_API_KEY ]]; then
+if [[ -n "$GCP_GEOLOCATION_API_KEY" ]]; then
   if grep -q "^GCP_GEOLOCATION_API_KEY=" "$ENV_FILE"; then
       # Replace the value for the existing key
       sed -i "s|^GCP_GEOLOCATION_API_KEY=.*$|GCP_GEOLOCATION_API_KEY=$GCP_GEOLOCATION_API_KEY|g" "$ENV_FILE"
