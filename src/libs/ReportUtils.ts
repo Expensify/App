@@ -75,6 +75,8 @@ import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
 
+type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
+
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string};
 
 type ExpenseOriginalMessage = {
@@ -1537,8 +1539,12 @@ function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
 //  * Helper method to return the default avatar associated with the given reportID
 //  * TO REWORK!
 //  */
-function getDefaultGroupAvatar(): IconAsset {
-    return defaultGroupAvatars.Avatar1;
+function getDefaultGroupAvatar(reportID?: string): IconAsset {
+    if (!reportID) {
+        return defaultGroupAvatars.Avatar1;
+    }
+    const reportIDHashBucket: AvatarRange = ((Number(reportID) % CONST.DEFAULT_GROUP_AVATAR_COUNT) + 1) as AvatarRange;
+    return defaultGroupAvatars[`Avatar${reportIDHashBucket}`];
 }
 
 /**
@@ -1725,8 +1731,8 @@ function getIcons(
 
     if (isGroupChat(report)) {
         const groupChatIcon = {
-            source: getDefaultGroupAvatar(),
-            id: report?.ownerAccountID,
+            source: getDefaultGroupAvatar(report.reportID),
+            id: -1,
             type: CONST.ICON_TYPE_AVATAR,
             name: report?.reportName ?? '',
         };
@@ -3701,8 +3707,9 @@ function buildOptimisticChatReport(
             hidden: false,
             role: accountID === currentUserAccountID ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
         };
-
-        return {...reportParticipants, [accountID]: participant};
+        // eslint-disable-next-line no-param-reassign
+        reportParticipants[accountID] = participant;
+        return reportParticipants;
     }, {} as Participants);
     const currentTime = DateUtils.getDBTime();
     const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;

@@ -31,6 +31,7 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import * as GroupChatUtils from '@libs/GroupChatUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
@@ -2271,25 +2272,25 @@ function createSplitsAndOnyxData(
     if (!existingSplitChatReport) {
         existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
     }
-    let newChat: ReportUtils.OptimisticChatReport = {};
+    let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
 
-    if (!existingSplitChatReport) {
-        if (participants.length > 1) {
-            newChat = ReportUtils.buildOptimisticChatReport(
-                participantAccountIDs,
-                '',
-                CONST.REPORT.CHAT_TYPE.GROUP,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-            );
-        } else {
-            newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
-        }
+    if (!existingSplitChatReport && participants.length > 1) {
+        const reportName = GroupChatUtils.getGroupChatName(participantAccountIDs);
+        newChat = ReportUtils.buildOptimisticChatReport(
+            participantAccountIDs,
+            reportName,
+            CONST.REPORT.CHAT_TYPE.GROUP,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        );
+    }
+    if (isEmptyObject(newChat)) {
+        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
     const splitChatReport = existingSplitChatReport ?? newChat;
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;

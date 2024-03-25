@@ -243,12 +243,14 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         }
         updateOptions();
         if (newGroupDraft?.participants) {
-            const accountIDs = newGroupDraft?.participants.map((participant: {accountID: number}) => participant.accountID);
-            const invitedUsersPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
-            const groupSelectedOptions = OptionsListUtils.getMemberInviteOptions(invitedUsersPersonalDetails).personalDetails;
-            setSelectedOptions(groupSelectedOptions);
+            const selectedParticipants = newGroupDraft?.participants.filter((participant: {accountID: number}) => participant.accountID !== personalData.accountID);
+            const options = selectedParticipants.map(
+                (participant: {accountID: number; login: string}) =>
+                    OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, personalDetails) as OptionData,
+            );
+            setSelectedOptions(options);
         }
-    }, [didScreenTransitionEnd, updateOptions, personalDetails, newGroupDraft?.participants]);
+    }, [didScreenTransitionEnd, updateOptions, personalDetails, newGroupDraft?.participants, personalData.accountID]);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
