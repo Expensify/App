@@ -27,6 +27,7 @@ import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -42,6 +43,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -68,6 +70,7 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 const isMobileSafari = Browser.isMobileSafari();
+const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
@@ -108,10 +111,7 @@ function ReportActionItemMessageEdit(
         }
         return initialDraft;
     });
-    const [selection, setSelection] = useState<{
-        start: number;
-        end: number;
-    }>(getInitialSelection);
+    const [selection, setSelection] = useState<Selection>(getInitialSelection);
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState<OnyxTypes.Modal>({
@@ -124,6 +124,7 @@ function ReportActionItemMessageEdit(
     const isFocusedRef = useRef<boolean>(false);
     const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
+    const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
 
     useEffect(() => {
         if (ReportActionsUtils.isDeletedAction(action) || Boolean(action.message && draftMessage === action.message[0].html) || Boolean(prevDraftMessage === draftMessage)) {
@@ -336,10 +337,17 @@ function ReportActionItemMessageEdit(
      * @param emoji
      */
     const addEmojiToTextBox = (emoji: string) => {
-        setSelection((prevSelection) => ({
-            start: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
-            end: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
-        }));
+        const newSelection = {
+            start: selection.start + emoji.length + CONST.SPACE_LENGTH,
+            end: selection.start + emoji.length + CONST.SPACE_LENGTH,
+        };
+        setSelection(newSelection);
+
+        if (shouldUseForcedSelectionRange) {
+            // On Android and Chrome mobile, focusing the input sets the cursor position back to the start.
+            // To fix this, immediately set the selection again after focusing the input.
+            emojiPickerSelectionRef.current = newSelection;
+        }
         updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
 
@@ -453,7 +461,9 @@ function ReportActionItemMessageEdit(
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={shouldDisableEmojiPicker}
-                            onModalHide={() => focus(true)}
+                            onModalHide={() => {
+                                focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+                            }}
                             onEmojiSelected={addEmojiToTextBox}
                             id={emojiButtonID}
                             emojiPickerID={action.reportActionID}
