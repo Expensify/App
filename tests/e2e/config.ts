@@ -91,7 +91,7 @@ export default {
         [TEST_NAMES.Linking]: {
             name: TEST_NAMES.Linking,
             reportScreen: {
-              autoFocus: true,
+                autoFocus: true,
             },
             // Crowded Policy (Do Not Delete) Report, has a input bar available:
             reportID: '8268282951170052',
