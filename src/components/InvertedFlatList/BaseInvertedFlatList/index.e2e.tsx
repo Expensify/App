@@ -1,31 +1,23 @@
-import type {ForwardedRef} from 'react';
 import React, {forwardRef, useMemo} from 'react';
-import type {FlatListProps, ScrollViewProps} from 'react-native';
-import FlatList from '@components/FlatList';
+import type {FlatListProps, ScrollViewProps, ViewToken} from 'react-native';
+import {FlatList} from 'react-native';
+import type {ReportAction} from '@src/types/onyx';
 
-type BaseInvertedFlatListProps<T> = FlatListProps<T> & {
+type BaseInvertedFlatListProps = FlatListProps<ReportAction> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
-type ViewableItem<T extends {reportActionID: string}> = {
-    item: T;
-    index: number;
-    key: string;
-    isViewable: boolean;
-};
+let localViewableItems: ViewToken[];
+const getViewableItems = () => localViewableItems;
 
-let localViewableItems: Array<ViewableItem<{reportActionID: string}>> | undefined;
-
-const getViewableItems = <T extends {reportActionID: string}>(): Array<ViewableItem<T>> | undefined => localViewableItems as Array<ViewableItem<T>> | undefined;
-
-function BaseInvertedFlatListE2e<T extends {reportActionID: string}>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList<T>>) {
+function BaseInvertedFlatListE2e(props: BaseInvertedFlatListProps, ref: React.ForwardedRef<FlatList<ReportAction>>) {
     const {shouldEnableAutoScrollToTopThreshold, ...rest} = props;
 
     const handleViewableItemsChanged = useMemo(
         () =>
-            ({viewableItems}: {viewableItems: Array<ViewableItem<T>>}) => {
+            ({viewableItems}: {viewableItems: ViewToken[]}) => {
                 localViewableItems = viewableItems;
             },
         [],
@@ -45,7 +37,7 @@ function BaseInvertedFlatListE2e<T extends {reportActionID: string}>(props: Base
     }, [shouldEnableAutoScrollToTopThreshold]);
 
     return (
-        <FlatList<T>
+        <FlatList<ReportAction>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             ref={ref}
