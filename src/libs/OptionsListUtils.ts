@@ -176,7 +176,7 @@ type GetOptions = {
     taxRatesOptions: CategorySection[];
 };
 
-type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
+type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -640,8 +640,7 @@ function createOption(
     reportActions: ReportActions,
     config?: PreviewConfig,
 ): ReportUtils.OptionData {
-    const {showChatPreviewLine = false, forcePolicyNamePreview = false} = config ?? {};
-
+    const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false} = config ?? {};
     const result: ReportUtils.OptionData = {
         text: undefined,
         alternateText: null,
@@ -683,10 +682,8 @@ function createOption(
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
     let reportName;
-
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
-
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
@@ -731,11 +728,11 @@ function createOption(
         result.lastMessageText = lastMessageText;
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
-        if (showChatPreviewLine || forcePolicyNamePreview) {
-            result.alternateText = getAlternateTextOption(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
-        }
+        result.alternateText = showPersonalDetails ? personalDetail.login : getAlternateTextOption(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
 
-        reportName = ReportUtils.getReportName(report);
+        reportName = showPersonalDetails
+            ? ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
+            : ReportUtils.getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '');
@@ -1428,7 +1425,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
     const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
         item: personalDetail,
-        ...createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], {}),
+        ...createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], {}, {showPersonalDetails: true}),
     }));
 
     return {
@@ -1620,7 +1617,6 @@ function getOptions(
     });
 
     const havingLoginPersonalDetails = options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail);
-
     let allPersonalDetailsOptions = havingLoginPersonalDetails;
 
     if (sortPersonalDetailsByAlphaAsc) {
