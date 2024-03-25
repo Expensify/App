@@ -13,9 +13,8 @@ const LINT__LINT__STEP_MOCKS = [
     LINT__LINT__LINT_JAVASCRIPT_WITH_ESLINT__STEP_MOCK,
     LINT__LINT__VERIFY_NO_PRETTIER__STEP_MOCK,
     LINT__LINT__RUN_UNUSED_SEARCHER__STEP_MOCK,
-] as const;
+];
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
+export default {
     LINT__LINT__STEP_MOCKS,
 };
