@@ -36,6 +36,7 @@ import PressableWithSecondaryInteraction from './PressableWithSecondaryInteracti
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
+import SubscriptAvatar from "@components/SubscriptAvatar";
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -186,6 +187,9 @@ type MenuItemBaseProps = {
     /** Prop to represent the size of the float right avatar images to be shown */
     floatRightAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
+    /** Whether the secondary right avatar should show as a subscript */
+    shouldShowSubscriptRightAvatar?: boolean;
+
     /** Affects avatar size  */
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -296,6 +300,7 @@ function MenuItem(
         rightComponent,
         floatRightAvatars = [],
         floatRightAvatarSize,
+        shouldShowSubscriptRightAvatar = false,
         avatarSize = CONST.AVATAR_SIZE.DEFAULT,
         isSmallAvatarSubscriptMenu = false,
         brickRoadIndicator,
@@ -608,15 +613,25 @@ function MenuItem(
                                     )}
                                     {floatRightAvatars?.length > 0 && (
                                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
-                                            <MultipleAvatars
-                                                isHovered={isHovered}
-                                                isPressed={pressed}
-                                                icons={floatRightAvatars}
-                                                size={floatRightAvatarSize ?? fallbackAvatarSize}
-                                                fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
-                                                shouldStackHorizontally={shouldStackHorizontally}
-                                                isFocusMode
-                                            />
+                                            {shouldShowSubscriptRightAvatar ? (
+                                                <SubscriptAvatar
+                                                    backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
+                                                    mainAvatar={floatRightAvatars[0]}
+                                                    secondaryAvatar={floatRightAvatars[1]}
+                                                    size={floatRightAvatarSize ?? fallbackAvatarSize}
+                                                />
+                                            ) : (
+                                                <MultipleAvatars
+                                                    isHovered={isHovered}
+                                                    isPressed={pressed}
+                                                    icons={floatRightAvatars}
+                                                    size={floatRightAvatarSize ?? fallbackAvatarSize}
+                                                    fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
+                                                    shouldStackHorizontally={shouldStackHorizontally}
+                                                    isFocusMode
+                                                />
+                                            )}
+
                                         </View>
                                     )}
                                     {!!brickRoadIndicator && (

@@ -149,7 +149,7 @@ function FloatingActionButtonAndPopover(props) {
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
             const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
-            return avatars.length <= 1 ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
+            return (avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport)) ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
         }
         return [];
     }, [props.personalDetails, props.session.accountID, quickActionReport]);
@@ -347,6 +347,7 @@ function FloatingActionButtonAndPopover(props) {
                                   description: ReportUtils.getReportName(quickActionReport),
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
+                                  shouldShowSubscriptRightAvatar: true,
                               },
                           ]
                         : []),

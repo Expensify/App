@@ -213,6 +213,7 @@ function PopoverMenu({
                         isLabelHoverable={item.isLabelHoverable}
                         floatRightAvatars={item.floatRightAvatars}
                         floatRightAvatarSize={item.floatRightAvatarSize}
+                        shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
                         disabled={item.disabled}
                     />
                 ))}
