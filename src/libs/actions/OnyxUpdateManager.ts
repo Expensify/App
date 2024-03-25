@@ -82,7 +82,7 @@ export default () => {
                     previousUpdateIDFromServer,
                     lastUpdateIDAppliedToClient,
                 });
-                canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+                canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer);
             }
 
             canUnpauseQueuePromise.finally(() => {

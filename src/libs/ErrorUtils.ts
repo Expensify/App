@@ -111,6 +111,21 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
 }
 
 /**
+ * Method used to get the latest error field for any field
+ */
+function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData): Errors {
+    const errorFields = onyxData.errorFields ?? {};
+
+    if (Object.keys(errorFields).length === 0) {
+        return {};
+    }
+
+    const fieldNames = Object.keys(errorFields);
+    const latestErrorFields = fieldNames.map((fieldName) => getLatestErrorField(onyxData, fieldName));
+    return latestErrorFields.reduce((acc, error) => ({...acc, ...error}), {});
+}
+
+/**
  * Method used to attach already translated message with isTranslated property
  * @param errors - An object containing current errors in the form
  * @returns Errors in the form of {timestamp: [message, {isTranslated}]}
@@ -176,6 +191,7 @@ export {
     getLatestErrorField,
     getLatestErrorMessage,
     getLatestErrorMessageField,
+    getLatestErrorFieldForAnyField,
     getMicroSecondOnyxError,
     getMicroSecondOnyxErrorObject,
     isReceiptError,
