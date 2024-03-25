@@ -1,13 +1,13 @@
 import type {TextStyle, View, ViewStyle} from 'react-native';
 import {Animated} from 'react-native';
 import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
-// eslint-disable-next-line no-restricted-imports
-import titleBarHeight from '@styles/utils/titleBarHeight';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import positioning from '@styles/utils/positioning';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
+// eslint-disable-next-line no-restricted-imports
+import titleBarHeight from '@styles/utils/titleBarHeight';
 import variables from '@styles/variables';
 import type StyleUtilGenerator from './types';
 
