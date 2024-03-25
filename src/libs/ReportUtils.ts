@@ -1894,7 +1894,6 @@ function getOptimisticPreviousReportActionIDForNewAction(reportID: string) {
 
 /**
  * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
- *
  */
 function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amount: number, currency: string): OptimisticCancelPaymentReportAction {
     return {
@@ -1924,6 +1923,7 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
             },
         ],
         reportActionID: NumberUtils.rand64(),
+        previousReportActionID: getOptimisticPreviousReportActionIDForNewAction(expenseReportID),
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
