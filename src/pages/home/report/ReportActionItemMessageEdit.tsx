@@ -82,31 +82,20 @@ function ReportActionItemMessageEdit(
     const {isSmallScreenWidth} = useWindowDimensions();
     const prevDraftMessage = usePrevious(draftMessage);
 
-    const getInitialDraft = () => {
-        if (Str.htmlEncode(draftMessage) === action?.message?.[0].html) {
-            // We only convert the report action message to markdown if the draft message is unchanged.
-            const parser = new ExpensiMark();
-            return parser.htmlToMarkdown(draftMessage).trim();
-        }
-        // We need to decode saved draft message because it's escaped before saving.
-        return draftMessage;
-    };
-
     const getInitialSelection = () => {
         if (isMobileSafari) {
             return {start: 0, end: 0};
         }
 
-        const length = getInitialDraft().length;
+        const length = draftMessage.length;
         return {start: length, end: length};
     };
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
-        const initialDraft = getInitialDraft();
-        if (initialDraft) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(initialDraft);
+        if (draftMessage) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftMessage);
         }
-        return initialDraft;
+        return draftMessage;
     });
     const [selection, setSelection] = useState<{
         start: number;
@@ -126,7 +115,9 @@ function ReportActionItemMessageEdit(
     const draftRef = useRef(draft);
 
     useEffect(() => {
-        if (ReportActionsUtils.isDeletedAction(action) || Boolean(action.message && draftMessage === action.message[0].html) || Boolean(prevDraftMessage === draftMessage)) {
+        const parser = new ExpensiMark();
+        const originalMessage = parser.htmlToMarkdown(action.message?.[0].html ?? '');
+        if (ReportActionsUtils.isDeletedAction(action) || Boolean(action.message && draftMessage === originalMessage) || Boolean(prevDraftMessage === draftMessage)) {
             return;
         }
         setDraft(draftMessage);
