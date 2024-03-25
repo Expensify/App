@@ -1254,7 +1254,7 @@ function sortTaxRates(taxRates: TaxRates): TaxRate[] {
 function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
     return taxRates.map((taxRate) => ({
         text: taxRate.modifiedName,
-        keyForList: taxRate.code,
+        keyForList: taxRate.modifiedName,
         searchText: taxRate.modifiedName,
         tooltipText: taxRate.modifiedName,
         isDisabled: taxRate.isDisabled,

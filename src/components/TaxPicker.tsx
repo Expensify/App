@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
@@ -47,8 +47,6 @@ function TaxPicker({selectedTaxRate = '', policy, insets, onSubmit}: TaxPickerPr
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const getTaxName = useCallback((key: string) => taxRates?.taxes[key]?.name, [taxRates?.taxes]);
-
     const selectedOptions = useMemo(() => {
         if (!selectedTaxRate) {
             return [];
@@ -56,12 +54,12 @@ function TaxPicker({selectedTaxRate = '', policy, insets, onSubmit}: TaxPickerPr
 
         return [
             {
-                name: getTaxName(selectedTaxRate),
+                name: selectedTaxRate,
                 enabled: true,
                 accountID: null,
             },
         ];
-    }, [selectedTaxRate, getTaxName]);
+    }, [selectedTaxRate]);
 
     const sections = useMemo(
         () => OptionsListUtils.getTaxRatesSection(taxRates, selectedOptions as OptionsListUtils.Category[], searchValue, selectedTaxRate),
@@ -70,18 +68,20 @@ function TaxPicker({selectedTaxRate = '', policy, insets, onSubmit}: TaxPickerPr
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sections[0].data.length > 0, searchValue);
 
+    const selectedOptionKey = useMemo(() => sections?.[0]?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
+
     return (
         <SelectionList
-            ListItem={RadioListItem}
-            onSelectRow={onSubmit}
-            initiallyFocusedOptionKey={selectedTaxRate}
             sections={sections}
-            containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            isRowMultilineSupported
             headerMessage={headerMessage}
             textInputValue={searchValue}
+            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
+            onSelectRow={onSubmit}
+            ListItem={RadioListItem}
+            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            isRowMultilineSupported
+            containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
         />
     );
 }
