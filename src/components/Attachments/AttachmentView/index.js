@@ -79,6 +79,7 @@ const defaultProps = {
     reportActionID: '',
     isHovered: false,
     optionalVideoDuration: 0,
+    fallbackSource: Expensicons.Gallery,
 };
 
 function AttachmentView({
@@ -201,6 +202,21 @@ function AttachmentView({
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
     const isImage = typeof source === 'number' || Str.isImage(source);
     if (isImage || (file && Str.isImage(file.name))) {
+        if (imageError) {
+            // AttachmentViewImage can't handle icon fallbacks, so we need to handle it here
+            if (typeof fallbackSource === 'number' || _.isFunction(fallbackSource)) {
+                return (
+                    <Icon
+                        src={fallbackSource}
+                        height={variables.defaultAvatarPreviewSize}
+                        width={variables.defaultAvatarPreviewSize}
+                        additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
+                        fill={theme.border}
+                    />
+                );
+            }
+        }
+
         return (
             <AttachmentViewImage
                 url={imageError ? fallbackSource : source}

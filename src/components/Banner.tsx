@@ -109,3 +109,5 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
 Banner.displayName = 'Banner';
 
 export default memo(Banner);
+
+export type {BannerProps};

@@ -63,45 +63,45 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
     const triangleWidth = variables.reportActionItemImagesMoreCornerTriangleWidth;
 
     return (
-        <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {shownImages.map(({thumbnail, image, transaction, isLocalFile, filename}, index) => {
-                const isLastImage = index === numberOfShownImages - 1;
-
-                // Show a border to separate multiple images. Shown to the right for each except the last.
-                const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
-                const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
-                return (
-                    <View
-                        key={`${index}-${image as string}`}
-                        style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
+        <View style={styles.reportActionItemImagesContainer}>
+            <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
+                {shownImages.map(({thumbnail, image, transaction, isLocalFile, filename}, index) => {
+                    // Show a border to separate multiple images. Shown to the right for each except the last.
+                    const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
+                    const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
+                    return (
+                        <View
+                            key={`${index}-${image as string}`}
+                            style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
+                        >
+                            <ReportActionItemImage
+                                thumbnail={thumbnail}
+                                image={image}
+                                isLocalFile={isLocalFile}
+                                filename={filename}
+                                transaction={transaction}
+                                isSingleImage={numberOfShownImages === 1}
+                            />
+                        </View>
+                    );
+                })}
+            </View>
+            {remaining > 0 && (
+                <View style={[styles.reportActionItemImagesMoreContainer]}>
+                    <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
+                    <Svg
+                        height={triangleWidth}
+                        width={triangleWidth}
+                        style={styles.reportActionItemImagesMoreCornerTriangle}
                     >
-                        <ReportActionItemImage
-                            thumbnail={thumbnail}
-                            image={image}
-                            isLocalFile={isLocalFile}
-                            filename={filename}
-                            transaction={transaction}
-                            isSingleImage={numberOfShownImages === 1}
+                        <Polygon
+                            points={`${triangleWidth},0 ${triangleWidth},${triangleWidth} 0,${triangleWidth}`}
+                            fill={isHovered ? theme.border : theme.cardBG}
                         />
-                        {isLastImage && remaining > 0 && (
-                            <View style={[styles.reportActionItemImagesMoreContainer]}>
-                                <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
-                                <Svg
-                                    height={triangleWidth}
-                                    width={triangleWidth}
-                                    style={styles.reportActionItemImagesMoreCornerTriangle}
-                                >
-                                    <Polygon
-                                        points={`${triangleWidth},0 ${triangleWidth},${triangleWidth} 0,${triangleWidth}`}
-                                        fill={isHovered ? theme.border : theme.cardBG}
-                                    />
-                                </Svg>
-                                <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>{remaining > MAX_REMAINING ? `${MAX_REMAINING}+` : `+${remaining}`}</Text>
-                            </View>
-                        )}
-                    </View>
-                );
-            })}
+                    </Svg>
+                    <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>{remaining > MAX_REMAINING ? `${MAX_REMAINING}+` : `+${remaining}`}</Text>
+                </View>
+            )}
         </View>
     );
 }

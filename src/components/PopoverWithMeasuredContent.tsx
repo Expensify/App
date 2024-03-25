@@ -14,6 +14,9 @@ import type {WindowDimensionsProps} from './withWindowDimensions/types';
 type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition' | keyof WindowDimensionsProps> & {
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: AnchorPosition;
+
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 };
 
 /**
@@ -42,6 +45,7 @@ function PopoverWithMeasuredContent({
     statusBarTranslucent = true,
     avoidKeyboard = false,
     hideModalContentWhileAnimating = false,
+    shouldHandleNavigationBack = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -117,6 +121,7 @@ function PopoverWithMeasuredContent({
     };
     return isContentMeasured ? (
         <Popover
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
             isVisible={isVisible}

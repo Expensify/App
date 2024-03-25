@@ -23,6 +23,7 @@ import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import TestToolsModal from './TestToolsModal';
+import withNavigationFallback from './withNavigationFallback';
 
 type ChildrenProps = {
     insets: EdgeInsets;
@@ -284,6 +285,4 @@ function ScreenWrapper(
 
 ScreenWrapper.displayName = 'ScreenWrapper';
 
-export default forwardRef(ScreenWrapper);
-
-export {ScreenWrapperStatusContext};
+export default withNavigationFallback(forwardRef(ScreenWrapper));

@@ -9,8 +9,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     rate?: number;
     currency?: string;
     customUnitRateID?: string;
-    errors?: OnyxCommon.Errors;
     enabled?: boolean;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 type Attributes = {

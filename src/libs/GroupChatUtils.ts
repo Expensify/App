@@ -6,8 +6,11 @@ import * as ReportUtils from './ReportUtils';
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(report: OnyxEntry<Report>): string | undefined {
-    const participants = report?.participantAccountIDs ?? [];
+function getGroupChatName(report: OnyxEntry<Report>, shouldApplyLimit = false): string | undefined {
+    let participants = report?.participantAccountIDs ?? [];
+    if (shouldApplyLimit) {
+        participants = participants.slice(0, 5);
+    }
     const isMultipleParticipantReport = participants.length > 1;
 
     return participants

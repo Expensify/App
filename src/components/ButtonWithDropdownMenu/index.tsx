@@ -116,7 +116,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     success={success}
                     ref={buttonRef}
                     pressOnEnter={pressOnEnter}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabled || !!options[0].disabled}
                     style={[styles.w100, style]}
                     isLoading={isLoading}
                     text={selectedItem.text}

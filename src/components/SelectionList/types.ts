@@ -107,6 +107,9 @@ type ListItem = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** The search value from the selection list */
+    searchText?: string | null;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {

@@ -39,13 +39,13 @@ function WorkspaceTaxesSettingsPage({
                 pendingAction: policy?.taxRates?.pendingFields?.name,
             },
             {
-                title: policy?.taxRates?.taxes[policy?.taxRates?.defaultExternalID]?.name,
+                title: policy?.taxRates?.taxes?.[policy?.taxRates?.defaultExternalID]?.name,
                 description: translate('workspace.taxes.workspaceDefault'),
                 action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.getRoute(policyID)),
                 pendingAction: policy?.taxRates?.pendingFields?.defaultExternalID,
             },
             {
-                title: policy?.taxRates?.taxes[policy?.taxRates?.foreignTaxDefault]?.name,
+                title: policy?.taxRates?.taxes?.[policy?.taxRates?.foreignTaxDefault]?.name,
                 description: translate('workspace.taxes.foreignDefault'),
                 action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT.getRoute(policyID)),
                 pendingAction: policy?.taxRates?.pendingFields?.foreignTaxDefault,

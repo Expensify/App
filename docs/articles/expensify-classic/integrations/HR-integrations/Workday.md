@@ -34,7 +34,7 @@ In order to complete the steps below, you'll need a Workday System Administrator
 4. Search and select "security group membership and access".
 5. Search for the security group you just created.
 6. Click the ellipsis, then **Security Group > Maintain Domain Permissions for Security Group**.
-7. Under **Integration Permissions**, add "External Account Provisioning" to **Domain Security Workspaces permitting Put access** and "Worker Data: Workers" to **Domain Security Workspaces permitting Get access**.
+7. Head to Integration Permissions and add **Get access** for “External Account Provisioning” and “Worker Data: Workers” under Domain Security Workspaces.
 8. Click **OK** and **Done**.
 9. Search **Activate Pending Security Workspace Changes** and complete the task for activating the security workspace change, adding a comment if required and checking the **Confirmed** check-box.
 
