@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
@@ -6,8 +7,10 @@ import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -44,6 +47,7 @@ function SuggestionMention(
     const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
@@ -52,8 +56,34 @@ function SuggestionMention(
         shouldExcludeTextAreaNodes: false,
     });
 
+    // Used to store the selection index of the last inserted mention
+    const suggestionInsertionIndexRef = useRef<number | null>(null);
+
+    // Used to detect if the selection has changed since the last suggestion insertion
+    // If so, we reset the suggestionInsertionIndexRef
+    const hasSelectionChanged = !(selection.end === selection.start && selection.start === suggestionInsertionIndexRef.current);
+    if (hasSelectionChanged) {
+        suggestionInsertionIndexRef.current = null;
+    }
+
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
+
+    const formatLoginPrivateDomain = useCallback(
+        (displayText = '', userLogin = '') => {
+            if (userLogin !== displayText) {
+                return displayText;
+            }
+            // If the emails are not in the same private domain, we also return the displayText
+            if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
+                return Str.removeSMSDomain(displayText);
+            }
+
+            // Otherwise, the emails must be of the same private domain, so we should remove the domain part
+            return displayText.split('@')[0];
+        },
+        [currentUserPersonalDetails.login],
+    );
 
     /**
      * Replace the code of mention and update selection
@@ -62,20 +92,25 @@ function SuggestionMention(
         (highlightedMentionIndexInner: number) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
-            const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.login}`;
+            const mentionCode =
+                mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT
+                    ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT
+                    : `@${formatLoginPrivateDomain(mentionObject.login, mentionObject.login)}`;
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
+            const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
             setSelection({
-                start: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
-                end: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
+                start: selectionPosition,
+                end: selectionPosition,
             });
+            suggestionInsertionIndexRef.current = selectionPosition;
             setSuggestionValues((prevState) => ({
                 ...prevState,
                 suggestedMentions: [],
             }));
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection],
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection, formatLoginPrivateDomain],
     );
 
     /**
@@ -144,6 +179,14 @@ function SuggestionMention(
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
                 }
+
+                // Given the mention is inserted by user, we don't want to show the mention options unless the
+                // selection index changes. In that case, suggestionInsertionIndexRef.current will be null.
+                // See https://github.com/Expensify/App/issues/38358 for more context
+                if (suggestionInsertionIndexRef.current) {
+                    return false;
+                }
+
                 return true;
             });
 
@@ -151,8 +194,8 @@ function SuggestionMention(
             const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, (detail) => detail?.displayName || detail?.login);
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
-                    text: PersonalDetailsUtils.getDisplayNameOrDefault(detail),
-                    alternateText: formatPhoneNumber(detail?.login ?? ''),
+                    text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
+                    alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
                     login: detail?.login,
                     icons: [
                         {
@@ -167,7 +210,7 @@ function SuggestionMention(
 
             return suggestions;
         },
-        [translate, formatPhoneNumber],
+        [translate, formatPhoneNumber, formatLoginPrivateDomain],
     );
 
     const calculateMentionSuggestion = useCallback(
@@ -224,7 +267,6 @@ function SuggestionMention(
 
             if (!isCursorBeforeTheMention && isMentionCode(suggestionWord)) {
                 const suggestions = getMentionOptions(personalDetails, prefix);
-
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
             }
@@ -245,7 +287,6 @@ function SuggestionMention(
             // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
             return;
         }
-
         calculateMentionSuggestion(selection.end);
     }, [selection, value, previousValue, calculateMentionSuggestion]);
 

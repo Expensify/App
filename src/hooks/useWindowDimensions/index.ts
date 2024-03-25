@@ -24,6 +24,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
+    const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
 
     const lowerScreenDimmension = Math.min(windowWidth, windowHeight);
     const isSmallScreen = lowerScreenDimmension <= variables.mobileResponsiveWidthBreakpoint;
@@ -88,6 +89,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         isSmallScreenWidth,
         isMediumScreenWidth,
         isLargeScreenWidth,
+        isExtraSmallScreenWidth,
         isSmallScreen,
     };
 }

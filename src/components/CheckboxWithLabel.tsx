@@ -108,3 +108,5 @@ function CheckboxWithLabel(
 CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
 export default React.forwardRef(CheckboxWithLabel);
+
+export type {CheckboxWithLabelProps};

@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,14 +27,13 @@ const menuIcons = {
 
 // This is not translated because it is a message coming from concierge, which only supports english
 const messageCopy =
-    "Great! To manage your team's expenses, create a workspace to keep everything contained:\n" +
+    "Here's how to manage your team's expenses:\n" +
     '\n' +
-    '1. Press your avatar icon\n' +
-    '2. Choose Workspaces\n' +
-    '3. Choose New Workspace\n' +
-    '4. Name your workspace something meaningful (eg, "Galaxy Food Inc.")\n' +
+    '1. Click the green *+* > *New workspace*.\n' +
+    '2. Your new workspace is now active.\n' +
+    '3. To update your workspace name, click *Profile* > *Name*.\n' +
     '\n' +
-    'Once you have your workspace set up, you can invite your team to it via the Members pane and connect a business bank account to reimburse them!';
+    'Next, click *Members* to invite your team to your workspace, then add your business bank account to reimburse them!';
 
 function ManageTeamsExpensesModal() {
     const styles = useThemeStyles();
@@ -97,6 +97,7 @@ function ManageTeamsExpensesModal() {
                     <View style={styles.flexRow}>
                         <Button
                             medium={isExtraSmallScreenHeight}
+                            large={!isExtraSmallScreenHeight}
                             style={[styles.flexGrow1, styles.mr1, styles.mtAuto]}
                             text={translate('common.no')}
                             onPress={completeEngagement}
@@ -104,6 +105,7 @@ function ManageTeamsExpensesModal() {
                         <Button
                             pressOnEnter
                             medium={isExtraSmallScreenHeight}
+                            large={!isExtraSmallScreenHeight}
                             style={[styles.flexGrow1, styles.ml1, styles.mtAuto]}
                             text={translate('common.yes')}
                             onPress={navigateToExpensifyClassicPage}
