@@ -15,9 +15,6 @@ const PLIST_PATH_NSE = './ios/NotificationServiceExtension/Info.plist';
 
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
- *
- * @param value - Must be an integer.
- * @returns - A string representation of the number with length 2.
  */
 function padToTwoDigits(value: number): string {
     if (value >= 10) {

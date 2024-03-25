@@ -14829,12 +14829,10 @@ class GithubUtils {
         })
             .then(({ data }) => {
             if (!data.length) {
-                const error = new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
-                throw error;
+                throw new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
             }
             if (data.length > 1) {
-                const error = new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
-                throw error;
+                throw new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
             }
             return this.getStagingDeployCashData(data[0]);
         });
@@ -14882,8 +14880,7 @@ class GithubUtils {
             number: Number.parseInt(match[3], 10),
             isVerified: match[1] === 'x',
         }));
-        // eslint-disable-next-line no-nested-ternary
-        return PRList.sort((a, b) => (a.number > b.number ? 1 : b.number > a.number ? -1 : 0));
+        return PRList.sort((a, b) => a.number - b.number);
     }
     /**
      * Parse DeployBlocker section of the StagingDeployCash issue body.
@@ -14901,15 +14898,7 @@ class GithubUtils {
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
-        return deployBlockers.sort((a, b) => {
-            if (a.number > b.number) {
-                return 1;
-            }
-            if (b.number > a.number) {
-                return -1;
-            }
-            return 0;
-        });
+        return deployBlockers.sort((a, b) => a.number - b.number);
     }
     /**
      * Parse InternalQA section of the StagingDeployCash issue body.
@@ -14927,28 +14916,10 @@ class GithubUtils {
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
-        return internalQAPRs.sort((a, b) => {
-            if (a.number > b.number) {
-                return 1;
-            }
-            if (b.number > a.number) {
-                return -1;
-            }
-            return 0;
-        });
+        return internalQAPRs.sort((a, b) => a.number - b.number);
     }
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
-     *
-     * @param tag
-     * @param PRList - The list of PR URLs which are included in this StagingDeployCash
-     * @param [verifiedPRList] - The list of PR URLs which have passed QA.
-     * @param [deployBlockers] - The list of DeployBlocker URLs.
-     * @param [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
-     * @param [resolvedInternalQAPRs] - The list of Internal QA PR URLs which have been resolved.
-     * @param [isTimingDashboardChecked]
-     * @param [isFirebaseChecked]
-     * @param [isGHStatusChecked]
      */
     static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
@@ -15025,7 +14996,7 @@ class GithubUtils {
      * Fetch all pull requests given a list of PR numbers.
      */
     static fetchAllPullRequests(pullRequestNumbers) {
-        const oldestPR = pullRequestNumbers.sort()[0];
+        const oldestPR = pullRequestNumbers.sort((a, b) => a - b)[0];
         return this.paginate(this.octokit.pulls.list, {
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
@@ -15078,10 +15049,6 @@ class GithubUtils {
     }
     /**
      * Create comment on pull request
-     *
-     * @param repo - The repo to search for a matching pull request or issue number
-     * @param number - The pull request or issue number
-     * @param messageBody - The comment message
      */
     static createComment(repo, number, messageBody) {
         console.log(`Writing comment on #${number}`);
