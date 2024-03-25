@@ -80,7 +80,6 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
 
     if (reportAction.childReportID && ignore !== 'child') {
         const childActions = ReportActionUtils.getAllReportActions(reportAction.childReportID);
-        console.log('childActions', childActions);
         Object.values(childActions).forEach((action) => {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
             clearAllRelatedReportActionErrors(reportAction.childReportID ?? '', action, 'parent', childErrorKeys);
@@ -90,6 +89,5 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
 
 export {
     // eslint-disable-next-line import/prefer-default-export
-    clearReportActionErrors,
     clearAllRelatedReportActionErrors,
 };
