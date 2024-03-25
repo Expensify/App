@@ -205,8 +205,8 @@ const parseWorkflowFile = (workflow: YamlWorkflow) => {
         job.steps.forEach((step) => {
             const workflowStep: YamlStepIdentifier = {
                 name: step.name,
-                inputs: 'with' in step && step.with ? Object.keys(step.with) : [],
-                envs: 'envs' in step && step.envs ? step.envs : [],
+                inputs: Object.keys(step.with ?? {}),
+                envs: step.envs ?? [],
             };
             workflowJobs[jobId].steps.push(workflowStep);
         });

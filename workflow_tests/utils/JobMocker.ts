@@ -62,7 +62,7 @@ class JobMocker {
                     jobWith = job.with;
                     delete job.with;
                 }
-                job.steps = mockJob.steps.map((step: StepIdentifier) => {
+                job.steps = mockJob.steps.map((step) => {
                     const mockStep: YamlStepIdentifier = {
                         name: 'name' in step ? step.name : '',
                         run: step.mockWith,
