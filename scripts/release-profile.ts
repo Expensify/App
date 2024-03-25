@@ -1,13 +1,15 @@
-#!/usr/bin/env node
-/* eslint-disable no-console */
+#!/usr/bin/env ts-node
 
-const fs = require('fs');
-const {execSync} = require('child_process');
+/* eslint-disable no-console */
+import {execSync} from 'child_process';
+import fs from 'fs';
+
+type ArgsMap = Record<string, string>;
 
 // Function to parse command-line arguments into a key-value object
-function parseCommandLineArguments() {
+function parseCommandLineArguments(): ArgsMap {
     const args = process.argv.slice(2); // Skip node and script paths
-    const argsMap = {};
+    const argsMap: ArgsMap = {};
     args.forEach((arg) => {
         const [key, value] = arg.split('=');
         if (key.startsWith('--')) {
@@ -20,14 +22,13 @@ function parseCommandLineArguments() {
 // Function to find .cpuprofile files in the current directory
 function findCpuProfileFiles() {
     const files = fs.readdirSync(process.cwd());
-    // eslint-disable-next-line rulesdir/prefer-underscore-method
     return files.filter((file) => file.endsWith('.cpuprofile'));
 }
 
 const argsMap = parseCommandLineArguments();
 
 // Determine sourcemapPath based on the platform flag passed
-let sourcemapPath;
+let sourcemapPath: string | undefined;
 if (argsMap.platform === 'ios') {
     sourcemapPath = 'main.jsbundle.map';
 } else if (argsMap.platform === 'android') {
@@ -57,7 +58,10 @@ if (cpuProfiles.length === 0) {
         const output = execSync(command, {stdio: 'inherit'});
         console.log(output.toString());
     } catch (error) {
-        console.error(`Error executing command: ${error}`);
+        if (error instanceof Error) {
+            console.error(`Error executing command: ${error.toString()}`);
+        }
+
         process.exit(1);
     }
 }
