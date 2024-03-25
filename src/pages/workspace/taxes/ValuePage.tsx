@@ -39,7 +39,6 @@ function ValuePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
     const [value, setValue] = useState(currentTaxRate?.value?.replace('%', ''));
-    const {inputCallbackRef} = useAutoFocusInput();
 
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '', taxID)), [policyID, taxID]);
 

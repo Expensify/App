@@ -380,7 +380,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
     const parameters = {
         policyID,
         taxCode: taxID,
-        taxAmount: Number(taxValue),
+        taxRate: stringTaxValue,
     } satisfies UpdatePolicyTaxValueParams;
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE, parameters, onyxData);
