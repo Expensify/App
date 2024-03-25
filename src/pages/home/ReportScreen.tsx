@@ -1,13 +1,13 @@
-import {useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
+import { useIsFocused } from '@react-navigation/native';
+import type { StackScreenProps } from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
-import type {FlatList, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {WithOnyxInstanceState} from 'react-native-onyx/dist/types';
-import type {LayoutChangeEvent} from 'react-native/Libraries/Types/CoreEventTypes';
+import React, { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { InteractionManager, View } from 'react-native';
+import type { FlatList, ViewStyle } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
+import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
+import type { WithOnyxInstanceState } from 'react-native-onyx/dist/types';
+import type { LayoutChangeEvent } from 'react-native/Libraries/Types/CoreEventTypes';
 import Banner from '@components/Banner';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -20,9 +20,9 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import withCurrentReportID from '@components/withCurrentReportID';
-import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
+import type { CurrentReportIDContextValue } from '@components/withCurrentReportID';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
-import type {ViewportOffsetTopProps} from '@components/withViewportOffsetTop';
+import type { ViewportOffsetTopProps } from '@components/withViewportOffsetTop';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -32,13 +32,13 @@ import Timing from '@libs/actions/Timing';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
-import type {ReportWithoutHasDraft} from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import type { ReportWithoutHasDraft } from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type { CentralPaneNavigatorParamList } from '@navigation/types';
 import variables from '@styles/variables';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
@@ -47,12 +47,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
-import {ActionListContext, ReactionListContext} from './ReportScreenContext';
-import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
+import { ActionListContext, ReactionListContext } from './ReportScreenContext';
+import type { ActionListContextType, ReactionListRef, ScrollPosition } from './ReportScreenContext';
 
 type ReportScreenOnyxProps = {
     /** Tells us if the sidebar has rendered */
@@ -138,8 +138,8 @@ function ReportScreen({
     navigation,
 }: ReportScreenProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const { translate } = useLocalize();
+    const { isSmallScreenWidth } = useWindowDimensions();
     const reportIDFromRoute = getReportID(route);
     const reportActionIDFromRoute = route?.params?.reportActionID ?? '';
     const isFocused = useIsFocused();
@@ -260,8 +260,8 @@ function ReportScreen({
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
     }
 
-    const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
-    const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
+    const { reportPendingAction, reportErrors } = ReportUtils.getReportOfflinePendingActionAndErrors(report);
+    const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, { marginTop: viewportOffsetTop }];
     const isEmptyChat = useMemo((): boolean => reportActions.length === 0, [reportActions]);
     const isOptimisticDelete = report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 
@@ -341,16 +341,15 @@ function ReportScreen({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
         (): boolean =>
-            !shouldShowSkeleton &&
+            !firstRenderRef.current &&
             ((!wasReportAccessibleRef.current &&
-                !firstRenderRef.current &&
                 !report.reportID &&
                 !isOptimisticDelete &&
                 !reportMetadata?.isLoadingInitialReportActions &&
                 !userLeavingStatus) ||
                 shouldHideReport ||
                 (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute))),
-        [shouldShowSkeleton, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, reportIDFromRoute],
+        [report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, reportIDFromRoute],
     );
 
     const fetchReport = useCallback(() => {
@@ -541,7 +540,7 @@ function ReportScreen({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
+    const actionListValue = useMemo((): ActionListContextType => ({ flatListRef, scrollPosition, setScrollPosition }), [flatListRef, scrollPosition, setScrollPosition]);
 
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
@@ -551,7 +550,7 @@ function ReportScreen({
     }, [reportMetadata?.isLoadingInitialReportActions]);
 
     const navigateToEndOfReport = useCallback(() => {
-        Navigation.setParams({reportActionID: ''});
+        Navigation.setParams({ reportActionID: '' });
         fetchReport();
     }, [fetchReport]);
 
@@ -671,17 +670,17 @@ export default withViewportOffsetTop(
                     key: ONYXKEYS.IS_SIDEBAR_LOADED,
                 },
                 sortedAllReportActions: {
-                    key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+                    key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                     canEvict: false,
                     selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
                 },
                 report: {
-                    key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+                    key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
                     allowStaleData: true,
                     selector: reportWithoutHasDraftSelector,
                 },
                 reportMetadata: {
-                    key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
+                    key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
                     initialValue: {
                         isLoadingInitialReportActions: true,
                         isLoadingOlderReportActions: false,
@@ -689,7 +688,7 @@ export default withViewportOffsetTop(
                     },
                 },
                 isComposerFullSize: {
-                    key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+                    key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
                     initialValue: false,
                 },
                 betas: {
@@ -704,11 +703,11 @@ export default withViewportOffsetTop(
                     initialValue: null,
                 },
                 userLeavingStatus: {
-                    key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
+                    key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                     initialValue: false,
                 },
                 parentReportAction: {
-                    key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+                    key: ({ report }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
                     selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<ReportScreenOnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
                         const parentReportActionID = props?.report?.parentReportActionID;
                         if (!parentReportActionID) {
