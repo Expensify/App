@@ -3780,6 +3780,7 @@ function buildOptimisticChatReport(
 function buildOptimisticCreatedReportAction(emailCreatingAction: string, created = DateUtils.getDBTime()): OptimisticCreatedReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
+        previousReportActionID: null,
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
