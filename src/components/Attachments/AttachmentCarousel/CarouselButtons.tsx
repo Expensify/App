@@ -1,8 +1,6 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
-import * as AttachmentCarouselViewPropTypes from '@components/Attachments/propTypes';
+import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Tooltip from '@components/Tooltip';
@@ -11,36 +9,34 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-const propTypes = {
+type CarouselButtonsProps = {
     /** Where the arrows should be visible */
-    shouldShowArrows: PropTypes.bool.isRequired,
+    shouldShowArrows: boolean;
 
     /** The current page index */
-    page: PropTypes.number.isRequired,
+    page: number;
 
     /** The attachments from the carousel */
-    attachments: AttachmentCarouselViewPropTypes.attachmentsPropType.isRequired,
+    attachments: Attachment[];
 
     /** Callback to go one page back */
-    onBack: PropTypes.func.isRequired,
+    onBack: () => void;
+
     /** Callback to go one page forward */
-    onForward: PropTypes.func.isRequired,
+    onForward: () => void;
 
-    autoHideArrow: PropTypes.func,
-    cancelAutoHideArrow: PropTypes.func,
+    /** Callback for autohiding carousel button arrows */
+    autoHideArrow?: () => void;
+
+    /** Callback for cancelling autohiding of carousel button arrows */
+    cancelAutoHideArrow?: () => void;
 };
 
-const defaultProps = {
-    autoHideArrow: () => {},
-    cancelAutoHideArrow: () => {},
-};
-
-function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow}) {
+function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow}: CarouselButtonsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const isBackDisabled = page === 0;
-    const isForwardDisabled = page === _.size(attachments) - 1;
-
+    const isForwardDisabled = page === attachments.length - 1;
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -80,8 +76,6 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
     ) : null;
 }
 
-CarouselButtons.propTypes = propTypes;
-CarouselButtons.defaultProps = defaultProps;
 CarouselButtons.displayName = 'CarouselButtons';
 
 export default CarouselButtons;
