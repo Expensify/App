@@ -8,6 +8,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +36,7 @@ function WorkspaceCreateTaxPage({
 }: WorkspaceCreateTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const submitForm = useCallback(
         ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
@@ -97,7 +99,7 @@ function WorkspaceCreateTaxPage({
                                         maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                                         multiline={false}
                                         role={CONST.ROLE.PRESENTATION}
-                                        autoFocus
+                                        ref={inputCallbackRef}
                                     />
                                     <InputWrapper
                                         InputComponent={AmountPicker}
