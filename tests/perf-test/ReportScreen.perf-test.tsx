@@ -1,19 +1,29 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
+import type {ComponentType} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import type Animated from 'react-native-reanimated';
 import {measurePerformance} from 'reassure';
-import ComposeProviders from '../../src/components/ComposeProviders';
-import DragAndDropProvider from '../../src/components/DragAndDrop/Provider';
-import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
-import OnyxProvider from '../../src/components/OnyxProvider';
-import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
-import {KeyboardStateProvider} from '../../src/components/withKeyboardState';
-import {WindowDimensionsProvider} from '../../src/components/withWindowDimensions';
-import CONST from '../../src/CONST';
-import * as Localize from '../../src/libs/Localize';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import {ReportAttachmentsProvider} from '../../src/pages/home/report/ReportAttachmentsContext';
-import ReportScreen from '../../src/pages/home/ReportScreen';
+import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import type Navigation from '@libs/Navigation/Navigation';
+import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import ComposeProviders from '@src/components/ComposeProviders';
+import DragAndDropProvider from '@src/components/DragAndDrop/Provider';
+import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
+import OnyxProvider from '@src/components/OnyxProvider';
+import {CurrentReportIDContextProvider} from '@src/components/withCurrentReportID';
+import {KeyboardStateProvider} from '@src/components/withKeyboardState';
+import {WindowDimensionsProvider} from '@src/components/withWindowDimensions';
+import CONST from '@src/CONST';
+import * as Localize from '@src/libs/Localize';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {ReportAttachmentsProvider} from '@src/pages/home/report/ReportAttachmentsContext';
+import ReportScreen from '@src/pages/home/ReportScreen';
+import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -24,21 +34,26 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-jest.mock('react-native-reanimated', () => ({
-    ...jest.requireActual('react-native-reanimated/mock'),
-    useSharedValue: jest.fn,
-    useAnimatedStyle: jest.fn,
-    useAnimatedRef: jest.fn,
-}));
+type ReportScreenWrapperProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
 
-jest.mock('../../src/components/ConfirmedRoute.tsx');
+jest.mock('react-native-reanimated', () => {
+    const actualNav = jest.requireActual('react-native-reanimated/mock');
+    return {
+        ...actualNav,
+        useSharedValue: jest.fn,
+        useAnimatedStyle: jest.fn,
+        useAnimatedRef: jest.fn,
+    } as typeof Animated;
+});
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
-    function WithNavigationFocus(props) {
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
+jest.mock('@src/components/withNavigationFocus', <TProps extends WithNavigationFocusProps>() => (Component: ComponentType<TProps>) => {
+    function WithNavigationFocus(props: Omit<TProps, keyof WithNavigationFocusProps>) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...(props as TProps)}
                 isFocused={false}
             />
         );
@@ -49,7 +64,7 @@ jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
     return WithNavigationFocus;
 });
 
-jest.mock('../../src/hooks/useEnvironment', () =>
+jest.mock('@src/hooks/useEnvironment', () =>
     jest.fn(() => ({
         environment: 'development',
         environmentURL: 'https://new.expensify.com',
@@ -58,13 +73,13 @@ jest.mock('../../src/hooks/useEnvironment', () =>
     })),
 );
 
-jest.mock('../../src/libs/Permissions', () => ({
+jest.mock('@src/libs/Permissions', () => ({
     canUseLinkPreviews: jest.fn(() => true),
     canUseDefaultRooms: jest.fn(() => true),
 }));
-jest.mock('../../src/hooks/usePermissions.ts');
+jest.mock('@src/hooks/usePermissions.ts');
 
-jest.mock('../../src/libs/Navigation/Navigation');
+jest.mock('@src/libs/Navigation/Navigation');
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -81,7 +96,7 @@ jest.mock('@react-navigation/native', () => {
             addListener: () => jest.fn(),
         }),
         createNavigationContainerRef: jest.fn(),
-    };
+    } as typeof Navigation;
 });
 
 // mock PortalStateContext
@@ -91,12 +106,12 @@ beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        registerStorageEventListener: () => {},
     }),
 );
 
 // Initialize the network key for OfflineWithFeedback
 beforeEach(() => {
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
@@ -109,18 +124,18 @@ afterEach(() => {
 });
 
 const policies = createCollection(
-    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-    (index) => createRandomPolicy(index),
+    (item: OnyxTypes.Policy) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+    (index: number) => createRandomPolicy(index),
     10,
 );
 
 const personalDetails = createCollection(
-    (item) => item.accountID,
-    (index) => createPersonalDetails(index),
+    (item: OnyxTypes.PersonalDetails) => item.accountID,
+    (index: number) => createPersonalDetails(index),
     20,
 );
 
-function ReportScreenWrapper(args) {
+function ReportScreenWrapper(props: ReportScreenWrapperProps) {
     return (
         <ComposeProviders
             components={[
@@ -135,8 +150,9 @@ function ReportScreenWrapper(args) {
         >
             <ReportScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...args}
-                navigation={args.navigation}
+                {...props}
+                route={props.route}
+                navigation={props.navigation}
             />
         </ComposeProviders>
     );
@@ -147,6 +163,7 @@ const reportActions = ReportTestUtils.getMockedReportActionsMap(500);
 const mockRoute = {params: {reportID: '1'}};
 
 test('[ReportScreen] should render ReportScreen with composer interactions', () => {
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const scenario = async () => {
         /**
@@ -182,21 +199,31 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
     const navigation = {addListener};
 
     return waitForBatchedUpdates()
-        .then(() =>
-            Onyx.multiSet({
-                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+        .then(() => {
+            const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
+            };
+
+            const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
+            };
+
+            return Onyx.multiSet({
+                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
                 [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
                 [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
-            }),
-        )
+                ...reportCollectionDataSet,
+                ...reportActionsCollectionDataSet,
+            });
+        })
         .then(() =>
             measurePerformance(
                 <ReportScreenWrapper
+                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
                     navigation={navigation}
+                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
                     route={mockRoute}
                 />,
                 {scenario},
@@ -205,6 +232,7 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
 });
 
 test('[ReportScreen] should press of the report item', () => {
+    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const scenario = async () => {
         /**
@@ -232,20 +260,30 @@ test('[ReportScreen] should press of the report item', () => {
     const navigation = {addListener};
 
     return waitForBatchedUpdates()
-        .then(() =>
-            Onyx.multiSet({
-                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+        .then(() => {
+            const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
+            };
+
+            const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
+            };
+
+            return Onyx.multiSet({
+                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
                 [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
-            }),
-        )
+                ...reportCollectionDataSet,
+                ...reportActionsCollectionDataSet,
+            });
+        })
         .then(() =>
             measurePerformance(
                 <ReportScreenWrapper
+                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
                     navigation={navigation}
+                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
                     route={mockRoute}
                 />,
                 {scenario},
