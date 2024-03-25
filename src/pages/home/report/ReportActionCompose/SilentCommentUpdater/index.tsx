@@ -43,7 +43,7 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
         }
 
         updateComment(comment ?? '');
-    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, reportID, updateComment, value, commentRef]);
+    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, reportID, updateComment, value, commentRef, isCommentPendingSaved]);
 
     return null;
 }
