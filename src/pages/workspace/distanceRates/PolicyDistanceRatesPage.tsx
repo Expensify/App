@@ -64,7 +64,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const allSelectableRates = Object.values(customUnitRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const canDisableOrDeleteSelectedRates = allSelectableRates
         .filter((rate: Rate) => !selectedDistanceRates.some((selectedRate) => selectedRate.customUnitRateID === rate.customUnitRateID))
-        .some((rate) => rate.enabled === true);
+        .some((rate) => rate.enabled);
 
     function fetchDistanceRates() {
         Policy.openPolicyDistanceRatesPage(policyID);
