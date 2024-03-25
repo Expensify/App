@@ -36,6 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type PolicyForList = {
@@ -78,34 +79,35 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         fetchTags();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
             policyTagLists
                 .map((policyTagList) =>
-                    lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => ({
-                        value: value.name,
-                        text: value.name,
-                        keyForList: value.name,
-                        isSelected: !!selectedTags[value.name],
-                        pendingAction: value.pendingAction,
-                        errors: value.errors ?? undefined,
-                        enabled: value.enabled,
-                        rightElement: (
-                            <View style={styles.flexRow}>
-                                <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
-                                    {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
-                                </Text>
-                                <View style={[styles.p1, styles.pl2]}>
-                                    <Icon
-                                        src={Expensicons.ArrowRight}
-                                        fill={theme.icon}
-                                    />
+                    lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare)
+                        .filter((value): value is OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag> => typeof value === 'object' && value !== null)
+                        .map((value) => ({
+                            value: value.name,
+                            text: value.name,
+                            keyForList: value.name,
+                            isSelected: !!selectedTags[value.name],
+                            pendingAction: value.pendingAction,
+                            errors: value.errors ?? undefined,
+                            enabled: value.enabled,
+                            rightElement: (
+                                <View style={styles.flexRow}>
+                                    <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
+                                        {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                                    </Text>
+                                    <View style={[styles.p1, styles.pl2]}>
+                                        <Icon
+                                            src={Expensicons.ArrowRight}
+                                            fill={theme.icon}
+                                        />
+                                    </View>
                                 </View>
-                            </View>
-                        ),
-                    })),
+                            ),
+                        })),
                 )
                 .flat(),
         [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
