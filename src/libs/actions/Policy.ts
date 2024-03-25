@@ -1351,6 +1351,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 ...policy,
 
                 pendingFields: {
+                    ...policy.pendingFields,
                     generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
 
