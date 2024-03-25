@@ -36,7 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import _ from 'underscore';
+import lodashSortBy from 'lodash/sortBy';
 
 
 type PolicyForList = {
@@ -84,7 +84,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const tagList = useMemo<PolicyForList[]>(
         () => policyTagLists
             .map((policyTagList) =>
-                _.sortBy(Object.values(policyTagList.tags || []), 'name', localeCompare)
+                lodashSortBy(Object.values(policyTagList.tags || []), 'name')
                     .map((value) => ({
                         value: value.name,
                         text: value.name,

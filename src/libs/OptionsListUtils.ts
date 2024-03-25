@@ -53,7 +53,6 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-import _ from 'underscore';
 
 type Tag = {
     enabled: boolean;
@@ -919,9 +918,11 @@ function sortCategories(categories: Record<string, Category>): Category[] {
  */
 function sortTags(tags: Record<string, Tag> | Tag[]) {
     const tagsArray = Array.isArray(tags) ? tags : Object.values(tags);
-    const sortedTags = _.sortBy(tagsArray, 'name', localeCompare);
-    return sortedTags;
+
+    // Use lodash's sortBy to ensure consistency with oldDot
+    return lodashSortBy(tagsArray, 'name');
 }
+
 /**
  * Builds the options for the category tree hierarchy via indents
  *
