@@ -27,9 +27,6 @@ import type {BaseForm} from '@src/types/form/Form';
 /**
  * This type specifies all the inputs that can be used with `InputWrapper` component. Make sure to update it
  * when adding new inputs or removing old ones.
- *
- * TODO: Add remaining inputs here once these components are migrated to Typescript:
- * EmojiPickerButtonDropdown
  */
 type ValidInputs =
     | typeof TextInput
