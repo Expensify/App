@@ -99,7 +99,7 @@ type ReportScreenProps = OnyxHOCProps & ViewportOffsetTopProps & CurrentReportID
 function getReportID(route: ReportScreenNavigationProps['route']): string {
     // The report ID is used in an onyx key. If it's an empty string, onyx will return
     // a collection instead of an individual report.
-    return String(route.params?.reportID || 0);
+    return String(route.params?.reportID || '');
 }
 
 /**
