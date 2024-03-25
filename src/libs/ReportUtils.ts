@@ -564,16 +564,17 @@ Onyx.connect({
     },
 });
 
-const reportActionsByReport: OnyxCollection<ReportActions> = {};
+const newestReportActionPerReport: Record<string, ReportAction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
-        if (!key || !actions) {
+        if (!key || !actions || isEmptyObject(actions)) {
             return;
         }
 
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        reportActionsByReport[reportID] = actions;
+        const sortedReportActionsForReport = ReportActionsUtils.getSortedReportActions(Object.values(actions), true);
+        newestReportActionPerReport[reportID] = sortedReportActionsForReport[0];
     },
 });
 
@@ -1922,6 +1923,10 @@ function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportAct
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount: formattedAmount});
+}
+
+function getOptimisticPreviousReportActionIDForNewAction(reportID: string) {
+    return newestReportActionPerReport[reportID]?.reportActionID;
 }
 
 /**
@@ -4017,12 +4022,12 @@ function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: numbe
     };
 }
 
-/**
- * Returns the necessary reportAction onyx data to indicate that a chat has been archived
- *
- * @param reason - A reason why the chat has been archived
- */
-function buildOptimisticClosedReportAction(emailClosingReport: string, policyName: string, reason: string = CONST.REPORT.ARCHIVE_REASON.DEFAULT): OptimisticClosedReportAction {
+function buildOptimisticClosedReportAction(
+    reportID: string,
+    policyName: string,
+    emailClosingReport: string,
+    reason: string = CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+): OptimisticClosedReportAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
@@ -4054,6 +4059,7 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
             },
         ],
         reportActionID: NumberUtils.rand64(),
+        previousReportActionID: getOptimisticPreviousReportActionIDForNewAction(reportID),
         shouldShow: true,
     };
 }

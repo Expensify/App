@@ -357,7 +357,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
         if (!!ownerAccountID && ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
             emailClosingReport = allPersonalDetails?.[ownerAccountID]?.login ?? '';
         }
-        const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+        const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(reportID, policyName, emailClosingReport, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
         const optimisticReportActions: Record<string, ReportAction> = {};
         optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction as ReportAction;
         optimisticData.push({
@@ -806,7 +806,9 @@ function removeMembers(accountIDs: number[], policyID: string) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
     const policy = ReportUtils.getPolicy(policyID);
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
-    const optimisticClosedReportActions = workspaceChats.map(() => ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
+    const optimisticClosedReportActions = workspaceChats
+        .filter<Report>((report): report is Report => !!report)
+        .map((report: Report) => ReportUtils.buildOptimisticClosedReportAction(report.reportID, policy.name, sessionEmail, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
 
     const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
 
