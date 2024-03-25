@@ -20,7 +20,6 @@ import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -87,7 +86,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {canUseP2PDistanceRequests} = usePermissions();
-    const {options} = useOptionsList({
+    const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
 
@@ -103,7 +102,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      */
     const [sections, newChatOptions] = useMemo(() => {
         const newSections = [];
-        if (!didScreenTransitionEnd) {
+        if (!areOptionsInitialized) {
             return [newSections, {}];
         }
         let indexOffset = 0;
@@ -179,7 +178,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
         return [newSections, chatOptions];
     }, [
-        didScreenTransitionEnd,
+        areOptionsInitialized,
         options.reports,
         options.personalDetails,
         betas,
@@ -354,13 +353,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
 
-    const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
-
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <SelectionList
                 onConfirm={handleConfirmSelection}
-                sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                 ListItem={UserListItem}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -370,7 +367,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
-                showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
+                showLoadingPlaceholder={!areOptionsInitialized}
                 rightHandSideComponent={itemRightSideComponent}
             />
         </View>

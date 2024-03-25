@@ -73,7 +73,9 @@ function WorkspaceInvitePage({
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetailsProp);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
     };
-    const {options, areOptionsInitialized} = useOptionsList();
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
@@ -166,7 +168,7 @@ function WorkspaceInvitePage({
         const sectionsArr: MembersSection[] = [];
         let indexOffset = 0;
 
-        if (!didScreenTransitionEnd) {
+        if (!areOptionsInitialized) {
             return [];
         }
 
@@ -219,7 +221,7 @@ function WorkspaceInvitePage({
         });
 
         return sectionsArr;
-    }, [didScreenTransitionEnd, selectedOptions, searchTerm, personalDetails, translate, usersToInvite]);
+    }, [areOptionsInitialized, selectedOptions, searchTerm, personalDetails, translate, usersToInvite]);
 
     const toggleOption = (option: MemberForList) => {
         Policy.clearErrors(route.params.policyID);
@@ -320,7 +322,7 @@ function WorkspaceInvitePage({
                     onSelectRow={toggleOption}
                     onConfirm={inviteUser}
                     showScrollIndicator
-                    showLoadingPlaceholder={areOptionsInitialized && searchTerm.trim() === '' ? sections.length === 0 : !didScreenTransitionEnd}
+                    showLoadingPlaceholder={!areOptionsInitialized}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     checkmarkPosition={CONST.DIRECTION.RIGHT}
                 />
