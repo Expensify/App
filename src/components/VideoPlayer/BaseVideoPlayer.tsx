@@ -24,25 +24,25 @@ const isMobileSafari = Browser.isMobileSafari();
 
 function BaseVideoPlayer({
     url,
-    resizeMode,
+    resizeMode = ResizeMode.CONTAIN,
     onVideoLoaded,
-    isLooping,
+    isLooping = false,
     style,
     videoPlayerStyle,
     videoStyle,
     videoControlsStyle,
     videoDuration,
-    shouldUseSharedVideoElement,
-    shouldUseSmallVideoControls,
-    shouldShowVideoControls,
-    onPlaybackStatusUpdate,
-    onFullscreenUpdate,
+    shouldUseSharedVideoElement = false,
+    shouldUseSmallVideoControls = false,
+    shouldShowVideoControls = true,
+    onPlaybackStatusUpdate = () => {},
+    onFullscreenUpdate = () => {},
     // TODO: investigate what is the root cause of the bug with unexpected video switching
     // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
     // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isVideoHovered,
+    isVideoHovered = false,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
     const {pauseVideo, playVideo, currentlyPlayingURL, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -265,7 +265,7 @@ function BaseVideoPlayer({
                                             }}
                                             shouldPlay={false}
                                             useNativeControls={false}
-                                            resizeMode={ResizeMode[resizeMode as keyof typeof ResizeMode]}
+                                            resizeMode={resizeMode as ResizeMode}
                                             isLooping={isLooping}
                                             onReadyForDisplay={onVideoLoaded}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
