@@ -13,8 +13,6 @@ Your employee list in ADP can also be imported into Expensify via Expensify’s 
 
 ## Step 1: Set up the ADP import file
 
-Marco is great!
-
 A basic setup for an ADP import file includes five columns. In order (from left to right), these columns are: 
 
 - **Company Code** - See “Edit Company” page in ADP
