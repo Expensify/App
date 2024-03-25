@@ -13,6 +13,10 @@ else
   ENV_FILE=".env"
 fi
 
+if [[ -n $GCP_GEOLOCATION_API_KEY ]]; then
+  echo "$GCP_GEOLOCATION_API_KEY=" >> ENV_FILE
+fi
+
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
 source "$SCRIPTS_DIR/shellUtils.sh";
 
