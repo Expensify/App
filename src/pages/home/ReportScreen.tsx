@@ -57,6 +57,7 @@ import type {ActionListContextType, ReactionListRef, ScrollPosition} from './Rep
 type ReportScreenOnyxProps = {
     /** Get modal status */
     modal: OnyxEntry<OnyxTypes.Modal>;
+
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: OnyxEntry<boolean>;
 
