@@ -65,16 +65,18 @@ function BaseVideoPlayer({
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
 
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
-        } else if (isPlaying) {
+        } else if (isPlaying && !isFullscreen) {
             pauseVideo();
-        } else {
+        } else if (!isFullscreen) {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, isFullscreen]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         setIsPopoverVisible(true);
@@ -139,6 +141,8 @@ function BaseVideoPlayer({
     const handleFullscreenUpdate = useCallback(
         (event: VideoFullscreenUpdateEvent) => {
             onFullscreenUpdate(event);
+
+            setIsFullscreen(e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_PRESENT);
 
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses

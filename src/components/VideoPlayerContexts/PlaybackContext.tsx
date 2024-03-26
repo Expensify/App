@@ -37,7 +37,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(
-        (url: string) => {
+        (url: string | null) => {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
