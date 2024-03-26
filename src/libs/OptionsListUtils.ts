@@ -521,7 +521,8 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
  */
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
     return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
-        ? lastActorDetails.firstName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+        ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+          lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
         : '';
 }
 
@@ -732,6 +733,35 @@ function createOption(
     result.subtitle = subtitle;
 
     return result;
+}
+
+/**
+ * Get the option for a given report.
+ */
+function getReportOption(participant: Participant): ReportUtils.OptionData {
+    const report = ReportUtils.getReport(participant.reportID);
+
+    const option = createOption(
+        report?.visibleChatMemberAccountIDs ?? [],
+        allPersonalDetails ?? {},
+        !isEmptyObject(report) ? report : null,
+        {},
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+    );
+
+    // Update text & alternateText because createOption returns workspace name only if report is owned by the user
+    if (option.isSelfDM) {
+        option.alternateText = Localize.translateLocal('reportActionsView.yourSpace');
+    } else {
+        option.text = ReportUtils.getPolicyName(report);
+        option.alternateText = Localize.translateLocal('workspace.common.workspace');
+    }
+    option.selected = participant.selected;
+    option.isSelected = participant.selected;
+    return option;
 }
 
 /**
@@ -961,11 +991,11 @@ function getCategoryListSections(
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
 
     const categorySections: CategoryTreeSection[] = [];
-    const numberOfCategories = enabledCategories.length;
+    const numberOfEnabledCategories = enabledCategories.length;
 
     let indexOffset = 0;
 
-    if (numberOfCategories === 0 && selectedOptions.length > 0) {
+    if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
@@ -1015,9 +1045,8 @@ function getCategoryListSections(
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
-    const numberOfVisibleCategories = filteredCategories.length + selectedOptionNames.length;
 
-    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+    if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -1768,6 +1797,8 @@ function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: On
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
+        includeSelfDM: true,
+        includeThreads: true,
     });
 }
 
@@ -2073,6 +2104,7 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
     getShareLogOptions,
+    getReportOption,
     getTaxRatesSection,
 };
 
