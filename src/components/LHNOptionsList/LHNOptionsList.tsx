@@ -1,15 +1,19 @@
+import {useRoute} from '@react-navigation/native';
+import type {FlashListProps} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
-import React, {memo, useCallback, useMemo} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -38,8 +42,11 @@ function LHNOptionsList({
     draftComments = {},
     transactionViolations = {},
     onFirstItemRendered = () => {},
-    reportIDsWithErrors = {},
 }: LHNOptionsListProps) {
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const flashListRef = useRef<FlashList<string>>(null);
+    const route = useRoute();
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
@@ -108,7 +115,6 @@ function LHNOptionsList({
             const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
             const lastReportAction = sortedReportActions[0];
-            const reportErrors = reportIDsWithErrors[reportID] ?? {};
 
             // Get the transaction for the last report action
             let lastReportActionTransactionID = '';
@@ -137,7 +143,6 @@ function LHNOptionsList({
                     transactionViolations={transactionViolations}
                     canUseViolations={canUseViolations}
                     onLayout={onLayoutItem}
-                    reportErrors={reportErrors}
                 />
             );
         },
@@ -155,11 +160,53 @@ function LHNOptionsList({
             transactionViolations,
             canUseViolations,
             onLayoutItem,
-            reportIDsWithErrors,
         ],
     );
 
-    const extraData = useMemo(() => [reportActions, reports, policy, personalDetails], [reportActions, reports, policy, personalDetails]);
+    const extraData = useMemo(() => [reportActions, reports, policy, personalDetails, data.length], [reportActions, reports, policy, personalDetails, data.length]);
+
+    const previousOptionMode = usePrevious(optionMode);
+
+    useEffect(() => {
+        if (previousOptionMode === null || previousOptionMode === optionMode || !flashListRef.current) {
+            return;
+        }
+
+        if (!flashListRef.current) {
+            return;
+        }
+
+        // If the option mode changes want to scroll to the top of the list because rendered items will have different height.
+        flashListRef.current.scrollToOffset({offset: 0});
+    }, [previousOptionMode, optionMode]);
+
+    const onScroll = useCallback<NonNullable<FlashListProps<string>['onScroll']>>(
+        (e) => {
+            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // We should ignore this case.
+            if (e.nativeEvent.layoutMeasurement.height === 0) {
+                return;
+            }
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [route, saveScrollOffset],
+    );
+
+    const onLayout = useCallback(() => {
+        const offset = getScrollOffset(route);
+
+        if (!(offset && flashListRef.current)) {
+            return;
+        }
+
+        // We need to use requestAnimationFrame to make sure it will scroll properly on iOS.
+        requestAnimationFrame(() => {
+            if (!(offset && flashListRef.current)) {
+                return;
+            }
+            flashListRef.current.scrollToOffset({offset});
+        });
+    }, [route, flashListRef, getScrollOffset]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
@@ -174,6 +221,7 @@ function LHNOptionsList({
                 />
             ) : (
                 <FlashList
+                    ref={flashListRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
@@ -184,6 +232,8 @@ function LHNOptionsList({
                     estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
                     extraData={extraData}
                     showsVerticalScrollIndicator={false}
+                    onLayout={onLayout}
+                    onScroll={onScroll}
                 />
             )}
         </View>

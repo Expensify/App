@@ -42,7 +42,7 @@ async function run() {
         let checklistBody = '';
         let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
-            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBody(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
             checklistBody = issueBody;
             checklistAssignees = issueAssignees;
         } else {
@@ -97,7 +97,7 @@ async function run() {
             }
 
             const didVersionChange = newVersionTag !== currentChecklistData.tag;
-            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBody(
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersionTag,
                 _.pluck(PRList, 'url'),
                 _.pluck(_.where(PRList, {isVerified: true}), 'url'),

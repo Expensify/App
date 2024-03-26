@@ -12,14 +12,17 @@ type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BUL
 
 type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES>;
 
+type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES>;
+
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
-    icon: IconAsset;
+    icon?: IconAsset;
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
     onSelected?: () => void;
+    disabled?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -58,7 +61,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     anchorAlignment?: AnchorAlignment;
 
     /* ref for the button */
-    buttonRef: RefObject<View>;
+    buttonRef?: RefObject<View>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
@@ -73,4 +76,4 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-export type {PaymentType, WorkspaceMemberBulkActionType, WorkspaceDistanceRatesBulkActionType, DropdownOption, ButtonWithDropdownMenuProps};
+export type {PaymentType, WorkspaceMemberBulkActionType, WorkspaceDistanceRatesBulkActionType, DropdownOption, ButtonWithDropdownMenuProps, WorkspaceTaxRatesBulkActionType};

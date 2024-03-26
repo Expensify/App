@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -48,6 +48,9 @@ type ReportPreviewOnyxProps = {
 
     /** All of the transaction violations */
     transactionViolations: OnyxCollection<TransactionViolations>;
+
+    /** The user's wallet account */
+    userWallet: OnyxEntry<UserWallet>;
 };
 
 type ReportPreviewProps = ReportPreviewOnyxProps & {
@@ -94,6 +97,7 @@ function ReportPreview({
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
+    userWallet,
 }: ReportPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -129,7 +133,8 @@ function ReportPreview({
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
-    const hasErrors = hasMissingSmartscanFields || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasErrors = hasMissingSmartscanFields || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations)) || ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
 
@@ -148,6 +153,7 @@ function ReportPreview({
         });
 
     const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0;
+    const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -186,16 +192,18 @@ function ReportPreview({
         if (isScanning) {
             return translate('common.receipt');
         }
-        const payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+        let payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         if (isApproved) {
             return translate('iou.managerApproved', {manager: payerOrApproverName});
         }
-        const managerName = isPolicyExpenseChat && !hasNonReimbursableTransactions ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-        let paymentVerb: TranslationPaths = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
+        let paymentVerb: TranslationPaths = 'iou.payerOwes';
         if (iouSettled || iouReport?.isWaitingOnBankAccount) {
             paymentVerb = 'iou.payerPaid';
+        } else if (hasNonReimbursableTransactions) {
+            paymentVerb = 'iou.payerSpent';
+            payerOrApproverName = ReportUtils.getDisplayNameForParticipant(chatReport?.ownerAccountID, true);
         }
-        return translate(paymentVerb, {payer: managerName});
+        return translate(paymentVerb, {payer: payerOrApproverName});
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
@@ -204,7 +212,12 @@ function ReportPreview({
 
     const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
 
+    const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
+
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+
+    const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
+    const shouldShowRBR = !iouSettled && hasErrors;
 
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
@@ -251,10 +264,17 @@ function ReportPreview({
                                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                             <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewMessage()}</Text>
                                         </View>
-                                        {!iouSettled && hasErrors && (
+                                        {shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
                                                 fill={theme.danger}
+                                            />
+                                        )}
+
+                                        {!shouldShowRBR && shouldPromptUserToAddBankAccount && (
+                                            <Icon
+                                                src={Expensicons.DotIndicator}
+                                                fill={theme.success}
                                             />
                                         )}
                                     </View>
@@ -292,6 +312,7 @@ function ReportPreview({
                                         addBankAccountRoute={bankAccountRoute}
                                         shouldHidePaymentOptions={!shouldShowPayButton}
                                         shouldShowApproveButton={shouldShowApproveButton}
+                                        shouldDisableApproveButton={shouldDisableApproveButton}
                                         kycWallAnchorAlignment={{
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -309,6 +330,7 @@ function ReportPreview({
                                         success={isWaitingForSubmissionFromCurrentUser}
                                         text={translate('common.submit')}
                                         onPress={() => iouReport && IOU.submitReport(iouReport)}
+                                        isDisabled={shouldDisableSubmitButton}
                                     />
                                 )}
                             </View>
@@ -337,5 +359,8 @@ export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
     },
     transactionViolations: {
         key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    },
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
     },
 })(ReportPreview);
