@@ -55,7 +55,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                     </OfflineWithFeedback>
                 )}
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
-                    <Text style={[styles.textSupporting, styles.textNormal]}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>
+                    <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>
                 </View>
             </ScrollView>
         </ScreenWrapper>

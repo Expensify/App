@@ -28,7 +28,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
             <HeaderWithBackButton title={translate('workspace.qbo.accounts')} />
             <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
                 <Text style={styles.pb5}>{translate('workspace.qbo.accountsDescription')}</Text>
-                <View style={[styles.flexRow, styles.mb3, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <View style={styles.flex1}>
                         <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
                     </View>
@@ -43,12 +43,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                     </OfflineWithFeedback>
                 </View>
                 <View style={styles.flex1}>
-                    <Text
-                        fontSize={variables.fontSizeLabel}
-                        style={styles.textSupporting}
-                    >
-                        {translate('workspace.qbo.accountsSwitchDescription')}
-                    </Text>
+                    <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.accountsSwitchDescription')}</Text>
                 </View>
             </ScrollView>
         </ScreenWrapper>
