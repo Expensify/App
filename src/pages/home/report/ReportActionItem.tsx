@@ -20,7 +20,6 @@ import RenderHTML from '@components/RenderHTML';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
-import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import RenameAction from '@components/ReportActionItem/RenameAction';
@@ -774,7 +773,10 @@ function ReportActionItem({
             // if (ReportUtils.isTripRoom(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
-                    <TripDetailsView iouReportID={report.iouReportID} />
+                    <TripDetailsView
+                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                        iouReportID={report.iouReportID}
+                    />
                 </OfflineWithFeedback>
             );
         }

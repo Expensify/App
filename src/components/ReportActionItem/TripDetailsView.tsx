@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,6 +21,9 @@ import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transact
 type TripDetailsViewProps = {
     /** The active IOUReport, used for Onyx subscription */
     iouReportID?: string;
+
+    /** Whether we should display the horizontal rule below the component */
+    shouldShowHorizontalRule: boolean;
 };
 
 type ReservationViewProps = {
@@ -34,6 +38,10 @@ function ReservationView({reservation}: ReservationViewProps) {
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
 
     const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) => `${reservationTimeDetails.longName} (${reservationTimeDetails.shortName})`;
+
+    const bottomDescription = `${reservation.confirmations.length > 0 ? `${reservation.confirmations[0].value} • ` : ''}${
+        reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? `${reservation.company.longName} • ${reservation.company.shortName} ${reservation.route.number}` : reservation.start.address
+    }`;
 
     const titleComponent = (
         <View style={styles.gap2}>
@@ -56,12 +64,14 @@ function ReservationView({reservation}: ReservationViewProps) {
                     {reservation.start.address}
                 </Text>
             )}
-            <Text style={[styles.textSupportingSmallSize, styles.lh14]}>DDPNOF • American Airlines • AA 2661</Text>
+            <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{bottomDescription}</Text>
         </View>
     );
 
     return (
         <MenuItemWithTopDescription
+            // @TODO: When the new route ROUTES.TRAVEL_DETAILS and the backend are ready, navigate to the appropriate screen
+            // onPress={() => {}}
             description={translate(`travel.${reservation.type}`)}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16, styles.tripDescriptionMargin]}
             titleComponent={titleComponent}
@@ -82,7 +92,7 @@ function ReservationView({reservation}: ReservationViewProps) {
     );
 }
 
-function TripDetailsView({iouReportID}: TripDetailsViewProps) {
+function TripDetailsView({iouReportID, shouldShowHorizontalRule}: TripDetailsViewProps) {
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -95,7 +105,6 @@ function TripDetailsView({iouReportID}: TripDetailsViewProps) {
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
             <AnimatedEmptyStateBackground />
-
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
@@ -113,6 +122,10 @@ function TripDetailsView({iouReportID}: TripDetailsViewProps) {
                             <ReservationView reservation={reservation} />
                         </OfflineWithFeedback>
                     ))}
+                    <SpacerView
+                        shouldShow={shouldShowHorizontalRule}
+                        style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
+                    />
                 </>
             </View>
         </View>
