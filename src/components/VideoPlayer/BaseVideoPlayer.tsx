@@ -104,19 +104,30 @@ function BaseVideoPlayer({
 
     const handlePlaybackStatusUpdate = useCallback(
         (status: AVPlaybackStatus) => {
-            const isVideoPlaying = 'isPlaying' in status ? status.isPlaying : false;
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const currentDuration = 'durationMillis' in status ? status.durationMillis || videoDuration * 1000 : videoDuration * 1000;
-            const currentPositon = 'positionMillis' in status ? status.positionMillis || 0 : 0;
+            if (!status.isLoaded) {
+                preventPausingWhenExitingFullscreen(false);
+                setIsPlaying(false);
+                setIsLoading(false); // when video is ready to display duration is not NaN
+                setIsBuffering(false);
+                setDuration(videoDuration * 1000);
+                setPosition(0);
 
-            if (status.isLoaded && shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPositon)) {
+                onPlaybackStatusUpdate(status);
+                return;
+            }
+            const isVideoPlaying = status.isPlaying;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const currentDuration = status.durationMillis || videoDuration * 1000;
+            const currentPositon = status.positionMillis || 0;
+
+            if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPositon)) {
                 videoPlayerRef.current?.setStatusAsync({positionMillis: 0, shouldPlay: true});
             }
 
             preventPausingWhenExitingFullscreen(isVideoPlaying);
             setIsPlaying(isVideoPlaying);
-            setIsLoading(!status.isLoaded || Number.isNaN(status.durationMillis)); // when video is ready to display duration is not NaN
-            setIsBuffering('isBuffering' in status && status.isBuffering);
+            setIsLoading(Number.isNaN(status.durationMillis)); // when video is ready to display duration is not NaN
+            setIsBuffering(status.isBuffering);
             setDuration(currentDuration);
             setPosition(currentPositon);
 
