@@ -2,7 +2,8 @@ import lodashGet from 'lodash/get';
 import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import OptionsSelector from '@components/OptionsSelector';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,20 +59,16 @@ function TagPicker({selectedTag, tag, tagIndex, policyTags, policyRecentlyUsedTa
     const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (policyTag) => policyTag.searchText === selectedTag)[0], 'keyForList');
 
     return (
-        <OptionsSelector
-            contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
-            optionHoveredStyle={styles.hoveredComponentBG}
-            sectionHeaderStyle={styles.mt5}
+        <SelectionList
+            ListItem={RadioListItem}
+            containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
+            sectionTitleStyles={styles.mt5}
             sections={sections}
-            selectedOptions={selectedOptions}
+            textInputValue={searchValue}
             headerMessage={headerMessage}
-            textInputLabel={translate('common.search')}
-            boldStyle
-            highlightSelectedOptions
+            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             isRowMultilineSupported
             shouldShowTextInput={shouldShowTextInput}
-            // Focus the first option when searching
-            focusedIndex={0}
             // Focus the selected option on first load
             initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}

@@ -69,6 +69,9 @@ function BaseSelectionList<TItem extends ListItem>(
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
+        textInputIconLeft,
+        sectionTitleStyles,
+        turnOffEnterDisabling,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -77,7 +80,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const shouldShowTextInput = !!textInputLabel;
+    const shouldShowTextInput = !!textInputLabel || !!textInputIconLeft;
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
@@ -192,7 +195,7 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
+    const disableEnterShortcut = !turnOffEnterDisabling && activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
 
     /**
      * Scrolls to the desired item index in the section list
@@ -306,7 +309,7 @@ function BaseSelectionList<TItem extends ListItem>(
             // We do this so that we can reference the height in `getItemLayout` –
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
-            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]}>
                 <Text style={[styles.ph4, styles.textLabelSupporting]}>{section.title}</Text>
             </View>
         );
@@ -492,8 +495,12 @@ function BaseSelectionList<TItem extends ListItem>(
                                             return;
                                         }
 
-                                        // eslint-disable-next-line no-param-reassign
-                                        textInputRef.current = element as RNTextInput;
+                                        if (typeof textInputRef === 'function') {
+                                            textInputRef(element as RNTextInput);
+                                        } else {
+                                            // eslint-disable-next-line no-param-reassign
+                                            textInputRef.current = element as RNTextInput;
+                                        }
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
@@ -506,6 +513,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     inputMode={inputMode}
                                     selectTextOnFocus
                                     spellCheck={false}
+                                    iconLeft={textInputIconLeft}
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
                                     isLoading={isLoadingNewOptions}

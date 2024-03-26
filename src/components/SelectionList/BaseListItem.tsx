@@ -130,6 +130,22 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
+                    {!item.isSelected && item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                src={Expensicons.DotIndicator}
+                                fill={theme.danger}
+                            />
+                        </View>
+                    )}
+                    {!item.isSelected && item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                src={Expensicons.DotIndicator}
+                                fill={theme.iconSuccessFill}
+                            />
+                        </View>
+                    )}
                     {rightHandSideComponentRender()}
                 </View>
                 {FooterComponent}

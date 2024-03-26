@@ -3,8 +3,10 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +16,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
 import type {BaseShareLogListOnyxProps, BaseShareLogListProps} from './types';
 
 function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogListProps) {
@@ -103,7 +104,7 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
         setSearchValue(value);
     };
 
-    const attachLogToReport = (option: Report) => {
+    const attachLogToReport = (option: ListItem) => {
         if (!option.reportID) {
             return;
         }
@@ -124,18 +125,18 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <OptionsSelector
-                            // @ts-expect-error TODO: remove this comment once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TS
+                        <SelectionList
+                            ListItem={UserListItem}
                             sections={sections}
                             onSelectRow={attachLogToReport}
                             onChangeText={onChangeText}
-                            value={searchValue}
+                            textInputValue={searchValue}
                             headerMessage={headerMessage}
-                            showTitleTooltip
-                            shouldShowOptions={isOptionsDataReady}
+                            shouldShowTooltips
+                            isLoadingNewOptions={!isOptionsDataReady}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                            containerStyle={safeAreaPaddingBottomStyle}
                             autoFocus
                         />
                     </View>

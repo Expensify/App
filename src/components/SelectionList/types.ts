@@ -2,10 +2,12 @@ import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {MaybePhraseKey} from '@libs/Localize';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
@@ -110,6 +112,8 @@ type ListItem = {
 
     /** The search value from the selection list */
     searchText?: string | null;
+
+    brickRoadIndicator?: BrickRoad | '' | null;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {
@@ -137,6 +141,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
     children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
+    brickRoadIndicator?: BrickRoad | '' | null;
 };
 
 type UserListItemProps = ListItemProps & {
@@ -208,6 +213,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Max length for the text input */
     textInputMaxLength?: number;
 
+    /** Icon to display on the left side of TextInput */
+    textInputIconLeft?: IconAsset | null;
+
     /** Callback to fire when the text input changes */
     onChangeText?: (text: string) => void;
 
@@ -266,7 +274,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     disableInitialFocusOptionStyle?: boolean;
 
     /** Styles to apply to SelectionList container */
-    containerStyle?: ViewStyle;
+    containerStyle?: StyleProp<ViewStyle>;
 
     /** Whether keyboard is visible on the screen */
     isKeyboardShown?: boolean;
@@ -299,7 +307,13 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     isRowMultilineSupported?: boolean;
 
     /** Ref for textInput */
-    textInputRef?: MutableRefObject<TextInput | null>;
+    textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
+
+    /** Styles for the section title */
+    sectionTitleStyles?: StyleProp<ViewStyle>;
+
+    /** Decides if selecting with Enter should be disabled */
+    turnOffEnterDisabling?: boolean;
 };
 
 type SelectionListHandle = {

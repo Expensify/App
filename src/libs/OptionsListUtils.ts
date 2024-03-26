@@ -1098,16 +1098,19 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Category[]): Option[] {
+function getTagsOptions(tags: Category[], selectedOptions?: Category[]): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
+        const selectedOptionsNames = (selectedOptions ?? []).map(({name}) => name);
+
         return {
             text: cleanedName,
             keyForList: tag.name,
             searchText: tag.name,
             tooltipText: cleanedName,
             isDisabled: !tag.enabled,
+            isSelected: selectedOptionsNames.includes(tag.name),
         };
     });
 }
@@ -1135,7 +1138,7 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getTagsOptions(selectedTagOptions),
+            data: getTagsOptions(selectedTagOptions, selectedOptions),
         });
 
         return tagSections;
@@ -1149,7 +1152,7 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getTagsOptions(searchTags),
+            data: getTagsOptions(searchTags, selectedOptions),
         });
 
         return tagSections;
@@ -1161,7 +1164,7 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getTagsOptions(enabledTags),
+            data: getTagsOptions(enabledTags, selectedOptions),
         });
 
         return tagSections;
@@ -1187,7 +1190,7 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getTagsOptions(selectedTagOptions),
+            data: getTagsOptions(selectedTagOptions, selectedOptions),
         });
 
         indexOffset += selectedOptions.length;
@@ -1201,7 +1204,7 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
-            data: getTagsOptions(cutRecentlyUsedTags),
+            data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
 
         indexOffset += filteredRecentlyUsedTags.length;
@@ -1212,7 +1215,7 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getTagsOptions(filteredTags),
+        data: getTagsOptions(filteredTags, selectedOptions),
     });
 
     return tagSections;

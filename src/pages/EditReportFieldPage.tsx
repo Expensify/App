@@ -106,7 +106,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                 fieldKey={fieldKey}
                 fieldName={Str.UCFirst(reportField.name)}
                 fieldValue={fieldValue}
-                fieldOptions={reportField.values.filter((value) => !(value in reportField.disabledOptions))}
+                fieldOptions={reportField.values.filter((_, index) => !reportField.disabledOptions[index])}
                 onSubmit={handleReportFieldChange}
             />
         );
