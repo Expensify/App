@@ -192,7 +192,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: numbe
     if (isEmptyObject(policyTagList)) {
         return '';
     }
-    return getTagList(policyTagList, tagIndex).name;
+    return getTagList(policyTagList, tagIndex)?.name;
 }
 
 /**
