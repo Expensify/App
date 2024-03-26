@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -26,6 +27,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import BankInfo from './BankInfo/BankInfo';
@@ -82,11 +84,11 @@ function BankAccountStep({
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
 
     const removeExistingBankAccountDetails = () => {
-        const bankAccountData = {
+        const bankAccountData: Partial<ReimbursementAccountForm> = {
             [bankInfoStepKeys.ROUTING_NUMBER]: '',
             [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
             [bankInfoStepKeys.PLAID_MASK]: '',
-            [bankInfoStepKeys.IS_SAVINGS]: '',
+            [bankInfoStepKeys.IS_SAVINGS]: undefined,
             [bankInfoStepKeys.BANK_NAME]: '',
             [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
             [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
@@ -141,7 +143,7 @@ function BankAccountStep({
                                 removeExistingBankAccountDetails();
                                 BankAccounts.openPlaidView();
                             }}
-                            isDisabled={!!isPlaidDisabled || !user.validated}
+                            isDisabled={!!isPlaidDisabled || !user?.validated}
                             style={[styles.mt4]}
                             shouldShowRightIcon
                             success

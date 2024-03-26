@@ -254,7 +254,7 @@ function ReimbursementAccountPage({
             }
 
             if (!hasACHDataBeenLoaded) {
-                if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount.isLoading === false) {
+                if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount?.isLoading === false) {
                     setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
                     setHasACHDataBeenLoaded(true);
                 }
@@ -264,7 +264,7 @@ function ReimbursementAccountPage({
             if (
                 prevReimbursementAccount &&
                 prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                reimbursementAccount.pendingAction !== prevReimbursementAccount.pendingAction
+                reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction
             ) {
                 setShouldShowContinueSetupButton(hasInProgressVBBA());
             }
@@ -276,7 +276,7 @@ function ReimbursementAccountPage({
             const currentStepRouteParam = getStepToOpenFromRouteParams(route);
             if (currentStepRouteParam === currentStep) {
                 // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
-                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
                     BankAccounts.hideBankAccountErrors();
                 }
 
@@ -285,7 +285,7 @@ function ReimbursementAccountPage({
             }
 
             // Update the data that is returned from back-end to draft value
-            const draftStep = reimbursementAccount.draftStep;
+            const draftStep = reimbursementAccount?.draftStep;
             if (draftStep) {
                 BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
             }

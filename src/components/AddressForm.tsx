@@ -29,7 +29,7 @@ type AddressFormProps = {
     city?: string;
 
     /** Address country field */
-    country?: Country | '';
+    country?: Country | '' | 'country';
 
     /** Address state field */
     state?: string;

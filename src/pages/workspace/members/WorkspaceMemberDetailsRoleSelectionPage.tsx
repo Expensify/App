@@ -30,7 +30,6 @@ type ListItemType = {
 function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: WorkspaceMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
     const accountID = Number(route.params.accountID) ?? 0;
     const policyID = route.params.policyID;
     const backTo = route.params.backTo ?? ('' as Route);
