@@ -1,11 +1,12 @@
-const utils = require('../utils/utils');
+import type {Step} from '@kie/act-js';
+import {createStepAssertion} from '../utils/utils';
 
-const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted = 3) => {
+function assertJestJobExecuted(workflowResult: Step[], didExecute = true, timesExecuted = 3) {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'JEST', 'Checkout', [], []),
-        utils.createStepAssertion('Setup Node', true, null, 'JEST', 'Setup Node', [], []),
-        utils.createStepAssertion('Get number of CPU cores', true, null, 'JEST', 'Get number of CPU cores', [], []),
-        utils.createStepAssertion(
+        createStepAssertion('Checkout', true, null, 'JEST', 'Checkout', [], []),
+        createStepAssertion('Setup Node', true, null, 'JEST', 'Setup Node', [], []),
+        createStepAssertion('Get number of CPU cores', true, null, 'JEST', 'Get number of CPU cores', [], []),
+        createStepAssertion(
             'Cache Jest cache',
             true,
             null,
@@ -17,8 +18,8 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
             ],
             [],
         ),
-        utils.createStepAssertion('Jest tests', true, null, 'JEST', 'Jest tests', [], []),
-    ];
+        createStepAssertion('Jest tests', true, null, 'JEST', 'Jest tests', [], []),
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -35,13 +36,14 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
-const assertShellTestsJobExecuted = (workflowResult, didExecute = true) => {
+}
+
+function assertShellTestsJobExecuted(workflowResult: Step[], didExecute = true) {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'SHELLTESTS', 'Checkout', [], []),
-        utils.createStepAssertion('Setup Node', true, null, 'SHELLTESTS', 'Setup Node', [], []),
-        utils.createStepAssertion('Test CI git logic', true, null, 'SHELLTESTS', 'Test CI git logic', [], []),
-    ];
+        createStepAssertion('Checkout', true, null, 'SHELLTESTS', 'Checkout', [], []),
+        createStepAssertion('Setup Node', true, null, 'SHELLTESTS', 'Setup Node', [], []),
+        createStepAssertion('Test CI git logic', true, null, 'SHELLTESTS', 'Test CI git logic', [], []),
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -50,9 +52,6 @@ const assertShellTestsJobExecuted = (workflowResult, didExecute = true) => {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
+}
 
-module.exports = {
-    assertJestJobExecuted,
-    assertShellTestsJobExecuted,
-};
+export {assertJestJobExecuted, assertShellTestsJobExecuted};

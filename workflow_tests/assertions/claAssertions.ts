@@ -1,8 +1,9 @@
-const utils = require('../utils/utils');
+import type {Step} from '@kie/act-js';
+import {createStepAssertion} from '../utils/utils';
 
-const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository = '', didExecute = true, runAssistant = true) => {
+function assertCLAJobExecuted(workflowResult: Step[], commentBody = '', githubRepository = '', didExecute = true, runAssistant = true) {
     const steps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'CLA comment check',
             true,
             null,
@@ -14,7 +15,7 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
             ],
             [],
         ),
-        utils.createStepAssertion(
+        createStepAssertion(
             'CLA comment re-check',
             true,
             null,
@@ -26,7 +27,7 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
             ],
             [],
         ),
-    ];
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -37,7 +38,7 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
     });
 
     const assistantSteps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'CLA Assistant',
             true,
             null,
@@ -57,7 +58,7 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
                 {key: 'PERSONAL_ACCESS_TOKEN', value: '***'},
             ],
         ),
-    ];
+    ] as const;
 
     assistantSteps.forEach((step) => {
         if (didExecute && runAssistant) {
@@ -66,8 +67,7 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
     });
-};
+}
 
-module.exports = {
-    assertCLAJobExecuted,
-};
+// eslint-disable-next-line import/prefer-default-export
+export {assertCLAJobExecuted};
