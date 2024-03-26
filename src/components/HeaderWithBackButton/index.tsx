@@ -1,5 +1,6 @@
 import React from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
+import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -14,7 +15,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -32,7 +32,8 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report = null,
     policy,
-    shouldShowAvatarWithDisplay = false,
+    policyAvatar,
+    shouldShowReportAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
@@ -56,8 +57,8 @@ function HeaderWithBackButton({
     children = null,
     shouldOverlayDots = false,
     shouldOverlay = false,
-    singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
+    style,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -65,7 +66,6 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
-    const waitForNavigate = useWaitForNavigation();
 
     // If the icon is present, the header bar should be taller and use different font.
     const isCentralPaneSettings = !!icon;
@@ -81,6 +81,7 @@ function HeaderWithBackButton({
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && styles.pl2,
                 shouldOverlay && StyleSheet.absoluteFillObject,
+                style,
             ]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
@@ -118,7 +119,15 @@ function HeaderWithBackButton({
                         additionalStyles={[styles.mr2]}
                     />
                 )}
-                {shouldShowAvatarWithDisplay ? (
+                {policyAvatar && (
+                    <Avatar
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        source={policyAvatar?.source}
+                        name={policyAvatar?.name}
+                        type={policyAvatar?.type}
+                    />
+                )}
+                {shouldShowReportAvatarWithDisplay ? (
                     <AvatarWithDisplayName
                         report={report}
                         policy={policy}
@@ -163,7 +172,7 @@ function HeaderWithBackButton({
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
                                 disabled={shouldDisableGetAssistanceButton}
-                                onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID, Navigation.getActiveRoute()))))}
+                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID, Navigation.getActiveRoute()))}
                                 style={[styles.touchableButtonImage]}
                                 role="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
