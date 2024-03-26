@@ -226,8 +226,8 @@ function AvatarWithImagePicker({
             setIsMenuVisible(false);
             setImageData({
                 uri: image.uri ?? '',
-                name: image.name,
-                type: image.type,
+                name: image.name ?? '',
+                type: image.type ?? '',
             });
         });
     };
