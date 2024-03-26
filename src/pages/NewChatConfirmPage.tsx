@@ -14,7 +14,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as GroupChatUtils from '@libs/GroupChatUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -40,18 +39,18 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const participantAccountIDs = newGroupDraft?.participants.map((participant: {accountID: number}) => participant.accountID);
+    const participantAccountIDs = newGroupDraft?.participants.map((participant) => participant.accountID);
     const selectedOptions = useMemo((): Participant[] => {
-        let options: Participant[] = [];
-        if (newGroupDraft?.participants) {
-            options = newGroupDraft?.participants.map((participant: {accountID: number; login: string}) =>
-                OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, allPersonalDetails),
-            );
+        if (!newGroupDraft?.participants) {
+            return [];
         }
+        const options: Participant[] = newGroupDraft?.participants.map((participant) =>
+            OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, allPersonalDetails),
+        );
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
-    const groupName = GroupChatUtils.getGroupChatName(participantAccountIDs ?? []);
+    const groupName = ReportUtils.getGroupChatName(participantAccountIDs ?? []);
 
     const sections: ListItem[] = useMemo(
         () =>
@@ -101,7 +100,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         if (!newGroupDraft) {
             return;
         }
-        const logins: string[] = newGroupDraft.participants.map((participant: {login: string}) => participant.login);
+        const logins: string[] = newGroupDraft.participants.map((participant) => participant.login);
         Report.navigateToAndOpenReport(logins, true, groupName);
     };
 

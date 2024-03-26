@@ -1,8 +1,7 @@
+import type {SelectedParticipant} from '@pages/NewChatPage';
+
 type NewGroupChatDraft = {
-    participants: Array<{
-        login: string;
-        accountID: number;
-    }>;
+    participants: SelectedParticipant[];
     reportName: string;
 };
 

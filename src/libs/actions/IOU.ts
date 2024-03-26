@@ -2288,8 +2288,9 @@ function createSplitsAndOnyxData(
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
 
     if (!existingSplitChatReport && participants.length > 1) {
+        const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
         newChat = ReportUtils.buildOptimisticChatReport(
-            participantAccountIDs,
+            allParticipantsAccountIDs,
             '',
             CONST.REPORT.CHAT_TYPE.GROUP,
             undefined,

@@ -57,8 +57,6 @@ import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import originalGetReportPolicyID from './getReportPolicyID';
-// eslint-disable-next-line import/no-cycle
-import * as GroupChatUtils from './GroupChatUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -1613,6 +1611,71 @@ function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> =
 }
 
 /**
+ * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then a default object is constructed.
+ */
+function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDetails> {
+    if (!accountID) {
+        return {};
+    }
+    return (
+        allPersonalDetails?.[accountID] ?? {
+            avatar: UserUtils.getDefaultAvatar(accountID),
+            isOptimisticPersonalDetail: true,
+        }
+    );
+}
+
+/**
+ * Get the displayName for a single report participant.
+ */
+function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
+    if (!accountID) {
+        return '';
+    }
+
+    const personalDetails = getPersonalDetailsForAccountID(accountID);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
+    // This is to check if account is an invite/optimistically created one
+    // and prevent from falling back to 'Hidden', so a correct value is shown
+    // when searching for a new user
+    if (personalDetails.isOptimisticPersonalDetail === true) {
+        return formattedLogin;
+    }
+
+    // For selfDM, we display the user's displayName followed by '(you)' as a postfix
+    const shouldAddPostfix = shouldAddCurrentUserPostfix && accountID === currentUserAccountID;
+
+    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
+
+    // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
+    if (shouldFallbackToHidden && longName === Localize.translateLocal('common.hidden')) {
+        return longName;
+    }
+
+    const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
+    return shouldUseShortForm ? shortName : longName;
+}
+
+/**
+ * Returns the report name if the report is a group chat
+ */
+function getGroupChatName(participantAccountIDs: number[], shouldApplyLimit = false): string | undefined {
+    let participants = participantAccountIDs;
+    if (shouldApplyLimit) {
+        participants = participants.slice(0, 5);
+    }
+    const isMultipleParticipantReport = participants.length > 1;
+
+    return participants
+        .map((participant) => getDisplayNameForParticipant(participant, isMultipleParticipantReport))
+        .sort((first, second) => localeCompare(first ?? '', second ?? ''))
+        .filter(Boolean)
+        .join(', ');
+}
+
+/**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
@@ -1737,60 +1800,12 @@ function getIcons(
             source: getDefaultGroupAvatar(report.reportID),
             id: -1,
             type: CONST.ICON_TYPE_AVATAR,
-            name: GroupChatUtils.getGroupChatName(report.participantAccountIDs ?? []),
+            name: getGroupChatName(report.participantAccountIDs ?? []),
         };
         return [groupChatIcon];
     }
 
     return getIconsForParticipants(report?.participantAccountIDs ?? [], personalDetails);
-}
-
-/**
- * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
- * then a default object is constructed.
- */
-function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDetails> {
-    if (!accountID) {
-        return {};
-    }
-    return (
-        allPersonalDetails?.[accountID] ?? {
-            avatar: UserUtils.getDefaultAvatar(accountID),
-            isOptimisticPersonalDetail: true,
-        }
-    );
-}
-
-/**
- * Get the displayName for a single report participant.
- */
-function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = false, shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
-    if (!accountID) {
-        return '';
-    }
-
-    const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
-    // This is to check if account is an invite/optimistically created one
-    // and prevent from falling back to 'Hidden', so a correct value is shown
-    // when searching for a new user
-    if (personalDetails.isOptimisticPersonalDetail === true) {
-        return formattedLogin;
-    }
-
-    // For selfDM, we display the user's displayName followed by '(you)' as a postfix
-    const shouldAddPostfix = shouldAddCurrentUserPostfix && accountID === currentUserAccountID;
-
-    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
-
-    // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
-    if (shouldFallbackToHidden && longName === Localize.translateLocal('common.hidden')) {
-        return longName;
-    }
-
-    const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
-    return shouldUseShortForm ? shortName : longName;
 }
 
 function getDisplayNamesWithTooltips(
@@ -1860,8 +1875,6 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 
 /**
  * Returns the preview message for `REIMBURSEMENTQUEUED` action
- *
-
  */
 function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>, shouldUseShortDisplayName = true): string {
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, shouldUseShortDisplayName) ?? '';
@@ -5786,6 +5799,7 @@ export {
     isGroupChat,
     isTrackExpenseReport,
     hasActionsWithErrors,
+    getGroupChatName,
 };
 
 export type {
