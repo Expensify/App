@@ -14,8 +14,8 @@ type BaseClientSideLoggingToolProps = {
     file?: {path: string; newFileName: string; size: number};
     /** Action to run when pressing Share button */
     onShareLogs?: () => void;
-    /** Action to run when toggling the switch */
-    onToggleSwitch: (logs: Log[]) => void;
+    /** Action to run when disabling the switch */
+    onDisableLogging: (logs: Log[]) => void;
     /** Action to run when enabling logging */
     onEnableLogging?: () => void;
 } & BaseClientSideLoggingToolMenuOnyxProps;

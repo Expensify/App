@@ -11,7 +11,7 @@ import {parseStringifyMessages} from '@libs/Console';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseClientSideLoggingToolMenuOnyxProps, BaseClientSideLoggingToolProps} from './types';
 
-function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onToggleSwitch, onEnableLogging}: BaseClientSideLoggingToolProps) {
+function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging}: BaseClientSideLoggingToolProps) {
     const onToggle = () => {
         if (!shouldStoreLogs) {
             Console.setShouldStoreLogs(true);
@@ -32,7 +32,7 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
         const logs = Object.values(capturedLogs);
         const logsWithParsedMessages = parseStringifyMessages(logs);
 
-        onToggleSwitch(logsWithParsedMessages);
+        onDisableLogging(logsWithParsedMessages);
         Console.disableLoggingAndFlushLogs();
     };
     const styles = useThemeStyles();

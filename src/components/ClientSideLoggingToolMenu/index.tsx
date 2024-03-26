@@ -4,11 +4,11 @@ import localFileDownload from '@libs/localFileDownload';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
 
 function ClientSideLoggingToolMenu() {
-    const onToggle = (logs: Log[]) => {
+    const downloadFile = (logs: Log[]) => {
         localFileDownload('logs', JSON.stringify(logs, null, 2));
     };
 
-    return <BaseClientSideLoggingToolMenu onToggleSwitch={onToggle} />;
+    return <BaseClientSideLoggingToolMenu onDisableLogging={downloadFile} />;
 }
 
 ClientSideLoggingToolMenu.displayName = 'ClientSideLoggingToolMenu';

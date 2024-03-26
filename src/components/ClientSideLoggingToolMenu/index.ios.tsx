@@ -7,7 +7,7 @@ import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
 function ClientSideLoggingToolMenu() {
     const [file, setFile] = useState<{path: string; newFileName: string; size: number}>();
 
-    const onToggle = (logs: Log[]) => {
+    const createFile = (logs: Log[]) => {
         localFileCreate('logs', JSON.stringify(logs, null, 2)).then((localFile) => {
             setFile(localFile);
         });
@@ -26,7 +26,7 @@ function ClientSideLoggingToolMenu() {
         <BaseClientSideLoggingToolMenu
             file={file}
             onEnableLogging={() => setFile(undefined)}
-            onToggleSwitch={onToggle}
+            onDisableLogging={createFile}
             onShareLogs={shareLogs}
         />
     );
