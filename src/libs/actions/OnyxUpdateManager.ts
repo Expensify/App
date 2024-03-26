@@ -28,6 +28,9 @@ Onyx.connect({
     callback: (value) => (lastUpdateIDAppliedToClient = value),
 });
 
+let deferedUpdateBeforeReconnect: OnyxUpdatesFromServer | undefined;
+let deferredUpdates: OnyxUpdatesFromServer[] = [];
+
 export default () => {
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     Onyx.connect({
@@ -69,14 +72,11 @@ export default () => {
             SequentialQueue.pause();
             let canUnpauseQueuePromise;
 
-            let updateAfterReconnectApp: OnyxUpdatesFromServer | undefined;
-            const deferredUpdates: OnyxUpdatesFromServer[] = [];
-
             // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
             if (!lastUpdateIDAppliedToClient) {
                 Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
 
-                updateAfterReconnectApp = updateParams;
+                deferedUpdateBeforeReconnect = updateParams;
 
                 // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
                 canUnpauseQueuePromise = App.finalReconnectAppAfterActivatingReliableUpdates();
@@ -119,8 +119,9 @@ export default () => {
                 }
 
                 // If "updateAfterReconnectApp" is set, it means that case (1) was triggered and we only need to apply the one update, not the deferred ones.
-                if (updateAfterReconnectApp) {
-                    OnyxUpdates.apply(updateAfterReconnectApp).finally(unpauseQueueAndReset);
+                if (deferedUpdateBeforeReconnect) {
+                    OnyxUpdates.apply(deferedUpdateBeforeReconnect).finally(unpauseQueueAndReset);
+                    deferedUpdateBeforeReconnect = undefined;
                     return;
                 }
 
@@ -155,7 +156,10 @@ export default () => {
 
                 console.log({sortedDeferredUpdates});
 
-                Promise.all(sortedDeferredUpdates.map((update) => OnyxUpdates.apply(update))).finally(unpauseQueueAndReset);
+                Promise.all(sortedDeferredUpdates.map((update) => OnyxUpdates.apply(update))).finally(() => {
+                    unpauseQueueAndReset();
+                    deferredUpdates = [];
+                });
             }
 
             canUnpauseQueuePromise.finally(applyDeferredUpdates);
