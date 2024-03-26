@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
-import type {ReportActionCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -63,9 +63,9 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         };
 
-                        const reportAction: ReportActionCollectionDataSet = {
+                        const reportAction: ReportActionsCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
-                        } as ReportActionCollectionDataSet;
+                        } as ReportActionsCollectionDataSet;
 
                         return Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
@@ -115,9 +115,9 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         };
 
-                        const reportAction: ReportActionCollectionDataSet = {
+                        const reportAction: ReportActionsCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
-                        } as ReportActionCollectionDataSet;
+                        } as ReportActionsCollectionDataSet;
 
                         return Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
