@@ -121,7 +121,7 @@ function assertUpdateStagingJobFailed(workflowResult: Step[], didFail = false) {
     });
 }
 
-export {
+export default {
     assertTypecheckJobExecuted,
     assertLintJobExecuted,
     assertTestJobExecuted,

@@ -16,5 +16,4 @@ function assertChecklistJobExecuted(workflowResult: Step[], didExecute = true) {
     });
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {assertChecklistJobExecuted};
+export default {assertChecklistJobExecuted};

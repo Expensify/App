@@ -1,10 +1,11 @@
 /* eslint no-console: ["error", { allow: ["warn", "log"] }] */
+import type {StepIdentifier} from '@kie/act-js';
 import type {PathLike} from 'fs';
 import fs from 'fs';
 import path from 'path';
 import {exit} from 'process';
 import yaml from 'yaml';
-import type {MockJobStep, YamlMockJob, YamlWorkflow} from './JobMocker';
+import type {YamlMockJob, YamlWorkflow} from './JobMocker';
 
 const workflowsDirectory = path.resolve(__dirname, '..', '..', '.github', 'workflows');
 const workflowTestsDirectory = path.resolve(__dirname, '..');
@@ -91,7 +92,7 @@ describe('test workflow ${workflowName}', () => {
 });
 `;
 
-const mockStepTemplate = (stepMockName: string, step: MockJobStep, jobId: string | undefined) => `
+const mockStepTemplate = (stepMockName: string, step: StepIdentifier, jobId: string | undefined) => `
 const ${stepMockName} = utils.createMockStep(
     '${step.name ?? ''}',
     '${step.name ?? ''}',
@@ -147,7 +148,7 @@ const assertionsExportsTemplate = (jobAssertions: string[]): string => {
     // There are other pre-generated files using imports from here, so to keep the interface uniform it's better to just disable it
     const eslintDisable = jobAssertions.length === 1 ? '// eslint-disable-next-line import/prefer-default-export\n' : '';
 
-    return `\n${eslintDisable}export {\n${assertionsString}\n};\n`;
+    return `\n${eslintDisable}export default {\n${assertionsString}\n};\n`;
 };
 
 const checkArguments = (args: string[]) => {

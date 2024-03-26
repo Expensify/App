@@ -1,7 +1,7 @@
 const path = require('path');
 const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
-const assertions = require('./assertions/preDeployAssertions');
+const assertions = require('./assertions/preDeployAssertions').default;
 const mocks = require('./mocks/preDeployMocks').default;
 const ExtendedAct = require('./utils/ExtendedAct').default;
 

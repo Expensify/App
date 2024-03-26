@@ -113,4 +113,4 @@ function assertCherryPickJobExecuted(workflowResult: Step[], user = 'Dummy Autho
     });
 }
 
-export {assertValidateActorJobExecuted, assertCreateNewVersionJobExecuted, assertCherryPickJobExecuted};
+export default {assertValidateActorJobExecuted, assertCreateNewVersionJobExecuted, assertCherryPickJobExecuted};
