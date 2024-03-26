@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import NAVIGATORS from '@src/NAVIGATORS';
 import useWindowDimensions from './useWindowDimensions';
@@ -13,12 +13,12 @@ type ResponsiveLayoutResult = {
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const isDisplayedInModal = () => {
+    const isDisplayedInModal = useCallback(() => {
         const state = navigationRef?.current?.getRootState();
         const lastRoute = state?.routes?.at(-1);
         const lastRouteName = lastRoute?.name;
         return lastRouteName === NAVIGATORS.LEFT_MODAL_NAVIGATOR || lastRouteName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-    };
+    }, []);
 
     const [isInModal, setIsInModal] = useState(isDisplayedInModal());
 
