@@ -3,7 +3,7 @@ import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 import * as App from './App';
 import * as OnyxUpdates from './OnyxUpdates';
 
@@ -28,7 +28,7 @@ Onyx.connect({
     callback: (value) => (lastUpdateIDAppliedToClient = value),
 });
 
-let deferedUpdateBeforeReconnect: OnyxUpdatesFromServer | undefined;
+let deferredUpdateBeforeReconnect: OnyxUpdatesFromServer | undefined;
 let deferredUpdates: OnyxUpdatesFromServer[] = [];
 
 export default () => {
@@ -70,13 +70,13 @@ export default () => {
             // applied in their correct and specific order. If this queue was not paused, then there would be a lot of
             // onyx data being applied while we are fetching the missing updates and that would put them all out of order.
             SequentialQueue.pause();
-            let canUnpauseQueuePromise;
+            let canUnpauseQueuePromise: Promise<Response | void>;
 
             // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
             if (!lastUpdateIDAppliedToClient) {
                 Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
 
-                deferedUpdateBeforeReconnect = updateParams;
+                deferredUpdateBeforeReconnect = updateParams;
 
                 // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
                 canUnpauseQueuePromise = App.finalReconnectAppAfterActivatingReliableUpdates();
@@ -120,9 +120,9 @@ export default () => {
                 }
 
                 // If "updateAfterReconnectApp" is set, it means that case (1) was triggered and we only need to apply the one update, not the deferred ones.
-                if (deferedUpdateBeforeReconnect) {
-                    OnyxUpdates.apply(deferedUpdateBeforeReconnect).finally(unpauseQueueAndReset);
-                    deferedUpdateBeforeReconnect = undefined;
+                if (deferredUpdateBeforeReconnect) {
+                    OnyxUpdates.apply(deferredUpdateBeforeReconnect).finally(unpauseQueueAndReset);
+                    deferredUpdateBeforeReconnect = undefined;
                     return;
                 }
 
@@ -134,28 +134,29 @@ export default () => {
                     return aLastUpdateID - bLastUpdateID;
                 });
 
-                // In order for the updates to be applied correctly in order, we need to check
-                // if there are any gaps in the updates that we received from the server +
-                // the deferred ones that were pushed before.
-                function validateDeferredUpdates(): boolean {
-                    const earliestDeferredUpdateId = Number(sortedDeferredUpdates[0].lastUpdateID) || 0;
+                // In order for the deferred updates to be applied correctly in order,
+                // we need to check if there are any gaps deferred updates.
+                function validateUpdatesAreChained(): boolean {
+                    for (let i = 0; i < sortedDeferredUpdates.length - 1; i++) {
+                        const reversedDeferredUpdates = sortedDeferredUpdates.toReversed();
+                        const currentUpdate = reversedDeferredUpdates[i];
+                        const previousUpdate = reversedDeferredUpdates[i + 1];
 
-                    if (lastUpdateIDAppliedToClient >= earliestDeferredUpdateId) {
-                        console.error("The client's lastUpdateID is greater than or equal to the earliest deferred update's lastUpdateID");
-
-                        return false;
+                        if (Number(previousUpdate.lastUpdateID) !== Number(currentUpdate.previousUpdateID)) {
+                            return false;
+                        }
                     }
 
                     return true;
                 }
 
                 //  If we detect a gap in the fetched + deferred updates, re-fetch the missing updates
-                if (!validateDeferredUpdates()) {
-                    canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer).finally(applyDeferredUpdates);
+                if (!validateUpdatesAreChained()) {
+                    const lastDeferedUpdateId = Number(sortedDeferredUpdates.at(-1)?.lastUpdateID) ?? 0;
+
+                    canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastDeferedUpdateId).finally(applyDeferredUpdates);
                     return;
                 }
-
-                console.log({sortedDeferredUpdates});
 
                 Promise.all(sortedDeferredUpdates.map((update) => OnyxUpdates.apply(update))).finally(() => {
                     unpauseQueueAndReset();
