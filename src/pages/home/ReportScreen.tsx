@@ -55,7 +55,7 @@ import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 
 type ReportScreenOnyxProps = {
-    /** Indicates if there is a modal currently visible or not */
+    /** Get modal status */
     modal: OnyxEntry<OnyxTypes.Modal>;
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: OnyxEntry<boolean>;
@@ -133,7 +133,7 @@ function ReportScreen({
     markReadyForHydration,
     policies = {},
     isSidebarLoaded = false,
-    modal = {isVisible: false},
+    modal,
     isComposerFullSize = false,
     userLeavingStatus = false,
     currentReportID = '',
@@ -262,7 +262,7 @@ function ReportScreen({
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
     }
     const [isComposerFocus, setIsComposerFocus] = useState(false);
-    const viewportOffsetTop = useViewportOffsetTop(Browser.isMobileSafari() && isComposerFocus && !modal?.isVisible);
+    const viewportOffsetTop = useViewportOffsetTop(Browser.isMobileSafari() && isComposerFocus && !modal?.willAlertModalBecomeVisible);
 
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];

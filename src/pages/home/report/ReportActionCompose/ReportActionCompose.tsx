@@ -87,10 +87,10 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
         isReportReadyForDisplay?: boolean;
 
         /** A method to call when the input is focus */
-        onComposerFocus: () => void;
+        onComposerFocus?: () => void;
 
         /** A method to call when the input is blur */
-        onComposerBlur: () => void;
+        onComposerBlur?: () => void;
     };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -305,7 +305,7 @@ function ReportActionCompose({
         (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
             const webEvent = event as unknown as FocusEvent;
             setIsFocused(false);
-            onComposerBlur();
+            onComposerBlur?.();
             if (suggestionsRef.current) {
                 suggestionsRef.current.resetSuggestions();
             }
@@ -316,9 +316,9 @@ function ReportActionCompose({
         [onComposerBlur],
     );
 
-    const handleFocus = useCallback(() => {
+    const onFocus = useCallback(() => {
         setIsFocused(true);
-        onComposerFocus();
+        onComposerFocus?.();
     }, [onComposerFocus]);
 
     // resets the composer to normal size when
@@ -449,7 +449,7 @@ function ReportActionCompose({
                                         setIsCommentEmpty={setIsCommentEmpty}
                                         handleSendMessage={handleSendMessage}
                                         shouldShowComposeInput={shouldShowComposeInput}
-                                        onFocus={handleFocus}
+                                        onFocus={onFocus}
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
