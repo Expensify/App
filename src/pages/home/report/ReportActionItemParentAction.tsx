@@ -10,6 +10,7 @@ import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItem from './ReportActionItem';
 
 type ReportActionItemParentActionProps = {
@@ -65,7 +66,8 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
     }, []);
 
     return (
-        <>
+        <View style={styles.pRelative}>
+            <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
             {allAncestors.map((ancestor) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}
@@ -88,7 +90,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                     {!ancestor.shouldHideThreadDividerLine && <View style={[styles.threadDividerLine]} />}
                 </OfflineWithFeedback>
             ))}
-        </>
+        </View>
     );
 }
 

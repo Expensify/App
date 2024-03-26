@@ -26,6 +26,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
+import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import * as IOU from '@userActions/IOU';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -232,8 +233,9 @@ function MoneyRequestView({
     );
 
     return (
-        <>
-            <View>
+        <View style={styles.pRelative}>
+            <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
+            <>
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {(showMapAsImage || hasReceipt) && (
                     <OfflineWithFeedback
@@ -429,12 +431,12 @@ function MoneyRequestView({
                         />
                     </View>
                 )}
-            </View>
+            </>
             <SpacerView
                 shouldShow={shouldShowHorizontalRule}
                 style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
             />
-        </>
+        </View>
     );
 }
 

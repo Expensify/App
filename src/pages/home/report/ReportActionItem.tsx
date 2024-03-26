@@ -64,6 +64,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OriginalMessageActionableMentionWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
@@ -677,16 +678,19 @@ function ReportActionItem({
                     message = 'parentReportAction.deletedRequest';
                 }
                 return (
-                    <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
-                        <ReportActionItemSingle
-                            action={parentReportAction}
-                            showHeader
-                            report={report}
-                        >
-                            <RenderHTML html={`<comment>${translate(message)}</comment>`} />
-                        </ReportActionItemSingle>
-                        <View style={styles.threadDividerLine} />
-                    </OfflineWithFeedback>
+                    <View style={styles.pRelative}>
+                        <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
+                        <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
+                            <ReportActionItemSingle
+                                action={parentReportAction}
+                                showHeader
+                                report={report}
+                            >
+                                <RenderHTML html={`<comment>${translate(message)}</comment>`} />
+                            </ReportActionItemSingle>
+                            <View style={styles.threadDividerLine} />
+                        </OfflineWithFeedback>
+                    </View>
                 );
             }
             return (
@@ -701,7 +705,8 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <>
+                    <View style={styles.pRelative}>
+                        <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
                         <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
                             <ReportActionItemSingle
                                 action={parentReportAction}
@@ -712,14 +717,17 @@ function ReportActionItem({
                             </ReportActionItemSingle>
                         </OfflineWithFeedback>
                         <View style={styles.reportHorizontalRule} />
-                    </>
+                    </View>
                 );
             }
             return (
-                <TaskView
-                    report={report}
-                    shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                />
+                <View style={styles.pRelative}>
+                    <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
+                    <TaskView
+                        report={report}
+                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                    />
+                </View>
             );
         }
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {

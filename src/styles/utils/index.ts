@@ -749,13 +749,13 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ImageStyle {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isOverlapBackgroundImage = false): ImageStyle {
     if (isSmallScreenWidth) {
         return {
             height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '100%',
             position: 'absolute',
-            top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP - CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            ...(isOverlapBackgroundImage ? {bottom: 0} : {top: 0}),
         };
     }
 
@@ -763,7 +763,29 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): Imag
         height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
         width: '100%',
         position: 'absolute',
-        top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP - CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        ...(isOverlapBackgroundImage ? {bottom: 0} : {top: 0}),
+    };
+}
+/**
+ * Gets the style for the container of the empty state background image that overlap the created report action
+ */
+function getReportWelcomeBackgroundContainerStyle(styles: ThemeStyles, isSmallScreenWidth: boolean, isOverlapBackgroundImage = false): ViewStyle {
+    if (isSmallScreenWidth) {
+        return {
+            height: isOverlapBackgroundImage ? CONST.EMPTY_STATE_BACKGROUND.OVERLAP : CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
+            overflow: 'hidden',
+            width: '100%',
+            position: 'absolute',
+            top: isOverlapBackgroundImage ? - styles.chatContentScrollView.paddingBottom : -(CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP),
+        };
+    }
+
+    return {
+        height: isOverlapBackgroundImage ? CONST.EMPTY_STATE_BACKGROUND.OVERLAP : CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
+        overflow: 'hidden',
+        width: '100%',
+        position: 'absolute',
+        top: isOverlapBackgroundImage ? - styles.chatContentScrollView.paddingBottom : -(CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP),
     };
 }
 
@@ -1068,6 +1090,7 @@ const staticStyleUtils = {
     getHorizontalStackedAvatarStyle,
     getHorizontalStackedOverlayAvatarStyle,
     getReportWelcomeBackgroundImageStyle,
+    getReportWelcomeBackgroundContainerStyle,
     getBaseAutoCompleteSuggestionContainerStyle,
     getBorderColorStyle,
     getCheckboxPressableStyle,

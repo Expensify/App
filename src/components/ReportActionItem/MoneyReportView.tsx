@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
@@ -58,114 +59,117 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
         return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
     }, [policy, report]);
 
-    if (!ReportUtils.isClosedExpenseReportWithNoExpenses(report)) {
-        return (
-            <>
-                {ReportUtils.reportFieldsEnabled(report) &&
-                    sortedPolicyReportFields.map((reportField) => {
-                        const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
-                        const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
-                        const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
-                        const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+    return (
+        <View style={styles.pRelative}>
+            <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
+            {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
+                <>
+                    {ReportUtils.reportFieldsEnabled(report) &&
+                        sortedPolicyReportFields.map((reportField) => {
+                            const isTitleField = ReportUtils.isReportFieldOfTypeTitle(reportField);
+                            const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
+                            const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
+                            const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
 
-                        return (
-                            <OfflineWithFeedback
-                                pendingAction={report.pendingFields?.[fieldKey]}
-                                errors={report.errorFields?.[fieldKey]}
-                                errorRowStyles={styles.ph5}
-                                key={`menuItem-${fieldKey}`}
+                            return (
+                                <OfflineWithFeedback
+                                    pendingAction={report.pendingFields?.[fieldKey]}
+                                    errors={report.errorFields?.[fieldKey]}
+                                    errorRowStyles={styles.ph5}
+                                    key={`menuItem-${fieldKey}`}
+                                >
+                                    <MenuItemWithTopDescription
+                                        description={Str.UCFirst(reportField.name)}
+                                        title={fieldValue}
+                                        onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
+                                        shouldShowRightIcon
+                                        disabled={isFieldDisabled}
+                                        wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                                        shouldGreyOutWhenDisabled={false}
+                                        numberOfLinesTitle={0}
+                                        interactive
+                                        shouldStackHorizontally={false}
+                                        onSecondaryInteraction={() => {}}
+                                        hoverAndPressStyle={false}
+                                        titleWithTooltips={[]}
+                                    />
+                                </OfflineWithFeedback>
+                            );
+                        })}
+                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
+                        <View style={[styles.flex1, styles.justifyContentCenter]}>
+                            <Text
+                                style={[styles.textLabelSupporting]}
+                                numberOfLines={1}
                             >
-                                <MenuItemWithTopDescription
-                                    description={Str.UCFirst(reportField.name)}
-                                    title={fieldValue}
-                                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
-                                    shouldShowRightIcon
-                                    disabled={isFieldDisabled}
-                                    wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                                    shouldGreyOutWhenDisabled={false}
-                                    numberOfLinesTitle={0}
-                                    interactive
-                                    shouldStackHorizontally={false}
-                                    onSecondaryInteraction={() => {}}
-                                    hoverAndPressStyle={false}
-                                    titleWithTooltips={[]}
-                                />
-                            </OfflineWithFeedback>
-                        );
-                    })}
-                <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
-                    <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text
-                            style={[styles.textLabelSupporting]}
-                            numberOfLines={1}
-                        >
-                            {translate('common.total')}
-                        </Text>
-                    </View>
-                    <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                        {isSettled && (
-                            <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
-                                <Icon
-                                    src={Expensicons.Checkmark}
-                                    fill={theme.success}
-                                />
-                            </View>
-                        )}
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
-                        >
-                            {formattedTotalAmount}
-                        </Text>
-                    </View>
-                </View>
-                {Boolean(shouldShowBreakdown) && (
-                    <>
-                        <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
-                            <View style={[styles.flex1, styles.justifyContentCenter]}>
-                                <Text
-                                    style={[styles.textLabelSupporting]}
-                                    numberOfLines={1}
-                                >
-                                    {translate('cardTransactions.outOfPocket')}
-                                </Text>
-                            </View>
-                            <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={subAmountTextStyles}
-                                >
-                                    {formattedOutOfPocketAmount}
-                                </Text>
-                            </View>
+                                {translate('common.total')}
+                            </Text>
                         </View>
-                        <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
-                            <View style={[styles.flex1, styles.justifyContentCenter]}>
-                                <Text
-                                    style={[styles.textLabelSupporting]}
-                                    numberOfLines={1}
-                                >
-                                    {translate('cardTransactions.companySpend')}
-                                </Text>
-                            </View>
-                            <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={subAmountTextStyles}
-                                >
-                                    {formattedCompanySpendAmount}
-                                </Text>
-                            </View>
+                        <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                            {isSettled && (
+                                <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={theme.success}
+                                    />
+                                </View>
+                            )}
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
+                            >
+                                {formattedTotalAmount}
+                            </Text>
                         </View>
-                    </>
-                )}
-                <SpacerView
-                    shouldShow={shouldShowHorizontalRule}
-                    style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
-                />
-            </>
-        );
-    }
+                    </View>
+                    {Boolean(shouldShowBreakdown) && (
+                        <>
+                            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
+                                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting]}
+                                        numberOfLines={1}
+                                    >
+                                        {translate('cardTransactions.outOfPocket')}
+                                    </Text>
+                                </View>
+                                <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={subAmountTextStyles}
+                                    >
+                                        {formattedOutOfPocketAmount}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
+                                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting]}
+                                        numberOfLines={1}
+                                    >
+                                        {translate('cardTransactions.companySpend')}
+                                    </Text>
+                                </View>
+                                <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={subAmountTextStyles}
+                                    >
+                                        {formattedCompanySpendAmount}
+                                    </Text>
+                                </View>
+                            </View>
+                        </>
+                    )}
+                    <SpacerView
+                        shouldShow={shouldShowHorizontalRule}
+                        style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
+                    />
+                </>
+            )}
+        </View>
+    );
 }
 
 MoneyReportView.displayName = 'MoneyReportView';
