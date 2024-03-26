@@ -87,7 +87,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
         category: splitCategory,
         tag: splitTag,
         billable: splitBillable,
-    } = ReportUtils.getTransactionDetails(isEditingSplitBill ? draftTransaction : transaction) ?? {};
+    } = ReportUtils.getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
     const onConfirm = useCallback(
         () => IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? 0, session?.email ?? ''),
@@ -96,7 +96,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
-            <FullPageNotFoundView shouldShow={!!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
+            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (
