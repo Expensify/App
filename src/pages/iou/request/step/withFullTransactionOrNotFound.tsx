@@ -13,7 +13,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
 type WithFullTransactionOrNotFoundOnyxProps = {
-    /** Indicated whether the report data is loading */
+    /** Indicates whether the report data is loading */
     transaction: OnyxEntry<Transaction>;
 };
 
