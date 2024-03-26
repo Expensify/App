@@ -1,7 +1,7 @@
 import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/lintAssertions';
-import LINT__LINT__STEP_MOCKS from './mocks/lintMocks';
+import mocks from './mocks/lintMocks';
 import ExtendedAct from './utils/ExtendedAct';
 import * as utils from './utils/utils';
 
@@ -53,7 +53,7 @@ describe('test workflow lint', () => {
             let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
-                lint: LINT__LINT__STEP_MOCKS,
+                lint: mocks.LINT__LINT__STEP_MOCKS,
             };
             const result = await act.runEvent(event, {
                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
@@ -72,7 +72,7 @@ describe('test workflow lint', () => {
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
-                    lint: LINT__LINT__STEP_MOCKS,
+                    lint: mocks.LINT__LINT__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
@@ -97,7 +97,7 @@ describe('test workflow lint', () => {
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
-                    lint: LINT__LINT__STEP_MOCKS,
+                    lint: mocks.LINT__LINT__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
@@ -116,7 +116,7 @@ describe('test workflow lint', () => {
                     let act = new ExtendedAct(repoPath, workflowPath);
                     act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                     const testMockSteps = {
-                        lint: LINT__LINT__STEP_MOCKS,
+                        lint: mocks.LINT__LINT__STEP_MOCKS,
                     };
                     const result = await act.runEvent(event, {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
@@ -139,7 +139,7 @@ describe('test workflow lint', () => {
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
-                    lint: LINT__LINT__STEP_MOCKS,
+                    lint: mocks.LINT__LINT__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
