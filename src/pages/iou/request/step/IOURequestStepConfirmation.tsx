@@ -1,42 +1,40 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import categoryPropTypes from '@components/categoryPropTypes';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
-import tagPropTypes from '@components/tagPropTypes';
-import transactionPropTypes from '@components/transactionPropTypes';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {openDraftWorkspaceRequest} from '@libs/actions/Policy';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
-import reportPropTypes from '@pages/reportPropTypes';
-import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
-// import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Policy} from '@src/types/onyx';
-import type {PolicyCategories, PolicyTagList} from '@src/types/onyx';
-import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import type SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList, Policy, PolicyCategories, PolicyTagList, Report, Transaction} from '@src/types/onyx';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+
+type IOURequestStepConfirmationStackProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
 type IOURequestStepConfirmationOnyxProps = {
     policy: OnyxEntry<Policy>;
@@ -44,9 +42,13 @@ type IOURequestStepConfirmationOnyxProps = {
     policyTags: OnyxEntry<PolicyTagList>;
 };
 
-type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps & {
-    someProp: string;
-};
+type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &
+    IOURequestStepConfirmationStackProps & {
+        currentUserPersonalDetails: CurrentUserPersonalDetails;
+        personalDetails: PersonalDetailsList;
+        report: Report;
+        transaction: Transaction;
+    };
 
 function IOURequestStepConfirmation({
     currentUserPersonalDetails,
@@ -59,15 +61,15 @@ function IOURequestStepConfirmation({
         params: {iouType, reportID, transactionID},
     },
     transaction,
-}) {
+}: IOURequestStepConfirmationProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const [receiptFile, setReceiptFile] = useState();
-    const receiptFilename = lodashGet(transaction, 'filename');
-    const receiptPath = lodashGet(transaction, 'receipt.source');
-    const receiptType = lodashGet(transaction, 'receipt.type');
+    const receiptFilename = transaction.filename;
+    const receiptPath = transaction.receipt?.source;
+    const receiptType = transaction.receipt?.type;
     const transactionTaxCode = transaction.taxRate?.keyForList;
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
@@ -86,9 +88,9 @@ function IOURequestStepConfirmation({
 
     const participants = useMemo(
         () =>
-            _.map(transaction.participants, (participant) => {
-                const participantAccountID = lodashGet(participant, 'accountID', 0);
-                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+            transaction.participants?.map((participant) => {
+                const participantAccountID = participant.accountID ?? 0;
+                return participant && participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }),
         [transaction.participants, personalDetails],
     );
@@ -105,13 +107,13 @@ function IOURequestStepConfirmation({
     }, []);
 
     useEffect(() => {
-        const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
-        if (policyExpenseChat) {
-            Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
+        const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
+        if (policyExpenseChat?.policyID) {
+            openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
     }, [isOffline, participants, transaction.billable, policy, transactionID]);
 
-    const defaultBillable = lodashGet(policy, 'defaultBillable', false);
+    const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
@@ -124,11 +126,10 @@ function IOURequestStepConfirmation({
             IOU.setMoneyRequestCategory(transactionID, '');
         }
     }, [policyCategories, transaction.category, transactionID]);
-    const defaultCategory = lodashGet(
-        _.find(lodashGet(policy, 'customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
-        'defaultCategory',
-        '',
-    );
+
+    const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const defaultCategory = policyDistance?.defaultCategory ?? '';
+
     useEffect(() => {
         if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !_.isEmpty(transaction.category)) {
             return;
@@ -436,7 +437,7 @@ function IOURequestStepConfirmation({
 
             const trimmedComment = transaction.comment?.comment ? transaction.comment.comment.trim() : '';
 
-            const participant = participants[0];
+            const participant = participants?.[0];
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 IOU.sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);

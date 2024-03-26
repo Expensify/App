@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -416,12 +417,13 @@ function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CO
 /**
  * Returns the translation key to use for the header title
  */
-function getHeaderTitleTranslationKey(transaction: Transaction): string {
-    const headerTitles = {
+function getHeaderTitleTranslationKey(transaction: Transaction): TranslationPaths {
+    const headerTitles: Record<string, TranslationPaths> = {
         [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
         [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
         [CONST.IOU.REQUEST_TYPE.SCAN]: 'tabSelector.scan',
     };
+
     return headerTitles[getRequestType(transaction)];
 }
 
