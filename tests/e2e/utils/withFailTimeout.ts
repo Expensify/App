@@ -1,6 +1,7 @@
 import CONFIG from '../config';
 
-const TIMEOUT = Number(process.env.INTERACTION_TIMEOUT ?? CONFIG.INTERACTION_TIMEOUT);
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
+const TIMEOUT = Number(process.env.INTERACTION_TIMEOUT || CONFIG.INTERACTION_TIMEOUT);
 
 const withFailTimeout = (promise: Promise<void>, name: string): Promise<void> =>
     new Promise((resolve, reject) => {
