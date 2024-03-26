@@ -92,7 +92,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                         <IconButton
                             src={Expensicons.Expand}
                             style={[styles.videoExpandButton]}
-                            hoverStyle={StyleUtils.getBackgroundColorStyle(theme.videoPlayerBG)}
                             tooltipText={translate('videoPlayer.expand')}
                             onPress={onShowModalPress}
                             small
