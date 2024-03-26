@@ -292,6 +292,10 @@ function ReportActionsView({
     }, [isSmallScreenWidth, reportActions, isReportFullyVisible]);
 
     useEffect(() => {
+        // Ensures the optimistic report is created successfully
+        if (route?.params?.reportID !== reportID) {
+            return;
+        }
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
@@ -306,7 +310,7 @@ function ReportActionsView({
                 interactionTask.cancel();
             };
         }
-    }, [report.pendingFields, didSubscribeToReportTypingEvents, reportID]);
+    }, [report.pendingFields, didSubscribeToReportTypingEvents, route, reportID]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
@@ -379,15 +383,15 @@ function ReportActionsView({
         }
 
         didLayout.current = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
-
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
             Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
+            Timing.end(CONST.TIMING.REPORT_INITIAL_RENDER);
             ReportActionsView.initMeasured = true;
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
+        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
     }, [hasCachedActionOnFirstRender]);
 
     useEffect(() => {

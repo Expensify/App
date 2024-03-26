@@ -528,7 +528,7 @@ function ReportActionsList({
                 report={report}
                 transactionThreadReport={transactionThreadReport}
                 linkedReportActionID={linkedReportActionID}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
@@ -537,7 +537,7 @@ function ReportActionsList({
         [
             report,
             linkedReportActionID,
-            sortedReportActions,
+            sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             shouldDisplayNewMarker,
