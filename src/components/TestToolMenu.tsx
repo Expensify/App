@@ -8,8 +8,10 @@ import * as Network from '@userActions/Network';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
+import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import {withNetwork} from './OnyxProvider';
 import Switch from './Switch';
@@ -85,6 +87,15 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     small
                     text="Destroy"
                     onPress={() => Session.invalidateCredentials()}
+                />
+            </TestToolRow>
+
+            {/* Navigate to the new Onboarding flow (Stage 1). This button is temporary and should be removed after passing QA tests. */}
+            <TestToolRow title="Onboarding Flow">
+                <Button
+                    small
+                    text="Navigate"
+                    onPress={() => Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS)}
                 />
             </TestToolRow>
         </>
