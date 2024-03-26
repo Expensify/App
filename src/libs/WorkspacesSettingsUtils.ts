@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import Navigation from './Navigation/Navigation';
 import * as OptionsListUtils from './OptionsListUtils';
@@ -246,7 +247,7 @@ function getOwnershipChecksDisplayText(
             title = translate('workspace.changeOwner.ownerOwesAmountTitle');
             text = translate('workspace.changeOwner.ownerOwesAmountText', {
                 email: ownerOwesAmount?.ownerEmail,
-                amount: `${ownerOwesAmount?.amount} ${ownerOwesAmount?.currency}`,
+                amount: CurrencyUtils.convertAmountToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
             });
             buttonText = translate('workspace.changeOwner.ownerOwesAmountButtonText');
             break;
