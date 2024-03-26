@@ -21,7 +21,7 @@ import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
-import * as TransactionEdit from '@userActions/TransactionEdit';
+import TransactionEdit from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
