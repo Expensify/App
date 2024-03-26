@@ -2,7 +2,7 @@ import type {FlatListProps} from 'react-native';
 
 type MaintainVisibleContentPositionProps = {
     minIndexForVisible: number;
-    autoscrollToTopThreshold?: number;
+    autoscrollToTopThreshold?: number | null;
 };
 
 type CustomFlatListProps<TItem> = FlatListProps<TItem> & {
