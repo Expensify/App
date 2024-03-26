@@ -1,5 +1,4 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import Str from 'expensify-common/lib/str';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
