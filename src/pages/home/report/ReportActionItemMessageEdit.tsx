@@ -1,6 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -27,6 +26,7 @@ import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -45,6 +45,7 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import ComposerWithSuggestionsEdit from './ReportActionCompose/ComposerWithSuggestionsEdit/ComposerWithSuggestionsEdit';
 import {useSuggestionsContext} from './ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
+import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -73,6 +74,8 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 const isMobileSafari = Browser.isMobileSafari();
+const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
+
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<(TextInput & HTMLTextAreaElement) | undefined>,
@@ -87,36 +90,22 @@ function ReportActionItemMessageEdit(
     const {updateCurrentActiveSuggestionsRef, clearActiveSuggestionsRef, isActiveSuggestions} = useSuggestionsContext();
     const prevDraftMessage = usePrevious(draftMessage);
 
-    const getInitialDraft = () => {
-        if (draftMessage === action?.message?.[0].html) {
-            // We only convert the report action message to markdown if the draft message is unchanged.
-            const parser = new ExpensiMark();
-            return parser.htmlToMarkdown(draftMessage).trim();
-        }
-        // We need to decode saved draft message because it's escaped before saving.
-        return Str.htmlDecode(draftMessage);
-    };
-
     const getInitialSelection = () => {
         if (isMobileSafari) {
             return {start: 0, end: 0};
         }
 
-        const length = getInitialDraft().length;
+        const length = draftMessage.length;
         return {start: length, end: length};
     };
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
-        const initialDraft = getInitialDraft();
-        if (initialDraft) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(initialDraft);
+        if (draftMessage) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftMessage);
         }
-        return initialDraft;
+        return draftMessage;
     });
-    const [selection, setSelection] = useState<{
-        start: number;
-        end: number;
-    }>(getInitialSelection);
+    const [selection, setSelection] = useState<Selection>(getInitialSelection);
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState<OnyxTypes.Modal>({
@@ -131,12 +120,15 @@ function ReportActionItemMessageEdit(
     const draftRef = useRef(draft);
     const containerRef = useRef<View>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
+    const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
 
     useEffect(() => {
-        if (ReportActionsUtils.isDeletedAction(action) || Boolean(action.message && draftMessage === action.message[0].html) || Boolean(prevDraftMessage === draftMessage)) {
+        const parser = new ExpensiMark();
+        const originalMessage = parser.htmlToMarkdown(action.message?.[0].html ?? '');
+        if (ReportActionsUtils.isDeletedAction(action) || Boolean(action.message && draftMessage === originalMessage) || Boolean(prevDraftMessage === draftMessage)) {
             return;
         }
-        setDraft(Str.htmlDecode(draftMessage));
+        setDraft(draftMessage);
     }, [draftMessage, action, prevDraftMessage]);
 
     useEffect(() => {
@@ -347,10 +339,17 @@ function ReportActionItemMessageEdit(
      * @param emoji
      */
     const addEmojiToTextBox = (emoji: string) => {
-        setSelection((prevSelection) => ({
-            start: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
-            end: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
-        }));
+        const newSelection = {
+            start: selection.start + emoji.length + CONST.SPACE_LENGTH,
+            end: selection.start + emoji.length + CONST.SPACE_LENGTH,
+        };
+        setSelection(newSelection);
+
+        if (shouldUseForcedSelectionRange) {
+            // On Android and Chrome mobile, focusing the input sets the cursor position back to the start.
+            // To fix this, immediately set the selection again after focusing the input.
+            emojiPickerSelectionRef.current = newSelection;
+        }
         updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
 
@@ -504,7 +503,9 @@ function ReportActionItemMessageEdit(
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={shouldDisableEmojiPicker}
-                            onModalHide={() => focus(true)}
+                            onModalHide={() => {
+                                focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+                            }}
                             onEmojiSelected={addEmojiToTextBox}
                             id={emojiButtonID}
                             emojiPickerID={action.reportActionID}
