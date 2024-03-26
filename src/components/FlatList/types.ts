@@ -6,7 +6,7 @@ type MaintainVisibleContentPositionProps = {
 };
 
 type CustomFlatListProps<TItem> = FlatListProps<TItem> & {
-    maintainVisibleContentPosition: MaintainVisibleContentPositionProps | null;
+    maintainVisibleContentPosition?: MaintainVisibleContentPositionProps;
     horizontal?: boolean;
 };
 

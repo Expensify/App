@@ -1,8 +1,9 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
 import type {ForwardedRef, MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
+import type CustomFlatListProps from './types';
 
 function mergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<FlatList> | null>) {
     return function forwardRef(node: FlatList) {
@@ -32,17 +33,7 @@ function useMergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<F
     );
 }
 
-type MaintainVisibleContentPositionProps = {
-    minIndexForVisible: number;
-    autoscrollToTopThreshold?: number;
-};
-
-type MVCPFlatListProps<TItem> = FlatListProps<TItem> & {
-    maintainVisibleContentPosition: MaintainVisibleContentPositionProps | null;
-    horizontal?: boolean;
-};
-
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ...props}: MVCPFlatListProps<TItem>, ref: ForwardedRef<FlatList>) {
+function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ...props}: CustomFlatListProps<TItem>, ref: ForwardedRef<FlatList>) {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
