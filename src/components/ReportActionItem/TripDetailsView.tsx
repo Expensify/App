@@ -70,13 +70,12 @@ function ReservationView({reservation}: ReservationViewProps) {
 
     return (
         <MenuItemWithTopDescription
-            // @TODO: When the new route ROUTES.TRAVEL_DETAILS and the backend are ready, navigate to the appropriate screen
-            // onPress={() => {}}
             description={translate(`travel.${reservation.type}`)}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16, styles.tripDescriptionMargin]}
             titleComponent={titleComponent}
             titleContainerStyle={styles.justifyContentStart}
             secondaryIcon={reservationIcon}
+            isSecondaryIconHoverable
             shouldShowRightIcon
             wrapperStyle={[styles.taskDescriptionMenuItem]}
             shouldGreyOutWhenDisabled={false}

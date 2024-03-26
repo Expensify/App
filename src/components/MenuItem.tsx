@@ -98,6 +98,8 @@ type MenuItemBaseProps = {
     /** The fill color to pass into the secondary icon. */
     secondaryIconFill?: string;
 
+    isSecondaryIconHoverable?: boolean;
+
     /** Icon Width */
     iconWidth?: number;
 
@@ -275,6 +277,7 @@ function MenuItem(
         iconFill,
         secondaryIcon,
         secondaryIconFill,
+        isSecondaryIconHoverable = false,
         iconType = CONST.ICON_TYPE_ICON,
         iconWidth,
         iconHeight,
@@ -520,7 +523,13 @@ function MenuItem(
                                             </View>
                                         )}
                                         {secondaryIcon && (
-                                            <View style={[styles.popoverMenuIcon, iconStyles]}>
+                                            <View
+                                                style={[
+                                                    styles.popoverMenuIcon,
+                                                    iconStyles,
+                                                    isSecondaryIconHoverable && StyleUtils.getBackgroundAndBorderStyle(focused || isHovered ? theme.hoverComponentBG : theme.overlay),
+                                                ]}
+                                            >
                                                 <Icon
                                                     contentFit={contentFit}
                                                     src={secondaryIcon}
