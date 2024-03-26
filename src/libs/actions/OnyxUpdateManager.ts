@@ -100,10 +100,11 @@ export default () => {
                     lastUpdateIDAppliedToClient,
                 });
 
-                // Trigger "getMissingOnyxUpdates" to get the missing updates from the server
+                // Get the missing Onyx updates from the server
                 canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer);
             }
 
+            // This function will apply the deferred updates in order after the missing updates are fetched
             function applyDeferredUpdates() {
                 // If lastUpdateIDAppliedToClient is null, then no updates were applied,
                 // therefore something must have gone wrong and we should handle the problem.
@@ -148,8 +149,8 @@ export default () => {
                     return true;
                 }
 
+                //  If we detect a gap in the fetched + deferred updates, re-fetch the missing updates
                 if (!validateDeferredUpdates()) {
-                    // Re-Trigger "getMissingOnyxUpdates" because we detected a gap in the fetched + deferred updates
                     canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer).finally(applyDeferredUpdates);
                     return;
                 }
