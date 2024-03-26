@@ -81,7 +81,11 @@ function Avatar({
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
     // We pass the color styles down to the SVG for the workspace and fallback avatar.
-    const useFallBackAvatar = imageError || source === Expensicons.FallbackAvatar;
+    const useFallBackAvatar = imageError || source === Expensicons.FallbackAvatar || !source;
+    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
+    const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
+    const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
+
 
     let iconColors;
     if (isWorkspace) {
@@ -91,11 +95,6 @@ function Avatar({
     } else {
         iconColors = null;
     }
-
-    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
-    const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
-
-    const avatarSource = imageError || !source ? fallbackAvatar : source;
 
     return (
         <View style={[containerStyles, styles.pointerEventsNone]}>
