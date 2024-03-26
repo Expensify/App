@@ -18,7 +18,7 @@ type CustomWebpackConfig = {
     };
 };
 
-let envFile: string | null;
+let envFile: string
 switch (process.env.ENV) {
     case 'production':
         envFile = '.env.production';
