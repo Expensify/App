@@ -50,10 +50,11 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
                             fill=""
                             additionalStyles={styles.mb3}
                         />
-                        <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>Oops! Not so fast...</Text>
+                        <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{translate('workspace.changeOwner.errorTitle')}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting]}>
-                            There was a problem transferring ownership of this workspace. Try again, or <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`}>reach out to Concierge</TextLink>{' '}
-                            for help.
+                            {translate('workspace.changeOwner.errorDescriptionPartOne')}{' '}
+                            <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`}>{translate('workspace.changeOwner.errorDescriptionPartTwo')}</TextLink>{' '}
+                            {translate('workspace.changeOwner.errorDescriptionPartThree')}
                         </Text>
                     </View>
                     <FixedFooter>
