@@ -58,6 +58,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
     const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const tagName = values.tagName.trim();
+            // Do not call the API if the new tag name is the same as the current tag name
             if (currentTagName !== tagName) {
                 Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
             }
