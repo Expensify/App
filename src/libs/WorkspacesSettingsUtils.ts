@@ -4,12 +4,10 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
-import Navigation from './Navigation/Navigation';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
@@ -287,30 +285,6 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
-function redirectOnChangeOwnerErrorUpdate(policy: Policy | null, policyID: string, accountID: number) {
-    if (!policy || policy?.isLoading) {
-        return;
-    }
-
-    if (!policy.errorFields && policy.isChangeOwnerFailed) {
-        // there are some errors but not related to change owner flow - show an error page
-        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.getRoute(policyID, accountID));
-        return;
-    }
-
-    if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
-        // no errors - show a success page
-        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID));
-        return;
-    }
-
-    const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
-
-    if (changeOwnerErrors && changeOwnerErrors.length > 0 && changeOwnerErrors[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
-        Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-    }
-}
-
 export {
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
@@ -321,6 +295,5 @@ export {
     getChatTabBrickRoad,
     getUnitTranslationKey,
     getOwnershipChecksDisplayText,
-    redirectOnChangeOwnerErrorUpdate,
 };
 export type {BrickRoad};

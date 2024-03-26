@@ -72,11 +72,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
 
         if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-            if (changeOwnerErrors[0] === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
-                Navigation.navigate(ROUTES.WORKSPACE_OWNER_PAYMENT_CARD_FORM.getRoute(policyID, accountID));
-            } else {
-                Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-            }
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
         }
     }, [accountID, policy?.errorFields?.changeOwner, policy?.isChangeOwnerSuccessful, policyID]);
 
