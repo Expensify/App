@@ -95,7 +95,10 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                 <Button
                     small
                     text="Navigate"
-                    onPress={() => Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS)}
+                    onPress={() => {
+                        Navigation.dismissModal();
+                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+                    }}
                 />
             </TestToolRow>
         </>
