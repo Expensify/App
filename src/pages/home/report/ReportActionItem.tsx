@@ -379,14 +379,14 @@ function ReportActionItem({
                     text: 'actionableMentionTrackExpense.request',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-request`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.MOVE);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.MOVE, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
-                    onPress: () => ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.CATEGORIZE),
+                    onPress: () => ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID),
                     isMediumSized: true,
                 },
                 {

@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import CategoryPicker from '@components/CategoryPicker';
@@ -10,6 +10,7 @@ import tagPropTypes from '@components/tagPropTypes';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,6 +20,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {policyPropTypes} from '@src/pages/workspace/withPolicy';
@@ -94,15 +96,31 @@ function IOURequestStepCategory({
     const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
     const reportAction = reportActions[report.parentReportActionID || reportActionID];
-    const shouldShowCategory = ReportUtils.isGroupPolicy(report) && (transactionCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
+    const shouldShowCategory =
+        ReportUtils.isGroupPolicy(report) && (transactionCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)) || action === CONST.IOU.ACTION.CATEGORIZE);
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !shouldShowCategory || (isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction)));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
+
+    const fetchData = () => {
+        if (policy && policyCategories) {
+            return;
+        }
+
+        Policy.openDraftWorkspaceRequest(report.policyID);
+    };
+    useNetwork({onReconnect: fetchData});
+
+    useEffect(() => {
+        fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /**
      * @param {Object} category

@@ -5516,13 +5516,13 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
 
-function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>): void {
+function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>, reportActionID: string): void {
     const transaction = getTransaction(transactionID);
     if (isEmpty(transaction)) {
         return;
     }
 
-    TransactionEdit.createBackupTransaction(transaction as Transaction);
+    TransactionEdit.createBackupTransaction({...transaction, actionableWhisperReportActionID: reportActionID} as Transaction);
 
     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, actionName));
 }

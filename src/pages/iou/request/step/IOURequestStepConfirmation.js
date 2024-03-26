@@ -198,7 +198,6 @@ function IOURequestStepConfirmation({
      */
     const requestMoney = useCallback(
         (selectedParticipants, trimmedComment, receiptObj, gpsPoints) => {
-            const isConvertingFromTrackExpenseToRequest = iouAction === CONST.IOU.ACTION.MOVE;
             IOU.requestMoney(
                 report,
                 TransactionUtils.getAmount(transaction, undefined, [CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(iouAction)),
@@ -219,7 +218,8 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 gpsPoints,
-                isConvertingFromTrackExpenseToRequest,
+                iouAction,
+                transaction.actionableWhisperReportActionID,
             );
         },
         [

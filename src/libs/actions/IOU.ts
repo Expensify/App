@@ -2085,13 +2085,16 @@ function requestMoney(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints = undefined,
-    isConvertingFromTrackExpenseToRequest = undefined,
+    action?: ValueOf<typeof CONST.IOU.ACTION>,
+    actionableWhisperReportActionID?: string,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
+    const isConvertingFromTrackExpenseToRequest = action === CONST.IOU.ACTION.MOVE;
+
     const {
         payerAccountID,
         payerEmail,
@@ -2126,68 +2129,113 @@ function requestMoney(
         moneyRequestReportID,
     );
 
-    // console.log('payerAccountID', payerAccountID);
-    // console.log('payerEmail', payerEmail);
-    // console.log('iouReport', iouReport);
-    // console.log('chatReport', chatReport);
-    // console.log('transaction', transaction);
-    // console.log('iouAction', iouAction);
-    // console.log('createdChatReportActionID', createdChatReportActionID);
-    // console.log('createdIOUReportActionID', createdIOUReportActionID);
-    // console.log('reportPreviewAction', reportPreviewAction);
-    // console.log('transactionThreadReportID', transactionThreadReportID);
-    // console.log('createdReportActionIDForThread', createdReportActionIDForThread);
-    // console.log('onyxData', onyxData);
-
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
-    if (isConvertingFromTrackExpenseToRequest) {
-        const parameters = {
-            payerAccountID,
-            iouReportID: iouReport.reportID,
-            chatReportID: chatReport.reportID,
-            transactionID: transaction.transactionID,
-            reportActionID: iouAction.reportActionID,
-            createdChatReportActionID,
-            createdIOUReportActionID,
-            reportPreviewReportActionID: reportPreviewAction.reportActionID,
-        };
-        API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, onyxData);
-    } else {
-        const parameters: RequestMoneyParams = {
-            debtorEmail: payerEmail,
-            debtorAccountID: payerAccountID,
-            amount,
-            currency,
-            comment,
-            created: currentCreated,
-            merchant,
-            iouReportID: iouReport.reportID,
-            chatReportID: chatReport.reportID,
-            transactionID: transaction.transactionID,
-            reportActionID: iouAction.reportActionID,
-            createdChatReportActionID,
-            createdIOUReportActionID,
-            reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            receipt,
-            receiptState: receipt?.state,
-            category,
-            tag,
-            taxCode,
-            taxAmount,
-            billable,
-            // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
-            gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
-            transactionThreadReportID,
-            createdReportActionIDForThread,
-        };
+    switch (action) {
+        case CONST.IOU.ACTION.MOVE: {
+            const parameters = {
+                payerAccountID,
+                iouReportID: iouReport.reportID,
+                chatReportID: chatReport.reportID,
+                transactionID: transaction.transactionID,
+                reportActionID: iouAction.reportActionID,
+                createdChatReportActionID,
+                createdIOUReportActionID,
+                reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            };
+            API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, onyxData);
+            break;
+        }
+        case CONST.IOU.ACTION.CATEGORIZE: {
+            const params = {
+                policyID: chatReport.policyID,
+                transactionID: transaction.transactionID,
+                actionableWhisperReportActionID,
+                moneyRequestReportID: iouReport.reportID,
+                moneyRequestCreatedReportActionID: createdChatReportActionID,
+            };
+            console.log('Categorizing tracked transaction', params);
+            break;
+        }
+        default: {
+            const parameters: RequestMoneyParams = {
+                debtorEmail: payerEmail,
+                debtorAccountID: payerAccountID,
+                amount,
+                currency,
+                comment,
+                created: currentCreated,
+                merchant,
+                iouReportID: iouReport.reportID,
+                chatReportID: chatReport.reportID,
+                transactionID: transaction.transactionID,
+                reportActionID: iouAction.reportActionID,
+                createdChatReportActionID,
+                createdIOUReportActionID,
+                reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                receipt,
+                receiptState: receipt?.state,
+                category,
+                tag,
+                taxCode,
+                taxAmount,
+                billable,
+                // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
+                gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+                transactionThreadReportID,
+                createdReportActionIDForThread,
+            };
 
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
-        resetMoneyRequestInfo();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            resetMoneyRequestInfo();
+        }
     }
     Navigation.dismissModal(activeReportID);
     Report.notifyNewAction(activeReportID, payeeAccountID);
+}
+
+function categorizeTrackedTransaction(chatReportID, action) {
+    const policyID = generatePolicyID();
+    const workspaceName = generateDefaultWorkspaceName('');
+    const {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        announceCreatedReportActionID,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        adminsCreatedReportActionID,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+        expenseCreatedReportActionID,
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
+
+    const moneyRequestReport = ReportUtils.buildOptimisticExpenseReport(chatReportID, policyID, sessionAccountID, 0, 'USD');
+    const moneyRequestCreatedReportActionID = ReportUtils.buildOptimisticCreatedReportAction(sessionEmail ?? '');
+
+    const params = {
+        policyID,
+        transactionID: action.originalMessage.transactionID,
+
+        // reportActionID of the actionable whisper
+        actionableWhisperReportActionID: action.reportActionID,
+
+        // Parameters for the money request
+        moneyRequestReportID: moneyRequestReport.reportID,
+        moneyRequestCreatedReportActionID,
+
+        // Parameters for the workspace
+        announceChatReportID,
+        announceCreatedReportActionID,
+        adminsChatReportID,
+        adminsCreatedReportActionID,
+        policyExpenseChatReportID: expenseChatReportID,
+        policyExpenseCreatedReportActionID: expenseCreatedReportActionID,
+    };
+    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, params);
 }
 
 /**
