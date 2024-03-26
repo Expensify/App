@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react';
+import React from 'react';
 import CONST from '@src/CONST';
 import BaseVideoPlayer from './BaseVideoPlayer';
 import type VideoPlayerProps from './types';
@@ -17,4 +17,4 @@ function VideoPlayer({videoControlsStyle, ...props}: VideoPlayerProps) {
 
 VideoPlayer.displayName = 'VideoPlayer';
 
-export default forwardRef(VideoPlayer);
+export default VideoPlayer;
