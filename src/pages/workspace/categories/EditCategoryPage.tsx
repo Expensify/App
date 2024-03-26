@@ -51,7 +51,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newCategoryName = values.categoryName.trim();
-            // Do not call the API if the new category name is the same as the current category name
+            // Do not call the API if the edited category name is the same as the current category name
             if (currentCategoryName !== newCategoryName) {
                 Policy.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
             }
