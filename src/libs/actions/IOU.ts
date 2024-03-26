@@ -4526,8 +4526,9 @@ function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, cha
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
+    const isArchivedReport = ReportUtils.isArchivedRoom(iouReport);
 
-    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled;
+    return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport;
 }
 
 function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
@@ -4666,6 +4667,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const policy = ReportUtils.getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4685,8 +4687,8 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                 ...expenseReport,
                 lastMessageText: optimisticSubmittedReportAction.message?.[0].text ?? '',
                 lastMessageHtml: optimisticSubmittedReportAction.message?.[0].html ?? '',
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: isSubmitAndClosePolicy ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
             },
         },
         {
