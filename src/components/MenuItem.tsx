@@ -532,7 +532,7 @@ function MenuItem(
                                                 />
                                             </View>
                                         )}
-                                        <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
+                                        <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu), titleContainerStyle]}>
                                             {!!description && shouldShowDescriptionOnTop && (
                                                 <Text
                                                     style={descriptionTextStyles}
@@ -596,6 +596,7 @@ function MenuItem(
                                                     </Text>
                                                 </View>
                                             )}
+                                            {titleComponent}
                                         </View>
                                     </View>
                                 </View>
@@ -654,7 +655,6 @@ function MenuItem(
                                             <Text style={styles.rightLabelMenuItem}>{rightLabel}</Text>
                                         </View>
                                     )}
-                                    {titleComponent}
                                     {shouldShowRightIcon && (
                                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
                                             <Icon
