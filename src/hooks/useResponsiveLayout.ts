@@ -26,7 +26,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         Navigation.isNavigationReady().then(() => {
             setIsInModal(isDisplayedInModal());
         });
-    }, []);
+    }, [isDisplayedInModal]);
     const shouldUseNarrowLayout = isSmallScreenWidth || isInModal;
     return {shouldUseNarrowLayout, isSmallScreenWidth, isInModal};
 }
