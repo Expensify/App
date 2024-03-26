@@ -28,8 +28,6 @@ Onyx.connect({
     callback: (value) => (lastUpdateIDAppliedToClient = value),
 });
 
-let deferredUpdates: OnyxUpdatesFromServer[] = [];
-
 export default () => {
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     Onyx.connect({
@@ -72,6 +70,7 @@ export default () => {
             let canUnpauseQueuePromise;
 
             let updateAfterReconnectApp: OnyxUpdatesFromServer | undefined;
+            const deferredUpdates: OnyxUpdatesFromServer[] = [];
 
             // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
             if (!lastUpdateIDAppliedToClient) {
@@ -122,7 +121,6 @@ export default () => {
                 // If "updateAfterReconnectApp" is set, it means that case (1) was triggered and we only need to apply the one update, not the deferred ones.
                 if (updateAfterReconnectApp) {
                     OnyxUpdates.apply(updateAfterReconnectApp).finally(unpauseQueueAndReset);
-                    updateAfterReconnectApp = undefined;
                     return;
                 }
 
@@ -157,10 +155,7 @@ export default () => {
 
                 console.log({sortedDeferredUpdates});
 
-                Promise.all(sortedDeferredUpdates.map((update) => OnyxUpdates.apply(update))).finally(() => {
-                    deferredUpdates = [];
-                    unpauseQueueAndReset();
-                });
+                Promise.all(sortedDeferredUpdates.map((update) => OnyxUpdates.apply(update))).finally(unpauseQueueAndReset);
             }
 
             canUnpauseQueuePromise.finally(applyDeferredUpdates);
