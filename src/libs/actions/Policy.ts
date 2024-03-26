@@ -316,6 +316,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
     }
 
     const filteredPolicies = Object.values(allPolicies).filter((policy): policy is Policy => policy?.id !== policyID);
+    const successData: OnyxUpdate[] = [];
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -376,6 +377,11 @@ function deleteWorkspace(policyID: string, policyName: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: Object.fromEntries(Object.entries(optimisticReportActions).map(([reportActionID]) => [reportActionID, null])),
+        })
     });
 
     // Restore the old report stateNum and statusNum
@@ -406,7 +412,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
 
     const params: DeleteWorkspaceParams = {policyID};
 
-    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
