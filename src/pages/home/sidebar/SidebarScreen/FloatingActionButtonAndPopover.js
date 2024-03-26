@@ -78,7 +78,7 @@ const getQuickActionTitle = (action) => {
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
         default:
-            return '';
+            return 'quickAction.requestMoney';
     }
 };
 
