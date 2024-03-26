@@ -126,7 +126,6 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             <MenuItemWithTopDescription
                 title={groupName}
                 interactive={false}
-                shouldRenderAsHTML
                 shouldCheckActionAllowedOnPress={false}
                 description={translate('groupConfirmPage.groupName')}
             />
