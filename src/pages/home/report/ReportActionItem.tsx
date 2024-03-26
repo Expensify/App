@@ -679,7 +679,7 @@ function ReportActionItem({
                 }
                 return (
                     <View style={styles.pRelative}>
-                        <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
+                        <AnimatedEmptyStateBackground isOverlapBackgroundImage />
                         <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
                             <ReportActionItemSingle
                                 action={parentReportAction}
@@ -706,7 +706,7 @@ function ReportActionItem({
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
                     <View style={styles.pRelative}>
-                        <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
+                        <AnimatedEmptyStateBackground isOverlapBackgroundImage />
                         <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
                             <ReportActionItemSingle
                                 action={parentReportAction}
@@ -722,7 +722,7 @@ function ReportActionItem({
             }
             return (
                 <View style={styles.pRelative}>
-                    <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
+                    <AnimatedEmptyStateBackground isOverlapBackgroundImage />
                     <TaskView
                         report={report}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}

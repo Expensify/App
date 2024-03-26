@@ -58,7 +58,7 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
             needsOffscreenAlphaCompositing
         >
             <View style={styles.pRelative}>
-                <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
+                <AnimatedEmptyStateBackground isOverlapBackgroundImage />
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}

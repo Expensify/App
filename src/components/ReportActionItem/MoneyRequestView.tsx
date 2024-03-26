@@ -234,7 +234,7 @@ function MoneyRequestView({
 
     return (
         <View style={styles.pRelative}>
-            <AnimatedEmptyStateBackground isOverlapBackgroundImage={true} />
+            <AnimatedEmptyStateBackground isOverlapBackgroundImage />
             <>
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {(showMapAsImage || hasReceipt) && (
