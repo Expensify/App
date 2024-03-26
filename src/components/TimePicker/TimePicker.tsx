@@ -1,12 +1,12 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
+import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
+import type {TextInput} from 'react-native-gesture-handler';
 import AmountTextInput from '@components/AmountTextInput';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -19,24 +19,17 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import setCursorPosition from './setCursorPosition';
 
-const propTypes = {
-    /** Refs forwarded to the TextInputWithCurrencySymbol */
-    forwardedRef: refPropTypes,
+type MinuteHourRefs = {hourRef: TextInput | null; minuteRef: TextInput | null};
 
+type TimePickerProps = {
     /** Default value for the inputs */
-    defaultValue: PropTypes.string,
+    defaultValue?: string;
 
     /** Callback to call when the Save button is pressed  */
-    onSubmit: PropTypes.func.isRequired,
+    onSubmit: (timeString: string) => void;
 
     /** Callback to call when the input changes */
-    onInputChange: PropTypes.func,
-};
-
-const defaultProps = {
-    forwardedRef: null,
-    onInputChange: () => {},
-    defaultValue: '',
+    onInputChange?: (timeString: string) => void;
 };
 
 const AMOUNT_VIEW_ID = 'amountView';
@@ -45,14 +38,14 @@ const NUM_PAD_VIEW_ID = 'numPadView';
 
 /**
  * Replace the sub-string of the given string with the provided value
- * @param {String} originalString - the string that will be modified
- * @param {String} newSubstring - the replacement string
- * @param {Number} from - the start index of the sub-string to replace
- * @param {Number} to - the end index of the sub-string to replace
+ * @param originalString - the string that will be modified
+ * @param newSubstring - the replacement string
+ * @param from - the start index of the sub-string to replace
+ * @param to - the end index of the sub-string to replace
  *
- * @returns {String} - the modified string with the range (from, to) replaced with the provided value
+ * @returns - the modified string with the range (from, to) replaced with the provided value
  */
-function insertAtPosition(originalString, newSubstring, from, to) {
+function insertAtPosition(originalString: string, newSubstring: string, from: number, to: number): string {
     // Check for invalid positions
     if (from < 0 || to < 0 || from > originalString.length || to > originalString.length) {
         return originalString;
@@ -72,13 +65,13 @@ function insertAtPosition(originalString, newSubstring, from, to) {
 
 /**
  * Replace the sub-string of the given string with zeros
- * @param {String} originalString - the string that will be modified
- * @param {Number} from - the start index of the sub-string to replace
- * @param {Number} to - the end index of the sub-string to replace
+ * @param originalString - the string that will be modified
+ * @param from - the start index of the sub-string to replace
+ * @param to - the end index of the sub-string to replace
  *
- * @returns {String} - the modified string with the range (from, to) replaced with zeros
+ * @returns - the modified string with the range (from, to) replaced with zeros
  */
-function replaceRangeWithZeros(originalString, from, to) {
+function replaceRangeWithZeros(originalString: string, from: number, to: number): string {
     const normalizedFrom = Math.max(from, 0);
     const normalizedTo = Math.min(to, 2);
     const replacement = '0'.repeat(normalizedTo - normalizedFrom);
@@ -87,12 +80,13 @@ function replaceRangeWithZeros(originalString, from, to) {
 
 /**
  * Clear the value under selection of an input (either hours or minutes) by replacing it with zeros
- * @param {String} value - current value of the input
- * @param {Object} selection - current selection of the input
- * @param {Function} setValue - the function that modifies the value of the input
- * @param {Function} setSelection - the function that modifies the selection of the input
+ *
+ * @param value - current value of the input
+ * @param selection - current selection of the input
+ * @param setValue - the function that modifies the value of the input
+ * @param setSelection - the function that modifies the selection of the input
  */
-function clearSelectedValue(value, selection, setValue, setSelection) {
+function clearSelectedValue(value: string, selection: {start: number; end: number}, setValue: (value: string) => void, setSelection: (value: {start: number; end: number}) => void) {
     let newValue;
     let newCursorPosition;
 
@@ -109,7 +103,7 @@ function clearSelectedValue(value, selection, setValue, setSelection) {
     setSelection({start: newCursorPosition, end: newCursorPosition});
 }
 
-function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
+function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: TimePickerProps, ref: ForwardedRef<MinuteHourRefs>) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -125,8 +119,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const [amPmValue, setAmPmValue] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).period);
 
     const lastPressedKey = useRef('');
-    const hourInputRef = useRef(null);
-    const minuteInputRef = useRef(null);
+    const hourInputRef = useRef<TextInput | null>(null);
+    const minuteInputRef = useRef<TextInput | null>(null);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -134,7 +128,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const focusHourInputOnLastCharacter = useCallback(() => setCursorPosition(2, hourInputRef, setSelectionHour), []);
 
     const validate = useCallback(
-        (time) => {
+        (time: string) => {
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString: time || `${hours}:${minutes} ${amPmValue}`, dateTimeString: defaultValue});
             setError(!isValid);
             return isValid;
@@ -154,10 +148,10 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
 
     // This function receive value from hour input and validate it
     // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
-    const handleHourChange = (text) => {
+    const handleHourChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
         const trimmedText = text.replace(/ /g, '0');
-        if (_.isEmpty(trimmedText)) {
+        if (!trimmedText) {
             resetHours();
             return;
         }
@@ -179,13 +173,13 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 // To support the forward-removal using Delete key
                 newHour = `0${firstDigit}`;
                 newSelection = 1;
-            } else if (firstDigit <= 1) {
+            } else if (Number(firstDigit) <= 1) {
                 /*
                  The first entered digit is 0 or 1.
                  If the first digit is 0, we can safely append the second digit.
                  If the first digit is 1, we must check the second digit to ensure it is not greater than 2, amd replace it with 0 otherwise.
                 */
-                newHour = `${firstDigit}${firstDigit === '1' && secondDigit > 2 ? 0 : secondDigit}`;
+                newHour = `${firstDigit}${firstDigit === '1' && Number(secondDigit) > 2 ? 0 : secondDigit}`;
                 newSelection = 1;
             } else {
                 // The first entered digit is 2-9. We should replace the whole value by prepending 0 to the entered digit.
@@ -210,7 +204,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             // There is an active selection of the second digit
             newHour = trimmedText.substring(0, 2).padEnd(2, '0');
             newSelection = trimmedText.length === 1 ? 1 : 2;
-        } else if (trimmedText.length === 1 && trimmedText <= 1) {
+        } else if (trimmedText.length === 1 && Number(trimmedText) <= 1) {
             /*
              The trimmed text is either 0 or 1.
              We are either replacing hours with a single digit, or removing the last digit.
@@ -224,10 +218,11 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             newSelection = 2;
         }
 
-        if (newHour > 24) {
+        const newHourNumber = Number(newHour);
+        if (newHourNumber > 24) {
             newHour = hours;
-        } else if (newHour > 12) {
-            newHour = String(newHour - 12).padStart(2, '0');
+        } else if (newHourNumber > 12) {
+            newHour = String(newHourNumber - 12).padStart(2, '0');
             setAmPmValue(CONST.TIME_PERIOD.PM);
         }
 
@@ -242,10 +237,10 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
      This function receives value from the minutes input and validates it.
      The valid format is MM(from 00 to 59). If the user enters 9, it will be prepended to 09. If the user tries to change 09 to 99, it would skip the character
     */
-    const handleMinutesChange = (text) => {
+    const handleMinutesChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
         const trimmedText = text.replace(/ /g, '0');
-        if (_.isEmpty(trimmedText)) {
+        if (!trimmedText) {
             resetMinutes();
             return;
         }
@@ -265,7 +260,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 // To support the forward-removal using Delete key
                 newMinute = `0${firstDigit}`;
                 newSelection = 1;
-            } else if (firstDigit <= 5) {
+            } else if (Number(firstDigit) <= 5) {
                 // The first entered digit is 0-5, we can safely append the second digit.
                 newMinute = `${firstDigit}${trimmedText[2] || 0}`;
                 newSelection = 1;
@@ -292,7 +287,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             // There is an active selection of the second digit
             newMinute = trimmedText.substring(0, 2).padEnd(2, '0');
             newSelection = trimmedText.length === 1 ? 1 : 2;
-        } else if (trimmedText.length === 1 && trimmedText <= 5) {
+        } else if (trimmedText.length === 1 && Number(trimmedText) <= 5) {
             /*
              The trimmed text is from 0 to 5.
              We are either replacing minutes with a single digit, or removing the last digit.
@@ -306,7 +301,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             newSelection = 2;
         }
 
-        if (newMinute > 59) {
+        if (Number(newMinute) > 59) {
             newMinute = minutes;
         }
 
@@ -317,15 +312,13 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
-     *
-     * @param {String} key
      */
     const updateAmountNumberPad = useCallback(
-        (key) => {
-            const isHourFocused = hourInputRef.current.isFocused();
-            const isMinuteFocused = minuteInputRef.current.isFocused();
+        (key: string) => {
+            const isHourFocused = hourInputRef.current?.isFocused();
+            const isMinuteFocused = minuteInputRef.current?.isFocused();
             if (!isHourFocused && !isMinuteFocused) {
-                minuteInputRef.current.focus();
+                minuteInputRef.current?.focus();
             }
 
             if (key === '.') {
@@ -370,13 +363,11 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     );
 
     const arrowLeftCallback = useCallback(
-        (e) => {
-            const isMinuteFocused = minuteInputRef.current.isFocused();
+        (e?: GestureResponderEvent | KeyboardEvent) => {
+            const isMinuteFocused = minuteInputRef.current?.isFocused();
             if (isMinuteFocused && selectionMinute.start === 0) {
-                if (e) {
-                    // Check e to be truthy to avoid crashing on Android (e is undefined there)
-                    e.preventDefault();
-                }
+                // Check e to be truthy to avoid crashing on Android (e is undefined there)
+                e?.preventDefault();
                 focusHourInputOnLastCharacter();
             }
         },
@@ -384,14 +375,12 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         [selectionHour, selectionMinute],
     );
     const arrowRightCallback = useCallback(
-        (e) => {
-            const isHourFocused = hourInputRef.current.isFocused();
+        (e?: GestureResponderEvent | KeyboardEvent) => {
+            const isHourFocused = hourInputRef.current?.isFocused();
 
             if (isHourFocused && selectionHour.start === 2) {
-                if (e) {
-                    // Check e to be truthy to avoid crashing on Android (e is undefined there)
-                    e.preventDefault();
-                }
+                // Check e to be truthy to avoid crashing on Android (e is undefined there)
+                e?.preventDefault();
                 focusMinuteInputOnFirstCharacter();
             }
         },
@@ -403,8 +392,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, arrowConfig);
 
     const handleFocusOnBackspace = useCallback(
-        (e) => {
-            if (selectionMinute.start !== 0 || selectionMinute.end !== 0 || e.key !== 'Backspace') {
+        (e: NativeSyntheticEvent<KeyboardEvent>) => {
+            if (selectionMinute.start !== 0 || selectionMinute.end !== 0 || e.nativeEvent.key !== 'Backspace') {
                 return;
             }
             e.preventDefault();
@@ -422,7 +411,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         }
         return (
             <BigNumberPad
-                nativeID={NUM_PAD_VIEW_ID}
+                id={NUM_PAD_VIEW_ID}
                 numberPressed={updateAmountNumberPad}
                 isLongPressDisabled
             />
@@ -457,15 +446,14 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                             lastPressedKey.current = e.nativeEvent.key;
                         }}
                         onChangeAmount={handleHourChange}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(ref) => {
-                            if (typeof forwardedRef === 'function') {
-                                forwardedRef({refHour: ref, minuteRef: minuteInputRef.current});
-                            } else if (forwardedRef && _.has(forwardedRef, 'current')) {
+                        ref={(textInputRef) => {
+                            if (typeof ref === 'function') {
+                                ref({hourRef: textInputRef as TextInput | null, minuteRef: minuteInputRef.current});
+                            } else if (ref && 'current' in ref) {
                                 // eslint-disable-next-line no-param-reassign
-                                forwardedRef.current = {hourRef: ref, minuteRef: minuteInputRef.current};
+                                ref.current = {hourRef: textInputRef as TextInput | null, minuteRef: minuteInputRef.current};
                             }
-                            hourInputRef.current = ref;
+                            hourInputRef.current = textInputRef as TextInput | null;
                         }}
                         onSelectionChange={(e) => {
                             setSelectionHour(e.nativeEvent.selection);
@@ -473,7 +461,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                         style={styles.timePickerInput}
                         touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionHour}
-                        showSoftInputOnFocus={false}
                     />
                     <Text style={styles.timePickerSemiDot}>{CONST.COLON}</Text>
                     <AmountTextInput
@@ -484,16 +471,15 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                             handleFocusOnBackspace(e);
                         }}
                         onChangeAmount={handleMinutesChange}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(ref) => {
-                            if (typeof forwardedRef === 'function') {
-                                forwardedRef({refHour: hourInputRef.current, minuteRef: ref});
-                            } else if (forwardedRef && _.has(forwardedRef, 'current')) {
+                        ref={(textInputRef) => {
+                            if (typeof ref === 'function') {
+                                ref({hourRef: hourInputRef.current, minuteRef: textInputRef as TextInput | null});
+                            } else if (ref && 'current' in ref) {
                                 // eslint-disable-next-line no-param-reassign
-                                minuteInputRef.current = {hourRef: hourInputRef.current, minuteInputRef: ref};
+                                ref.current = {hourRef: hourInputRef.current, minuteRef: textInputRef as TextInput | null};
                             }
-                            minuteInputRef.current = ref;
-                            inputCallbackRef(ref);
+                            minuteInputRef.current = textInputRef as TextInput | null;
+                            inputCallbackRef(textInputRef as TextInput | null);
                         }}
                         onSelectionChange={(e) => {
                             setSelectionMinute(e.nativeEvent.selection);
@@ -501,7 +487,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                         style={styles.timePickerInput}
                         touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionMinute}
-                        showSoftInputOnFocus={false}
                     />
                 </View>
                 <View style={styles.timePickerSwitcherContainer}>
@@ -520,7 +505,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                     />
                     <Button
                         shouldEnableHapticFeedback
-                        innerStyles={[...styleForPM, styles.ml1]}
+                        innerStyles={[styleForPM, styles.ml1]}
                         medium={isExtraSmallScreenHeight}
                         large={!isExtraSmallScreenHeight}
                         text={translate('common.pm')}
@@ -561,18 +546,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     );
 }
 
-TimePicker.propTypes = propTypes;
-TimePicker.defaultProps = defaultProps;
 TimePicker.displayName = 'TimePicker';
 
-const TimePickerWithRef = React.forwardRef((props, ref) => (
-    <TimePicker
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-TimePickerWithRef.displayName = 'TimePickerWithRef';
-
-export default TimePickerWithRef;
+export default React.forwardRef(TimePicker);

@@ -323,9 +323,21 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string) {
+function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+    switch (requestType) {
+        case CONST.IOU.REQUEST_TYPE.MANUAL:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            return;
+        case CONST.IOU.REQUEST_TYPE.SCAN:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            return;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            return;
+        default:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+    }
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -583,7 +595,7 @@ function buildOnyxDataForMoneyRequest(
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: {
                 action: newQuickAction,
-                reportID: chatReport?.reportID,
+                chatReportID: chatReport?.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
             },
         });
@@ -2331,7 +2343,7 @@ function createSplitsAndOnyxData(
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: {
                 action: iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
-                reportID: splitChatReport.reportID,
+                chatReportID: splitChatReport.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
             },
         },
@@ -2817,7 +2829,7 @@ function startSplitBill(
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: {
                 action: CONST.QUICK_ACTIONS.SPLIT_SCAN,
-                reportID: splitChatReport.reportID,
+                chatReportID: splitChatReport.reportID,
                 isFirstQuickAction: isEmptyObject(quickAction),
             },
         },
@@ -4103,7 +4115,7 @@ function getSendMoneyParams(
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
         value: {
             action: CONST.QUICK_ACTIONS.SEND_MONEY,
-            reportID: chatReport.reportID,
+            chatReportID: chatReport.reportID,
             isFirstQuickAction: isEmptyObject(quickAction),
         },
     };
