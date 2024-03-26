@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
@@ -70,6 +70,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
     const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
+    const defaultDescriptionValue = useMemo(() => parser.htmlToMarkdown(parser.replace(report?.description ?? '') || ''), [report?.description]);
 
     useFocusEffect(
         useCallback(() => {
@@ -111,7 +112,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                             name={INPUT_IDS.DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
-                            defaultValue={parser.htmlToMarkdown((report && parser.replace(report?.description ?? '')) || '')}
+                            defaultValue={defaultDescriptionValue}
                             ref={(element: AnimatedTextInputRef) => {
                                 if (!element) {
                                     return;

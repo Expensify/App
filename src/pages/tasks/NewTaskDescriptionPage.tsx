@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -38,6 +38,7 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const defaultDescriptionValue = useMemo(() => parser.htmlToMarkdown(parser.replace(task?.description ?? '')), [task?.description]);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
         TaskActions.setDescriptionValue(values.taskDescription);
@@ -77,7 +78,7 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={parser.htmlToMarkdown(parser.replace(task?.description ?? ''))}
+                            defaultValue={defaultDescriptionValue}
                             inputID={INPUT_IDS.TASK_DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}

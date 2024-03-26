@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -40,11 +40,12 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
     const [taskDescription, setTaskDescription] = useState(task?.description ?? '');
 
     const {inputCallbackRef} = useAutoFocusInput();
+    const defaultDescriptionValue = useMemo(() => parser.htmlToMarkdown(parser.replace(taskDescription)), [taskDescription]);
 
     useEffect(() => {
         setTaskTitle(task?.title ?? '');
         setTaskDescription(parser.htmlToMarkdown(parser.replace(task?.description ?? '')));
-    }, [task]);
+    }, [task?.description, task?.title]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
@@ -114,7 +115,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
                         autoGrowHeight
                         shouldSubmitForm
                         containerStyles={styles.autoGrowHeightMultilineInput}
-                        defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
+                        defaultValue={defaultDescriptionValue}
                         value={taskDescription}
                         onValueChange={setTaskDescription}
                     />
