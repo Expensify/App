@@ -1,21 +1,8 @@
-import PropTypes from 'prop-types';
 import React, {memo, useCallback, useContext, useEffect} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import PDFView from '@components/PDFView';
-import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
-
-const baseAttachmentViewPdfPropTypes = {
-    ...attachmentViewPdfPropTypes,
-
-    /** Triggered when the PDF's onScaleChanged event is triggered */
-    onScaleChanged: PropTypes.func,
-};
-
-const baseAttachmentViewPdfDefaultProps = {
-    ...attachmentViewPdfDefaultProps,
-
-    onScaleChanged: undefined,
-};
+import type AttachmentViewPdfProps from './types';
 
 function BaseAttachmentViewPdf({
     file,
@@ -28,7 +15,7 @@ function BaseAttachmentViewPdf({
     onLoadComplete,
     errorLabelStyles,
     style,
-}) {
+}: AttachmentViewPdfProps) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
 
@@ -46,7 +33,7 @@ function BaseAttachmentViewPdf({
      * as well as call the onScaleChanged prop of the AttachmentViewPdf component if defined.
      */
     const onScaleChanged = useCallback(
-        (newScale) => {
+        (newScale: number) => {
             if (onScaleChangedProp !== undefined) {
                 onScaleChangedProp(newScale);
             }
@@ -66,13 +53,13 @@ function BaseAttachmentViewPdf({
      * Otherwise it means that the PDF is currently zoomed in, therefore the onTap callback should be ignored
      */
     const onPress = useCallback(
-        (e) => {
+        (event?: GestureResponderEvent | KeyboardEvent) => {
             if (onPressProp !== undefined) {
-                onPressProp(e);
+                onPressProp(event);
             }
 
-            if (attachmentCarouselPagerContext !== null && isScrollEnabled.value) {
-                attachmentCarouselPagerContext.onTap(e);
+            if (attachmentCarouselPagerContext !== null && isScrollEnabled?.value) {
+                attachmentCarouselPagerContext.onTap();
             }
         },
         [attachmentCarouselPagerContext, isScrollEnabled, onPressProp],
@@ -80,10 +67,11 @@ function BaseAttachmentViewPdf({
 
     return (
         <PDFView
+            // @ts-expect-error waiting for https://github.com/Expensify/App/issues/16186 merge
             onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
-            fileName={file.name}
+            fileName={file?.name}
             style={style}
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
@@ -93,8 +81,6 @@ function BaseAttachmentViewPdf({
     );
 }
 
-BaseAttachmentViewPdf.propTypes = baseAttachmentViewPdfPropTypes;
-BaseAttachmentViewPdf.defaultProps = baseAttachmentViewPdfDefaultProps;
 BaseAttachmentViewPdf.displayName = 'BaseAttachmentViewPdf';
 
 export default memo(BaseAttachmentViewPdf);
