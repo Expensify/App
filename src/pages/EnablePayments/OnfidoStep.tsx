@@ -40,8 +40,9 @@ function OnfidoStep({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoStepP
         Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
     }, []);
 
-    const reportError = useCallback(() => {
-        Growl.error(translate('onfidoStep.genericError'), 10000);
+    const reportError = useCallback((error?: string) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- error can be empty
+        Growl.error(error || translate('onfidoStep.genericError'), 10000);
     }, [translate]);
 
     const verifyIdentity = useCallback(
