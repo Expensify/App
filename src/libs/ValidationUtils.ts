@@ -284,7 +284,7 @@ function validateIdentity(identity: Record<string, string>): Record<string, bool
  * e164: +14404589784
  * national: (440) 458-978
  * 123.456.7890
- * 
+ *
  * This is different from expensify-common's isValidE164Phone which only validates E.164 numbers
  */
 function isValidPhone(phoneNumber: string): boolean {
