@@ -50,40 +50,24 @@ function flushOnyxUpdatesQueue() {
  * Identifies and removes conflicting requests from the queue
  */
 function reconcileRequests(persistedRequests: OnyxRequest[], commands: string[]) {
-    const requestsByActionID: Record<string, OnyxRequest[]> = {};
-
-    // Group requests by reportActionID
     persistedRequests.forEach((request) => {
-        const {data} = request;
-        const reportActionID = data?.reportActionID as string;
-        if (reportActionID) {
-            if (!requestsByActionID[reportActionID]) {
-                requestsByActionID[reportActionID] = [];
-            }
-            requestsByActionID[reportActionID].push(request);
+        const {getConflictingRequests, handleConflictingRequest} = request;
+        if (!getConflictingRequests || !handleConflictingRequest) {
+            return;
         }
-    });
 
-    // Process requests with conflicting actions
-    Object.values(requestsByActionID).forEach((requests) => {
-        const conflictingRequests: OnyxRequest[] = [];
-        commands.forEach((command) => {
-            const conflictingRequest = requests.find((request) => request.command === command);
-            if (conflictingRequest) {
-                conflictingRequests.push(conflictingRequest);
+        // Identify conflicting requests according to logic bound to the request
+        const conflictingRequests = getConflictingRequests(persistedRequests);
+        conflictingRequests.forEach((conflictingRequest) => {
+            // delete the conflicting request
+            const index = persistedRequests.findIndex((req) => req === conflictingRequest);
+            if (index !== -1) {
+                persistedRequests.splice(index, 1);
             }
+
+            // Allow the request to perform any additional cleanup for a cancelled request
+            handleConflictingRequest(conflictingRequest);
         });
-
-        if (conflictingRequests.length > 1) {
-            // Remove all requests as they cancel each other out
-            conflictingRequests.forEach((request) => {
-                // Perform action: Remove request from persisted requests
-                const index = persistedRequests.findIndex((req) => req === request);
-                if (index !== -1) {
-                    persistedRequests.splice(index, 1);
-                }
-            });
-        }
     });
 }
 
