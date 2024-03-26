@@ -70,7 +70,6 @@ function IOURequestStartPage({
     selectedTab,
     transaction,
 }) {
-    console.log(transaction);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const navigation = useNavigation();
@@ -106,7 +105,7 @@ function IOURequestStartPage({
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
+        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current, lodashGet(transaction, 'skipConfirmation', false));
     }, [transaction, policy, reportID, iouType, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -128,7 +127,7 @@ function IOURequestStartPage({
             if (iouType === CONST.IOU.TYPE.SPLIT && transaction.isFromGlobalCreate) {
                 IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST, newIouType);
             }
-            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType);
+            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType, lodashGet(transaction, 'skipConfirmation', false));
             transactionRequestType.current = newIouType;
         },
         [policy, previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction.isFromGlobalCreate],

@@ -258,8 +258,10 @@ Onyx.connect({
  * @param policy
  * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
+ * @param skipConfirmation if true, skip confirmation step
  */
-function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL, skipConfirmation = false) {
+    console.log('this');
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     // Disabling this line since currentDate can be an empty string
@@ -292,12 +294,17 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        skipConfirmation,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
     });
 }
 
-function clearMoneyRequest(transactionID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
+    if (skipConfirmation) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {skipConfirmation: true});
+    } else {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+    }
 }
 
 /**
@@ -324,8 +331,7 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) {
-    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    setSkipConfirmation();
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, true);
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
@@ -4986,10 +4992,6 @@ function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
 }
 
-function setSkipConfirmation() {
-    Onyx.merge(ONYXKEYS.IOU, {skipConfirmation: true});
-}
-
 function setMoneyRequestBillable(billable: boolean) {
     Onyx.merge(ONYXKEYS.IOU, {billable});
 }
@@ -5219,7 +5221,6 @@ export {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setShownHoldUseExplanation,
-    setSkipConfirmation,
     navigateToNextPage,
     updateMoneyRequestDate,
     updateMoneyRequestBillable,
