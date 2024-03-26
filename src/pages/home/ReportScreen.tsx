@@ -6,7 +6,6 @@ import {InteractionManager, View} from 'react-native';
 import type {FlatList, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {WithOnyxInstanceState} from 'react-native-onyx/dist/types';
 import type {LayoutChangeEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import Banner from '@components/Banner';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -81,7 +80,7 @@ type ReportScreenOnyxPropsWithoutParentReportAction = {
 
     /** The report metadata loading states */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-}
+};
 
 type OnyxHOCProps = {
     /** Onyx function that marks the component ready for hydration */
@@ -90,15 +89,18 @@ type OnyxHOCProps = {
 
 type ReportScreenNavigationProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
 
-type ReportScreenPropsWithoutParentReportAction = OnyxHOCProps & CurrentReportIDContextValue & ViewportOffsetTopProps & ReportScreenOnyxPropsWithoutParentReportAction & ReportScreenNavigationProps;
+type ReportScreenPropsWithoutParentReportAction = OnyxHOCProps &
+    CurrentReportIDContextValue &
+    ViewportOffsetTopProps &
+    ReportScreenOnyxPropsWithoutParentReportAction &
+    ReportScreenNavigationProps;
 
 type ReportScreenParentReportActionOnyxProps = {
-    /** The report's parentReportAction */
+    /** The report's parentReportActions */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-}
+};
 
-type ReportScreenProps = ReportScreenPropsWithoutParentReportAction & ReportScreenParentReportActionOnyxProps
-
+type ReportScreenProps = ReportScreenPropsWithoutParentReportAction & ReportScreenParentReportActionOnyxProps;
 
 /** Get the currently viewed report ID as number */
 function getReportID(route: ReportScreenNavigationProps['route']): string {
@@ -119,6 +121,13 @@ function isEmpty(report: OnyxTypes.Report): boolean {
         return true;
     }
     return !Object.values(report).some((value) => value !== undefined && value !== '');
+}
+
+function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
+    if (!parentReportActions || !parentReportActionID) {
+        return null;
+    }
+    return parentReportActions[parentReportActionID ?? '0'];
 }
 
 function ReportScreen({
@@ -237,12 +246,7 @@ function ReportScreen({
         ],
     );
 
-    const parentReportAction = useMemo(() => {
-        if (!parentReportActions || !report.parentReportActionID) {
-            return null;
-        }
-        return parentReportActions[report.parentReportActionID ?? '0'];
-    }, [parentReportActions, report.parentReportActionID])
+    const parentReportAction = useMemo(() => getParentReportAction(parentReportActions, report?.parentReportActionID), [parentReportActions, report.parentReportActionID]);
 
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
@@ -718,7 +722,7 @@ export default withViewportOffsetTop(
                 userLeavingStatus: {
                     key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                     initialValue: false,
-                }
+                },
             },
             true,
         )(
@@ -728,9 +732,10 @@ export default withViewportOffsetTop(
                     canEvict: false,
                 },
             })(
-                memo(
-                    ReportScreen,
-                    (prevProps, nextProps) =>
+                memo(ReportScreen, (prevProps, nextProps) => {
+                    const prevParentReportAction = getParentReportAction(prevProps.parentReportActions, prevProps.report?.parentReportActionID);
+                    const nextParentReportAction = getParentReportAction(nextProps.parentReportActions, nextProps.report?.parentReportActionID);
+                    return (
                         prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
                         lodashIsEqual(prevProps.sortedAllReportActions, nextProps.sortedAllReportActions) &&
                         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
@@ -741,11 +746,12 @@ export default withViewportOffsetTop(
                         prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
                         prevProps.currentReportID === nextProps.currentReportID &&
                         prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
-                        lodashIsEqual(prevProps.parentReportActions, nextProps.parentReportActions) &&
+                        lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
                         lodashIsEqual(prevProps.route, nextProps.route) &&
-                        lodashIsEqual(prevProps.report, nextProps.report),
-                ),
+                        lodashIsEqual(prevProps.report, nextProps.report)
+                    );
+                }),
             ),
-        )
+        ),
     ),
 );
