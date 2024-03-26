@@ -2094,6 +2094,7 @@ function requestMoney(
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const isConvertingFromTrackExpenseToRequest = action === CONST.IOU.ACTION.MOVE;
+    const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
 
     const {
         payerAccountID,
@@ -2147,14 +2148,15 @@ function requestMoney(
             break;
         }
         case CONST.IOU.ACTION.CATEGORIZE: {
-            const params = {
+            const parameters = {
                 policyID: chatReport.policyID,
                 transactionID: transaction.transactionID,
                 actionableWhisperReportActionID,
-                moneyRequestReportID: iouReport.reportID,
+                moneyRequestReportID: chatReport.reportID,
                 moneyRequestCreatedReportActionID: createdChatReportActionID,
             };
-            console.log('Categorizing tracked transaction', params);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, parameters, onyxData);
             break;
         }
         default: {
