@@ -60,6 +60,9 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Should we show the payment options? */
     shouldShowApproveButton?: boolean;
 
+    /** Should approve button be disabled? */
+    shouldDisableApproveButton?: boolean;
+
     /** The policyID of the report we are paying */
     policyID?: string;
 
@@ -124,6 +127,7 @@ function SettlementButton({
     policyID = '',
     shouldHidePaymentOptions = false,
     shouldShowApproveButton = false,
+    shouldDisableApproveButton = false,
     style,
     shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
@@ -139,9 +143,8 @@ function SettlementButton({
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
-    const shouldShowPaywithExpensifyOption =
-        !isPaidGroupPolicy ||
-        (!shouldHidePaymentOptions && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.reimburserEmail === session?.email);
+    const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
+    const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
@@ -166,6 +169,7 @@ function SettlementButton({
             text: translate('iou.approve'),
             icon: Expensicons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+            disabled: !!shouldDisableApproveButton,
         };
         const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
 
@@ -184,7 +188,9 @@ function SettlementButton({
         if (isExpenseReport && shouldShowPaywithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
-        buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+        if (shouldShowPayElsewhereOption) {
+            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+        }
 
         if (shouldShowApproveButton) {
             buttonOptions.push(approveButtonOption);
