@@ -20,7 +20,14 @@ export default function (packageName: string, path: string, platform = 'android'
             await getBrowser(packageName)?.close();
             // launch browser to persist cookies across page sessions
             // providing additional config we can use firefox or webkit (safari)
-            const browser = await chromium.launch({headless: false});
+            const browser = await chromium.launch({
+                headless: false,
+                args: [
+                    // disable CORS policy, since anyway it's tests (no security concerns) and managing
+                    // CORS on DNS level could e a nightmare for everyone who attempts to run tests
+                    '--disable-web-security',
+                ],
+            });
             setBrowser(browser, packageName);
             const context = await browser.newContext();
             setContext(context, packageName);

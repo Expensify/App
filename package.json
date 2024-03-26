@@ -22,6 +22,7 @@
     "web-proxy": "ts-node web/proxy.ts",
     "web-server": "webpack-dev-server --open --config config/webpack/webpack.dev.js",
     "build": "webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
+    "build-dev": "webpack --config config/webpack/webpack.common.js --env envFile=.env",
     "build-staging": "webpack --config config/webpack/webpack.common.js --env envFile=.env.staging",
     "build-adhoc": "webpack --config config/webpack/webpack.common.js --env envFile=.env.adhoc",
     "desktop": "scripts/set-pusher-suffix.sh && ts-node desktop/start.ts",
