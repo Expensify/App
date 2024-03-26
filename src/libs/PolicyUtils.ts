@@ -170,6 +170,14 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
     return memberEmailsToExclude;
 }
 
+function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof PolicyTagList> {
+    if (isEmptyObject(policyTagList)) {
+        return [];
+    }
+
+    return Object.keys(policyTagList).sort((key1, key2) => policyTagList[key1].orderWeight - policyTagList[key2].orderWeight);
+}
+
 /**
  * Gets a tag name of policy tags based on a tag index.
  */
@@ -178,7 +186,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: numbe
         return '';
     }
 
-    const policyTagKeys = Object.keys(policyTagList ?? {});
+    const policyTagKeys = getSortedTagKeys(policyTagList ?? {});
     const policyTagKey = policyTagKeys[tagIndex] ?? '';
 
     return policyTagList?.[policyTagKey]?.name ?? '';
@@ -195,14 +203,6 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
     return Object.values(policyTagList)
         .filter((policyTagListValue) => policyTagListValue !== null)
         .sort((tagA, tagB) => tagA.orderWeight - tagB.orderWeight);
-}
-
-function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof PolicyTagList> {
-    if (isEmptyObject(policyTagList)) {
-        return [];
-    }
-
-    return Object.keys(policyTagList).sort((key1, key2) => policyTagList[key1].orderWeight - policyTagList[key2].orderWeight);
 }
 
 /**
