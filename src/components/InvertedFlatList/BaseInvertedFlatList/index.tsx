@@ -1,7 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useMemo} from 'react';
-import type {FlatListProps, ScrollViewProps} from 'react-native';
-import FlatList from '@components/FlatList';
+import {FlatList, FlatListProps, ScrollViewProps} from 'react-native';
 
 type BaseInvertedFlatListProps<T> = FlatListProps<T> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
