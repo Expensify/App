@@ -377,6 +377,9 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 [optimisticClosedReportAction.reportActionID]: optimisticClosedReportAction as ReportAction,
             },
         });
+
+        // We are temporarily adding this workaround because 'DeleteWorkspace' doesn't
+        // support receiving the optimistic reportActions' ids for the moment.
         finallyData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
