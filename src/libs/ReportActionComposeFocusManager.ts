@@ -3,7 +3,7 @@ import type {TextInput} from 'react-native';
 import ROUTES from '@src/ROUTES';
 import Navigation from './Navigation/Navigation';
 
-type FocusCallback = () => void;
+type FocusCallback = (shouldFocusForNative?: boolean) => void;
 
 const composerRef = React.createRef<TextInput>();
 const editComposerRef = React.createRef<TextInput>();
@@ -29,7 +29,7 @@ function onComposerFocus(callback: FocusCallback | null, isMainComposer = false)
 /**
  * Request focus on the ReportActionComposer
  */
-function focus() {
+function focus(shouldFocusForNative?: boolean) {
     /** Do not trigger the refocusing when the active route is not the report route, */
     if (!Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(Navigation.getTopmostReportId() ?? ''))) {
         return;
@@ -40,7 +40,7 @@ function focus() {
             return;
         }
 
-        mainComposerFocusCallback();
+        mainComposerFocusCallback(shouldFocusForNative);
         return;
     }
 

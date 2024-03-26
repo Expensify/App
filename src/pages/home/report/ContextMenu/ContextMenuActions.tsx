@@ -201,7 +201,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     InteractionManager.runAfterInteractions(() => {
-                        ReportActionComposeFocusManager.focus();
+                        ReportActionComposeFocusManager.focus(true);
                     });
                     Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, reportID);
                 });
