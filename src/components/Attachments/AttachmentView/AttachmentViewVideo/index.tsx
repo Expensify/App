@@ -1,28 +1,17 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {AttachmentViewProps} from '..';
 
-const propTypes = {
+type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovered'> & {
     /** Video file source URL */
-    source: PropTypes.string.isRequired,
+    source: string;
 
-    /** Whether the video is currently being hovered over */
-    isHovered: PropTypes.bool,
-
-    shouldUseSharedVideoElement: PropTypes.bool,
-
-    videoDuration: PropTypes.number,
+    shouldUseSharedVideoElement?: boolean;
 };
 
-const defaultProps = {
-    isHovered: false,
-    shouldUseSharedVideoElement: false,
-    videoDuration: 0,
-};
-
-function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement, videoDuration}) {
+function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0}: AttachmentViewVideoProps) {
     const {isSmallScreen} = useWindowDimensions();
     const styles = useThemeStyles();
 
@@ -31,14 +20,12 @@ function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement, vi
             url={source}
             shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreen}
             isVideoHovered={isHovered}
-            videoDuration={videoDuration}
+            videoDuration={duration}
             style={[styles.w100, styles.h100]}
         />
     );
 }
 
-AttachmentViewVideo.propTypes = propTypes;
-AttachmentViewVideo.defaultProps = defaultProps;
 AttachmentViewVideo.displayName = 'AttachmentViewVideo';
 
 export default React.memo(AttachmentViewVideo);

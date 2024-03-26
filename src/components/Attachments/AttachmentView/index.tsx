@@ -1,10 +1,10 @@
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
 import React, {memo, useEffect, useState} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
@@ -13,74 +13,61 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import compose from '@libs/compose';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
-import {attachmentViewDefaultProps, attachmentViewPropTypes} from './propTypes';
 
-const propTypes = {
-    ...attachmentViewPropTypes,
-    ...withLocalizePropTypes,
-
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
-
-    /** Flag to show/hide download icon */
-    shouldShowDownloadIcon: PropTypes.bool,
-
-    /** Flag to show the loading indicator */
-    shouldShowLoadingSpinnerIcon: PropTypes.bool,
-
-    /** Notify parent that the UI should be modified to accommodate keyboard */
-    onToggleKeyboard: PropTypes.func,
-
-    /** Extra styles to pass to View wrapper */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Denotes whether it is a workspace avatar or not */
-    isWorkspaceAvatar: PropTypes.bool,
-
-    /** Denotes whether it is an icon (ex: SVG) */
-    maybeIcon: PropTypes.bool,
-
-    /** The id of the transaction related to the attachment */
-    // eslint-disable-next-line react/no-unused-prop-types
-    transactionID: PropTypes.string,
-
-    /** The id of the report action related to the attachment */
-    reportActionID: PropTypes.string,
-
-    isHovered: PropTypes.bool,
-
-    optionalVideoDuration: PropTypes.number,
+type AttachmentViewOnyxProps = {
+    transaction: OnyxEntry<Transaction>;
 };
 
-const defaultProps = {
-    ...attachmentViewDefaultProps,
-    shouldShowDownloadIcon: false,
-    shouldShowLoadingSpinnerIcon: false,
-    onToggleKeyboard: () => {},
-    containerStyles: [],
-    isWorkspaceAvatar: false,
-    maybeIcon: false,
-    transactionID: '',
-    reportActionID: '',
-    isHovered: false,
-    optionalVideoDuration: 0,
-    fallbackSource: Expensicons.Gallery,
-};
+type AttachmentViewProps = AttachmentViewOnyxProps &
+    Attachment & {
+        /** Whether this view is the active screen  */
+        isFocused?: boolean;
+
+        /** Function for handle on press */
+        onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
+
+        /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
+        isUsedInCarousel?: boolean;
+
+        isUsedInAttachmentModal?: boolean;
+
+        /** Flag to show/hide download icon */
+        shouldShowDownloadIcon?: boolean;
+
+        /** Flag to show the loading indicator */
+        shouldShowLoadingSpinnerIcon?: boolean;
+
+        /** Notify parent that the UI should be modified to accommodate keyboard */
+        onToggleKeyboard?: (shouldFadeOut: boolean) => void;
+
+        /** Extra styles to pass to View wrapper */
+        containerStyles?: StyleProp<ViewStyle>;
+
+        /** Denotes whether it is a workspace avatar or not */
+        isWorkspaceAvatar?: boolean;
+
+        /** Denotes whether it is an icon (ex: SVG) */
+        maybeIcon?: boolean;
+
+        fallbackSource?: AttachmentSource;
+
+        isHovered?: boolean;
+    };
 
 function AttachmentView({
     source,
@@ -91,7 +78,6 @@ function AttachmentView({
     shouldShowDownloadIcon,
     containerStyles,
     onToggleKeyboard,
-    translate,
     isFocused,
     isUsedInCarousel,
     isUsedInAttachmentModal,
@@ -101,21 +87,22 @@ function AttachmentView({
     transaction,
     reportActionID,
     isHovered,
-    optionalVideoDuration,
-}) {
+    duration,
+}: AttachmentViewProps) {
+    const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
-    const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file && Str.isVideo(file.name));
+    const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
             return;
         }
-        updateCurrentlyPlayingURL(isVideo ? source : null);
-    }, [isFocused, isVideo, source, updateCurrentlyPlayingURL, file, isUsedInAttachmentModal]);
+        updateCurrentlyPlayingURL(isVideo && typeof source === 'string' ? source : null);
+    }, [file, isFocused, isUsedInAttachmentModal, isVideo, source, updateCurrentlyPlayingURL]);
 
     const [imageError, setImageError] = useState(false);
 
@@ -123,11 +110,11 @@ function AttachmentView({
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
-    if ((maybeIcon && typeof source === 'number') || _.isFunction(source)) {
-        let iconFillColor = '';
-        let additionalStyles = [];
-        if (isWorkspaceAvatar) {
-            const defaultWorkspaceAvatarColor = StyleUtils.getDefaultWorkspaceAvatarColor(file.name);
+    if (typeof source === 'function' || (maybeIcon && typeof source === 'number')) {
+        let iconFillColor: ColorValue | undefined = '';
+        let additionalStyles: ViewStyle[] = [];
+        if (isWorkspaceAvatar && file) {
+            const defaultWorkspaceAvatarColor = StyleUtils.getDefaultWorkspaceAvatarColor(file.name ?? '');
             iconFillColor = defaultWorkspaceAvatarColor.fill;
             additionalStyles = [defaultWorkspaceAvatarColor];
         }
@@ -143,7 +130,7 @@ function AttachmentView({
         );
     }
 
-    if (TransactionUtils.hasEReceipt(transaction)) {
+    if (TransactionUtils.hasEReceipt(transaction) && transaction) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter]}>
                 <ScrollView
@@ -158,11 +145,11 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
-        const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
+    if ((typeof source === 'string' && Str.isPDF(source)) || (file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename')))) {
+        const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string) : (source as string);
 
-        const onPDFLoadComplete = (path) => {
-            const id = (transaction && transaction.transactionID) || reportActionID;
+        const onPDFLoadComplete = (path: string) => {
+            const id = (transaction && transaction.transactionID) ?? reportActionID;
             if (path && id) {
                 CachedPDFPaths.add(id, path);
             }
@@ -177,34 +164,31 @@ function AttachmentView({
         return (
             <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
                 <AttachmentViewPdf
-                    source={source}
                     file={file}
                     isFocused={isFocused}
-                    isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
                     onPress={onPress}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={onPDFLoadComplete}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
-                    isUsedInCarousel={isUsedInCarousel}
                 />
             </View>
         );
     }
 
-    if (TransactionUtils.isDistanceRequest(transaction)) {
+    if (TransactionUtils.isDistanceRequest(transaction) && transaction) {
         return <DistanceEReceipt transaction={transaction} />;
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isImage = typeof source === 'number' || Str.isImage(source);
-    if (isImage || (file && Str.isImage(file.name))) {
+    const isImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
+    if (isImage || (file?.name && Str.isImage(file.name))) {
         if (imageError) {
             // AttachmentViewImage can't handle icon fallbacks, so we need to handle it here
-            if (typeof fallbackSource === 'number' || _.isFunction(fallbackSource)) {
+            if (typeof fallbackSource === 'number' || typeof fallbackSource === 'function') {
                 return (
                     <Icon
                         src={fallbackSource}
@@ -219,12 +203,10 @@ function AttachmentView({
 
         return (
             <AttachmentViewImage
-                url={imageError ? fallbackSource : source}
+                url={imageError && fallbackSource ? (fallbackSource as string) : (source as string)}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
-                isFocused={isFocused}
-                isUsedInCarousel={isUsedInCarousel}
                 isImage={isImage}
                 onPress={onPress}
                 onError={() => {
@@ -234,19 +216,19 @@ function AttachmentView({
         );
     }
 
-    if (isVideo) {
+    if ((isVideo ?? (file?.name && Str.isVideo(file.name))) && typeof source === 'string') {
         return (
             <AttachmentViewVideo
                 source={source}
                 shouldUseSharedVideoElement={isUsedInCarousel}
                 isHovered={isHovered}
-                videoDuration={optionalVideoDuration}
+                duration={duration}
             />
         );
     }
 
     return (
-        <View style={[styles.defaultAttachmentView, ...containerStyles]}>
+        <View style={[styles.defaultAttachmentView, containerStyles]}>
             <View style={styles.mr2}>
                 <Icon
                     fill={theme.icon}
@@ -254,7 +236,7 @@ function AttachmentView({
                 />
             </View>
 
-            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file && file.name}</Text>
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file?.name}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>
@@ -279,16 +261,14 @@ function AttachmentView({
     );
 }
 
-AttachmentView.propTypes = propTypes;
-AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default compose(
-    memo,
-    withLocalize,
-    withOnyx({
+export default memo(
+    withOnyx<AttachmentViewProps, AttachmentViewOnyxProps>({
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
-    }),
-)(AttachmentView);
+    })(AttachmentView),
+);
+
+export type {AttachmentViewProps};

@@ -1,63 +1,62 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
-import withLocalize from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import type {AttachmentCarouselPagerHandle} from './Pager';
 import AttachmentCarouselPager from './Pager';
+import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, onClose}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
-    const pagerRef = useRef(null);
-    const [page, setPage] = useState();
-    const [attachments, setAttachments] = useState([]);
-    const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
-    const [activeSource, setActiveSource] = useState(source);
+    const {translate} = useLocalize();
+    const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
+    const [page, setPage] = useState<number>();
+    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
+    const [activeSource, setActiveSource] = useState<AttachmentSource>(source);
 
-    const compareImage = useCallback((attachment) => attachment.source === source, [source]);
+    const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
-        const parentReportAction = parentReportActions[report.parentReportActionID];
+        const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
         const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
 
-        const initialPage = _.findIndex(attachmentsFromReport, compareImage);
+        const initialPage = attachmentsFromReport.findIndex(compareImage);
 
         // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && _.find(attachments, compareImage)) {
+        if (initialPage === -1 && attachments.find(compareImage)) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
             setAttachments(attachmentsFromReport);
 
             // Update the download button visibility in the parent modal
-            setDownloadButtonVisibility(initialPage !== -1);
+            if (setDownloadButtonVisibility) {
+                setDownloadButtonVisibility(initialPage !== -1);
+            }
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (!_.isUndefined(attachmentsFromReport[initialPage])) {
+            if (attachmentsFromReport[initialPage] !== undefined && onNavigate) {
                 onNavigate(attachmentsFromReport[initialPage]);
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportActions, compareImage]);
 
-    /**
-     * Updates the page state when the user navigates between attachments
-     * @param {Object} item
-     * @param {number} index
-     */
+    /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
-        (newPageIndex) => {
+        (newPageIndex: number) => {
             Keyboard.dismiss();
             setShouldShowArrows(true);
 
@@ -66,7 +65,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             setPage(newPageIndex);
             setActiveSource(item.source);
 
-            onNavigate(item);
+            if (onNavigate) {
+                onNavigate(item);
+            }
         },
         [setShouldShowArrows, attachments, onNavigate],
     );
@@ -76,10 +77,13 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      * @param {Number} deltaSlide
      */
     const cycleThroughAttachments = useCallback(
-        (deltaSlide) => {
+        (deltaSlide: number) => {
+            if (page === undefined) {
+                return;
+            }
             const nextPageIndex = page + deltaSlide;
             updatePage(nextPageIndex);
-            pagerRef.current.setPage(nextPageIndex);
+            pagerRef.current?.setPage(nextPageIndex);
 
             autoHideArrows();
         },
@@ -91,7 +95,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
      * @param {Boolean} showArrows if showArrows is passed, it will set the visibility to the passed value
      */
     const toggleArrows = useCallback(
-        (showArrows) => {
+        (showArrows?: boolean) => {
             if (showArrows === undefined) {
                 setShouldShowArrows((prevShouldShowArrows) => !prevShouldShowArrows);
                 return;
@@ -148,23 +152,15 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     );
 }
 
-AttachmentCarousel.propTypes = propTypes;
-AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
-export default compose(
-    withOnyx({
-        reportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-            canEvict: false,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
-            canEvict: false,
-        },
-    }),
-    withLocalize,
-)(AttachmentCarousel);
+export default withOnyx<AttachmentCarouselProps, AttachmentCaraouselOnyxProps>({
+    parentReportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+        canEvict: false,
+    },
+    reportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+        canEvict: false,
+    },
+})(AttachmentCarousel);
