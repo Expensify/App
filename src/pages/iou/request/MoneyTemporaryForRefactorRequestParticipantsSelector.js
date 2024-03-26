@@ -381,7 +381,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
     const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
 
-    if (iouAction === CONST.IOU.ACTION.CATEGORIZE && isAllSectionsEmpty && didScreenTransitionEnd) {
+    if (iouAction === CONST.IOU.ACTION.CATEGORIZE && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
         return renderEmptyWorkspaceView();
     }
 
