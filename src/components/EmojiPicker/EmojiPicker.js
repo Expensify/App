@@ -32,7 +32,7 @@ const EmojiPicker = forwardRef((props, ref) => {
     const [emojiPopoverAnchorOrigin, setEmojiPopoverAnchorOrigin] = useState(DEFAULT_ANCHOR_ORIGIN);
     const [activeID, setActiveID] = useState();
     const emojiPopoverAnchorRef = useRef(null);
-    const emojiAnchorDimission = useRef({
+    const emojiAnchorDimension = useRef({
         width: 0,
         height: 0,
     });
@@ -84,7 +84,7 @@ const EmojiPicker = forwardRef((props, ref) => {
                 horizontal: value.horizontal,
                 vertical: value.vertical,
             });
-            emojiAnchorDimission.current = {
+            emojiAnchorDimension.current = {
                 width: value.width,
                 height: value.height,
             };
@@ -170,7 +170,7 @@ const EmojiPicker = forwardRef((props, ref) => {
                     horizontal: value.horizontal,
                     vertical: value.vertical,
                 });
-                emojiAnchorDimission.current = {
+                emojiAnchorDimension.current = {
                     width: value.width,
                     height: value.height,
                 };
@@ -210,7 +210,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             anchorAlignment={emojiPopoverAnchorOrigin}
             outerStyle={StyleUtils.getOuterModalStyle(windowHeight, props.viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
-            anchorDimensions={emojiAnchorDimission.current}
+            anchorDimensions={emojiAnchorDimension.current}
             avoidKeyboard
             shoudSwitchPositionIfOverflow
         >
