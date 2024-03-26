@@ -1,14 +1,7 @@
-/* eslint-disable no-restricted-imports */
-import type {ValueOf} from 'type-fest';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {AnchorDimensions, AnchorPosition} from '@src/styles';
-
-type AnchorOrigin = {
-    horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
-    vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
-    shiftVertical?: number;
-};
+import type {AnchorOrigin} from './actions/EmojiPickerAction';
 
 /**
  * Gets the x,y position of the passed in component for the purpose of anchoring another component to it.

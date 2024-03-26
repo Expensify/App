@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import * as Emojis from '@assets/emojis';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
@@ -11,9 +10,13 @@ import CONST from '@src/CONST';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
 
+type SkinToneEmoji = {
+    skinTone: number;
+};
+
 function EmojiSkinToneList() {
     const styles = useThemeStyles();
-    const [highlightedIndex, setHighlightedIndex] = useState(null);
+    const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
     const [isSkinToneListVisible, setIsSkinToneListVisible] = useState(false);
     const {translate} = useLocalize();
     const [preferredSkinTone, setPreferredSkinTone] = usePreferredEmojiSkinTone();
@@ -24,9 +27,8 @@ function EmojiSkinToneList() {
 
     /**
      * Set the preferred skin tone in Onyx and close the skin tone picker
-     * @param {object} skinToneEmoji
      */
-    function updateSelectedSkinTone(skinToneEmoji) {
+    function updateSelectedSkinTone(skinToneEmoji: SkinToneEmoji) {
         setHighlightedIndex(skinToneEmoji.skinTone);
         setPreferredSkinTone(skinToneEmoji.skinTone);
     }
@@ -57,7 +59,7 @@ function EmojiSkinToneList() {
             )}
             {isSkinToneListVisible && (
                 <View style={[styles.flexRow, styles.flex1]}>
-                    {_.map(Emojis.skinTones, (skinToneEmoji) => (
+                    {Emojis.skinTones.map((skinToneEmoji) => (
                         <EmojiPickerMenuItem
                             onPress={() => updateSelectedSkinTone(skinToneEmoji)}
                             onHoverIn={() => setHighlightedIndex(skinToneEmoji.skinTone)}

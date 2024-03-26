@@ -1,33 +1,43 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type EmojiPickerButtonDropdownProps = {
     /** Flag to disable the emoji picker button */
-    isDisabled: PropTypes.bool,
-
-    ...withLocalizePropTypes,
+    isDisabled?: boolean;
+    accessibilityLabel?: string;
+    role?: string;
+    onModalHide: EmojiPickerAction.OnModalHideValue;
+    onInputChange: (emoji: string) => void;
+    value?: string;
+    disabled?: boolean;
+    style: StyleProp<ViewStyle>;
 };
 
-const defaultProps = {
-    isDisabled: false,
-};
-
-function EmojiPickerButtonDropdown(props) {
+function EmojiPickerButtonDropdown(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    {isDisabled = false, onModalHide, onInputChange, value, disabled, style, ...otherProps}: EmojiPickerButtonDropdownProps,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ref: ForwardedRef<AnimatedTextInputRef>,
+) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
+    const {translate} = useLocalize();
+
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
     const onPress = () => {
         if (EmojiPickerAction.isEmojiPickerVisible()) {
@@ -36,8 +46,8 @@ function EmojiPickerButtonDropdown(props) {
         }
 
         EmojiPickerAction.showEmojiPicker(
-            props.onModalHide,
-            (emoji) => props.onInputChange(emoji),
+            onModalHide,
+            (emoji) => onInputChange(emoji),
             emojiPopoverAnchor,
             {
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -46,16 +56,16 @@ function EmojiPickerButtonDropdown(props) {
             },
             () => {},
             undefined,
-            props.value,
+            value,
         );
     };
 
     return (
-        <Tooltip text={props.translate('reportActionCompose.emoji')}>
+        <Tooltip text={translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={[styles.emojiPickerButtonDropdown, props.style]}
-                disabled={props.isDisabled}
+                style={[styles.emojiPickerButtonDropdown, style]}
+                disabled={isDisabled}
                 onPress={onPress}
                 id="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
@@ -67,14 +77,17 @@ function EmojiPickerButtonDropdown(props) {
                             style={styles.emojiPickerButtonDropdownIcon}
                             numberOfLines={1}
                         >
-                            {props.value || (
-                                <Icon
-                                    src={Expensicons.Emoji}
-                                    fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
-                                />
-                            )}
+                            {
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                value || (
+                                    <Icon
+                                        src={Expensicons.Emoji}
+                                        fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
+                                    />
+                                )
+                            }
                         </Text>
-                        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled, styles.rotate90]}>
+                        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
@@ -87,18 +100,6 @@ function EmojiPickerButtonDropdown(props) {
     );
 }
 
-EmojiPickerButtonDropdown.propTypes = propTypes;
-EmojiPickerButtonDropdown.defaultProps = defaultProps;
 EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
 
-const EmojiPickerButtonDropdownWithRef = React.forwardRef((props, ref) => (
-    <EmojiPickerButtonDropdown
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-EmojiPickerButtonDropdownWithRef.displayName = 'EmojiPickerButtonDropdownWithRef';
-
-export default withLocalize(EmojiPickerButtonDropdownWithRef);
+export default React.forwardRef(EmojiPickerButtonDropdown);
