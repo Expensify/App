@@ -38,6 +38,10 @@ function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKFLOWS_DELAYED_SUBMISSION) || canUseAllBetas(betas);
 }
 
+function canUseAccountingIntegrations(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.ACCOUNTING) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -55,4 +59,5 @@ export default {
     canUseReportFields,
     canUseP2PDistanceRequests,
     canUseWorkflowsDelayedSubmission,
+    canUseAccountingIntegrations,
 };
