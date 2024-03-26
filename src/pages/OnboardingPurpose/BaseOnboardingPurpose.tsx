@@ -36,15 +36,20 @@ const menuIcons = {
 type BaseOnboardingPurposeProps = {
     /* Whether to use native styles tailored for native devices */
     shouldUseNativeStyles: boolean;
+
+    /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+    shouldEnableMaxHeight: boolean;
 };
 
-function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [selectedPurpose, setSelectedPurpose] = useState<SelectedPurposeType>(undefined);
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const theme = useTheme();
+
+    const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
 
     const paddingHorizontal = shouldUseNarrowLayout ? styles.ph8 : styles.ph5;
 
@@ -110,7 +115,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[{maxHeight: windowHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
+                <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
                     <View style={shouldUseNarrowLayout && styles.mh3}>
                         <HeaderWithBackButton
                             shouldShowBackButton

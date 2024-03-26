@@ -6,7 +6,7 @@ function OnboardingPurpose({...rest}: Omit<Omit<BaseOnboardingPurposeProps, 'sho
     return (
         <BaseOnboardingPurpose
             shouldUseNativeStyles={false}
-            shouldEnableMaxHeight={false}
+            shouldEnableMaxHeight
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
