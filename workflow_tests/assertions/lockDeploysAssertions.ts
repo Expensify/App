@@ -1,8 +1,9 @@
-const utils = require('../utils/utils');
+import type {Step} from '@kie/act-js';
+import {createStepAssertion} from '../utils/utils';
 
-const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, isSuccessful = true) => {
+function assertlockStagingDeploysJobExecuted(workflowResult: Step[], didExecute = true, isSuccessful = true) {
     const steps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'Checkout',
             true,
             null,
@@ -14,8 +15,8 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
             ],
             [],
         ),
-        utils.createStepAssertion('Wait for staging deploys to finish', true, null, 'LOCKSTAGINGDEPLOYS', 'Waiting for staging deploys to finish', [{key: 'GITHUB_TOKEN', value: '***'}], []),
-        utils.createStepAssertion(
+        createStepAssertion('Wait for staging deploys to finish', true, null, 'LOCKSTAGINGDEPLOYS', 'Waiting for staging deploys to finish', [{key: 'GITHUB_TOKEN', value: '***'}], []),
+        createStepAssertion(
             'Comment in StagingDeployCash to give Applause the 🟢 to begin QA',
             true,
             null,
@@ -24,7 +25,7 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
             [],
             [{key: 'GITHUB_TOKEN', value: '***'}],
         ),
-    ];
+    ] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -35,8 +36,8 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
     });
 
     const failProdSteps = [
-        utils.createStepAssertion('Announce failed workflow', true, null, 'LOCKSTAGINGDEPLOYS', 'Announcing failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
-    ];
+        createStepAssertion('Announce failed workflow', true, null, 'LOCKSTAGINGDEPLOYS', 'Announcing failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
+    ] as const;
 
     failProdSteps.forEach((expectedStep) => {
         if (didExecute && !isSuccessful) {
@@ -45,11 +46,11 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
-};
+}
 
-const assertlockStagingDeploysJobFailedAfterFirstStep = (workflowResult) => {
+function assertlockStagingDeploysJobFailedAfterFirstStep(workflowResult: Step[]) {
     const steps = [
-        utils.createStepAssertion(
+        createStepAssertion(
             'Checkout',
             true,
             null,
@@ -61,24 +62,13 @@ const assertlockStagingDeploysJobFailedAfterFirstStep = (workflowResult) => {
             ],
             [],
         ),
-        utils.createStepAssertion(
-            'Wait for staging deploys to finish',
-            false,
-            null,
-            'LOCKSTAGINGDEPLOYS',
-            'Waiting for staging deploys to finish',
-            [{key: 'GITHUB_TOKEN', value: '***'}],
-            [],
-        ),
-        utils.createStepAssertion('Announce failed workflow', true, null, 'LOCKSTAGINGDEPLOYS', 'Announcing failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
-    ];
+        createStepAssertion('Wait for staging deploys to finish', false, null, 'LOCKSTAGINGDEPLOYS', 'Waiting for staging deploys to finish', [{key: 'GITHUB_TOKEN', value: '***'}], []),
+        createStepAssertion('Announce failed workflow', true, null, 'LOCKSTAGINGDEPLOYS', 'Announcing failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
+    ] as const;
 
     steps.forEach((expectedStep) => {
         expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
     });
-};
+}
 
-module.exports = {
-    assertlockStagingDeploysJobExecuted,
-    assertlockStagingDeploysJobFailedAfterFirstStep,
-};
+export {assertlockStagingDeploysJobExecuted, assertlockStagingDeploysJobFailedAfterFirstStep};
