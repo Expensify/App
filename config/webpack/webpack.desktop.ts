@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import path from 'path';
 import type {Configuration} from 'webpack';
 import webpack from 'webpack';
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias, import/no-relative-packages -- alias imports don't work for webpack
 import {dependencies as desktopDependencies} from '../../desktop/package.json';
-import type Env from './types';
+import type Environment from './types';
 import getCommonConfig from './webpack.common';
 
 /**
@@ -13,7 +12,7 @@ import getCommonConfig from './webpack.common';
  * 2. web - the app content that would be rendered in electron
  * Everything is placed in desktop/dist and ready for packaging
  */
-const getConfig = (env: Env): Configuration[] => {
+const getConfig = (env: Environment): Configuration[] => {
     const rendererConfig = getCommonConfig({...env, platform: 'desktop'});
     const outputPath = path.resolve(__dirname, '../../desktop/dist');
 
@@ -44,7 +43,9 @@ const getConfig = (env: Env): Configuration[] => {
              * Disables webpack processing of __dirname and __filename, so it works like in node
              * https://github.com/webpack/webpack/issues/2010
              */
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             __dirname: false,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             __filename: false,
         },
         module: {

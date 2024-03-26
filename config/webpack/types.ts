@@ -1,6 +1,6 @@
-type Env = {
-    envFile?: string;
+type Environment = {
+    file?: string;
     platform?: 'web' | 'desktop';
 };
 
-export default Env;
+export default Environment;

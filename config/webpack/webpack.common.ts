@@ -9,7 +9,7 @@ import type {Configuration} from 'webpack';
 import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import CustomVersionFilePlugin from './CustomVersionFilePlugin';
-import type Env from './types';
+import type Environment from './types';
 
 // require is necessary, there are no types for this package and the declaration file can't be seen by the build process which causes an error.
 const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
@@ -48,7 +48,7 @@ function mapEnvToLogoSuffix(envFile: string): string {
 /**
  * Get a production grade config for web or desktop
  */
-const getCommonConfig = ({envFile = '.env', platform = 'web'}: Env): Configuration => ({
+const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): Configuration => ({
     mode: 'production',
     devtool: 'source-map',
     entry: {
@@ -69,10 +69,10 @@ const getCommonConfig = ({envFile = '.env', platform = 'web'}: Env): Configurati
         new HtmlWebpackPlugin({
             template: 'web/index.html',
             filename: 'index.html',
-            splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`), 'utf-8'),
+            splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(file)}.svg`), 'utf-8'),
             isWeb: platform === 'web',
-            isProduction: envFile === '.env.production',
-            isStaging: envFile === '.env.staging',
+            isProduction: file === '.env.production',
+            isStaging: file === '.env.staging',
         }),
         new PreloadWebpackPlugin({
             rel: 'preload',
@@ -122,12 +122,12 @@ const getCommonConfig = ({envFile = '.env', platform = 'web'}: Env): Configurati
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             ...(platform === 'desktop' ? {} : {process: {env: {}}}),
-            __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: envFile}).parsed),
+            __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
 
             // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
             // react-native-render-html uses variable to log exclusively during development.
             // See https://reactnative.dev/docs/javascript-environment
-            __DEV__: /staging|prod|adhoc/.test(envFile) === false,
+            __DEV__: /staging|prod|adhoc/.test(file) === false,
         }),
 
         // This allows us to interactively inspect JS bundle contents
@@ -276,4 +276,4 @@ const getCommonConfig = ({envFile = '.env', platform = 'web'}: Env): Configurati
     },
 });
 
-export default getCommonConfig;
+export default getCommonConfiguration;
