@@ -30,6 +30,7 @@ type AttachmentPickerProps = {
      * </AttachmentPicker>
      * */
     children: (props: {openPicker: OpenPickerFunction}) => ReactNode;
+
     /** The types of files that can be selected with this picker. */
     type?: ValueOf<typeof CONST.ATTACHMENT_PICKER_TYPE>;
 };
