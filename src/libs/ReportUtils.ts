@@ -60,6 +60,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
+import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
@@ -5111,7 +5112,7 @@ function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
 /**
  * Return iou report action display message
  */
-function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>): string {
+function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>, shouldLog = false): string {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return '';
     }
@@ -5139,6 +5140,12 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                 break;
         }
         return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: ''});
+    }
+
+    // This log to server is temporary and needed to determine if there is a case we need the transaction param
+    // when we call getIOUReportActionDisplayMessage from ReportActionItemMessage
+    if (shouldLog) {
+        Log.alert('Transaction Param Used when getIOUReportActionDisplayMessage was called from ReportActionItemMessage', reportAction);
     }
 
     const transactionDetails = getTransactionDetails(!isEmptyObject(transaction) ? transaction : null);
