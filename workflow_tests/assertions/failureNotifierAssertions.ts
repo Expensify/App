@@ -16,5 +16,4 @@ function assertNotifyFailureJobExecuted(workflowResult: Step[], didExecute = tru
     }
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {assertNotifyFailureJobExecuted};
+export default {assertNotifyFailureJobExecuted};
