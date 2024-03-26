@@ -436,11 +436,11 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
 /**
  * Verify the user's identity via Onfido
  */
-function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID: string) {
+function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID?: string) {
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
-        policyID,
+        policyID: policyID ?? '',
         canUseNewVbbaFlow: true,
     };
 

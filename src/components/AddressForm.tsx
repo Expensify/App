@@ -29,7 +29,7 @@ type AddressFormProps = {
     city?: string;
 
     /** Address country field */
-    country?: Country | '' | 'country';
+    country?: Country | '';
 
     /** Address state field */
     state?: string;
@@ -47,7 +47,7 @@ type AddressFormProps = {
     onAddressChanged?: (value: unknown, key: unknown) => void;
 
     /** Callback which is executed when the user submits his address changes */
-    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
+    onSubmit: (values: FormOnyxValues<'homeAddressForm'>) => void;
 
     /** Whether or not should the form data should be saved as draft */
     shouldSaveDraft?: boolean;
@@ -159,7 +159,7 @@ function AddressForm({
                         city: INPUT_IDS.CITY,
                         state: INPUT_IDS.STATE,
                         zipCode: INPUT_IDS.ZIP_POST_CODE,
-                        country: INPUT_IDS.COUNTRY,
+                        country: INPUT_IDS.COUNTRY as Country,
                     }}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     shouldSaveDraft={shouldSaveDraft}

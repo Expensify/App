@@ -6,7 +6,7 @@ type Address = {
     city?: string;
     state?: string;
     zip?: string;
-    country?: Country | '' | 'country';
+    country?: Country | '';
     zipPostCode?: string;
     addressLine1?: string;
     addressLine2?: string;
