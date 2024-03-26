@@ -221,6 +221,8 @@ function ReportActionItemMessageEdit(
             }, 1000),
         [reportID, action],
     );
+    
+    useEffect(() => () => debouncedSaveDraft.cancel())
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
@@ -280,7 +282,6 @@ function ReportActionItemMessageEdit(
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
-        debouncedSaveDraft.cancel();
         Report.deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
