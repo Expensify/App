@@ -2110,7 +2110,7 @@ function requestMoney(
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation(
-        isConvertingFromTrackExpenseToRequest ? {} : currentChatReport,
+        isConvertingFromTrackExpenseToRequest || isCategorizing ? {} : currentChatReport,
         participant,
         comment,
         amount,
@@ -2152,7 +2152,7 @@ function requestMoney(
                 policyID: chatReport.policyID,
                 transactionID: transaction.transactionID,
                 actionableWhisperReportActionID,
-                moneyRequestReportID: chatReport.reportID,
+                moneyRequestReportID: iouReport.reportID,
                 moneyRequestCreatedReportActionID: createdChatReportActionID,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
