@@ -580,6 +580,17 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
     },
+    quickAction: {
+        scanReceipt: 'Escanear Recibo',
+        recordDistance: 'Grabar Distancia',
+        requestMoney: 'Solicitar Dinero',
+        splitBill: 'Dividir Cuenta',
+        splitReceipt: 'Dividir Recibo',
+        splitDistance: 'Dividir Distancia',
+        sendMoney: 'Enviar Dinero',
+        assignTask: 'Assignar Tarea',
+        shortcut: 'Acceso Directo',
+    },
     iou: {
         amount: 'Importe',
         taxAmount: 'Importe del impuesto',
