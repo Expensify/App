@@ -1,10 +1,11 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Str from 'expensify-common/lib/str';
+import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportNextStep} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -24,6 +25,49 @@ Onyx.connect({
         currentUserAccountID = value?.accountID ?? -1;
     },
 });
+
+const allPolicies: OnyxCollection<Policy> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (val, key) => {
+        if (!key) {
+            return;
+        }
+        if (val === null || val === undefined) {
+            // If we are deleting a policy, we have to check every report linked to that policy
+            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
+            // More info: https://github.com/Expensify/App/issues/14260
+            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
+            const policyReports = ReportUtils.getAllPolicyReports(policyID);
+            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
+            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+            policyReports.forEach((policyReport) => {
+                if (!policyReport) {
+                    return;
+                }
+                const {reportID} = policyReport;
+                cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
+            });
+            Onyx.multiSet(cleanUpSetQueries);
+            delete allPolicies[key];
+            return;
+        }
+
+        allPolicies[key] = val;
+    },
+});
+
+/**
+ * Get the policy from a given policy ID
+ */
+function getPolicy(policyID: string | undefined): Policy | EmptyObject {
+    if (!allPolicies || !policyID) {
+        return {};
+    }
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+}
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
@@ -72,7 +116,7 @@ function buildNextStep(
     }
 
     const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
     const {submitsTo, harvesting, isPreventSelfApprovalEnabled, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;

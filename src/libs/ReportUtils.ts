@@ -568,7 +568,7 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
 }
 
 /**
- * @deprecated Use withOnyx or Onyx.connect() instead
+ * Get the policy from a given policy ID
  */
 function getPolicy(policyID: string | undefined): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
@@ -5661,7 +5661,6 @@ export {
     getReportOfflinePendingActionAndErrors,
     isDM,
     isSelfDM,
-    getPolicy,
     getWorkspaceChats,
     shouldDisableRename,
     hasSingleParticipant,

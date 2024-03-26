@@ -276,6 +276,16 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 }
 
 /**
+ * Get the policy from a given policy ID
+ */
+function getPolicy(policyID: string | undefined): Policy | EmptyObject {
+    if (!allPolicies || !policyID) {
+        return {};
+    }
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+}
+
+/**
  * Check if the user has any active free policies (aka workspaces)
  */
 function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<Policy>> | PoliciesRecord, includeOnlyFreePolicies = false): boolean {
@@ -472,7 +482,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
 }
 
 function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -520,7 +530,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
 }
 
 function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -561,7 +571,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
 
 function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
     const value = JSON.stringify({autoReportingOffset: autoReportingOffset.toString()});
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -601,7 +611,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
 }
 
 function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
 
     const value = {
         approver,
@@ -654,7 +664,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
 }
 
 function setWorkspacePayer(policyID: string, reimburserEmail: string, reimburserAccountID: number) {
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -703,7 +713,7 @@ function clearPolicyErrorField(policyID: string, fieldName: string) {
 }
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserAccountID: number, reimburserEmail: string) {
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -815,7 +825,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     }
 
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
     const optimisticClosedReportActions = workspaceChats.map(() => ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
 
@@ -3944,7 +3954,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
 }
 
 function enablePolicyWorkflows(policyID: string, enabled: boolean) {
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
     const onyxData: OnyxData = {
         optimisticData: [
             {
