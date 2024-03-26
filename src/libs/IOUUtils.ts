@@ -14,7 +14,7 @@ function navigateToStartMoneyRequestStep(
     reportID: string,
     iouAction?: ValueOf<typeof CONST.IOU.ACTION>,
 ): void {
-    if (iouAction === CONST.IOU.ACTION.MOVE) {
+    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.MOVE) {
         Navigation.goBack();
         return;
     }

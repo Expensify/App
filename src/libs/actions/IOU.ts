@@ -2195,49 +2195,6 @@ function requestMoney(
     Report.notifyNewAction(activeReportID, payeeAccountID);
 }
 
-function categorizeTrackedTransaction(chatReportID, action) {
-    const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName('');
-    const {
-        announceChatReportID,
-        announceChatData,
-        announceReportActionData,
-        announceCreatedReportActionID,
-        adminsChatReportID,
-        adminsChatData,
-        adminsReportActionData,
-        adminsCreatedReportActionID,
-        expenseChatReportID,
-        expenseChatData,
-        expenseReportActionData,
-        expenseCreatedReportActionID,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
-
-    const moneyRequestReport = ReportUtils.buildOptimisticExpenseReport(chatReportID, policyID, sessionAccountID, 0, 'USD');
-    const moneyRequestCreatedReportActionID = ReportUtils.buildOptimisticCreatedReportAction(sessionEmail ?? '');
-
-    const params = {
-        policyID,
-        transactionID: action.originalMessage.transactionID,
-
-        // reportActionID of the actionable whisper
-        actionableWhisperReportActionID: action.reportActionID,
-
-        // Parameters for the money request
-        moneyRequestReportID: moneyRequestReport.reportID,
-        moneyRequestCreatedReportActionID,
-
-        // Parameters for the workspace
-        announceChatReportID,
-        announceCreatedReportActionID,
-        adminsChatReportID,
-        adminsCreatedReportActionID,
-        policyExpenseChatReportID: expenseChatReportID,
-        policyExpenseCreatedReportActionID: expenseCreatedReportActionID,
-    };
-    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, params);
-}
-
 /**
  * Track an expense
  */
