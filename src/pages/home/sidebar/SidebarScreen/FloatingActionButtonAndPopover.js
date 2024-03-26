@@ -335,7 +335,7 @@ function FloatingActionButtonAndPopover(props) {
                               },
                           ]
                         : []),
-                    ...(props.quickAction
+                    ...(props.quickAction && props.quickAction.action
                         ? [
                               {
                                   icon: getQuickActionIcon(props.quickAction.action),
