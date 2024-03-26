@@ -193,7 +193,9 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
             return;
         }
 
-        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report);
+        // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
+        // setting it Unread so we add additional condition here to avoid read workspace indicator from being bold.
+        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     });
 
     return workspacesUnreadStatuses;
