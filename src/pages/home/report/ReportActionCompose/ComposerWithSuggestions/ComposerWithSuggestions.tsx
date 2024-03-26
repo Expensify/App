@@ -653,6 +653,8 @@ function ComposerWithSuggestions(
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
+            // @ts-expect-error need to reassign this ref
+            ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
             setUpComposeFocusManager();
         });
         KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
