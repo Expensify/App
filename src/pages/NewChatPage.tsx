@@ -26,11 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-
-type SelectedParticipant = {
-    accountID: number;
-    login: string;
-};
+import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 type NewChatPageWithOnyxProps = {
     /** All reports shared with the user */

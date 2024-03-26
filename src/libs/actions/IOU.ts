@@ -2286,9 +2286,8 @@ function createSplitsAndOnyxData(
         existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
     }
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
-
+    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
     if (!existingSplitChatReport && participants.length > 1) {
-        const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
         newChat = ReportUtils.buildOptimisticChatReport(
             allParticipantsAccountIDs,
             '',
@@ -2303,7 +2302,7 @@ function createSplitsAndOnyxData(
         );
     }
     if (isEmptyObject(newChat)) {
-        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+        newChat = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
     }
     const splitChatReport = existingSplitChatReport ?? newChat;
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;

@@ -44,7 +44,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         if (!newGroupDraft?.participants) {
             return [];
         }
-        const options: Participant[] = newGroupDraft?.participants.map((participant) =>
+        const options: Participant[] = newGroupDraft.participants.map((participant) =>
             OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, allPersonalDetails),
         );
         return options;
