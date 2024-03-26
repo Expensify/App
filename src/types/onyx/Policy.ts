@@ -188,6 +188,7 @@ type ACHAccount = {
     accountNumber: string;
     routingNumber: string;
     addressName: string;
+    bankName: string;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -425,7 +426,17 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
 
+        /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
+
+        /** Indicates if the Policy is in loading state */
+        isLoading?: boolean;
+
+        /** Indicates if the Policy ownership change is successful */
+        isChangeOwnerSuccessful?: boolean;
+
+        /** Indicates if the Policy ownership change is failed */
+        isChangeOwnerFailed?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom'
 >;
