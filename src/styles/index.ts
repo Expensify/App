@@ -44,6 +44,11 @@ import variables from './variables';
 type ColorScheme = (typeof CONST.COLOR_SCHEME)[keyof typeof CONST.COLOR_SCHEME];
 type StatusBarStyle = (typeof CONST.STATUS_BAR_STYLE)[keyof typeof CONST.STATUS_BAR_STYLE];
 
+type AnchorDimensions = {
+    width: number;
+    height: number;
+};
+
 type AnchorPosition = {
     horizontal: number;
     vertical: number;
@@ -4309,7 +4314,6 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 16,
             paddingVertical: 16,
             marginHorizontal: 20,
-            marginBottom: 12,
             backgroundColor: theme.highlightBG,
             borderRadius: 8,
         },
@@ -4698,4 +4702,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition};
+export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions};
