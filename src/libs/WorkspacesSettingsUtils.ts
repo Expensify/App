@@ -291,7 +291,7 @@ function redirectOnChangeOwnerErrorUpdate(policy: Policy | null, policyID: strin
         return;
     }
 
-    if (!policy.errorFields?.changeOwner && policy.errorFields) {
+    if (!policy.errorFields && policy.isChangeOwnerFailed) {
         // there are some errors but not related to change owner flow - show an error page
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.getRoute(policyID, accountID));
         return;

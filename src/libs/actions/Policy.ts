@@ -1052,6 +1052,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
                 errorFields: null,
                 isLoading: true,
                 isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: false,
             },
         },
     ];
@@ -1063,6 +1064,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
             value: {
                 isLoading: false,
                 isChangeOwnerSuccessful: true,
+                isChangeOwnerFailed: false,
             },
         },
     ];
@@ -1074,6 +1076,7 @@ function requestWorkspaceOwnerChange(policyID: string) {
             value: {
                 isLoading: false,
                 isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: true,
             },
         },
     ];
@@ -1092,6 +1095,7 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
         errorFields: null,
         isLoading: false,
         isChangeOwnerSuccessful: false,
+        isChangeOwnerFailed: false,
     });
 }
 
