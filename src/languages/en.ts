@@ -589,7 +589,7 @@ export default {
         recordDistance: 'Record Distance',
         requestMoney: 'Request Money',
         splitBill: 'Split Bill',
-        splitReceipt: 'Split Receipt',
+        splitScan: 'Split Receipt',
         splitDistance: 'Split Distance',
         sendMoney: 'Send Money',
         assignTask: 'Assign Task',
