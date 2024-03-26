@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -21,9 +21,13 @@ import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {QuickActionName} from '@src/types/onyx/QuickAction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction'>;
 
@@ -33,6 +37,15 @@ type FloatingActionButtonAndPopoverOnyxProps = {
 
     /** Whether app is in loading state */
     isLoading: OnyxEntry<boolean>;
+
+    /** Information on the last taken action to display as Quick Action */
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+
+    /** The current session */
+    session: OnyxEntry<OnyxTypes.Session>;
+
+    /** Personal details of all the users */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type FloatingActionButtonAndPopoverProps = FloatingActionButtonAndPopoverOnyxProps & {
@@ -47,20 +60,63 @@ type FloatingActionButtonAndPopoverRef = {
     hideCreateMenu: () => void;
 };
 
-const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>) =>
-    policy && {
+const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
+    (policy && {
         type: policy.type,
         role: policy.role,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
-    };
+    }) as PolicySelector;
+
+const getQuickActionIcon = (action: QuickActionName | undefined) => {
+    switch (action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+            return Expensicons.MoneyCircle;
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+            return Expensicons.Receipt;
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            return Expensicons.Car;
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return Expensicons.Transfer;
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return Expensicons.Send;
+        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+            return Expensicons.Task;
+        default:
+            return Expensicons.MoneyCircle;
+    }
+};
+
+const getQuickActionTitle = (action: QuickActionName | undefined) => {
+    switch (action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+            return 'quickAction.requestMoney';
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+            return 'quickAction.scanReceipt';
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            return 'quickAction.recordDistance';
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+            return 'quickAction.splitBill';
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+            return 'quickAction.splitReceipt';
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return 'quickAction.splitScan';
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return 'quickAction.sendMoney';
+        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+            return 'quickAction.assignTask';
+        default:
+    }
+};
 
 /**
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover(
-    {onHideCreateMenu, onShowCreateMenu, isLoading, allPolicies}: FloatingActionButtonAndPopoverProps,
+    {onHideCreateMenu, onShowCreateMenu, isLoading, allPolicies, quickAction, session, personalDetails}: FloatingActionButtonAndPopoverProps,
     ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
     const styles = useThemeStyles();
@@ -71,6 +127,47 @@ function FloatingActionButtonAndPopover(
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
+
+    const quickActionReport: OnyxEntry<OnyxTypes.Report> | EmptyObject = useMemo(() => (quickAction ? ReportUtils.getReport(quickAction.chatReportID) : {}), [quickAction]);
+
+    const quickActionAvatars = useMemo(() => {
+        if (quickActionReport) {
+            const avatars = ReportUtils.getIcons(quickActionReport, personalDetails);
+            return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
+        }
+        return [];
+    }, [personalDetails, session?.accountID, quickActionReport]);
+
+    const navigateToQuickAction = () => {
+        switch (quickAction?.action) {
+            case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
+                return;
+            case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
+                return;
+            case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
+                return;
+            case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
+                return;
+            case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
+                return;
+            case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
+                return;
+            case CONST.QUICK_ACTIONS.SEND_MONEY:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, quickAction?.chatReportID ?? '');
+                return;
+            case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+                Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID, quickAction.targetAccountID ?? 0);
+                return;
+            default:
+                return '';
+        }
+    };
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -219,6 +316,22 @@ function FloatingActionButtonAndPopover(
                               },
                           ]
                         : []),
+                    ...(quickAction
+                        ? [
+                              {
+                                  icon: getQuickActionIcon(quickAction?.action),
+                                  text: translate(getQuickActionTitle(quickAction?.action) as TranslationPaths),
+                                  label: translate('quickAction.shortcut'),
+                                  isLabelHoverable: false,
+                                  floatRightAvatars: quickActionAvatars,
+                                  floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
+                                  description: !isEmptyObject(quickActionReport) ? ReportUtils.getReportName(quickActionReport) : '',
+                                  numberOfLinesDescription: 1,
+                                  onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
+                                  shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
+                              },
+                          ]
+                        : []),
                 ]}
                 withoutOverlay
                 anchorRef={fabRef}
@@ -240,10 +353,19 @@ export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<Floa
     allPolicies: {
         key: ONYXKEYS.COLLECTION.POLICY,
         // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but for collection keys the selector is executed for each collection item. This is a bug in withOnyx typings that we don't have a solution yet, when useOnyx hook is introduced it will be fixed.
-        selector: policySelector as unknown as (policy: OnyxEntry<OnyxTypes.Policy>) => OnyxCollection<PolicySelector>,
+        selector: policySelector,
     },
     isLoading: {
         key: ONYXKEYS.IS_LOADING_APP,
+    },
+    quickAction: {
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(forwardRef(FloatingActionButtonAndPopover));
 

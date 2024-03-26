@@ -241,7 +241,7 @@ function createTaskAndNavigate(
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
         value: {
             action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
-            reportID: parentReportID,
+            chatReportID: parentReportID,
             isFirstQuickAction: isEmptyObject(quickAction),
             targetAccountID: assigneeAccountID,
         },
@@ -649,7 +649,7 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  */
-function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareDestination: string, isCurrentUser = false): OnyxEntry<OnyxTypes.Report> {
+function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareDestination?: string, isCurrentUser = false): OnyxEntry<OnyxTypes.Report> {
     let chatReport: OnyxEntry<OnyxTypes.Report> = null;
 
     if (!isCurrentUser) {
@@ -706,10 +706,14 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID?: string) {
+function clearOutTaskInfoAndNavigate(reportID?: string, accountID = 0) {
     clearOutTaskInfo();
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
+    }
+    if (accountID > 0) {
+        const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
+        setAssigneeValue(accountLogin, accountID, reportID);
     }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
