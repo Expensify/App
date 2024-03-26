@@ -196,3 +196,4 @@ export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTax
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
+export type {default as LeavePolicyParams} from './LeavePolicyParams';

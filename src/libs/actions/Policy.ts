@@ -24,6 +24,7 @@ import type {
     EnablePolicyTagsParams,
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
+    LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
     OpenPolicyCategoriesPageParams,
     OpenPolicyDistanceRatesPageParams,
@@ -194,11 +195,13 @@ Onyx.connect({
 
 let sessionEmail = '';
 let sessionAccountID = 0;
+let sessionAuthToken = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionEmail = val?.email ?? '';
         sessionAccountID = val?.accountID ?? -1;
+        sessionAuthToken = val?.authToken ?? '';
     },
 });
 
@@ -961,6 +964,17 @@ function removeMembers(accountIDs: number[], policyID: string) {
                 pendingAction: policy.pendingAction,
             },
         });
+
+        const params: LeavePolicyParams = {
+            policyID,
+            email: sessionEmail,
+            authToken: sessionAuthToken,
+        };
+
+        // TODO: Extract into a distinct function
+        API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
+
+        return;
     }
 
     const params: DeleteMembersFromWorkspaceParams = {
@@ -968,6 +982,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         policyID,
     };
 
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
