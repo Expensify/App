@@ -16,6 +16,8 @@ type BaseClientSideLoggingToolProps = {
     onShareLogs?: () => void;
     /** Action to run when toggling the switch */
     onToggleSwitch: (logs: Log[]) => void;
+    /** Action to run when enabling logging */
+    onEnableLogging?: () => void;
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
 export type {BaseClientSideLoggingToolMenuOnyxProps, BaseClientSideLoggingToolProps};

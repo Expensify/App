@@ -35,6 +35,7 @@ function ClientSideLoggingToolMenu() {
     return (
         <BaseClientSideLoggingToolMenu
             file={file}
+            onEnableLogging={() => setFile(undefined)}
             onToggleSwitch={onToggle}
             onShareLogs={shareLogs}
         />
