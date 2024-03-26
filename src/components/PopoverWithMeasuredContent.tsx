@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 import CONST from '@src/CONST';
-import type {AnchorPosition} from '@src/styles';
+import type {AnchorDimensions, AnchorPosition} from '@src/styles';
 import Popover from './Popover';
 import type {PopoverProps} from './Popover/types';
 import type {WindowDimensionsProps} from './withWindowDimensions/types';
@@ -14,6 +14,15 @@ import type {WindowDimensionsProps} from './withWindowDimensions/types';
 type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition' | keyof WindowDimensionsProps> & {
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: AnchorPosition;
+
+    /** The dimension of anchor component */
+    anchorDimensions?: AnchorDimensions;
+
+    /** Whether we should change the vertical position if the popover's position is overflow */
+    shoudSwitchPositionIfOverflow?: boolean;
+
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 };
 
 /**
@@ -42,6 +51,12 @@ function PopoverWithMeasuredContent({
     statusBarTranslucent = true,
     avoidKeyboard = false,
     hideModalContentWhileAnimating = false,
+    anchorDimensions = {
+        height: 0,
+        width: 0,
+    },
+    shoudSwitchPositionIfOverflow = false,
+    shouldHandleNavigationBack = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -110,13 +125,21 @@ function PopoverWithMeasuredContent({
     }, [anchorPosition, anchorAlignment, popoverWidth, popoverHeight]);
 
     const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
-    const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
+    const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(
+        adjustedAnchorPosition.top,
+        popoverHeight,
+        windowHeight,
+        anchorDimensions.height,
+        shoudSwitchPositionIfOverflow,
+    );
     const shiftedAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
         bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift,
     };
+
     return isContentMeasured ? (
         <Popover
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
             isVisible={isVisible}

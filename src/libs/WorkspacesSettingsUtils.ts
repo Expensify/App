@@ -92,8 +92,9 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyM
 
 function hasWorkspaceSettingsRBR(policy: Policy) {
     const policyMemberError = allPolicyMembers ? hasPolicyMemberError(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]) : false;
+    const taxRateError = hasTaxRateError(policy);
 
-    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError;
+    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
 }
 
 function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
@@ -192,7 +193,9 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
             return;
         }
 
-        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report);
+        // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
+        // setting it Unread so we add additional condition here to avoid read workspace indicator from being bold.
+        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     });
 
     return workspacesUnreadStatuses;
