@@ -75,7 +75,7 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, m
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
-                    <InputWrapper<unknown>
+                    <InputWrapper
                         InputComponent={DatePicker}
                         inputID={fieldKey}
                         name={fieldKey}

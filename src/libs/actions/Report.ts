@@ -1684,7 +1684,7 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportFields: {
+                fieldList: {
                     [reportField.fieldID]: null,
                 },
                 pendingFields: {
@@ -1699,7 +1699,7 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportFields: {
+                fieldList: {
                     [reportField.fieldID]: reportField,
                 },
                 pendingFields: {

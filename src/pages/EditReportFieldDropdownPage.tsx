@@ -3,14 +3,14 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
-import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentlyUsedReportFields} from '@src/types/onyx';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 
 type EditReportFieldDropdownPageComponentProps = {
     /** Value of the policy report field */
@@ -59,7 +59,6 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
     const {windowWidth} = useWindowDimensions();
     const [searchValue, setSearchValue] = useState('');
     const styles = useThemeStyles();
-    const {getSafeAreaMargins} = useStyleUtils();
     const {translate} = useLocalize();
     const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey] ?? [], [recentlyUsedReportFields, fieldKey]);
 
@@ -133,35 +132,24 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
             shouldEnableMaxHeight
             testID={EditReportFieldDropdownPage.displayName}
         >
-            {({insets}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={fieldName}
-                        threeDotsMenuItems={menuItems}
-                        shouldShowThreeDotsButton={!!menuItems?.length}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    />
-                    <OptionsSelector
-                        contentContainerStyles={[{paddingBottom: getSafeAreaMargins(insets).marginBottom}]}
-                        optionHoveredStyle={styles.hoveredComponentBG}
-                        sectionHeaderStyle={styles.mt5}
-                        selectedOptions={[{name: fieldValue}]}
-                        textInputLabel={translate('common.search')}
-                        boldStyle
-                        sections={sections}
-                        value={searchValue}
-                        onSelectRow={(option: Record<string, string>) =>
-                            onSubmit({
-                                [fieldKey]: fieldValue === option.text ? '' : option.text,
-                            })
-                        }
-                        onChangeText={setSearchValue}
-                        highlightSelectedOptions
-                        isRowMultilineSupported
-                        headerMessage={headerMessage}
-                    />
-                </>
-            )}
+            <HeaderWithBackButton
+                title={fieldName}
+                threeDotsMenuItems={menuItems}
+                shouldShowThreeDotsButton={!!menuItems?.length}
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+            />
+            <SelectionList
+                textInputValue={searchValue}
+                textInputLabel={translate('common.search')}
+                initiallyFocusedOptionKey={fieldValue}
+                sections={sections}
+                onSelectRow={(option) =>
+                    onSubmit({ [fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text })
+                }
+                onChangeText={setSearchValue}
+                headerMessage={headerMessage}
+                ListItem={RadioListItem}
+            />
         </ScreenWrapper>
     );
 }
