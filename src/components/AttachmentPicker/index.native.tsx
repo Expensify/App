@@ -28,8 +28,11 @@ type AttachmentPickerProps = BaseAttachmentPickerProps & {
 };
 
 type Item = {
+    /** The icon associated with the item. */
     icon: IconAsset;
+    /** The key in the translations file to use for the title */
     textTranslationKey: TranslationPaths;
+    /** Function to call when the user clicks the item */
     pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
 };
 
