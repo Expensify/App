@@ -16,6 +16,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentModal from './AttachmentModal';
+import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Avatar from './Avatar';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
@@ -34,7 +35,7 @@ type ErrorData = {
 };
 
 type OpenPickerParams = {
-    onPicked: (image: File) => void;
+    onPicked: (image: FileObject) => void;
 };
 type OpenPicker = (args: OpenPickerParams) => void;
 
@@ -178,7 +179,7 @@ function AvatarWithImagePicker({
     /**
      * Check if the attachment extension is allowed.
      */
-    const isValidExtension = (image: File): boolean => {
+    const isValidExtension = (image: FileObject): boolean => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(image?.name ?? '');
         return CONST.AVATAR_ALLOWED_EXTENSIONS.some((extension) => extension === fileExtension.toLowerCase());
     };
@@ -186,12 +187,12 @@ function AvatarWithImagePicker({
     /**
      * Check if the attachment size is less than allowed size.
      */
-    const isValidSize = (image: File): boolean => (image?.size ?? 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
+    const isValidSize = (image: FileObject): boolean => (image?.size ?? 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
 
     /**
      * Check if the attachment resolution matches constraints.
      */
-    const isValidResolution = (image: File): Promise<boolean> =>
+    const isValidResolution = (image: FileObject): Promise<boolean> =>
         getImageResolution(image).then(
             ({height, width}) => height >= CONST.AVATAR_MIN_HEIGHT_PX && width >= CONST.AVATAR_MIN_WIDTH_PX && height <= CONST.AVATAR_MAX_HEIGHT_PX && width <= CONST.AVATAR_MAX_WIDTH_PX,
         );
@@ -199,7 +200,7 @@ function AvatarWithImagePicker({
     /**
      * Validates if an image has a valid resolution and opens an avatar crop modal
      */
-    const showAvatarCropModal = (image: File) => {
+    const showAvatarCropModal = (image: FileObject) => {
         if (!isValidExtension(image)) {
             setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
             return;
@@ -225,8 +226,8 @@ function AvatarWithImagePicker({
             setIsMenuVisible(false);
             setImageData({
                 uri: image.uri ?? '',
-                name: image.name,
-                type: image.type,
+                name: image.name ?? '',
+                type: image.type ?? '',
             });
         });
     };
@@ -349,11 +350,7 @@ function AvatarWithImagePicker({
                     maybeIcon={isUsingDefaultAvatar}
                 >
                     {({show}) => (
-                        <AttachmentPicker
-                            // @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript.
-                            type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
-                        >
-                            {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
+                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => {
                                 const menuItems = createMenuItems(openPicker);
 

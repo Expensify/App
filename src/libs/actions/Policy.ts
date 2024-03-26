@@ -9,6 +9,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
+    AddBillingCardAndRequestWorkspaceOwnerChangeParams,
     AddMembersToWorkspaceParams,
     CreatePolicyDistanceRateParams,
     CreateWorkspaceFromIOUPaymentParams,
@@ -35,6 +36,7 @@ import type {
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
+    RequestWorkspaceOwnerChangeParams,
     SetPolicyDistanceRatesDefaultCategoryParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
@@ -75,6 +77,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyMember,
+    PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTagList,
     PolicyTags,
@@ -83,6 +86,7 @@ import type {
     ReimbursementAccount,
     Report,
     ReportAction,
+    TaxRatesWithDefault,
     Transaction,
 } from '@src/types/onyx';
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -246,6 +250,14 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
     waitForCollectionCallback: true,
     callback: (val) => (allPolicyCategories = val),
+});
+
+let policyOwnershipChecks: Record<string, PolicyOwnershipChangeChecks>;
+Onyx.connect({
+    key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
+    callback: (value) => {
+        policyOwnershipChecks = value ?? {};
+    },
 });
 
 /**
@@ -1003,6 +1015,149 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
+function requestWorkspaceOwnerChange(policyID: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
+    const ownershipChecks = {...policyOwnershipChecks?.[policyID]} ?? {};
+
+    const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
+
+    if (changeOwnerErrors && changeOwnerErrors.length > 0) {
+        const currentError = changeOwnerErrors[0];
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
+            ownershipChecks.shouldClearOutstandingBalance = true;
+        }
+
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT) {
+            ownershipChecks.shouldTransferAmountOwed = true;
+        }
+
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION) {
+            ownershipChecks.shouldTransferSubscription = true;
+        }
+
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION) {
+            ownershipChecks.shouldTransferSingleSubscription = true;
+        }
+
+        Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, {
+            [policyID]: ownershipChecks,
+        });
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: null,
+                isLoading: true,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: false,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerSuccessful: true,
+                isChangeOwnerFailed: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: true,
+            },
+        },
+    ];
+
+    const params: RequestWorkspaceOwnerChangeParams = {
+        policyID,
+        ...ownershipChecks,
+    };
+
+    API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
+}
+
+function clearWorkspaceOwnerChangeFlow(policyID: string) {
+    Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, null);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: null,
+        isLoading: false,
+        isChangeOwnerSuccessful: false,
+        isChangeOwnerFailed: false,
+    });
+}
+
+function addBillingCardAndRequestPolicyOwnerChange(
+    policyID: string,
+    cardData: {
+        cardNumber: string;
+        cardYear: string;
+        cardMonth: string;
+        cardCVV: string;
+        addressName: string;
+        addressZip: string;
+        currency: string;
+    },
+) {
+    const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: null,
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
+        policyID,
+        cardNumber,
+        cardYear,
+        cardMonth,
+        cardCVV,
+        addressName,
+        addressZip,
+        currency,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
+}
+
 /**
  * Optimistically create a chat for each member of the workspace, creates both optimistic and success data for onyx.
  *
@@ -1350,6 +1505,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 ...policy,
 
                 pendingFields: {
+                    ...policy.pendingFields,
                     generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
 
@@ -2702,6 +2858,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                             pendingFields: {
                                 enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         };
 
                         return acc;
@@ -2722,6 +2879,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                             pendingFields: {
                                 enabled: null,
                             },
+                            pendingAction: null,
                         };
 
                         return acc;
@@ -2742,6 +2900,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                             pendingFields: {
                                 enabled: null,
                             },
+                            pendingAction: null,
                         };
 
                         return acc;
@@ -2952,6 +3111,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     pendingFields: {
                                         enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     },
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 };
 
                                 return acc;
@@ -2976,6 +3136,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     pendingFields: {
                                         enabled: null,
                                     },
+                                    pendingAction: null,
                                 };
 
                                 return acc;
@@ -3000,6 +3161,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     pendingFields: {
                                         enabled: null,
                                     },
+                                    pendingAction: null,
                                 };
 
                                 return acc;
@@ -3113,7 +3275,7 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
     const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
-    const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[policyTag.oldName] ?? {};
+    const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[policyTag.oldName] ?? {};
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3669,6 +3831,62 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 }
 
 function enablePolicyTaxes(policyID: string, enabled: boolean) {
+    const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
+    const taxRatesData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        ...defaultTaxRates,
+                        taxes: {
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (prevTaxesData, taxKey) => ({
+                                    ...prevTaxesData,
+                                    [taxKey]: {
+                                        ...defaultTaxRates.taxes[taxKey],
+                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    },
+                                }),
+                                {},
+                            ),
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (prevTaxesData, taxKey) => ({
+                                    ...prevTaxesData,
+                                    [taxKey]: {pendingAction: null},
+                                }),
+                                {},
+                            ),
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: undefined,
+                },
+            },
+        ],
+    };
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const shouldAddDefaultTaxRatesData = (!policy?.taxRates || isEmptyObject(policy.taxRates)) && enabled;
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3683,6 +3901,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.optimisticData ?? [] : []),
         ],
         successData: [
             {
@@ -3694,6 +3913,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []),
         ],
         failureData: [
             {
@@ -3708,11 +3928,14 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.failureData ?? [] : []),
         ],
     };
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
-
+    if (shouldAddDefaultTaxRatesData) {
+        parameters.taxFields = JSON.stringify(defaultTaxRates);
+    }
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled) {
@@ -4531,6 +4754,9 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
 export {
     removeMembers,
     updateWorkspaceMembersRole,
+    requestWorkspaceOwnerChange,
+    clearWorkspaceOwnerChangeFlow,
+    addBillingCardAndRequestPolicyOwnerChange,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
     hasActiveChatEnabledPolicies,
@@ -4623,3 +4849,5 @@ export {
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
 };
+
+export type {NewCustomUnit};
