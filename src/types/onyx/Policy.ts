@@ -9,8 +9,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     rate?: number;
     currency?: string;
     customUnitRateID?: string;
-    errors?: OnyxCommon.Errors;
     enabled?: boolean;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 type Attributes = {
@@ -416,6 +417,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
+
+        /** Indicates if the Policy is in loading state */
+        isLoading?: boolean;
+
+        /** Indicates if the Policy ownership change is successful */
+        isChangeOwnerSuccessful?: boolean;
+
+        /** Indicates if the Policy ownership change is failed */
+        isChangeOwnerFailed?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom'
 >;
