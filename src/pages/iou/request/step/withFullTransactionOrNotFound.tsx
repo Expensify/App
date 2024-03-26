@@ -1,5 +1,5 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,7 +17,9 @@ type WithFullTransactionOrNotFoundOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-type WithFullTransactionOrNotFoundProps = WithFullTransactionOrNotFoundOnyxProps & StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_DATE>;
+type Route = RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT>;
+
+type WithFullTransactionOrNotFoundProps = WithFullTransactionOrNotFoundOnyxProps & {route: Route};
 
 export default function <TProps extends WithFullTransactionOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
     // eslint-disable-next-line rulesdir/no-negated-variables
