@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas, usePersonalDetails} from '@components/OnyxProvider';
@@ -22,15 +22,13 @@ function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps)
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const isMounted = useRef(false);
     const personalDetails = usePersonalDetails();
     const betas = useBetas();
 
     const searchOptions = useMemo(() => {
         const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
-        if (!isMounted.current || !isOptionsDataReady) {
-            isMounted.current = true;
+        if (!isOptionsDataReady) {
             return {
                 recentReports: [],
                 personalDetails: [],
