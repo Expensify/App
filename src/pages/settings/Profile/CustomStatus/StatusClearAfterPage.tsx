@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -20,7 +21,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
+type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
+
+type StatusType = {
+    value: CustomStatusTypes;
+    text: string;
+    keyForList: string;
+    isSelected: boolean;
+};
 
 type StatusClearAfterPageOnyxProps = {
     customStatus: OnyxEntry<OnyxTypes.CustomStatusDraft>;
@@ -79,7 +87,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
 
     const draftClearAfter = customStatus?.clearAfter ?? '';
     const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(draftClearAfter || clearAfter));
-    const statusType = useMemo(
+    const statusType = useMemo<StatusType[]>(
         () =>
             Object.entries(CONST.CUSTOM_STATUS_TYPES).map(([key, value]) => ({
                 value,
@@ -105,7 +113,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
         if (dateError || timeError) {
             return;
         }
-        let calculatedDraftDate;
+        let calculatedDraftDate: string;
         if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
             calculatedDraftDate = draftClearAfter;
         } else {
@@ -117,7 +125,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
     };
 
     const updateMode = useCallback(
-        (mode: {value: CustomStatusTypes}) => {
+        (mode: StatusType) => {
             if (mode.value === draftPeriod) {
                 return;
             }
@@ -148,7 +156,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
 
     const timePeriodOptions = useCallback(
         () =>
-            Object.entries(statusType).map(([, item]) => (
+            Object.values(statusType).map((item) => (
                 <RadioListItem
                     item={item}
                     onSelectRow={() => updateMode(item)}

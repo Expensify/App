@@ -18,6 +18,10 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
 import type * as OnyxTypes from '@src/types/onyx';
 
+type Date = {
+    dateTime: string;
+};
+
 type SetDatePageOnyxProps = {
     customStatus: OnyxEntry<OnyxTypes.CustomStatusDraft>;
 };
@@ -29,8 +33,8 @@ function SetDatePage({customStatus}: SetDatePageProps) {
     const {translate} = useLocalize();
     const customClearAfter = customStatus?.clearAfter ?? '';
 
-    const onSubmit = (v: {dateTime: string}) => {
-        User.updateDraftCustomStatus({clearAfter: DateUtils.combineDateAndTime(customClearAfter, v.dateTime)});
+    const onSubmit = (value: Date) => {
+        User.updateDraftCustomStatus({clearAfter: DateUtils.combineDateAndTime(customClearAfter, value.dateTime)});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
@@ -68,6 +72,7 @@ function SetDatePage({customStatus}: SetDatePageProps) {
                     label={translate('statusPage.date')}
                     defaultValue={DateUtils.extractDate(customClearAfter)}
                     minDate={new Date()}
+                    shouldUseDefaultValue
                 />
             </FormProvider>
         </ScreenWrapper>
