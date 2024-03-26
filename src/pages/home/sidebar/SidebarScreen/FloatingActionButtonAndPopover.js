@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -16,6 +17,7 @@ import compose from '@libs/compose';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -35,6 +37,50 @@ const policySelector = (policy) =>
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
     };
+
+const getQuickActionIcon = (action) => {
+    switch (action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+            return Expensicons.MoneyCircle;
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+            return Expensicons.Receipt;
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            return Expensicons.Car;
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return Expensicons.Transfer;
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return Expensicons.Send;
+        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+            return Expensicons.Task;
+        default:
+            return Expensicons.MoneyCircle;
+    }
+};
+
+const getQuickActionTitle = (action) => {
+    switch (action) {
+        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+            return 'quickAction.requestMoney';
+        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+            return 'quickAction.scanReceipt';
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            return 'quickAction.recordDistance';
+        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+            return 'quickAction.splitBill';
+        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+            return 'quickAction.splitReceipt';
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return 'quickAction.splitScan';
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return 'quickAction.sendMoney';
+        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+            return 'quickAction.assignTask';
+        default:
+            return '';
+    }
+};
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -56,6 +102,22 @@ const propTypes = {
 
     /** Forwarded ref to FloatingActionButtonAndPopover */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Information on the last taken action to display as Quick Action */
+    quickAction: PropTypes.shape({
+        action: PropTypes.string,
+        chatReportID: PropTypes.string,
+        targetAccountID: PropTypes.number,
+        isFirstQuickAction: PropTypes.bool,
+    }),
+
+    /** Personal details of all the users */
+    personalDetails: personalDetailsPropType,
+
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+    }).isRequired,
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -63,6 +125,8 @@ const defaultProps = {
     allPolicies: {},
     isLoading: false,
     innerRef: null,
+    quickAction: null,
+    personalDetails: {},
 };
 
 /**
@@ -79,6 +143,47 @@ function FloatingActionButtonAndPopover(props) {
     const {canUseTrackExpense} = usePermissions();
 
     const prevIsFocused = usePrevious(props.isFocused);
+
+    const quickActionReport = useMemo(() => (props.quickAction ? ReportUtils.getReport(props.quickAction.chatReportID) : 0), [props.quickAction]);
+
+    const quickActionAvatars = useMemo(() => {
+        if (quickActionReport) {
+            const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
+            return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
+        }
+        return [];
+    }, [props.personalDetails, props.session.accountID, quickActionReport]);
+
+    const navigateToQuickAction = () => {
+        switch (props.quickAction.action) {
+            case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.MANUAL);
+                return;
+            case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.SCAN);
+                return;
+            case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.DISTANCE);
+                return;
+            case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.MANUAL);
+                return;
+            case CONST.QUICK_ACTIONS.SPLIT_SCAN:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.SCAN);
+                return;
+            case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.DISTANCE);
+                return;
+            case CONST.QUICK_ACTIONS.SEND_MONEY:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, props.quickAction.chatReportID);
+                return;
+            case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, _.get(props.quickAction, 'targetAccountID', 0));
+                return;
+            default:
+                return '';
+        }
+    };
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -230,6 +335,22 @@ function FloatingActionButtonAndPopover(props) {
                               },
                           ]
                         : []),
+                    ...(props.quickAction
+                        ? [
+                              {
+                                  icon: getQuickActionIcon(props.quickAction.action),
+                                  text: translate(getQuickActionTitle(props.quickAction.action)),
+                                  label: translate('quickAction.shortcut'),
+                                  isLabelHoverable: false,
+                                  floatRightAvatars: quickActionAvatars,
+                                  floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
+                                  description: ReportUtils.getReportName(quickActionReport),
+                                  numberOfLinesDescription: 1,
+                                  onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
+                                  shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
+                              },
+                          ]
+                        : []),
                 ]}
                 withoutOverlay
                 anchorRef={fabRef}
@@ -270,6 +391,15 @@ export default compose(
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_APP,
+        },
+        quickAction: {
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(FloatingActionButtonAndPopoverWithRef);
