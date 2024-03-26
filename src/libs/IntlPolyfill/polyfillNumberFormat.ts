@@ -17,7 +17,6 @@ function hasOldCurrencyData(): boolean {
 /**
  * Checks if the formatToParts function is available on the
  * Intl.NumberFormat object.
- * @returns boolean
  */
 function hasFormatToParts(): boolean {
     return typeof numberFormat.formatToParts === 'function';
