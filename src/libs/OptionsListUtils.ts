@@ -1688,7 +1688,7 @@ function getOptions(
         !isCurrentUser({login: searchValue} as PersonalDetails) &&
         selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
-            (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
+            (parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
         !optionsToExclude.find((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
         !excludeUnknownUsers

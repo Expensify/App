@@ -1681,6 +1681,8 @@ const CONST = {
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
         SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
+
+        PHONE_NUMBER: /(\+\d{1,2}\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}/,
     },
 
     PRONOUNS: {
