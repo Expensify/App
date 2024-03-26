@@ -1,10 +1,18 @@
-const _ = require('underscore');
-const lodashGet = require('lodash/get');
-const core = require('@actions/core');
-const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
-const {throttling} = require('@octokit/plugin-throttling');
-const {paginateRest} = require('@octokit/plugin-paginate-rest');
-const CONST = require('./CONST');
+/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+import * as core from '@actions/core';
+import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
+import type {Octokit as OctokitCore} from '@octokit/core';
+import type {graphql} from '@octokit/graphql/dist-types/types';
+import type {components as OctokitComponents} from '@octokit/openapi-types/types';
+import type {PaginateInterface} from '@octokit/plugin-paginate-rest';
+import {paginateRest} from '@octokit/plugin-paginate-rest';
+import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
+import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
+import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
+import {throttling} from '@octokit/plugin-throttling';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arrayDifference from '@src/utils/arrayDifference';
+import CONST from './CONST';
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
@@ -14,11 +22,59 @@ const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/
 /**
  * The standard rate in ms at which we'll poll the GitHub API to check for status changes.
  * It's 10 seconds :)
- * @type {number}
  */
 const POLL_RATE = 10000;
 
+type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
+
+type ListForRepoResult = RestEndpointMethodTypes['issues']['listForRepo']['response'];
+
+type OctokitIssueItem = OctokitComponents['schemas']['issue'];
+
+type ListForRepoMethod = RestEndpointMethods['issues']['listForRepo'];
+
+type StagingDeployCashPR = {
+    url: string;
+    number: number;
+    isVerified: boolean;
+};
+
+type StagingDeployCashBlocker = {
+    url: string;
+    number: number;
+    isResolved: boolean;
+};
+
+type StagingDeployCashBody = {
+    issueBody: string;
+    issueAssignees: Array<string | undefined>;
+};
+
+type OctokitArtifact = OctokitComponents['schemas']['artifact'];
+
+type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
+
+type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment']['response'];
+
+type StagingDeployCashData = {
+    title: string;
+    url: string;
+    number: number;
+    labels: OctokitIssueItem['labels'];
+    PRList: StagingDeployCashPR[];
+    deployBlockers: StagingDeployCashBlocker[];
+    internalQAPRList: StagingDeployCashBlocker[];
+    isTimingDashboardChecked: boolean;
+    isFirebaseChecked: boolean;
+    isGHStatusChecked: boolean;
+    tag?: string;
+};
+
+type InternalOctokit = OctokitCore & Api & {paginate: PaginateInterface};
+
 class GithubUtils {
+    static internalOctokit: InternalOctokit | undefined;
+
     /**
      * Initialize internal octokit
      *
@@ -33,7 +89,7 @@ class GithubUtils {
             getOctokitOptions(token, {
                 throttle: {
                     retryAfterBaseValue: 2000,
-                    onRateLimit: (retryAfter, options) => {
+                    onRateLimit: (retryAfter: number, options: OctokitOptions) => {
                         console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
 
                         // Retry five times when hitting a rate limit error, then give up
@@ -42,7 +98,7 @@ class GithubUtils {
                             return true;
                         }
                     },
-                    onAbuseLimit: (retryAfter, options) => {
+                    onAbuseLimit: (retryAfter: number, options: OctokitOptions) => {
                         // does not retry, only logs a warning
                         console.warn(`Abuse detected for request ${options.method} ${options.url}`);
                     },
@@ -56,28 +112,28 @@ class GithubUtils {
      *
      * @readonly
      * @static
-     * @memberof GithubUtils
      */
-    static get octokit() {
-        if (this.internalOctokit) {
-            return this.internalOctokit.rest;
+    static get octokit(): RestEndpointMethods {
+        if (!this.internalOctokit) {
+            this.initOctokit();
         }
-        this.initOctokit();
-        return this.internalOctokit.rest;
+
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        return (this.internalOctokit as InternalOctokit).rest;
     }
 
     /**
      * Get the graphql instance from internal octokit.
      * @readonly
      * @static
-     * @memberof GithubUtils
      */
-    static get graphql() {
-        if (this.internalOctokit) {
-            return this.internalOctokit.graphql;
+    static get graphql(): graphql {
+        if (!this.internalOctokit) {
+            this.initOctokit();
         }
-        this.initOctokit();
-        return this.internalOctokit.graphql;
+
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        return (this.internalOctokit as InternalOctokit).graphql;
     }
 
     /**
@@ -85,22 +141,20 @@ class GithubUtils {
      *
      * @readonly
      * @static
-     * @memberof GithubUtils
      */
-    static get paginate() {
-        if (this.internalOctokit) {
-            return this.internalOctokit.paginate;
+    static get paginate(): PaginateInterface {
+        if (!this.internalOctokit) {
+            this.initOctokit();
         }
-        this.initOctokit();
-        return this.internalOctokit.paginate;
+
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        return (this.internalOctokit as InternalOctokit).paginate;
     }
 
     /**
      * Finds one open `StagingDeployCash` issue via GitHub octokit library.
-     *
-     * @returns {Promise}
      */
-    static getStagingDeployCash() {
+    static getStagingDeployCash(): Promise<StagingDeployCashData> {
         return this.octokit.issues
             .listForRepo({
                 owner: CONST.GITHUB_OWNER,
@@ -108,17 +162,13 @@ class GithubUtils {
                 labels: CONST.LABELS.STAGING_DEPLOY,
                 state: 'open',
             })
-            .then(({data}) => {
+            .then(({data}: ListForRepoResult) => {
                 if (!data.length) {
-                    const error = new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue.`);
-                    error.code = 404;
-                    throw error;
+                    throw new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue.`);
                 }
 
                 if (data.length > 1) {
-                    const error = new Error(`Found more than one ${CONST.LABELS.STAGING_DEPLOY} issue.`);
-                    error.code = 500;
-                    throw error;
+                    throw new Error(`Found more than one ${CONST.LABELS.STAGING_DEPLOY} issue.`);
                 }
 
                 return this.getStagingDeployCashData(data[0]);
@@ -127,14 +177,12 @@ class GithubUtils {
 
     /**
      * Takes in a GitHub issue object and returns the data we want.
-     *
-     * @param {Object} issue
-     * @returns {Object}
      */
-    static getStagingDeployCashData(issue) {
+    static getStagingDeployCashData(issue: OctokitIssueItem): StagingDeployCashData {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const tag = issue.body.match(versionRegex)[0].replace(/`/g, '');
+            const tag = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
+
             return {
                 title: issue.title,
                 url: issue.url,
@@ -143,9 +191,9 @@ class GithubUtils {
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 internalQAPRList: this.getStagingDeployCashInternalQA(issue),
-                isTimingDashboardChecked: /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body),
-                isFirebaseChecked: /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body),
-                isGHStatusChecked: /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body),
+                isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
+                isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
+                isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
                 tag,
             };
         } catch (exception) {
@@ -157,145 +205,128 @@ class GithubUtils {
      * Parse the PRList and Internal QA section of the StagingDeployCash issue body.
      *
      * @private
-     *
-     * @param {Object} issue
-     * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
-    static getStagingDeployCashPRList(issue) {
-        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) || [];
-        if (PRListSection.length !== 2) {
+    static getStagingDeployCashPRList(issue: OctokitIssueItem): StagingDeployCashPR[] {
+        let PRListSection: RegExpMatchArray | string | null = issue.body?.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) ?? null;
+        if (PRListSection?.length !== 2) {
             // No PRs, return an empty array
             console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
             return [];
         }
+
         PRListSection = PRListSection[1];
-        const PRList = _.map([...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))], (match) => ({
+        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isVerified: match[1] === 'x',
         }));
-        return _.sortBy(PRList, 'number');
+
+        return PRList.sort((a, b) => a.number - b.number);
     }
 
     /**
      * Parse DeployBlocker section of the StagingDeployCash issue body.
      *
      * @private
-     *
-     * @param {Object} issue
-     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
-    static getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) || [];
-        if (deployBlockerSection.length !== 2) {
+    static getStagingDeployCashDeployBlockers(issue: OctokitIssueItem): StagingDeployCashBlocker[] {
+        let deployBlockerSection: RegExpMatchArray | string | null = issue.body?.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
+        if (deployBlockerSection?.length !== 2) {
             return [];
         }
+
         deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = _.map([...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))], (match) => ({
+        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
-        return _.sortBy(deployBlockers, 'number');
+
+        return deployBlockers.sort((a, b) => a.number - b.number);
     }
 
     /**
      * Parse InternalQA section of the StagingDeployCash issue body.
      *
      * @private
-     *
-     * @param {Object} issue
-     * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
-    static getStagingDeployCashInternalQA(issue) {
-        let internalQASection = issue.body.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) || [];
-        if (internalQASection.length !== 2) {
+    static getStagingDeployCashInternalQA(issue: OctokitIssueItem): StagingDeployCashBlocker[] {
+        let internalQASection: RegExpMatchArray | string | null = issue.body?.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) ?? null;
+        if (internalQASection?.length !== 2) {
             return [];
         }
         internalQASection = internalQASection[1];
-        const internalQAPRs = _.map([...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))], (match) => ({
+        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2].split('-')[0].trim(),
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
-        return _.sortBy(internalQAPRs, 'number');
+
+        return internalQAPRs.sort((a, b) => a.number - b.number);
     }
 
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
-     *
-     * @param {String} tag
-     * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
-     * @param {Array} [verifiedPRList] - The list of PR URLs which have passed QA.
-     * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
-     * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
-     * @param {Array} [resolvedInternalQAPRs] - The list of Internal QA PR URLs which have been resolved.
-     * @param {Boolean} [isTimingDashboardChecked]
-     * @param {Boolean} [isFirebaseChecked]
-     * @param {Boolean} [isGHStatusChecked]
-     * @returns {Promise}
      */
     static generateStagingDeployCashBodyAndAssignees(
-        tag,
-        PRList,
-        verifiedPRList = [],
-        deployBlockers = [],
-        resolvedDeployBlockers = [],
-        resolvedInternalQAPRs = [],
+        tag: string,
+        PRList: string[],
+        verifiedPRList: string[] = [],
+        deployBlockers: string[] = [],
+        resolvedDeployBlockers: string[] = [],
+        resolvedInternalQAPRs: string[] = [],
         isTimingDashboardChecked = false,
         isFirebaseChecked = false,
         isGHStatusChecked = false,
-    ) {
-        return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
+    ): Promise<void | StagingDeployCashBody> {
+        return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
-                const internalQAPRs = _.filter(data, (pr) => !_.isEmpty(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA})));
-                return Promise.all(_.map(internalQAPRs, (pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({url: pr.html_url, mergerLogin})))).then((results) => {
+                const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === CONST.LABELS.INTERNAL_QA))) : [];
+                return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({url: pr.html_url, mergerLogin})))).then((results) => {
                     // The format of this map is following:
                     // {
                     //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
                     //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
                     // }
-                    const internalQAPRMap = _.reduce(
-                        results,
-                        (acc, {url, mergerLogin}) => {
-                            acc[url] = mergerLogin;
-                            return acc;
-                        },
-                        {},
-                    );
+                    const internalQAPRMap = results.reduce<Record<string, string | undefined>>((acc, {url, mergerLogin}) => {
+                        acc[url] = mergerLogin;
+                        return acc;
+                    }, {});
                     console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
-                    const noQAPRs = _.pluck(
-                        _.filter(data, (PR) => /\[No\s?QA]/i.test(PR.title)),
-                        'html_url',
-                    );
+                    const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                     console.log('Found the following NO QA PRs:', noQAPRs);
-                    const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
+                    const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...noQAPRs])];
 
-                    const sortedPRList = _.chain(PRList).difference(_.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
-                    const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), GithubUtils.getIssueOrPullRequestNumberFromURL);
+                    const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
+                        (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
+                    );
+                    const sortedDeployBlockers = [...new Set(deployBlockers)].sort(
+                        (a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b),
+                    );
 
                     // Tag version and comparison URL
                     // eslint-disable-next-line max-len
                     let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
 
                     // PR list
-                    if (!_.isEmpty(sortedPRList)) {
+                    if (sortedPRList.length > 0) {
                         issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
-                        _.each(sortedPRList, (URL) => {
-                            issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]';
+                        sortedPRList.forEach((URL) => {
+                            issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
                         });
                         issueBody += '\r\n\r\n';
                     }
 
                     // Internal QA PR list
-                    if (!_.isEmpty(internalQAPRMap)) {
+                    if (!isEmptyObject(internalQAPRMap)) {
                         console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                         issueBody += '**Internal QA:**\r\n';
-                        _.each(internalQAPRMap, (merger, URL) => {
+                        Object.keys(internalQAPRMap).forEach((URL) => {
+                            const merger = internalQAPRMap[URL];
                             const mergerMention = `@${merger}`;
-                            issueBody += `${_.contains(resolvedInternalQAPRs, URL) ? '- [x]' : '- [ ]'} `;
+                            issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
                             issueBody += `${URL}`;
                             issueBody += ` - ${mergerMention}`;
                             issueBody += '\r\n';
@@ -304,10 +335,10 @@ class GithubUtils {
                     }
 
                     // Deploy blockers
-                    if (!_.isEmpty(deployBlockers)) {
+                    if (deployBlockers.length > 0) {
                         issueBody += '**Deploy Blockers:**\r\n';
-                        _.each(sortedDeployBlockers, (URL) => {
-                            issueBody += _.contains(resolvedDeployBlockers, URL) ? '- [x] ' : '- [ ] ';
+                        sortedDeployBlockers.forEach((URL) => {
+                            issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
                             issueBody += URL;
                             issueBody += '\r\n';
                         });
@@ -327,7 +358,7 @@ class GithubUtils {
                     issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
 
                     issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
-                    const issueAssignees = _.uniq(_.values(internalQAPRMap));
+                    const issueAssignees = [...new Set(Object.values(internalQAPRMap))];
                     const issue = {issueBody, issueAssignees};
                     return issue;
                 });
@@ -337,12 +368,9 @@ class GithubUtils {
 
     /**
      * Fetch all pull requests given a list of PR numbers.
-     *
-     * @param {Array<Number>} pullRequestNumbers
-     * @returns {Promise}
      */
-    static fetchAllPullRequests(pullRequestNumbers) {
-        const oldestPR = _.first(_.sortBy(pullRequestNumbers));
+    static fetchAllPullRequests(pullRequestNumbers: number[]): Promise<OctokitPR[] | void> {
+        const oldestPR = pullRequestNumbers.sort((a, b) => a - b)[0];
         return this.paginate(
             this.octokit.pulls.list,
             {
@@ -354,35 +382,27 @@ class GithubUtils {
                 per_page: 100,
             },
             ({data}, done) => {
-                if (_.find(data, (pr) => pr.number === oldestPR)) {
+                if (data.find((pr) => pr.number === oldestPR)) {
                     done();
                 }
                 return data;
             },
         )
-            .then((prList) => _.filter(prList, (pr) => _.contains(pullRequestNumbers, pr.number)))
+            .then((prList) => prList.filter((pr) => pullRequestNumbers.includes(pr.number)))
             .catch((err) => console.error('Failed to get PR list', err));
     }
 
-    /**
-     * @param {Number} pullRequestNumber
-     * @returns {Promise}
-     */
-    static getPullRequestMergerLogin(pullRequestNumber) {
+    static getPullRequestMergerLogin(pullRequestNumber: number): Promise<string | undefined> {
         return this.octokit.pulls
             .get({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 pull_number: pullRequestNumber,
             })
-            .then(({data: pullRequest}) => pullRequest.merged_by.login);
+            .then(({data: pullRequest}) => pullRequest.merged_by?.login);
     }
 
-    /**
-     * @param {Number} pullRequestNumber
-     * @returns {Promise}
-     */
-    static getPullRequestBody(pullRequestNumber) {
+    static getPullRequestBody(pullRequestNumber: number): Promise<string | null> {
         return this.octokit.pulls
             .get({
                 owner: CONST.GITHUB_OWNER,
@@ -392,11 +412,7 @@ class GithubUtils {
             .then(({data: pullRequestComment}) => pullRequestComment.body);
     }
 
-    /**
-     * @param {Number} pullRequestNumber
-     * @returns {Promise}
-     */
-    static getAllReviewComments(pullRequestNumber) {
+    static getAllReviewComments(pullRequestNumber: number): Promise<string[]> {
         return this.paginate(
             this.octokit.pulls.listReviews,
             {
@@ -405,15 +421,11 @@ class GithubUtils {
                 pull_number: pullRequestNumber,
                 per_page: 100,
             },
-            (response) => _.map(response.data, (review) => review.body),
+            (response) => response.data.map((review) => review.body),
         );
     }
 
-    /**
-     * @param {Number} issueNumber
-     * @returns {Promise}
-     */
-    static getAllComments(issueNumber) {
+    static getAllComments(issueNumber: number): Promise<Array<string | undefined>> {
         return this.paginate(
             this.octokit.issues.listComments,
             {
@@ -422,19 +434,14 @@ class GithubUtils {
                 issue_number: issueNumber,
                 per_page: 100,
             },
-            (response) => _.map(response.data, (comment) => comment.body),
+            (response) => response.data.map((comment) => comment.body),
         );
     }
 
     /**
      * Create comment on pull request
-     *
-     * @param {String} repo - The repo to search for a matching pull request or issue number
-     * @param {Number} number - The pull request or issue number
-     * @param {String} messageBody - The comment message
-     * @returns {Promise}
      */
-    static createComment(repo, number, messageBody) {
+    static createComment(repo: string, number: number, messageBody: string): Promise<CreateCommentResponse> {
         console.log(`Writing comment on #${number}`);
         return this.octokit.issues.createComment({
             owner: CONST.GITHUB_OWNER,
@@ -446,11 +453,8 @@ class GithubUtils {
 
     /**
      * Get the most recent workflow run for the given New Expensify workflow.
-     *
-     * @param {String} workflow
-     * @returns {Promise}
      */
-    static getLatestWorkflowRunID(workflow) {
+    static getLatestWorkflowRunID(workflow: string | number): Promise<number> {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions
             .listWorkflowRuns({
@@ -458,39 +462,32 @@ class GithubUtils {
                 repo: CONST.APP_REPO,
                 workflow_id: workflow,
             })
-            .then((response) => lodashGet(response, 'data.workflow_runs[0].id'));
+            .then((response) => response.data.workflow_runs[0]?.id);
     }
 
     /**
      * Generate the well-formatted body of a production release.
-     *
-     * @param {Array<Number>} pullRequests
-     * @returns {String}
      */
-    static getReleaseBody(pullRequests) {
-        return _.map(pullRequests, (number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
+    static getReleaseBody(pullRequests: number[]): string {
+        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
     }
 
     /**
      * Generate the URL of an New Expensify pull request given the PR number.
-     *
-     * @param {Number} number
-     * @returns {String}
      */
-    static getPullRequestURLFromNumber(number) {
-        return `${CONST.APP_REPO_URL}/pull/${number}`;
+    static getPullRequestURLFromNumber(value: number): string {
+        // @ts-expect-error TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated to TypeScript
+        return `${CONST.APP_REPO_URL}/pull/${value}`;
     }
 
     /**
      * Parse the pull request number from a URL.
      *
-     * @param {String} URL
-     * @returns {Number}
      * @throws {Error} If the URL is not a valid Github Pull Request.
      */
-    static getPullRequestNumberFromURL(URL) {
+    static getPullRequestNumberFromURL(URL: string): number {
         const matches = URL.match(PULL_REQUEST_REGEX);
-        if (!_.isArray(matches) || matches.length !== 2) {
+        if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Pull Request!`);
         }
         return Number.parseInt(matches[1], 10);
@@ -499,13 +496,11 @@ class GithubUtils {
     /**
      * Parse the issue number from a URL.
      *
-     * @param {String} URL
-     * @returns {Number}
      * @throws {Error} If the URL is not a valid Github Issue.
      */
-    static getIssueNumberFromURL(URL) {
+    static getIssueNumberFromURL(URL: string): number {
         const matches = URL.match(ISSUE_REGEX);
-        if (!_.isArray(matches) || matches.length !== 2) {
+        if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Issue!`);
         }
         return Number.parseInt(matches[1], 10);
@@ -514,13 +509,11 @@ class GithubUtils {
     /**
      * Parse the issue or pull request number from a URL.
      *
-     * @param {String} URL
-     * @returns {Number}
      * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
      */
-    static getIssueOrPullRequestNumberFromURL(URL) {
+    static getIssueOrPullRequestNumberFromURL(URL: string): number {
         const matches = URL.match(ISSUE_OR_PULL_REQUEST_REGEX);
-        if (!_.isArray(matches) || matches.length !== 2) {
+        if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
         return Number.parseInt(matches[1], 10);
@@ -528,30 +521,31 @@ class GithubUtils {
 
     /**
      * Return the login of the actor who closed an issue or PR. If the issue is not closed, return an empty string.
-     *
-     * @param {Number} issueNumber
-     * @returns {Promise<String>}
      */
-    static getActorWhoClosedIssue(issueNumber) {
+    static getActorWhoClosedIssue(issueNumber: number): Promise<string> {
         return this.paginate(this.octokit.issues.listEvents, {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             issue_number: issueNumber,
             per_page: 100,
         })
-            .then((events) => _.filter(events, (event) => event.event === 'closed'))
-            .then((closedEvents) => lodashGet(_.last(closedEvents), 'actor.login', ''));
+            .then((events) => events.filter((event) => event.event === 'closed'))
+            .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
     }
 
-    static getArtifactByName(artefactName) {
+    static getArtifactByName(artefactName: string): Promise<OctokitArtifact | undefined> {
         return this.paginate(this.octokit.actions.listArtifactsForRepo, {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             per_page: 100,
-        }).then((artifacts) => _.findWhere(artifacts, {name: artefactName}));
+        }).then((artifacts: OctokitArtifact[]) => artifacts.find((artifact) => artifact.name === artefactName));
     }
 }
 
+export default GithubUtils;
+// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
+// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
 module.exports = GithubUtils;
-module.exports.ISSUE_OR_PULL_REQUEST_REGEX = ISSUE_OR_PULL_REQUEST_REGEX;
-module.exports.POLL_RATE = POLL_RATE;
+
+export {ISSUE_OR_PULL_REQUEST_REGEX, POLL_RATE};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse};
