@@ -64,10 +64,10 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
                 >
                     <ScreenWrapper
-                        style={[styles.pb0]}
-                        includePaddingTop={false}
                         includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
                         testID={PolicyDistanceRateEditPage.displayName}
+                        shouldEnableMaxHeight
                     >
                         <HeaderWithBackButton
                             title={translate('workspace.distanceRates.rate')}
