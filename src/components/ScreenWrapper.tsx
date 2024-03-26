@@ -286,3 +286,4 @@ function ScreenWrapper(
 ScreenWrapper.displayName = 'ScreenWrapper';
 
 export default withNavigationFallback(forwardRef(ScreenWrapper));
+export {ScreenWrapperStatusContext};
