@@ -1,28 +1,27 @@
-import type { StackScreenProps } from '@react-navigation/stack';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
-import { ValueOf } from 'type-fest';
+import type {StackScreenProps} from '@react-navigation/stack';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type { CurrentUserPersonalDetails } from '@components/withCurrentUserPersonalDetails';
+import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import { openDraftWorkspaceRequest } from '@libs/actions/Policy';
+import {openDraftWorkspaceRequest} from '@libs/actions/Policy';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type { MoneyRequestNavigatorParamList } from '@libs/Navigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -31,11 +30,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { PersonalDetailsList, Policy, PolicyCategories, PolicyTagList, Report, Transaction } from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyCategories, PolicyTagList, Report, Transaction} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
+import type {Receipt} from '@src/types/onyx/Transaction';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import { Receipt } from '@src/types/onyx/Transaction';
-
 
 type IOURequestStepConfirmationStackProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
@@ -69,13 +68,15 @@ function IOURequestStepConfirmation({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
-    const [receiptFile, setReceiptFile] = useState();
+    const [receiptFile, setReceiptFile] = useState<Receipt>();
+
     const receiptFilename = transaction.filename;
     const receiptPath = transaction.receipt?.source;
     const receiptType = transaction.receipt?.type;
     const transactionTaxCode = transaction.taxRate?.keyForList;
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
+
     const headerTitle = useMemo(() => {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             return translate('iou.split');
@@ -175,7 +176,7 @@ function IOURequestStepConfirmation({
      * @param {File} [receiptObj]
      */
     const requestMoney = useCallback(
-        (selectedParticipants, trimmedComment, receiptObj, gpsPoints) => {
+        (selectedParticipants: Participant[], trimmedComment: string, receiptObj: Receipt, gpsPoints: IOU.GpsPoint) => {
             IOU.requestMoney(
                 report,
                 transaction.amount,
@@ -207,7 +208,7 @@ function IOURequestStepConfirmation({
      * @param {File} [receiptObj]
      */
     const trackExpense = useCallback(
-        (selectedParticipants, trimmedComment, receiptObj, gpsPoints) => {
+        (selectedParticipants: Participant[], trimmedComment: string, receiptObj: Receipt, gpsPoints?: IOU.GpsPoint) => {
             IOU.trackExpense(
                 report,
                 transaction.amount,
@@ -254,7 +255,7 @@ function IOURequestStepConfirmation({
      * @param {String} trimmedComment
      */
     const createDistanceRequest = useCallback(
-        (selectedParticipants, trimmedComment) => {
+        (selectedParticipants: Participant[], trimmedComment: string) => {
             IOU.createDistanceRequest(
                 report,
                 selectedParticipants[0],
@@ -276,8 +277,8 @@ function IOURequestStepConfirmation({
     );
 
     const createTransaction = useCallback(
-        (selectedParticipants) => {
-            const trimmedComment = lodashGet(transaction, 'comment.comment', '').trim();
+        (selectedParticipants: Participant[]) => {
+            const trimmedComment = (transaction.comment.comment ?? '').trim();
 
             // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
             if (formHasBeenSubmitted.current) {
@@ -455,7 +456,7 @@ function IOURequestStepConfirmation({
     );
 
     const addNewParticipant = (option) => {
-        const newParticipants = _.map(transaction.participants, (participant) => {
+        const newParticipants = transaction.participants?.map((participant) => {
             if (participant.accountID === option.accountID) {
                 return {...participant, selected: !participant.selected};
             }

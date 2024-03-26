@@ -134,6 +134,11 @@ type OutstandingChildRequest = {
     hasOutstandingChildRequest?: boolean;
 };
 
+type GpsPoint = {
+    lat: number;
+    long: number;
+};
+
 let betas: OnyxTypes.Beta[] = [];
 Onyx.connect({
     key: ONYXKEYS.BETAS,
@@ -2056,8 +2061,8 @@ function requestMoney(
     amount: number,
     currency: string,
     created: string,
-    merchant: string,
-    payeeEmail: string,
+    merchant: string | undefined,
+    payeeEmail: string | undefined,
     payeeAccountID: number,
     participant: Participant,
     comment: string,
@@ -2070,7 +2075,7 @@ function requestMoney(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    gpsPoints = undefined,
+    gpsPoints?: GpsPoint,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -5124,14 +5129,14 @@ function unholdRequest(transactionID: string, reportID: string) {
 }
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
-    receiptFilename: string,
-    receiptPath: string,
+    receiptFilename: string | undefined,
+    receiptPath: ReceiptSource | undefined,
     onSuccess: (file: File) => void,
     requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     transactionID: string,
     reportID: string,
-    receiptType: string,
+    receiptType: string | undefined,
 ) {
     if (!receiptFilename || !receiptPath) {
         return;
@@ -5145,7 +5150,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     };
-    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure, receiptType);
+    FileUtils.readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 /** Save the preferred payment method for a policy */
@@ -5153,6 +5158,7 @@ function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMeth
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
 }
 
+export type {GpsPoint};
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
