@@ -754,16 +754,12 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isOve
         return {
             height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '100%',
-            position: 'absolute',
-            ...(isOverlapBackgroundImage ? {bottom: 0} : {top: 0}),
         };
     }
 
     return {
         height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
         width: '100%',
-        position: 'absolute',
-        ...(isOverlapBackgroundImage ? {bottom: 0} : {top: 0}),
     };
 }
 /**
