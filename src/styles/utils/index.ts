@@ -776,7 +776,7 @@ function getReportWelcomeBackgroundContainerStyle(styles: ThemeStyles, isSmallSc
             overflow: 'hidden',
             width: '100%',
             position: 'absolute',
-            top: isOverlapBackgroundImage ? - styles.chatContentScrollView.paddingBottom : -(CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP),
+            top: isOverlapBackgroundImage ? -styles.chatContentScrollView.paddingBottom : -(CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP),
         };
     }
 
@@ -785,7 +785,7 @@ function getReportWelcomeBackgroundContainerStyle(styles: ThemeStyles, isSmallSc
         overflow: 'hidden',
         width: '100%',
         position: 'absolute',
-        top: isOverlapBackgroundImage ? - styles.chatContentScrollView.paddingBottom : -(CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP),
+        top: isOverlapBackgroundImage ? -styles.chatContentScrollView.paddingBottom : -(CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP),
     };
 }
 
