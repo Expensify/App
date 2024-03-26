@@ -415,7 +415,7 @@ type MoneyRequestNavigatorParamList = {
     };
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
         action: keyof typeof CONST.IOU.ACTION;
-        iouType: string;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
         pageIndex?: string;

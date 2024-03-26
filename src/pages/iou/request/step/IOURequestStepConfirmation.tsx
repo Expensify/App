@@ -1,27 +1,28 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import type { StackScreenProps } from '@react-navigation/stack';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
+import { ValueOf } from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
+import type { CurrentUserPersonalDetails } from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {openDraftWorkspaceRequest} from '@libs/actions/Policy';
+import { openDraftWorkspaceRequest } from '@libs/actions/Policy';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import type { MoneyRequestNavigatorParamList } from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -30,9 +31,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, Policy, PolicyCategories, PolicyTagList, Report, Transaction} from '@src/types/onyx';
+import type { PersonalDetailsList, Policy, PolicyCategories, PolicyTagList, Report, Transaction } from '@src/types/onyx';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import { Receipt } from '@src/types/onyx/Transaction';
+
 
 type IOURequestStepConfirmationStackProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
@@ -131,7 +134,7 @@ function IOURequestStepConfirmation({
     const defaultCategory = policyDistance?.defaultCategory ?? '';
 
     useEffect(() => {
-        if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !_.isEmpty(transaction.category)) {
+        if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!transaction.category) {
             return;
         }
         IOU.setMoneyRequestCategory(transactionID, defaultCategory);
@@ -157,8 +160,8 @@ function IOURequestStepConfirmation({
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     useEffect(() => {
-        const onSuccess = (file) => {
-            const receipt = file;
+        const onSuccess = (file: File) => {
+            const receipt: Receipt = file;
             receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
             setReceiptFile(receipt);
         };
