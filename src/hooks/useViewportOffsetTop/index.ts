@@ -33,11 +33,7 @@ export default function useViewportOffsetTop(shouldAdjustScrollView = false): nu
             }
         };
         updateOffsetTop();
-        const removeViewportResizeListener = addViewportResizeListener(updateOffsetTop);
-
-        return () => {
-            removeViewportResizeListener();
-        };
+        return addViewportResizeListener(updateOffsetTop);
     }, [initialHeight, shouldAdjustScrollView]);
 
     useEffect(() => {
