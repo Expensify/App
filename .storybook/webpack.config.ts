@@ -1,5 +1,7 @@
 /* eslint-disable no-underscore-dangle */
+
 /* eslint-disable no-param-reassign */
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import dotenv from 'dotenv';
 import path from 'path';
@@ -16,7 +18,7 @@ type CustomWebpackConfig = {
     };
 };
 
-let envFile: string
+let envFile: string;
 switch (process.env.ENV) {
     case 'production':
         envFile = '.env.production';
