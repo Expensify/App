@@ -16,6 +16,7 @@ const launchCamera: LaunchCamera = (options, callback) => {
             if (permission !== RESULTS.GRANTED) {
                 throw new ErrorLaunchCamera('User did not grant permissions', 'permission');
             }
+            
             launchCameraImagePicker(options, callback);
         })
         .catch((error) => {
