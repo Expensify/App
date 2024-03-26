@@ -383,7 +383,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
             value: {
                 [optimisticClosedReportAction.reportActionID]: null,
             },
-        })
+        });
     });
 
     // Restore the old report stateNum and statusNum
