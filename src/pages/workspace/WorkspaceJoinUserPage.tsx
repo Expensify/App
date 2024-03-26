@@ -1,13 +1,12 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as PolicyAction from '@userActions/Policy';
@@ -18,6 +17,8 @@ import type {Policy} from '@src/types/onyx';
 type WorkspaceJoinUserPageOnyxProps = {
     /** The list of this user's policies */
     policies: OnyxCollection<Policy>;
+    /** Policy to which the report belongs to */
+    policy: OnyxEntry<Policy>;
 };
 
 type WorkspaceJoinUserPageRoute = {route: StackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
@@ -25,11 +26,10 @@ type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute & WorkspaceJoinUser
 
 let isJoinLinkUsed = false;
 
-function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
+function WorkspaceJoinUserPage({route, policies, policy}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
     const inviterEmail = route?.params?.email;
-    const policy = ReportUtils.getPolicy(policyID);
     const isUnmounted = useRef(false);
 
     useEffect(() => {
@@ -76,5 +76,8 @@ WorkspaceJoinUserPage.displayName = 'WorkspaceJoinUserPage';
 export default withOnyx<WorkspaceJoinUserPageProps, WorkspaceJoinUserPageOnyxProps>({
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    policy: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
     },
 })(WorkspaceJoinUserPage);
