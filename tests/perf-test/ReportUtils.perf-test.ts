@@ -201,6 +201,6 @@ describe('ReportUtils', () => {
         };
 
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportUtils.getIOUReportActionDisplayMessage(reportAction, createRandomTransaction(1)));
+        await measureFunction(() => ReportUtils.getIOUReportActionDisplayMessage(reportAction));
     });
 });
