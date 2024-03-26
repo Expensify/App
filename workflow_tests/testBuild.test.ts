@@ -2,7 +2,7 @@
 import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/testBuildAssertions';
-import * as mocks from './mocks/testBuildMocks';
+import mocks from './mocks/testBuildMocks';
 import ExtendedAct from './utils/ExtendedAct';
 import * as utils from './utils/utils';
 

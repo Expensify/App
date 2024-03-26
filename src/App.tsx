@@ -18,6 +18,7 @@ import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
+import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
@@ -69,6 +70,7 @@ function App({url}: AppProps) {
                         KeyboardStateProvider,
                         PopoverContextProvider,
                         CurrentReportIDContextProvider,
+                        ScrollOffsetContextProvider,
                         ReportAttachmentsProvider,
                         PickerStateProvider,
                         EnvironmentProvider,

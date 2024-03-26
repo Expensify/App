@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import {createMockStep} from '../utils/utils';
 
 // validateactor
@@ -248,7 +247,7 @@ const TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS = [
     TESTBUILD__POSTGITHUBCOMMENT__PUBLISH_LINKS_TO_APPS_FOR_DOWNLOAD__STEP_MOCK,
 ];
 
-export {
+export default {
     TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
     TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
     TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
