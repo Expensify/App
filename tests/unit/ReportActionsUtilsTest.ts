@@ -1783,6 +1783,143 @@ describe('ReportActionsUtils', () => {
             input.pop();
             expect(result).toStrictEqual(expectedResult.reverse());
         });
+
+        it('given an empty input ID and the report only contains pending actions, it will return all actions', () => {
+            const input: ReportAction[] = [
+                // Given these sortedReportActions
+                {
+                    reportActionID: '1',
+                    previousReportActionID: undefined,
+                    created: '2022-11-13 22:27:01.825',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    originalMessage: {
+                        html: 'Hello world',
+                        whisperedTo: [],
+                    },
+                    message: [
+                        {
+                            html: 'Hello world',
+                            type: 'Action type',
+                            text: 'Action text',
+                        },
+                    ],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                {
+                    reportActionID: '2',
+                    previousReportActionID: '1',
+                    created: '2022-11-13 22:27:01.825',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    originalMessage: {
+                        html: 'Hello world',
+                        whisperedTo: [],
+                    },
+                    message: [
+                        {
+                            html: 'Hello world',
+                            type: 'Action type',
+                            text: 'Action text',
+                        },
+                    ],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                {
+                    reportActionID: '3',
+                    previousReportActionID: '2',
+                    created: '2022-11-13 22:27:01.825',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    originalMessage: {
+                        html: 'Hello world',
+                        whisperedTo: [],
+                    },
+                    message: [
+                        {
+                            html: 'Hello world',
+                            type: 'Action type',
+                            text: 'Action text',
+                        },
+                    ],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                {
+                    reportActionID: '4',
+                    previousReportActionID: '3',
+                    created: '2022-11-13 22:27:01.825',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    originalMessage: {
+                        html: 'Hello world',
+                        whisperedTo: [],
+                    },
+                    message: [
+                        {
+                            html: 'Hello world',
+                            type: 'Action type',
+                            text: 'Action text',
+                        },
+                    ],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                {
+                    reportActionID: '5',
+                    previousReportActionID: '4',
+                    created: '2022-11-13 22:27:01.825',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    originalMessage: {
+                        html: 'Hello world',
+                        whisperedTo: [],
+                    },
+                    message: [
+                        {
+                            html: 'Hello world',
+                            type: 'Action type',
+                            text: 'Action text',
+                        },
+                    ],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                {
+                    reportActionID: '6',
+                    previousReportActionID: '5',
+                    created: '2022-11-13 22:27:01.825',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    originalMessage: {
+                        html: 'Hello world',
+                        whisperedTo: [],
+                    },
+                    message: [
+                        {
+                            html: 'Hello world',
+                            type: 'Action type',
+                            text: 'Action text',
+                        },
+                    ],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                {
+                    reportActionID: '7',
+                    previousReportActionID: '6',
+                    created: '2022-11-13 22:27:01.825',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    originalMessage: {
+                        html: 'Hello world',
+                        whisperedTo: [],
+                    },
+                    message: [
+                        {
+                            html: 'Hello world',
+                            type: 'Action type',
+                            text: 'Action text',
+                        },
+                    ],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            ];
+
+            const expectedResult = input;
+            // Reversing the input array to simulate descending order sorting as per our data structure
+            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), '');
+            expect(result).toStrictEqual(expectedResult.reverse());
+        });
     });
 
     describe('getLastVisibleAction', () => {

@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -673,6 +674,78 @@ describe('ReportUtils', () => {
                 {reportID: '1', lastReadTime: '2023-07-08 07:15:44.030'},
             ];
             expect(ReportUtils.sortReportsByLastRead(reports, null)).toEqual(sortedReports);
+        });
+    });
+
+    describe('shouldDisableThread', () => {
+        const reportID = '1';
+
+        it('should disable on thread-disabled actions', () => {
+            const reportAction = ReportUtils.buildOptimisticCreatedReportAction('email1@test.com');
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable thread on split bill actions', () => {
+            const reportAction = ReportUtils.buildOptimisticIOUReportAction(
+                CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                50000,
+                CONST.CURRENCY.USD,
+                '',
+                [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
+                NumberUtils.rand64(),
+            ) as ReportAction;
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable on deleted and not-thread actions', () => {
+            const reportAction = {
+                message: [
+                    {
+                        translationKey: '',
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isEdited: true,
+                    },
+                ],
+                childVisibleActionCount: 1,
+            } as ReportAction;
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
+
+            reportAction.childVisibleActionCount = 0;
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable on archived reports and not-thread actions', () => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            })
+                .then(() => waitForBatchedUpdates())
+                .then(() => {
+                    const reportAction = {
+                        childVisibleActionCount: 1,
+                    } as ReportAction;
+                    expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
+
+                    reportAction.childVisibleActionCount = 0;
+                    expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+                });
+        });
+
+        it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                whisperedToAccountIDs: [123456],
+            } as ReportAction;
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable on thread first chat', () => {
+            const reportAction = {
+                childReportID: reportID,
+            } as ReportAction;
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
         });
     });
 
