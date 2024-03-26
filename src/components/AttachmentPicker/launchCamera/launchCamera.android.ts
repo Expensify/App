@@ -1,5 +1,5 @@
 import {PermissionsAndroid} from 'react-native';
-import {launchCamera} from 'react-native-image-picker';
+import {launchCamera as launchCameraImagePicker} from 'react-native-image-picker';
 import type {LaunchCamera} from './types';
 import {ErrorLaunchCamera} from './types';
 
@@ -9,7 +9,7 @@ import {ErrorLaunchCamera} from './types';
  * If the user deny permission the callback will be called with an error response
  * in the same format as the error returned by react-native-image-picker
  */
-const launchCameraAndroid: LaunchCamera = (options, callback) => {
+const launchCamera: LaunchCamera = (options, callback) => {
     // Checks current camera permissions and prompts the user in case they aren't granted
     PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA)
         .then((permission) => {
@@ -17,7 +17,7 @@ const launchCameraAndroid: LaunchCamera = (options, callback) => {
                 throw new ErrorLaunchCamera('User did not grant permissions', 'permission');
             }
 
-            launchCamera(options, callback);
+            launchCameraImagePicker(options, callback);
         })
         .catch((error) => {
             /* Intercept the permission error as well as any other errors and call the callback
@@ -29,4 +29,4 @@ const launchCameraAndroid: LaunchCamera = (options, callback) => {
         });
 };
 
-export default launchCameraAndroid;
+export default launchCamera;
