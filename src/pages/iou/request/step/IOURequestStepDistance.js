@@ -39,7 +39,6 @@ const propTypes = {
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
-
 };
 
 const defaultProps = {
@@ -120,16 +119,15 @@ function IOURequestStepDistance({
 
         // On mount, create the backup transaction.
         setTransactionBackup(transaction);
-        TransactionEdit.createBackupTransaction(transaction);
 
         return () => {
             // If the user cancels out of the modal without without saving changes, then the original transaction
             // needs to be restored from the backup so that all changes are removed.
-            if (transactionWasSaved.current) {
+            if (transactionWasSaved.current || _.isEqual(transaction, transactionBackup)) {
                 return;
             }
+            TransactionEdit.restoreOriginalTransactionFromBackup(lodashGet(transaction, 'transactionID', ''), transactionBackup);
             setTransactionBackup({});
-            TransactionEdit.restoreOriginalTransactionFromBackup(lodashGet(transaction, 'transactionID', ''));
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -314,7 +312,4 @@ IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 IOURequestStepDistance.propTypes = propTypes;
 IOURequestStepDistance.defaultProps = defaultProps;
 
-export default compose(
-    withWritableReportOrNotFound,
-    withFullTransactionOrNotFound,
-)(IOURequestStepDistance);
+export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepDistance);
