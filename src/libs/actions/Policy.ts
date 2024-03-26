@@ -4288,11 +4288,8 @@ function categorizeTrackedTransaction(chatReportID, action) {
         policyID,
         transactionID: action.originalMessage.transactionID,
 
-        // Report ID that the transaction is currently on
-        reportID: chatReportID,
-
         // reportActionID of the actionable whisper
-        reportActionID: action.reportActionID,
+        actionableWhisperReportActionID: action.reportActionID,
 
         // Parameters for the money request
         moneyRequestReportID: moneyRequestReport.reportID,
