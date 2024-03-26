@@ -325,7 +325,7 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    setSkipConfirmation(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+    setSkipConfirmation();
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
@@ -4986,7 +4986,7 @@ function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
 }
 
-function setSkipConfirmation(transactionID: string) {
+function setSkipConfirmation() {
     Onyx.merge(ONYXKEYS.IOU, {skipConfirmation: true});
 }
 
@@ -5219,6 +5219,7 @@ export {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setShownHoldUseExplanation,
+    setSkipConfirmation,
     navigateToNextPage,
     updateMoneyRequestDate,
     updateMoneyRequestBillable,

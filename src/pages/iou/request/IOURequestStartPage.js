@@ -70,6 +70,7 @@ function IOURequestStartPage({
     selectedTab,
     transaction,
 }) {
+    console.log(transaction);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const navigation = useNavigation();

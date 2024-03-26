@@ -77,6 +77,8 @@ function MoneyRequestAmountForm(
         taxAmount = 0,
         currency = CONST.CURRENCY.USD,
         isEditing = false,
+        skipConfirmation = false,
+        iouType = CONST.IOU.TYPE.REQUEST,
         onCurrencyButtonPress,
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
@@ -268,8 +270,8 @@ function MoneyRequestAmountForm(
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     let buttonText = isEditing ? translate('common.save') : translate('common.next');
-    if (props.skipConfirmation) {
-        buttonText = props.iouType === CONST.IOU.TYPE.SPLIT ? 'Split' : 'Request';
+    if (skipConfirmation) {
+        buttonText = iouType === CONST.IOU.TYPE.SPLIT ? 'Split' : 'Request';
     }
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 

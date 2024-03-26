@@ -166,6 +166,8 @@ function IOURequestStepAmount({
                 isEditing={Boolean(backTo)}
                 currency={currency}
                 amount={transaction.amount}
+                skipConfirmation={transaction.skipConfirmation}
+                iouType={iouType}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={navigateToNextPage}

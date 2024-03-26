@@ -154,6 +154,8 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             selectedTab={selectedTab}
         />
     );
+    console.log(iou);
+    console.log(iouType);
 
     // ScreenWrapper is only needed in edit mode because we have a dedicated route for the edit amount page (MoneyRequestEditAmountPage).
     // The rest of the cases this component is rendered through <MoneyRequestSelectorPage /> which has it's own ScreenWrapper
