@@ -29,12 +29,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
         >
             <HeaderWithBackButton title={translate('workspace.qbo.customers')} />
             <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                <Text
-                    fontSize={variables.fontSizeLabel}
-                    style={[styles.pb5, styles.textSupporting]}
-                >
-                    {translate('workspace.qbo.customersDescription')}
-                </Text>
+                <Text style={styles.pb5}>{translate('workspace.qbo.customersDescription')}</Text>
                 <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <View style={styles.flex1}>
                         <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>

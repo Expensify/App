@@ -1,8 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,7 +8,6 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -20,7 +17,6 @@ import * as Policy from '@userActions/Policy';
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const policyID = policy?.id ?? '';
     const {syncLocations, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isSwitchOn = Boolean(syncLocations && syncLocations !== 'NONE');
@@ -33,12 +29,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
         >
             <HeaderWithBackButton title={translate('workspace.qbo.locations')} />
             <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                <Text
-                    fontSize={variables.fontSizeLabel}
-                    style={[styles.pb5, styles.textSupporting]}
-                >
-                    {translate('workspace.qbo.locationsDescription')}
-                </Text>
+                <Text style={styles.pb5}>{translate('workspace.qbo.locationsDescription')}</Text>
                 <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <View style={styles.flex1}>
                         <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
@@ -64,11 +55,6 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                     </OfflineWithFeedback>
                 )}
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
-                    <Icon
-                        small
-                        src={Expensicons.Lock}
-                        fill={theme.icon}
-                    />
                     <Text style={[styles.textSupporting, styles.textNormal]}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>
                 </View>
             </ScrollView>
