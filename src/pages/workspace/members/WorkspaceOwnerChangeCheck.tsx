@@ -51,7 +51,7 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
 
     return (
         <>
-            <Text style={[styles.textHeadline, styles.mt3, styles.mb5]}>{title}</Text>
+            <Text style={[styles.textHeadline, styles.mt3, styles.mb2]}>{title}</Text>
             <Text style={styles.flex1}>{text}</Text>
             <Button
                 success

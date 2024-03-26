@@ -115,7 +115,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
 
     return (
         <>
-            <Text style={[styles.textHeadline, styles.mt3]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>
+            <Text style={[styles.textHeadline, styles.mt3, styles.mb2]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                 validate={validate}
@@ -130,7 +130,6 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                     label={translate('addDebitCardPage.debitCardNumber')}
                     aria-label={translate('addDebitCardPage.debitCardNumber')}
                     role={CONST.ROLE.PRESENTATION}
-                    containerStyles={[styles.mt5]}
                     ref={cardNumberRef}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                 />
