@@ -44,6 +44,12 @@ function IOURequestStepParticipants({
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const headerTitle = useMemo(() => {
+        if (iouAction === CONST.IOU.ACTION.CATEGORIZE) {
+            return translate('iou.categorize');
+        }
+        if (iouAction === CONST.IOU.ACTION.MOVE) {
+            return translate('iou.request');
+        }
         if (isSplitRequest) {
             return translate('iou.split');
         }
@@ -51,7 +57,7 @@ function IOURequestStepParticipants({
             return translate('common.send');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate, isSplitRequest]);
+    }, [iouType, transaction, translate, isSplitRequest, iouAction]);
 
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');

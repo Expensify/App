@@ -604,6 +604,7 @@ export default {
         addToSplit: 'Añadir para dividir',
         splitBill: 'Dividir factura',
         request: 'Solicitar',
+        categorize: 'Categorizar',
         participants: 'Participantes',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',

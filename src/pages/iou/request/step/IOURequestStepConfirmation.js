@@ -98,6 +98,12 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = useMemo(() => {
+        if (iouAction === CONST.IOU.ACTION.CATEGORIZE) {
+            return translate('iou.categorize');
+        }
+        if (iouAction === CONST.IOU.ACTION.MOVE) {
+            return translate('iou.request');
+        }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             return translate('iou.split');
         }
@@ -108,7 +114,7 @@ function IOURequestStepConfirmation({
             return translate('common.send');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate]);
+    }, [iouType, transaction, translate, iouAction]);
 
     const participants = useMemo(
         () =>
