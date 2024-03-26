@@ -5047,8 +5047,9 @@ function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string 
  * Put money request on HOLD
  */
 function putOnHold(transactionID: string, comment: string, reportID: string) {
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
-    const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment);
+    const currentTime = DateUtils.getDBTime();
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(DateUtils.subtractMillisecondsFromDateTime(currentTime, 1));
+    const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment, currentTime);
 
     const optimisticData: OnyxUpdate[] = [
         {
