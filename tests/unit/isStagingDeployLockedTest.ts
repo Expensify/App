@@ -25,7 +25,8 @@ describe('isStagingDeployLockedTest', () => {
             // Mock the return value of GithubUtils.getStagingDeployCash() to return an empty object
             GithubUtils.getStagingDeployCash = jest.fn().mockResolvedValue({});
             const setOutputMock = jest.spyOn(core, 'setOutput');
-            const isStagingDeployLocked = run();
+            // TODO: Remove type casting when isStagingDeployLocked (https://github.com/Expensify/App/issues/25369) is migrated to TypeScript
+            const isStagingDeployLocked = run() as Promise<void>;
             return isStagingDeployLocked.then(() => {
                 expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', false);
             });
@@ -40,7 +41,8 @@ describe('isStagingDeployLockedTest', () => {
             // Mock the return value of GithubUtils.getStagingDeployCash() to return the correct label
             GithubUtils.getStagingDeployCash = jest.fn().mockResolvedValue(mockData);
             const setOutputMock = jest.spyOn(core, 'setOutput');
-            const isStagingDeployLocked = run();
+            // TODO: Remove type casting when isStagingDeployLocked (https://github.com/Expensify/App/issues/25369) is migrated to TypeScript
+            const isStagingDeployLocked = run() as Promise<void>;
             return isStagingDeployLocked.then(() => {
                 expect(setOutputMock).toHaveBeenCalledWith('IS_LOCKED', true);
             });

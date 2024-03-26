@@ -8,7 +8,7 @@ type EventOptions = {
     action?: string;
 };
 
-type StepAssertionInputEntry = {key: string; value: string};
+type StepAssertionInputEntry = {key: string; value: string | boolean};
 
 type StepAssertion = {
     name: string;
