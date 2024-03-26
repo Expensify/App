@@ -86,7 +86,6 @@ function Avatar({
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
     const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
 
-
     let iconColors;
     if (isWorkspace) {
         iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(name);
