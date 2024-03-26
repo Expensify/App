@@ -4987,7 +4987,7 @@ function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number) {
 }
 
 function setSkipConfirmation(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {skipConfirmation: true});
+    Onyx.merge(ONYXKEYS.IOU, {skipConfirmation: true});
 }
 
 function setMoneyRequestBillable(billable: boolean) {

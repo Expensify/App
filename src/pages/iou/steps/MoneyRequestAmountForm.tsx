@@ -34,6 +34,12 @@ type MoneyRequestAmountFormProps = {
     /** Whether the amount is being edited or not */
     isEditing?: boolean;
 
+    /** Whether the confirmation screen should be skipped */
+    skipConfirmation?: boolean;
+
+    /** Type of the IOU */
+    iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress: () => void;
 
@@ -261,7 +267,10 @@ function MoneyRequestAmountForm(
     };
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
-    const buttonText = isEditing ? translate('common.save') : translate('common.next');
+    let buttonText = isEditing ? translate('common.save') : translate('common.next');
+    if (props.skipConfirmation) {
+        buttonText = props.iouType === CONST.IOU.TYPE.SPLIT ? 'Split' : 'Request';
+    }
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     useEffect(() => {

@@ -146,6 +146,8 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             isEditing={isEditing}
             currency={currency}
             amount={iou.amount}
+            skipConfirmation={iou.skipConfirmation}
+            iouType={iouType}
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={navigateToNextPage}
