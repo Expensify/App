@@ -5,13 +5,19 @@
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 1021:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony import */ var _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(9873);
+/* module decorator */ module = __nccwpck_require__.hmd(module);
+// eslint-disable-next-line import/no-import-module-exports
+
 
 const _ = __nccwpck_require__(5067);
-const CONST = __nccwpck_require__(4097);
-const ActionUtils = __nccwpck_require__(970);
+const ActionUtils = __nccwpck_require__(6981);
 const GitHubUtils = __nccwpck_require__(9296);
-const {promiseDoWhile} = __nccwpck_require__(4502);
+const {promiseDoWhile} = __nccwpck_require__(9438);
 
 function run() {
     const tag = ActionUtils.getStringInput('TAG', {required: false});
@@ -23,8 +29,8 @@ function run() {
                 Promise.all([
                     // These are active deploys
                     GitHubUtils.octokit.actions.listWorkflowRuns({
-                        owner: CONST.GITHUB_OWNER,
-                        repo: CONST.APP_REPO,
+                        owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
+                        repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
                         workflow_id: 'platformDeploy.yml',
                         event: 'push',
                         branch: tag,
@@ -34,8 +40,8 @@ function run() {
                     // In this context, we'll refer to unresolved preDeploy workflow runs as staging deploys as well
                     !tag &&
                         GitHubUtils.octokit.actions.listWorkflowRuns({
-                            owner: CONST.GITHUB_OWNER,
-                            repo: CONST.APP_REPO,
+                            owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
+                            repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
                             workflow_id: 'preDeploy.yml',
                         }),
                 ])
@@ -61,128 +67,11 @@ function run() {
     );
 }
 
-if (require.main === require.cache[eval('__filename')]) {
+if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
     run();
 }
 
 module.exports = run;
-
-
-/***/ }),
-
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- *
- * @param {String} name
- * @param {Object} options
- * @param {*} [defaultValue]
- * @returns {string|undefined}
- */
-function getStringInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
-
-module.exports = {
-    getJSONInput,
-    getStringInput,
-};
-
-
-/***/ }),
-
-/***/ 4097:
-/***/ ((module) => {
-
-const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        INTERNAL_QA: 'InternalQA',
-    },
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-};
-
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-
-module.exports = CONST;
-
-
-/***/ }),
-
-/***/ 4502:
-/***/ ((module) => {
-
-/**
- * Simulates a while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
- */
-function promiseWhile(condition, action) {
-    return new Promise((resolve, reject) => {
-        const loop = function () {
-            if (!condition()) {
-                resolve();
-            } else {
-                Promise.resolve(action()).then(loop).catch(reject);
-            }
-        };
-        loop();
-    });
-}
-
-/**
- * Simulates a do-while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
- */
-function promiseDoWhile(condition, action) {
-    return new Promise((resolve, reject) => {
-        action()
-            .then(() => promiseWhile(condition, action))
-            .then(() => resolve())
-            .catch(reject);
-    });
-}
-
-module.exports = {
-    promiseWhile,
-    promiseDoWhile,
-};
 
 
 /***/ }),
@@ -11604,6 +11493,96 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getStringInput = exports.getJSONInput = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param name - The name of the input.
+ * @param options - Options to pass to core.getInput
+ * @param [defaultValue] - A default value to provide for the input.
+ *                             Not required if the {required: true} option is given in the second arg to this function.
+ */
+function getJSONInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+exports.getJSONInput = getJSONInput;
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ */
+function getStringInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+exports.getStringInput = getStringInput;
+
+
+/***/ }),
+
+/***/ 9873:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const GIT_CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+};
+const CONST = {
+    ...GIT_CONST,
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+};
+exports["default"] = CONST;
+
+
+/***/ }),
+
 /***/ 9296:
 /***/ (function(module, exports, __nccwpck_require__) {
 
@@ -11644,7 +11623,7 @@ const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
 const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
@@ -11989,7 +11968,6 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
-        // @ts-expect-error TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated to TypeScript
         return `${CONST_1.default.APP_REPO_URL}/pull/${value}`;
     }
     /**
@@ -12053,6 +12031,46 @@ exports["default"] = GithubUtils;
 // This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
 // Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
 module.exports = GithubUtils;
+
+
+/***/ }),
+
+/***/ 9438:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.promiseDoWhile = exports.promiseWhile = void 0;
+/**
+ * Simulates a while loop where the condition is determined by the result of a Promise.
+ */
+function promiseWhile(condition, action) {
+    return new Promise((resolve, reject) => {
+        const loop = function () {
+            if (!condition()) {
+                resolve();
+            }
+            else {
+                Promise.resolve(action()).then(loop).catch(reject);
+            }
+        };
+        loop();
+    });
+}
+exports.promiseWhile = promiseWhile;
+/**
+ * Simulates a do-while loop where the condition is determined by the result of a Promise.
+ */
+function promiseDoWhile(condition, action) {
+    return new Promise((resolve, reject) => {
+        action()
+            .then(() => promiseWhile(condition, action))
+            .then(() => resolve())
+            .catch(reject);
+    });
+}
+exports.promiseDoWhile = promiseDoWhile;
 
 
 /***/ }),
@@ -14423,8 +14441,8 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
+/******/ 			id: moduleId,
+/******/ 			loaded: false,
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -14437,21 +14455,53 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
+/******/ 	// expose the module cache
+/******/ 	__nccwpck_require__.c = __webpack_module_cache__;
+/******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/harmony module decorator */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.hmd = (module) => {
+/******/ 			module = Object.create(module);
+/******/ 			if (!module.children) module.children = [];
+/******/ 			Object.defineProperty(module, 'exports', {
+/******/ 				enumerable: true,
+/******/ 				set: () => {
+/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
+/******/ 				}
+/******/ 			});
+/******/ 			return module;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
 /******/ 	
+/******/ 	// module cache are used so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(1021);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(__nccwpck_require__.s = 1021);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()

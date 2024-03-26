@@ -5,13 +5,19 @@
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 3926:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony import */ var _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(9873);
+/* module decorator */ module = __nccwpck_require__.hmd(module);
+// eslint-disable-next-line import/no-import-module-exports
+
 
 const fs = __nccwpck_require__(7147);
 const format = __nccwpck_require__(2168);
 const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
-const CONST = __nccwpck_require__(4097);
 const GithubUtils = __nccwpck_require__(9296);
 const GitUtils = (__nccwpck_require__(1547)["default"]);
 
@@ -23,9 +29,9 @@ async function run() {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
         const {data: recentDeployChecklists} = await GithubUtils.octokit.issues.listForRepo({
             log: console,
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            labels: CONST.LABELS.STAGING_DEPLOY,
+            owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
+            repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
+            labels: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].LABELS.STAGING_DEPLOY,
             state: 'all',
         });
 
@@ -74,9 +80,9 @@ async function run() {
             // Generate the deploy blocker list, preserving the previous state of `isResolved`
             const {data: openDeployBlockers} = await GithubUtils.octokit.issues.listForRepo({
                 log: console,
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                labels: CONST.LABELS.DEPLOY_BLOCKER,
+                owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
+                repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
+                labels: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].LABELS.DEPLOY_BLOCKER,
             });
 
             // First, make sure we include all current deploy blockers
@@ -123,17 +129,17 @@ async function run() {
 
         // Finally, create or update the checklist
         const defaultPayload = {
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
+            owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
+            repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
             body: checklistBody,
         };
 
         if (shouldCreateNewDeployChecklist) {
             const {data: newChecklist} = await GithubUtils.octokit.issues.create({
                 ...defaultPayload,
-                title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
-                labels: [CONST.LABELS.STAGING_DEPLOY],
-                assignees: [CONST.APPLAUSE_BOT].concat(checklistAssignees),
+                title: `Deploy Checklist: New Expensify ${format(new Date(), _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].DATE_FORMAT_STRING)}`,
+                labels: [_github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].LABELS.STAGING_DEPLOY],
+                assignees: [_github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APPLAUSE_BOT].concat(checklistAssignees),
             });
             console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
             return newChecklist;
@@ -151,218 +157,11 @@ async function run() {
     }
 }
 
-if (require.main === require.cache[eval('__filename')]) {
+if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
     run();
 }
 
 module.exports = run;
-
-
-/***/ }),
-
-/***/ 4097:
-/***/ ((module) => {
-
-const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        INTERNAL_QA: 'InternalQA',
-    },
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-};
-
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-
-module.exports = CONST;
-
-
-/***/ }),
-
-/***/ 9338:
-/***/ ((module) => {
-
-const replacer = (str) =>
-    ({
-        '\\': '\\\\',
-        '\t': '\\t',
-        '\n': '\\n',
-        '\r': '\\r',
-        '\f': '\\f',
-        '"': '\\"',
-    }[str]);
-
-/**
- * Replace any characters in the string that will break JSON.parse for our Git Log output
- *
- * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
- * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
- *
- * @param {String} inputString
- * @returns {String}
- */
-module.exports = function (inputString) {
-    if (typeof inputString !== 'string') {
-        throw new TypeError('Input must me of type String');
-    }
-
-    // Replace any newlines and escape backslashes
-    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
-};
-
-
-/***/ }),
-
-/***/ 8007:
-/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
-
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "MAX_INCREMENTS": () => (/* binding */ MAX_INCREMENTS),
-/* harmony export */   "SEMANTIC_VERSION_LEVELS": () => (/* binding */ SEMANTIC_VERSION_LEVELS),
-/* harmony export */   "getPreviousVersion": () => (/* binding */ getPreviousVersion),
-/* harmony export */   "getVersionNumberFromString": () => (/* binding */ getVersionNumberFromString),
-/* harmony export */   "getVersionStringFromNumber": () => (/* binding */ getVersionStringFromNumber),
-/* harmony export */   "incrementMinor": () => (/* binding */ incrementMinor),
-/* harmony export */   "incrementPatch": () => (/* binding */ incrementPatch),
-/* harmony export */   "incrementVersion": () => (/* binding */ incrementVersion)
-/* harmony export */ });
-const _ = __nccwpck_require__(5067);
-
-const SEMANTIC_VERSION_LEVELS = {
-    MAJOR: 'MAJOR',
-    MINOR: 'MINOR',
-    PATCH: 'PATCH',
-    BUILD: 'BUILD',
-};
-const MAX_INCREMENTS = 99;
-
-/**
- * Transforms a versions string into a number
- *
- * @param {String} versionString
- * @returns {Array}
- */
-const getVersionNumberFromString = (versionString) => {
-    const [version, build] = versionString.split('-');
-    const [major, minor, patch] = _.map(version.split('.'), (n) => Number(n));
-
-    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
-};
-
-/**
- * Transforms version numbers components into a version string
- *
- * @param {Number} major
- * @param {Number} minor
- * @param {Number} patch
- * @param {Number} [build]
- * @returns {String}
- */
-const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
-
-/**
- * Increments a minor version
- *
- * @param {Number} major
- * @param {Number} minor
- * @returns {String}
- */
-const incrementMinor = (major, minor) => {
-    if (minor < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor + 1, 0, 0);
-    }
-
-    return getVersionStringFromNumber(major + 1, 0, 0, 0);
-};
-
-/**
- * Increments a Patch version
- *
- * @param {Number} major
- * @param {Number} minor
- * @param {Number} patch
- * @returns {String}
- */
-const incrementPatch = (major, minor, patch) => {
-    if (patch < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch + 1, 0);
-    }
-    return incrementMinor(major, minor);
-};
-
-/**
- * Increments a build version
- *
- * @param {String} version
- * @param {String} level
- * @returns {String}
- */
-const incrementVersion = (version, level) => {
-    const [major, minor, patch, build] = getVersionNumberFromString(version);
-
-    // Majors will always be incremented
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        return getVersionStringFromNumber(major + 1, 0, 0, 0);
-    }
-
-    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
-        return incrementMinor(major, minor);
-    }
-
-    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
-        return incrementPatch(major, minor, patch);
-    }
-
-    if (build < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch, build + 1);
-    }
-
-    return incrementPatch(major, minor, patch);
-};
-
-/**
- * @param {String} currentVersion
- * @param {String} level
- * @returns {String}
- */
-function getPreviousVersion(currentVersion, level) {
-    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
-
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        if (major === 1) {
-            return getVersionStringFromNumber(1, 0, 0, 0);
-        }
-        return getVersionStringFromNumber(major - 1, 0, 0, 0);
-    }
-
-    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
-        if (minor === 0) {
-            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
-        }
-        return getVersionStringFromNumber(major, minor - 1, 0, 0);
-    }
-
-    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
-        if (patch === 0) {
-            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
-        }
-        return getVersionStringFromNumber(major, minor, patch - 1, 0);
-    }
-
-    if (build === 0) {
-        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
-    }
-    return getVersionStringFromNumber(major, minor, patch, build - 1);
-}
-
-
 
 
 /***/ }),
@@ -14540,13 +14339,17 @@ function wrappy (fn, cb) {
 /***/ }),
 
 /***/ 9873:
-/***/ ((module) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
-const CONST = {
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const GIT_CONST = {
     GITHUB_OWNER: 'Expensify',
     APP_REPO: 'App',
+};
+const CONST = {
+    ...GIT_CONST,
     APPLAUSE_BOT: 'applausebot',
     OS_BOTIFY: 'OSBotify',
     LABELS: {
@@ -14555,10 +14358,10 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
     },
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
 };
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-module.exports = CONST;
+exports["default"] = CONST;
 
 
 /***/ }),
@@ -14761,7 +14564,7 @@ const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
 const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
@@ -15106,7 +14909,6 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
-        // @ts-expect-error TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated to TypeScript
         return `${CONST_1.default.APP_REPO_URL}/pull/${value}`;
     }
     /**
@@ -15170,6 +14972,140 @@ exports["default"] = GithubUtils;
 // This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
 // Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
 module.exports = GithubUtils;
+
+
+/***/ }),
+
+/***/ 3902:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/* eslint-disable @typescript-eslint/naming-convention */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const replacer = (str) => ({
+    '\\': '\\\\',
+    '\t': '\\t',
+    '\n': '\\n',
+    '\r': '\\r',
+    '\f': '\\f',
+    '"': '\\"',
+}[str] ?? '');
+/**
+ * Replace any characters in the string that will break JSON.parse for our Git Log output
+ *
+ * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
+ * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
+ */
+const sanitizeStringForJSONParse = (inputString) => {
+    if (typeof inputString !== 'string') {
+        throw new TypeError('Input must me of type String');
+    }
+    // Replace any newlines and escape backslashes
+    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+};
+exports["default"] = sanitizeStringForJSONParse;
+
+
+/***/ }),
+
+/***/ 8982:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
+const SEMANTIC_VERSION_LEVELS = {
+    MAJOR: 'MAJOR',
+    MINOR: 'MINOR',
+    PATCH: 'PATCH',
+    BUILD: 'BUILD',
+};
+exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
+const MAX_INCREMENTS = 99;
+exports.MAX_INCREMENTS = MAX_INCREMENTS;
+/**
+ * Transforms a versions string into a number
+ */
+const getVersionNumberFromString = (versionString) => {
+    const [version, build] = versionString.split('-');
+    const [major, minor, patch] = version.split('.').map((n) => Number(n));
+    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
+};
+exports.getVersionNumberFromString = getVersionNumberFromString;
+/**
+ * Transforms version numbers components into a version string
+ */
+const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
+exports.getVersionStringFromNumber = getVersionStringFromNumber;
+/**
+ * Increments a minor version
+ */
+const incrementMinor = (major, minor) => {
+    if (minor < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor + 1, 0, 0);
+    }
+    return getVersionStringFromNumber(major + 1, 0, 0, 0);
+};
+exports.incrementMinor = incrementMinor;
+/**
+ * Increments a Patch version
+ */
+const incrementPatch = (major, minor, patch) => {
+    if (patch < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch + 1, 0);
+    }
+    return incrementMinor(major, minor);
+};
+exports.incrementPatch = incrementPatch;
+/**
+ * Increments a build version
+ */
+const incrementVersion = (version, level) => {
+    const [major, minor, patch, build] = getVersionNumberFromString(version);
+    // Majors will always be incremented
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        return getVersionStringFromNumber(major + 1, 0, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        return incrementMinor(major, minor);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        return incrementPatch(major, minor, patch);
+    }
+    if (build < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch, build + 1);
+    }
+    return incrementPatch(major, minor, patch);
+};
+exports.incrementVersion = incrementVersion;
+function getPreviousVersion(currentVersion, level) {
+    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        if (major === 1) {
+            return getVersionStringFromNumber(1, 0, 0, 0);
+        }
+        return getVersionStringFromNumber(major - 1, 0, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        if (minor === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
+        }
+        return getVersionStringFromNumber(major, minor - 1, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        if (patch === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
+        }
+        return getVersionStringFromNumber(major, minor, patch - 1, 0);
+    }
+    if (build === 0) {
+        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
+    }
+    return getVersionStringFromNumber(major, minor, patch, build - 1);
+}
+exports.getPreviousVersion = getPreviousVersion;
 
 
 /***/ }),
@@ -17576,8 +17512,8 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
+/******/ 			id: moduleId,
+/******/ 			loaded: false,
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -17590,21 +17526,53 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
+/******/ 	// expose the module cache
+/******/ 	__nccwpck_require__.c = __webpack_module_cache__;
+/******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/harmony module decorator */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.hmd = (module) => {
+/******/ 			module = Object.create(module);
+/******/ 			if (!module.children) module.children = [];
+/******/ 			Object.defineProperty(module, 'exports', {
+/******/ 				enumerable: true,
+/******/ 				set: () => {
+/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
+/******/ 				}
+/******/ 			});
+/******/ 			return module;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
 /******/ 	
+/******/ 	// module cache are used so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(3926);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(__nccwpck_require__.s = 3926);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
