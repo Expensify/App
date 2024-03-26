@@ -1,4 +1,4 @@
-import CONST from '../../../libs/CONST';
+import CONST from '@github/libs/CONST';
 
 const core = require('@actions/core');
 const GithubUtils = require('../../../libs/GithubUtils');

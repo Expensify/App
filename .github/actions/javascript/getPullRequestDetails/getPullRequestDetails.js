@@ -1,4 +1,4 @@
-import CONST from '../../../libs/CONST';
+import CONST from '@github/libs/CONST';
 
 const _ = require('underscore');
 const core = require('@actions/core');

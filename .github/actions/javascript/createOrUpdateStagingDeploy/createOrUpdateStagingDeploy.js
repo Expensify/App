@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-import-module-exports
-import CONST from '../../../libs/CONST';
+import CONST from '@github/libs/CONST';
 
 const fs = require('fs');
 const format = require('date-fns/format');
