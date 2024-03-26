@@ -13,6 +13,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -34,11 +35,11 @@ type IOURequestStepDateOnyxProps = {
     policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
 };
 
-type IOURequestStepDateProps = {
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-} & IOURequestStepDateOnyxProps &
-    WithWritableReportOrNotFoundProps;
+type IOURequestStepDateProps = IOURequestStepDateOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
+        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        transaction: OnyxEntry<OnyxTypes.Transaction>;
+    };
 
 function IOURequestStepDate({
     route: {
