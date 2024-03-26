@@ -335,6 +335,7 @@ const CONST = {
         TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        ACCOUNTING: 'accounting',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1679,7 +1680,7 @@ const CONST = {
 
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
-        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
     },
 
     PRONOUNS: {
@@ -1850,13 +1851,6 @@ const CONST = {
     MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
     IOS_KEYBOARD_SPACE_OFFSET: -30,
 
-    PDF_PASSWORD_FORM: {
-        // Constants for password-related error responses received from react-pdf.
-        REACT_PDF_PASSWORD_RESPONSES: {
-            NEED_PASSWORD: 1,
-            INCORRECT_PASSWORD: 2,
-        },
-    },
     API_REQUEST_TYPE: {
         READ: 'read',
         WRITE: 'write',
@@ -2980,7 +2974,7 @@ const CONST = {
         CURRENCY: 'XAF',
         FORMAT: 'symbol',
         SAMPLE_INPUT: '123456.789',
-        EXPECTED_OUTPUT: 'FCFA 123,457',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
     PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],
@@ -4149,6 +4143,8 @@ const CONST = {
             },
         },
     },
+
+    MAX_TAX_RATE_DECIMAL_PLACES: 4,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

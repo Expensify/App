@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -38,7 +38,7 @@ function ValuePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
-    const [value, setValue] = useState(currentTaxRate?.value?.replace('%', ''));
+    const defaultValue = currentTaxRate?.value?.replace('%', '');
 
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '', taxID)), [policyID, taxID]);
 
@@ -87,9 +87,12 @@ function ValuePage({
                             <InputWrapper
                                 InputComponent={AmountForm}
                                 inputID={INPUT_IDS.VALUE}
-                                defaultValue={value}
-                                onInputChange={setValue}
+                                defaultValue={defaultValue}
                                 hideCurrencySymbol
+                                // The default currency uses 2 decimal places, so we substract it
+                                extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
+                                // We increase the amount max length. We have to add 2 places for one digit and comma.
+                                amountMaxLength={CONST.MAX_TAX_RATE_DECIMAL_PLACES + 2}
                                 extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
                                 ref={inputCallbackRef}
                             />

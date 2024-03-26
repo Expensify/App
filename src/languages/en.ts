@@ -584,6 +584,17 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
     },
+    quickAction: {
+        scanReceipt: 'Scan Receipt',
+        recordDistance: 'Record Distance',
+        requestMoney: 'Request Money',
+        splitBill: 'Split Bill',
+        splitReceipt: 'Split Receipt',
+        splitDistance: 'Split Distance',
+        sendMoney: 'Send Money',
+        assignTask: 'Assign Task',
+        shortcut: 'Shortcut',
+    },
     iou: {
         amount: 'Amount',
         taxAmount: 'Tax amount',
