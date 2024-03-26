@@ -40,6 +40,7 @@ import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
+import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
@@ -116,6 +117,7 @@ export type {
     PolicyCategory,
     PolicyMember,
     PolicyMembers,
+    PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTags,
     PolicyTagList,

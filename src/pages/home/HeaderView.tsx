@@ -136,7 +136,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
-                onSelected: () => setIsDeleteTaskConfirmModalVisible(true),
+                onSelected: Session.checkIfActionIsAllowed(() => setIsDeleteTaskConfirmModalVisible(true)),
             });
         }
     }
@@ -350,7 +350,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    Session.checkIfActionIsAllowed(Task.deleteTask(report));
+                                    Task.deleteTask(report);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}
