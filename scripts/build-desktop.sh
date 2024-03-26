@@ -13,8 +13,18 @@ else
   ENV_FILE=".env"
 fi
 
+if [[ -n "$GCP_GEOLOCATION_API_KEY" ]]; then
+  if grep -qE "^GCP_GEOLOCATION_API_KEY=" "$ENV_FILE"; then
+      # Replace the value for the existing key
+      sed -i "s|^GCP_GEOLOCATION_API_KEY=.*$|GCP_GEOLOCATION_API_KEY=$GCP_GEOLOCATION_API_KEY|g" "$ENV_FILE"
+  else
+      # Add the key-value pair to the config file
+      echo "GCP_GEOLOCATION_API_KEY=$GCP_GEOLOCATION_API_KEY" >> "$ENV_FILE"
+  fi
+fi
+
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
-source "$SCRIPTS_DIR/shellUtils.sh";
+source "$SCRIPTS_DIR/shellUtils.sh"
 
 title "Bundling Desktop js Bundle Using Webpack"
 info " • ELECTRON_ENV: $ELECTRON_ENV"
