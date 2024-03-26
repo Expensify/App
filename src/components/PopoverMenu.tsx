@@ -203,11 +203,17 @@ function PopoverMenu({
                         title={item.text}
                         shouldCheckActionAllowedOnPress={false}
                         description={item.description}
+                        numberOfLinesDescription={item.numberOfLinesDescription}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
                         displayInDefaultIconColor={item.displayInDefaultIconColor}
                         shouldShowRightIcon={item.shouldShowRightIcon}
                         shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
+                        label={item.label}
+                        isLabelHoverable={item.isLabelHoverable}
+                        floatRightAvatars={item.floatRightAvatars}
+                        floatRightAvatarSize={item.floatRightAvatarSize}
+                        shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
                         disabled={item.disabled}
                     />
                 ))}

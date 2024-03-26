@@ -18,6 +18,7 @@ import IconSection from './IconSection';
 
 const CARD_LAYOUT = {
     ICON_ON_TOP: 'iconOnTop',
+    ICON_ON_LEFT: 'iconOnLeft',
     ICON_ON_RIGHT: 'iconOnRight',
 } as const;
 
@@ -121,6 +122,12 @@ function Section({
             )}
             <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
+                    {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
+                        <IconSection
+                            icon={icon}
+                            iconContainerStyles={[styles.flexGrow0, styles.justifyContentStart, iconContainerStyles]}
+                        />
+                    )}
                     <View style={[styles.flexShrink1]}>
                         <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>
                     </View>
