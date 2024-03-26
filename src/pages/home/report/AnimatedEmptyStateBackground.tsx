@@ -52,7 +52,12 @@ function AnimatedEmptyStateBackground({isOverlapBackgroundImage = false}: Animat
     }, [isReducedMotionEnabled]);
 
     return (
-        <View style={[isOverlapBackgroundImage ? styles.justifyContentEnd : styles.justifyContentStart, StyleUtils.getReportWelcomeBackgroundContainerStyle(styles, isSmallScreenWidth, isOverlapBackgroundImage)]}>
+        <View
+            style={[
+                isOverlapBackgroundImage ? styles.justifyContentEnd : styles.justifyContentStart,
+                StyleUtils.getReportWelcomeBackgroundContainerStyle(styles, isSmallScreenWidth, isOverlapBackgroundImage),
+            ]}
+        >
             <Animated.Image
                 source={illustrations.EmptyStateBackgroundImage}
                 style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
