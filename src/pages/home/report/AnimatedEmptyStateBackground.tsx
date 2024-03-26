@@ -55,7 +55,7 @@ function AnimatedEmptyStateBackground({isOverlapBackgroundImage = false}: Animat
         <View style={[isOverlapBackgroundImage ? styles.justifyContentEnd : styles.justifyContentStart, StyleUtils.getReportWelcomeBackgroundContainerStyle(styles, isSmallScreenWidth, isOverlapBackgroundImage)]}>
             <Animated.Image
                 source={illustrations.EmptyStateBackgroundImage}
-                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth, isOverlapBackgroundImage), animatedStyles]}
+                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
                 resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
             />
         </View>
