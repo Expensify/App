@@ -20,7 +20,7 @@ type PressProps = {
     href?: undefined;
 
     /** Overwrites the default link behavior with a custom callback */
-    onPress: () => void;
+    onPress: () => void | ((event: GestureResponderEvent) => void);
 };
 
 type TextLinkProps = (LinkProps | PressProps) &
