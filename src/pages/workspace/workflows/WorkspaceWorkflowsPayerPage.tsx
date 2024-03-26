@@ -87,7 +87,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                 />
             );
 
-            const isAuthorizedPayer = policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID;
+            const isAuthorizedPayer = policy?.achAccount?.reimburser === details?.login;
 
             const formattedMember = {
                 keyForList: accountIDKey,
@@ -109,7 +109,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                 pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburserEmail : null,
             };
 
-            if (policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID) {
+            if (policy?.achAccount?.reimburser === details?.login) {
                 authorizedPayerDetails.push(formattedMember);
             } else {
                 policyAdminDetails.push(formattedMember);
@@ -120,12 +120,11 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         personalDetails,
         policyMembers,
         translate,
-        policy?.reimburserEmail,
+        policy?.achAccount?.reimburser,
         isDeletedPolicyMember,
         policy?.owner,
         styles,
         StyleUtils,
-        policy?.reimburserAccountID,
         policy?.pendingFields?.reimburserEmail,
     ]);
 
@@ -171,13 +170,13 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
     const setPolicyAuthorizedPayer = (member: MemberOption) => {
         const authorizedPayerEmail = personalDetails?.[member.accountID]?.login ?? '';
 
-        if (policy?.reimburserEmail === authorizedPayerEmail || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        if (policy?.achAccount?.reimburser === authorizedPayerEmail || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             Navigation.goBack();
             return;
         }
 
         const authorizedPayerAccountID = member.accountID;
-        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayerEmail, authorizedPayerAccountID);
+        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayerEmail);
         Navigation.goBack();
     };
 

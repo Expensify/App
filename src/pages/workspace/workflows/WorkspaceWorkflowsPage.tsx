@@ -55,10 +55,9 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
 
     const displayNameForAuthorizedPayer = useMemo(() => {
-        const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([policy?.reimburserAccountID ?? 0], session?.accountID ?? 0);
-        const displayNameFromReimburserEmail = PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.displayName ?? policy?.reimburserEmail;
-        return displayNameFromReimburserEmail ?? personalDetails?.[0]?.displayName;
-    }, [policy?.reimburserAccountID, policy?.reimburserEmail, session?.accountID]);
+        const displayNameFromReimburserEmail = PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser;
+        return displayNameFromReimburserEmail;
+    }, [policy?.achAccount?.reimburser, session?.accountID]);
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
@@ -171,11 +170,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
                         newReimbursementChoice = hasVBA ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                     }
 
-                    const newReimburserAccountID =
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.accountID || policy?.reimburserAccountID || policy?.ownerAccountID;
-                    const newReimburserEmail = PersonalDetailsUtils.getPersonalDetailsByIDs([newReimburserAccountID ?? 0], session?.accountID ?? 0)?.[0]?.login;
-                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserAccountID ?? 0, newReimburserEmail ?? '');
+                    const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
+                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserEmail ?? '');
                 },
                 subMenuItems: (
                     <>
