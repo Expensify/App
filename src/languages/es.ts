@@ -585,7 +585,7 @@ export default {
         recordDistance: 'Grabar Distancia',
         requestMoney: 'Solicitar Dinero',
         splitBill: 'Dividir Cuenta',
-        splitReceipt: 'Dividir Recibo',
+        splitScan: 'Dividir Recibo',
         splitDistance: 'Dividir Distancia',
         sendMoney: 'Enviar Dinero',
         assignTask: 'Assignar Tarea',
