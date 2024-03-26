@@ -81,7 +81,7 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
                                         errors={report.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}
                                         key={`menuItem-${fieldKey}`}
-                                        onClose={() => reportActions.clearReportFieldErrors(report.reportID, reportField.fieldID)}
+                                        onClose={() => reportActions.clearReportFieldErrors(report.reportID, reportField)}
                                     >
                                         <MenuItemWithTopDescription
                                             description={Str.UCFirst(reportField.name)}
