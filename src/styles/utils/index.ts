@@ -755,7 +755,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMon
     if (isSmallScreenWidth) {
         return {
             height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '200%',
+            width: '100%',
             position: 'absolute',
         };
     }
@@ -1541,7 +1541,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
 
     getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
-        ...styles.mr3,
         ...(isSelected && styles.checkedContainer),
         ...(isSelected && styles.borderColorFocus),
         ...(isDisabled && styles.cursorDisabled),
