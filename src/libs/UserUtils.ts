@@ -83,7 +83,7 @@ function generateAccountID(searchValue: string): number {
  * @returns
  */
 function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
-    if (!accountID || accountID <= 0) {
+    if (accountID <= 0) {
         return FallbackAvatar;
     }
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {

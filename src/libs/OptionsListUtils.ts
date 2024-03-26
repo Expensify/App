@@ -7,7 +7,6 @@ import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1715,10 +1714,10 @@ function getOptions(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         userToInvite.alternateText = userToInvite.alternateText || searchValue;
 
-        // If user doesn't exist, always use the fallback avatar
+        // If user doesn't exist, use a default avatar
         userToInvite.icons = [
             {
-                source: FallbackAvatar,
+                source: UserUtils.getAvatar('', optimisticAccountID),
                 name: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
