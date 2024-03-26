@@ -161,6 +161,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const welcomeVideoModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR);
     const reportAttachmentsScreen = state.routes.find((route) => route.name === SCREENS.REPORT_ATTACHMENTS);
 
+    if (isNarrowLayout) {
+        metainfo.isFullScreenNavigatorMandatory = false;
+        metainfo.isCentralPaneAndBottomTabMandatory = false;
+    }
+
     if (rhpNavigator) {
         // Routes
         // - matching bottom tab
