@@ -31,7 +31,6 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import * as GroupChatUtils from '@libs/GroupChatUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
@@ -2275,10 +2274,9 @@ function createSplitsAndOnyxData(
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
 
     if (!existingSplitChatReport && participants.length > 1) {
-        const reportName = GroupChatUtils.getGroupChatName(participantAccountIDs);
         newChat = ReportUtils.buildOptimisticChatReport(
             participantAccountIDs,
-            reportName,
+            '',
             CONST.REPORT.CHAT_TYPE.GROUP,
             undefined,
             undefined,
@@ -2686,6 +2684,7 @@ function splitBill(
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
+        chatType: splitData.chatType,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);

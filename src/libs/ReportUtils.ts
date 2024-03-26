@@ -56,6 +56,8 @@ import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+// eslint-disable-next-line import/no-cycle
+import * as GroupChatUtils from './GroupChatUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -1535,10 +1537,9 @@ function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
     return !isEmpty(avatar) ? avatar : getDefaultWorkspaceAvatar(workspaceName);
 }
 
-// /**
-//  * Helper method to return the default avatar associated with the given reportID
-//  * TO REWORK!
-//  */
+/**
+ * Helper method to return the default avatar associated with the given reportID
+ */
 function getDefaultGroupAvatar(reportID?: string): IconAsset {
     if (!reportID) {
         return defaultGroupAvatars.Avatar1;
@@ -1734,7 +1735,7 @@ function getIcons(
             source: getDefaultGroupAvatar(report.reportID),
             id: -1,
             type: CONST.ICON_TYPE_AVATAR,
-            name: report?.reportName ?? '',
+            name: GroupChatUtils.getGroupChatName(report.participantAccountIDs ?? []),
         };
         return [groupChatIcon];
     }

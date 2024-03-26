@@ -35,8 +35,6 @@ type NewChatConfirmPageOnyxProps = {
 
 type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
 
-type Section = ListItem & {value: string};
-
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -55,7 +53,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
 
     const groupName = GroupChatUtils.getGroupChatName(participantAccountIDs ?? []);
 
-    const sections: Section[] = useMemo(
+    const sections: ListItem[] = useMemo(
         () =>
             selectedOptions
                 .map((selectedOption: Participant) => {
@@ -72,8 +70,8 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                         );
                     }
 
-                    const section: Section = {
-                        value: selectedOption?.login ?? '',
+                    const section: ListItem = {
+                        login: selectedOption?.login ?? '',
                         text: selectedOption?.text ?? '',
                         keyForList: selectedOption?.keyForList ?? '',
                         isSelected: !isAdmin,
@@ -91,11 +89,11 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     /**
      * Removes a selected option from list if already selected.
      */
-    const unselectOption = (option: Section) => {
+    const unselectOption = (option: ListItem) => {
         if (!newGroupDraft) {
             return;
         }
-        const newSelectedParticipants = newGroupDraft.participants.filter((participant) => participant.login !== option.value);
+        const newSelectedParticipants = newGroupDraft.participants.filter((participant) => participant.login !== option.login);
         Report.setGroupDraft(newSelectedParticipants);
     };
 

@@ -27,6 +27,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
+type SelectedParticipant = {
+    accountID: number;
+    login: string;
+};
+
 type NewChatPageWithOnyxProps = {
     /** All reports shared with the user */
     reports: OnyxCollection<OnyxTypes.Report>;
@@ -185,16 +190,26 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
      * Navigates to create group confirm page
      */
     const navigateToConfirmPage = () => {
-        const selectedParticipants = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
-        if (personalData && personalData.login) {
-            const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
-
-            Report.setGroupDraft(logins);
-            Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
+        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
+        if (!personalData || !personalData.login || !personalData.accountID) {
+            return;
         }
+        const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
+        Report.setGroupDraft(logins);
+        Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
     };
 
     const updateOptions = useCallback(() => {
+        let newSelectedOptions;
+        if (newGroupDraft?.participants) {
+            const selectedParticipants = newGroupDraft?.participants.filter((participant: SelectedParticipant) => participant.accountID !== personalData.accountID);
+            newSelectedOptions = selectedParticipants.map((participant: SelectedParticipant): OptionData => {
+                const baseOption = OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, personalDetails);
+                return {...baseOption, reportID: baseOption.reportID ?? ''};
+            });
+            setSelectedOptions(newSelectedOptions);
+        }
+
         const {
             recentReports,
             personalDetails: newChatPersonalDetails,
@@ -204,7 +219,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             personalDetails,
             betas ?? [],
             searchTerm,
-            selectedOptions,
+            newSelectedOptions ?? selectedOptions,
             isGroupChat ? excludedGroupEmails : [],
             false,
             true,
@@ -216,12 +231,13 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             [],
             true,
         );
+
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
         // props.betas is not added as dependency since it doesn't change during the component lifecycle
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reports, personalDetails, searchTerm]);
+    }, [reports, personalDetails, searchTerm, newGroupDraft]);
 
     useEffect(() => {
         const interactionTask = doInteractionTask(() => {
@@ -242,15 +258,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             return;
         }
         updateOptions();
-        if (newGroupDraft?.participants) {
-            const selectedParticipants = newGroupDraft?.participants.filter((participant: {accountID: number}) => participant.accountID !== personalData.accountID);
-            const options = selectedParticipants.map(
-                (participant: {accountID: number; login: string}) =>
-                    OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, personalDetails) as OptionData,
-            );
-            setSelectedOptions(options);
-        }
-    }, [didScreenTransitionEnd, updateOptions, personalDetails, newGroupDraft?.participants, personalData.accountID]);
+    }, [didScreenTransitionEnd, updateOptions]);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
