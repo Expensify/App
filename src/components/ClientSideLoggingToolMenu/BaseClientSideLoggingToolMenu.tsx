@@ -1,6 +1,7 @@
 import React from 'react';
 import {Alert} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
@@ -9,7 +10,26 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Console from '@libs/actions/Console';
 import {parseStringifyMessages} from '@libs/Console';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BaseClientSideLoggingToolMenuOnyxProps, BaseClientSideLoggingToolProps} from './types';
+import type {CapturedLogs, Log} from '@src/types/onyx';
+
+type BaseClientSideLoggingToolMenuOnyxProps = {
+    /** Logs captured on the current device */
+    capturedLogs: OnyxEntry<CapturedLogs>;
+
+    /** Whether or not logs should be stored */
+    shouldStoreLogs: OnyxEntry<boolean>;
+};
+
+type BaseClientSideLoggingToolProps = {
+    /** Locally created file */
+    file?: {path: string; newFileName: string; size: number};
+    /** Action to run when pressing Share button */
+    onShareLogs?: () => void;
+    /** Action to run when disabling the switch */
+    onDisableLogging: (logs: Log[]) => void;
+    /** Action to run when enabling logging */
+    onEnableLogging?: () => void;
+} & BaseClientSideLoggingToolMenuOnyxProps;
 
 function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging}: BaseClientSideLoggingToolProps) {
     const onToggle = () => {
