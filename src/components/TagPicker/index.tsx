@@ -51,17 +51,17 @@ type TagPickerProps = TagPickerOnyxProps & {
     shouldShowDisabledAndSelectedOption?: boolean;
 
     /** Indicates which tag list index was selected */
-    tagIndex: number;
+    tagListIndex: number;
 };
 
-function TagPicker({selectedTag, tagListName, policyTags, tagIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, insets, onSubmit}: TagPickerProps) {
+function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, insets, onSubmit}: TagPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
-    const policyTagList = PolicyUtils.getTagList(policyTags, tagIndex);
+    const policyTagList = PolicyUtils.getTagList(policyTags, tagListIndex);
     const policyTagsCount = PolicyUtils.getCountOfEnabledTagsOfList(policyTagList.tags);
     const isTagsCountBelowThreshold = policyTagsCount < CONST.TAG_LIST_THRESHOLD;
 

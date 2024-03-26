@@ -19,7 +19,7 @@ const propTypes = {
     tagListName: PropTypes.string,
 
     /** Indicates which tag list index was selected */
-    tagIndex: PropTypes.number.isRequired,
+    tagListIndex: PropTypes.number.isRequired,
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
@@ -29,7 +29,7 @@ const defaultProps = {
     tagListName: '',
 };
 
-function EditRequestTagPage({defaultTag, policyID, tagListName, tagIndex, onSubmit}) {
+function EditRequestTagPage({defaultTag, policyID, tagListName, tagListIndex, onSubmit}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -53,7 +53,7 @@ function EditRequestTagPage({defaultTag, policyID, tagListName, tagIndex, onSubm
                     <TagPicker
                         selectedTag={defaultTag}
                         tagListName={tagListName}
-                        tagIndex={tagIndex}
+                        tagListIndex={tagListIndex}
                         policyID={policyID}
                         shouldShowDisabledAndSelectedOption
                         insets={insets}
