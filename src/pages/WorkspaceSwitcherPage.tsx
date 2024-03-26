@@ -255,7 +255,20 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 )}
             </>
         ),
-        [setSearchTerm, searchTerm, selectPolicy, styles, theme.textSupporting, translate, usersWorkspaces.length, usersWorkspacesSectionData, activeWorkspaceID, theme.icon, headerMessage],
+        [
+            inputCallbackRef,
+            setSearchTerm,
+            searchTerm,
+            selectPolicy,
+            styles,
+            theme.textSupporting,
+            translate,
+            usersWorkspaces.length,
+            usersWorkspacesSectionData,
+            activeWorkspaceID,
+            theme.icon,
+            headerMessage,
+        ],
     );
 
     return (
