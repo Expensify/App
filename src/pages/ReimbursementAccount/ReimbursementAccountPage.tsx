@@ -246,61 +246,66 @@ function ReimbursementAccountPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
-    useEffect(() => {
-        // Check for network change from offline to online
-        if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            fetchData();
-        }
-
-        if (!hasACHDataBeenLoaded) {
-            if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount?.isLoading === false) {
-                setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
-                setHasACHDataBeenLoaded(true);
+    useEffect(
+        () => {
+            // Check for network change from offline to online
+            if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                fetchData();
             }
-            return;
-        }
 
-        if (
-            prevReimbursementAccount &&
-            prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction
-        ) {
-            setShouldShowContinueSetupButton(hasInProgressVBBA());
-        }
+            if (!hasACHDataBeenLoaded) {
+                if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount.isLoading === false) {
+                    setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
+                    setHasACHDataBeenLoaded(true);
+                }
+                return;
+            }
 
-        if (shouldShowContinueSetupButton) {
-            return;
-        }
+            if (
+                prevReimbursementAccount &&
+                prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                reimbursementAccount.pendingAction !== prevReimbursementAccount.pendingAction
+            ) {
+                setShouldShowContinueSetupButton(hasInProgressVBBA());
+            }
 
-        const currentStepRouteParam = getStepToOpenFromRouteParams(route);
-        if (currentStepRouteParam === currentStep) {
-            // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
-            if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+            if (shouldShowContinueSetupButton) {
+                return;
+            }
+
+            const currentStepRouteParam = getStepToOpenFromRouteParams(route);
+            if (currentStepRouteParam === currentStep) {
+                // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
+                if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+                    BankAccounts.hideBankAccountErrors();
+                }
+
+                // The route is showing the correct step, no need to update the route param or clear errors.
+                return;
+            }
+
+            // Update the data that is returned from back-end to draft value
+            const draftStep = reimbursementAccount.draftStep;
+            if (draftStep) {
+                BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
+            }
+
+            if (currentStepRouteParam !== '') {
+                // When we click "Connect bank account", we load the page without the current step param, if there
+                // was an error when we tried to disconnect or start over, we want the user to be able to see the error,
+                // so we don't clear it. We only want to clear the errors if we are moving between steps.
                 BankAccounts.hideBankAccountErrors();
             }
 
-            // The route is showing the correct step, no need to update the route param or clear errors.
-            return;
-        }
+            // eslint-disable-next-line no-shadow, @typescript-eslint/no-shadow
+            const policyID = route.params.policyID;
+            const backTo = route.params.backTo;
 
-        // Update the data that is returned from back-end to draft value
-        const draftStep = reimbursementAccount?.draftStep;
-        if (draftStep) {
-            BankAccounts.updateReimbursementAccountDraft(getBankAccountFields(getFieldsForStep(draftStep)));
-        }
-
-        if (currentStepRouteParam !== '') {
-            // When we click "Connect bank account", we load the page without the current step param, if there
-            // was an error when we tried to disconnect or start over, we want the user to be able to see the error,
-            // so we don't clear it. We only want to clear the errors if we are moving between steps.
-            BankAccounts.hideBankAccountErrors();
-        }
-
-        const backTo = route.params?.backTo;
-
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyID, backTo));
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton]);
+        [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
+    );
 
     const continueFunction = () => {
         BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
@@ -428,9 +433,7 @@ function ReimbursementAccountPage({
                 reimbursementAccount={reimbursementAccount}
                 continueFunction={continueFunction}
                 policyName={policyName}
-                onBackButtonPress={() => {
-                    Navigation.goBack();
-                }}
+                onBackButtonPress={Navigation.goBack}
             />
         );
     }

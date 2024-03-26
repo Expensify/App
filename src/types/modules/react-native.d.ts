@@ -283,14 +283,9 @@ declare module 'react-native' {
      * Extracted from react-native-web, packages/react-native-web/src/exports/TextInput/types.js
      */
     interface WebTextInputProps extends WebSharedProps {
-        dir?: 'auto' | 'ltr' | 'rtl';
         disabled?: boolean;
-        enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send';
-        readOnly?: boolean;
     }
     interface TextInputProps extends WebTextInputProps {
-        // TODO: remove once the app is updated to RN 0.73
-        smartInsertDelete?: boolean;
         isFullComposerAvailable?: boolean;
     }
 
@@ -334,6 +329,14 @@ declare module 'react-native' {
         onPressEnd?: null | ((event: GestureResponderEvent) => void);
     }
     interface PressableProps extends WebPressableProps {}
+
+    interface AppStateStatic {
+        emitCurrentTestState: (status: string) => void;
+    }
+
+    interface LinkingStatic {
+        setInitialURL: (url: string) => void;
+    }
 
     /**
      * Styles

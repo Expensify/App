@@ -248,6 +248,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
         <ScreenWrapper
+            shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageInner.displayName}

@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
 import * as API from '@libs/API';
 import type {
     AddPersonalBankAccountParams,
@@ -29,7 +30,6 @@ export {
     resetReimbursementAccount,
     resetFreePlanBankAccount,
     hideBankAccountErrors,
-    setWorkspaceIDForReimbursementAccount,
     setBankAccountSubStep,
     updateReimbursementAccountDraft,
     requestResetFreePlanBankAccount,
@@ -436,7 +436,7 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
 /**
  * Verify the user's identity via Onfido
  */
-function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: Record<string, unknown>, policyID: string) {
+function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID: string) {
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),

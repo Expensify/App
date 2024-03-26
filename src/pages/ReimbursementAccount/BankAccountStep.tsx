@@ -1,7 +1,6 @@
 import React from 'react';
-import {ScrollView, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -10,6 +9,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -132,6 +132,7 @@ function BankAccountStep({
                         )}
                         <Button
                             icon={Expensicons.Bank}
+                            iconStyles={[styles.customMarginButtonWithMenuItem]}
                             text={translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => {
                                 if (!!isPlaidDisabled || !user?.validated) {
@@ -140,12 +141,11 @@ function BankAccountStep({
                                 removeExistingBankAccountDetails();
                                 BankAccounts.openPlaidView();
                             }}
-                            isDisabled={!!isPlaidDisabled || !user?.validated}
-                            style={styles.mt4}
-                            iconStyles={styles.buttonCTAIcon}
+                            isDisabled={!!isPlaidDisabled || !user.validated}
+                            style={[styles.mt4]}
                             shouldShowRightIcon
                             success
-                            large
+                            innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                         />
                         <View style={styles.mv3}>
                             <MenuItem
@@ -181,7 +181,7 @@ function BankAccountStep({
                         </View>
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href="https://use.expensify.com/privacy">{translate('common.privacy')}</TextLink>
+                        <TextLink href={CONST.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
                             onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
                             style={[styles.flexRow, styles.alignItemsCenter]}

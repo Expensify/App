@@ -2,7 +2,7 @@ import _ from 'lodash';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {ActivityIndicator, Dimensions, ScrollView, View} from 'react-native';
+import {ActivityIndicator, Dimensions, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import Button from '@components/Button';
@@ -18,6 +18,7 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Popover from '@components/Popover';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -37,12 +38,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
-import type {WalletPageOnyxProps, WalletPageProps} from './types';
+import type {FormattedSelectedPaymentMethodIcon, WalletPageOnyxProps, WalletPageProps} from './types';
 
 type FormattedSelectedPaymentMethod = {
     title: string;
-    icon?: IconAsset;
+    icon?: FormattedSelectedPaymentMethodIcon;
     description?: string;
     type?: string;
 };
@@ -75,7 +75,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     });
 
     const addPaymentMethodAnchorRef = useRef(null);
-    const paymentMethodButtonRef = useRef<HTMLElement | null>(null);
+    const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
         anchorPositionVertical: 0,
@@ -151,7 +151,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
         nativeEvent?: GestureResponderEvent | KeyboardEvent,
         accountType?: string,
         account?: AccountData,
-        icon?: IconAsset,
+        icon?: FormattedSelectedPaymentMethodIcon,
         isDefault?: boolean,
         methodID?: string | number,
     ) => {
@@ -164,7 +164,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLElement;
+        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
 
         // The delete/default menu
         if (accountType) {
@@ -396,7 +396,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                             )}
 
                                             <KYCWall
-                                                // eslint-disable-next-line @typescript-eslint/naming-convention
                                                 onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={(selectedPaymentMethod: string) => {
                                                     if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
@@ -538,10 +537,14 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                 {isPopoverBottomMount && (
                                     <MenuItem
                                         title={paymentMethod.formattedSelectedPaymentMethod.title}
-                                        icon={paymentMethod.formattedSelectedPaymentMethod.icon}
+                                        icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
+                                        iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
+                                        iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
+                                        iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
                                         description={paymentMethod.formattedSelectedPaymentMethod.description}
                                         wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
                                         interactive={false}
+                                        displayInDefaultIconColor
                                     />
                                 )}
                                 {shouldShowMakeDefaultButton && (

@@ -15,9 +15,11 @@ function TableListItem({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    checkmarkPosition,
 }: TableListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -29,17 +31,19 @@ function TableListItem({
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[[styles.selectionListPressableItemWrapper, isFocused && styles.activeComponentBG]]}
-            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter, isFocused && styles.sidebarLinkActive]}
+            pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive]]}
+            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
             selectMultipleStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
+            checkmarkPosition={checkmarkPosition}
             errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
@@ -60,8 +64,8 @@ function TableListItem({
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
-                            text={item.text}
-                            textStyles={[
+                            text={item.text ?? ''}
+                            style={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                                 styles.sidebarLinkTextBold,
@@ -74,7 +78,7 @@ function TableListItem({
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
                                 text={item.alternateText}
-                                textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}
                     </View>

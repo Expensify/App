@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import lodashIsEmpty from 'lodash/isEmpty';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -14,6 +15,8 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -46,6 +49,18 @@ const propTypes = {
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /** The actions from the parent report */
+    reportActions: PropTypes.shape(reportActionPropTypes),
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -55,28 +70,34 @@ const defaultProps = {
     policy: null,
     policyTags: null,
     policyCategories: null,
+    reportActions: {},
 };
 
 function IOURequestStepCategory({
     report,
     route: {
-        params: {transactionID, backTo, action, iouType},
+        params: {transactionID, backTo, action, iouType, reportActionID},
     },
     transaction,
     splitDraftTransaction,
     policy,
     policyTags,
     policyCategories,
+    session,
+    reportActions,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
-    const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditingSplitBill ? splitDraftTransaction : transaction);
+    const {category: transactionCategory} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
-    const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
+    const reportAction = reportActions[report.parentReportActionID || reportActionID];
+    const shouldShowCategory = ReportUtils.isGroupPolicy(report) && (transactionCategory || OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const canEditSplitBill = isSplitBill && reportAction && session.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !isPolicyExpenseChat || (!transactionCategory && !OptionsListUtils.hasEnabledOptions(_.values(policyCategories)));
+    const shouldShowNotFoundPage = !shouldShowCategory || (isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction)));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -92,7 +113,7 @@ function IOURequestStepCategory({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction.transactionID, {category: category.searchText});
+            IOU.setDraftSplitTransaction(transaction.transactionID, {category: updatedCategory});
             navigateBack();
             return;
         }
@@ -147,6 +168,24 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        reportActions: {
+            key: ({
+                report,
+                route: {
+                    params: {action, iouType},
+                },
+            }) => {
+                let reportID = '0';
+                if (action === CONST.IOU.ACTION.EDIT) {
+                    reportID = iouType === CONST.IOU.TYPE.SPLIT ? report.reportID : report.parentReportID;
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+            },
+            canEvict: false,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(IOURequestStepCategory);

@@ -143,6 +143,14 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}
                     getItemType={getItemType}
+                    overrideProps={{
+                        // scrollPaddingTop set to consider sticky header while scrolling, https://github.com/Expensify/App/issues/36883
+                        style: {
+                            minHeight: 1,
+                            minWidth: 1,
+                            scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT,
+                        },
+                    }}
                 />
             </View>
             <EmojiSkinToneList />

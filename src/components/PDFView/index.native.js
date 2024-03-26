@@ -104,12 +104,14 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     /**
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
+     * @param {Number} numberOfPages
+     * @param {Number} path - Path to cache location
      */
-    const finishPDFLoad = () => {
+    const finishPDFLoad = (numberOfPages, path) => {
         setShouldRequestPassword(false);
         setShouldShowLoadingIndicator(false);
         setSuccessToLoadPDF(true);
-        onLoadComplete();
+        onLoadComplete(path);
     };
 
     function renderPDFView() {
@@ -137,7 +139,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                         fitPolicy={0}
                         trustAllCerts={false}
                         renderActivityIndicator={() => <FullScreenLoadingIndicator />}
-                        source={{uri: sourceURL}}
+                        source={{uri: sourceURL, cache: true, expiration: 864000}}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}
                         password={password}

@@ -18,7 +18,7 @@ type NotificationPreferencePageProps = WithReportOrNotFoundProps & StackScreenPr
 
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const {translate} = useLocalize();
-    const shouldDisableNotificationPreferences = ReportUtils.isArchivedRoom(report);
+    const shouldDisableNotificationPreferences = ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report);
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
         .filter((pref) => pref !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
         .map((preference) => ({

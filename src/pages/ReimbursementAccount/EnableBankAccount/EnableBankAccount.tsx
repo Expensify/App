@@ -1,5 +1,4 @@
 import React from 'react';
-import {ScrollView} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -10,6 +9,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -93,7 +93,6 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
                                 }}
                                 icon={Expensicons.Mail}
                                 style={[styles.mt4]}
-                                iconStyles={[styles.buttonCTAIcon]}
                                 shouldShowRightIcon
                                 large
                                 success

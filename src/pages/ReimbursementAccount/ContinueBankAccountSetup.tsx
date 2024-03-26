@@ -1,5 +1,4 @@
 import React from 'react';
-import {ScrollView} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +7,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -61,13 +61,13 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
                     >
                         <Text>{translate('workspace.bankAccount.youreAlmostDone')}</Text>
                         <Button
+                            iconStyles={[styles.customMarginButtonWithMenuItem]}
                             text={translate('workspace.bankAccount.continueWithSetup')}
                             onPress={continueFunction}
                             icon={Expensicons.Bank}
-                            style={styles.mv4}
-                            iconStyles={styles.buttonCTAIcon}
+                            style={[styles.mv4]}
                             shouldShowRightIcon
-                            large
+                            innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                             success
                             isDisabled={!!pendingAction || !isEmptyObject(errors)}
                         />
