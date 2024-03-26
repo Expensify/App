@@ -4,7 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 type VideoPlayerProps = {
     url: string;
-    onVideoLoaded: (e: VideoReadyForDisplayEvent) => void;
+    onVideoLoaded?: (event: VideoReadyForDisplayEvent) => void;
     resizeMode?: string;
     isLooping?: boolean;
     // style for the whole video player component
@@ -16,11 +16,11 @@ type VideoPlayerProps = {
     videoControlsStyle?: StyleProp<ViewStyle>;
     videoDuration: number;
     shouldUseSharedVideoElement?: boolean;
-    shouldUseSmallVideoControls: boolean;
+    shouldUseSmallVideoControls?: boolean;
     shouldShowVideoControls?: boolean;
     isVideoHovered?: boolean;
-    onFullscreenUpdate?: (e: VideoFullscreenUpdateEvent) => void;
-    onPlaybackStatusUpdate?: (e: AVPlaybackStatus) => void;
+    onFullscreenUpdate?: (event: VideoFullscreenUpdateEvent) => void;
+    onPlaybackStatusUpdate?: (status: AVPlaybackStatus) => void;
 };
 
 export default VideoPlayerProps;

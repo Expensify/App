@@ -25,7 +25,7 @@ const isMobileSafari = Browser.isMobileSafari();
 function BaseVideoPlayer({
     url,
     resizeMode = ResizeMode.CONTAIN,
-    onVideoLoaded,
+    onVideoLoaded = () => {},
     isLooping = false,
     style,
     videoPlayerStyle,
@@ -142,7 +142,7 @@ function BaseVideoPlayer({
         (event: VideoFullscreenUpdateEvent) => {
             onFullscreenUpdate(event);
 
-            setIsFullscreen(e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_PRESENT);
+            setIsFullscreen(event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_PRESENT);
 
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
