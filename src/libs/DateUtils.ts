@@ -777,6 +777,8 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
  * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
  */
 function getFormattedDateRange(date1: Date, date2: Date): string {
+    const {translateLocal} = Localize;
+
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
         return format(date1, 'MMM d');
@@ -787,10 +789,10 @@ function getFormattedDateRange(date1: Date, date2: Date): string {
     }
     if (isSameYear(date1, date2)) {
         // Dates are in the same year, differ by months
-        return `${format(date1, 'MMM d')} to ${format(date2, 'MMM d')}`;
+        return `${format(date1, 'MMM d')} ${translateLocal('common.to').toLowerCase()} ${format(date2, 'MMM d')}`;
     }
     // Dates differ by years, months, days
-    return `${format(date1, 'MMM d, yyyy')} to ${format(date2, 'MMM d, yyyy')}`;
+    return `${format(date1, 'MMM d, yyyy')} ${translateLocal('common.to').toLowerCase()} ${format(date2, 'MMM d, yyyy')}`;
 }
 
 const DateUtils = {
