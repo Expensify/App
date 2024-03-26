@@ -22,7 +22,7 @@ const useEmojiPickerMenu = () => {
     const isListFiltered = allEmojis.length !== filteredEmojis.length;
     const {preferredLocale} = useLocalize();
     const [preferredSkinTone] = usePreferredEmojiSkinTone();
-    const {windowHeight} = useWindowDimensions(true);
+    const {windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     // calculate the height of the emoji picker based popoverInnerContainer style has maxHeight is 95%
     const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight * 0.95);
