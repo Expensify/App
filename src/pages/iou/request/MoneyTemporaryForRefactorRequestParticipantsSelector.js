@@ -96,6 +96,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const actionTypeForParticipants = iouType === CONST.IOU.TYPE.REQUEST && participants.length > 0 ? CONST.IOU.TYPE.SPLIT : iouRequestType;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
 
     /**
@@ -131,6 +132,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             [],
             canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
+            false,
+            {},
+            false,
+            actionTypeForParticipants,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
@@ -180,7 +185,20 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, canUseP2PDistanceRequests, translate]);
+    }, [
+        didScreenTransitionEnd,
+        reports,
+        personalDetails,
+        betas,
+        searchTerm,
+        participants,
+        iouType,
+        iouRequestType,
+        maxParticipantsReached,
+        canUseP2PDistanceRequests,
+        translate,
+        actionTypeForParticipants,
+    ]);
 
     /**
      * Adds a single participant to the request

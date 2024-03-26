@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, IOUActionType, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
@@ -53,6 +53,10 @@ function isScanRequest(transaction: Transaction): boolean {
     return Boolean(transaction?.receipt?.source);
 }
 
+function isSplitRequest(transaction: Transaction): boolean {
+    return Boolean(transaction?.comment?.source === CONST.IOU.TYPE.SPLIT);
+}
+
 function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
     if (isDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;
@@ -70,6 +74,28 @@ function isManualRequest(transaction: Transaction): boolean {
     }
 
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+/**
+ * Returns the type of action for the given transaction
+ */
+function getTransactionActionType(transaction: Transaction): IOUActionType {
+    if (isSplitRequest(transaction)) {
+        return CONST.IOU.TYPE.SPLIT;
+    }
+    return getRequestType(transaction);
+}
+
+/**
+ * Returns a sorted array of transactions based on the type of action
+ */
+function getTransactionsByActionType(actionType?: IOUActionType): Array<OnyxEntry<Transaction>> {
+    return (
+        Object.values(allTransactions ?? {})
+            .filter((transaction): transaction is Transaction => transaction != null && actionType === getTransactionActionType(transaction))
+            // String based sorting of dates having format [YYYY-MM-DD HH:MM:SS.mmm]
+            .sort((transactionA, transactionB) => (transactionA?.created && transactionB?.created && transactionA?.created < transactionB?.created ? 1 : -1))
+    );
 }
 
 /**
@@ -594,6 +620,7 @@ export {
     getRequestType,
     isManualRequest,
     isScanRequest,
+    isSplitRequest,
     getAmount,
     getCurrency,
     getDistance,
@@ -633,6 +660,8 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    getTransactionsByActionType,
+    getTransactionActionType,
 };
 
 export type {TransactionChanges};
