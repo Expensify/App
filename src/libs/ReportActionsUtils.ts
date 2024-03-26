@@ -262,8 +262,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?: string): ReportAction[] {
     let index;
 
-    console.log('RORY_DEBUG sortedReportActions', sortedReportActions);
-
     if (id) {
         index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
     } else {
@@ -313,8 +311,6 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     ) {
         startIndex--;
     }
-
-    console.log('RORY_DEBUG continuous reportAction chain', sortedReportActions.slice(startIndex, endIndex + 1));
 
     return sortedReportActions.slice(startIndex, endIndex + 1);
 }
