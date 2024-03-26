@@ -4397,6 +4397,11 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 4,
         },
 
+        walletCardLimit: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         walletCard: {
             borderRadius: variables.componentBorderRadiusLarge,
             position: 'relative',

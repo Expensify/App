@@ -111,7 +111,12 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
-    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: undefined;
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
+        /** domain passed via route /settings/wallet/card/:domain/:card */
+        domain: string;
+        /** cardId passed via route /settings/wallet/card/:domain/:card */
+        cardId: string;
+    };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: undefined;
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: undefined;
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {

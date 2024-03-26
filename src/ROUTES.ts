@@ -84,8 +84,8 @@ const ROUTES = {
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
     SETTINGS_WALLET_DOMAINCARD: {
-        route: 'settings/wallet/card/:domain',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}` as const,
+        route: 'settings/wallet/card/:domain/:cardId',
+        getRoute: (domain: string, cardId: string) => `settings/wallet/card/${domain}/${cardId}` as const,
     },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:domain/report-virtual-fraud',
