@@ -43,10 +43,7 @@ function SetTimePage({customStatus}: SetTimePageProps) {
             />
             <View style={styles.flex1}>
                 <TimePicker
-                    // @ts-expect-error TODO: remove this comment once TimePicker (https://github.com/Expensify/App/issues/36129) is migrated to TS
-                    inputID="timePicker"
                     defaultValue={clearAfter}
-                    style={styles.flexGrow1}
                     onSubmit={onSubmit}
                 />
             </View>

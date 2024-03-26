@@ -31,6 +31,7 @@ type StatusType = {
 };
 
 type StatusClearAfterPageOnyxProps = {
+    /** User's custom status */
     customStatus: OnyxEntry<OnyxTypes.CustomStatusDraft>;
 };
 
@@ -61,8 +62,8 @@ const useValidateCustomDate = (data: string) => {
         setCustomTimeError(timeValidationErrorKey);
 
         return {
-            dateValidationErrorKey,
-            timeValidationErrorKey,
+            dateError: dateValidationErrorKey,
+            timeError: timeValidationErrorKey,
         };
     };
 
@@ -109,7 +110,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
     );
 
     const onSubmit = () => {
-        const {dateValidationErrorKey: dateError, timeValidationErrorKey: timeError} = validateCustomDate();
+        const {dateError, timeError} = validateCustomDate();
         if (dateError || timeError) {
             return;
         }
@@ -118,7 +119,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
             calculatedDraftDate = draftClearAfter;
         } else {
             const selectedRange = statusType.find((item) => item.isSelected);
-            calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? 'never');
+            calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
         }
         User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
@@ -135,7 +136,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
                 User.updateDraftCustomStatus({clearAfter: DateUtils.getOneHourFromNow()});
             } else {
                 const selectedRange = statusType.find((item) => item.value === mode.value);
-                const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? 'never');
+                const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
                 User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
             }
