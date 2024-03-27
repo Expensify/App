@@ -9,7 +9,7 @@
 
 "use strict";
 __nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _libs_CONST__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(9873);
+/* harmony import */ var _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(9873);
 /* module decorator */ module = __nccwpck_require__.hmd(module);
 // eslint-disable-next-line import/no-import-module-exports
 
@@ -83,8 +83,8 @@ async function run() {
     const comments = await GithubUtils.paginate(
         GithubUtils.octokit.issues.listComments,
         {
-            owner: _libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
-            repo: _libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
+            owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
+            repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
             issue_number: PR_NUMBER,
             per_page: 100,
         },
