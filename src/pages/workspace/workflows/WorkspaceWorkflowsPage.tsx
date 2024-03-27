@@ -84,9 +84,9 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, addressName, bankName} = policy?.achAccount ?? {};
         const hasVBA = !!policy?.achAccount;
-        let bankDisplayName = bankName || addressName;
+        let bankDisplayName = bankName ?? addressName;
         if (accountNumber && bankDisplayName !== accountNumber) {
-            bankDisplayName += ' ' + accountNumber.slice(-5);
+            bankDisplayName += ` ${accountNumber.slice(-5)}`;
         }
         const hasReimburserEmailError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
