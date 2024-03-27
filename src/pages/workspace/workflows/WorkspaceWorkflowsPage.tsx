@@ -55,9 +55,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
 
     const displayNameForAuthorizedPayer = useMemo(() => {
-        const displayNameFromReimburserEmail = PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser;
-        return displayNameFromReimburserEmail;
-    }, [policy?.achAccount?.reimburser, session?.accountID]);
+        return PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser;
+    }, [policy?.achAccount?.reimburser]);
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
@@ -235,7 +234,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
         preferredLocale,
         canUseDelayedSubmission,
         displayNameForAuthorizedPayer,
-        session?.accountID,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
