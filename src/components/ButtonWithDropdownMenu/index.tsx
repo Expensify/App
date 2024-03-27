@@ -76,7 +76,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         ref={buttonRef}
                         onPress={(event) => onPress(event, selectedItem.value)}
                         text={customText ?? selectedItem.text}
-                        isDisabled={isDisabled}
+                        isDisabled={isDisabled || !!selectedItem.disabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
