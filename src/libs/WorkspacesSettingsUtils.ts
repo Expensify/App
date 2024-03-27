@@ -12,7 +12,6 @@ import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
-import {convertToDisplayString} from "./CurrencyUtils";
 
 type CheckingMethod = () => boolean;
 
