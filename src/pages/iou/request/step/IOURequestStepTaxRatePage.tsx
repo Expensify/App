@@ -92,14 +92,15 @@ function IOURequestStepTaxRatePage({
 
 IOURequestStepTaxRatePage.displayName = 'IOURequestStepTaxRatePage';
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepTaxRatePageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxRatePageWithWritableReportOrNotFound);
-
-export default withOnyx<IOURequestStepTaxRatePageProps, IOURequestStepTaxRatePageOnyxProps>({
+const IOURequestStepTaxRatePageWithOnyx = withOnyx<IOURequestStepTaxRatePageProps, IOURequestStepTaxRatePageOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
     },
-    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
-})(IOURequestStepTaxRatePageWithFullTransactionOrNotFound);
+})(IOURequestStepTaxRatePage);
+
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePageWithOnyx);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepTaxRatePageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxRatePageWithWritableReportOrNotFound);
+
+export default IOURequestStepTaxRatePageWithFullTransactionOrNotFound;
