@@ -1473,7 +1473,7 @@ function canShowReportRecipientLocalTime(personalDetails: OnyxCollection<Persona
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
     const reportRecipientTimezone = reportRecipient?.timezone ?? CONST.DEFAULT_TIME_ZONE;
     const isReportParticipantValidated = reportRecipient?.validated ?? false;
-    return Boolean(!hasMultipleParticipants && !isChatRoom(report) && !isPolicyExpenseChat(report) && reportRecipient && reportRecipientTimezone?.selected && isReportParticipantValidated);
+    return Boolean(!hasMultipleParticipants && !isChatRoom(report) && !isPolicyExpenseChat(getRootParentReport(report)) && reportRecipient && reportRecipientTimezone?.selected && isReportParticipantValidated);
 }
 
 /**
