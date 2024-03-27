@@ -276,6 +276,11 @@ function goBackFromInvalidPolicy() {
     Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
 }
 
+/** Get a tax with given ID from policy */
+function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefined {
+    return policy?.taxRates?.taxes?.[taxID];
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -307,6 +312,7 @@ export {
     getPolicyMembersByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
     hasTaxRateError,
+    getTaxByID,
     hasPolicyCategoriesError,
 };
 
