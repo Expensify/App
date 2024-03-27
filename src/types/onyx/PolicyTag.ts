@@ -26,7 +26,7 @@ type PolicyTagList<T extends string = string> = Record<
         /** Flag that determines if tags are required */
         required: boolean;
 
-        /** Nested tags */
+        /** List of tags */
         tags: PolicyTags;
 
         /** Index by which the tag appears in the hierarchy of tags */

@@ -335,7 +335,7 @@ const CONST = {
         TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
-        ACCOUNTING: 'accounting',
+        ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1501,6 +1501,15 @@ const CONST = {
             DELETE: 'delete',
             DISABLE: 'disable',
             ENABLE: 'enable',
+        },
+        OWNERSHIP_ERRORS: {
+            NO_BILLING_CARD: 'noBillingCard',
+            AMOUNT_OWED: 'amountOwed',
+            HAS_FAILED_SETTLEMENTS: 'hasFailedSettlements',
+            OWNER_OWES_AMOUNT: 'ownerOwesAmount',
+            SUBSCRIPTION: 'subscription',
+            DUPLICATE_SUBSCRIPTION: 'duplicateSubscription',
+            FAILED_TO_CLEAR_BALANCE: 'failedToClearBalance',
         },
         TAX_RATES_BULK_ACTION_TYPES: {
             DELETE: 'delete',
