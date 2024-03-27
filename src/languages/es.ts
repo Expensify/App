@@ -1024,12 +1024,12 @@ export default {
         expensifyCard: 'Tarjeta Expensify',
         walletActivationPending: 'Estamos revisando su información, por favor vuelve en unos minutos.',
         walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
-        // TODO: spanish translations
-        addBankAccountBody: "Let's connect your bank account to Expensify so it’s easier than ever to send and receive payments directly in the app.",
-        chooseYourBankAccount: 'Choose your bank account.',
-        chooseAccountBody: 'Make sure that you select the right one.',
-        confirmYourBankAccount: 'Confirm your bank account.',
-        letsDoubleCheck: "Let's double check that everything looks right.",
+        addYourBankAccount: 'Añadir tu cuenta bancaria.',
+        addBankAccountBody: 'Conectemos tu cuenta bancaria a Expensify para que sea más fácil que nunca enviar y recibir pagos directamente en la aplicación.',
+        chooseYourBankAccount: 'Elige tu cuenta bancaria.',
+        chooseAccountBody: 'Asegúrese de elegir el adecuado.',
+        confirmYourBankAccount: 'Confirma tu cuenta bancaria.',
+        letsDoubleCheck: 'Comprobemos que todo se ve bien.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -1422,28 +1422,18 @@ export default {
         manuallyAdd: 'Añadir manualmente tu cuenta bancaria',
         letsDoubleCheck: 'Verifiquemos que todo esté correcto.',
         accountEnding: 'Cuenta terminada en',
-        // TODO: change for Spanish transations
-        sendAndReceiveMoney: 'Send and receive money',
         thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo',
-        // TODO: change for Spanish transations
-        addBankAccountBody: 'Add your bank account and we’ll connect it to your Expensify Wallet so you can send and receive money right in the app.',
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',
         chooseAnAccountBelow: 'Elige una cuenta a continuación',
         addBankAccount: 'Añadir cuenta bancaria',
-        // TODO: check Spanish translation
-        addYourBankAccount: 'Añadir tu cuenta bancaria',
         chooseAnAccount: 'Elige una cuenta',
-        // TODO: check Spanish translation
-        chooseYourBankAccount: 'Elige tu cuenta bancaria',
         connectOnlineWithPlaid: 'Conéctate a Plaid online',
         connectManually: 'Conectar manualmente',
         desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haga clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
-        // TODO: change for Spanish translation
-        chooseAccountBody: 'Make sure that you select the right one.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
         validateAccountError: {
             phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',

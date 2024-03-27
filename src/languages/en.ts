@@ -1404,7 +1404,6 @@ export default {
         letsDoubleCheck: "Let's double check that everything looks right.",
         accountEnding: 'Account ending in',
         thisBankAccount: 'This bank account will be used for business payments on your workspace',
-        addBankAccountBody: "Let's connect your bank account to Expensify so it’s easier than ever to send and receive payments directly in the app.",
         accountNumber: 'Account number',
         routingNumber: 'Routing number',
         chooseAnAccountBelow: 'Choose an account below',
