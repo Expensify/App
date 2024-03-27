@@ -40,6 +40,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
@@ -364,6 +365,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
                     options={onboardingScreenOptions}
                     component={WelcomeVideoModalNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
+                    options={onboardingScreenOptions}
+                    component={ExplanationModalNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}

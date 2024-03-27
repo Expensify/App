@@ -671,6 +671,7 @@ const ROUTES = {
     ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
     ONBOARDING_PURPOSE: 'onboarding/purpose',
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
+    EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',

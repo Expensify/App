@@ -9,5 +9,6 @@ export default {
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
     ONBOARDING_MODAL_NAVIGATOR: 'OnboardingModalNavigator',
     WELCOME_VIDEO_MODAL_NAVIGATOR: 'WelcomeVideoModalNavigator',
+    EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
     FULL_SCREEN_NAVIGATOR: 'FullScreenNavigator',
 } as const;

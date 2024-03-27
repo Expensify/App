@@ -1292,6 +1292,11 @@ export default {
     },
     onboarding: {
         welcome: 'Welcome!',
+        explanationModal: {
+            title: 'Welcome to Expensify',
+            description1: 'Request and send money is just as easy as sending a message. The new era of expensing is upon us.',
+            description2: 'To switch back to Expensify Classic, just tap your profile picture > Go to Expensify Classic'
+        },
         welcomeVideo: {
             title: 'Welcome to Expensify',
             description: 'Getting paid is as easy as sending a message.',
