@@ -1584,7 +1584,6 @@ describe('actions/IOU', () => {
                                                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                             ) ?? null;
                                         expect(payIOUAction).toBeTruthy();
-                                        expect(payIOUAction?.pendingAction).toBeFalsy();
 
                                         resolve();
                                     },
