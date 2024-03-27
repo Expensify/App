@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';

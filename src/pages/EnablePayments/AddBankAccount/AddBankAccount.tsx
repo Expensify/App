@@ -10,9 +10,6 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import SetupMethod from '@pages/EnablePayments/AddBankAccount/SetupMethod';
-import Confirmation from '@pages/EnablePayments/AddBankAccount/substeps/Confirmation';
-import Plaid from '@pages/EnablePayments/AddBankAccount/substeps/Plaid';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -20,6 +17,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
+import SetupMethod from './SetupMethod';
+import Confirmation from './substeps/Confirmation';
+import Plaid from './substeps/Plaid';
 
 type AddPersonalBankAccountPageWithOnyxProps = {
     /** Contains plaid data */

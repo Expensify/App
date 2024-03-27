@@ -397,7 +397,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
 
                                             <KYCWall
                                                 onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
-                                                onSelectPaymentMethod={()=> Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT)}
+                                                onSelectPaymentMethod={() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT)}
                                                 enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
                                                 addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
