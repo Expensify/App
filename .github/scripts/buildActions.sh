@@ -10,7 +10,7 @@ ACTIONS_DIR="$(dirname "$(dirname "$0")")/actions/javascript"
 # List of paths to all JS files that implement our GH Actions
 declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/awaitStagingDeploys/awaitStagingDeploys.js"
-    "$ACTIONS_DIR/bumpVersion/bumpVersion.js"
+    "$ACTIONS_DIR/bumpVersion/bumpVersion.ts"
     "$ACTIONS_DIR/checkDeployBlockers/checkDeployBlockers.js"
     "$ACTIONS_DIR/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy.js"
     "$ACTIONS_DIR/getDeployPullRequestList/getDeployPullRequestList.js"
@@ -18,7 +18,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/getPullRequestDetails/getPullRequestDetails.js"
     "$ACTIONS_DIR/getReleaseBody/getReleaseBody.js"
     "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.js"
-    "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.js"
+    "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"
     "$ACTIONS_DIR/postTestBuildComment/postTestBuildComment.js"
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.js"
     "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.js"
@@ -43,7 +43,7 @@ for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
   ACTION_DIR=$(dirname "$ACTION")
 
   # Build the action in the background
-  ncc build "$ACTION" -o "$ACTION_DIR" &
+  ncc build -t "$ACTION" -o "$ACTION_DIR" &
   ASYNC_BUILDS[i]=$!
 done
 
