@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle, WebStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
+import type {MergeExclusive} from 'type-fest';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
@@ -14,27 +15,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 
-type RequiredIllustrationProps =
-    | {
-          /** Expensicon for the page */
-          icon: React.FC<SvgProps> | ImageSourcePropType;
-
-          /**
-           * Animation for the page
-           * If icon is provided, animation is not required
-           */
-          animation?: DotLottieAnimation;
-      }
-    | {
-          /** Animation for the page */
-          animation: DotLottieAnimation;
-
-          /**
-           * Expensicon for the page
-           * If animation is provided, icon is not required
-           */
-          icon?: React.FC<SvgProps> | ImageSourcePropType;
-      };
+/**
+ * This page requires either an icon or an animation, but not both
+ */
+type RequiredIllustrationProps = MergeExclusive<
+    {
+        /** Expensicon for the page */
+        icon: React.FC<SvgProps> | ImageSourcePropType;
+    },
+    {
+        /** Animation for the page */
+        animation: DotLottieAnimation;
+    }
+>;
 
 type BlockingViewProps = RequiredIllustrationProps & {
     /** Color for the icon (should be from theme) */
@@ -71,7 +64,7 @@ type BlockingViewProps = RequiredIllustrationProps & {
     animationWebStyle?: WebStyle;
 
     /** Render custom subtitle */
-    renderCustomSubtitle?: () => React.ReactElement;
+    CustomSubtitle?: React.ReactElement;
 };
 
 function BlockingView({
@@ -88,12 +81,13 @@ function BlockingView({
     shouldEmbedLinkWithSubtitle = false,
     animationStyles = [],
     animationWebStyle = {},
-    renderCustomSubtitle,
+    CustomSubtitle,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    function renderContent() {
-        return (
+
+    const subtitleText: React.ReactElement = useMemo(
+        () => (
             <>
                 <AutoEmailLink
                     style={[styles.textAlignCenter]}
@@ -108,19 +102,20 @@ function BlockingView({
                     </TextLink>
                 ) : null}
             </>
-        );
-    }
+        ),
+        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate],
+    );
 
-    function renderSubtitle() {
-        if (renderCustomSubtitle) {
-            return renderCustomSubtitle();
+    const subtitleContent: React.ReactElement = useMemo(() => {
+        if (CustomSubtitle) {
+            return CustomSubtitle;
         }
         return shouldEmbedLinkWithSubtitle ? (
-            <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
+            <Text style={[styles.textAlignCenter]}>{subtitleText}</Text>
         ) : (
-            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{subtitleText}</View>
         );
-    }
+    }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
 
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
@@ -144,7 +139,7 @@ function BlockingView({
             <View>
                 <Text style={[styles.notFoundTextHeader]}>{title}</Text>
 
-                {renderSubtitle()}
+                {subtitleContent}
             </View>
         </View>
     );

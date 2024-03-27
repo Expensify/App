@@ -66,7 +66,7 @@ function LHNOptionsList({
         onFirstItemRendered();
     }, [onFirstItemRendered]);
 
-    const renderEmptyLHNSubtitle = useCallback(
+    const emptyLHNSubtitle = useMemo(
         () => (
             <View>
                 <Text
@@ -217,7 +217,7 @@ function LHNOptionsList({
                     animationWebStyle={styles.emptyLHNAnimation}
                     title={translate('common.emptyLHN.title')}
                     shouldShowLink={false}
-                    renderCustomSubtitle={renderEmptyLHNSubtitle}
+                    CustomSubtitle={emptyLHNSubtitle}
                 />
             ) : (
                 <FlashList
