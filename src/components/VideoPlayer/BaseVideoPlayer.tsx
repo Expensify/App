@@ -17,7 +17,7 @@ import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import shouldReplayVideo from './shouldReplayVideo';
-import type VideoPlayerProps from './types';
+import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
 import * as VideoUtils from './utils';
 import VideoPlayerControls from './VideoPlayerControls';
 
@@ -57,7 +57,7 @@ function BaseVideoPlayer({
     const [sourceURL] = useState(VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
-    const videoPlayerRef = useRef<Video | null>(null);
+    const videoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
@@ -167,9 +167,8 @@ function BaseVideoPlayer({
             return;
         }
         currentVideoPlayer._onPlaybackStatusUpdate = handlePlaybackStatusUpdate;
-        if ('_onFullscreenUpdate' in currentVideoPlayer) {
-            currentVideoPlayer._onFullscreenUpdate = handleFullscreenUpdate;
-        }
+        currentVideoPlayer._onFullscreenUpdate = handleFullscreenUpdate;
+
         // update states after binding
         currentVideoPlayer.getStatusAsync().then((status) => {
             handlePlaybackStatusUpdate(status);
@@ -206,7 +205,7 @@ function BaseVideoPlayer({
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
             return;
         }
-        shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current as View | null, videoPlayerElementRef.current as View | null, isUploading);
+        shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading);
     }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading]);
 
     // append shared video element to new parent (used for example in attachment modal)

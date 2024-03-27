@@ -1,8 +1,8 @@
-import type {Video} from 'expo-av';
 import type {MutableRefObject} from 'react';
 import type {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import type CONST from '@src/CONST';
 
 type PlaybackContext = {
@@ -10,8 +10,8 @@ type PlaybackContext = {
     currentlyPlayingURL: string | null;
     originalParent: View | HTMLDivElement | null;
     sharedElement: View | HTMLDivElement | null;
-    currentVideoPlayerRef: MutableRefObject<Video | null>;
-    shareVideoPlayerElements: (ref: Video | null, parent: View | null, child: View | null, isUploading: boolean) => void;
+    currentVideoPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
+    shareVideoPlayerElements: (ref: VideoWithOnFullScreenUpdate | null, parent: View | HTMLDivElement | null, child: View | HTMLDivElement | null, isUploading: boolean) => void;
     playVideo: () => void;
     pauseVideo: () => void;
     checkVideoPlaying: (statusCallback: StatusCallback) => void;

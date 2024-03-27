@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseVideoPlayer from './BaseVideoPlayer';
-import type VideoPlayerProps from './types';
+import type {VideoPlayerProps} from './types';
 
 function VideoPlayer(props: VideoPlayerProps) {
     return (

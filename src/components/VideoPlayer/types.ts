@@ -1,6 +1,9 @@
+import type {Video} from 'expo-av';
 import type {AVPlaybackStatus} from 'expo-av/build/AV';
 import type {VideoFullscreenUpdateEvent, VideoReadyForDisplayEvent} from 'expo-av/build/Video.types';
 import type {StyleProp, ViewStyle} from 'react-native';
+
+type VideoWithOnFullScreenUpdate = Video & {_onFullscreenUpdate: (event: VideoFullscreenUpdateEvent) => void};
 
 type VideoPlayerProps = {
     url: string;
@@ -23,4 +26,4 @@ type VideoPlayerProps = {
     onPlaybackStatusUpdate?: (status: AVPlaybackStatus) => void;
 };
 
-export default VideoPlayerProps;
+export type {VideoPlayerProps, VideoWithOnFullScreenUpdate};
