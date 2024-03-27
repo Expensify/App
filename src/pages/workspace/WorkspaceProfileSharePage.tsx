@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
-import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+import type {SvgProps} from 'react-native-svg';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,10 +13,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
@@ -26,6 +28,7 @@ import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const themeStyles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
@@ -38,6 +41,16 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
 
     const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(id, adminEmail)}`;
+
+    const hasAvatar = Boolean(policy?.avatar);
+    const logo = hasAvatar ? (policy?.avatar as ImageSourcePropType) : undefined;
+
+    const defaultWsAvatar = ReportUtils.getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
+    const defaultWsAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyName);
+
+    const logoSVG = !hasAvatar ? (defaultWsAvatar as React.FC<SvgProps>) : undefined;
+    const logoBackground = !hasAvatar ? defaultWsAvatarColors.backgroundColor?.toString() : undefined;
+    const logoColor = !hasAvatar ? defaultWsAvatarColors.fill : undefined;
 
     return (
         <ScreenWrapper
@@ -55,7 +68,10 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                             ref={qrCodeRef}
                             url={url}
                             title={policyName}
-                            logo={(policy?.avatar ? policy.avatar : expensifyLogo) as ImageSourcePropType}
+                            logo={logo}
+                            logoSVG={logoSVG}
+                            logoBackground={logoBackground}
+                            logoColor={logoColor}
                             logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                             logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                         />
