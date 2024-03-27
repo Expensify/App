@@ -141,7 +141,7 @@ function IOURequestStepAmount({
     /**
      * @param {Number} amount
      */
-    const navigateToNextPage = ({amount}) => {
+    const navigateToNextPage = ({amount, paymentMethod}) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
@@ -181,7 +181,12 @@ function IOURequestStepAmount({
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SEND) {
-
+                    if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                        IOU.sendMoneyWithWallet(report, backendAmount, transaction.currency, '', currentUserPersonalDetails.accountID, selectedParticipants[0]);
+                        return;
+                    }
+                    
+                    IOU.sendMoneyElsewhere(report, backendAmount, transaction.currency, '', currentUserPersonalDetails.accountID, selectedParticipants[0]);
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.REQUEST) {
