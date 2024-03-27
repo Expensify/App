@@ -52,23 +52,20 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: plaidSubsteps, startFrom: 0, onFinished: submit});
 
-    const exitFlow = useCallback(
-        (shouldContinue = false) => {
-            const exitReportID = personalBankAccount?.exitReportID;
-            const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
+    const exitFlow = (shouldContinue = false) => {
+        const exitReportID = personalBankAccount?.exitReportID;
+        const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
-            if (exitReportID) {
-                Navigation.dismissModal(exitReportID);
-                return;
-            }
-            if (shouldContinue && onSuccessFallbackRoute) {
-                PaymentMethods.continueSetup(onSuccessFallbackRoute);
-                return;
-            }
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
-        },
-        [personalBankAccount],
-    );
+        if (exitReportID) {
+            Navigation.dismissModal(exitReportID);
+            return;
+        }
+        if (shouldContinue && onSuccessFallbackRoute) {
+            PaymentMethods.continueSetup(onSuccessFallbackRoute);
+            return;
+        }
+        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    };
 
     const handleBackButtonPress = () => {
         if (!isSetupTypeChosen) {
