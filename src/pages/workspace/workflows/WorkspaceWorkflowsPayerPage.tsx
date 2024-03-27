@@ -106,7 +106,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                     },
                 ],
                 errors: policyMember.errors,
-                pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburserEmail : null,
+                pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburser : null,
             };
 
             if (policy?.achAccount?.reimburser === details?.login) {
@@ -116,7 +116,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policyMembers, translate, policy?.achAccount?.reimburser, isDeletedPolicyMember, policy?.owner, styles, StyleUtils, policy?.pendingFields?.reimburserEmail]);
+    }, [personalDetails, policyMembers, translate, policy?.achAccount?.reimburser, isDeletedPolicyMember, policy?.owner, styles, StyleUtils, policy?.pendingFields?.reimburser]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];

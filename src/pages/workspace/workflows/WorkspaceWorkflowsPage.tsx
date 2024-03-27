@@ -88,7 +88,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
         if (accountNumber && bankDisplayName !== accountNumber) {
             bankDisplayName += ' ' + accountNumber.slice(-5);
         }
-        const hasReimburserEmailError = !!policy?.errorFields?.reimburserEmail;
+        const hasReimburserEmailError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!policy?.errorFields?.autoReporting;
 
@@ -197,7 +197,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
                         />
                         {hasVBA && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && (
                             <OfflineWithFeedback
-                                pendingAction={policy?.pendingFields?.reimburserEmail}
+                                pendingAction={policy?.pendingFields?.reimburser}
                                 errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER_EMAIL)}
                                 onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER_EMAIL)}
                                 errorRowStyles={[styles.ml7]}

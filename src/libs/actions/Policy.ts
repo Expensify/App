@@ -673,8 +673,8 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 achAccount: {reimburser: reimburserEmail},
-                errorFields: {reimburserEmail: null},
-                pendingFields: {reimburserEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {reimburser: null},
+                pendingFields: {reimburser: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
     ];
@@ -684,8 +684,8 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                errorFields: {reimburserEmail: null},
-                pendingFields: {reimburserEmail: null},
+                errorFields: {reimburser: null},
+                pendingFields: {reimburser: null},
             },
         },
     ];
@@ -696,8 +696,8 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 achAccount: policy.achAccount ?? null,
-                errorFields: {reimburserEmail: ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.genericErrorMessage')},
-                pendingFields: {reimburserEmail: null},
+                errorFields: {reimburser: ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.genericErrorMessage')},
+                pendingFields: {reimburser: null},
             },
         },
     ];

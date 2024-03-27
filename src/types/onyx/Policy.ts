@@ -433,7 +433,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom'
+    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
 
 export default Policy;
