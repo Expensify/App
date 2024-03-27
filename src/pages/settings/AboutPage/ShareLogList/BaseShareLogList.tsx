@@ -24,10 +24,9 @@ function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps)
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const betas = useBetas();
+    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     const searchOptions = useMemo(() => {
-        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
-
         if (!isOptionsDataReady) {
             return {
                 recentReports: [],
@@ -54,7 +53,7 @@ function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps)
             userToInvite: localUserToInvite,
             headerMessage: header,
         };
-    }, [betas, personalDetails, reports, debouncedSearchValue]);
+    }, [isOptionsDataReady, reports, personalDetails, debouncedSearchValue, betas]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
