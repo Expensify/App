@@ -722,7 +722,8 @@ function createOption(
         result.lastMessageText = lastMessageText;
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
-        result.alternateText = showPersonalDetails ? personalDetail.login : getAlternateTextOption(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
+        result.alternateText =
+            showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateTextOption(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
 
         reportName = showPersonalDetails
             ? ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
