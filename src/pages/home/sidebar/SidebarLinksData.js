@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {memo, useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -94,4 +95,20 @@ export default compose(
             key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
     }),
-)(SidebarLinksData);
+)(
+    /* 
+        While working on audit on the App Start App metric we noticed that by memoizing SidebarLinksData we can avoid 2 additional run of getOrderedReportIDs.
+        With that we can reduce app start up time by ~2s on heavy account.
+        More details - https://github.com/Expensify/App/issues/35234#issuecomment-1926914534
+    */
+    memo(
+        SidebarLinksData,
+        (prevProps, nextProps) =>
+            prevProps.isLoadingApp === nextProps.isLoadingApp &&
+            prevProps.priorityMode === nextProps.priorityMode &&
+            _.isEqual(prevProps.insets, nextProps.insets) &&
+            prevProps.onLinkClick === nextProps.onLinkClick &&
+            _.isEqual(prevProps.policyMembers, nextProps.policyMembers) &&
+            _.isEqual(prevProps.currentUserPersonalDetails, nextProps.currentUserPersonalDetails),
+    ),
+);
