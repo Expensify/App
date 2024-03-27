@@ -1246,7 +1246,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             getConflictingRequests: (persistedRequests) =>
                 persistedRequests.filter(
                     (request) =>
-                        [WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.DELETE_COMMENT, WRITE_COMMANDS.UPDATE_COMMENT].includes(request.command) &&
+                        ([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.DELETE_COMMENT, WRITE_COMMANDS.UPDATE_COMMENT] as string[]).includes(request.command) &&
                         request.data?.reportActionID === reportActionID,
                 ),
             handleConflictingRequest: () => Onyx.update(successData),
