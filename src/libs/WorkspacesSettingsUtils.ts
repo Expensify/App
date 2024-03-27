@@ -12,6 +12,7 @@ import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+import {convertToDisplayString} from "./CurrencyUtils";
 
 type CheckingMethod = () => boolean;
 
@@ -247,7 +248,7 @@ function getOwnershipChecksDisplayText(
             title = translate('workspace.changeOwner.ownerOwesAmountTitle');
             text = translate('workspace.changeOwner.ownerOwesAmountText', {
                 email: ownerOwesAmount?.ownerEmail,
-                amount: CurrencyUtils.convertAmountToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
+                amount: CurrencyUtils.convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
             });
             buttonText = translate('workspace.changeOwner.ownerOwesAmountButtonText');
             break;
