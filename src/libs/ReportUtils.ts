@@ -4421,12 +4421,8 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
     );
 }
 
-function getChatByReportID(reportID: string, reports: OnyxCollection<Report> = allReports) {
-    return (
-        Object.values(reports ?? {}).find((report) => {
-            return report?.reportID === reportID;
-        }) ?? null
-    );
+function getChatByReportID(reportID: string) {
+    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]
 }
 
 /**
