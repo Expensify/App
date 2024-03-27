@@ -1127,7 +1127,7 @@ PODS:
     - React-Core
   - react-native-key-command (1.0.6):
     - React-Core
-  - react-native-keyboard-controller (1.11.4):
+  - react-native-keyboard-controller (1.11.5):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1865,7 +1865,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: 0f7fe8a4c2de477e278b0365cce27d089a8c5903
   react-native-image-picker: 2381c008bbb09e72395a2d043c147b11bd1523d9
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
-  react-native-keyboard-controller: 789731138fbbaf46cae9bf0200702fa6b50e9c2f
+  react-native-keyboard-controller: c43324786e9821951828337d0e85dedea4235575
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
   react-native-pager-view: 02a5c4962530f7efc10dd51ee9cdabeff5e6c631
