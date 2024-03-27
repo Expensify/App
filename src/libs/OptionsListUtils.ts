@@ -752,13 +752,13 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
-    const expenseReport = ReportUtils.isPolicyExpenseChat(report) ? report : null;
+function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
+    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
 
     const option = createOption(
         expenseReport?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
-        expenseReport,
+        !isEmptyObject(expenseReport) ? expenseReport : null,
         {},
         {
             showChatPreviewLine: false,
@@ -769,8 +769,8 @@ function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = ReportUtils.getPolicyName(expenseReport);
     option.alternateText = Localize.translateLocal('workspace.common.workspace');
-    option.selected = report.selected;
-    option.isSelected = report.selected;
+    option.selected = expenseReport?.selected;
+    option.isSelected = expenseReport?.selected;
     return option;
 }
 
