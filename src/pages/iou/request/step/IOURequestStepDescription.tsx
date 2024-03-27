@@ -21,10 +21,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+
+type MoneyRequestComment = {
+    moneyRequestComment: string;
+};
 
 type IOURequestStepDescriptionOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
@@ -89,9 +94,9 @@ function IOURequestStepDescription({
     );
 
     /**
-     * @returns {Object} - An object containing the errors for each inputID
+     * @returns - An object containing the errors for each inputID
      */
-    const validate = useCallback((value: {moneyRequestComment: string}) => {
+    const validate = useCallback((value: MoneyRequestComment): Errors => {
         const errors = {};
 
         if (value.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {

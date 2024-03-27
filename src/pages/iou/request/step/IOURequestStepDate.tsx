@@ -21,6 +21,10 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
+type MoneyRequestCreated = {
+    moneyRequestCreated: string;
+};
+
 type IOURequestStepDateOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -62,7 +66,7 @@ function IOURequestStepDate({
         Navigation.goBack(backTo);
     };
 
-    const updateDate = (value: {moneyRequestCreated: string}) => {
+    const updateDate = (value: MoneyRequestCreated) => {
         const newCreated = value.moneyRequestCreated;
 
         // Only update created if it has changed
