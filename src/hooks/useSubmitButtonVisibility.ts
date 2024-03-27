@@ -1,10 +1,12 @@
 import {useEffect, useRef, useState} from 'react';
 import {Dimensions, Platform} from 'react-native';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import useSafeAreaInsets from './useSafeAreaInsets';
 import useThemeStyles from './useThemeStyles';
 import useWindowDimensions from './useWindowDimensions';
 
-// Usefull when there's need to hide submit button, from FormProvider,
+// Useful when there's a need to hide the submit button, from FormProvider,
 // to let form content fill the page when virtual keyboard is shown
 function useSubmitButtonVisibility() {
     const styles = useThemeStyles();
@@ -17,7 +19,7 @@ function useSubmitButtonVisibility() {
     // otherwise it's hidden
     useEffect(() => {
         const dimensionsListener = Dimensions.addEventListener('change', ({window}) => {
-            if (Platform.OS !== 'web') {
+            if (getPlatform() !== CONST.PLATFORM.WEB) {
                 return;
             }
 
@@ -35,7 +37,9 @@ function useSubmitButtonVisibility() {
     // Web: the submit button is only shown when the window height is the same or greater,
     // so executing this function won't do anything
     const showSubmitButton = () => {
-        if (!['ios', 'android'].includes(Platform.OS)) {
+        const platform = getPlatform();
+        const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+        if (!isNative) {
             return;
         }
         setIsSubmitButtonVisible(true);
@@ -51,7 +55,7 @@ function useSubmitButtonVisibility() {
     };
 
     // When the submit button is hidden there's need to manually
-    // add it's bottom style to the FormProvider style prop,
+    // add its bottom style to the FormProvider style prop,
     // otherwise the form content will touch the bottom of the page/screen
     const formStyle = !isSubmitButtonVisible && bottom === 0 && styles.mb5;
 

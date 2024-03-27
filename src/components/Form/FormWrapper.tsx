@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, View as RNView, StyleProp, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -63,7 +63,7 @@ function FormWrapper({
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
-    const formContentRef = useRef<RNView>(null);
+    const formContentRef = useRef<View>(null);
     const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
@@ -123,26 +123,26 @@ function FormWrapper({
             </FormElement>
         ),
         [
+            children,
+            enabledWhenOffline,
+            errorMessage,
+            errors,
+            footerContent,
             formID,
+            formState?.errorFields,
+            formState?.isLoading,
+            isSubmitActionDangerous,
+            isSubmitButtonVisible,
+            onSubmit,
             style,
             styles.flex1,
             styles.mh0,
             styles.mt5,
-            children,
-            isSubmitButtonVisible,
             submitButtonStyles,
             submitFlexEnabled,
             submitButtonText,
-            errors,
-            formState?.errorFields,
-            formState?.isLoading,
             shouldHideFixErrorsAlert,
-            errorMessage,
-            onSubmit,
-            footerContent,
             onFixTheErrorsLinkPressed,
-            enabledWhenOffline,
-            isSubmitActionDangerous,
             disablePressOnEnter,
         ],
     );
