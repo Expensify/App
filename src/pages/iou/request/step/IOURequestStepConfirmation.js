@@ -226,6 +226,8 @@ function IOURequestStepConfirmation({
                 gpsPoints,
                 iouAction,
                 transaction.actionableWhisperReportActionID,
+                transaction.linkedTrackedExpenseReportAction,
+                transaction.linkedTrackedExpenseReportID,
             );
         },
         [

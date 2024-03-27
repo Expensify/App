@@ -5523,8 +5523,16 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
     if (isEmpty(transaction)) {
         return;
     }
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
 
-    TransactionEdit.createBackupTransaction({...transaction, actionableWhisperReportActionID: reportActionID} as Transaction);
+    const linkedTrackedExpenseReportAction = Object.values(reportActions).find((action) => (action.originalMessage as IOUMessage)?.IOUTransactionID === transactionID);
+
+    TransactionEdit.createBackupTransaction({
+        ...transaction,
+        actionableWhisperReportActionID: reportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID: reportID,
+    } as Transaction);
 
     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, actionName));
 }
