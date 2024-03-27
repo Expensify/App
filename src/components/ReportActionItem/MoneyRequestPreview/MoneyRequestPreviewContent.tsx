@@ -85,6 +85,8 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isScanRequest = hasReceipt && TransactionUtils.isScanRequest(transaction);
+    const isManualRequest = hasReceipt && TransactionUtils.isManualRequest(transaction);
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const shouldShowRBR = hasViolations || hasFieldErrors;
@@ -130,27 +132,35 @@ function MoneyRequestPreviewContent({
     };
 
     const getPreviewHeaderText = (): string => {
+        let message = translate('iou.cash');
+
         if (isDistanceRequest) {
-            return translate('common.distance');
+            message = translate('common.distance');
+        }
+
+        if (isScanRequest) {
+            message = translate('tabSelector.scan');
+        }
+
+        if (isManualRequest) {
+            message = translate('tabSelector.manual');
         }
 
         if (isScanning) {
-            return translate('common.receipt');
+            message = translate('common.receipt');
         }
 
         if (isBillSplit) {
-            return translate('iou.split');
+            message = translate('iou.split');
         }
 
         if (isCardTransaction) {
-            let message = translate('iou.card');
+            message = translate('iou.card');
             if (TransactionUtils.isPending(transaction)) {
                 message += ` • ${translate('iou.pending')}`;
             }
-            return message;
         }
 
-        let message = translate('iou.cash');
         if (shouldShowRBR && transaction) {
             const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
             if (violations?.[0]) {
@@ -173,7 +183,7 @@ function MoneyRequestPreviewContent({
             }
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('iou.approved')}`;
-        } else if (iouReport?.isWaitingOnBankAccount) {
+        } else if (iouReport?.isWaitingOnBankAccount && !isCardTransaction) {
             message += ` • ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
