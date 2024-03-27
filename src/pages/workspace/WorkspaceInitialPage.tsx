@@ -1,11 +1,10 @@
-import {useFocusEffect, useNavigationState, useRoute} from '@react-navigation/native';
+import {useNavigationState, useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import Animated, {FadeInUp} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -72,7 +71,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
     const {translate} = useLocalize();
-    const [menuItems, setMenuItems] = useState<Array<ValueOf<typeof SCREENS.WORKSPACE>>>([]);
 
     const policyID = policy?.id ?? '';
     const policyName = policy?.name ?? '';
@@ -110,21 +108,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
 
-    const allMenuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.common.profile',
-            icon: Expensicons.Home,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
-            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            name: SCREENS.WORKSPACE.PROFILE,
-        },
-        {
-            translationKey: 'workspace.common.members',
-            icon: Expensicons.Users,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
-            brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            name: SCREENS.WORKSPACE.MEMBERS,
-        },
+    const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
@@ -164,112 +148,90 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                     : setIsCurrencyModalOpen(true),
             brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
-        {
+    ];
+
+    const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
+
+    if (policy?.areDistanceRatesEnabled) {
+        protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.distanceRates',
             icon: Expensicons.Car,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
             name: SCREENS.WORKSPACE.DISTANCE_RATES,
-        },
-        {
+        });
+    }
+
+    if (policy?.areWorkflowsEnabled) {
+        protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
             name: SCREENS.WORKSPACE.WORKFLOWS,
             brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburserEmail ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-        {
+        });
+    }
+
+    if (policy?.areCategoriesEnabled) {
+        protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.categories',
             icon: Expensicons.Folder,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
             brickRoadIndicator: hasPolicyCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             name: SCREENS.WORKSPACE.CATEGORIES,
-        },
-        {
+        });
+    }
+
+    if (policy?.areTagsEnabled) {
+        protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.tags',
             icon: Expensicons.Tag,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
             name: SCREENS.WORKSPACE.TAGS,
-        },
-        {
+        });
+    }
+
+    if (policy?.tax?.trackingEnabled) {
+        protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.taxes',
             icon: Expensicons.Tax,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
-            brickRoadIndicator: PolicyUtils.hasTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             name: SCREENS.WORKSPACE.TAXES,
+            brickRoadIndicator: PolicyUtils.hasTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        });
+    }
+
+    protectedCollectPolicyMenuItems.push({
+        translationKey: 'workspace.common.moreFeatures',
+        icon: Expensicons.Gear,
+        action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
+        name: SCREENS.WORKSPACE.MORE_FEATURES,
+    });
+
+    const menuItems: WorkspaceMenuItem[] = [
+        {
+            translationKey: 'workspace.common.profile',
+            icon: Expensicons.Home,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
+            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            name: SCREENS.WORKSPACE.PROFILE,
         },
         {
-            translationKey: 'workspace.common.moreFeatures',
-            icon: Expensicons.Gear,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
-            name: SCREENS.WORKSPACE.MORE_FEATURES,
+            translationKey: 'workspace.common.members',
+            icon: Expensicons.Users,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
+            brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            name: SCREENS.WORKSPACE.MEMBERS,
         },
+        ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
+        ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);
     const route = useRoute<RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>>();
     const enabledFeatureRouteName = route.params?.enabledFeatureRouteName ?? '';
 
-    const enabledItem = allMenuItems.find((item) => item.name === enabledFeatureRouteName);
+    const enabledItem = menuItems.find((item) => item.name === enabledFeatureRouteName);
     const animatedHighlightStyle = useAnimatedHighlightStyle(!!enabledItem, 500, 150);
-
-    useFocusEffect(
-        React.useCallback(() => {
-            if (!(isFreeGroupPolicy && shouldShowProtectedItems)) {
-                return;
-            }
-
-            setMenuItems([
-                SCREENS.WORKSPACE.PROFILE,
-                SCREENS.WORKSPACE.MEMBERS,
-                SCREENS.WORKSPACE.CARD,
-                SCREENS.WORKSPACE.REIMBURSE,
-                SCREENS.WORKSPACE.BILLS,
-                SCREENS.WORKSPACE.INVOICES,
-                SCREENS.WORKSPACE.TRAVEL,
-            ]);
-        }, [isFreeGroupPolicy, shouldShowProtectedItems, setMenuItems]),
-    );
-
-    useFocusEffect(
-        React.useCallback(() => {
-            if (!(isPaidGroupPolicy && shouldShowProtectedItems)) {
-                return;
-            }
-
-            const screensToAdd: Array<ValueOf<typeof SCREENS.WORKSPACE>> = [SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACE.MEMBERS, SCREENS.WORKSPACE.MORE_FEATURES];
-
-            if (policy?.areDistanceRatesEnabled) {
-                screensToAdd.push(SCREENS.WORKSPACE.DISTANCE_RATES);
-            }
-
-            if (policy?.areWorkflowsEnabled) {
-                screensToAdd.push(SCREENS.WORKSPACE.WORKFLOWS);
-            }
-
-            if (policy?.areCategoriesEnabled) {
-                screensToAdd.push(SCREENS.WORKSPACE.CATEGORIES);
-            }
-
-            if (policy?.areTagsEnabled) {
-                screensToAdd.push(SCREENS.WORKSPACE.TAGS);
-            }
-
-            if (policy?.tax?.trackingEnabled) {
-                screensToAdd.push(SCREENS.WORKSPACE.TAXES);
-            }
-
-            setMenuItems(screensToAdd);
-        }, [
-            isPaidGroupPolicy,
-            shouldShowProtectedItems,
-            setMenuItems,
-            policy?.areCategoriesEnabled,
-            policy?.areDistanceRatesEnabled,
-            policy?.areTagsEnabled,
-            policy?.tax?.trackingEnabled,
-            policy?.areWorkflowsEnabled,
-        ]),
-    );
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
@@ -321,30 +283,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                 Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                             */}
-                            {allMenuItems
-                                .filter((item) => item.name && menuItems.includes(item.name))
-                                .map((item) => (
-                                    <Animated.View
-                                        entering={FadeInUp.springify().delay(300)}
-                                        key={item.translationKey}
-                                    >
-                                        <MenuItem
-                                            disabled={hasPolicyCreationError || isExecuting}
-                                            interactive={!hasPolicyCreationError}
-                                            title={translate(item.translationKey)}
-                                            icon={item.icon}
-                                            onPress={item.action}
-                                            brickRoadIndicator={item.brickRoadIndicator}
-                                            highlightStyle={
-                                                enabledItem?.translationKey === item.translationKey ? [animatedHighlightStyle, {borderRadius: styles.border.borderRadius}] : undefined
-                                            }
-                                            wrapperStyle={styles.sectionMenuItem}
-                                            focused={!!(item.name && activeRoute?.startsWith(item.name))}
-                                            hoverAndPressStyle={styles.hoveredComponentBG}
-                                            isPaneMenu
-                                        />
-                                    </Animated.View>
-                                ))}
+                            {menuItems.map((item) => (
+                                <MenuItem
+                                    key={item.translationKey}
+                                    disabled={hasPolicyCreationError || isExecuting}
+                                    interactive={!hasPolicyCreationError}
+                                    title={translate(item.translationKey)}
+                                    icon={item.icon}
+                                    onPress={item.action}
+                                    brickRoadIndicator={item.brickRoadIndicator}
+                                    wrapperStyle={styles.sectionMenuItem}
+                                    highlightStyle={enabledItem?.translationKey === item.translationKey ? [animatedHighlightStyle, {borderRadius: styles.border.borderRadius}] : undefined}
+                                    focused={!!(item.name && activeRoute?.startsWith(item.name))}
+                                    hoverAndPressStyle={styles.hoveredComponentBG}
+                                    isPaneMenu
+                                />
+                            ))}
                         </View>
                     </OfflineWithFeedback>
                 </ScrollView>
