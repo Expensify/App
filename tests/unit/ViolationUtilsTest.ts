@@ -60,6 +60,16 @@ describe('getViolationsOnyxData', () => {
         expect(result?.value).toEqual(expect.arrayContaining(transactionViolations));
     });
 
+    it('should not add violation when the transaction is partial', () => {
+        const partialTransaction = {...transaction, amount: 0, merchant: ''};
+        transactionViolations = [
+            {name: 'duplicatedTransaction', type: 'violation'},
+            {name: 'receiptRequired', type: 'violation'},
+        ];
+        const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+        expect(result).toBeNull();
+    });
+
     describe('policyRequiresCategories', () => {
         beforeEach(() => {
             policyRequiresCategories = true;
