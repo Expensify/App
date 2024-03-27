@@ -25,15 +25,10 @@ type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & StackScreenPro
 function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isTransitioning, setIsTransitioning] = useState(false);
 
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
     const error = route.params.error;
-
-    useEffect(() => {
-        setIsTransitioning(true);
-    }, []);
 
     useEffect(() => {
         if (!policy || policy?.isLoading) {
@@ -64,9 +59,6 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
                 <ScreenWrapper
                     testID={WorkspaceOwnerChangeWrapperPage.displayName}
-                    onEntryTransitionEnd={() => {
-                        setIsTransitioning(false);
-                    }}
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.changeOwner.changeOwnerPageTitle')}
@@ -76,9 +68,8 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                         }}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.ph5, error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.pb0 : styles.pb5]}>
-                        {(policy?.isLoading ?? isTransitioning) && <FullScreenLoadingIndicator />}
+                        {policy?.isLoading && <FullScreenLoadingIndicator />}
                         {!policy?.isLoading &&
-                            !isTransitioning &&
                             (error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? (
                                 <WorkspaceOwnerPaymentCardForm policy={policy} />
                             ) : (

@@ -43,16 +43,15 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
 
     const policyID = policy?.id ?? '';
 
-    const errorsKeys = useMemo(() => Object.keys(policy?.errorFields?.changeOwner ?? {}), [policy]);
-
     const updateDisplayTexts = useCallback(() => {
-        if (error !== errorsKeys[0]) {
+        const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
+        if (error !== changeOwnerErrors[0]) {
             return;
         }
 
         const texts = WorkspaceSettingsUtils.getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
         setDisplayTexts(texts);
-    }, [accountID, error, errorsKeys, personalDetails, policy, translate]);
+    }, [accountID, error, personalDetails, policy, translate]);
 
     useEffect(() => {
         updateDisplayTexts();
