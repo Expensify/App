@@ -289,6 +289,20 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
 }
 
 /**
+ * Helper method to return eReceipt color code for Receipt Thumbnails
+ */
+function getFileExtensionColorCode(fileExtension?: string): EReceiptColorName {
+    switch (fileExtension) {
+        case CONST.IOU.FILE_TYPES.DOC:
+            return CONST.ERECEIPT_COLORS.PINK;
+        case CONST.IOU.FILE_TYPES.HTML:
+            return CONST.ERECEIPT_COLORS.TANGERINE;
+        default:
+            return CONST.ERECEIPT_COLORS.GREEN;
+    }
+}
+
+/**
  * Helper method to return eReceipt color styles
  */
 function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyle | undefined {
@@ -755,7 +769,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMon
     if (isSmallScreenWidth) {
         return {
             height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '200%',
+            width: '100%',
             position: 'absolute',
         };
     }
@@ -1139,6 +1153,7 @@ const staticStyleUtils = {
     parseStyleFromFunction,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
     getOpacityStyle,

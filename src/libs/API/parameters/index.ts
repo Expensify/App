@@ -20,7 +20,6 @@ export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMess
 export type {default as GetNewerActionsParams} from './GetNewerActionsParams';
 export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
 export type {default as GetReportPrivateNoteParams} from './GetReportPrivateNoteParams';
-export type {default as GetRouteForDraftParams} from './GetRouteForDraftParams';
 export type {default as GetRouteParams} from './GetRouteParams';
 export type {default as GetStatementPDFParams} from './GetStatementPDFParams';
 export type {default as HandleRestrictedEventParams} from './HandleRestrictedEventParams';
@@ -188,6 +187,8 @@ export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolic
 export type {default as SetPolicyDistanceRatesEnabledParams} from './SetPolicyDistanceRatesEnabledParams';
 export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDistanceRatesParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
+export type {default as RequestWorkspaceOwnerChangeParams} from './RequestWorkspaceOwnerChangeParams';
+export type {default as AddBillingCardAndRequestWorkspaceOwnerChangeParams} from './AddBillingCardAndRequestWorkspaceOwnerChangeParams';
 export type {default as SetPolicyTaxesEnabledParams} from './SetPolicyTaxesEnabledParams';
 export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams';
 export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValueParams';

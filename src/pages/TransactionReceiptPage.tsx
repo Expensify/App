@@ -28,7 +28,7 @@ type TransactionReceiptProps = TransactionReceiptOnyxProps & StackScreenProps<Au
 function TransactionReceipt({transaction, report, reportMetadata = {isLoadingInitialReportActions: true}, route}: TransactionReceiptProps) {
     const receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
 
-    const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image);
+    const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const isLocalFile = receiptURIs.isLocalFile;
 

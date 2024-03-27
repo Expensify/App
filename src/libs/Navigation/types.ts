@@ -227,6 +227,19 @@ type SettingsNavigatorParamList = {
         accountID: string;
         backTo: Routes;
     };
+    [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
+        policyID: string;
+        accountID: number;
+    };
+    [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
+        policyID: string;
+        accountID: number;
+    };
+    [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
+        policyID: string;
+        accountID: number;
+        error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
+    };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;
     };
@@ -384,6 +397,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes | undefined;
         action: ValueOf<typeof CONST.IOU.ACTION>;
         pageIndex: string;
+        transactionID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -401,9 +415,12 @@ type MoneyRequestNavigatorParamList = {
         waypointIndex: string;
         threadReportID: number;
     };
-    [SCREENS.MONEY_REQUEST.DISTANCE]: {
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
+        action: string;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.RECEIPT]: {
         iouType: string;
