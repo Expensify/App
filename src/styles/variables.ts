@@ -169,7 +169,7 @@ export default {
     addBankAccountLeftSpacing: 3,
     eReceiptThumbnailSmallBreakpoint: 110,
     eReceiptThumbnailMediumBreakpoint: 335,
-    eReceiptThumnailCenterReceiptBreakpoint: 200,
+    eReceiptThumbnailCenterReceiptBreakpoint: 200,
     eReceiptIconHeight: 100,
     eReceiptIconWidth: 72,
     eReceiptEmptyIconWidth: 76,
