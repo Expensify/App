@@ -2,7 +2,7 @@ import {deepEqual} from 'fast-equals';
 import lodashGet from 'lodash/get';
 import lodashMap from 'lodash/map';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -140,20 +140,26 @@ function SidebarLinksData({
 
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
+
+    const optionItemsMemoized = useMemo(
+        () =>
+            SidebarUtils.getOrderedReportIDs(
+                null,
+                chatReports,
+                betas,
+                policies,
+                priorityMode,
+                allReportActions,
+                transactionViolations,
+                activeWorkspaceID,
+                policyMemberAccountIDs,
+                reportsDrafts,
+            ),
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
+    );
+
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(
-            null,
-            chatReports,
-            betas,
-            policies,
-            priorityMode,
-            allReportActions,
-            transactionViolations,
-            activeWorkspaceID,
-            policyMemberAccountIDs,
-            // Passing it down as we need to re-calculate the list when the drafts are updated
-            reportsDrafts,
-        );
+        const reportIDs = optionItemsMemoized;
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
@@ -166,20 +172,7 @@ function SidebarLinksData({
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [
-        chatReports,
-        betas,
-        policies,
-        priorityMode,
-        allReportActions,
-        transactionViolations,
-        activeWorkspaceID,
-        policyMemberAccountIDs,
-        isLoading,
-        network.isOffline,
-        prevPriorityMode,
-        reportsDrafts,
-    ]);
+    }, [optionItemsMemoized, priorityMode, isLoading, network.isOffline, prevPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -356,4 +349,27 @@ export default compose(
             initialValue: {},
         },
     }),
-)(SidebarLinksData);
+)(
+    /* 
+        While working on audit on the App Start App metric we noticed that by memoizing SidebarLinksData we can avoid 2 additional run of getOrderedReportIDs.
+        With that we can reduce app start up time by ~2s on heavy account.
+        More details - https://github.com/Expensify/App/issues/35234#issuecomment-1926914534
+    */
+    memo(
+        SidebarLinksData,
+        (prevProps, nextProps) =>
+            _.isEqual(prevProps.chatReports, nextProps.chatReports) &&
+            _.isEqual(prevProps.allReportActions, nextProps.allReportActions) &&
+            prevProps.isLoadingApp === nextProps.isLoadingApp &&
+            prevProps.priorityMode === nextProps.priorityMode &&
+            _.isEqual(prevProps.betas, nextProps.betas) &&
+            _.isEqual(prevProps.policies, nextProps.policies) &&
+            prevProps.network.isOffline === nextProps.network.isOffline &&
+            _.isEqual(prevProps.insets, nextProps.insets) &&
+            prevProps.onLinkClick === nextProps.onLinkClick &&
+            _.isEqual(prevProps.policyMembers, nextProps.policyMembers) &&
+            _.isEqual(prevProps.transactionViolations, nextProps.transactionViolations) &&
+            _.isEqual(prevProps.currentUserPersonalDetails, nextProps.currentUserPersonalDetails) &&
+            prevProps.currentReportID === nextProps.currentReportID,
+    ),
+);

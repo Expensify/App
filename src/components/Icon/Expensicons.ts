@@ -100,6 +100,7 @@ import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
@@ -257,6 +258,7 @@ export {
     Megaphone,
     MoneyBag,
     MoneyCircle,
+    MoneyWaving,
     Monitor,
     Mute,
     ExpensifyLogoNew,
