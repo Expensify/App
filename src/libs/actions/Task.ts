@@ -649,11 +649,11 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  */
-function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareDestination: string, isCurrentUser = false): OnyxEntry<OnyxTypes.Report> {
+function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareToReportID: string, isCurrentUser = false): OnyxEntry<OnyxTypes.Report> {
     let chatReport: OnyxEntry<OnyxTypes.Report> = null;
 
     if (!isCurrentUser) {
-        const reportID = shareDestination;
+        const reportID = shareToReportID;
         chatReport = ReportUtils.getChatByReportID(reportID);
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
@@ -682,7 +682,7 @@ function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shar
 
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
-        if (!shareDestination) {
+        if (!shareToReportID) {
             setShareDestinationValue(chatReport?.reportID ?? '');
         }
     }
