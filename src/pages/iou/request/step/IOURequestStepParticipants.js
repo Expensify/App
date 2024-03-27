@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
+import _ from 'lodash';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import _ from 'underscore';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
