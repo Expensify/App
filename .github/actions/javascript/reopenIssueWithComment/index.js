@@ -12110,7 +12110,7 @@ var __webpack_exports__ = {};
 (() => {
 const core = __nccwpck_require__(2186);
 const CONST = __nccwpck_require__(4097);
-const GithubUtils = __nccwpck_require__(9296);
+const GithubUtils = (__nccwpck_require__(9296)["default"]);
 
 const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});
 const comment = core.getInput('COMMENT', {required: true});

@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
-const GitHubUtils = require('../../../libs/GithubUtils');
+const GitHubUtils = require('../../../libs/GithubUtils').default;
 const {promiseDoWhile} = require('../../../libs/promiseWhile');
 
 function run() {

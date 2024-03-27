@@ -14339,7 +14339,7 @@ const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const CONST = __nccwpck_require__(4097);
-const GitHubUtils = __nccwpck_require__(9296);
+const GitHubUtils = (__nccwpck_require__(9296)["default"]);
 
 const PR_NUMBER = Number.parseInt(core.getInput('PR_NUMBER'), 10) || github.context.payload.pull_request.number;
 

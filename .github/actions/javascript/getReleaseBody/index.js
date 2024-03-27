@@ -12156,7 +12156,7 @@ var __webpack_exports__ = {};
 (() => {
 const core = __nccwpck_require__(2186);
 const ActionUtils = __nccwpck_require__(970);
-const GithubUtils = __nccwpck_require__(9296);
+const GithubUtils = (__nccwpck_require__(9296)["default"]);
 
 // Parse the stringified JSON array of PR numbers, and cast each from String -> Number
 const PRList = ActionUtils.getJSONInput('PR_LIST', {required: true});

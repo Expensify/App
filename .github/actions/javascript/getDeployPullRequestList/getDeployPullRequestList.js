@@ -3,7 +3,7 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GitUtils = require('../../../libs/GitUtils').default;
-const GithubUtils = require('../../../libs/GithubUtils');
+const GithubUtils = require('../../../libs/GithubUtils').default;
 
 async function run() {
     try {

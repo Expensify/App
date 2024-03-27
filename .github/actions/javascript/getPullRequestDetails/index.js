@@ -14341,7 +14341,7 @@ const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
 const CONST = __nccwpck_require__(4097);
 const ActionUtils = __nccwpck_require__(970);
-const GithubUtils = __nccwpck_require__(9296);
+const GithubUtils = (__nccwpck_require__(9296)["default"]);
 
 const DEFAULT_PAYLOAD = {
     owner: CONST.GITHUB_OWNER,

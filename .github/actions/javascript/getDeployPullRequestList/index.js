@@ -12,7 +12,7 @@ const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const ActionUtils = __nccwpck_require__(970);
 const GitUtils = (__nccwpck_require__(1547)["default"]);
-const GithubUtils = __nccwpck_require__(9296);
+const GithubUtils = (__nccwpck_require__(9296)["default"]);
 
 async function run() {
     try {

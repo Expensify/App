@@ -8,11 +8,11 @@
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const fs = __nccwpck_require__(7147);
-const format = __nccwpck_require__(2168);
+const format = (__nccwpck_require__(2168)["default"]);
 const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
 const CONST = __nccwpck_require__(4097);
-const GithubUtils = __nccwpck_require__(9296);
+const GithubUtils = (__nccwpck_require__(9296)["default"]);
 const GitUtils = (__nccwpck_require__(1547)["default"]);
 
 async function run() {

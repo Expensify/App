@@ -1,9 +1,9 @@
 const fs = require('fs');
-const format = require('date-fns/format');
+const format = require('date-fns/format').default;
 const _ = require('underscore');
 const core = require('@actions/core');
 const CONST = require('../../../libs/CONST');
-const GithubUtils = require('../../../libs/GithubUtils');
+const GithubUtils = require('../../../libs/GithubUtils').default;
 const GitUtils = require('../../../libs/GitUtils').default;
 
 async function run() {

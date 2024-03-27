@@ -2,7 +2,7 @@ const _ = require('underscore');
 const core = require('@actions/core');
 const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
-const GithubUtils = require('../../../libs/GithubUtils');
+const GithubUtils = require('../../../libs/GithubUtils').default;
 
 const DEFAULT_PAYLOAD = {
     owner: CONST.GITHUB_OWNER,

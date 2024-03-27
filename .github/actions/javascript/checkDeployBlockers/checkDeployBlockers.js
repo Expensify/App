@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const core = require('@actions/core');
 const CONST = require('../../../libs/CONST');
-const GithubUtils = require('../../../libs/GithubUtils');
+const GithubUtils = require('../../../libs/GithubUtils').default;
 
 const run = function () {
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));

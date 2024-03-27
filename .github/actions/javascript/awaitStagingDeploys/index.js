@@ -10,7 +10,7 @@
 const _ = __nccwpck_require__(5067);
 const CONST = __nccwpck_require__(4097);
 const ActionUtils = __nccwpck_require__(970);
-const GitHubUtils = __nccwpck_require__(9296);
+const GitHubUtils = (__nccwpck_require__(9296)["default"]);
 const {promiseDoWhile} = __nccwpck_require__(4502);
 
 function run() {

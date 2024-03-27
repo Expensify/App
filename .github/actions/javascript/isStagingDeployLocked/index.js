@@ -9,7 +9,7 @@
 
 const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
-const GithubUtils = __nccwpck_require__(9296);
+const GithubUtils = (__nccwpck_require__(9296)["default"]);
 
 const run = function () {
     return GithubUtils.getStagingDeployCash()

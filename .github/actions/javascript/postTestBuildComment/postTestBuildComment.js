@@ -2,7 +2,7 @@ const _ = require('underscore');
 const core = require('@actions/core');
 const {context} = require('@actions/github');
 const CONST = require('../../../libs/CONST');
-const GithubUtils = require('../../../libs/GithubUtils');
+const GithubUtils = require('../../../libs/GithubUtils').default;
 
 /**
  * @returns {String}

@@ -10,7 +10,7 @@
 const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
 const CONST = __nccwpck_require__(4097);
-const GithubUtils = __nccwpck_require__(9296);
+const GithubUtils = (__nccwpck_require__(9296)["default"]);
 
 const run = function () {
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
