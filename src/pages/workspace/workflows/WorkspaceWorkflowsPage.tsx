@@ -75,7 +75,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
     }, [policy, route.params.policyID]);
 
-    useNetwork({onReconnect: fetchData});
+    const {isOffline} = useNetwork({onReconnect: fetchData});
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
     useEffect(() => {
         fetchData();
@@ -189,13 +190,16 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
                             }
                             description={bankDisplayName}
                             onPress={() => {
+                                if (isOffline || !isPolicyAdmin) {
+                                    return;
+                                }
                                 if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                                     setIsCurrencyModalOpen(true);
                                     return;
                                 }
                                 navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                             }}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={!isOffline && isPolicyAdmin}
                             wrapperStyle={containerStyle}
                             hoverAndPressStyle={[styles.mr0, styles.br2]}
                         />
@@ -262,7 +266,6 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = Boolean(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
