@@ -1,4 +1,5 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, MutableRefObject, RefAttributes, RefObject} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -179,9 +180,16 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
  */
-const debouncedBroadcastUserIsTyping = lodashDebounce((reportID: string) => {
-    Report.broadcastUserIsTyping(reportID);
-}, 100);
+const debouncedBroadcastUserIsTyping = lodashDebounce(
+    (reportID: string) => {
+        Report.broadcastUserIsTyping(reportID);
+    },
+    1000,
+    {
+        maxWait: 1000,
+        leading: true,
+    },
+);
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
@@ -419,8 +427,15 @@ function ComposerWithSuggestions(
                 Report.setReportWithDraft(reportID, true);
             }
 
+            const hasDraftStatus = Report.getReportDraftStatus(reportID);
+
+            /**
+             * The extra `!hasDraftStatus` check is to prevent the draft being set
+             * when the user navigates to the ReportScreen. This doesn't alter anything
+             * in terms of functionality.
+             */
             // The draft has been deleted.
-            if (newCommentConverted.length === 0) {
+            if (newCommentConverted.length === 0 && hasDraftStatus) {
                 Report.setReportWithDraft(reportID, false);
             }
 
@@ -524,7 +539,8 @@ function ComposerWithSuggestions(
             ) {
                 event.preventDefault();
                 if (lastReportAction) {
-                    Report.saveReportActionDraft(reportID, lastReportAction, lastReportAction.message?.at(-1)?.html ?? '');
+                    const parser = new ExpensiMark();
+                    Report.saveReportActionDraft(reportID, lastReportAction, parser.htmlToMarkdown(lastReportAction.message?.at(-1)?.html ?? ''));
                 }
             }
         },
@@ -676,13 +692,6 @@ function ComposerWithSuggestions(
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
-
-        if (value.length === 0) {
-            return;
-        }
-
-        Report.setReportWithDraft(reportID, true);
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     useImperativeHandle(
