@@ -1,15 +1,14 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import Str from 'expensify-common/lib/str';
-import React, {useMemo} from 'react';
-import type {ReactElement} from 'react';
-import type {ImageSourcePropType, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import React from 'react';
+import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import EReceiptThumbnail from '@components/EReceiptThumbnail';
+import type {IconSize} from '@components/EReceiptThumbnail';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+import type {ReceiptImageProps} from '@components/ReceiptImage';
+import ReceiptImage from '@components/ReceiptImage';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
-import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,10 +21,16 @@ import type {Transaction} from '@src/types/onyx';
 
 type ReportActionItemImageProps = {
     /** thumbnail URI for the image */
-    thumbnail?: string | ImageSourcePropType | null;
+    thumbnail?: string;
+
+    /** The file type of the receipt */
+    fileExtension?: string;
+
+    /** whether or not we are going to display a thumbnail */
+    isThumbnail?: boolean;
 
     /** URI for the image or local numeric reference for the image  */
-    image?: string | ImageSourcePropType;
+    image?: string;
 
     /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
@@ -49,63 +54,45 @@ type ReportActionItemImageProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, transaction, isLocalFile = false, filename, isSingleImage = true}: ReportActionItemImageProps) {
+function ReportActionItemImage({
+    thumbnail,
+    isThumbnail,
+    image,
+    enablePreviewModal = false,
+    transaction,
+    isLocalFile = false,
+    fileExtension,
+    filename,
+    isSingleImage = true,
+}: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
 
-    let receiptImageComponent: ReactElement;
-
-    const imageSource = useMemo(() => {
-        if (thumbnail) {
-            return typeof thumbnail === 'string' ? {uri: thumbnail} : thumbnail;
-        }
-
-        return typeof image === 'string' ? {uri: image} : image;
-    }, [image, thumbnail]);
+    let propsObj: ReceiptImageProps;
 
     if (isEReceipt) {
-        receiptImageComponent = (
-            <View style={[styles.w100, styles.h100]}>
-                <EReceiptThumbnail
-                    transactionID={transaction.transactionID}
-                    iconSize={isSingleImage ? 'medium' : 'small'}
-                />
-            </View>
-        );
+        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize)};
     } else if (thumbnail && !isLocalFile) {
-        receiptImageComponent = (
-            <ThumbnailImage
-                previewSourceURL={thumbnailSource}
-                style={[styles.w100, styles.h100]}
-                isAuthTokenRequired
-                fallbackIcon={Expensicons.Receipt}
-                fallbackIconSize={isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge}
-                shouldDynamicallyResize={false}
-                objectPosition={CONST.IMAGE_OBJECT_POSITION.TOP}
-            />
-        );
+        propsObj = {
+            shouldUseThumbnailImage: true,
+            source: thumbnailSource,
+            fallbackIcon: Expensicons.Receipt,
+            fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
+            isAuthTokenRequired: true,
+        };
     } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
-        receiptImageComponent = (
-            <PDFThumbnail
-                previewSourceURL={attachmentModalSource}
-                style={[styles.w100, styles.h100]}
-            />
-        );
+        propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
     } else {
-        receiptImageComponent = (
-            <ThumbnailImage
-                previewSourceURL={imageSource ?? ''}
-                style={[styles.w100, styles.h100]}
-                isAuthTokenRequired={false}
-                fallbackIcon={Expensicons.Receipt}
-                fallbackIconSize={isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge}
-                shouldDynamicallyResize={false}
-                objectPosition={CONST.IMAGE_OBJECT_POSITION.TOP}
-            />
-        );
+        propsObj = {
+            isThumbnail,
+            ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
+            shouldUseThumbnailImage: true,
+            isAuthTokenRequired: false,
+            source: thumbnail ?? image ?? '',
+        };
     }
 
     if (enablePreviewModal) {
@@ -118,14 +105,14 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal = false, tr
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
                     >
-                        {receiptImageComponent}
+                        <ReceiptImage {...propsObj} />
                     </PressableWithoutFocus>
                 )}
             </ShowContextMenuContext.Consumer>
         );
     }
 
-    return receiptImageComponent;
+    return <ReceiptImage {...propsObj} />;
 }
 
 ReportActionItemImage.displayName = 'ReportActionItemImage';

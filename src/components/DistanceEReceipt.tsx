@@ -8,7 +8,6 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -16,9 +15,9 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
+import ReceiptImage from './ReceiptImage';
 import ScrollView from './ScrollView';
 import Text from './Text';
-import ThumbnailImage from './ThumbnailImage';
 
 type DistanceEReceiptProps = {
     /** The transaction for the distance request */
@@ -31,7 +30,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
     const thumbnail = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction).thumbnail : null;
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction) ?? {};
     const formattedTransactionAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const thumbnailSource = tryResolveUrlFromApiRoot((thumbnail as string) || '');
+    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);
     const sortedWaypoints = useMemo<WaypointCollection>(
         () =>
@@ -59,12 +58,9 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                         {TransactionUtils.isFetchingWaypointsFromServer(transaction) || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
-                            <ThumbnailImage
-                                previewSourceURL={thumbnailSource}
-                                style={[styles.w100, styles.h100]}
-                                isAuthTokenRequired
-                                shouldDynamicallyResize={false}
-                                objectPosition={CONST.IMAGE_OBJECT_POSITION.TOP}
+                            <ReceiptImage
+                                source={thumbnailSource}
+                                shouldUseThumbnailImage
                             />
                         )}
                     </View>
