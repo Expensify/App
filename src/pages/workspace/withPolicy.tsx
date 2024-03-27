@@ -5,7 +5,6 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import taxPropTypes from '@components/taxPropTypes';
 import {translatableTextPropTypes} from '@libs/Localize';
 import type {
@@ -29,6 +28,7 @@ type NavigatorsParamList = BottomTabNavigatorParamList &
     ReimbursementAccountNavigatorParamList &
     FullScreenNavigatorParamList &
     WorkspacesCentralPaneNavigatorParamList;
+
 type PolicyRoute = RouteProp<
     NavigatorsParamList,
     | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT
@@ -48,6 +48,7 @@ type PolicyRoute = RouteProp<
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
     | typeof SCREENS.WORKSPACE.INVOICES
     | typeof SCREENS.WORKSPACE.CARD
+    | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
 >;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
