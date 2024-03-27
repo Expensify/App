@@ -104,9 +104,12 @@ function isCreatedAction(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 function isDeletedAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = reportAction?.message ?? [];
-    return message.length === 0 || message[0]?.html === '';
+
+    // A legacy deleted comment has either an empty array or an object with html field with empty string as value
+    const isLegacyDeletedComment = message.length === 0 || message[0]?.html === '';
+
+    return isLegacyDeletedComment || !!message[0]?.deleted;
 }
 
 function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -132,7 +135,7 @@ function isReportPreviewAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
-function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
@@ -260,13 +263,20 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     let index;
 
     if (id) {
-        index = sortedReportActions.findIndex((obj) => obj.reportActionID === id);
+        index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
     } else {
-        index = sortedReportActions.findIndex((obj) => obj.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        index = sortedReportActions.findIndex(
+            (reportAction) =>
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                !reportAction.isOptimisticAction,
+        );
     }
 
     if (index === -1) {
-        return [];
+        // if no non-pending action is found, that means all actions on the report are optimistic
+        // in this case, we'll assume the whole chain of reportActions is continuous and return it in its entirety
+        return id ? [] : sortedReportActions;
     }
 
     let startIndex = index;
@@ -294,6 +304,9 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     while (
         (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
         sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        sortedReportActions[startIndex - 1]?.isOptimisticAction ||
         sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM
     ) {
         startIndex--;
