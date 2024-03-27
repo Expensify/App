@@ -4,6 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import type { SelectedPurposeType } from '@pages/OnboardingPurpose/BaseOnboardingPurpose';
 
 let hasSelectedPurpose: boolean | undefined;
 let hasProvidedPersonalDetails: boolean | undefined;
@@ -113,6 +114,10 @@ function getPersonalDetails(accountID: number | undefined) {
     });
 }
 
+function setOnboardingPurposeSelected(value: SelectedPurposeType) {
+    Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
+}
+
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     initWithStoredValues: false,
@@ -195,4 +200,4 @@ Onyx.connect({
     },
 });
 
-export {onServerDataReady, isOnboardingFlowCompleted};
+export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected};

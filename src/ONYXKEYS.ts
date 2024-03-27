@@ -269,6 +269,9 @@ const ONYXKEYS = {
     // Max height supported for HTML <canvas> element
     MAX_CANVAS_HEIGHT: 'maxCanvasHeight',
 
+    /** Onboarding Purpose selected by the user during Onboarding flow */
+    ONBOARDING_PURPOSE_SELECTED: 'OnboardingPurposeSelected',
+
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
@@ -615,6 +618,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
+    [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: string;
     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;

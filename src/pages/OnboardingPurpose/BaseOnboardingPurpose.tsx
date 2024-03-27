@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -6,6 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {OnyxEntry} from 'react-native-onyx';
+import { withOnyx} from 'react-native-onyx';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
@@ -16,10 +18,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import * as Welcome from '@userActions/Welcome';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type ValuesType<T> = T[keyof T];
 type SelectedPurposeType = ValuesType<typeof CONST.ONBOARDING_CHOICES> | undefined;
@@ -33,7 +37,11 @@ const menuIcons = {
     [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
 };
 
-type BaseOnboardingPurposeProps = {
+type BaseOnboardingPurposeOnyxProps = {
+    onboardingPurposeSelected: OnyxEntry<string>;
+}
+
+type BaseOnboardingPurposeProps = BaseOnboardingPurposeOnyxProps & {
     /* Whether to use native styles tailored for native devices */
     shouldUseNativeStyles: boolean;
 
@@ -41,7 +49,7 @@ type BaseOnboardingPurposeProps = {
     shouldEnableMaxHeight: boolean;
 };
 
-function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
@@ -49,6 +57,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const [error, setError] = useState(false);
     const theme = useTheme();
+
+    useEffect(() => {
+        setSelectedPurpose(onboardingPurposeSelected ?? undefined);
+    }, [onboardingPurposeSelected]);
 
     const errorMessage = error ? 'onboarding.purpose.error' : '';
 
@@ -110,7 +122,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
             rightComponent: selectedCheckboxIcon,
             shouldShowRightComponent: isSelected,
             onPress: () => {
-                setSelectedPurpose(choice);
+                Welcome.setOnboardingPurposeSelected(choice);
                 setError(false);
             },
         };
@@ -162,6 +174,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
 }
 
 BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
-export default BaseOnboardingPurpose;
+export default withOnyx<BaseOnboardingPurposeProps, BaseOnboardingPurposeOnyxProps>({
+    onboardingPurposeSelected: {
+        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+    },
+})(BaseOnboardingPurpose);
 
-export type {BaseOnboardingPurposeProps};
+export type {BaseOnboardingPurposeProps, SelectedPurposeType};
