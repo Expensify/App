@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -42,12 +43,12 @@ type IOURequestStepConfirmationOnyxProps = {
     policy: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     policyTags: OnyxEntry<PolicyTagList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &
     IOURequestStepConfirmationStackProps & {
         currentUserPersonalDetails: CurrentUserPersonalDetails;
-        personalDetails: PersonalDetailsList;
         report: Report;
         transaction: Transaction;
     };
@@ -436,7 +437,7 @@ function IOURequestStepConfirmation({
      * @param {String} paymentMethodType
      */
     const sendMoney = useCallback(
-        (paymentMethodType) => {
+        (paymentMethodType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => {
             const currency = transaction.currency;
 
             const trimmedComment = transaction.comment?.comment ? transaction.comment.comment.trim() : '';
@@ -468,7 +469,7 @@ function IOURequestStepConfirmation({
     /**
      * @param billable
      */
-    const setBillable = (billable) => {
+    const setBillable = (billable: boolean) => {
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, billable);
     };
 
@@ -543,13 +544,11 @@ export default compose(
     withCurrentUserPersonalDetails,
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
-    withOnyx({
+    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
+    withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmationOnyxProps>({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },

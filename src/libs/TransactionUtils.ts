@@ -505,7 +505,7 @@ function getWaypointIndex(key: string): number {
 /**
  * Filters the waypoints which are valid and returns those
  */
-function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = false): WaypointCollection {
+function getValidWaypoints(waypoints: WaypointCollection | undefined = {}, reArrangeIndexes = false): WaypointCollection {
     const sortedIndexes = Object.keys(waypoints)
         .map(getWaypointIndex)
         .sort((a, b) => a - b);

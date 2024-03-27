@@ -2160,7 +2160,7 @@ function trackExpense(
     currency: string,
     created: string,
     merchant: string,
-    payeeEmail: string,
+    payeeEmail: string | undefined,
     payeeAccountID: number,
     participant: Participant,
     comment: string,
@@ -2173,7 +2173,7 @@ function trackExpense(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    gpsPoints = undefined,
+    gpsPoints?: GpsPoint,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {
