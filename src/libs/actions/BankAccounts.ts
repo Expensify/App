@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -83,6 +84,7 @@ function openPersonalBankAccountSetupView(exitReportID?: string) {
 }
 
 /**
+ * TODO: remove the previous function and rename this function to openPersonalBankAccountSetupView after migrating to the new flow
  * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
  */
 function openPersonalBankAccountSetupViewRefactor(exitReportID?: string) {
@@ -90,8 +92,12 @@ function openPersonalBankAccountSetupViewRefactor(exitReportID?: string) {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
         }
-        Onyx.merge(ONYXKEYS.USER_WALLET, {subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
+        Onyx.merge(ONYXKEYS.USER_WALLET, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
     });
+}
+
+function clearPersonalBankAccountSetupType() {
+    Onyx.merge(ONYXKEYS.USER_WALLET, {setupType: null});
 }
 
 /**
@@ -104,7 +110,7 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
 function clearPersonalBankAccount() {
     clearPlaid();
     Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
-    Onyx.merge(ONYXKEYS.USER_WALLET, {subStep: null});
+    clearPersonalBankAccountSetupType();
 }
 
 function clearOnfidoToken() {
@@ -112,9 +118,8 @@ function clearOnfidoToken() {
     Onyx.merge(ONYXKEYS.ONFIDO_APPLICANT_ID, '');
 }
 
-
-function updateAddPersonalBankAccountDraft(bankData) {
-    Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT, bankData);
+function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccountForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, bankData);
 }
 
 /**
@@ -547,6 +552,7 @@ export {
     setReimbursementAccountLoading,
     openPersonalBankAccountSetupViewRefactor,
     updateAddPersonalBankAccountDraft,
+    clearPersonalBankAccountSetupType,
 };
 
 export type {BusinessAddress, PersonalAddress};

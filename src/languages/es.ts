@@ -1427,7 +1427,6 @@ export default {
         thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo',
         // TODO: change for Spanish transations
         addBankAccountBody: 'Add your bank account and we’ll connect it to your Expensify Wallet so you can send and receive money right in the app.',
-        addBankAccountBodyPt2: 'Don’t worry, you’ll be able to withdraw funds from your wallet at any time.',
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',
         chooseAnAccountBelow: 'Elige una cuenta a continuación',

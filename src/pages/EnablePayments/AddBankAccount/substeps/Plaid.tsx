@@ -10,19 +10,14 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
-import * as ReimbursementAccountActions from '@userActions/ReimbursementAccount';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {PlaidData, ReimbursementAccount} from '@src/types/onyx';
+import type {PersonalBankAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+import type {PlaidData} from '@src/types/onyx';
 
 type PlaidOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
     /** The draft values of the bank account being setup */
-    personalBankAccountDraft: OnyxEntry<ReimbursementAccountForm>;
+    personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
 
     /** Contains plaid data */
     plaidData: OnyxEntry<PlaidData>;
@@ -32,8 +27,8 @@ type PlaidProps = PlaidOnyxProps & SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
+const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
+    const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> = {};
 
     if (!values.selectedPlaidAccountID) {
         errorFields.selectedPlaidAccountID = 'bankAccount.error.youNeedToSelectAnOption';
@@ -46,30 +41,42 @@ function Plaid({personalBankAccountDraft, onNext, plaidData}: PlaidProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const selectedPlaidAccountID = personalBankAccountDraft?.plaidAccountID ?? '';
+    const selectedPlaidAccountID = personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
     useEffect(() => {
         const plaidBankAccounts = plaidData?.bankAccounts ?? [];
         if (isFocused || plaidBankAccounts.length) {
             return;
         }
-        BankAccounts.setBankAccountSubStep(null);
+        BankAccounts.clearPersonalBankAccountSetupType();
     }, [isFocused, plaidData]);
 
     const handleNextPress = useCallback(() => {
+        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find(
+            (account) => account.plaidAccountID === personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? null,
+        );
+
+        const bankAccountData = {
+            [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ROUTING_NUMBER],
+            [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER],
+            [BANK_INFO_STEP_KEYS.PLAID_MASK]: selectedPlaidBankAccount?.mask,
+            [BANK_INFO_STEP_KEYS.IS_SAVINGS]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.IS_SAVINGS],
+            [BANK_INFO_STEP_KEYS.BANK_NAME]: plaidData?.[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
+            [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID],
+            [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: plaidData?.[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
+        };
+
+        BankAccounts.updateAddPersonalBankAccountDraft(bankAccountData);
         onNext();
-    }, [onNext]);
+    }, [onNext, personalBankAccountDraft, plaidData]);
 
-    const bankAccountID = '';
-    console.log({
-        bank: plaidData?.bankAccounts,
-    });
-
-
+    const handleSelectPlaidAccount = (plaidAccountID: string) => {
+        BankAccounts.updateAddPersonalBankAccountDraft({plaidAccountID});
+    };
 
     return (
         <FormProvider
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
             validate={validate}
             onSubmit={handleNextPress}
             scrollContextEnabled
@@ -80,18 +87,13 @@ function Plaid({personalBankAccountDraft, onNext, plaidData}: PlaidProps) {
             <InputWrapper
                 InputComponent={AddPlaidBankAccount}
                 text={translate('bankAccount.chooseAccountBody')}
-                onSelect={(plaidAccountID: string) => {
-                    BankAccounts.updateAddPersonalBankAccountDraft({plaidAccountID});
-                }}
+                onSelect={handleSelectPlaidAccount}
                 plaidData={plaidData}
-                onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                onExitPlaid={BankAccounts.clearPersonalBankAccountSetupType}
                 allowDebit
                 isNewWalletFlow
-                bankAccountID={bankAccountID}
                 selectedPlaidAccountID={selectedPlaidAccountID}
                 inputID={BANK_INFO_STEP_KEYS.SELECTED_PLAID_ACCOUNT_ID}
-                inputMode={CONST.INPUT_MODE.TEXT}
-                style={[styles.mt5]}
                 defaultValue={selectedPlaidAccountID}
             />
         </FormProvider>
@@ -101,12 +103,8 @@ function Plaid({personalBankAccountDraft, onNext, plaidData}: PlaidProps) {
 Plaid.displayName = 'Plaid';
 
 export default withOnyx<PlaidProps, PlaidOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
     personalBankAccountDraft: {
-        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_DRAFT,
+        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
     },
     plaidData: {
         key: ONYXKEYS.PLAID_DATA,
