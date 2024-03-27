@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -20,6 +19,7 @@ import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 
 type ValuesType<T> = T[keyof T];
 type SelectedPurposeType = ValuesType<typeof CONST.ONBOARDING_CHOICES> | undefined;
@@ -47,7 +47,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [selectedPurpose, setSelectedPurpose] = useState<SelectedPurposeType>(undefined);
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const [error, setError] = useState(false);
     const theme = useTheme();
+
+    const errorMessage = error ? 'onboarding.purpose.error' :  '';
 
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
 
@@ -108,6 +111,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
             shouldShowRightComponent: isSelected,
             onPress: () => {
                 setSelectedPurpose(choice);
+                setError(false);
             },
         };
     });
@@ -134,13 +138,21 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
                             />
                         </View>
                     </ScrollView>
-                    <Button
-                        large
-                        success
-                        onPress={completeEngagement}
-                        isDisabled={!selectedPurpose}
-                        text={translate('common.continue')}
-                        style={[styles.mb5, paddingHorizontal]}
+                    <FormAlertWithSubmitButton
+                        buttonText={translate('common.continue')}
+                        onSubmit={() => {
+                            if(!selectedPurpose) {
+                                setError(true);
+                                return;
+                            }
+
+                            // API call for AcceptSpontanaTerms when backend gets implemented
+                            setError(false);
+                            completeEngagement();
+                        }}
+                        message={errorMessage}
+                        isAlertVisible={error || Boolean(errorMessage)}
+                        containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
                     />
                 </View>
             )}

@@ -1300,6 +1300,7 @@ export default {
         whatsYourName: "What's your name?",
         purpose: {
             title: 'What do you want to do today?',
+            error: 'Please make a selection before continuing',
             [CONST.ONBOARDING_CHOICES.TRACK]: 'Track business spend for taxes',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",

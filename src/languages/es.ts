@@ -1302,6 +1302,7 @@ export default {
         whatsYourName: '¿Cómo te llamas?',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
+            error: 'Por favor, haga una selección antes de continuar.',
             [CONST.ONBOARDING_CHOICES.TRACK]: 'Seguimiento fiscal de los gastos de las empresas',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
