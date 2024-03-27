@@ -7,7 +7,7 @@ import type {StagingDeployCashData} from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
-async function run(): Promise<ReturnType<Awaited<typeof GithubUtils.octokit.issues.create>> | ReturnType<Awaited<typeof GithubUtils.octokit.issues.update>>> {
+async function run(): Promise<ReturnType<Awaited<typeof GithubUtils.octokit.issues.create>> | ReturnType<Awaited<typeof GithubUtils.octokit.issues.update>> | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
     const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     const newVersionTag: string = packageJson.version;
