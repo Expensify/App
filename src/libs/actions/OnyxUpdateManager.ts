@@ -137,7 +137,8 @@ export default () => {
                     SequentialQueue.unpause();
                 }
 
-                // If there are no deferred updates, then we can just unpause the queue and return
+                // If there are no remaining deferred updates after filtering out outdated ones,
+                //  we can just unpause the queue and return
                 if (pendingDeferredUpdateValues.length === 0) {
                     unpauseQueueAndReset();
                     return;
@@ -146,7 +147,7 @@ export default () => {
                 let lastValidDeferredUpdateID = 0;
                 // In order for the deferred updates to be applied correctly in order,
                 // we need to check if there are any gaps deferred updates.
-                function validateDeferredUpdatesAreChained(): boolean {
+                function areDeferredUpdatesChained(): boolean {
                     let isFirst = true;
                     for (const update of pendingDeferredUpdateValues) {
                         // If it's the first one, we need to skip it since we won't have the previousUpdateID
@@ -165,7 +166,7 @@ export default () => {
                 }
 
                 //  If we detect a gap in the deferred updates, re-fetch the missing updates.
-                if (!validateDeferredUpdatesAreChained()) {
+                if (!areDeferredUpdatesChained()) {
                     canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastValidDeferredUpdateID).finally(applyDeferredUpdates);
                     return;
                 }
