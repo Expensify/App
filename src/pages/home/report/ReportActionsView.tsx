@@ -133,6 +133,10 @@ function ReportActionsView({
     }, [route]);
 
     const listID = useMemo(() => {
+        if (!reportActionID) {
+            // We only trigger a change of the list ID for comment linking to ensure proper positioning
+            return listOldID;
+        }
         isFirstLinkedActionRender.current = true;
         const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
         listOldID = newID;
