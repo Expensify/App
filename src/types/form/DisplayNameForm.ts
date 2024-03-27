@@ -1,3 +1,4 @@
+import type {ValueOf} from 'type-fest';
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -5,10 +6,15 @@ const INPUT_IDS = {
     LAST_NAME: 'lastName',
 } as const;
 
-type DisplayNameForm = Form<{
-    [INPUT_IDS.FIRST_NAME]: string;
-    [INPUT_IDS.LAST_NAME]: string;
-}>;
+type InputID = ValueOf<typeof INPUT_IDS>;
+
+type DisplayNameForm = Form<
+    InputID,
+    {
+        [INPUT_IDS.FIRST_NAME]: string;
+        [INPUT_IDS.LAST_NAME]: string;
+    }
+>;
 
 export type {DisplayNameForm};
 export default INPUT_IDS;

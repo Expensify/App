@@ -1,3 +1,4 @@
+import {rand} from '@ngneat/falso';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
@@ -11,16 +12,26 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReportAction from '../utils/collections/reportActions';
+import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const getMockedReports = (length = 500) =>
-    createCollection<Report>(
-        (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-        (index) => createRandomReport(index),
-        length,
-    );
+const REPORTS_COUNT = 15000;
+const REPORT_TRESHOLD = 5;
+const PERSONAL_DETAILS_LIST_COUNT = 1000;
+
+const allReports = createCollection<Report>(
+    (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
+    (index) => ({
+        ...createRandomReport(index),
+        type: rand(Object.values(CONST.REPORT.TYPE)),
+        lastVisibleActionCreated: getRandomDate(),
+        // add status and state to every 5th report to mock nonarchived reports
+        statusNum: index % REPORT_TRESHOLD ? 0 : CONST.REPORT.STATUS_NUM.CLOSED,
+        stateNum: index % REPORT_TRESHOLD ? 0 : CONST.REPORT.STATE_NUM.APPROVED,
+    }),
+    REPORTS_COUNT,
+);
 
 const reportActions = createCollection<ReportAction>(
     (item) => `${item.reportActionID}`,
@@ -30,9 +41,37 @@ const reportActions = createCollection<ReportAction>(
 const personalDetails = createCollection<PersonalDetails>(
     (item) => item.accountID,
     (index) => createPersonalDetails(index),
+    PERSONAL_DETAILS_LIST_COUNT,
 );
 
-const mockedResponseMap = getMockedReports(1000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
+const policies = createCollection<Policy>(
+    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+    (index) => createRandomPolicy(index),
+);
+
+const mockedBetas = Object.values(CONST.BETAS);
+
+const allReportActions = Object.fromEntries(
+    Object.keys(reportActions).map((key) => [
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`,
+        [
+            {
+                errors: reportActions[key].errors ?? [],
+                message: [
+                    {
+                        moderationDecision: {
+                            decision: reportActions[key].message?.[0]?.moderationDecision?.decision,
+                        },
+                    },
+                ],
+                reportActionID: reportActions[key].reportActionID,
+            },
+        ],
+    ]),
+) as unknown as OnyxCollection<ReportAction[]>;
+
+const currentReportId = '1';
+const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
 describe('SidebarUtils', () => {
     beforeAll(() => {
@@ -42,7 +81,7 @@ describe('SidebarUtils', () => {
         });
 
         Onyx.multiSet({
-            ...mockedResponseMap,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
         });
     });
 
@@ -50,7 +89,7 @@ describe('SidebarUtils', () => {
         Onyx.clear();
     });
 
-    test('[SidebarUtils] getOptionData on 1k reports', async () => {
+    test('[SidebarUtils] getOptionData', async () => {
         const report = createRandomReport(1);
         const preferredLocale = 'en';
         const policy = createRandomPolicy(1);
@@ -71,36 +110,15 @@ describe('SidebarUtils', () => {
         );
     });
 
-    test('[SidebarUtils] getOrderedReportIDs on 1k reports', async () => {
-        const currentReportId = '1';
-        const allReports = getMockedReports();
-        const betas = [CONST.BETAS.DEFAULT_ROOMS];
-        const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
-
-        const policies = createCollection<Policy>(
-            (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-            (index) => createRandomPolicy(index),
-        );
-
-        const allReportActions = Object.fromEntries(
-            Object.keys(reportActions).map((key) => [
-                key,
-                [
-                    {
-                        errors: reportActions[key].errors ?? [],
-                        message: [
-                            {
-                                moderationDecision: {
-                                    decision: reportActions[key].message?.[0]?.moderationDecision?.decision,
-                                },
-                            },
-                        ],
-                    },
-                ],
-            ]),
-        ) as unknown as OnyxCollection<ReportAction[]>;
-
+    test('[SidebarUtils] getOrderedReportIDs on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations));
+        await measureFunction(() =>
+            SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations),
+        );
+    });
+
+    test('[SidebarUtils] getOrderedReportIDs on 15k reports for GSD priorityMode', async () => {
+        await waitForBatchedUpdates();
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, allReportActions, transactionViolations));
     });
 });

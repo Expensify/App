@@ -4,108 +4,21 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 322:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-const {execSync} = __nccwpck_require__(2081);
-const fs = (__nccwpck_require__(7147).promises);
-const path = __nccwpck_require__(1017);
-const getMajorVersion = __nccwpck_require__(6688);
-const getMinorVersion = __nccwpck_require__(8447);
-const getPatchVersion = __nccwpck_require__(2866);
-const getBuildVersion = __nccwpck_require__(4016);
-
-// Filepath constants
-const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test' ? path.resolve(__dirname, '../../android/app/build.gradle') : './android/app/build.gradle';
-const PLIST_PATH = './ios/NewExpensify/Info.plist';
-const PLIST_PATH_TEST = './ios/NewExpensifyTests/Info.plist';
-const PLIST_PATH_NSE = './ios/NotificationServiceExtension/Info.plist';
-
-exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
-exports.PLIST_PATH = PLIST_PATH;
-exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
-
-/**
- * Pad a number to be two digits (with leading zeros if necessary).
- *
- * @param {Number} number - Must be an integer.
- * @returns {String} - A string representation of the number with length 2.
- */
-function padToTwoDigits(number) {
-    if (number >= 10) {
-        return number.toString();
-    }
-    return `0${number.toString()}`;
-}
-
-/**
- * Generate the 10-digit versionCode for android.
- * This version code allocates two digits each for PREFIX, MAJOR, MINOR, PATCH, and BUILD versions.
- * As a result, our max version is 99.99.99-99.
- *
- * @param {String} npmVersion
- * @returns {String}
- */
-exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVersion) {
-    // All Android versions will be prefixed with '10' due to previous versioning
-    const prefix = '10';
-    return ''.concat(
-        prefix,
-        padToTwoDigits(getMajorVersion(npmVersion) || 0),
-        padToTwoDigits(getMinorVersion(npmVersion) || 0),
-        padToTwoDigits(getPatchVersion(npmVersion) || 0),
-        padToTwoDigits(getBuildVersion(npmVersion) || 0),
-    );
-};
-
-/**
- * Update the Android app versionName and versionCode.
- *
- * @param {String} versionName
- * @param {String} versionCode
- * @returns {Promise}
- */
-exports.updateAndroidVersion = function updateAndroidVersion(versionName, versionCode) {
-    console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
-    return fs
-        .readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
-        .then((content) => {
-            let updatedContent = content.toString().replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
-            return (updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`));
-        })
-        .then((updatedContent) => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
-};
-
-/**
- * Update the iOS app version.
- * Updates the CFBundleShortVersionString and the CFBundleVersion.
- *
- * @param {String} version
- * @returns {String}
- */
-exports.updateiOSVersion = function updateiOSVersion(version) {
-    const shortVersion = version.split('-')[0];
-    const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
-    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
-
-    // Update Plists
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_NSE}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_NSE}`);
-
-    // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
-    return cfVersion;
-};
-
-
-/***/ }),
-
 /***/ 8007:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "MAX_INCREMENTS": () => (/* binding */ MAX_INCREMENTS),
+/* harmony export */   "SEMANTIC_VERSION_LEVELS": () => (/* binding */ SEMANTIC_VERSION_LEVELS),
+/* harmony export */   "getPreviousVersion": () => (/* binding */ getPreviousVersion),
+/* harmony export */   "getVersionNumberFromString": () => (/* binding */ getVersionNumberFromString),
+/* harmony export */   "getVersionStringFromNumber": () => (/* binding */ getVersionStringFromNumber),
+/* harmony export */   "incrementMinor": () => (/* binding */ incrementMinor),
+/* harmony export */   "incrementPatch": () => (/* binding */ incrementPatch),
+/* harmony export */   "incrementVersion": () => (/* binding */ incrementVersion)
+/* harmony export */ });
 const _ = __nccwpck_require__(5067);
 
 const SEMANTIC_VERSION_LEVELS = {
@@ -235,18 +148,7 @@ function getPreviousVersion(currentVersion, level) {
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
 
-module.exports = {
-    getVersionNumberFromString,
-    getVersionStringFromNumber,
-    incrementVersion,
 
-    // For tests
-    MAX_INCREMENTS,
-    SEMANTIC_VERSION_LEVELS,
-    incrementMinor,
-    incrementPatch,
-    getPreviousVersion,
-};
 
 
 /***/ }),
@@ -2656,12 +2558,17 @@ createToken('XRANGELOOSE', `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAINLOOSE]}$`)
 
 // Coercion.
 // Extract anything that could conceivably be a part of a valid semver
-createToken('COERCE', `${'(^|[^\\d])' +
+createToken('COERCEPLAIN', `${'(^|[^\\d])' +
               '(\\d{1,'}${MAX_SAFE_COMPONENT_LENGTH}})` +
               `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
-              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
+              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?`)
+createToken('COERCE', `${src[t.COERCEPLAIN]}(?:$|[^\\d])`)
+createToken('COERCEFULL', src[t.COERCEPLAIN] +
+              `(?:${src[t.PRERELEASE]})?` +
+              `(?:${src[t.BUILD]})?` +
               `(?:$|[^\\d])`)
 createToken('COERCERTL', src[t.COERCE], true)
+createToken('COERCERTLFULL', src[t.COERCEFULL], true)
 
 // Tilde ranges.
 // Meaning is "reasonably at or greater than"
@@ -3639,6 +3546,186 @@ function version(uuid) {
 
 var _default = version;
 exports["default"] = _default;
+
+/***/ }),
+
+/***/ 7361:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const child_process_1 = __nccwpck_require__(2081);
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const util_1 = __nccwpck_require__(3837);
+const nativeVersionUpdater_1 = __nccwpck_require__(9095);
+const versionUpdater = __importStar(__nccwpck_require__(8007));
+const exec = (0, util_1.promisify)(child_process_1.exec);
+/**
+ * Update the native app versions.
+ */
+function updateNativeVersions(version) {
+    console.log(`Updating native versions to ${version}`);
+    // Update Android
+    const androidVersionCode = (0, nativeVersionUpdater_1.generateAndroidVersionCode)(version);
+    (0, nativeVersionUpdater_1.updateAndroidVersion)(version, androidVersionCode)
+        .then(() => {
+        console.log('Successfully updated Android!');
+    })
+        .catch((err) => {
+        console.error('Error updating Android');
+        core.setFailed(err);
+    });
+    // Update iOS
+    try {
+        const cfBundleVersion = (0, nativeVersionUpdater_1.updateiOSVersion)(version);
+        if (typeof cfBundleVersion === 'string' && cfBundleVersion.split('.').length === 4) {
+            core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
+            console.log('Successfully updated iOS!');
+        }
+        else {
+            core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
+        }
+    }
+    catch (err) {
+        console.error('Error updating iOS');
+        if (err instanceof Error) {
+            core.setFailed(err);
+        }
+    }
+}
+let semanticVersionLevel = core.getInput('SEMVER_LEVEL', { required: true });
+if (!semanticVersionLevel || !Object.keys(versionUpdater.SEMANTIC_VERSION_LEVELS).includes(semanticVersionLevel)) {
+    semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
+    console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
+}
+const { version: previousVersion } = JSON.parse(fs_1.default.readFileSync('./package.json').toString());
+const newVersion = versionUpdater.incrementVersion(previousVersion, semanticVersionLevel);
+console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
+updateNativeVersions(newVersion);
+console.log(`Setting npm version to ${newVersion}`);
+exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`)
+    .then(({ stdout }) => {
+    // NPM and native versions successfully updated, output new version
+    console.log(stdout);
+    core.setOutput('NEW_VERSION', newVersion);
+})
+    .catch(({ stdout, stderr }) => {
+    // Log errors and retry
+    console.log(stdout);
+    console.error(stderr);
+    core.setFailed('An error occurred in the `npm version` command');
+});
+
+
+/***/ }),
+
+/***/ 9095:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PLIST_PATH_TEST = exports.PLIST_PATH = exports.BUILD_GRADLE_PATH = exports.generateAndroidVersionCode = exports.updateAndroidVersion = exports.updateiOSVersion = void 0;
+const child_process_1 = __nccwpck_require__(2081);
+const fs_1 = __nccwpck_require__(7147);
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const major_1 = __importDefault(__nccwpck_require__(6688));
+const minor_1 = __importDefault(__nccwpck_require__(8447));
+const patch_1 = __importDefault(__nccwpck_require__(2866));
+const prerelease_1 = __importDefault(__nccwpck_require__(4016));
+// Filepath constants
+const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test' ? path_1.default.resolve(__dirname, '../../android/app/build.gradle') : './android/app/build.gradle';
+exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
+const PLIST_PATH = './ios/NewExpensify/Info.plist';
+exports.PLIST_PATH = PLIST_PATH;
+const PLIST_PATH_TEST = './ios/NewExpensifyTests/Info.plist';
+exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
+const PLIST_PATH_NSE = './ios/NotificationServiceExtension/Info.plist';
+/**
+ * Pad a number to be two digits (with leading zeros if necessary).
+ */
+function padToTwoDigits(value) {
+    if (value >= 10) {
+        return value.toString();
+    }
+    return `0${value.toString()}`;
+}
+/**
+ * Generate the 10-digit versionCode for android.
+ * This version code allocates two digits each for PREFIX, MAJOR, MINOR, PATCH, and BUILD versions.
+ * As a result, our max version is 99.99.99-99.
+ */
+function generateAndroidVersionCode(npmVersion) {
+    // All Android versions will be prefixed with '10' due to previous versioning
+    const prefix = '10';
+    return ''.concat(prefix, padToTwoDigits((0, major_1.default)(npmVersion) ?? 0), padToTwoDigits((0, minor_1.default)(npmVersion) ?? 0), padToTwoDigits((0, patch_1.default)(npmVersion) ?? 0), padToTwoDigits(Number((0, prerelease_1.default)(npmVersion)) ?? 0));
+}
+exports.generateAndroidVersionCode = generateAndroidVersionCode;
+/**
+ * Update the Android app versionName and versionCode.
+ */
+function updateAndroidVersion(versionName, versionCode) {
+    console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
+    return fs_1.promises
+        .readFile(BUILD_GRADLE_PATH, { encoding: 'utf8' })
+        .then((content) => {
+        let updatedContent = content.toString().replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
+        return (updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`));
+    })
+        .then((updatedContent) => fs_1.promises.writeFile(BUILD_GRADLE_PATH, updatedContent, { encoding: 'utf8' }));
+}
+exports.updateAndroidVersion = updateAndroidVersion;
+/**
+ * Update the iOS app version.
+ * Updates the CFBundleShortVersionString and the CFBundleVersion.
+ */
+function updateiOSVersion(version) {
+    const shortVersion = version.split('-')[0];
+    const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
+    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
+    // Update Plists
+    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`);
+    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`);
+    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_NSE}`);
+    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`);
+    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`);
+    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_NSE}`);
+    // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
+    return cfVersion;
+}
+exports.updateiOSVersion = updateiOSVersion;
+
 
 /***/ }),
 
@@ -5954,84 +6041,45 @@ module.exports = underscoreNodeF._;
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-const {promisify} = __nccwpck_require__(3837);
-const fs = __nccwpck_require__(7147);
-const exec = promisify((__nccwpck_require__(2081).exec));
-const _ = __nccwpck_require__(5067);
-const core = __nccwpck_require__(2186);
-const versionUpdater = __nccwpck_require__(8007);
-const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = __nccwpck_require__(322);
-
-/**
- * Update the native app versions.
- *
- * @param {String} version
- */
-function updateNativeVersions(version) {
-    console.log(`Updating native versions to ${version}`);
-
-    // Update Android
-    const androidVersionCode = generateAndroidVersionCode(version);
-    updateAndroidVersion(version, androidVersionCode)
-        .then(() => {
-            console.log('Successfully updated Android!');
-        })
-        .catch((err) => {
-            console.error('Error updating Android');
-            core.setFailed(err);
-        });
-
-    // Update iOS
-    try {
-        const cfBundleVersion = updateiOSVersion(version);
-        if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
-            core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
-            console.log('Successfully updated iOS!');
-        } else {
-            core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
-        }
-    } catch (err) {
-        console.error('Error updating iOS');
-        core.setFailed(err);
-    }
-}
-
-let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
-if (!semanticVersionLevel || !_.contains(versionUpdater.SEMANTIC_VERSION_LEVELS, semanticVersionLevel)) {
-    semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
-    console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
-}
-
-const {version: previousVersion} = JSON.parse(fs.readFileSync('./package.json'));
-const newVersion = versionUpdater.incrementVersion(previousVersion, semanticVersionLevel);
-console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
-
-updateNativeVersions(newVersion);
-
-console.log(`Setting npm version to ${newVersion}`);
-exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`)
-    .then(({stdout}) => {
-        // NPM and native versions successfully updated, output new version
-        console.log(stdout);
-        core.setOutput('NEW_VERSION', newVersion);
-    })
-    .catch(({stdout, stderr}) => {
-        // Log errors and retry
-        console.log(stdout);
-        console.error(stderr);
-        core.setFailed('An error occurred in the `npm version` command');
-    });
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(7361);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

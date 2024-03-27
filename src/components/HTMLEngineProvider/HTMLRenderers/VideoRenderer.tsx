@@ -1,8 +1,8 @@
 import React from 'react';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import VideoPlayerPreview from '@components/VideoPlayerPreview';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import {parseReportRouteParams} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -22,22 +22,24 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
-    const activeRoute = Navigation.getActiveRoute();
-    const {reportID} = parseReportRouteParams(activeRoute);
 
     return (
-        <VideoPlayerPreview
-            key={key}
-            videoUrl={sourceURL}
-            fileName={fileName}
-            thumbnailUrl={thumbnailUrl}
-            videoDimensions={{width, height}}
-            videoDuration={duration}
-            onShowModalPress={() => {
-                const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, sourceURL);
-                Navigation.navigate(route);
-            }}
-        />
+        <ShowContextMenuContext.Consumer>
+            {({report}) => (
+                <VideoPlayerPreview
+                    key={key}
+                    videoUrl={sourceURL}
+                    fileName={fileName}
+                    thumbnailUrl={thumbnailUrl}
+                    videoDimensions={{width, height}}
+                    videoDuration={duration}
+                    onShowModalPress={() => {
+                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID ?? '', sourceURL);
+                        Navigation.navigate(route);
+                    }}
+                />
+            )}
+        </ShowContextMenuContext.Consumer>
     );
 }
 

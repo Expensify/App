@@ -1,13 +1,14 @@
 import React, {useCallback} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-// @ts-expect-error TODO: Remove this once Onfido (https://github.com/Expensify/App/issues/25136) is migrated to TypeScript.
 import Onfido from '@components/Onfido';
+import type {OnfidoData} from '@components/Onfido/types';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Growl from '@libs/Growl';
@@ -38,12 +39,13 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const handleOnfidoSuccess = useCallback(
-        (onfidoData: Record<string, unknown>) => {
-            BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {...onfidoData, applicantID: onfidoApplicantID});
+        (onfidoData: OnfidoData) => {
+            BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
             BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
         },
-        [reimbursementAccount, onfidoApplicantID],
+        [reimbursementAccount, onfidoApplicantID, policyID],
     );
 
     const handleOnfidoError = () => {
@@ -73,7 +75,7 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={styles.flex1}>
                     <Onfido
-                        sdkToken={onfidoToken}
+                        sdkToken={onfidoToken ?? ''}
                         onUserExit={handleOnfidoUserExit}
                         onError={handleOnfidoError}
                         onSuccess={handleOnfidoSuccess}

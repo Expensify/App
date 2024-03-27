@@ -1,5 +1,5 @@
 import React from 'react';
-import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
+import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
 import type UpdateAppModalProps from './types';
 

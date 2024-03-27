@@ -1,11 +1,10 @@
 // From: https://raw.githubusercontent.com/callstack/reassure/main/packages/reassure-compare/src/output/markdown.ts
-
-const fs = require('node:fs/promises');
-const path = require('path');
-const _ = require('underscore');
-const markdownTable = require('./markdownTable');
-const {formatDuration, formatPercent, formatDurationDiffChange} = require('./format');
-const Logger = require('../../utils/logger');
+import fs from 'node:fs/promises';
+import path from 'path';
+import _ from 'underscore';
+import * as Logger from '../../utils/logger';
+import * as format from './format';
+import markdownTable from './markdownTable';
 
 const tableHeader = ['Name', 'Duration'];
 
@@ -17,8 +16,8 @@ const buildDurationDetails = (title, entry) => {
     return _.filter(
         [
             `**${title}**`,
-            `Mean: ${formatDuration(entry.mean)}`,
-            `Stdev: ${formatDuration(entry.stdev)} (${formatPercent(relativeStdev)})`,
+            `Mean: ${format.formatDuration(entry.mean)}`,
+            `Stdev: ${format.formatDuration(entry.stdev)} (${format.formatPercent(relativeStdev)})`,
             entry.entries ? `Runs: ${entry.entries.join(' ')}` : '',
         ],
         Boolean,
@@ -32,13 +31,13 @@ const buildDurationDetailsEntry = (entry) =>
 
 const formatEntryDuration = (entry) => {
     if ('baseline' in entry && 'current' in entry) {
-        return formatDurationDiffChange(entry);
+        return format.formatDurationDiffChange(entry);
     }
     if ('baseline' in entry) {
-        return formatDuration(entry.baseline.mean);
+        return format.formatDuration(entry.baseline.mean);
     }
     if ('current' in entry) {
-        return formatDuration(entry.current.mean);
+        return format.formatDuration(entry.current.mean);
     }
     return '';
 };
@@ -115,4 +114,4 @@ const writeToMarkdown = (filePath, data) => {
     });
 };
 
-module.exports = writeToMarkdown;
+export default writeToMarkdown;

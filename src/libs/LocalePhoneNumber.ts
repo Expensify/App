@@ -1,5 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {parsePhoneNumber} from './PhoneNumber';
 
@@ -13,11 +14,15 @@ Onyx.connect({
  * Returns a locally converted phone number for numbers from the same region
  * and an internationally converted phone number with the country code for numbers from other regions
  */
-function formatPhoneNumber(number: string | undefined): string {
+function formatPhoneNumber(number: string): string {
     if (!number) {
         return '';
     }
 
+    // do not parse the string, if it doesn't contain the SMS domain and it's not a phone number
+    if (number.indexOf(CONST.SMS.DOMAIN) === -1 && !CONST.REGEX.DIGITS_AND_PLUS.test(number)) {
+        return number;
+    }
     const numberWithoutSMSDomain = Str.removeSMSDomain(number);
     const parsedPhoneNumber = parsePhoneNumber(numberWithoutSMSDomain);
 

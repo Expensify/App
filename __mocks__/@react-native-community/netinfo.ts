@@ -2,12 +2,12 @@ import {NetInfoCellularGeneration, NetInfoStateType} from '@react-native-communi
 import type {addEventListener, configure, fetch, NetInfoState, refresh, useNetInfo} from '@react-native-community/netinfo';
 
 const defaultState: NetInfoState = {
-    type: NetInfoStateType.cellular,
+    type: NetInfoStateType?.cellular,
     isConnected: true,
     isInternetReachable: true,
     details: {
         isConnectionExpensive: true,
-        cellularGeneration: NetInfoCellularGeneration['3g'],
+        cellularGeneration: NetInfoCellularGeneration?.['3g'],
         carrier: 'T-Mobile',
     },
 };

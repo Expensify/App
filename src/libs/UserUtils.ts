@@ -2,8 +2,9 @@ import Str from 'expensify-common/lib/str';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
-import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
+import {ConciergeAvatar, FallbackAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import type {LoginList} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
@@ -12,7 +13,7 @@ type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 
 
 type AvatarSource = IconAsset | string;
 
-type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
+type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
 /**
  * Searches through given loginList for any contact method / login with an error.
@@ -35,8 +36,8 @@ type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | ''
  *      }
  * }}
  */
-function hasLoginListError(loginList: Record<string, Login>): boolean {
-    return Object.values(loginList).some((loginData) => Object.values(loginData.errorFields ?? {}).some((field) => Object.keys(field ?? {}).length > 0));
+function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
+    return Object.values(loginList ?? {}).some((loginData) => Object.values(loginData.errorFields ?? {}).some((field) => Object.keys(field ?? {}).length > 0));
 }
 
 /**
@@ -44,22 +45,22 @@ function hasLoginListError(loginList: Record<string, Login>): boolean {
  * an Info brick road status indicator. Currently this only applies if the user
  * has an unvalidated contact method.
  */
-function hasLoginListInfo(loginList: Record<string, Login>): boolean {
-    return !Object.values(loginList).every((field) => field.validatedDate);
+function hasLoginListInfo(loginList: OnyxEntry<LoginList>): boolean {
+    return !Object.values(loginList ?? {}).every((field) => field.validatedDate);
 }
 
 /**
  * Gets the appropriate brick road indicator status for a given loginList.
  * Error status is higher priority, so we check for that first.
  */
-function getLoginListBrickRoadIndicator(loginList: Record<string, Login>): LoginListIndicator {
+function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>): LoginListIndicator {
     if (hasLoginListError(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     if (hasLoginListInfo(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
-    return '';
+    return undefined;
 }
 
 /**
@@ -87,6 +88,9 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
     }
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
+    }
+    if (Number(accountID) === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+        return NotificationsAvatar;
     }
 
     // There are 24 possible default avatars, so we choose which one this user has based
@@ -170,7 +174,7 @@ function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number)
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
+function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: number): AvatarSource {
     const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
@@ -224,4 +228,4 @@ export {
     hashText,
     isDefaultAvatar,
 };
-export type {AvatarSource};
+export type {AvatarSource, LoginListIndicator};

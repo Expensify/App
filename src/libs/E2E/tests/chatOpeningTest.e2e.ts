@@ -1,14 +1,14 @@
+import type {NativeConfig} from 'react-native-config';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
-import type {TestConfig} from '@libs/E2E/types';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-const test = (config: TestConfig) => {
+const test = (config: NativeConfig) => {
     // check for login (if already logged in the action will simply resolve)
     console.debug('[E2E] Logging in for chat opening');
 

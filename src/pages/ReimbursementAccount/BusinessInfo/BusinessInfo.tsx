@@ -68,16 +68,21 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
+    const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(() => {
-        BankAccounts.updateCompanyInformationForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {
-            ...values,
-            ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
-            companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
-            companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
-        });
-    }, [reimbursementAccount, values, getBankAccountFields]);
+        BankAccounts.updateCompanyInformationForBankAccount(
+            Number(reimbursementAccount?.achData?.bankAccountID ?? '0'),
+            {
+                ...values,
+                ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
+                companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
+                companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
+            },
+            policyID,
+        );
+    }, [reimbursementAccount, values, getBankAccountFields, policyID]);
 
     const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(values), [values]);
 

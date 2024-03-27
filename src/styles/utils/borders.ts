@@ -8,6 +8,10 @@ export default {
         borderRadius: 0,
     },
 
+    br1: {
+        borderRadius: 4,
+    },
+
     br2: {
         borderRadius: 8,
     },

@@ -1,12 +1,11 @@
 import React, {forwardRef, useEffect, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {Keyboard} from 'react-native';
-import type {TextInput} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseSelectionList from './BaseSelectionList';
-import type {BaseSelectionListProps, RadioItem, User} from './types';
+import type {BaseSelectionListProps, ListItem, SelectionListHandle} from './types';
 
-function SelectionList<TItem extends User | RadioItem>(props: BaseSelectionListProps<TItem>, ref: ForwardedRef<TextInput>) {
+function SelectionList<TItem extends ListItem>(props: BaseSelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);

@@ -72,7 +72,7 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
             shouldShow: searchOptions.recentReports?.length > 0,
             indexOffset,
         });
-        indexOffset += searchOptions.recentReports?.length;
+        indexOffset += searchOptions.recentReports.length;
 
         sectionsList.push({
             title: translate('common.contacts'),
@@ -80,7 +80,7 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
             shouldShow: searchOptions.personalDetails?.length > 0,
             indexOffset,
         });
-        indexOffset += searchOptions.personalDetails?.length;
+        indexOffset += searchOptions.personalDetails.length;
 
         if (searchOptions.userToInvite) {
             sectionsList.push({

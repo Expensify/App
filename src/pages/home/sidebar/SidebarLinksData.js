@@ -2,14 +2,14 @@ import {deepEqual} from 'fast-equals';
 import lodashGet from 'lodash/get';
 import lodashMap from 'lodash/map';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import withCurrentReportID from '@components/withCurrentReportID';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -68,11 +68,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     policyMembers: PropTypes.object,
 
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }),
     /** All of the transaction violations */
     transactionViolations: PropTypes.shape({
         violations: PropTypes.arrayOf(
@@ -97,20 +92,20 @@ const propTypes = {
             }),
         ),
     }),
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     chatReports: {},
-    allReportActions: {},
     isLoadingApp: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
     policies: {},
     policyMembers: {},
-    session: {
-        accountID: '',
-    },
     transactionViolations: {},
+    allReportActions: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function SidebarLinksData({
@@ -126,33 +121,29 @@ function SidebarLinksData({
     priorityMode,
     network,
     policyMembers,
-    session: {accountID},
     transactionViolations,
+    currentUserPersonalDetails,
 }) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
 
-    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
+    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, currentUserPersonalDetails.accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
 
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
+
+    const optionItemsMemoized = useMemo(
+        () => SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
+    );
+
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(
-            null,
-            chatReports,
-            betas,
-            policies,
-            priorityMode,
-            allReportActions,
-            transactionViolations,
-            activeWorkspaceID,
-            policyMemberAccountIDs,
-        );
+        const reportIDs = optionItemsMemoized;
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
@@ -165,7 +156,7 @@ function SidebarLinksData({
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
+    }, [optionItemsMemoized, priorityMode, isLoading, network.isOffline, prevPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -271,7 +262,7 @@ const chatReportSelector = (report) =>
 const reportActionsSelector = (reportActions) =>
     reportActions &&
     lodashMap(reportActions, (reportAction) => {
-        const {reportActionID, parentReportActionID, actionName, errors = []} = reportAction;
+        const {reportActionID, parentReportActionID, actionName, errors = [], originalMessage} = reportAction;
         const decision = lodashGet(reportAction, 'message[0].moderationDecision.decision');
 
         return {
@@ -284,6 +275,7 @@ const reportActionsSelector = (reportActions) =>
                     moderationDecision: {decision},
                 },
             ],
+            originalMessage,
         };
     });
 
@@ -338,4 +330,27 @@ export default compose(
             initialValue: {},
         },
     }),
-)(SidebarLinksData);
+)(
+    /* 
+        While working on audit on the App Start App metric we noticed that by memoizing SidebarLinksData we can avoid 2 additional run of getOrderedReportIDs.
+        With that we can reduce app start up time by ~2s on heavy account.
+        More details - https://github.com/Expensify/App/issues/35234#issuecomment-1926914534
+    */
+    memo(
+        SidebarLinksData,
+        (prevProps, nextProps) =>
+            _.isEqual(prevProps.chatReports, nextProps.chatReports) &&
+            _.isEqual(prevProps.allReportActions, nextProps.allReportActions) &&
+            prevProps.isLoadingApp === nextProps.isLoadingApp &&
+            prevProps.priorityMode === nextProps.priorityMode &&
+            _.isEqual(prevProps.betas, nextProps.betas) &&
+            _.isEqual(prevProps.policies, nextProps.policies) &&
+            prevProps.network.isOffline === nextProps.network.isOffline &&
+            _.isEqual(prevProps.insets, nextProps.insets) &&
+            prevProps.onLinkClick === nextProps.onLinkClick &&
+            _.isEqual(prevProps.policyMembers, nextProps.policyMembers) &&
+            _.isEqual(prevProps.transactionViolations, nextProps.transactionViolations) &&
+            _.isEqual(prevProps.currentUserPersonalDetails, nextProps.currentUserPersonalDetails) &&
+            prevProps.currentReportID === nextProps.currentReportID,
+    ),
+);

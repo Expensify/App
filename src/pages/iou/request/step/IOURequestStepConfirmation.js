@@ -92,15 +92,28 @@ function IOURequestStepConfirmation({
     const [receiptFile, setReceiptFile] = useState();
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
+    const receiptType = lodashGet(transaction, 'receipt.type');
     const transactionTaxCode = transaction.taxRate && transaction.taxRate.keyForList;
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
-    const headerTitle = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    const headerTitle = useMemo(() => {
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            return translate('iou.split');
+        }
+        if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+            return translate('iou.trackExpense');
+        }
+        if (iouType === CONST.IOU.TYPE.SEND) {
+            return translate('common.send');
+        }
+        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    }, [iouType, transaction, translate]);
+
     const participants = useMemo(
         () =>
             _.map(transaction.participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                const participantAccountID = lodashGet(participant, 'accountID', 0);
+                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }),
         [transaction.participants, personalDetails],
     );
@@ -121,7 +134,7 @@ function IOURequestStepConfirmation({
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-    }, [participants, transaction.billable, policy, transactionID]);
+    }, [isOffline, participants, transaction.billable, policy, transactionID]);
 
     const defaultBillable = lodashGet(policy, 'defaultBillable', false);
     useEffect(() => {
@@ -132,8 +145,8 @@ function IOURequestStepConfirmation({
         if (!transaction.category) {
             return;
         }
-        if (policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
-            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+        if (policyCategories && policyCategories[transaction.category] && !policyCategories[transaction.category].enabled) {
+            IOU.setMoneyRequestCategory(transactionID, '');
         }
     }, [policyCategories, transaction.category, transactionID]);
     const defaultCategory = lodashGet(
@@ -145,7 +158,7 @@ function IOURequestStepConfirmation({
         if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !_.isEmpty(transaction.category)) {
             return;
         }
-        IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, defaultCategory);
+        IOU.setMoneyRequestCategory(transactionID, defaultCategory);
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, requestType, defaultCategory]);
@@ -154,11 +167,6 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction.participantsAutoAssigned) {
-            // When going back to the participants step, if the iou is a "request" (not a split), then the participants need to be cleared from the
-            // transaction so that the participant can be selected again.
-            if (iouType === CONST.IOU.TYPE.REQUEST) {
-                IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, []);
-            }
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -179,15 +187,8 @@ function IOURequestStepConfirmation({
             setReceiptFile(receipt);
         };
 
-        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID);
-    }, [receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
-
-    useEffect(() => {
-        const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
-        if (policyExpenseChat) {
-            Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
-        }
-    }, [isOffline, participants, transaction.billable, policy]);
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
 
     /**
      * @param {Array} selectedParticipants
@@ -219,6 +220,54 @@ function IOURequestStepConfirmation({
             );
         },
         [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+    );
+
+    /**
+     * @param {Array} selectedParticipants
+     * @param {String} trimmedComment
+     * @param {File} [receiptObj]
+     */
+    const trackExpense = useCallback(
+        (selectedParticipants, trimmedComment, receiptObj, gpsPoints) => {
+            IOU.trackExpense(
+                report,
+                transaction.amount,
+                transaction.currency,
+                transaction.created,
+                transaction.merchant,
+                currentUserPersonalDetails.login,
+                currentUserPersonalDetails.accountID,
+                selectedParticipants[0],
+                trimmedComment,
+                receiptObj,
+                transaction.category,
+                transaction.tag,
+                transactionTaxCode,
+                transactionTaxAmount,
+                transaction.billable,
+                policy,
+                policyTags,
+                policyCategories,
+                gpsPoints,
+            );
+        },
+        [
+            report,
+            transaction.amount,
+            transaction.currency,
+            transaction.created,
+            transaction.merchant,
+            transaction.category,
+            transaction.tag,
+            transaction.billable,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            transactionTaxCode,
+            transactionTaxAmount,
+            policy,
+            policyTags,
+            policyCategories,
+        ],
     );
 
     /**
@@ -290,6 +339,7 @@ function IOURequestStepConfirmation({
                     transaction.tag,
                     report.reportID,
                     transaction.billable,
+                    transaction.iouRequestType,
                 );
                 return;
             }
@@ -308,7 +358,43 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     transaction.billable,
+                    transaction.iouRequestType,
                 );
+                return;
+            }
+
+            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                if (receiptFile) {
+                    // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
+                    if (transaction.amount === 0) {
+                        getCurrentPosition(
+                            (successData) => {
+                                trackExpense(selectedParticipants, trimmedComment, receiptFile, {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                });
+                            },
+                            (errorData) => {
+                                Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
+                                // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                                trackExpense(selectedParticipants, trimmedComment, receiptFile);
+                            },
+                            {
+                                // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+                                maximumAge: 1000 * 60 * 60,
+
+                                // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+                                timeout: 15000,
+                            },
+                        );
+                        return;
+                    }
+
+                    // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
+                    trackExpense(selectedParticipants, trimmedComment, receiptFile);
+                    return;
+                }
+                trackExpense(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }
 
@@ -350,7 +436,18 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, requestType, createDistanceRequest, requestMoney, receiptFile],
+        [
+            transaction,
+            iouType,
+            receiptFile,
+            requestType,
+            requestMoney,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            report.reportID,
+            trackExpense,
+            createDistanceRequest,
+        ],
     );
 
     /**
@@ -361,7 +458,9 @@ function IOURequestStepConfirmation({
     const sendMoney = useCallback(
         (paymentMethodType) => {
             const currency = transaction.currency;
-            const trimmedComment = transaction.comment.trim();
+
+            const trimmedComment = transaction.comment && transaction.comment.comment ? transaction.comment.comment.trim() : '';
+
             const participant = participants[0];
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -373,8 +472,9 @@ function IOURequestStepConfirmation({
                 IOU.sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
             }
         },
-        [transaction.amount, transaction.comment, participants, transaction.currency, currentUserPersonalDetails.accountID, report],
+        [transaction.amount, transaction.comment, transaction.currency, participants, currentUserPersonalDetails.accountID, report],
     );
+
     const addNewParticipant = (option) => {
         const newParticipants = _.map(transaction.participants, (participant) => {
             if (participant.accountID === option.accountID) {
@@ -407,7 +507,7 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && iouType === CONST.IOU.TYPE.REQUEST}
+                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.TRACK_EXPENSE)}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {
@@ -417,9 +517,8 @@ function IOURequestStepConfirmation({
                             },
                         ]}
                     />
-                    {isLoading ? (
-                        <FullScreenLoadingIndicator />
-                    ) : (
+                    {isLoading && <FullScreenLoadingIndicator />}
+                    <View style={[styles.flex1, isLoading && styles.opacity0]}>
                         <MoneyRequestConfirmationList
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
@@ -451,7 +550,7 @@ function IOURequestStepConfirmation({
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         />
-                    )}
+                    </View>
                 </View>
             )}
         </ScreenWrapper>

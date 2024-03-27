@@ -12,6 +12,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -20,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
@@ -31,6 +32,7 @@ import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import SearchInputManager from './workspace/SearchInputManager';
 
 type RoomInvitePageOnyxProps = {
     /** All of the personal details for everyone */
@@ -51,11 +53,15 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const navigation: StackNavigationProp<RootStackParamList> = useNavigation();
 
+    useEffect(() => {
+        setSearchTerm(SearchInputManager.searchInput);
+    }, []);
+
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
         () =>
             [...PersonalDetailsUtils.getLoginsByAccountIDs(report?.visibleChatMemberAccountIDs ?? []), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
-                OptionsListUtils.addSMSDomainIfPhoneNumber(participant),
+                PhoneNumber.addSMSDomainIfPhoneNumber(participant),
             ),
         [report],
     );
@@ -108,10 +114,10 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = invitePersonalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
-                const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
+                const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : searchTerm.toLowerCase();
-                const isPartOfSearchTerm = option.text?.toLowerCase().includes(searchValue) ?? option.login?.toLowerCase().includes(searchValue);
-                return isPartOfSearchTerm ?? isOptionInPersonalDetails;
+                const isPartOfSearchTerm = (option.text?.toLowerCase() ?? '').includes(searchValue) || (option.login?.toLowerCase() ?? '').includes(searchValue);
+                return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
         const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => OptionsListUtils.formatMemberForList(selectedOption));
@@ -186,6 +192,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         if (reportID) {
             Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
         }
+        SearchInputManager.searchInput = '';
         Navigation.navigate(backRoute);
     }, [selectedOptions, backRoute, reportID, validate]);
 
@@ -198,7 +205,9 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         if (
             !userToInvite &&
             excludedUsers.includes(
-                parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible ? OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)) : searchValue,
+                PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible
+                    ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue))
+                    : searchValue,
             )
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
@@ -225,9 +234,13 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
+                    ListItem={UserListItem}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
-                    onChangeText={setSearchTerm}
+                    onChangeText={(value) => {
+                        SearchInputManager.searchInput = value;
+                        setSearchTerm(value);
+                    }}
                     headerMessage={headerMessage}
                     onSelectRow={toggleOption}
                     onConfirm={inviteUsers}

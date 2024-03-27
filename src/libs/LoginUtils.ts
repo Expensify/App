@@ -41,7 +41,7 @@ function validateNumber(values: string): string {
     const parsedPhoneNumber = parsePhoneNumber(values);
 
     if (parsedPhoneNumber.possible && Str.isValidPhone(values.slice(0))) {
-        return parsedPhoneNumber.number?.e164 + CONST.SMS.DOMAIN;
+        return `${parsedPhoneNumber.number?.e164}${CONST.SMS.DOMAIN}`;
     }
 
     return '';
