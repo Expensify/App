@@ -16,6 +16,7 @@ function BaseListItem<TItem extends ListItem>({
     item,
     pressableStyle,
     wrapperStyle,
+    containerStyle,
     selectMultipleStyle,
     isDisabled = false,
     shouldPreventDefaultFocusOnSelectRow = false,
@@ -62,6 +63,7 @@ function BaseListItem<TItem extends ListItem>({
             pendingAction={pendingAction}
             errors={errors}
             errorRowStyles={styles.ph5}
+            style={containerStyle}
         >
             <PressableWithFeedback
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -85,7 +87,7 @@ function BaseListItem<TItem extends ListItem>({
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
                         >
                             <View style={selectMultipleStyle}>
                                 {item.isSelected && (

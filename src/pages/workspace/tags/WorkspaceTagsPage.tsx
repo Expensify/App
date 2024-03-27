@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -84,28 +85,32 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                 .map((policyTagList) =>
                     Object.values(policyTagList.tags || [])
                         .sort((a, b) => localeCompare(a.name, b.name))
-                        .map((value) => ({
-                            value: value.name,
-                            text: value.name,
-                            keyForList: value.name,
-                            isSelected: !!selectedTags[value.name],
-                            pendingAction: value.pendingAction,
-                            errors: value.errors ?? undefined,
-                            enabled: value.enabled,
-                            rightElement: (
-                                <View style={styles.flexRow}>
-                                    <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
-                                        {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
-                                    </Text>
-                                    <View style={[styles.p1, styles.pl2]}>
-                                        <Icon
-                                            src={Expensicons.ArrowRight}
-                                            fill={theme.icon}
-                                        />
+                        .map((value) => {
+                            const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                            return {
+                                value: value.name,
+                                text: value.name,
+                                keyForList: value.name,
+                                isSelected: !!selectedTags[value.name],
+                                pendingAction: value.pendingAction,
+                                errors: value.errors ?? undefined,
+                                enabled: value.enabled,
+                                isDisabled,
+                                rightElement: (
+                                    <View style={styles.flexRow}>
+                                        <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
+                                            {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                                        </Text>
+                                        <View style={[styles.p1, styles.pl2]}>
+                                            <Icon
+                                                src={Expensicons.ArrowRight}
+                                                fill={theme.icon}
+                                            />
+                                        </View>
                                     </View>
-                                </View>
-                            ),
-                        })),
+                                ),
+                            };
+                        }),
                 )
                 .flat(),
         [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
@@ -254,62 +259,68 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={WorkspaceTagsPage.displayName}
-                    shouldShowOfflineIndicatorInWideScreen
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={route.params.policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
                 >
-                    <HeaderWithBackButton
-                        icon={Illustrations.Tag}
-                        title={translate('workspace.common.tags')}
-                        shouldShowBackButton={isSmallScreenWidth}
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        style={[styles.defaultModalContainer]}
+                        testID={WorkspaceTagsPage.displayName}
+                        shouldShowOfflineIndicatorInWideScreen
+                        offlineIndicatorStyle={styles.mtAuto}
                     >
-                        {!isSmallScreenWidth && getHeaderButtons()}
-                    </HeaderWithBackButton>
-                    <ConfirmModal
-                        isVisible={deleteTagsConfirmModalVisible}
-                        onConfirm={handleDeleteTags}
-                        onCancel={() => setDeleteTagsConfirmModalVisible(false)}
-                        title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
-                        prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
-                    </View>
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.spinner}
+                        <HeaderWithBackButton
+                            icon={Illustrations.Tag}
+                            title={translate('workspace.common.tags')}
+                            shouldShowBackButton={isSmallScreenWidth}
+                        >
+                            {!isSmallScreenWidth && getHeaderButtons()}
+                        </HeaderWithBackButton>
+                        <ConfirmModal
+                            isVisible={deleteTagsConfirmModalVisible}
+                            onConfirm={handleDeleteTags}
+                            onCancel={() => setDeleteTagsConfirmModalVisible(false)}
+                            title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
+                            prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
                         />
-                    )}
-                    {tagList.length === 0 && !isLoading && (
-                        <WorkspaceEmptyStateSection
-                            title={translate('workspace.tags.emptyTags.title')}
-                            icon={Illustrations.EmptyStateExpenses}
-                            subtitle={translate('workspace.tags.emptyTags.subtitle')}
-                        />
-                    )}
-                    {tagList.length > 0 && (
-                        <SelectionList
-                            canSelectMultiple
-                            sections={[{data: tagList, indexOffset: 0, isDisabled: false}]}
-                            onCheckboxPress={toggleTag}
-                            onSelectRow={navigateToTagSettings}
-                            onSelectAll={toggleAllTags}
-                            showScrollIndicator
-                            ListItem={TableListItem}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
-                        />
-                    )}
-                </ScreenWrapper>
+                        {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                        </View>
+                        {isLoading && (
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                style={[styles.flex1]}
+                                color={theme.spinner}
+                            />
+                        )}
+                        {tagList.length === 0 && !isLoading && (
+                            <WorkspaceEmptyStateSection
+                                title={translate('workspace.tags.emptyTags.title')}
+                                icon={Illustrations.EmptyStateExpenses}
+                                subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                            />
+                        )}
+                        {tagList.length > 0 && !isLoading && (
+                            <SelectionList
+                                canSelectMultiple
+                                sections={[{data: tagList, indexOffset: 0, isDisabled: false}]}
+                                onCheckboxPress={toggleTag}
+                                onSelectRow={navigateToTagSettings}
+                                onSelectAll={toggleAllTags}
+                                showScrollIndicator
+                                ListItem={TableListItem}
+                                customListHeader={getCustomListHeader()}
+                                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                                onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
+                            />
+                        )}
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
