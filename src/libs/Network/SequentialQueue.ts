@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import * as Request from '@libs/Request';
 import * as RequestThrottle from '@libs/RequestThrottle';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -49,7 +48,7 @@ function flushOnyxUpdatesQueue() {
 /**
  * Identifies and removes conflicting requests from the queue
  */
-function reconcileRequests(persistedRequests: OnyxRequest[], commands: string[]) {
+function reconcileRequests(persistedRequests: OnyxRequest[]) {
     persistedRequests.forEach((request) => {
         const {getConflictingRequests, handleConflictingRequest} = request;
         if (!getConflictingRequests || !handleConflictingRequest) {
@@ -91,8 +90,7 @@ function process(): Promise<void> {
     }
 
     // Remove conflicting requests from the queue to avoid processing them
-    const commands = [WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.DELETE_COMMENT];
-    reconcileRequests(persistedRequests, commands);
+    reconcileRequests(persistedRequests);
 
     const requestToProcess = persistedRequests[0];
 
