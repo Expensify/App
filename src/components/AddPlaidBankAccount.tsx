@@ -262,7 +262,7 @@ function AddPlaidBankAccount({
     if (isDisplayedInNewVBBA || isNewWalletFlow) {
         return (
             <FullPageOfflineBlockingView>
-                <Text style={[styles.mb3, styles.textHeadline]}>{translate(isNewWalletFlow ? 'bankAccount.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
+                <Text style={[styles.mb3, styles.textHeadline]}>{translate(isNewWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
                 {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                     <Icon

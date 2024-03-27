@@ -1029,7 +1029,6 @@ export default {
         chooseYourBankAccount: 'Elige tu cuenta bancaria.',
         chooseAccountBody: 'Asegúrese de elegir el adecuado.',
         confirmYourBankAccount: 'Confirma tu cuenta bancaria.',
-        letsDoubleCheck: 'Comprobemos que todo se ve bien.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',

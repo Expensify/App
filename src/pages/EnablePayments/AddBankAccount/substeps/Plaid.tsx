@@ -86,7 +86,7 @@ function Plaid({personalBankAccountDraft, onNext, plaidData}: PlaidProps) {
         >
             <InputWrapper
                 InputComponent={AddPlaidBankAccount}
-                text={translate('bankAccount.chooseAccountBody')}
+                text={translate('walletPage.chooseAccountBody')}
                 onSelect={handleSelectPlaidAccount}
                 plaidData={plaidData}
                 onExitPlaid={BankAccounts.clearPersonalBankAccountSetupType}

@@ -1030,7 +1030,6 @@ export default {
         chooseYourBankAccount: 'Choose your bank account.',
         chooseAccountBody: 'Make sure that you select the right one.',
         confirmYourBankAccount: 'Confirm your bank account.',
-        letsDoubleCheck: "Let's double check that everything looks right.",
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

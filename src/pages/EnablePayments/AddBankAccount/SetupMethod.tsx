@@ -37,11 +37,11 @@ function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
     return (
         <Section
             icon={Illustrations.MoneyWings}
-            title={translate('bankAccount.addYourBankAccount')}
+            title={translate('walletPage.addYourBankAccount')}
             titleStyles={[styles.textXLarge]}
         >
             <View style={[styles.mv3]}>
-                <Text>{translate('bankAccount.addBankAccountBody')}</Text>
+                <Text>{translate('walletPage.addBankAccountBody')}</Text>
             </View>
             {!!plaidDesktopMessage && (
                 <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>

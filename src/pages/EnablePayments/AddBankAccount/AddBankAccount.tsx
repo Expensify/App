@@ -96,7 +96,7 @@ function AddBankAccount({personalBankAccount, userWallet, plaidData, personalBan
             <HeaderWithBackButton
                 shouldShowBackButton
                 onBackButtonPress={handleBackButtonPress}
-                title={translate('walletPage.addBankAccount')}
+                title={translate('bankAccount.addBankAccount')}
             />
             {isSetupTypeChosen ? (
                 <>
