@@ -11567,7 +11567,9 @@ async function commentPR(PR, message) {
     }
     catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
-        core.setFailed(err.message);
+        if (err instanceof Error) {
+            core.setFailed(err.message);
+        }
     }
 }
 async function run() {

@@ -31,6 +31,8 @@ type DocsRoutes = {
     platforms: Platform[];
 };
 
+type HubEntriesKey = 'sections' | 'articles';
+
 const warnMessage = (platform: string): string => `Number of hubs in _routes.yml does not match number of hubs in docs/${platform}/articles. Please update _routes.yml with hub info.`;
 const disclaimer = '# This file is auto-generated. Do not edit it directly. Use npm run createDocsRoutes instead.\n';
 const docsDir = `${process.cwd()}/docs`;
@@ -74,7 +76,7 @@ function getArticleObj(filename: string): Article {
  * @param key - If we want to push sections / articles
  * @param entry - The article / section to push
  */
-function pushOrCreateEntry<TKey extends 'sections' | 'articles'>(hubs: Hub[], hub: string, key: TKey, entry: TKey extends 'sections' ? Section : Article) {
+function pushOrCreateEntry<TKey extends HubEntriesKey>(hubs: Hub[], hub: string, key: TKey, entry: TKey extends 'sections' ? Section : Article) {
     const hubObj = hubs.find((obj) => obj.href === hub);
 
     if (!hubObj) {
