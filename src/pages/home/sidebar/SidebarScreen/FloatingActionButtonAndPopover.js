@@ -70,9 +70,9 @@ const getQuickActionTitle = (action) => {
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             return 'quickAction.splitBill';
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-            return 'quickAction.splitReceipt';
-        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
             return 'quickAction.splitScan';
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return 'quickAction.splitDistance';
         case CONST.QUICK_ACTIONS.SEND_MONEY:
             return 'quickAction.sendMoney';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
@@ -335,7 +335,7 @@ function FloatingActionButtonAndPopover(props) {
                               },
                           ]
                         : []),
-                    ...(props.quickAction
+                    ...(props.quickAction && props.quickAction.action
                         ? [
                               {
                                   icon: getQuickActionIcon(props.quickAction.action),
