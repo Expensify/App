@@ -141,9 +141,8 @@ function IOURequestStepAmount({
     /**
      * @param {Number} amount
      */
-    const navigateToNextPage = ({amount, paymentMethod}) => {
+    const navigateToNextPage = ({amount}) => {
         isSaveButtonPressed.current = true;
-        console.log(paymentMethod);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         if ((iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) && isTaxTrackingEnabled) {
@@ -220,7 +219,7 @@ function IOURequestStepAmount({
         >
             <MoneyRequestAmountForm
                 isEditing={Boolean(backTo)}
-                currency={currency}
+                currency={transaction.currency}
                 amount={transaction.amount}
                 skipConfirmation={transaction.skipConfirmation}
                 iouType={iouType}

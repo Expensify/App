@@ -258,7 +258,7 @@ function MoneyRequestAmountForm(
         const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         initializeAmount(backendAmount);
 
-        onSubmitButtonPress({amount: currentAmount, currency, paymentMethod});
+        onSubmitButtonPress({amount: currentAmount, currency});
     }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
 
     /**
@@ -351,8 +351,8 @@ function MoneyRequestAmountForm(
                     enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                     addBankAccountRoute={bankAccountRoute}
                     addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                    currency
-                    policyID
+                    currency = {currency ?? CONST.CURRENCY.USD}
+                    policyID = {policyID ?? ''}
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     kycWallAnchorAlignment={{
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
