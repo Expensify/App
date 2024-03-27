@@ -1,15 +1,9 @@
 import AddReaction from '@assets/images/add-reaction.svg';
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
-import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
-import ArrowsUpDown from '@assets/images/arrows-updown.svg';
-import AdminRoomAvatar from '@assets/images/avatars/admin-room.svg';
-import AnnounceRoomAvatar from '@assets/images/avatars/announce-room.svg';
 import ConciergeAvatar from '@assets/images/avatars/concierge-avatar.svg';
-import DeletedRoomAvatar from '@assets/images/avatars/deleted-room.svg';
-import DomainRoomAvatar from '@assets/images/avatars/domain-room.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-avatar.svg';
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
@@ -17,7 +11,6 @@ import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
 import Bell from '@assets/images/bell.svg';
-import BellSlash from '@assets/images/bellSlash.svg';
 import Bill from '@assets/images/bill.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Briefcase from '@assets/images/briefcase.svg';
@@ -28,8 +21,6 @@ import Camera from '@assets/images/camera.svg';
 import Car from '@assets/images/car.svg';
 import CardsAndDomains from '@assets/images/cards-and-domains.svg';
 import Cash from '@assets/images/cash.svg';
-import Chair from '@assets/images/chair.svg';
-import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
 import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
@@ -75,10 +66,8 @@ import Folder from '@assets/images/folder.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
-import Globe from '@assets/images/globe.svg';
 import Hashtag from '@assets/images/hashtag.svg';
 import Heart from '@assets/images/heart.svg';
-import History from '@assets/images/history.svg';
 import Home from '@assets/images/home.svg';
 import Hourglass from '@assets/images/hourglass.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
@@ -110,7 +99,6 @@ import Offline from '@assets/images/offline.svg';
 import OldDotWireframe from '@assets/images/olddot-wireframe.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
-import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
@@ -135,7 +123,6 @@ import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
-import Youtube from '@assets/images/social-youtube.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
@@ -145,7 +132,6 @@ import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
-import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
 import User from '@assets/images/user.svg';
@@ -155,26 +141,19 @@ import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
-import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
 
 export {
     ActiveRoomAvatar,
     AddReaction,
-    AdminRoomAvatar,
     Android,
-    AnnounceRoomAvatar,
     Apple,
     AppleLogo,
     ArrowRight,
-    ArrowRightLong,
-    ArrowsUpDown,
-    Wrench,
     BackArrow,
     Bank,
     Bill,
     Bell,
-    BellSlash,
     Bolt,
     Briefcase,
     Bug,
@@ -187,7 +166,6 @@ export {
     ChatBubble,
     ChatBubbles,
     Checkmark,
-    Chair,
     Close,
     ClosedSign,
     Collapse,
@@ -196,10 +174,8 @@ export {
     Connect,
     Copy,
     CreditCard,
-    DeletedRoomAvatar,
     Document,
     DocumentSlash,
-    DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
     DownArrow,
@@ -232,11 +208,9 @@ export {
     Tax,
     Gallery,
     Gear,
-    Globe,
     GoogleLogo,
     Hashtag,
     Heart,
-    History,
     Home,
     Hourglass,
     ImageCropCircleMask,
@@ -270,7 +244,6 @@ export {
     OldDotWireframe,
     Paperclip,
     Pause,
-    Paycheck,
     Pencil,
     Phone,
     Pin,
@@ -295,7 +268,6 @@ export {
     ThreeDots,
     Transfer,
     Trashcan,
-    Unlock,
     UpArrow,
     Upload,
     UploadAlt,
@@ -308,12 +280,10 @@ export {
     Workspace,
     Zoom,
     Twitter,
-    Youtube,
     Facebook,
     Podcast,
     Linkedin,
     Instagram,
-    ChatBubbleAdd,
     ChatBubbleUnread,
     ChatBubbleReply,
     Lightbulb,
