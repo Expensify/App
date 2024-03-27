@@ -193,8 +193,9 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);
         const splittedOldTag = TransactionUtils.getTagArrayFromName(oldTransactionTag);
         const localizedTagListName = Localize.translateLocal('common.tag');
+        const sortedTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
 
-        Object.keys(policyTags).forEach((policyTagKey, index) => {
+        sortedTagKeys.forEach((_, index) => {
             const policyTagListName = PolicyUtils.getTagListName(policyTags, index) || localizedTagListName;
 
             const newTag = splittedTag[index] ?? '';
