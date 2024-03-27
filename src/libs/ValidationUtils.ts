@@ -1,4 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
+import Str from 'expensify-common/lib/str';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
@@ -277,27 +278,13 @@ function validateIdentity(identity: Record<string, string>): Record<string, bool
     return errors;
 }
 
-/**
- * Check for whether a phone number is valid in different formats/standards. For example:
- * significant: 4404589784
- * international: +1 440-458-9784
- * e164: +14404589784
- * national: (440) 458-978
- * 123.456.7890
- *
- * This is different from expensify-common's isValidE164Phone which only validates E.164 numbers
- */
-function isValidPhone(phoneNumber: string): boolean {
-    return Boolean(phoneNumber.match(CONST.REGEX.PHONE_NUMBER));
-}
-
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
     const phone = phoneNumber || '';
     const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
 
     // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
     // so we need to check if it is a valid phone.
-    if (regionCode && !isValidPhone(phone)) {
+    if (regionCode && !Str.isValidPhone(phone)) {
         return false;
     }
 
@@ -503,7 +490,6 @@ export {
     isValidZipCode,
     isRequiredFulfilled,
     getFieldRequiredErrors,
-    isValidPhone,
     isValidUSPhone,
     isValidWebsite,
     validateIdentity,
