@@ -333,5 +333,3 @@ export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
         initWithStoredValues: false,
     },
 })(NewChatPage);
-
-export type {SelectedParticipant};
