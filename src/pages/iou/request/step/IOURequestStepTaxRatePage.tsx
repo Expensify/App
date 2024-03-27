@@ -26,7 +26,7 @@ type IOURequestStepTaxRatePageProps = {
     WithWritableReportOrNotFoundProps;
 
 const getTaxAmount = (taxRates: TaxRatesWithDefault, selectedTaxRate: string, amount: number) => {
-    const percentage = Object.values(OptionsListUtils.transformedTaxRates(taxRates)).find((taxRate) => taxRate.modifiedName === selectedTaxRate)?.value;
+    const percentage = Object.values(OptionsListUtils.transformedTaxRates(taxRates)).find((taxRate) => taxRate.modifiedName?.includes(selectedTaxRate))?.value;
     if (percentage) {
         return TransactionUtils.calculateTaxAmount(percentage, amount);
     }
@@ -55,7 +55,7 @@ function IOURequestStepTaxRatePage({
             return;
         }
         const taxAmount = getTaxAmount(taxRates, taxes.text, transaction?.amount);
-        if (!taxAmount) {
+        if (taxAmount === undefined) {
             Navigation.goBack(backTo);
             return;
         }
