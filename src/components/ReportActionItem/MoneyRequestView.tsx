@@ -270,6 +270,8 @@ function MoneyRequestView({
                             ) : (
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
+                                    fileExtension={receiptURIs?.fileExtension}
+                                    isThumbnail={receiptURIs?.isThumbnail}
                                     image={receiptURIs?.image}
                                     isLocalFile={receiptURIs?.isLocalFile}
                                     filename={receiptURIs?.filename}

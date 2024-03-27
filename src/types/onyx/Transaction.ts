@@ -57,7 +57,7 @@ type Geometry = {
     type?: GeometryType;
 };
 
-type ReceiptSource = string | number;
+type ReceiptSource = string;
 
 type Receipt = {
     receiptID?: number;
