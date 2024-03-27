@@ -12,8 +12,8 @@ import getCommonConfig from './webpack.common';
  * 2. web - the app content that would be rendered in electron
  * Everything is placed in desktop/dist and ready for packaging
  */
-const getConfig = (env: Environment): Configuration[] => {
-    const rendererConfig = getCommonConfig({...env, platform: 'desktop'});
+const getConfiguration = (environment: Environment): Configuration[] => {
+    const rendererConfig = getCommonConfig({...environment, platform: 'desktop'});
     const outputPath = path.resolve(__dirname, '../../desktop/dist');
 
     rendererConfig.name = 'renderer';
@@ -62,4 +62,4 @@ const getConfig = (env: Environment): Configuration[] => {
     return [mainProcessConfig, rendererConfig];
 };
 
-export default getConfig;
+export default getConfiguration;

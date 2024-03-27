@@ -13,7 +13,7 @@ const BASE_PORT = 8082;
 /**
  * Configuration for the local dev server
  */
-const getConfig = (env: Environment): Promise<Configuration> =>
+const getConfiguration = (environment: Environment): Promise<Configuration> =>
     portfinder.getPortPromise({port: BASE_PORT}).then((port) => {
         // Check if the USE_WEB_PROXY variable has been provided
         // and rewrite any requests to the local proxy server
@@ -33,7 +33,7 @@ const getConfig = (env: Environment): Promise<Configuration> =>
                       },
                   };
 
-        const baseConfig = getCommonConfig(env);
+        const baseConfig = getCommonConfig(environment);
 
         const config = merge(baseConfig, {
             mode: 'development',
@@ -66,7 +66,7 @@ const getConfig = (env: Environment): Promise<Configuration> =>
             ],
             cache: {
                 type: 'filesystem',
-                name: env.platform ?? 'default',
+                name: environment.platform ?? 'default',
                 buildDependencies: {
                     // By default, webpack and loaders are build dependencies
                     // This (also) makes all dependencies of this config file - build dependencies
@@ -85,4 +85,4 @@ const getConfig = (env: Environment): Promise<Configuration> =>
         return TimeAnalyticsPlugin.wrap(config);
     });
 
-export default getConfig;
+export default getConfiguration;

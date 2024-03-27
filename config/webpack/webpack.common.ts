@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {CleanWebpackPlugin} from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
@@ -30,19 +29,19 @@ const includeModules = [
     'expo-av',
 ].join('|');
 
-const envToLogoSuffixMap: Record<string, string> = {
+const environmentToLogoSuffixMap: Record<string, string> = {
     production: '',
     staging: '-stg',
     dev: '-dev',
     adhoc: '-adhoc',
 };
 
-function mapEnvToLogoSuffix(envFile: string): string {
-    let env = envFile.split('.')[2];
-    if (typeof env === 'undefined') {
-        env = 'dev';
+function mapEnvironmentToLogoSuffix(environmentFile: string): string {
+    let environment = environmentFile.split('.')[2];
+    if (typeof environment === 'undefined') {
+        environment = 'dev';
     }
-    return envToLogoSuffixMap[env];
+    return environmentToLogoSuffixMap[environment];
 }
 
 /**
@@ -69,7 +68,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         new HtmlWebpackPlugin({
             template: 'web/index.html',
             filename: 'index.html',
-            splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(file)}.svg`), 'utf-8'),
+            splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvironmentToLogoSuffix(file)}.svg`), 'utf-8'),
             isWeb: platform === 'web',
             isProduction: file === '.env.production',
             isStaging: file === '.env.staging',
@@ -122,11 +121,13 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             ...(platform === 'desktop' ? {} : {process: {env: {}}}),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
 
             // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
             // react-native-render-html uses variable to log exclusively during development.
             // See https://reactnative.dev/docs/javascript-environment
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             __DEV__: /staging|prod|adhoc/.test(file) === false,
         }),
 
@@ -204,21 +205,34 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     },
     resolve: {
         alias: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native-config': 'react-web-config',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native$': 'react-native-web',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native-sound': 'react-native-web-sound',
             // Module alias for web & desktop
             // https://webpack.js.org/configuration/resolve/#resolvealias
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@assets': path.resolve(__dirname, '../../assets'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@components': path.resolve(__dirname, '../../src/components/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@hooks': path.resolve(__dirname, '../../src/hooks/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@libs': path.resolve(__dirname, '../../src/libs/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@navigation': path.resolve(__dirname, '../../src/libs/Navigation/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@pages': path.resolve(__dirname, '../../src/pages/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@styles': path.resolve(__dirname, '../../src/styles/'),
             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@src': path.resolve(__dirname, '../../src/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@desktop': path.resolve(__dirname, '../../desktop'),
         },
 
@@ -243,6 +257,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             '.tsx',
         ],
         fallback: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'process/browser': require.resolve('process/browser'),
             crypto: false,
         },
