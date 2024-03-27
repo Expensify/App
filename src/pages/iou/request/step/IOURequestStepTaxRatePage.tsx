@@ -11,6 +11,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -20,17 +21,17 @@ type IOURequestStepTaxRatePageOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type IOURequestStepTaxRatePageProps = {
-    transaction: OnyxEntry<Transaction>;
-} & IOURequestStepTaxRatePageOnyxProps &
-    WithWritableReportOrNotFoundProps;
+type IOURequestStepTaxRatePageProps = IOURequestStepTaxRatePageOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE> & {
+        transaction: OnyxEntry<Transaction>;
+    };
 
-const getTaxAmount = (taxRates: TaxRatesWithDefault, selectedTaxRate: string, amount: number) => {
+function getTaxAmount(taxRates: TaxRatesWithDefault, selectedTaxRate: string, amount: number): number | undefined {
     const percentage = Object.values(OptionsListUtils.transformedTaxRates(taxRates)).find((taxRate) => taxRate.modifiedName?.includes(selectedTaxRate))?.value;
     if (percentage) {
         return TransactionUtils.calculateTaxAmount(percentage, amount);
     }
-};
+}
 
 function IOURequestStepTaxRatePage({
     route: {

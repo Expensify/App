@@ -13,11 +13,13 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import type {CurrentMoney} from '@pages/iou/steps/MoneyRequestAmountForm';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -27,18 +29,18 @@ type IOURequestStepTaxAmountPageOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type IOURequestStepTaxAmountPageProps = {
-    transaction: OnyxEntry<Transaction>;
-} & IOURequestStepTaxAmountPageOnyxProps &
-    WithWritableReportOrNotFoundProps;
+type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT> & {
+        transaction: OnyxEntry<Transaction>;
+    };
 
-const getTaxAmount = (transaction: OnyxEntry<Transaction>, defaultTaxValue: string | undefined) => {
+function getTaxAmount(transaction: OnyxEntry<Transaction>, defaultTaxValue: string | undefined): number | undefined {
     if (!transaction?.amount) {
         return;
     }
     const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
     return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(percentage, transaction?.amount));
-};
+}
 
 function IOURequestStepTaxAmountPage({
     route: {
@@ -98,7 +100,7 @@ function IOURequestStepTaxAmountPage({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
     };
 
-    const updateTaxAmount = (currentAmount: {amount: string}) => {
+    const updateTaxAmount = (currentAmount: CurrentMoney) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits);
