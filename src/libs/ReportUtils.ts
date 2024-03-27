@@ -4421,6 +4421,14 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
     );
 }
 
+function getChatByReportID(reportID: string, reports: OnyxCollection<Report> = allReports) {
+    return (
+        Object.values(reports ?? {}).find((report) => {
+            return report?.reportID === reportID;
+        }) ?? null
+    );
+}
+
 /**
  * Attempts to find a report in onyx with the provided list of participants in given policy
  */
@@ -5746,6 +5754,7 @@ export {
     shouldCreateNewMoneyRequestReport,
     isTrackExpenseReport,
     hasActionsWithErrors,
+    getChatByReportID
 };
 
 export type {
