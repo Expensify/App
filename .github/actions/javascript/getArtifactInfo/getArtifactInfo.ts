@@ -1,15 +1,11 @@
 import * as core from '@actions/core';
-import type {components as OctokitComponents} from '@octokit/openapi-types/types';
-import GithubUtils from '../../../libs/GithubUtils';
-
-type OctokitArtifact = OctokitComponents['schemas']['artifact'];
+import GithubUtils from '@github/libs/GithubUtils';
 
 const run = function (): Promise<void> {
     const artifactName = core.getInput('ARTIFACT_NAME', {required: true});
 
-    // TODO: remove type casting once GithubUtils (https://github.com/Expensify/App/pull/38280) is migrated to TypeScript
     return GithubUtils.getArtifactByName(artifactName)
-        .then((artifact: OctokitArtifact) => {
+        .then((artifact) => {
             if (artifact === undefined) {
                 console.log(`No artifact found with the name ${artifactName}`);
                 core.setOutput('ARTIFACT_FOUND', false);
@@ -24,7 +20,7 @@ const run = function (): Promise<void> {
         .catch((error: Error) => {
             console.error('A problem occurred while trying to communicate with the GitHub API', error);
             core.setFailed(error);
-        }) as Promise<void>;
+        });
 };
 
 if (require.main === module) {
