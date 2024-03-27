@@ -38,6 +38,7 @@ function BaseSidebarScreen() {
                 <>
                     <TopBar activeWorkspaceID={activeWorkspaceID} />
                     <View style={[styles.flex1]}>
+                        {/* @ts-expect-error: Missing props are provied by hoc in component */}
                         <SidebarLinksData
                             onLinkClick={startTimer}
                             insets={insets}

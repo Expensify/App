@@ -293,8 +293,8 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
                     right: 0,
                     bottom: 0,
                 }}
-                // @ts-expect-error - normally this comes from withCurrentReportID hoc, but here we are just mocking this
                 currentReportID={currentReportID}
+                updateCurrentReportID={() => {}}
             />
         </ComposeProviders>
     );

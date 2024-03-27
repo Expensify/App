@@ -55,8 +55,8 @@ type SidebarLinksDataOnyxProps = {
     policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
 };
 
-type SidebarLinksDataProps = SidebarLinksDataOnyxProps &
-    CurrentReportIDContextValue & {
+type SidebarLinksDataProps = CurrentReportIDContextValue &
+    SidebarLinksDataOnyxProps & {
         /** Toggles the navigation menu open and closed */
         onLinkClick: () => void;
 
@@ -84,7 +84,6 @@ function SidebarLinksData({
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
-    console.log('currentReportID', currentReportID);
     const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -243,7 +242,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         avatar: policy.avatar,
     }) as PolicySelector;
 
-const Test = withCurrentReportID(
+const SidebarLinkDataWithCurrentReportID = withCurrentReportID(
     /* 
         While working on audit on the App Start App metric we noticed that by memoizing SidebarLinksData we can avoid 2 additional run of getOrderedReportIDs.
         With that we can reduce app start up time by ~2s on heavy account.
@@ -300,4 +299,4 @@ export default withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
         key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         initialValue: {},
     },
-})(Test);
+})(SidebarLinkDataWithCurrentReportID);
