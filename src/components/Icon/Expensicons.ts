@@ -157,6 +157,10 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
+import Bed from '@assets/images/bed.svg';
+import CarWithKey from '@assets/images/car-with-key.svg';
+import Plane from '@assets/images/plane.svg';
+import Train from '@assets/images/train.svg';
 
 export {
     ActiveRoomAvatar,
@@ -318,4 +322,8 @@ export {
     ChatBubbleReply,
     Lightbulb,
     DocumentPlus,
+    Bed,
+    CarWithKey,
+    Plane,
+    Train,
 };
