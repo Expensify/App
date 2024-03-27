@@ -1,10 +1,10 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {SelectedPurposeType} from '@pages/OnboardingPurpose/BaseOnboardingPurpose';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import type { SelectedPurposeType } from '@pages/OnboardingPurpose/BaseOnboardingPurpose';
 
 let hasSelectedPurpose: boolean | undefined;
 let hasProvidedPersonalDetails: boolean | undefined;
