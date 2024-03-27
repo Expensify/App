@@ -15,6 +15,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as TransactionEdit from '@userActions/TransactionEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -85,6 +86,7 @@ function IOURequestStepDistance({
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = Navigation.getActiveRoute().includes('start');
+    const transactionWasSaved = useRef(false);
 
     useEffect(() => {
         MapboxToken.init();
@@ -111,6 +113,29 @@ function IOURequestStepDistance({
         }
         setShouldShowAtLeastTwoDifferentWaypointsError(false);
     }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoading, isLoadingRoute, nonEmptyWaypointsCount, transaction]);
+
+    useEffect(() => {
+        if (isCreatingNewRequest) {
+            return () => {};
+        }
+        // This effect runs when the component is mounted and unmounted. It's purpose is to be able to properly
+        // discard changes if the user cancels out of making any changes. This is accomplished by backing up the
+        // original transaction, letting the user modify the current transaction, and then if the user ever
+        // cancels out of the modal without saving changes, the original transaction is restored from the backup.
+
+        // On mount, create the backup transaction.
+        TransactionEdit.createBackupTransaction(transaction);
+
+        return () => {
+            // If the user cancels out of the modal without without saving changes, then the original transaction
+            // needs to be restored from the backup so that all changes are removed.
+            if (transactionWasSaved.current) {
+                return;
+            }
+            TransactionEdit.restoreOriginalTransactionFromBackup(lodashGet(transaction, 'transactionID', ''));
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -191,6 +216,9 @@ function IOURequestStepDistance({
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
+        if (!isCreatingNewRequest) {
+            transactionWasSaved.current = true;
+        }
         if (isEditing) {
             // If nothing was changed, simply go to transaction thread
             // We compare only addresses because numbers are rounded while backup
@@ -207,19 +235,7 @@ function IOURequestStepDistance({
         }
 
         navigateToNextStep();
-    }, [
-        duplicateWaypointsError,
-        atLeastTwoDifferentWaypointsError,
-        hasRouteError,
-        isLoadingRoute,
-        isLoading,
-        isEditing,
-        navigateToNextStep,
-        transactionBackup,
-        waypoints,
-        transaction.transactionID,
-        report.reportID,
-    ]);
+    }, [duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, isCreatingNewRequest, isEditing, navigateToNextStep, transactionBackup, waypoints, transaction.transactionID, report.reportID]);
 
     return (
         <StepScreenWrapper
