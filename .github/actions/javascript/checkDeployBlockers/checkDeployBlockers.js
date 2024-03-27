@@ -71,4 +71,4 @@ if (require.main === module) {
     run();
 }
 
-module.exports = run;
+export default run;
