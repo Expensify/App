@@ -490,9 +490,12 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
     // Update optimistic data for parent report action if the report is a child report
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!isEmptyObject(optimisticParentReportData)) {
-        optimisticData.push(optimisticParentReportData);
-    }
+    optimisticParentReportData.forEach((parentReportData) => {
+        if (isEmptyObject(parentReportData)) {
+            return;
+        }
+        optimisticData.push(parentReportData);
+    });
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone() && currentUserAccountID) {
@@ -578,6 +581,15 @@ function openReport(
     ];
 
     const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                errorFields: {
+                    notFound: null,
+                },
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
@@ -1218,9 +1230,12 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             optimisticReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        if (!isEmptyObject(optimisticParentReportData)) {
-            optimisticData.push(optimisticParentReportData);
-        }
+        optimisticParentReportData.forEach((parentReportData) => {
+            if (isEmptyObject(parentReportData)) {
+                return;
+            }
+            optimisticData.push(parentReportData);
+        });
     }
 
     const parameters: DeleteCommentParams = {
