@@ -20,6 +20,8 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
+import SettlementButton from "@components/SettlementButton";
+import ROUTES, {AllRoutes} from "@src/ROUTES";
 
 type MoneyRequestAmountFormProps = {
     /** IOU amount saved in Onyx */
@@ -39,6 +41,12 @@ type MoneyRequestAmountFormProps = {
 
     /** Type of the IOU */
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+
+    /** The policyID of the request */
+    policyID?: string;
+
+    /** Depending on expense report or personal IOU report, respective bank account route */
+    bankAccountRoute?: AllRoutes;
 
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress: () => void;
@@ -79,6 +87,8 @@ function MoneyRequestAmountForm(
         isEditing = false,
         skipConfirmation = false,
         iouType = CONST.IOU.TYPE.REQUEST,
+        policyID = '',
+        bankAccountRoute = '',
         onCurrencyButtonPress,
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
@@ -248,7 +258,7 @@ function MoneyRequestAmountForm(
         const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         initializeAmount(backendAmount);
 
-        onSubmitButtonPress({amount: currentAmount, currency});
+        onSubmitButtonPress({amount: currentAmount, currency, paymentMethod});
     }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
 
     /**
@@ -334,6 +344,28 @@ function MoneyRequestAmountForm(
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
                 ) : null}
+                {iouType === CONST.IOU.TYPE.SEND && skipConfirmation ? (
+                <SettlementButton
+                    pressOnEnter
+                    onPress={submitAndNavigateToNextPage}
+                    enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                    addBankAccountRoute={bankAccountRoute}
+                    addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                    currency
+                    policyID
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                    kycWallAnchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    paymentMethodDropdownAnchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    shouldShowPersonalBankAccountOption
+                    enterKeyEventListenerPriority={1}
+                />
+                ) : (
                 <Button
                     success
                     // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
@@ -345,6 +377,7 @@ function MoneyRequestAmountForm(
                     onPress={submitAndNavigateToNextPage}
                     text={buttonText}
                 />
+                )}
             </View>
         </ScrollView>
     );

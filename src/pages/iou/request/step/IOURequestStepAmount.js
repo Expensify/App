@@ -141,8 +141,9 @@ function IOURequestStepAmount({
     /**
      * @param {Number} amount
      */
-    const navigateToNextPage = ({amount}) => {
+    const navigateToNextPage = ({amount, paymentMethod}) => {
         isSaveButtonPressed.current = true;
+        console.log(paymentMethod);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         if ((iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) && isTaxTrackingEnabled) {
@@ -163,6 +164,7 @@ function IOURequestStepAmount({
         // to the confirm step.
         if (report.reportID) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
             if (transaction.skipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -170,7 +172,7 @@ function IOURequestStepAmount({
                         selectedParticipants,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        amount,
+                        backendAmount,
                         '',
                         transaction.currency,
                         '',
@@ -178,10 +180,15 @@ function IOURequestStepAmount({
                         '',
                     );
                     return;
-                } else {
+                }
+                if (iouType === CONST.IOU.TYPE.SEND) {
+
+                    return;
+                }
+                if (iouType === CONST.IOU.TYPE.REQUEST) {
                     IOU.requestMoney(
                         report,
-                        amount,
+                        backendAmount,
                         transaction.currency,
                         transaction.created,
                         '',
@@ -191,10 +198,10 @@ function IOURequestStepAmount({
                         '',
                         null,
                     );
+                    return;
                 }
-            } else {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
             }
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
             return;
         }
 
@@ -217,6 +224,8 @@ function IOURequestStepAmount({
                 amount={transaction.amount}
                 skipConfirmation={transaction.skipConfirmation}
                 iouType={iouType}
+                policyID={policy.policyID}
+                bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={navigateToNextPage}
