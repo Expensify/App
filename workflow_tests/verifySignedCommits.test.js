@@ -2,7 +2,7 @@ const path = require('path');
 const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/verifySignedCommitsAssertions');
-const mocks = require('./mocks/verifySignedCommitsMocks');
+const mocks = require('./mocks/verifySignedCommitsMocks').default;
 const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
