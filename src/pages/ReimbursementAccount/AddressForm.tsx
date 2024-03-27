@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-type AddressError = Record<keyof Address, boolean>;
+type AddressErrors = Record<keyof Address, boolean>;
 
 type AddressFormProps = {
     /** Translate key for Street name */
@@ -27,10 +27,10 @@ type AddressFormProps = {
     values?: Address;
 
     /** Any errors that can arise from form validation */
-    errors?: AddressError;
+    errors?: AddressErrors;
 
     /** The map for inputID of the inputs */
-    inputKeys?: Address;
+    inputKeys: Address;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
@@ -39,6 +39,7 @@ type AddressFormProps = {
 function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, inputKeys, onFieldChange = () => {}, streetTranslationKey}: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
     return (
         <>
             <View>
@@ -59,7 +60,7 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
             </View>
             <InputWrapper
                 InputComponent={TextInput}
-                inputID={inputKeys?.city ?? 'cityInput'}
+                inputID={inputKeys.city ?? 'cityInput'}
                 shouldSaveDraft={shouldSaveDraft}
                 label={translate('common.city')}
                 accessibilityLabel={translate('common.city')}
@@ -68,13 +69,13 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
                 defaultValue={defaultValues?.city}
                 onChangeText={(value) => onFieldChange({city: value})}
                 errorText={errors?.city ? 'bankAccount.error.addressCity' : ''}
-                containerStyles={[styles.mt6]}
+                containerStyles={styles.mt6}
             />
 
             <View style={[styles.mt3, styles.mhn5]}>
                 <InputWrapper
                     InputComponent={StatePicker}
-                    inputID={inputKeys?.state ?? 'stateInput'}
+                    inputID={inputKeys.state ?? 'stateInput'}
                     shouldSaveDraft={shouldSaveDraft}
                     value={values?.state as State}
                     defaultValue={defaultValues?.state}
@@ -96,7 +97,7 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
                 errorText={errors?.zipCode ? 'bankAccount.error.zipCode' : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={['common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}]}
-                containerStyles={[styles.mt3]}
+                containerStyles={styles.mt3}
             />
         </>
     );
@@ -104,5 +105,3 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
 
 AddressForm.displayName = 'AddressForm';
 export default AddressForm;
-
-export type {Address};

@@ -62,7 +62,7 @@ function computeComponentSpecificRegistrationParams({
 type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey = ValueTypeKey> = ComponentPropsWithoutRef<TInput> &
     InputComponentValueProps<TValue> & {
         InputComponent: TInput;
-        inputID: string | State;
+        inputID: string;
         isFocused?: boolean;
 
         /**

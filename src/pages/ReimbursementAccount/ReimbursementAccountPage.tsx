@@ -34,7 +34,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {ACHData, BankAccountStep as TBankAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ACHContractStep from './ACHContractStep';
-// eslint-disable-next-line @typescript-eslint/no-redeclare
 import BankAccountStep from './BankAccountStep';
 import BeneficialOwnersStep from './BeneficialOwnersStep';
 import CompanyStep from './CompanyStep';
@@ -307,7 +306,7 @@ function ReimbursementAccountPage({
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
     );
 
-    const continueFunction = () => {
+    const setManualStep = () => {
         BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
             setShouldShowContinueSetupButton(false);
         });
@@ -431,7 +430,7 @@ function ReimbursementAccountPage({
         return (
             <ContinueBankAccountSetup
                 reimbursementAccount={reimbursementAccount}
-                continueFunction={continueFunction}
+                onContinue={setManualStep}
                 policyName={policyName}
                 onBackButtonPress={Navigation.goBack}
             />

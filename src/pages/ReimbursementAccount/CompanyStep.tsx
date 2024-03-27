@@ -5,6 +5,7 @@ type CompanyStepProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 };
+
 function CompanyStep({onBackButtonPress}: CompanyStepProps) {
     return <BusinessInfo onBackButtonPress={onBackButtonPress} />;
 }
