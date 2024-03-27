@@ -350,6 +350,13 @@ function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
 
     return switchPolicyID(navigationRef.current, params);
 }
+/** Check if the modal is displayed */
+function isDisplayedInModal() {
+    const state = navigationRef?.current?.getRootState();
+    const lastRoute = state?.routes?.at(-1);
+    const lastRouteName = lastRoute?.name;
+    return lastRouteName === NAVIGATORS.LEFT_MODAL_NAVIGATOR || lastRouteName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+}
 
 export default {
     setShouldPopAllStateOnUP,
@@ -370,6 +377,7 @@ export default {
     parseHybridAppUrl,
     navigateWithSwitchPolicyID,
     resetToHome,
+    isDisplayedInModal,
 };
 
 export {navigationRef};
