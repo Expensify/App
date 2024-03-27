@@ -251,6 +251,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     routeName: ROUTES.SETTINGS_ABOUT,
                 },
                 {
+                    translationKey: 'sidebarScreen.saveTheWorld',
+                    icon: Expensicons.Heart,
+                    routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                },
+                {
                     translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
                     action: () => {

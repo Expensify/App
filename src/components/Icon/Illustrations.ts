@@ -71,6 +71,7 @@ import SanFrancisco from '@assets/images/simple-illustrations/simple-illustratio
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
+import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
@@ -152,6 +153,7 @@ export {
     Workflows,
     ThreeLeggedLaptopWoman,
     House,
+    TeachersUnite,
     Accounting,
     Car,
     Coins,
