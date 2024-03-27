@@ -22,6 +22,7 @@ import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/typ
 import CONST from '@src/CONST';
 import SettlementButton from "@components/SettlementButton";
 import ROUTES, {AllRoutes} from "@src/ROUTES";
+import paymentMethod from "@src/types/onyx/PaymentMethod";
 
 type MoneyRequestAmountFormProps = {
     /** IOU amount saved in Onyx */
@@ -52,7 +53,7 @@ type MoneyRequestAmountFormProps = {
     onCurrencyButtonPress: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-    onSubmitButtonPress: ({amount, currency}: {amount: string; currency: string}) => void;
+    onSubmitButtonPress: ({amount, currency, paymentMethod}: {amount: string; currency: string; paymentMethod: string}) => void;
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab?: ValueOf<typeof CONST.TAB_REQUEST>;
@@ -242,7 +243,7 @@ function MoneyRequestAmountForm(
     /**
      * Submit amount and navigate to a proper page
      */
-    const submitAndNavigateToNextPage = useCallback(() => {
+    const submitAndNavigateToNextPage = useCallback((iouPaymentType) => {
         if (isAmountInvalid(currentAmount)) {
             setFormError('iou.error.invalidAmount');
             return;
@@ -258,7 +259,7 @@ function MoneyRequestAmountForm(
         const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         initializeAmount(backendAmount);
 
-        onSubmitButtonPress({amount: currentAmount, currency});
+        onSubmitButtonPress({amount: currentAmount, paymentMethod: iouPaymentType});
     }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
 
     /**
