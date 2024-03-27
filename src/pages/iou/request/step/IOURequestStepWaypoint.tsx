@@ -232,8 +232,8 @@ function IOURequestStepWaypoint({
 
 IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
 
-export default withFullTransactionOrNotFound(
-    withWritableReportOrNotFound(
+export default withWritableReportOrNotFound(
+    withFullTransactionOrNotFound(
         withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxProps>({
             userLocation: {
                 key: ONYXKEYS.USER_LOCATION,
