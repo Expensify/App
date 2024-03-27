@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import {context} from '@actions/github';
-import CONST from '../../../libs/CONST';
-import GithubUtils from '../../../libs/GithubUtils';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
 
 function getTestBuildMessage(): string {
     console.log('Input for android', core.getInput('ANDROID', {required: true}));
@@ -42,10 +42,9 @@ function getTestBuildMessage(): string {
 }
 
 /** Comment on a single PR */
-async function commentPR(PR: string, message: string) {
+async function commentPR(PR: number, message: string) {
     console.log(`Posting test build comment on #${PR}`);
     try {
-        // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
         await GithubUtils.createComment(context.repo.repo, PR, message);
         console.log(`Comment created on #${PR} successfully 🎉`);
     } catch (err) {
@@ -55,7 +54,7 @@ async function commentPR(PR: string, message: string) {
 }
 
 async function run() {
-    const PR_NUMBER = core.getInput('PR_NUMBER', {required: true});
+    const PR_NUMBER = Number(core.getInput('PR_NUMBER', {required: true}));
     const comments = await GithubUtils.paginate(
         GithubUtils.octokit.issues.listComments,
         {
@@ -66,13 +65,9 @@ async function run() {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             per_page: 100,
         },
-        // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         (response) => response.data,
     );
-    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    const testBuildComment = comments.find((comment) => comment.body.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
+    const testBuildComment = comments.find((comment) => comment.body?.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
     if (testBuildComment) {
         console.log('Found previous build comment, hiding it', testBuildComment);
         await GithubUtils.graphql(`

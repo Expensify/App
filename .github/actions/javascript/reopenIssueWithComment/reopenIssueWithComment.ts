@@ -1,14 +1,13 @@
 import * as core from '@actions/core';
-import CONST from '../../../libs/CONST';
-import GithubUtils from '../../../libs/GithubUtils';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
+import type {CreateCommentResponse} from '@github/libs/GithubUtils';
 
-const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});
+const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
 const comment = core.getInput('COMMENT', {required: true});
 
-function reopenIssueWithComment() {
+function reopenIssueWithComment(): Promise<CreateCommentResponse> {
     console.log(`Reopening issue #${issueNumber}`);
-    // TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return GithubUtils.octokit.issues
         .update({
             owner: CONST.GITHUB_OWNER,
@@ -19,8 +18,6 @@ function reopenIssueWithComment() {
         })
         .then(() => {
             console.log(`Commenting on issue #${issueNumber}`);
-            // TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return GithubUtils.octokit.issues.createComment({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,

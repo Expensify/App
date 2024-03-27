@@ -1,13 +1,16 @@
 import * as core from '@actions/core';
-import GithubUtils from '../../../libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
 
-const run = function () {
+const run = function (): Promise<void> {
     return GithubUtils.getStagingDeployCash()
         .then(({labels, number}) => {
-            // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            const labelsNames = labels.map((label) => label.name);
-            console.log(`Found StagingDeployCash with labels: ${labelsNames}`);
+            const labelsNames = labels.map((label) => {
+                if (typeof label === 'string') {
+                    return '';
+                }
+                return label.name;
+            });
+            console.log(`Found StagingDeployCash with labels: ${JSON.stringify(labelsNames)}`);
             core.setOutput('IS_LOCKED', labelsNames.includes('🔐 LockCashDeploys 🔐'));
             core.setOutput('NUMBER', number);
         })
