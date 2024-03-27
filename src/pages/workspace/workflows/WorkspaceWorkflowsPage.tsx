@@ -43,7 +43,7 @@ type WorkspaceWorkflowsPageOnyxProps = {
 };
 type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkflowsPageProps) {
+function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -54,9 +54,10 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
     const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
 
-    const displayNameForAuthorizedPayer = useMemo(() => {
-        return PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser;
-    }, [policy?.achAccount?.reimburser]);
+    const displayNameForAuthorizedPayer = useMemo(
+        () => PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
+        [policy?.achAccount?.reimburser],
+    );
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
