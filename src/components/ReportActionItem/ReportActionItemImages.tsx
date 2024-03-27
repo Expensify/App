@@ -65,21 +65,23 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
     return (
         <View style={styles.reportActionItemImagesContainer}>
             <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-                {shownImages.map(({thumbnail, image, transaction, isLocalFile, filename}, index) => {
+                {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension, filename}, index) => {
                     // Show a border to separate multiple images. Shown to the right for each except the last.
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                     const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
                     return (
                         <View
-                            key={`${index}-${image as string}`}
+                            key={`${index}-${image}`}
                             style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
                         >
                             <ReportActionItemImage
                                 thumbnail={thumbnail}
+                                fileExtension={fileExtension}
                                 image={image}
                                 isLocalFile={isLocalFile}
                                 filename={filename}
                                 transaction={transaction}
+                                isThumbnail={isThumbnail}
                                 isSingleImage={numberOfShownImages === 1}
                             />
                         </View>
