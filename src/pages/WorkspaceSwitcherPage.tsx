@@ -1,19 +1,18 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {MagnifyingGlass} from '@components/Icon/Expensicons';
-import OptionRow from '@components/OptionRow';
-import OptionsSelector from '@components/OptionsSelector';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -53,13 +52,49 @@ type WorkspaceSwitcherPageOnyxProps = {
 
 type WorkspaceSwitcherPageProps = WorkspaceSwitcherPageOnyxProps;
 
+function WorkspacesSectionHeader() {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    return (
+        <View style={[styles.mh4, styles.mt6, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
+            <View>
+                <Text
+                    style={styles.label}
+                    color={theme.textSupporting}
+                >
+                    {translate('common.workspaces')}
+                </Text>
+            </View>
+            <Tooltip text={translate('workspace.new.newWorkspace')}>
+                <PressableWithFeedback
+                    accessible={false}
+                    role={CONST.ROLE.BUTTON}
+                    onPress={() => {
+                        Navigation.goBack();
+                        interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt());
+                    }}
+                >
+                    {({hovered}) => (
+                        <Icon
+                            src={Expensicons.Plus}
+                            width={12}
+                            height={12}
+                            additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
+                            fill={theme.icon}
+                        />
+                    )}
+                </PressableWithFeedback>
+            </Tooltip>
+        </View>
+    );
+}
 function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [selectedOption, setSelectedOption] = useState<SimpleWorkspaceItem>();
-    const [searchTerm, setSearchTerm] = useState('');
-    const {inputCallbackRef} = useAutoFocusInput();
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
@@ -105,11 +140,6 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
 
             const {policyID} = option;
 
-            if (policyID) {
-                setSelectedOption(option);
-            } else {
-                setSelectedOption(undefined);
-            }
             setActiveWorkspaceID(policyID);
             Navigation.goBack();
             if (policyID !== activeWorkspaceID) {
@@ -141,154 +171,87 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 boldStyle: hasUnreadData(policy?.id),
                 keyForList: policy?.id,
                 isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
+                isSelected: activeWorkspaceID === policy?.id,
             }));
-    }, [policies, getIndicatorTypeForPolicy, hasUnreadData, isOffline]);
+    }, [policies, isOffline, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID]);
 
     const filteredAndSortedUserWorkspaces = useMemo(
         () =>
             usersWorkspaces
-                .filter((policy) => policy.text?.toLowerCase().includes(searchTerm?.toLowerCase() ?? ''))
+                .filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? ''))
                 .sort((policy1, policy2) => sortWorkspacesBySelected(policy1, policy2, activeWorkspaceID)),
-        [searchTerm, usersWorkspaces, activeWorkspaceID],
+        [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID],
     );
 
-    const usersWorkspacesSectionData = useMemo(
-        () => ({
-            data: filteredAndSortedUserWorkspaces,
-            shouldShow: true,
-            indexOffset: 0,
-        }),
-        [filteredAndSortedUserWorkspaces],
-    );
-
-    const everythingSection = useMemo(() => {
-        const option = {
-            reportID: '',
-            text: CONST.WORKSPACE_SWITCHER.NAME,
-            icons: [
-                {
-                    source: Expensicons.ExpensifyAppIcon,
-                    name: CONST.WORKSPACE_SWITCHER.NAME,
-                    type: CONST.ICON_TYPE_AVATAR,
-                },
-            ],
-            brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
-            boldStyle: hasUnreadData(undefined),
-        };
-
-        return (
-            <>
-                <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb3]}>
-                    <Text
-                        style={styles.label}
-                        color={theme.textSupporting}
-                    >
-                        {translate('workspace.switcher.everythingSection')}
-                    </Text>
-                </View>
-                <View>
-                    <OptionRow
-                        option={option}
-                        onSelectRow={selectPolicy}
-                        showTitleTooltip={false}
-                        highlightSelected
-                        isSelected={!activeWorkspaceID}
-                        optionIsFocused={!activeWorkspaceID}
-                    />
-                </View>
-            </>
-        );
-    }, [activeWorkspaceID, getIndicatorTypeForPolicy, hasUnreadData, selectPolicy, styles, theme.textSupporting, translate]);
+    const usersWorkspacesSectionData = useMemo(() => {
+        const options = [
+            {
+                title: translate('workspace.switcher.everythingSection'),
+                shouldShow: true,
+                indexOffset: 0,
+                data: [
+                    {
+                        text: CONST.WORKSPACE_SWITCHER.NAME,
+                        policyID: '',
+                        icons: [{source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR}],
+                        brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
+                        boldStyle: hasUnreadData(undefined),
+                        isSelected: activeWorkspaceID === undefined,
+                    },
+                ],
+            },
+        ];
+        if (filteredAndSortedUserWorkspaces.length > 0) {
+            options.push({
+                CustomSectionHeader: WorkspacesSectionHeader,
+                data: filteredAndSortedUserWorkspaces,
+                shouldShow: true,
+                indexOffset: 1,
+            });
+        }
+        return options;
+    }, [activeWorkspaceID, filteredAndSortedUserWorkspaces, getIndicatorTypeForPolicy, hasUnreadData, translate]);
 
     const headerMessage = filteredAndSortedUserWorkspaces.length === 0 ? translate('common.noResultsFound') : '';
+    const shouldShowCreateWorkspace = usersWorkspaces.length === 0;
 
-    const workspacesSection = useMemo(
-        () => (
-            <>
-                <View style={[styles.mh4, styles.mt6, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...(usersWorkspaces.length > 0 ? [styles.mb1] : [styles.mb3])]}>
-                    <View>
-                        <Text
-                            style={styles.label}
-                            color={theme.textSupporting}
-                        >
-                            {translate('common.workspaces')}
-                        </Text>
+    const renderRightHandSideComponent = useCallback(
+        (item: (typeof filteredAndSortedUserWorkspaces)[number]) => {
+            if (item.isSelected) {
+                return (
+                    <View style={styles.defaultCheckmarkWrapper}>
+                        <Icon
+                            src={Expensicons.Checkmark}
+                            fill={theme.iconSuccessFill}
+                        />
                     </View>
-                    <Tooltip text={translate('workspace.new.newWorkspace')}>
-                        <PressableWithFeedback
-                            accessible={false}
-                            role={CONST.ROLE.BUTTON}
-                            onPress={() => {
-                                Navigation.goBack();
-                                interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt());
-                            }}
-                        >
-                            {({hovered}) => (
-                                <Icon
-                                    src={Expensicons.Plus}
-                                    width={12}
-                                    height={12}
-                                    additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
-                                    fill={theme.icon}
-                                />
-                            )}
-                        </PressableWithFeedback>
-                    </Tooltip>
-                </View>
+                );
+            }
 
-                {usersWorkspaces.length > 0 ? (
-                    <OptionsSelector
-                        // @ts-expect-error TODO: remove this comment once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TS
-                        placeholder={translate('workspace.switcher.placeholder')}
-                        ref={inputCallbackRef}
-                        sections={[usersWorkspacesSectionData]}
-                        value={searchTerm}
-                        shouldShowTextInput={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
-                        onChangeText={setSearchTerm}
-                        selectedOptions={selectedOption ? [selectedOption] : []}
-                        onSelectRow={selectPolicy}
-                        shouldPreventDefaultFocusOnSelectRow
-                        headerMessage={headerMessage}
-                        highlightSelectedOptions
-                        shouldShowOptions
-                        autoFocus={false}
-                        canSelectMultipleOptions={false}
-                        shouldShowSubscript={false}
-                        showTitleTooltip={false}
-                        contentContainerStyles={[styles.pt0, styles.mt0]}
-                        textIconLeft={MagnifyingGlass}
-                        // Null is to avoid selecting unfocused option when Global selected, undefined is to focus selected workspace
-                        initiallyFocusedOptionKey={!activeWorkspaceID ? null : undefined}
-                    />
-                ) : (
-                    <WorkspaceCardCreateAWorkspace />
-                )}
-            </>
-        ),
-        [
-            inputCallbackRef,
-            setSearchTerm,
-            searchTerm,
-            selectPolicy,
-            selectedOption,
-            styles,
-            theme.textSupporting,
-            translate,
-            usersWorkspaces.length,
-            usersWorkspacesSectionData,
-            activeWorkspaceID,
-            theme.icon,
-            headerMessage,
-        ],
+            if (item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+                return (
+                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <Icon
+                            src={Expensicons.DotIndicator}
+                            fill={theme.danger}
+                        />
+                    </View>
+                );
+            }
+            if (item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+                return (
+                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <Icon
+                            src={Expensicons.DotIndicator}
+                            fill={theme.iconSuccessFill}
+                        />
+                    </View>
+                );
+            }
+            return null;
+        },
+        [styles, theme],
     );
-
-    useEffect(() => {
-        if (!activeWorkspaceID) {
-            return;
-        }
-        const optionToSet = usersWorkspaces.find((option) => option.policyID === activeWorkspaceID);
-        setSelectedOption(optionToSet);
-    }, [activeWorkspaceID, usersWorkspaces]);
 
     return (
         <ScreenWrapper testID={WorkspaceSwitcherPage.displayName}>
@@ -296,8 +259,17 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 title={translate('workspace.switcher.headerTitle')}
                 onBackButtonPress={Navigation.goBack}
             />
-            {everythingSection}
-            {workspacesSection}
+            <SelectionList
+                ListItem={UserListItem}
+                sections={usersWorkspacesSectionData}
+                onSelectRow={selectPolicy}
+                textInputLabel={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? translate('common.search') : undefined}
+                textInputValue={searchTerm}
+                onChangeText={setSearchTerm}
+                headerMessage={headerMessage}
+                rightHandSideComponent={renderRightHandSideComponent}
+                footerContent={shouldShowCreateWorkspace && <WorkspaceCardCreateAWorkspace />}
+            />
         </ScreenWrapper>
     );
 }

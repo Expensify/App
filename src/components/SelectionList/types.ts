@@ -324,7 +324,11 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type SectionListDataType<TItem extends ListItem> = SectionListData<TItem, Section<TItem>>;
+type ExtendedSectionListData<TItem extends ListItem, TSection extends Section<TItem>> = SectionListData<TItem, TSection> & {
+    CustomSectionHeader?: ({section}: {section: TSection}) => ReactElement;
+};
+
+type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, Section<TItem>>;
 
 export type {
     BaseSelectionListProps,

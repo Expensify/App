@@ -297,6 +297,9 @@ function BaseSelectionList<TItem extends ListItem>(
     };
 
     const renderSectionHeader = ({section}: {section: SectionListDataType<TItem>}) => {
+        if (section.CustomSectionHeader) {
+            return <section.CustomSectionHeader section={section} />;
+        }
         if (!section.title || isEmptyObject(section.data)) {
             return null;
         }
