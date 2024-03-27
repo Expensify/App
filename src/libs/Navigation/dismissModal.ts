@@ -25,6 +25,10 @@ function dismissModal(navigationRef: NavigationContainerRef<RootStackParamList>)
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:
+        case SCREENS.TRANSACTION_RECEIPT:
+        case SCREENS.PROFILE_AVATAR:
+        case SCREENS.WORKSPACE_AVATAR:
+        case SCREENS.REPORT_AVATAR:
         case SCREENS.CONCIERGE:
             navigationRef.dispatch({...StackActions.pop(), target: state.key});
             break;

@@ -59,6 +59,14 @@ Onyx.connect({
     callback: (value) => (allPersonalDetails = value),
 });
 
+let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+    callback: (value) => {
+        quickAction = value;
+    },
+});
+
 const allReportActions: OnyxCollection<ReportActions> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -226,6 +234,18 @@ function createTaskAndNavigate(
             value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction as OnyxTypes.ReportAction},
         },
     );
+
+    // FOR QUICK ACTION NVP
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: {
+            action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
+            chatReportID: parentReportID,
+            isFirstQuickAction: isEmptyObject(quickAction),
+            targetAccountID: assigneeAccountID,
+        },
+    });
 
     // If needed, update optimistic data for parent report action of the parent report.
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -686,10 +706,14 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID: string) {
+function clearOutTaskInfoAndNavigate(reportID: string, accountID = 0) {
     clearOutTaskInfo();
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
+    }
+    if (accountID > 0) {
+        const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
+        setAssigneeValue(accountLogin, accountID, reportID);
     }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
