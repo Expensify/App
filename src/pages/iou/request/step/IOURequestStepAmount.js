@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import taxPropTypes from '@components/taxPropTypes';
@@ -26,8 +27,8 @@ import {
     withCurrentUserPersonalDetailsDefaultProps,
     withCurrentUserPersonalDetailsPropTypes
 } from "@components/withCurrentUserPersonalDetails";
-import tagPropTypes from "@components/tagPropTypes";
-import categoryPropTypes from "@components/categoryPropTypes";
+import * as OptionsListUtils from "@libs/OptionsListUtils";
+import personalDetailsPropType from "@pages/personalDetailsPropType";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -58,9 +59,8 @@ const propTypes = {
         taxRates: taxPropTypes,
     }),
 
-    policyTags: tagPropTypes,
-
-    policyCategories: PropTypes.objectOf(categoryPropTypes),
+    /** Personal details of all users */
+    personalDetails: personalDetailsPropType,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -69,8 +69,7 @@ const defaultProps = {
     report: {},
     transaction: {},
     policy: {},
-    policyCategories: {},
-    policyTags: {},
+    personalDetails: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -87,8 +86,7 @@ function IOURequestStepAmount({
     transaction,
     transaction: {currency},
     policy,
-    policyCategories,
-    policyTags,
+    personalDetails,
     currentUserPersonalDetails,
 }) {
     const {translate} = useLocalize();
@@ -163,12 +161,16 @@ function IOURequestStepAmount({
         // to the confirm step.
         if (report.reportID) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const participants = _.map(selectedParticipants, (participant) => {
+                const participantAccountID = lodashGet(participant, 'accountID', 0);
+                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+            });
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
             if (transaction.skipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBillAndOpenReport(
-                        selectedParticipants,
+                        participants,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
                         backendAmount,
@@ -182,11 +184,11 @@ function IOURequestStepAmount({
                 }
                 if (iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        IOU.sendMoneyWithWallet(report, backendAmount, transaction.currency, '', currentUserPersonalDetails.accountID, selectedParticipants[0]);
+                        IOU.sendMoneyWithWallet(report, backendAmount, transaction.currency, '', currentUserPersonalDetails.accountID, participants[0]);
                         return;
                     }
-                    
-                    IOU.sendMoneyElsewhere(report, backendAmount, transaction.currency, '', currentUserPersonalDetails.accountID, selectedParticipants[0]);
+
+                    IOU.sendMoneyElsewhere(report, backendAmount, transaction.currency, '', currentUserPersonalDetails.accountID, participants[0]);
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.REQUEST) {
@@ -198,7 +200,7 @@ function IOURequestStepAmount({
                         '',
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        selectedParticipants[0],
+                        participants[0],
                         '',
                         null,
                     );
@@ -247,14 +249,11 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-        },
-        policyCategories: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
-        },
-        policyTags: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepAmount);
