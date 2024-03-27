@@ -329,8 +329,8 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) {
-    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, true);
+function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>, skipConfirmation = false) {
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation);
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
