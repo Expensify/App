@@ -103,7 +103,6 @@ type ReservationViewProps = {
 };
 
 function ReservationView({reservation}: ReservationViewProps) {
-    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -115,9 +114,9 @@ function ReservationView({reservation}: ReservationViewProps) {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
             case CONST.RESERVATION_TYPE.RAIL:
-                return DateUtils.getFormattedTransportDate(new Date(reservation.start.date), translate('travel.departs'), translate('common.conjunctionAt'));
+                return DateUtils.getFormattedTransportDate(new Date(reservation.start.date));
             case CONST.RESERVATION_TYPE.HOTEL:
-                return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date), translate('common.conjunctionTo'));
+                return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date));
             default:
                 return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
         }
