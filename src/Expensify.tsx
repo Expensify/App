@@ -22,6 +22,7 @@ import * as Growl from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
+import Performance from './libs/Performance';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
@@ -130,6 +131,7 @@ function Expensify({
 
     const onSplashHide = useCallback(() => {
         setIsSplashHidden(true);
+        Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
     useLayoutEffect(() => {
