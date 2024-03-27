@@ -249,11 +249,9 @@ Onyx.connect({
 });
 
 const policyExpenseReports: OnyxCollection<Report> = {};
-const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
-        allReports[key] = report;
         if (!ReportUtils.isPolicyExpenseChat(report)) {
             return;
         }
@@ -741,12 +739,12 @@ function createOption(
  * Get the option for a given report.
  */
 function getReportOption(participant: Participant): ReportUtils.OptionData {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+    const report = ReportUtils.getReport(participant.reportID);
 
     const option = createOption(
         report?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
-        report ?? null,
+        !isEmptyObject(report) ? report : null,
         {},
         {
             showChatPreviewLine: false,
