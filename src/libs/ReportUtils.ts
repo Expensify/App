@@ -4123,10 +4123,11 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction | Optimisti
 /**
  * Build optimistic money request entities:
  *
- * 1. CREATED action for the iouReport
- * 2. IOU action for the iouReport linked to the transaction thread via `childReportID`
- * 3. Transaction Thread linked to the IOU action via `parentReportActionID`
- * 4. CREATED action for the Transaction Thread
+ * 1. CREATED action for the chatReport
+ * 2. CREATED action for the iouReport
+ * 3. IOU action for the iouReport linked to the transaction thread via `childReportID`
+ * 4. Transaction Thread linked to the IOU action via `parentReportActionID`
+ * 5. CREATED action for the Transaction Thread
  */
 function buildOptimisticMoneyRequestEntities(
     iouReport: Report,
@@ -4142,10 +4143,11 @@ function buildOptimisticMoneyRequestEntities(
     isSendMoneyFlow = false,
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
-): [OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction] {
-    const iouActionCreationTime = DateUtils.getDBTime();
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction] {
+    const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
+    const iouActionCreationTime = DateUtils.getDBTime();
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
     const iouAction = buildOptimisticIOUReportAction(
         type,
@@ -4170,7 +4172,7 @@ function buildOptimisticMoneyRequestEntities(
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
     iouAction.childReportID = transactionThread.reportID;
 
-    return [createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
+    return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
 
 function isUnread(report: OnyxEntry<Report>): boolean {
