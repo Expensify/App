@@ -291,7 +291,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
                                     highlighted={enabledItem?.name === item.name}
-                                    focused={!!(item.translationKey && activeRoute?.startsWith(item.name))}
+                                    focused={!!(item.translationKey && activeRoute?.startsWith(item.translationKey))}
                                     hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
                                 />
