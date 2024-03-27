@@ -103,6 +103,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                             aria-label={translate('common.firstName')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserPersonalDetails?.firstName}
+                            shouldSaveDraft
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                             autoFocus
@@ -117,6 +118,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                             aria-label={translate('common.lastName')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserPersonalDetails?.lastName}
+                            shouldSaveDraft
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                         />
