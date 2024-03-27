@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -30,11 +30,38 @@ type WorkspaceOwnerChangeCheckProps = WorkspaceOwnerChangeCheckOnyxProps & {
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
 };
 
+const defaultDisplayTexts = {
+    title: '',
+    text: '',
+    buttonText: '',
+};
+
 function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [displayTexts, setDisplayTexts] = useState<{title: string; text: string; buttonText: string}>(defaultDisplayTexts);
 
     const policyID = policy?.id ?? '';
+
+    const errorsKeys = useMemo(() => Object.keys(policy?.errorFields?.changeOwner ?? {}), [policy]);
+
+    const updateDisplayTexts = useCallback(() => {
+        if (error !== errorsKeys[0]) {
+            return;
+        }
+
+        const texts = WorkspaceSettingsUtils.getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
+        setDisplayTexts(texts);
+    }, [accountID, error, errorsKeys, personalDetails, policy, translate]);
+
+    useEffect(() => {
+        updateDisplayTexts();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        updateDisplayTexts();
+    }, [updateDisplayTexts]);
 
     const confirm = useCallback(() => {
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
@@ -47,17 +74,15 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
         PolicyActions.requestWorkspaceOwnerChange(policyID);
     }, [accountID, error, policyID]);
 
-    const {title, text, buttonText} = WorkspaceSettingsUtils.getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
-
     return (
         <>
-            <Text style={[styles.textHeadline, styles.mt3, styles.mb2]}>{title}</Text>
-            <Text style={styles.flex1}>{text}</Text>
+            <Text style={[styles.textHeadline, styles.mt3, styles.mb2]}>{displayTexts.title}</Text>
+            <Text style={styles.flex1}>{displayTexts.text}</Text>
             <Button
                 success
                 large
                 onPress={confirm}
-                text={buttonText}
+                text={displayTexts.buttonText}
             />
         </>
     );
