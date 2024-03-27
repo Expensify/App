@@ -653,7 +653,8 @@ function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shar
     let chatReport: OnyxEntry<OnyxTypes.Report> = null;
 
     if (!isCurrentUser) {
-        chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
+        const reportID = shareDestination;
+        chatReport = ReportUtils.getChatByReportID(reportID);
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
             chatReport.isOptimisticReport = true;
