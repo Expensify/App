@@ -385,13 +385,20 @@ function Composer(
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
-                    ReportActionComposeFocusManager.onComposerFocus(() => {
-                        if (!textInput.current) {
-                            return;
-                        }
+                    if (isReportActionCompose) {
+                        ReportActionComposeFocusManager.onComposerFocus(null);
+                    } else {
+                        // While a user was editing a comment and if they open on LHN menu we want the focus to return
+                        // to the ReportActionItemMessageEdit compose after they click on the menu (for e.g. mark as read)
+                        // so we assign the focus callback here.
+                        ReportActionComposeFocusManager.onComposerFocus(() => {
+                            if (!textInput.current) {
+                                return;
+                            }
 
-                        textInput.current.focus();
-                    });
+                            textInput.current.focus();
+                        });
+                    }
 
                     props.onFocus?.(e);
                 }}
