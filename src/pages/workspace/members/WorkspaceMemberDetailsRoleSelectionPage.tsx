@@ -18,7 +18,8 @@ import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION>;
+type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
+    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION>;
 
 type ListItemType = {
     value: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
@@ -30,7 +31,7 @@ type ListItemType = {
 function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: WorkspaceMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const accountID = Number(route.params.accountID) ?? 0;
+    const accountID: number = Number(route.params.accountID) ?? 0;
     const policyID = route.params.policyID;
     const backTo = route.params.backTo ?? ('' as Route);
     const member = policyMembers?.[accountID];
