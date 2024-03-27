@@ -1101,7 +1101,7 @@ function getTagsOptions(tags: Category[], selectedOptions?: Category[]): Option[
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
-        const selectedOptionsNames = (selectedOptions ?? []).map(({name}) => name);
+        const selectedOptionsNames = selectedOptions?.map(({name}) => name);
 
         return {
             text: cleanedName,
@@ -1109,7 +1109,7 @@ function getTagsOptions(tags: Category[], selectedOptions?: Category[]): Option[
             searchText: tag.name,
             tooltipText: cleanedName,
             isDisabled: !tag.enabled,
-            isSelected: selectedOptionsNames.includes(tag.name),
+            isSelected: selectedOptionsNames?.includes(tag.name),
         };
     });
 }
