@@ -35,10 +35,10 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
 import FormHelpMessage from './FormHelpMessage';
-import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import OptionsSelector from './OptionsSelector';
 import ReceiptEmptyState from './ReceiptEmptyState';
+import ReceiptImage from './ReceiptImage';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
@@ -577,8 +577,12 @@ function MoneyRequestConfirmationList({
         );
     }, [isReadOnly, iouType, bankAccountRoute, iouCurrencyCode, policyID, selectedParticipants.length, confirm, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
 
-    const {image: receiptImage, thumbnail: receiptThumbnail} =
-        receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
+    const {
+        image: receiptImage,
+        thumbnail: receiptThumbnail,
+        isThumbnail,
+        fileExtension,
+    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
     return (
         // @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q)
         <OptionsSelector
@@ -604,16 +608,17 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-
+            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
             {receiptImage || receiptThumbnail ? (
-                <Image
+                <ReceiptImage
                     style={styles.moneyRequestImage}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    source={{uri: String(receiptThumbnail || receiptImage)}}
+                    isThumbnail={isThumbnail}
+                    source={String(receiptThumbnail ?? receiptImage)}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!!receiptThumbnail}
+                    fileExtension={fileExtension}
                 />
             ) : (
                 // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
