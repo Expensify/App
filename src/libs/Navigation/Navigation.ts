@@ -350,7 +350,8 @@ function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
 
     return switchPolicyID(navigationRef.current, params);
 }
-/** Check if the modal is displayed */
+
+/** Check if the modal is being displayed */
 function isDisplayedInModal() {
     const state = navigationRef?.current?.getRootState();
     const lastRoute = state?.routes?.at(-1);
