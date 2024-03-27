@@ -1666,10 +1666,6 @@ const CONST = {
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
 
-        get MULTI_LEVEL_TAG() {
-            return new RegExp("/\\{1,2}:/g");
-        },
-
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
             UNLINK_LOGIN: /\/u($|(\/\/*))/,
