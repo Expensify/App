@@ -2849,6 +2849,10 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     if (isArchivedRoom(report)) {
         return report?.oldPolicyName ?? '';
     }
+    if (isTripRoom(report)) {
+        // TODO: replace #DATE# with formatted date of a trip once backend and new structure of report is ready
+        return `${Localize.translateLocal('travel.trip')} • #DATA# • ${getPolicyName(report)}`;
+    }
     return getPolicyName(report);
 }
 
