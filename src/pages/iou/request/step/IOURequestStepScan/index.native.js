@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
@@ -67,6 +67,7 @@ function IOURequestStepScan({
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
     const askedForPermission = useRef(false);
+    const [didCapturePhoto, setDidCapturePhoto] = useState(false);
 
     const {translate} = useLocalize();
 
@@ -123,6 +124,8 @@ function IOURequestStepScan({
 
     useFocusEffect(
         useCallback(() => {
+            setDidCapturePhoto(false);
+
             const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
                 CameraPermission.getCameraPermissionStatus()
                     .then((res) => {
@@ -243,6 +246,10 @@ function IOURequestStepScan({
             return;
         }
 
+        if (didCapturePhoto) {
+            return;
+        }
+
         return camera.current
             .takePhoto({
                 qualityPrioritization: 'speed',
@@ -260,13 +267,15 @@ function IOURequestStepScan({
                     return;
                 }
 
+                setDidCapturePhoto(true);
                 navigateToConfirmationStep();
             })
             .catch((error) => {
+                setDidCapturePhoto(false);
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
+    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus, didCapturePhoto]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
