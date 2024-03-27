@@ -49,13 +49,13 @@ function calculateAmountLength(amount: string, decimals: number): number {
 /**
  * Check if amount is a decimal up to 3 digits
  */
-function validateAmount(amount: string, decimals: number): boolean {
+function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH): boolean {
     const regexString =
         decimals === 0
             ? `^\\d+(,\\d*)*$` // Don't allow decimal point if decimals === 0
             : `^\\d+(,\\d*)*(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
     const decimalNumberRegex = new RegExp(regexString, 'i');
-    return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount, decimals) <= CONST.IOU.AMOUNT_MAX_LENGTH);
+    return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount, decimals) <= amountMaxLength);
 }
 
 /**

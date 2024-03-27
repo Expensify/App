@@ -1,9 +1,9 @@
 import github from '@actions/github';
 import {parse} from '@babel/parser';
 import traverse from '@babel/traverse';
-import CONST from '../../../../libs/CONST';
-import GithubUtils from '../../../../libs/GithubUtils';
-import promiseSome from '../../../../libs/promiseSome';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
+import promiseSome from '@github/libs/promiseSome';
 import type Category from './Category';
 
 type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
@@ -81,7 +81,7 @@ async function detectReactComponentInFile(filename: string): Promise<boolean | u
     };
     try {
         const {data} = await GithubUtils.octokit.repos.getContent(params);
-        const content = 'content' in data ? nodeBase64ToUtf8(data.content || '') : data;
+        const content = nodeBase64ToUtf8('content' in data ? data?.content ?? '' : '');
         return detectReactComponent(content, filename);
     } catch (error) {
         console.error('An unknown error occurred with the GitHub API: ', error, params);
