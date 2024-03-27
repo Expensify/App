@@ -14,7 +14,6 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -231,7 +230,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const enabledFeatureRouteName = route.params?.enabledFeatureRouteName ?? '';
 
     const enabledItem = menuItems.find((item) => item.name === enabledFeatureRouteName);
-    const animatedHighlightStyle = useAnimatedHighlightStyle(!!enabledItem, 500, 150);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
@@ -292,7 +290,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
-                                    highlightStyle={enabledItem?.translationKey === item.translationKey ? [animatedHighlightStyle, {borderRadius: styles.border.borderRadius}] : undefined}
+                                    highlighted={enabledItem?.name === item.name}
                                     focused={!!(item.translationKey && activeRoute?.startsWith(item.name))}
                                     hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
