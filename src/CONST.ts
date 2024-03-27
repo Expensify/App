@@ -335,6 +335,7 @@ const CONST = {
         TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        SPOTNANA_TRAVEL: 'spotnanaTravel',
         ACCOUNTING: 'accounting',
     },
     BUTTON_STATES: {
@@ -613,6 +614,7 @@ const CONST = {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
+                ACTION_TRIPPREVIEW: 'ACTION_TRIPPREVIEW',
                 ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ADDCOMMENT: 'ADDCOMMENT',
                 ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
@@ -4135,6 +4137,14 @@ const CONST = {
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
+    },
+
+    RESERVATION_TYPE: {
+        CAR: 'car',
+        HOTEL: 'hotel',
+        FLIGHT: 'flight',
+        RAIL: 'rail',
+        MISC: 'misc',
     },
     DEFAULT_TAX: {
         defaultExternalID: 'id_TAX_EXEMPT',

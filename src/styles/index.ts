@@ -1268,6 +1268,18 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
+        textSupportingSmallSize: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeSmall,
+            color: theme.textSupporting,
+        },
+
+        textSupportingNormalSize: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            color: theme.textSupporting,
+        },
+
         textLabelSupporting: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -1312,6 +1324,10 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             color: theme.textSupporting,
+        },
+
+        lh14: {
+            lineHeight: 14,
         },
 
         lh16: {
@@ -4693,6 +4709,19 @@ const styles = (theme: ThemeColors) =>
         workspaceTitleStyle: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+        },
+
+        tripReservationIconContainer: {
+            width: 32,
+            height: 32,
+            backgroundColor: theme.overlay,
+            borderRadius: 32,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        tripDescriptionMargin: {
+            marginBottom: 2,
         },
     } satisfies Styles);
 

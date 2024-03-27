@@ -28,10 +28,12 @@ import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TaskView from '@components/ReportActionItem/TaskView';
+import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -166,6 +168,7 @@ function ReportActionItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const {canUseSpotnanaTravel} = usePermissions();
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
 
@@ -430,6 +433,20 @@ function ReportActionItem({
                     contextMenuAnchor={popoverAnchorRef.current}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
+                    isWhisper={isWhisper}
+                />
+            );
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW && canUseSpotnanaTravel) {
+            children = (
+                <TripRoomPreview
+                    // @TODO: create a new method to obtain iouReportID
+                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
+                    chatReportID={report.reportID}
+                    action={action}
+                    isHovered={hovered}
+                    contextMenuAnchor={popoverAnchorRef.current}
+                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
+                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     isWhisper={isWhisper}
                 />
             );
