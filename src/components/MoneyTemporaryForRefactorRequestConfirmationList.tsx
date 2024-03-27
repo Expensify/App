@@ -895,6 +895,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         () =>
             isLocalFile && Str.isPDF(receiptFilename) ? (
                 <PDFThumbnail
+                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                     previewSourceURL={receiptImage as string}
                     style={styles.moneyRequestImage}
                     // We don't support scaning password protected PDF receipt
@@ -906,7 +907,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={styles.moneyRequestImage}
                     isThumbnail={isThumbnail}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    source={(receiptThumbnail || receiptImage) || ''}
+                    source={receiptThumbnail || receiptImage || ''}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
@@ -942,26 +943,29 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
-            {receiptImage || receiptThumbnail
-                ? receiptThumbnailContent
-                : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-                  PolicyUtils.isPaidGroupPolicy(policy) &&
-                  !isDistanceRequest &&
-                  iouType === CONST.IOU.TYPE.REQUEST && (
-                      <ReceiptEmptyState
-                          onPress={() =>
-                              Navigation.navigate(
-                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                      CONST.IOU.ACTION.CREATE,
-                                      iouType,
-                                      transaction?.transactionID ?? '',
-                                      reportID,
-                                      Navigation.getActiveRouteWithoutParams(),
-                                  ),
-                              )
-                          }
-                      />
-                  )}
+            {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                receiptImage || receiptThumbnail
+                    ? receiptThumbnailContent
+                    : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                      PolicyUtils.isPaidGroupPolicy(policy) &&
+                      !isDistanceRequest &&
+                      iouType === CONST.IOU.TYPE.REQUEST && (
+                          <ReceiptEmptyState
+                              onPress={() =>
+                                  Navigation.navigate(
+                                      ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                          CONST.IOU.ACTION.CREATE,
+                                          iouType,
+                                          transaction?.transactionID ?? '',
+                                          reportID,
+                                          Navigation.getActiveRouteWithoutParams(),
+                                      ),
+                                  )
+                              }
+                          />
+                      )
+            }
             {primaryFields}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
