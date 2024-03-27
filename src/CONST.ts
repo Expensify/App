@@ -335,7 +335,7 @@ const CONST = {
         TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
-        ACCOUNTING: 'accounting',
+        ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
