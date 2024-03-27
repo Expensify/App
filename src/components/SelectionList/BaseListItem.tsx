@@ -14,6 +14,7 @@ function BaseListItem<TItem extends ListItem>({
     item,
     pressableStyle,
     wrapperStyle,
+    containerStyle,
     isDisabled = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
@@ -48,6 +49,7 @@ function BaseListItem<TItem extends ListItem>({
             pendingAction={pendingAction}
             errors={errors}
             errorRowStyles={styles.ph5}
+            style={containerStyle}
         >
             <PressableWithFeedback
                 // eslint-disable-next-line react/jsx-props-no-spreading

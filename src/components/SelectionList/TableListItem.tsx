@@ -44,6 +44,7 @@ function TableListItem({
             item={item}
             pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive]]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
+            containerStyle={styles.mb3}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}

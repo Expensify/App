@@ -22,5 +22,8 @@ export default PropTypes.shape({
 
         /** A path to go to when the user presses the back button */
         backTo: PropTypes.string,
+
+        /** Indicates which tag list index was selected */
+        tagIndex: PropTypes.string,
     }),
 });
