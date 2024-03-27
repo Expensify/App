@@ -163,7 +163,6 @@ function IOURequestStepAmount({
         // to the confirm step.
         if (report.reportID) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            const comment = lodashGet(transaction, 'comment.comment', '');
 
             if (transaction.skipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -171,32 +170,26 @@ function IOURequestStepAmount({
                         selectedParticipants,
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        transaction.amount,
-                        comment.trim(),
+                        amount,
+                        '',
                         transaction.currency,
-                        transaction.category,
-                        transaction.tag,
-                        transaction.merchant,
+                        '',
+                        '',
+                        '',
                     );
                     return;
                 } else {
                     IOU.requestMoney(
                         report,
-                        transaction.amount,
+                        amount,
                         transaction.currency,
                         transaction.created,
-                        transaction.merchant,
+                        '',
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
                         selectedParticipants[0],
-                        comment.trim(),
+                        '',
                         null,
-                        transaction.category,
-                        transaction.tag,
-                        transaction.billable,
-                        policy,
-                        policyTags,
-                        policyCategories,
                     );
                 }
             } else {
