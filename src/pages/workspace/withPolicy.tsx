@@ -49,6 +49,7 @@ type PolicyRoute = RouteProp<
     | typeof SCREENS.WORKSPACE.INVOICES
     | typeof SCREENS.WORKSPACE.CARD
     | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
+    | typeof SCREENS.WORKSPACE.TAX_EDIT
 >;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
