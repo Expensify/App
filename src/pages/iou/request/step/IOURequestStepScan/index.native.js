@@ -69,18 +69,17 @@ function IOURequestStepScan({
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
-    const askedForPermission = useRef(false);
 
     const {translate} = useLocalize();
 
-    const askForPermissions = (showPermissionsAlert = true) => {
+    const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
         CameraPermission.requestCameraPermission()
             .then((status) => {
                 setCameraPermissionStatus(status);
 
-                if (status === RESULTS.BLOCKED && showPermissionsAlert) {
+                if (status === RESULTS.BLOCKED) {
                     FileUtils.showCameraPermissionsAlert();
                 }
             })
@@ -126,23 +125,15 @@ function IOURequestStepScan({
 
     useFocusEffect(
         useCallback(() => {
-            const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
+            const refreshCameraPermissionStatus = () => {
                 CameraPermission.getCameraPermissionStatus()
-                    .then((res) => {
-                        // In android device app data, the status is not set to blocked until denied twice,
-                        // due to that the app will ask for permission twice whenever users opens uses the scan tab
-                        setCameraPermissionStatus(res);
-                        if (shouldAskForPermission && !askedForPermission.current) {
-                            askedForPermission.current = true;
-                            askForPermissions(false);
-                        }
-                    })
+                    .then(setCameraPermissionStatus)
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
 
             InteractionManager.runAfterInteractions(() => {
                 // Check initial camera permission status
-                refreshCameraPermissionStatus(true);
+                refreshCameraPermissionStatus();
             });
 
             // Refresh permission status when app gain focus
@@ -190,7 +181,7 @@ function IOURequestStepScan({
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
-        if (isFromGlobalCreate) {
+        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -233,7 +224,7 @@ function IOURequestStepScan({
 
     const capturePhoto = useCallback(() => {
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
-            askForPermissions(cameraPermissionStatus !== RESULTS.DENIED);
+            askForPermissions();
             return;
         }
 
