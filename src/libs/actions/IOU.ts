@@ -807,16 +807,18 @@ function buildOnyxDataForMoneyRequest(
     if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
         return [optimisticData, successData, failureData];
     }
+    const isPartialTransaction = TransactionUtils.isMerchantMissing(transaction) && TransactionUtils.isAmountMissing(transaction);
+    if (!isPartialTransaction) {
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
-
-    if (violationsOnyxData) {
-        optimisticData.push(violationsOnyxData);
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-            value: [],
-        });
+        if (violationsOnyxData) {
+            optimisticData.push(violationsOnyxData);
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: [],
+            });
+        }
     }
 
     return [optimisticData, successData, failureData];
@@ -1698,7 +1700,8 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
+    const isPartialTransaction = TransactionUtils.isMerchantMissing(updatedTransaction) && TransactionUtils.isAmountMissing(updatedTransaction);
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && !isPartialTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
