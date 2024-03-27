@@ -55,8 +55,8 @@ type SidebarLinksDataOnyxProps = {
     policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
 };
 
-type SidebarLinksDataProps = CurrentReportIDContextValue &
-    SidebarLinksDataOnyxProps & {
+type SidebarLinksDataProps = SidebarLinksDataOnyxProps &
+    CurrentReportIDContextValue & {
         /** Toggles the navigation menu open and closed */
         onLinkClick: () => void;
 
@@ -84,7 +84,7 @@ function SidebarLinksData({
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
-
+    console.log('currentReportID', currentReportID);
     const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,7 +94,18 @@ function SidebarLinksData({
     const isLoading = isLoadingApp;
 
     const optionItemsMemoized: string[] = useMemo(
-        () => SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
+        () =>
+            SidebarUtils.getOrderedReportIDs(
+                null,
+                chatReports,
+                betas,
+                policies as OnyxCollection<OnyxTypes.Policy>,
+                priorityMode,
+                allReportActions as OnyxCollection<OnyxTypes.ReportAction[]>,
+                transactionViolations,
+                activeWorkspaceID,
+                policyMemberAccountIDs,
+            ),
         [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
     );
 
@@ -113,7 +124,6 @@ function SidebarLinksData({
         }
         return reportIDsRef.current || [];
     }, [optionItemsMemoized, priorityMode, isLoading, network.isOffline, prevPriorityMode]);
-
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
     // we first generate the list as if there was no current report, then here we check if
@@ -233,43 +243,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         avatar: policy.avatar,
     }) as PolicySelector;
 
-export default withCurrentReportID(
-    withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
-        chatReports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-            selector: chatReportSelector,
-            initialValue: {},
-        },
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-        priorityMode: {
-            key: ONYXKEYS.NVP_PRIORITY_MODE,
-            initialValue: CONST.PRIORITY_MODE.DEFAULT,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-            initialValue: [],
-        },
-        allReportActions: {
-            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            selector: reportActionsSelector,
-            initialValue: {},
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-            selector: policySelector,
-            initialValue: {},
-        },
-        policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-        },
-        transactionViolations: {
-            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-            initialValue: {},
-        },
-    }),
-)(
+const Test = withCurrentReportID(
     /* 
         While working on audit on the App Start App metric we noticed that by memoizing SidebarLinksData we can avoid 2 additional run of getOrderedReportIDs.
         With that we can reduce app start up time by ~2s on heavy account.
@@ -291,3 +265,39 @@ export default withCurrentReportID(
             prevProps.currentReportID === nextProps.currentReportID,
     ),
 );
+
+export default withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
+    chatReports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+        selector: chatReportSelector,
+        initialValue: {},
+    },
+    isLoadingApp: {
+        key: ONYXKEYS.IS_LOADING_APP,
+    },
+    priorityMode: {
+        key: ONYXKEYS.NVP_PRIORITY_MODE,
+        initialValue: CONST.PRIORITY_MODE.DEFAULT,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+        initialValue: [],
+    },
+    allReportActions: {
+        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        selector: reportActionsSelector,
+        initialValue: {},
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+        selector: policySelector,
+        initialValue: {},
+    },
+    policyMembers: {
+        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    },
+    transactionViolations: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        initialValue: {},
+    },
+})(Test);
