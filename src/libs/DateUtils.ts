@@ -802,7 +802,7 @@ function getFormattedDateRange(date1: Date, date2: Date): string {
  * 3. When both dates refer to the current year: Sunday, Mar 17 to Wednesday, Mar 20
  * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
  */
-function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
+function getFormattedReservationRangeDate(date1: Date, date2: Date, to: string): string {
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
         return format(date1, 'EEEE, MMM d, yyyy');
@@ -813,10 +813,10 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
     }
     if (isSameYear(date1, date2) && isThisYear(date1)) {
         // Dates are in the current year, differ by months
-        return `${format(date1, 'EEEE, MMM d')} to ${format(date2, 'EEEE, MMM d')}`;
+        return `${format(date1, 'EEEE, MMM d')} ${to} ${format(date2, 'EEEE, MMM d')}`;
     }
     // Dates differ by years, months, days or only by months but the year is not current
-    return `${format(date1, 'EEEE, MMM d, yyyy')} to ${format(date2, 'EEEE, MMM d, yyyy')}`;
+    return `${format(date1, 'EEEE, MMM d, yyyy')} ${to} ${format(date2, 'EEEE, MMM d, yyyy')}`;
 }
 
 /**
@@ -825,11 +825,11 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
  * 1. When the date reffers to the current day: Departs on Sunday, Mar 17 at 8:00
  * 2. When the date reffers not to the current day: Departs on Wednesday, Mar 17, 2023 at 8:00
  */
-function getFormattedTransportDate(date: Date): string {
+function getFormattedTransportDate(date: Date, departs: string, at: string): string {
     if (isThisYear(date)) {
-        return `Departs ${format(date, 'EEEE, MMM d')} at ${format(date, 'HH:MM')}`;
+        return `${departs} ${format(date, 'EEEE, MMM d')} ${at} ${format(date, 'HH:MM')}`;
     }
-    return `Departs ${format(date, 'EEEE, MMM d, yyyy')} at ${format(date, 'HH:MM')}`;
+    return `${departs} ${format(date, 'EEEE, MMM d, yyyy')} ${at} ${format(date, 'HH:MM')}`;
 }
 
 const DateUtils = {

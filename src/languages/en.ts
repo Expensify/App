@@ -218,6 +218,7 @@ export default {
         tomorrowAt: 'Tomorrow at',
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
+        conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount',
@@ -2611,6 +2612,7 @@ export default {
         rail: 'Rail',
         viewTrip: 'View trip',
         trip: 'Trip',
-        tripSummary: 'Trip summary'
+        tripSummary: 'Trip summary',
+        departs: 'Departs',
     },
 } satisfies TranslationBase;

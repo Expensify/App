@@ -102,18 +102,6 @@ type ReservationViewProps = {
     reservation: Reservation;
 };
 
-const getFormattedDate = (reservation: Reservation) => {
-    switch (reservation.type) {
-        case CONST.RESERVATION_TYPE.FLIGHT:
-        case CONST.RESERVATION_TYPE.RAIL:
-            return DateUtils.getFormattedTransportDate(new Date(reservation.start.date));
-        case CONST.RESERVATION_TYPE.HOTEL:
-            return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date));
-        default:
-            return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
-    }
-};
-
 function ReservationView({reservation}: ReservationViewProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -123,7 +111,19 @@ function ReservationView({reservation}: ReservationViewProps) {
 
     const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) => `${reservationTimeDetails.longName} (${reservationTimeDetails.shortName})`;
 
-    const formattedDate = getFormattedDate(reservation);
+    const getFormattedDate = () => {
+        switch (reservation.type) {
+            case CONST.RESERVATION_TYPE.FLIGHT:
+            case CONST.RESERVATION_TYPE.RAIL:
+                return DateUtils.getFormattedTransportDate(new Date(reservation.start.date), translate('travel.departs'), translate('common.conjunctionAt'));
+            case CONST.RESERVATION_TYPE.HOTEL:
+                return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date), translate('common.conjunctionTo'));
+            default:
+                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
+        }
+    };
+
+    const formattedDate = getFormattedDate();
 
     const bottomDescription = `${reservation.confirmations.length > 0 ? `${reservation.confirmations[0].value} • ` : ''}${
         reservation.type === CONST.RESERVATION_TYPE.FLIGHT
