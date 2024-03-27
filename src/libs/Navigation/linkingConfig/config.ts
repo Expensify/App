@@ -280,6 +280,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
                             path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
                         },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,
+                        },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.route,
+                        },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
+                        },
                         [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
                         },
@@ -516,7 +525,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
-                        [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
