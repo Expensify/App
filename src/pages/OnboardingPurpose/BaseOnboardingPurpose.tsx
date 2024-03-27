@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -19,7 +20,6 @@ import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 
 type ValuesType<T> = T[keyof T];
 type SelectedPurposeType = ValuesType<typeof CONST.ONBOARDING_CHOICES> | undefined;
@@ -50,7 +50,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
     const [error, setError] = useState(false);
     const theme = useTheme();
 
-    const errorMessage = error ? 'onboarding.purpose.error' :  '';
+    const errorMessage = error ? 'onboarding.purpose.error' : '';
 
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
 
@@ -141,7 +141,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.continue')}
                         onSubmit={() => {
-                            if(!selectedPurpose) {
+                            if (!selectedPurpose) {
                                 setError(true);
                                 return;
                             }
