@@ -26,6 +26,8 @@ import {
     withCurrentUserPersonalDetailsDefaultProps,
     withCurrentUserPersonalDetailsPropTypes
 } from "@components/withCurrentUserPersonalDetails";
+import tagPropTypes from "@components/tagPropTypes";
+import categoryPropTypes from "@components/categoryPropTypes";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -56,6 +58,10 @@ const propTypes = {
         taxRates: taxPropTypes,
     }),
 
+    policyTags: tagPropTypes,
+
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -63,6 +69,8 @@ const defaultProps = {
     report: {},
     transaction: {},
     policy: {},
+    policyCategories: {},
+    policyTags: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -79,6 +87,8 @@ function IOURequestStepAmount({
     transaction,
     transaction: {currency},
     policy,
+    policyCategories,
+    policyTags,
     currentUserPersonalDetails,
 }) {
     const {translate} = useLocalize();
@@ -153,6 +163,7 @@ function IOURequestStepAmount({
         // to the confirm step.
         if (report.reportID) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const comment = lodashGet(transaction, 'comment.comment', '');
 
             if (transaction.skipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -161,15 +172,33 @@ function IOURequestStepAmount({
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
                         transaction.amount,
-                        lodashGet(transaction, 'comment', '').trim(),
+                        comment.trim(),
                         transaction.currency,
                         transaction.category,
                         transaction.tag,
                         transaction.merchant,
                     );
                     return;
+                } else {
+                    IOU.requestMoney(
+                        report,
+                        transaction.amount,
+                        transaction.currency,
+                        transaction.created,
+                        transaction.merchant,
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
+                        selectedParticipants[0],
+                        comment.trim(),
+                        null,
+                        transaction.category,
+                        transaction.tag,
+                        transaction.billable,
+                        policy,
+                        policyTags,
+                        policyCategories,
+                    );
                 }
-
             } else {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
             }
@@ -214,6 +243,12 @@ export default compose(
     withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
+        policyCategories: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepAmount);

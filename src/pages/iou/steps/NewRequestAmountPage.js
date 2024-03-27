@@ -137,8 +137,6 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
             Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
             return;
         }
-
-        if ()
         IOU.navigateToNextPage(iou, iouType, report);
     };
 
