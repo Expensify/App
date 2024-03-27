@@ -387,7 +387,7 @@ function setMoneyRequestBillable_temporaryForRefactor(transactionID: string, bil
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string, participants: Participant[]) {
+function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string, participants?: Participant[] = []) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
@@ -2061,7 +2061,7 @@ function requestMoney(
     amount: number,
     currency: string,
     created: string,
-    merchant: string | undefined,
+    merchant: string,
     payeeEmail: string | undefined,
     payeeAccountID: number,
     participant: Participant,

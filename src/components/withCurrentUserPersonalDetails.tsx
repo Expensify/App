@@ -39,7 +39,7 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
 
-    return React.forwardRef(WithCurrentUserPersonalDetails);
+    return WithCurrentUserPersonalDetails;
 }
 
 export {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps};

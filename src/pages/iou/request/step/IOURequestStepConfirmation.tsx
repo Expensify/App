@@ -177,7 +177,10 @@ function IOURequestStepConfirmation({
      * @param {File} [receiptObj]
      */
     const requestMoney = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, receiptObj: Receipt, gpsPoints: IOU.GpsPoint) => {
+        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
+            if (!receiptObj) {
+                return;
+            }
             IOU.requestMoney(
                 report,
                 transaction.amount,
@@ -209,7 +212,10 @@ function IOURequestStepConfirmation({
      * @param {File} [receiptObj]
      */
     const trackExpense = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, receiptObj: Receipt, gpsPoints?: IOU.GpsPoint) => {
+        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
+            if (!receiptObj) {
+                return;
+            }
             IOU.trackExpense(
                 report,
                 transaction.amount,
@@ -290,57 +296,63 @@ function IOURequestStepConfirmation({
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
-                IOU.startSplitBill(
-                    selectedParticipants,
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    trimmedComment,
-                    transaction.category,
-                    transaction.tag,
-                    receiptFile,
-                    report.reportID,
-                    transaction.billable,
-                );
+                if (currentUserPersonalDetails.login && transaction.category && transaction.tag) {
+                    IOU.startSplitBill(
+                        selectedParticipants,
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
+                        trimmedComment,
+                        transaction.category,
+                        transaction.tag,
+                        receiptFile,
+                        report.reportID,
+                        transaction.billable,
+                    );
+                }
                 return;
             }
 
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType === CONST.IOU.TYPE.SPLIT && !transaction.isFromGlobalCreate) {
-                IOU.splitBill(
-                    selectedParticipants,
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    transaction.amount,
-                    trimmedComment,
-                    transaction.currency,
-                    transaction.merchant,
-                    transaction.created,
-                    transaction.category,
-                    transaction.tag,
-                    report.reportID,
-                    transaction.billable,
-                    transaction.iouRequestType,
-                );
+                if (currentUserPersonalDetails.login && transaction.category && transaction.tag) {
+                    IOU.splitBill(
+                        selectedParticipants,
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
+                        transaction.amount,
+                        trimmedComment,
+                        transaction.currency,
+                        transaction.merchant,
+                        transaction.created,
+                        transaction.category,
+                        transaction.tag,
+                        report.reportID,
+                        transaction.billable,
+                        transaction.iouRequestType,
+                    );
+                }
                 return;
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
-                IOU.splitBillAndOpenReport(
-                    selectedParticipants,
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    transaction.amount,
-                    trimmedComment,
-                    transaction.currency,
-                    transaction.merchant,
-                    transaction.created,
-                    transaction.category,
-                    transaction.tag,
-                    transaction.billable,
-                    transaction.iouRequestType,
-                );
+                if (currentUserPersonalDetails.login && transaction.category && transaction.tag) {
+                    IOU.splitBillAndOpenReport(
+                        selectedParticipants,
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
+                        transaction.amount,
+                        trimmedComment,
+                        transaction.currency,
+                        transaction.merchant,
+                        transaction.created,
+                        transaction.category,
+                        transaction.tag,
+                        !!transaction.billable,
+                        transaction.iouRequestType,
+                    );
+                }
                 return;
             }
 
@@ -444,7 +456,7 @@ function IOURequestStepConfirmation({
 
             const participant = participants?.[0];
 
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE && participant) {
                 IOU.sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
                 return;
             }
@@ -456,7 +468,7 @@ function IOURequestStepConfirmation({
         [transaction.amount, transaction.comment, transaction.currency, participants, currentUserPersonalDetails.accountID, report],
     );
 
-    const addNewParticipant = (option) => {
+    const addNewParticipant = (option: Participant) => {
         const newParticipants = transaction.participants?.map((participant) => {
             if (participant.accountID === option.accountID) {
                 return {...participant, selected: !participant.selected};
@@ -505,7 +517,7 @@ function IOURequestStepConfirmation({
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                             selectedParticipants={participants}
                             iouAmount={transaction.amount}
-                            iouComment={lodashGet(transaction, 'comment.comment', '')}
+                            iouComment={transaction.comment.comment ?? ''}
                             iouCurrencyCode={transaction.currency}
                             iouIsBillable={transaction.billable}
                             onToggleBillable={setBillable}
@@ -530,6 +542,13 @@ function IOURequestStepConfirmation({
                             iouCreated={transaction.created}
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                            // reportActionID={undefined}
+                            // hasSmartScanFailed={undefined}
+                            // isEditingSplitBill={undefined}
+                            // isReadOnly={undefined}
+                            // isScanRequest={undefined}
+                            // listStyles={undefined}
+                            // payeePersonalDetails={undefined}
                         />
                     </View>
                 </View>
