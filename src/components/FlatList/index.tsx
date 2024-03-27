@@ -1,9 +1,8 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
 import type {ForwardedRef, MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
-import type CustomFlatListProps from './types';
 
 function mergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<FlatList> | null>) {
     return function forwardRef(node: FlatList) {
@@ -33,7 +32,11 @@ function useMergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<F
     );
 }
 
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ...props}: CustomFlatListProps<TItem>, ref: ForwardedRef<FlatList>) {
+function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
+    return flatList?.getScrollableNode() as HTMLElement | undefined;
+}
+
+function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ...props}: FlatListProps<TItem>, ref: ForwardedRef<FlatList>) {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -43,19 +46,19 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
     const isListRenderedRef = useRef(false);
 
     const getScrollOffset = useCallback((): number => {
-        if (scrollRef.current == null) {
+        if (!scrollRef.current) {
             return 0;
         }
-        return horizontal ? Number(scrollRef.current?.getScrollableNode()?.scrollLeft) : Number(scrollRef.current?.getScrollableNode()?.scrollTop);
+        return horizontal ? getScrollableNode(scrollRef.current)?.scrollLeft ?? 0 : getScrollableNode(scrollRef.current)?.scrollTop ?? 0;
     }, [horizontal]);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    const getContentView = useCallback(() => scrollRef.current?.getScrollableNode()?.childNodes[0], []);
+    const getContentView = useCallback(() => getScrollableNode(scrollRef.current)?.childNodes[0], []);
 
     const scrollToOffset = useCallback(
         (offset: number, animated: boolean) => {
             const behavior = animated ? 'smooth' : 'instant';
-            scrollRef.current?.getScrollableNode()?.scroll(horizontal ? {left: offset, behavior} : {top: offset, behavior});
+            getScrollableNode(scrollRef.current)?.scroll(horizontal ? {left: offset, behavior} : {top: offset, behavior});
         },
         [horizontal],
     );
@@ -75,7 +78,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
 
         const contentViewLength = contentView.childNodes.length;
         for (let i = mvcpMinIndexForVisible; i < contentViewLength; i++) {
-            const subview = contentView.childNodes[i];
+            const subview = contentView.childNodes[i] as HTMLElement;
             const subviewOffset = horizontal ? subview.offsetLeft : subview.offsetTop;
             if (subviewOffset > scrollOffset) {
                 prevFirstVisibleOffsetRef.current = subviewOffset;
