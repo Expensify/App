@@ -11,7 +11,7 @@ type OnyxData = {
 
 type RequestConflictResolver = {
     getConflictingRequests: (persistedRequests: Request[]) => Request[];
-    handleConflictingRequest: (persistedRequest: Request) => void;
+    handleConflictingRequest: (persistedRequest: Request) => unknown;
 };
 
 type RequestType = 'get' | 'post';
