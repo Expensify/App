@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import escapeRegExp from 'lodash/escapeRegExp';
-import CONST from '../../../libs/CONST';
-import GithubUtils from '../../../libs/GithubUtils';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
 import newComponentCategory from './categories/newComponentCategory';
 
 const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
@@ -20,24 +21,24 @@ const CHECKLIST_CATEGORIES = {
  */
 async function getChecklistCategoriesForPullRequest(): Promise<Set<string>> {
     const checks = new Set<string>();
-    const changedFiles = await GithubUtils.paginate(GithubUtils.octokit.pulls.listFiles, {
-        owner: CONST.GITHUB_OWNER,
-        repo: CONST.APP_REPO,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        pull_number: prNumber,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        per_page: 100,
-    });
-    const possibleCategories = await Promise.all(
-        Object.values(CHECKLIST_CATEGORIES).map(async (category) => ({
-            items: category.items,
-            doesCategoryApply: await category.detect(changedFiles),
-        })),
-    );
-    for (const category of possibleCategories) {
-        if (category.doesCategoryApply) {
-            for (const item of category.items) {
-                checks.add(item);
+    if (prNumber !== undefined) {
+        const changedFiles = await GithubUtils.paginate(GithubUtils.octokit.pulls.listFiles, {
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            pull_number: prNumber,
+            per_page: 100,
+        });
+        const possibleCategories = await Promise.all(
+            Object.values(CHECKLIST_CATEGORIES).map(async (category) => ({
+                items: category.items,
+                doesCategoryApply: await category.detect(changedFiles),
+            })),
+        );
+        for (const category of possibleCategories) {
+            if (category.doesCategoryApply) {
+                for (const item of category.items) {
+                    checks.add(item);
+                }
             }
         }
     }
@@ -126,12 +127,11 @@ async function generateDynamicChecksAndCheckForCompletion() {
     const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
 
     // Update the PR body
-    if (didChecklistChange) {
+    if (didChecklistChange && prNumber !== undefined) {
         console.log('Checklist changed, updating PR...');
         await GithubUtils.octokit.pulls.update({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_number: prNumber,
             body: newBody,
         });
