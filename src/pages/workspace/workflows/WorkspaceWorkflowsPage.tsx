@@ -38,8 +38,6 @@ import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyP
 type WorkspaceWorkflowsPageOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
-    /** Policy details */
-    session: OnyxEntry<Session>;
 };
 type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -310,9 +308,6 @@ export default withPolicy(
     withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     })(WorkspaceWorkflowsPage),
 );
