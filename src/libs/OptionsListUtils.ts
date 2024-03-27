@@ -909,7 +909,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
             if (name) {
                 const categoryObject: Category = {
                     name,
-                    enabled: categories[name].enabled ?? false,
+                    enabled: categories[name]?.enabled ?? false,
                 };
 
                 acc.push(categoryObject);
