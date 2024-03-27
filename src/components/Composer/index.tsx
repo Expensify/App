@@ -1,8 +1,9 @@
+import lodashDebounce from 'lodash/debounce';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
-import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
+import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
@@ -101,6 +102,7 @@ function Composer(
     const [textInputWidth, setTextInputWidth] = useState('');
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
+    const [prevScroll, setPrevScroll] = useState<number | undefined>();
 
     useEffect(() => {
         if (!shouldClear) {
@@ -260,6 +262,37 @@ function Composer(
         updateNumberOfLines();
     }, [updateNumberOfLines]);
 
+    const currentNumberOfLines = useMemo(
+        () => (isComposerFullSize ? undefined : numberOfLines),
+
+        [isComposerFullSize, numberOfLines],
+    );
+
+    useEffect(() => {
+        if (!textInput.current) {
+            return;
+        }
+        const debouncedSetPrevScroll = lodashDebounce(() => {
+            if (!textInput.current) {
+                return;
+            }
+            setPrevScroll(textInput.current.scrollTop);
+        }, 100);
+
+        textInput.current.addEventListener('scroll', debouncedSetPrevScroll);
+        return () => {
+            textInput.current?.removeEventListener('scroll', debouncedSetPrevScroll);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!textInput.current || prevScroll === undefined) {
+            return;
+        }
+        textInput.current.scrollTop = prevScroll;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isComposerFullSize]);
+
     useHtmlPaste(textInput, handlePaste, true);
 
     useEffect(() => {
@@ -326,6 +359,7 @@ function Composer(
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
+            isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
         ],
 
         [numberOfLines, scrollStyleMemo, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
@@ -347,7 +381,7 @@ function Composer(
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
-                numberOfLines={numberOfLines}
+                numberOfLines={currentNumberOfLines}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
