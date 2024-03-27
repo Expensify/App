@@ -73,9 +73,10 @@ type ContextMenuActionPayload = {
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;
     checkIfContextMenuActive?: () => void;
-    openOverflowMenu: (event: GestureResponderEvent | MouseEvent) => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
+    anchorRef?: MutableRefObject<View | null>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -490,8 +491,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.menu',
         icon: Expensicons.ThreeDots,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => isMini,
-        onPress: (closePopover, {openOverflowMenu, event, openContextMenu}) => {
-            openOverflowMenu(event as GestureResponderEvent | MouseEvent);
+        onPress: (closePopover, {openOverflowMenu, event, openContextMenu, anchorRef}) => {
+            openOverflowMenu(event as GestureResponderEvent | MouseEvent, anchorRef ?? {current: null});
             openContextMenu();
         },
         getDescription: () => {},
