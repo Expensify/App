@@ -1,4 +1,5 @@
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {RequireAllOrNone} from 'type-fest';
 import type Response from './Response';
 
 type OnyxData = {
@@ -10,22 +11,26 @@ type OnyxData = {
 
 type RequestType = 'get' | 'post';
 
-type RequestData = {
-    command: string;
-    commandName?: string;
-    data?: Record<string, unknown>;
-    type?: RequestType;
-    shouldUseSecure?: boolean;
-    successData?: OnyxUpdate[];
-    failureData?: OnyxUpdate[];
-    finallyData?: OnyxUpdate[];
-    idempotencyKey?: string;
-    getConflictingRequests?: (persistedRequests: Request[]) => Request[];
-    handleConflictingRequest?: (persistedRequest: Request) => void;
+type RequestData = RequireAllOrNone<
+    {
+        command: string;
+        commandName?: string;
+        data?: Record<string, unknown>;
+        type?: RequestType;
+        shouldUseSecure?: boolean;
+        successData?: OnyxUpdate[];
+        failureData?: OnyxUpdate[];
+        finallyData?: OnyxUpdate[];
+        idempotencyKey?: string;
 
-    resolve?: (value: Response) => void;
-    reject?: (value?: unknown) => void;
-};
+        getConflictingRequests: (persistedRequests: Request[]) => Request[];
+        handleConflictingRequest: (persistedRequest: Request) => void;
+
+        resolve?: (value: Response) => void;
+        reject?: (value?: unknown) => void;
+    },
+    'getConflictingRequests' | 'handleConflictingRequest'
+>;
 
 type Request = RequestData & OnyxData;
 
