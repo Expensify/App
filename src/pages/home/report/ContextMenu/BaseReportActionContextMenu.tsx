@@ -120,6 +120,7 @@ function BaseReportActionContextMenu({
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, isSmallScreenWidth);
     const {isOffline} = useNetwork();
+    const threedotRef = useRef<View>(null);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
         if (isEmptyObject(reportActions) || reportActionID === '0') {
@@ -193,14 +194,14 @@ function BaseReportActionContextMenu({
         {isActive: shouldEnableArrowNavigation},
     );
 
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent) => {
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
         const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
         const originalReport = ReportUtils.getReport(originalReportID);
         showContextMenu(
             CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
-            anchor?.current as ViewType | RNText | null,
+            anchorRef?.current as ViewType | RNText | null,
             reportID,
             reportAction?.reportActionID,
             originalReportID,
@@ -215,6 +216,8 @@ function BaseReportActionContextMenu({
             undefined,
             undefined,
             filteredContextMenuActions,
+            true,
+            () => {},
             true,
         );
     };
@@ -249,19 +252,26 @@ function BaseReportActionContextMenu({
                         textTranslateKey === 'reportActionContextMenu.deleteAction' ||
                         textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
                     const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: reportAction}) : translate(textTranslateKey));
+                    const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
 
                     return (
                         <ContextMenuItem
                             ref={(ref) => {
                                 menuItemRefs.current[index] = ref;
                             }}
+                            buttonRef={isMenuAction ? threedotRef : {current: null}}
                             icon={contextAction.icon}
                             text={text ?? ''}
                             successIcon={contextAction.successIcon}
                             successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={isMini}
                             key={contextAction.textTranslateKey}
-                            onPress={(event) => interceptAnonymousUser(() => contextAction.onPress?.(closePopup, {...payload, event}), contextAction.isAnonymousAction)}
+                            onPress={(event) =>
+                                interceptAnonymousUser(
+                                    () => contextAction.onPress?.(closePopup, {...payload, event, ...(isMenuAction ? {anchorRef: threedotRef} : {})}),
+                                    contextAction.isAnonymousAction,
+                                )
+                            }
                             description={contextAction.getDescription?.(selection) ?? ''}
                             isAnonymousAction={contextAction.isAnonymousAction}
                             isFocused={focusedIndex === index}
