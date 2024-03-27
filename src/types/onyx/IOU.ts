@@ -21,6 +21,7 @@ type Participant = {
     phoneNumber?: string;
     text?: string;
     isSelected?: boolean;
+    isSelfDM?: boolean;
 };
 
 type Split = {
