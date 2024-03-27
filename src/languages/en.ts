@@ -2624,6 +2624,13 @@ export default {
         mute: 'Mute',
         unmute: 'Unmute',
     },
+    travel: {
+        flight: 'Flight',
+        hotel: 'Hotel',
+        trip: 'Trip',
+        details: 'Details',
+        tripSupport: 'Trip support'
+    },
     exitSurvey: {
         header: 'Before you go',
         reasonPage: {

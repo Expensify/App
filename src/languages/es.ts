@@ -3120,6 +3120,13 @@ export default {
         mute: 'Silenciar',
         unmute: 'Activar sonido',
     },
+    travel: {
+        flight: 'Vuelo',
+        hotel: 'Hotel',
+        trip: 'Viaje',
+        details: 'Detalles',
+        tripSupport: 'Soporte de Viaje'
+    },
     exitSurvey: {
         header: 'Antes de irte',
         reasonPage: {
