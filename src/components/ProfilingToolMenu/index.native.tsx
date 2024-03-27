@@ -9,6 +9,7 @@ import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import toggleProfileTool from '@libs/actions/ProfilingTool';
 import getPlatform from '@libs/getPlatform';
@@ -44,6 +45,7 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
     const [sharePath, setSharePath] = useState('');
     const [totalMemory, setTotalMemory] = useState(0);
     const [usedMemory, setUsedMemory] = useState(0);
+    const {translate} = useLocalize();
 
     // eslint-disable-next-line @lwc/lwc/no-async-await
     const stop = useCallback(async () => {
@@ -155,7 +157,7 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
                     <TestToolRow title="Profile trace">
                         <Button
                             small
-                            text="Share"
+                            text={translate('common.share')}
                             onPress={onDownloadProfiling}
                         />
                     </TestToolRow>

@@ -124,7 +124,7 @@ function createLog(text: string) {
  * @param logs Logs captured on the current device
  * @returns CapturedLogs with parsed messages
  */
-function parseStringifyMessages(logs: Log[]): Log[] {
+function parseStringifiedMessages(logs: Log[]): Log[] {
     if (isEmpty(logs)) {
         return logs;
     }
@@ -143,5 +143,5 @@ function parseStringifyMessages(logs: Log[]): Log[] {
     });
 }
 
-export {sanitizeConsoleInput, createLog, shouldAttachLog, parseStringifyMessages};
+export {sanitizeConsoleInput, createLog, shouldAttachLog, parseStringifiedMessages};
 export type {Log};

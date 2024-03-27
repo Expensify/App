@@ -6,9 +6,10 @@ import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Console from '@libs/actions/Console';
-import {parseStringifyMessages} from '@libs/Console';
+import {parseStringifiedMessages} from '@libs/Console';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CapturedLogs, Log} from '@src/types/onyx';
 
@@ -32,6 +33,8 @@ type BaseClientSideLoggingToolProps = {
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
 function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging}: BaseClientSideLoggingToolProps) {
+    const {translate} = useLocalize();
+
     const onToggle = () => {
         if (!shouldStoreLogs) {
             Console.setShouldStoreLogs(true);
@@ -50,7 +53,7 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
         }
 
         const logs = Object.values(capturedLogs);
-        const logsWithParsedMessages = parseStringifyMessages(logs);
+        const logsWithParsedMessages = parseStringifiedMessages(logs);
 
         onDisableLogging(logsWithParsedMessages);
         Console.disableLoggingAndFlushLogs();
@@ -58,9 +61,9 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
     const styles = useThemeStyles();
     return (
         <>
-            <TestToolRow title="Client side logging">
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.clientSideLogging')}>
                 <Switch
-                    accessibilityLabel="Client side logging"
+                    accessibilityLabel={translate('initialSettingsPage.troubleshoot.clientSideLogging')}
                     isOn={!!shouldStoreLogs}
                     onToggle={onToggle}
                 />
@@ -68,10 +71,10 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
             {!!file && (
                 <>
                     <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${file.path}`}</Text>
-                    <TestToolRow title="Logs">
+                    <TestToolRow title={translate('initialSettingsPage.debugConsole.logs')}>
                         <Button
                             small
-                            text="Share"
+                            text={translate('common.share')}
                             onPress={onShareLogs}
                         />
                     </TestToolRow>

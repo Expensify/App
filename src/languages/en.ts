@@ -881,6 +881,7 @@ export default {
             submitBug: 'submit a bug',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
             resetAndRefresh: 'Reset and refresh',
+            clientSideLogging: 'Client side logging',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -889,6 +890,7 @@ export default {
             execute: 'Execute',
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
+            logs: 'Logs',
         },
         security: 'Security',
         signOut: 'Sign out',

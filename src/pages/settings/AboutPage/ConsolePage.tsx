@@ -15,7 +15,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addLog} from '@libs/actions/Console';
-import {createLog, parseStringifyMessages, sanitizeConsoleInput} from '@libs/Console';
+import {createLog, parseStringifiedMessages, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
 import localFileDownload from '@libs/localFileDownload';
@@ -64,14 +64,14 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, executeArbitraryCode);
 
     const saveLogs = () => {
-        const logsWithParsedMessages = parseStringifyMessages(logsList);
+        const logsWithParsedMessages = parseStringifiedMessages(logsList);
 
         localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
     };
 
     const shareLogs = () => {
         setIsGeneratingLogsFile(true);
-        const logsWithParsedMessages = parseStringifyMessages(logsList);
+        const logsWithParsedMessages = parseStringifiedMessages(logsList);
 
         // Generate a file with the logs and pass its path to the list of reports to share it with
         localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then(({path, size}) => {
