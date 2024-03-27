@@ -81,4 +81,4 @@ function assertDeployBlockerJobExecuted(workflowResult: Step[], didExecute = tru
     });
 }
 
-export {assertUpdateChecklistJobExecuted, assertDeployBlockerJobExecuted};
+export default {assertUpdateChecklistJobExecuted, assertDeployBlockerJobExecuted};

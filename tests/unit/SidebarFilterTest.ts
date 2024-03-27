@@ -238,7 +238,7 @@ xdescribe('Sidebar', () => {
             // and the user not being in any betas
             const policy = {
                 policyID: '1',
-                type: CONST.POLICY.TYPE.FREE,
+                type: CONST.POLICY.TYPE.TEAM,
             };
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),

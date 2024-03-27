@@ -39,7 +39,7 @@ function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseAccountingIntegrations(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.ACCOUNTING) || canUseAllBetas(betas);
+    return !!betas?.includes(CONST.BETAS.ACCOUNTING_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
 /**

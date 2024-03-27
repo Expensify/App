@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-import core from '@actions/core';
+import * as core from '@actions/core';
 import {context} from '@actions/github';
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
