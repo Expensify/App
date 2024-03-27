@@ -84,34 +84,33 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         () =>
             policyTagLists
                 .map((policyTagList) =>
-                    lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare)
-                        .filter((value): value is OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag> => typeof value === 'object' && value !== null)
-                        .map((value) => {
-                            const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                            return {
-                                value: value.name,
-                                text: value.name,
-                                keyForList: value.name,
-                                isSelected: !!selectedTags[value.name],
-                                pendingAction: value.pendingAction,
-                                errors: value.errors ?? undefined,
-                                enabled: value.enabled,
-                                isDisabled,
-                                rightElement: (
-                                    <View style={styles.flexRow}>
-                                        <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
-                                            {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
-                                        </Text>
-                                        <View style={[styles.p1, styles.pl2]}>
-                                            <Icon
-                                                src={Expensicons.ArrowRight}
-                                                fill={theme.icon}
-                                            />
-                                        </View>
+                    lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
+                        const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
+                        const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                        return {
+                            value: tag.name,
+                            text: tag.name,
+                            keyForList: tag.name,
+                            isSelected: !!selectedTags[tag.name],
+                            pendingAction: tag.pendingAction,
+                            errors: tag.errors ?? undefined,
+                            enabled: tag.enabled,
+                            isDisabled,
+                            rightElement: (
+                                <View style={styles.flexRow}>
+                                    <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
+                                        {tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                                    </Text>
+                                    <View style={[styles.p1, styles.pl2]}>
+                                        <Icon
+                                            src={Expensicons.ArrowRight}
+                                            fill={theme.icon}
+                                        />
                                     </View>
-                                ),
-                            };
-                        }),
+                                </View>
+                            ),
+                        };
+                    }),
                 )
                 .flat(),
         [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
