@@ -4075,7 +4075,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 }
 
 function deleteTrackExpense(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
-    const {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(chatReportID, transactionID, reportAction);
+    const {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread, chatReport} = getDeleteTrackExpenseInformation(chatReportID, transactionID, reportAction);
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
