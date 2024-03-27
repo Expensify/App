@@ -43,6 +43,7 @@ type ReportFieldDropdownData = {
     keyForList: string;
     searchText: string;
     tooltipText: string;
+    isSelected?: boolean;
 };
 
 type ReportFieldDropdownSectionItem = {
@@ -72,7 +73,6 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
                     keyForList: option,
                     searchText: option,
                     tooltipText: option,
-                    isSelected: option === fieldValue,
                 })),
             });
         } else {
@@ -86,6 +86,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
                             keyForList: selectedValue,
                             searchText: selectedValue,
                             tooltipText: selectedValue,
+                            isSelected: true,
                         },
                     ],
                 });
@@ -101,7 +102,6 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
                         keyForList: option,
                         searchText: option,
                         tooltipText: option,
-                        isSelected: option === fieldValue,
                     })),
                 });
             }
@@ -116,7 +116,6 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
                         keyForList: option,
                         searchText: option,
                         tooltipText: option,
-                        isSelected: option === fieldValue,
                     })),
                 });
             }
