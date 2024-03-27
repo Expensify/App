@@ -766,12 +766,12 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
  * Get the option for a policy expense report.
  */
 function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
-    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+    const expenseReport = ReportUtils.isPolicyExpenseChat(report) ? report : null;
 
     const option = createOption(
         expenseReport?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
-        expenseReport ?? null,
+        expenseReport,
         {},
         {
             showChatPreviewLine: false,
