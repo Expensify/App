@@ -139,6 +139,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
                         </View>
                     </ScrollView>
                     <FormAlertWithSubmitButton
+                        enabledWhenOffline
                         buttonText={translate('common.continue')}
                         onSubmit={() => {
                             if (!selectedPurpose) {
