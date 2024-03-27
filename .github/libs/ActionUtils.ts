@@ -6,9 +6,9 @@ import * as core from '@actions/core';
  * @param name - The name of the input.
  * @param options - Options to pass to core.getInput
  * @param [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
+ *                         Not required if the {required: true} option is given in the second arg to this function.
  */
-function getJSONInput(name: string, options: core.InputOptions, defaultValue?: null | boolean): unknown {
+function getJSONInput(name: string, options: core.InputOptions, defaultValue?: unknown): unknown {
     const input = core.getInput(name, options);
     if (input) {
         return JSON.parse(input);
