@@ -1,5 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {RequireAllOrNone} from 'type-fest';
 import Log from '@libs/Log';
 import * as Middleware from '@libs/Middleware';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -51,8 +52,14 @@ type OnyxData = {
  * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
+ * @param [conflictResolver] - callbacks used in special cases to detect and handle conflicting requests in the sequential queue
  */
-function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}) {
+function write<TCommand extends WriteCommand>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData = {},
+    conflictResolver: RequireAllOrNone<Pick<OnyxRequest, 'getConflictingRequests' | 'handleConflictingRequest'>, 'getConflictingRequests' | 'handleConflictingRequest'> = {},
+) {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
 
@@ -83,6 +90,7 @@ function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParam
             canCancel: true,
         },
         ...onyxDataWithoutOptimisticData,
+        ...conflictResolver,
     };
 
     // Write commands can be saved and retried, so push it to the SequentialQueue
