@@ -1,6 +1,6 @@
 import isEqual from 'lodash/isEqual';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
@@ -397,7 +397,7 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connectionID = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: true,
+                                    waitForCollectionCallback: false,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction?.pendingAction).toBeFalsy();
@@ -2608,7 +2608,7 @@ describe('actions/IOU', () => {
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: true,
+                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connectionID);
                         expect(report).toBeTruthy();
@@ -2665,7 +2665,7 @@ describe('actions/IOU', () => {
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: true,
+                    waitForCollectionCallback: false,
                     callback: (report) => {
                         Onyx.disconnect(connectionID);
                         expect(report).toBeTruthy();
