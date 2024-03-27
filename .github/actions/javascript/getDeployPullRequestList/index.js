@@ -11550,7 +11550,7 @@ const core = __importStar(__nccwpck_require__(2186));
  * @param name - The name of the input.
  * @param options - Options to pass to core.getInput
  * @param [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
+ *                         Not required if the {required: true} option is given in the second arg to this function.
  */
 function getJSONInput(name, options, defaultValue) {
     const input = core.getInput(name, options);
