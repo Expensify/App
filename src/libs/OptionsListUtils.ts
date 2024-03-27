@@ -7,6 +7,7 @@ import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {SelectedTagOption} from '@components/TagPicker';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +20,7 @@ import type {
     PolicyCategories,
     PolicyTag,
     PolicyTagList,
+    PolicyTags,
     Report,
     ReportAction,
     ReportActions,
@@ -53,12 +55,6 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-
-type Tag = {
-    enabled: boolean;
-    name: string;
-    accountID: number | null;
-};
 
 type Option = Partial<ReportUtils.OptionData>;
 
@@ -131,7 +127,7 @@ type GetOptionsConfig = {
     categories?: PolicyCategories;
     recentlyUsedCategories?: string[];
     includeTags?: boolean;
-    tags?: Record<string, Tag>;
+    tags?: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
@@ -249,11 +245,9 @@ Onyx.connect({
 });
 
 const policyExpenseReports: OnyxCollection<Report> = {};
-const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
-        allReports[key] = report;
         if (!ReportUtils.isPolicyExpenseChat(report)) {
             return;
         }
@@ -741,12 +735,12 @@ function createOption(
  * Get the option for a given report.
  */
 function getReportOption(participant: Participant): ReportUtils.OptionData {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+    const report = ReportUtils.getReport(participant.reportID);
 
     const option = createOption(
         report?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
-        report ?? null,
+        !isEmptyObject(report) ? report : null,
         {},
         {
             showChatPreviewLine: false,
@@ -916,7 +910,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
 /**
  * Sorts tags alphabetically by name.
  */
-function sortTags(tags: Record<string, Tag> | Tag[]) {
+function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
     let sortedTags;
 
     if (Array.isArray(tags)) {
@@ -1097,7 +1091,7 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Category[]): Option[] {
+function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
@@ -1114,7 +1108,13 @@ function getTagsOptions(tags: Category[]): Option[] {
 /**
  * Build the section list for tags
  */
-function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
+function getTagListSections(
+    tags: Array<PolicyTag | SelectedTagOption>,
+    recentlyUsedTags: string[],
+    selectedOptions: SelectedTagOption[],
+    searchInputValue: string,
+    maxRecentReportsToShow: number,
+) {
     const tagSections = [];
     const sortedTags = sortTags(tags);
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
@@ -1426,7 +1426,7 @@ function getOptions(
     }
 
     if (includeTags) {
-        const tagOptions = getTagListSections(Object.values(tags), recentlyUsedTags, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
+        const tagOptions = getTagListSections(Object.values(tags), recentlyUsedTags, selectedOptions as SelectedTagOption[], searchInputValue, maxRecentReportsToShow);
 
         return {
             recentReports: [],
@@ -1853,7 +1853,7 @@ function getFilteredOptions(
     categories: PolicyCategories = {},
     recentlyUsedCategories: string[] = [],
     includeTags = false,
-    tags: Record<string, Tag> = {},
+    tags: PolicyTags | Array<PolicyTag | SelectedTagOption> = {},
     recentlyUsedTags: string[] = [],
     canInviteUser = true,
     includeSelectedOptions = false,

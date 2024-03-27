@@ -21,14 +21,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import withCurrentReportID from '@components/withCurrentReportID';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
-import withViewportOffsetTop from '@components/withViewportOffsetTop';
-import type {ViewportOffsetTopProps} from '@components/withViewportOffsetTop';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
+import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
@@ -55,6 +55,9 @@ import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 
 type ReportScreenOnyxProps = {
+    /** Get modal status */
+    modal: OnyxEntry<OnyxTypes.Modal>;
+
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: OnyxEntry<boolean>;
 
@@ -93,7 +96,7 @@ type OnyxHOCProps = {
 
 type ReportScreenNavigationProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
 
-type ReportScreenProps = OnyxHOCProps & ViewportOffsetTopProps & CurrentReportIDContextValue & ReportScreenOnyxProps & ReportScreenNavigationProps;
+type ReportScreenProps = OnyxHOCProps & CurrentReportIDContextValue & ReportScreenOnyxProps & ReportScreenNavigationProps;
 
 /** Get the currently viewed report ID as number */
 function getReportID(route: ReportScreenNavigationProps['route']): string {
@@ -131,7 +134,7 @@ function ReportScreen({
     markReadyForHydration,
     policies = {},
     isSidebarLoaded = false,
-    viewportOffsetTop,
+    modal,
     isComposerFullSize = false,
     userLeavingStatus = false,
     currentReportID = '',
@@ -259,6 +262,8 @@ function ReportScreen({
         Timing.start(CONST.TIMING.CHAT_RENDER);
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
     }
+    const [isComposerFocus, setIsComposerFocus] = useState(false);
+    const viewportOffsetTop = useViewportOffsetTop(Browser.isMobileSafari() && isComposerFocus && !modal?.willAlertModalBecomeVisible);
 
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -644,6 +649,8 @@ function ReportScreen({
 
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
+                                        onComposerFocus={() => setIsComposerFocus(true)}
+                                        onComposerBlur={() => setIsComposerFocus(false)}
                                         report={report}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
@@ -663,81 +670,82 @@ function ReportScreen({
 
 ReportScreen.displayName = 'ReportScreen';
 
-export default withViewportOffsetTop(
-    withCurrentReportID(
-        withOnyx<ReportScreenProps, ReportScreenOnyxProps>(
-            {
-                isSidebarLoaded: {
-                    key: ONYXKEYS.IS_SIDEBAR_LOADED,
-                },
-                sortedAllReportActions: {
-                    key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-                    canEvict: false,
-                    selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
-                },
-                report: {
-                    key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-                    allowStaleData: true,
-                    selector: reportWithoutHasDraftSelector,
-                },
-                reportMetadata: {
-                    key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
-                    initialValue: {
-                        isLoadingInitialReportActions: true,
-                        isLoadingOlderReportActions: false,
-                        isLoadingNewerReportActions: false,
-                    },
-                },
-                isComposerFullSize: {
-                    key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-                    initialValue: false,
-                },
-                betas: {
-                    key: ONYXKEYS.BETAS,
-                },
-                policies: {
-                    key: ONYXKEYS.COLLECTION.POLICY,
-                    allowStaleData: true,
-                },
-                accountManagerReportID: {
-                    key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
-                    initialValue: null,
-                },
-                userLeavingStatus: {
-                    key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
-                    initialValue: false,
-                },
-                parentReportAction: {
-                    key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
-                    selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<ReportScreenOnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
-                        const parentReportActionID = props?.report?.parentReportActionID;
-                        if (!parentReportActionID) {
-                            return null;
-                        }
-                        return parentReportActions?.[parentReportActionID] ?? null;
-                    },
-                    canEvict: false,
+export default withCurrentReportID(
+    withOnyx<ReportScreenProps, ReportScreenOnyxProps>(
+        {
+            modal: {
+                key: ONYXKEYS.MODAL,
+            },
+            isSidebarLoaded: {
+                key: ONYXKEYS.IS_SIDEBAR_LOADED,
+            },
+            sortedAllReportActions: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+                canEvict: false,
+                selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
+            },
+            report: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+                allowStaleData: true,
+                selector: reportWithoutHasDraftSelector,
+            },
+            reportMetadata: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
+                initialValue: {
+                    isLoadingInitialReportActions: true,
+                    isLoadingOlderReportActions: false,
+                    isLoadingNewerReportActions: false,
                 },
             },
-            true,
-        )(
-            memo(
-                ReportScreen,
-                (prevProps, nextProps) =>
-                    prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
-                    lodashIsEqual(prevProps.sortedAllReportActions, nextProps.sortedAllReportActions) &&
-                    lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
-                    prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
-                    lodashIsEqual(prevProps.betas, nextProps.betas) &&
-                    lodashIsEqual(prevProps.policies, nextProps.policies) &&
-                    prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
-                    prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
-                    prevProps.currentReportID === nextProps.currentReportID &&
-                    prevProps.viewportOffsetTop === nextProps.viewportOffsetTop &&
-                    lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
-                    lodashIsEqual(prevProps.route, nextProps.route) &&
-                    lodashIsEqual(prevProps.report, nextProps.report),
-            ),
+            isComposerFullSize: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+                initialValue: false,
+            },
+            betas: {
+                key: ONYXKEYS.BETAS,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
+                allowStaleData: true,
+            },
+            accountManagerReportID: {
+                key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
+                initialValue: null,
+            },
+            userLeavingStatus: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
+                initialValue: false,
+            },
+            parentReportAction: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
+                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<ReportScreenOnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
+                    const parentReportActionID = props?.report?.parentReportActionID;
+                    if (!parentReportActionID) {
+                        return null;
+                    }
+                    return parentReportActions?.[parentReportActionID] ?? null;
+                },
+                canEvict: false,
+            },
+        },
+        true,
+    )(
+        memo(
+            ReportScreen,
+            (prevProps, nextProps) =>
+                prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
+                lodashIsEqual(prevProps.sortedAllReportActions, nextProps.sortedAllReportActions) &&
+                lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+                prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
+                lodashIsEqual(prevProps.betas, nextProps.betas) &&
+                lodashIsEqual(prevProps.policies, nextProps.policies) &&
+                prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
+                prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
+                prevProps.currentReportID === nextProps.currentReportID &&
+                lodashIsEqual(prevProps.modal, nextProps.modal) &&
+                lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
+                lodashIsEqual(prevProps.route, nextProps.route) &&
+                lodashIsEqual(prevProps.report, nextProps.report),
         ),
     ),
 );
