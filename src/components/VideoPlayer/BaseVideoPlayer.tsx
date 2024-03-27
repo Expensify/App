@@ -10,6 +10,7 @@ import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
@@ -46,6 +47,7 @@ function BaseVideoPlayer({
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
     const {pauseVideo, playVideo, currentlyPlayingURL, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {isOffline} = useNetwork();
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -276,13 +278,20 @@ function BaseVideoPlayer({
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             videoStyle={[styles.w100, styles.h100, videoStyle]}
                                             source={{
-                                                uri: sourceURL,
+                                                // if video is loading and is offline, we want to change uri to "" to
+                                                // reset the video player after connection is back
+                                                uri: !isLoading || (isLoading && !isOffline) ? sourceURL : '',
                                             }}
                                             shouldPlay={false}
                                             useNativeControls={false}
                                             resizeMode={resizeMode as ResizeMode}
                                             isLooping={isLooping}
-                                            onReadyForDisplay={onVideoLoaded}
+                                            onReadyForDisplay={(e) => {
+                                                if (isCurrentlyURLSet && !isUploading) {
+                                                    playVideo();
+                                                }
+                                                onVideoLoaded(e);
+                                            }}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
                                         />
