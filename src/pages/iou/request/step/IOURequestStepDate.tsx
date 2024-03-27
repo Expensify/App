@@ -121,12 +121,7 @@ function IOURequestStepDate({
 
 IOURequestStepDate.displayName = 'IOURequestStepDate';
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDate);
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDateWithWritableReportOrNotFound);
-
-export default withOnyx<IOURequestStepDateProps, IOURequestStepDateOnyxProps>({
+const IOURequestStepDateWithOnyx = withOnyx<IOURequestStepDateProps, IOURequestStepDateOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
             const transactionID = route?.params.transactionID ?? 0;
@@ -142,5 +137,11 @@ export default withOnyx<IOURequestStepDateProps, IOURequestStepDateOnyxProps>({
     policyTags: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
     },
-    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
-})(IOURequestStepDateWithFullTransactionOrNotFound);
+})(IOURequestStepDate);
+
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDateWithOnyx);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDateWithWritableReportOrNotFound);
+
+export default IOURequestStepDateWithFullTransactionOrNotFound;
