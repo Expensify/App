@@ -143,7 +143,7 @@ function ReportScreen({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const reportIDFromRoute = route?.params?.reportID ?? '';
+    const reportIDFromRoute = getReportID(route);
     const reportActionIDFromRoute = route?.params?.reportActionID ?? '';
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
@@ -337,7 +337,6 @@ function ReportScreen({
 
     const isLoading = !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
-        // (firstRenderRef.current && !!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute)) ||
         isLinkingToMessage ||
         !isCurrentReportLoadedFromOnyx ||
         (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
@@ -347,10 +346,10 @@ function ReportScreen({
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-            !firstRenderRef.current &&
-            ((!wasReportAccessibleRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
-                shouldHideReport ||
-                (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute)))
+        !firstRenderRef.current &&
+        ((!wasReportAccessibleRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
+            shouldHideReport ||
+            (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute)));
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
