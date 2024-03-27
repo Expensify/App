@@ -1,6 +1,6 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
-import {interpolate, interpolateColor, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
+import {Easing, interpolate, interpolateColor, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 import CONST from '@src/CONST';
 import useTheme from './useTheme';
 
@@ -30,12 +30,12 @@ export default function useAnimatedHighlightStyle({shouldHighlight, highlightDur
             return;
         }
         InteractionManager.runAfterInteractions(() => {
-            nonRepeatableProgress.value = withTiming(1, {duration: highlightDuration});
+            nonRepeatableProgress.value = withTiming(1, {duration: highlightDuration, easing: Easing.inOut(Easing.ease)});
             repeatableProgress.value = withSequence(
                 withDelay(delay, withTiming(0)),
-                withTiming(1, {duration: highlightDuration}),
+                withTiming(1, {duration: highlightDuration, easing: Easing.inOut(Easing.ease)}),
                 withDelay(delay, withTiming(1)),
-                withTiming(0, {duration: highlightDuration}),
+                withTiming(0, {duration: highlightDuration, easing: Easing.inOut(Easing.ease)}),
             );
         });
     }, [shouldHighlight, highlightDuration, delay, repeatableProgress, nonRepeatableProgress]);
