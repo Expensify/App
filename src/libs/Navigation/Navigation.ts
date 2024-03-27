@@ -247,14 +247,6 @@ function resetToHome() {
 }
 
 /**
- * Close the full screen modal.
- */
-function closeFullScreen() {
-    const rootState = navigationRef.getRootState();
-    navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
-}
-
-/**
  * Update route params for the specified route.
  */
 function setParams(params: Record<string, unknown>, routeKey = '') {
@@ -376,7 +368,6 @@ export default {
     getTopmostReportActionId,
     waitForProtectedRoutes,
     parseHybridAppUrl,
-    closeFullScreen,
     navigateWithSwitchPolicyID,
     resetToHome,
 };
