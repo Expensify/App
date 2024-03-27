@@ -45,7 +45,7 @@ function getAmountValues(values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEM
 
 const filterInput = (amount: string, amountRegex?: RegExp, permittedDecimalSeparator?: string) => {
     let value = amount ? amount.toString().trim() : '';
-    const regex = new RegExp(`^0+|(\\${permittedDecimalSeparator}\\d*?)0+$`, 'g');
+    const regex = new RegExp(`^0+|([${permittedDecimalSeparator}]\\d*?)0+$`, 'g');
     value = value.replace(regex, '$1');
     if (value === '' || Number.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value, false)) || (amountRegex && !amountRegex.test(value))) {
         return '';
