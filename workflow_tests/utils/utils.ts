@@ -5,7 +5,7 @@ import path from 'path';
 import yaml from 'yaml';
 import type ExtendedAct from './ExtendedAct';
 
-type StepAssertionInputEntry = {key: string; value: string};
+type StepAssertionInputEntry = {key: string; value: string | boolean};
 
 type StepAssertion = {
     name: string;
