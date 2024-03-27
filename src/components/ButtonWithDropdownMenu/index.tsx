@@ -93,8 +93,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         style={[styles.pl0]}
                         onPress={() => setIsMenuVisible(!isMenuVisible)}
                         shouldRemoveLeftBorderRadius
-                        large={isButtonSizeLarge}
-                        medium={!isButtonSizeLarge}
+                        medium
                         innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     >
