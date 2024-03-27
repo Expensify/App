@@ -5521,6 +5521,19 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
 
+function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report> | undefined): number | undefined {
+    switch (reportAction?.actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW:
+            return iouReport ? iouReport.managerID : reportAction?.actorAccountID;
+
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
+            return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
+
+        default:
+            return reportAction?.actorAccountID;
+    }
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5740,6 +5753,7 @@ export {
     shouldCreateNewMoneyRequestReport,
     isTrackExpenseReport,
     hasActionsWithErrors,
+    getReportActionActorAccountID,
 };
 
 export type {
