@@ -1,7 +1,7 @@
 import core from '@actions/core';
 import github from '@actions/github';
-import CONST from '../../../libs/CONST';
-import GitHubUtils from '../../../libs/GithubUtils';
+import CONST from '@github/libs/CONST';
+import GitHubUtils from '@github/libs/GithubUtils';
 
 type CommitData = {
     commit: {
@@ -22,7 +22,8 @@ GitHubUtils.octokit.pulls
     .listCommits({
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
-        pull_number: PR_NUMBER,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        pull_number: PR_NUMBER ?? 0,
     })
     .then(({data}: Commit) => {
         const unsignedCommits = data.filter((datum) => !datum.commit.verification.verified);
