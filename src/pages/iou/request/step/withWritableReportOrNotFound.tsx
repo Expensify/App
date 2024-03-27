@@ -10,11 +10,13 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 type WithWritableReportOrNotFoundOnyxProps = {
     /** The report corresponding to the reportID in the route params */
     report: OnyxEntry<Report>;
+    /** The transaction that the user is trying to create */
+    transaction?: OnyxEntry<Transaction>;
 };
 
 type Route = RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT>;
