@@ -61,7 +61,7 @@ const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyO
  * This function narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
  * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
  */
-const chatReportSelector = (report: OnyxEntry<Report>) =>
+const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
     report && {
         reportID: report.reportID,
         participantAccountIDs: report.participantAccountIDs,
@@ -77,14 +77,14 @@ function ProfilePage({route}: ProfilePageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const reportKey = useMemo((): `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` => {
+    const reportKey = useMemo(() => {
         const accountID = Number(route.params?.accountID ?? 0);
         const reportID = ReportUtils.getChatByParticipants([accountID], reports)?.reportID ?? '';
 
         if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
-            return `${ONYXKEYS.COLLECTION.REPORT}0`;
+            return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
-        return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
     }, [reports, route.params?.accountID, session]);
     const [report] = useOnyx(reportKey);
 

@@ -2,6 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -28,10 +29,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
+
+const policiesSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'id' | 'ownerAccountID' | 'owner'> => ({
+    id: policy?.id ?? '',
+    ownerAccountID: policy?.ownerAccountID,
+    owner: policy?.owner ?? '',
+});
 
 type ContactMethodDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
@@ -41,13 +49,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
     const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
-    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (data) => ({
-            id: data?.id ?? '',
-            ownerAccountID: data?.ownerAccountID,
-            owner: data?.owner ?? '',
-        }),
-    });
+    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
+
+    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult, policiesResult);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
@@ -164,11 +168,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod]);
 
-    if (isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult, policiesResult)) {
-        return <FullscreenLoadingIndicator />;
-    }
-
-    if (isLoadingReportData && isEmptyObject(loginList)) {
+    if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
     }
 
