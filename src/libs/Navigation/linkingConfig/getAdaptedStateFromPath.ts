@@ -159,6 +159,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const reportAttachmentsScreen = state.routes.find((route) => route.name === SCREENS.REPORT_ATTACHMENTS);
 
+    if (isNarrowLayout) {
+        metainfo.isFullScreenNavigatorMandatory = false;
+        metainfo.isCentralPaneAndBottomTabMandatory = false;
+    }
+
     if (rhpNavigator) {
         // Routes
         // - matching bottom tab

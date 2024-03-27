@@ -1,9 +1,11 @@
 import core from '@actions/core';
 import format from 'date-fns/format';
 import fs from 'fs';
-import CONST from '../../../libs/CONST';
-import GithubUtils from '../../../libs/GithubUtils';
-import GitUtils from '../../../libs/GitUtils';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
+import type {StagingDeployCashData} from '@github/libs/GithubUtils';
+import GitUtils from '@github/libs/GitUtils';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 async function run(): Promise<void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
@@ -33,18 +35,21 @@ async function run(): Promise<void> {
 
         // Parse the data from the previous and current checklists into the format used to generate the checklist
         const previousChecklistData = GithubUtils.getStagingDeployCashData(previousChecklist);
-        const currentChecklistData = shouldCreateNewDeployChecklist ? {} : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
+        const currentChecklistData: StagingDeployCashData | EmptyObject = shouldCreateNewDeployChecklist ? {} : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newVersionTag);
+        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag ?? '', newVersionTag);
 
         // Next, we generate the checklist body
         let checklistBody = '';
+        let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
-            checklistBody = await GithubUtils.generateStagingDeployCashBody(
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersionTag,
-                mergedPRs.map((prNum) => GithubUtils.getPullRequestURLFromNumber(prNum)),
+                mergedPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
+            checklistBody = issueBody;
+            checklistAssignees = issueAssignees;
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = mergedPRs.map((prNum) => {
@@ -86,7 +91,7 @@ async function run(): Promise<void> {
             });
 
             const didVersionChange = newVersionTag !== currentChecklistData.tag;
-            checklistBody = await GithubUtils.generateStagingDeployCashBody(
+            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersionTag,
                 PRList.map((pr) => pr.url),
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
@@ -97,6 +102,8 @@ async function run(): Promise<void> {
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,
             );
+            checklistBody = issueBody;
+            checklistAssignees = issueAssignees;
         }
 
         // Finally, create or update the checklist
@@ -111,7 +118,7 @@ async function run(): Promise<void> {
                 ...defaultPayload,
                 title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
                 labels: [CONST.LABELS.STAGING_DEPLOY],
-                assignees: [CONST.APPLAUSE_BOT],
+                assignees: [CONST.APPLAUSE_BOT].concat(checklistAssignees),
             });
             console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
             return newChecklist;
