@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
 import * as API from '@libs/API';
 import type {
@@ -42,6 +43,8 @@ export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTe
 type ReimbursementAccountStep = BankAccountStep | '';
 
 type ReimbursementAccountSubStep = BankAccountSubStep | '';
+
+type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
 
 type BusinessAddress = {
     addressStreet?: string;
@@ -92,7 +95,7 @@ function openPersonalBankAccountSetupViewRefactor(exitReportID?: string) {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
         }
-        Onyx.merge(ONYXKEYS.USER_WALLET, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
+        Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
     });
 }
 
@@ -110,6 +113,7 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
 function clearPersonalBankAccount() {
     clearPlaid();
     Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+    Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
     clearPersonalBankAccountSetupType();
 }
 
@@ -526,6 +530,16 @@ function setReimbursementAccountLoading(isLoading: boolean) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading});
 }
 
+function validatePlaidSelection(values: FormOnyxValues<AccountFormValues>): FormInputErrors<AccountFormValues> {
+    const errorFields: FormInputErrors<AccountFormValues> = {};
+
+    if (!values.selectedPlaidAccountID) {
+        errorFields.selectedPlaidAccountID = 'bankAccount.error.youNeedToSelectAnOption';
+    }
+
+    return errorFields;
+}
+
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
@@ -553,6 +567,7 @@ export {
     openPersonalBankAccountSetupViewRefactor,
     updateAddPersonalBankAccountDraft,
     clearPersonalBankAccountSetupType,
+    validatePlaidSelection,
 };
 
 export type {BusinessAddress, PersonalAddress};

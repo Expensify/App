@@ -8,6 +8,7 @@ const INPUT_IDS = {
         PLAID_MASK: 'mask',
         IS_SAVINGS: 'isSavings',
         BANK_NAME: 'bankName',
+        SETUP_TYPE: 'setupType',
         PLAID_ACCOUNT_ID: 'plaidAccountID',
         PLAID_ACCESS_TOKEN: 'plaidAccessToken',
         SELECTED_PLAID_ACCOUNT_ID: 'selectedPlaidAccountID',
@@ -32,6 +33,7 @@ type BankAccountStepProps = {
     [INPUT_IDS.BANK_INFO_STEP.ROUTING_NUMBER]: string;
     [INPUT_IDS.BANK_INFO_STEP.PLAID_ACCOUNT_ID]: string;
     [INPUT_IDS.BANK_INFO_STEP.PLAID_MASK]: string;
+    [INPUT_IDS.BANK_INFO_STEP.SETUP_TYPE]: string;
 };
 
 type PersonalInfoStepProps = {

@@ -19,17 +19,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalBankAccountForm} from '@src/types/form';
-import type {PersonalBankAccount, PlaidData, UserWallet} from '@src/types/onyx';
+import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 
 type AddPersonalBankAccountPageWithOnyxProps = {
-    /** The details about the Personal bank account we are adding saved in Onyx */
-    personalBankAccount: OnyxEntry<PersonalBankAccount>;
-
-    /** The user's wallet */
-    userWallet: OnyxEntry<UserWallet>;
-
     /** Contains plaid data */
     plaidData: OnyxEntry<PlaidData>;
+
+    /** The details about the Personal bank account we are adding saved in Onyx */
+    personalBankAccount: OnyxEntry<PersonalBankAccount>;
 
     /** The draft values of the bank account being setup */
     personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
@@ -37,7 +34,7 @@ type AddPersonalBankAccountPageWithOnyxProps = {
 
 const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
 
-function AddBankAccount({personalBankAccount, userWallet, plaidData, personalBankAccountDraft}: AddPersonalBankAccountPageWithOnyxProps) {
+function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraft}: AddPersonalBankAccountPageWithOnyxProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -51,11 +48,9 @@ function AddBankAccount({personalBankAccount, userWallet, plaidData, personalBan
         }
     }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
 
-    const isSetupTypeChosen = userWallet?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+    const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: plaidSubsteps, startFrom: 0, onFinished: submit});
-
-    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
@@ -64,28 +59,30 @@ function AddBankAccount({personalBankAccount, userWallet, plaidData, personalBan
 
             if (exitReportID) {
                 Navigation.dismissModal(exitReportID);
-            } else if (shouldContinue && onSuccessFallbackRoute) {
-                PaymentMethods.continueSetup(onSuccessFallbackRoute);
-            } else {
-                Navigation.goBack(ROUTES.SETTINGS_WALLET);
+                return;
             }
+            if (shouldContinue && onSuccessFallbackRoute) {
+                PaymentMethods.continueSetup(onSuccessFallbackRoute);
+                return;
+            }
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
         },
         [personalBankAccount],
     );
 
     const handleBackButtonPress = () => {
-        switch (true) {
-            case !isSetupTypeChosen:
-                exitFlow();
-                break;
-            case screenIndex === 0:
-                BankAccounts.clearPersonalBankAccount();
-                break;
-            default:
-                prevScreen();
-                break;
+        if (!isSetupTypeChosen) {
+            exitFlow();
+            return;
         }
+        if (screenIndex === 0) {
+            BankAccounts.clearPersonalBankAccount();
+            return;
+        }
+        prevScreen();
     };
+
+    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
     return (
         <ScreenWrapper
@@ -119,17 +116,14 @@ function AddBankAccount({personalBankAccount, userWallet, plaidData, personalBan
     );
 }
 
-AddBankAccount.displayName = 'AddPersonalBankAccountPage';
+AddBankAccount.displayName = 'AddBankAccountPage';
 
 export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
     plaidData: {
         key: ONYXKEYS.PLAID_DATA,
+    },
+    personalBankAccount: {
+        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     },
     personalBankAccountDraft: {
         key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,

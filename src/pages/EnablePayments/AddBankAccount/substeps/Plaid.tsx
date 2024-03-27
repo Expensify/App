@@ -27,29 +27,11 @@ type PlaidProps = PlaidOnyxProps & SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
-    const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> = {};
-
-    if (!values.selectedPlaidAccountID) {
-        errorFields.selectedPlaidAccountID = 'bankAccount.error.youNeedToSelectAnOption';
-    }
-
-    return errorFields;
-};
-
 function Plaid({personalBankAccountDraft, onNext, plaidData}: PlaidProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const selectedPlaidAccountID = personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
-
-    useEffect(() => {
-        const plaidBankAccounts = plaidData?.bankAccounts ?? [];
-        if (isFocused || plaidBankAccounts.length) {
-            return;
-        }
-        BankAccounts.clearPersonalBankAccountSetupType();
-    }, [isFocused, plaidData]);
 
     const handleNextPress = useCallback(() => {
         const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find(
@@ -74,10 +56,18 @@ function Plaid({personalBankAccountDraft, onNext, plaidData}: PlaidProps) {
         BankAccounts.updateAddPersonalBankAccountDraft({plaidAccountID});
     };
 
+    useEffect(() => {
+        const plaidBankAccounts = plaidData?.bankAccounts ?? [];
+        if (isFocused || plaidBankAccounts.length) {
+            return;
+        }
+        BankAccounts.clearPersonalBankAccountSetupType();
+    }, [isFocused, plaidData]);
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
-            validate={validate}
+            validate={BankAccounts.validatePlaidSelection}
             onSubmit={handleNextPress}
             scrollContextEnabled
             submitButtonText={translate('common.next')}
