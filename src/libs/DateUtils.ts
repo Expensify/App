@@ -17,6 +17,7 @@ import {
     isSameMonth,
     isSameSecond,
     isSameYear,
+    isThisYear,
     isValid,
     parse,
     set,
@@ -793,6 +794,44 @@ function getFormattedDateRange(date1: Date, date2: Date): string {
     return `${format(date1, 'MMM d, yyyy')} to ${format(date2, 'MMM d, yyyy')}`;
 }
 
+/**
+ * Returns a formatted date range from date 1 to date 2 of a reservation.
+ * Dates are formatted as follows:
+ * 1. When both dates refer to the same day and the current year: Sunday, Mar 17
+ * 2. When both dates refer to the same day but not the current year: Wednesday, Mar 17, 2023
+ * 3. When both dates refer to the current year: Sunday, Mar 17 to Wednesday, Mar 20
+ * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
+ */
+function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
+    if (isSameDay(date1, date2) && isThisYear(date1)) {
+        // Dates are from the same day
+        return format(date1, 'EEEE, MMM d, yyyy');
+    }
+    if (isSameDay(date1, date2)) {
+        // Dates are from the same day
+        return format(date1, 'EEEE, MMM d');
+    }
+    if (isSameYear(date1, date2) && isThisYear(date1)) {
+        // Dates are in the current year, differ by months
+        return `${format(date1, 'EEEE, MMM d')} to ${format(date2, 'EEEE, MMM d')}`;
+    }
+    // Dates differ by years, months, days or only by months but the year is not current
+    return `${format(date1, 'EEEE, MMM d, yyyy')} to ${format(date2, 'EEEE, MMM d, yyyy')}`;
+}
+
+/**
+ * Returns a formatted date of a transport mean departure.
+ * Dates are formatted as follows:
+ * 1. When the date reffers to the current day: Departs on Sunday, Mar 17 at 8:00
+ * 2. When the date reffers not to the current day: Departs on Wednesday, Mar 17, 2023 at 8:00
+ */
+function getFormattedTransportDate(date: Date): string {
+    if (isThisYear(date)) {
+        return `Departs ${format(date, 'EEEE, MMM d')} at ${format(date, 'HH:MM')}`;
+    }
+    return `Departs ${format(date, 'EEEE, MMM d, yyyy')} at ${format(date, 'HH:MM')}`;
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -840,6 +879,8 @@ const DateUtils = {
     enrichMoneyRequestTimestamp,
     getLastBusinessDayOfMonth,
     getFormattedDateRange,
+    getFormattedReservationRangeDate,
+    getFormattedTransportDate,
 };
 
 export default DateUtils;

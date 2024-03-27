@@ -10,6 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import DateUtils from '@libs/DateUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -101,6 +102,18 @@ type ReservationViewProps = {
     reservation: Reservation;
 };
 
+const getFormattedDate = (reservation: Reservation) => {
+    switch (reservation.type) {
+        case CONST.RESERVATION_TYPE.FLIGHT:
+        case CONST.RESERVATION_TYPE.RAIL:
+            return DateUtils.getFormattedTransportDate(new Date(reservation.start.date));
+        case CONST.RESERVATION_TYPE.HOTEL:
+            return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date));
+        default:
+            return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
+    }
+};
+
 function ReservationView({reservation}: ReservationViewProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -109,6 +122,8 @@ function ReservationView({reservation}: ReservationViewProps) {
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
 
     const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) => `${reservationTimeDetails.longName} (${reservationTimeDetails.shortName})`;
+
+    const formattedDate = getFormattedDate(reservation);
 
     const bottomDescription = `${reservation.confirmations.length > 0 ? `${reservation.confirmations[0].value} • ` : ''}${
         reservation.type === CONST.RESERVATION_TYPE.FLIGHT
@@ -143,7 +158,7 @@ function ReservationView({reservation}: ReservationViewProps) {
 
     return (
         <MenuItemWithTopDescription
-            description={translate(`travel.${reservation.type}`)}
+            description={formattedDate}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16, styles.tripDescriptionMargin]}
             titleComponent={titleComponent}
             titleContainerStyle={styles.justifyContentStart}
