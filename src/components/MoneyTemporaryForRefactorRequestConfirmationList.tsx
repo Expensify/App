@@ -40,11 +40,11 @@ import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import * as Expensicons from './Icon/Expensicons';
-import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
+import ReceiptImage from './ReceiptImage';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import Text from './Text';
@@ -886,6 +886,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const {
         image: receiptImage,
         thumbnail: receiptThumbnail,
+        isThumbnail,
+        fileExtension,
         isLocalFile,
     } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
 
@@ -900,17 +902,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     onPassword={() => setIsAttachmentInvalid(true)}
                 />
             ) : (
-                <Image
+                <ReceiptImage
                     style={styles.moneyRequestImage}
+                    isThumbnail={isThumbnail}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    source={{uri: (receiptThumbnail || receiptImage) as string}}
+                    source={(receiptThumbnail || receiptImage) || ''}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!!receiptThumbnail}
+                    fileExtension={fileExtension}
                 />
             ),
-        [receiptFilename, receiptImage, styles, receiptThumbnail, isLocalFile, isAttachmentInvalid],
+        [isLocalFile, receiptFilename, receiptImage, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, receiptThumbnail, fileExtension],
     );
 
     return (
