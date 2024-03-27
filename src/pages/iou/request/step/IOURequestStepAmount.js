@@ -22,6 +22,10 @@ import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import {
+    withCurrentUserPersonalDetailsDefaultProps,
+    withCurrentUserPersonalDetailsPropTypes
+} from "@components/withCurrentUserPersonalDetails";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -51,12 +55,15 @@ const propTypes = {
         /** Collection of tax rates attached to a policy */
         taxRates: taxPropTypes,
     }),
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
     policy: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const getTaxAmount = (transaction, defaultTaxValue, amount) => {
@@ -72,6 +79,7 @@ function IOURequestStepAmount({
     transaction,
     transaction: {currency},
     policy,
+    currentUserPersonalDetails,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
@@ -144,8 +152,27 @@ function IOURequestStepAmount({
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         if (report.reportID) {
-            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+
+            if (transaction.skipConfirmation) {
+                if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    IOU.splitBillAndOpenReport(
+                        selectedParticipants,
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
+                        transaction.amount,
+                        lodashGet(transaction, 'comment', '').trim(),
+                        transaction.currency,
+                        transaction.category,
+                        transaction.tag,
+                        transaction.merchant,
+                    );
+                    return;
+                }
+
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            }
             return;
         }
 
