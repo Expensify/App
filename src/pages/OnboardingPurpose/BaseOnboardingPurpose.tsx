@@ -79,7 +79,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
         // Only navigate to concierge chat when central pane is visible
         // Otherwise stay on the chats screen.
         if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.ROOT);
+            Navigation.navigate(ROUTES.HOME);
         } else {
             Report.navigateToConciergeChat();
         }
