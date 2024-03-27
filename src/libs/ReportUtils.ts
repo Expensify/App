@@ -5743,7 +5743,7 @@ export {
     shouldCreateNewMoneyRequestReport,
     isTrackExpenseReport,
     hasActionsWithErrors,
-    getChatByReportID
+    getChatByReportID,
 };
 
 export type {
