@@ -226,7 +226,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     inputMode?: InputModeOptions;
 
     /** Item `keyForList` to focus initially */
-    initiallyFocusedOptionKey?: string;
+    initiallyFocusedOptionKey?: string | null;
 
     /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
