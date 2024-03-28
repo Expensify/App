@@ -244,17 +244,6 @@ Onyx.connect({
     },
 });
 
-const policyExpenseReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!ReportUtils.isPolicyExpenseChat(report)) {
-            return;
-        }
-        policyExpenseReports[key] = report;
-    },
-});
-
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -763,13 +752,13 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
-    const expenseReport = policyExpenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
+    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
 
     const option = createOption(
         expenseReport?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
-        expenseReport ?? null,
+        !isEmptyObject(expenseReport) ? expenseReport : null,
         {},
         {
             showChatPreviewLine: false,
@@ -780,8 +769,8 @@ function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = ReportUtils.getPolicyName(expenseReport);
     option.alternateText = Localize.translateLocal('workspace.common.workspace');
-    option.selected = report.selected;
-    option.isSelected = report.selected;
+    option.selected = participant.selected;
+    option.isSelected = participant.selected;
     return option;
 }
 
