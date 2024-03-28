@@ -1331,14 +1331,19 @@ function getChildReportNotificationPreference(reportAction: OnyxEntry<ReportActi
  * - report is a non-settled IOU
  * - report is a draft
  * - report is a processing expense report and its policy has Instant reporting frequency
+ * When deleting an expense, return true if the report is open or submitted, regardless of submission schedule.
  */
-function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
+function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isDeleting = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
 
     if (isReportApproved(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
         return false;
+    }
+
+    if (isGroupPolicy(moneyRequestReport) && isDeleting) {
+        return isOpenExpenseReport(moneyRequestReport) || isProcessingReport(moneyRequestReport);
     }
 
     if (isGroupPolicy(moneyRequestReport) && isProcessingReport(moneyRequestReport) && !PolicyUtils.isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID))) {
