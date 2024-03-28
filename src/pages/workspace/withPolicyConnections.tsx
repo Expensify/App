@@ -13,11 +13,11 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
         const {isOffline} = useNetwork();
 
         useEffect(() => {
-            if (!policy?.connections || policy?.connections) {
+            if (!!policy?.connections || !policy?.id) {
                 return;
             }
 
-            openPolicyAccountingPage({policyID: policy?.id});
+            openPolicyAccountingPage(policy.id);
         }, [policy]);
 
         if (!policy?.connections) {

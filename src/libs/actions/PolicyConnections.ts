@@ -2,7 +2,7 @@ import * as API from '@libs/API';
 import type {OpenPolicyAccountingPageParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 
-function openPolicyAccountingPage({policyID}: {policyID: string}) {
+function openPolicyAccountingPage(policyID: string) {
     const parameters: OpenPolicyAccountingPageParams = {
         policyID,
     };
