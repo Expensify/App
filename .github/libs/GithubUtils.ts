@@ -75,6 +75,8 @@ type InternalOctokit = OctokitCore & Api & {paginate: PaginateInterface};
 class GithubUtils {
     static internalOctokit: InternalOctokit | undefined;
 
+    static POLL_RATE: number;
+
     /**
      * Initialize internal octokit
      *
