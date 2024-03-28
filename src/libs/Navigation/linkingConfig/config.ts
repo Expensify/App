@@ -280,6 +280,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
                             path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
                         },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,
+                        },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.route,
+                        },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
+                        },
                         [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
                         },
@@ -292,6 +301,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
                         },
@@ -300,6 +318,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAG_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAG_EDIT.route,
+                            parse: {
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
                         },
                         [SCREENS.WORKSPACE.TAG_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
@@ -344,6 +368,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAX_CREATE]: {
                             path: ROUTES.WORKSPACE_TAX_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAX_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_NAME]: {
+                            path: ROUTES.WORKSPACE_TAX_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_VALUE]: {
+                            path: ROUTES.WORKSPACE_TAX_VALUE.route,
                         },
                     },
                 },
@@ -492,7 +525,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
-                        [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
