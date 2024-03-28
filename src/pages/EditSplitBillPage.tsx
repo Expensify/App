@@ -3,7 +3,6 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -15,7 +14,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, ReportActions, Transaction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestTagPage from './EditRequestTagPage';
 
 type EditSplitBillOnyxProps = {
@@ -37,11 +35,10 @@ type EditSplitBillOnyxProps = {
 type EditSplitBillProps = EditSplitBillOnyxProps & StackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.EDIT_REQUEST>;
 
 function EditSplitBillPage({route, transaction, draftTransaction, report}: EditSplitBillProps) {
-    const {field: fieldToEdit, reportID, reportActionID, currency, tagIndex} = route.params;
+    const {field: fieldToEdit, reportID, reportActionID, tagIndex} = route.params;
 
-    const {amount: transactionAmount, currency: transactionCurrency, tag: transactionTag} = ReportUtils.getTransactionDetails(draftTransaction ?? transaction) ?? {};
+    const {tag: transactionTag} = ReportUtils.getTransactionDetails(draftTransaction ?? transaction) ?? {};
 
-    const defaultCurrency = currency ?? transactionCurrency;
     function navigateBackToSplitDetails() {
         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(reportID, reportActionID));
     }
@@ -52,27 +49,6 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
         }
         navigateBackToSplitDetails();
     };
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
-        return (
-            <EditRequestAmountPage
-                defaultAmount={transactionAmount ?? 0}
-                defaultCurrency={defaultCurrency ?? ''}
-                onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges.amount));
-
-                    setDraftSplitTransaction({
-                        amount,
-                        currency: transactionChanges.currency,
-                    });
-                }}
-                onNavigateToCurrency={() => {
-                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL_CURRENCY.getRoute(reportID, reportActionID, defaultCurrency, activeRoute));
-                }}
-            />
-        );
-    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG) {
         return (
