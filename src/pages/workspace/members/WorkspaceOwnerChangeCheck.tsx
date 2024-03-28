@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -30,16 +30,14 @@ type WorkspaceOwnerChangeCheckProps = WorkspaceOwnerChangeCheckOnyxProps & {
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
 };
 
-const defaultDisplayTexts = {
-    title: '',
-    text: '',
-    buttonText: '',
-};
-
 function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [displayTexts, setDisplayTexts] = useState<{title: string; text: string; buttonText: string}>(defaultDisplayTexts);
+    const [displayTexts, setDisplayTexts] = useState({
+        title: '',
+        text: '',
+        buttonText: '',
+    });
 
     const policyID = policy?.id ?? '';
 
