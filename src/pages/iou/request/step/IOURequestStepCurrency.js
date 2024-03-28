@@ -52,22 +52,27 @@ const defaultProps = {
 function IOURequestStepCurrency({
     currencyList,
     route: {
-        params: {backTo, iouType, pageIndex, reportID, transactionID},
+        params: {backTo, iouType, pageIndex, reportID, transactionID, currency: selectedCurrency},
     },
-    transaction: {currency},
+    transaction: {currency: originalCurrency},
 }) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const optionsSelectorRef = useRef();
+    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
-    const navigateBack = () => {
+    const navigateBack = (selectedCurrencyValue = undefined) => {
         // If the currency selection was done from the confirmation step (eg. + > request money > manual > confirm > amount > currency)
         // then the user needs taken back to the confirmation page instead of the initial amount page. This is because the route params
         // are only able to handle one backTo param at a time and the user needs to go back to the amount page before going back
         // to the confirmation page
         if (pageIndex === 'confirm') {
             const routeToAmountPageWithConfirmationAsBackTo = getUrlWithBackToParam(backTo, `/${ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID)}`);
-            Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo);
+            if (selectedCurrencyValue) {
+                Navigation.navigate(`${routeToAmountPageWithConfirmationAsBackTo}&currency=${selectedCurrencyValue}`);
+            } else {
+                Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo);
+            }
             return;
         }
         Navigation.goBack(backTo);
@@ -79,8 +84,10 @@ function IOURequestStepCurrency({
      */
     const confirmCurrencySelection = (option) => {
         Keyboard.dismiss();
-        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
-        navigateBack();
+        if (pageIndex !== 'confirm') {
+            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
+        }
+        navigateBack(option.currencyCode);
     };
 
     const {sections, headerMessage, initiallyFocusedOptionKey} = useMemo(() => {
