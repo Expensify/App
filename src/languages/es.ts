@@ -1296,8 +1296,8 @@ export default {
         welcome: '¡Bienvenido!',
         explanationModal: {
             title: 'Bienvenido a Expensify',
-            description1: 'Solicitar y enviar dinero es tan fácil como enviar un mensaje. La nueva era de los gastos ha llegado.',
-            description2: 'Para volver a Expensify Classic, simplemente toca tu foto de perfil > Ir a Expensify Classic.'
+            description1: 'Recibir pagos es tan fácil como mandar un mensaje',
+            description2: 'Para volver a Expensify Classic, simplemente haz click en tu foto de perfil > Ir a Expensify Classic.'
         },
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
