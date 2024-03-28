@@ -86,7 +86,7 @@ function BlockingView({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const subtitleText: React.ReactElement = useMemo(
+    const subtitleText = useMemo(
         () => (
             <>
                 <AutoEmailLink
@@ -106,7 +106,7 @@ function BlockingView({
         [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate],
     );
 
-    const subtitleContent: React.ReactElement = useMemo(() => {
+    const subtitleContent = useMemo(() => {
         if (CustomSubtitle) {
             return CustomSubtitle;
         }
