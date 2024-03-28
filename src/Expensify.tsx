@@ -22,11 +22,11 @@ import * as Growl from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
-import Performance from './libs/Performance';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribePushNotification';
+import Performance from './libs/Performance';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
