@@ -634,6 +634,7 @@ function ReportScreen({
                                         isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
                                         isReadyForCommentLinking={!shouldShowSkeleton}
+                                        transactionThreadReportID={ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? [])}
                                     />
                                 )}
 

@@ -62,6 +62,10 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
 
     /** Whether the report is ready for comment linking */
     isReadyForCommentLinking?: boolean;
+
+    /** The reportID of the transaction thread report associated with this current report, if any */
+    // eslint-disable-next-line react/no-unused-prop-types
+    transactionThreadReportID?: string | null;
 };
 
 const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
@@ -541,18 +545,12 @@ export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'}
             key: ONYXKEYS.SESSION,
         },
         transactionThreadReportActions: {
-            key: ({reportActions}) => {
-                const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? []);
-                return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`;
-            },
+            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
             canEvict: false,
             selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
         },
         transactionThreadReport: {
-            key: ({reportActions}) => {
-                const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? []);
-                return `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`;
-            },
+            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
         },
     })(MemoizedReportActionsView),
 );
