@@ -18,14 +18,6 @@ Onyx.connect({
     },
 });
 
-let session: OnyxTypes.Session = {};
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        session = value ?? {};
-    },
-});
-
 /**
  * Reset user's reimbursement account. This will delete the bank account.
  */
