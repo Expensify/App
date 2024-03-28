@@ -24,7 +24,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             selection.removeAllRanges();
             selection.addRange(range);
 
-            // dispatch input event to trigger Markdown Input to parser text
+            // Dispatch input event to trigger Markdown Input to parse the new text
             (textInputRef.current as HTMLElement)?.dispatchEvent(
                 new Event('input', {
                     bubbles: true,
