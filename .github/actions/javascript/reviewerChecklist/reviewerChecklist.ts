@@ -1,19 +1,16 @@
-const core = require('@actions/core');
-const github = require('@actions/github');
-const https = require('https');
-const GitHubUtils = require('../../../libs/GithubUtils');
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import https from 'https';
+import GitHubUtils from '@github/libs/GithubUtils';
 
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
 const reviewerChecklistContains = '# Reviewer Checklist';
-const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
-const combinedComments = [];
+const issue: number = github.context.payload.issue?.number ?? github.context.payload.pull_request?.number ?? -1;
+const combinedComments: string[] = [];
 
-/**
- * @returns {Promise}
- */
 function getNumberOfItemsFromReviewerChecklist() {
     console.log('Getting the number of items in the reviewer checklist...');
-    return new Promise((resolve, reject) => {
+    return new Promise<number>((resolve, reject) => {
         https
             .get(pathToReviewerChecklist, (res) => {
                 let fileContents = '';
@@ -21,7 +18,7 @@ function getNumberOfItemsFromReviewerChecklist() {
                     fileContents += chunk;
                 });
                 res.on('end', () => {
-                    const numberOfChecklistItems = (fileContents.match(/- \[ \]/g) || []).length;
+                    const numberOfChecklistItems = (fileContents.match(/- \[ \]/g) ?? []).length;
                     console.log(`There are ${numberOfChecklistItems} items in the reviewer checklist.`);
                     resolve(numberOfChecklistItems);
                 });
@@ -33,10 +30,7 @@ function getNumberOfItemsFromReviewerChecklist() {
     });
 }
 
-/**
- * @param {Number} numberOfChecklistItems
- */
-function checkIssueForCompletedChecklist(numberOfChecklistItems) {
+function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
     GitHubUtils.getAllReviewComments(issue)
         .then((reviewComments) => {
             console.log(`Pulled ${reviewComments.length} review comments, now adding them to the list...`);
@@ -45,7 +39,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
         .then(() => GitHubUtils.getAllComments(issue))
         .then((comments) => {
             console.log(`Pulled ${comments.length} comments, now adding them to the list...`);
-            combinedComments.push(...comments);
+            combinedComments.push(...comments.map((comment) => comment ?? ''));
         })
         .then(() => {
             console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
@@ -69,8 +63,8 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 if (comment.indexOf(reviewerChecklistContains) !== -1) {
                     console.log('Found the reviewer checklist!');
                     foundReviewerChecklist = true;
-                    numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) || []).length;
-                    numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) || []).length;
+                    numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) ?? []).length;
+                    numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) ?? []).length;
                 }
             }
 

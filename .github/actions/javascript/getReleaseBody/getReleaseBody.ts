@@ -1,6 +1,6 @@
-const core = require('@actions/core');
-const ActionUtils = require('../../../libs/ActionUtils');
-const GithubUtils = require('../../../libs/GithubUtils');
+import * as core from '@actions/core';
+import * as ActionUtils from '@github/libs/ActionUtils';
+import GithubUtils from '@github/libs/GithubUtils';
 
 // Parse the stringified JSON array of PR numbers, and cast each from String -> Number
 const PRList = ActionUtils.getJSONInput('PR_LIST', {required: true});
