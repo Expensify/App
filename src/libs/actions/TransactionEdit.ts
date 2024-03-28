@@ -26,14 +26,14 @@ function removeBackupTransaction(transactionID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-function restoreOriginalTransactionFromBackup(transactionID: string) {
+function restoreOriginalTransactionFromBackup(transactionID: string, isDraft: boolean) {
     const connectionID = Onyx.connect({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
         callback: (backupTransaction) => {
             Onyx.disconnect(connectionID);
 
             // Use set to completely overwrite the original transaction
-            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction);
+            Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction);
             removeBackupTransaction(transactionID);
         },
     });
