@@ -87,7 +87,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, moneyRequestType, lodashGet(transaction, 'transactionID', 1), reportID));
     };
 
     const navigateBack = useCallback((forceFallback = false) => {
