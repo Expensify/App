@@ -65,54 +65,56 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
     const triangleWidth = variables.reportActionItemImagesMoreCornerTriangleWidth;
 
     return (
-        <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {shownImages.map(({thumbnail, image, transaction, isLocalFile, filename}, index) => {
-                const isLastImage = index === numberOfShownImages - 1;
-
-                // Show a border to separate multiple images. Shown to the right for each except the last.
-                const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
-                const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
-                const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-                const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
-                const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
-                return (
-                    <View
-                        key={`${index}-${image as string}`}
-                        style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
+        <View style={styles.reportActionItemImagesContainer}>
+            <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
+                {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension, filename}, index) => {
+                    // Show a border to separate multiple images. Shown to the right for each except the last.
+                    const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
+                    const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
+                    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+                    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
+                    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
+                    return (
+                        <View
+                            key={`${index}-${image}`}
+                            style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
+                        >
+                            {showMapAsImage ? (
+                                <View style={{...styles.reportActionItemImages, width: '100%'}}>
+                                    <ConfirmedRoute transaction={transaction} />
+                                </View>
+                            ) : (
+                                <ReportActionItemImage
+                                    thumbnail={thumbnail}
+                                    fileExtension={fileExtension}
+                                    image={image}
+                                    isLocalFile={isLocalFile}
+                                    filename={filename}
+                                    transaction={transaction}
+                                    isThumbnail={isThumbnail}
+                                    isSingleImage={numberOfShownImages === 1}
+                                />
+                            )}
+                        </View>
+                    );
+                })}
+            </View>
+            {remaining > 0 && (
+                <View style={[styles.reportActionItemImagesMoreContainer]}>
+                    <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
+                    <Svg
+                        height={triangleWidth}
+                        width={triangleWidth}
+                        style={styles.reportActionItemImagesMoreCornerTriangle}
                     >
-                        {showMapAsImage ? (
-                            <View style={{...styles.reportActionItemImages, width: '100%'}}>
-                                <ConfirmedRoute transaction={transaction} />
-                            </View>
-                        ) : (
-                            <ReportActionItemImage
-                                thumbnail={thumbnail}
-                                image={image}
-                                isLocalFile={isLocalFile}
-                                filename={filename}
-                                transaction={transaction}
-                                isSingleImage={numberOfShownImages === 1}
-                            />
-                        )}
-                        {isLastImage && remaining > 0 && (
-                            <View style={[styles.reportActionItemImagesMoreContainer]}>
-                                <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
-                                <Svg
-                                    height={triangleWidth}
-                                    width={triangleWidth}
-                                    style={styles.reportActionItemImagesMoreCornerTriangle}
-                                >
-                                    <Polygon
-                                        points={`${triangleWidth},0 ${triangleWidth},${triangleWidth} 0,${triangleWidth}`}
-                                        fill={isHovered ? theme.border : theme.cardBG}
-                                    />
-                                </Svg>
-                                <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>{remaining > MAX_REMAINING ? `${MAX_REMAINING}+` : `+${remaining}`}</Text>
-                            </View>
-                        )}
-                    </View>
-                );
-            })}
+                        <Polygon
+                            points={`${triangleWidth},0 ${triangleWidth},${triangleWidth} 0,${triangleWidth}`}
+                            fill={isHovered ? theme.border : theme.cardBG}
+                        />
+                    </Svg>
+                    <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>{remaining > MAX_REMAINING ? `${MAX_REMAINING}+` : `+${remaining}`}</Text>
+                </View>
+            )}
         </View>
     );
 }
