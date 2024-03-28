@@ -1999,6 +1999,9 @@ export default {
             invalidRateError: 'Please enter a valid rate',
             lowRateError: 'Rate must be greater than 0',
         },
+        accounting: {
+            setup: 'Set up',
+        },
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
