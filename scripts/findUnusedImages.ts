@@ -140,10 +140,12 @@ function removeUnusedAssets(unusedAssets: Map<string, string>) {
     });
 
     if (unusedAssets.size === 0) {
+        // eslint-disable-next-line no-console
         console.log('No unused assets found');
     }
 
     if (unusedAssets.size > 0) {
+        // eslint-disable-next-line no-console
         console.log('Unused assets have been removed successfully, you may want to remove the imports from the files as well.');
     }
 }
