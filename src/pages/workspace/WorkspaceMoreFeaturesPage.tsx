@@ -100,6 +100,21 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
+    const integrateItems: Item[] = [
+        {
+            icon: Illustrations.Accounting,
+            titleTranslationKey: 'workspace.moreFeatures.connections.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
+            //TODO: Look at the policy connection object?
+            isActive: false,
+            pendingAction: policy?.pendingFields?.tax, //TODO: which pending field?
+            action: (isEnabled: boolean) => {
+                //TODO: should be a function to enable the connection feature?
+                Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
+            },
+        },
+    ];
+
     const sections: SectionObject[] = [
         {
             titleTranslationKey: 'workspace.moreFeatures.spendSection.title',
@@ -110,6 +125,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
             items: organizeItems,
+        },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
+            items: integrateItems,
         },
     ];
 
