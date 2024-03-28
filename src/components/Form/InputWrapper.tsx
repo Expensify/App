@@ -6,7 +6,6 @@ import type RoomNameInputProps from '@components/RoomNameInput/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import type {State} from '@libs/Navigation/types';
 import FormContext from './FormContext';
 import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
 
