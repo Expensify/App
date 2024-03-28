@@ -52,6 +52,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as store from './actions/ReimbursementAccount/store';
+import * as TransactionEdit from './actions/TransactionEdit';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -5528,6 +5529,25 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
 
+function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>, reportActionID: string): void {
+    const transaction = getTransaction(transactionID);
+    if (isEmpty(transaction)) {
+        return;
+    }
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+
+    const linkedTrackedExpenseReportAction = Object.values(reportActions).find((action) => (action.originalMessage as IOUMessage)?.IOUTransactionID === transactionID);
+
+    TransactionEdit.createBackupTransaction({
+        ...transaction,
+        actionableWhisperReportActionID: reportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID: reportID,
+    } as Transaction);
+
+    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, actionName));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5746,6 +5766,7 @@ export {
     shouldCreateNewMoneyRequestReport,
     isTrackExpenseReport,
     hasActionsWithErrors,
+    createDraftTransactionAndNavigateToParticipantSelector,
 };
 
 export type {

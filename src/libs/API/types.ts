@@ -195,6 +195,9 @@ const WRITE_COMMANDS = {
     UPDATE_POLICY_DISTANCE_RATE_VALUE: 'UpdatePolicyDistanceRateValue',
     SET_POLICY_DISTANCE_RATES_ENABLED: 'SetPolicyDistanceRatesEnabled',
     DELETE_POLICY_DISTANCE_RATES: 'DeletePolicyDistanceRates',
+    DISMISS_ACTIONABLE_WHISPER: 'DismissActionableWhisper',
+    CONVERT_TRACKED_EXPENSE_TO_REQUEST: 'ConvertTrackedExpenseToRequest',
+    CATEGORIZE_TRACKED_TRANSACTION: 'CategorizeTrackedExpense',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -388,6 +391,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE]: Parameters.UpdatePolicyDistanceRateValueParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED]: Parameters.SetPolicyDistanceRatesEnabledParams;
     [WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES]: Parameters.DeletePolicyDistanceRatesParams;
+    [WRITE_COMMANDS.DISMISS_ACTIONABLE_WHISPER]: Parameters.DismissTrackExpenseActionableWhisperParams;
+    [WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST]: Parameters.ConvertTrackedExpenseToRequestParams;
+    [WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION]: Parameters.CategorizeTrackedExpenseParams;
 };
 
 const READ_COMMANDS = {

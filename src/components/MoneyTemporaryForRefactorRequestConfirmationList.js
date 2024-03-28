@@ -170,6 +170,9 @@ const propTypes = {
 
     /** Transaction that represents the money request */
     transaction: transactionPropTypes,
+
+    /** The action of the IOU */
+    iouAction: PropTypes.string,
 };
 
 const defaultProps = {
@@ -202,6 +205,7 @@ const defaultProps = {
     isDistanceRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
+    iouAction: CONST.IOU.ACTION.CREATE,
 };
 
 function MoneyTemporaryForRefactorRequestConfirmationList({
@@ -242,6 +246,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
+    iouAction,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -684,7 +689,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams(), iouAction));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -706,7 +711,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.description')}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(iouAction, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     style={[styles.moneyRequestMenuItem]}
@@ -729,9 +734,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        )
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouAction, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
                     }
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={didConfirm || !canEditDistance}
@@ -751,9 +754,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(iouAction, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -775,9 +776,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouAction, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -798,7 +797,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     numberOfLinesTitle={2}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouAction, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            iouAction === CONST.IOU.ACTION.CATEGORIZE ? CONST.NAVIGATION.ACTION_TYPE.PUSH : undefined,
                         )
                     }
                     style={[styles.moneyRequestMenuItem]}
@@ -809,7 +809,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 />
             ),
             shouldShow: shouldShowCategories,
-            isSupplementary: !isCategoryRequired,
+            isSupplementary: iouAction === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
         },
         ..._.map(policyTagLists, ({name}, index) => ({
             item: (
@@ -820,9 +820,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={name}
                     numberOfLinesTitle={2}
                     onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, index, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        )
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouAction, iouType, index, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
                     }
                     style={[styles.moneyRequestMenuItem]}
                     disabled={didConfirm}

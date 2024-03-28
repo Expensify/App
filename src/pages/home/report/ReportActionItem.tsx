@@ -62,7 +62,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {OriginalMessageActionableMentionWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageActionableMentionWhisper, OriginalMessageActionableTrackedExpenseWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -329,10 +329,11 @@ function ReportActionItem({
         [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
     );
 
-    // Handles manual scrolling to the bottom of the chat when the last message is an actionable mention whisper and it's resolved.
+    // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
     // This fixes an issue where InvertedFlatList fails to auto scroll down and results in an empty space at the bottom of the chat in IOS.
     useEffect(() => {
-        if (index !== 0 || !ReportActionsUtils.isActionableMentionWhisper(action)) {
+        const isActionableWhisper = ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action);
+        if (index !== 0 || !isActionableWhisper) {
             return;
         }
 
@@ -362,8 +363,45 @@ function ReportActionItem({
         const isWhisperResolution = (action?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution !== null;
         const isJoinChoice = (action?.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage'])?.choice === '';
 
-        if (!((ReportActionsUtils.isActionableMentionWhisper(action) && isWhisperResolution) || (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice))) {
+        if (
+            !(
+                ((ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action)) && isWhisperResolution) ||
+                (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice)
+            )
+        ) {
             return [];
+        }
+
+        if (ReportActionsUtils.isActionableTrackExpense(action)) {
+            const transactionID = (action?.originalMessage as OriginalMessageActionableTrackedExpenseWhisper['originalMessage'])?.transactionID;
+            return [
+                {
+                    text: 'actionableMentionTrackExpense.request',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-request`,
+                    onPress: () => {
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.MOVE, action.reportActionID);
+                    },
+                    isMediumSized: true,
+                },
+                {
+                    text: 'actionableMentionTrackExpense.categorize',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
+                    onPress: () => ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID),
+                    isMediumSized: true,
+                },
+                {
+                    text: 'actionableMentionTrackExpense.share',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
+                    onPress: () => console.log('Share'),
+                    isMediumSized: true,
+                },
+                {
+                    text: 'actionableMentionTrackExpense.nothing',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
+                    onPress: () => Report.dismissTrackExpenseActionableWhisper(report.reportID, action),
+                    isMediumSized: true,
+                },
+            ];
         }
 
         if (ReportActionsUtils.isActionableJoinRequest(action)) {
@@ -555,7 +593,12 @@ function ReportActionItem({
                                 for example: Invite a user mentioned but not a member of the room
                                 https://github.com/Expensify/App/issues/32741
                             */}
-                            {actionableItemButtons.length > 0 && <ActionableItemButtons items={actionableItemButtons} />}
+                            {actionableItemButtons.length > 0 && (
+                                <ActionableItemButtons
+                                    items={actionableItemButtons}
+                                    layout={ReportActionsUtils.isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                                />
+                            )}
                         </View>
                     ) : (
                         <ReportActionItemMessageEdit
@@ -775,6 +818,11 @@ function ReportActionItem({
 
     // if action is actionable mention whisper and resolved by user, then we don't want to render anything
     if (ReportActionsUtils.isActionableMentionWhisper(action) && (action.originalMessage.resolution ?? null)) {
+        return null;
+    }
+
+    // if action is actionable track expense whisper and resolved by user, then we don't want to render anything
+    if (ReportActionsUtils.isActionableTrackExpense(action) && (action.originalMessage as OriginalMessageActionableTrackedExpenseWhisper['originalMessage']).resolution) {
         return null;
     }
 

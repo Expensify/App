@@ -53,7 +53,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {IOUMessage, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -994,6 +994,159 @@ function buildOnyxDataForTrackExpense(
     return [optimisticData, successData, failureData];
 }
 
+function getDeleteTrackExpenseInformation(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction) {
+    // STEP 1: Get all collections we're updating
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const transactionThreadID = reportAction.childReportID;
+    let transactionThread = null;
+    if (transactionThreadID) {
+        transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
+    }
+
+    // STEP 2: Decide if we need to:
+    // 1. Delete the transactionThread - delete if there are no visible comments in the thread
+    // 2. Update the moneyRequestPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
+    const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
+    const shouldShowDeletedRequestMessage = !!transactionThreadID && !shouldDeleteTransactionThread;
+
+    // STEP 3: Update the IOU reportAction.
+    const updatedReportAction = {
+        [reportAction.reportActionID]: {
+            pendingAction: shouldShowDeletedRequestMessage ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            previousMessage: reportAction.message,
+            message: [
+                {
+                    type: 'COMMENT',
+                    html: '',
+                    text: '',
+                    isEdited: true,
+                    isDeletedParentAction: shouldShowDeletedRequestMessage,
+                },
+            ],
+            originalMessage: {
+                IOUTransactionID: null,
+            },
+            errors: undefined,
+        },
+    } as OnyxTypes.ReportActions;
+
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(chatReport?.reportID ?? '', updatedReportAction);
+    const reportLastMessageText = ReportActionsUtils.getLastVisibleMessage(chatReport?.reportID ?? '', updatedReportAction).lastMessageText;
+
+    // STEP 4: Build Onyx data
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: null,
+        },
+    ];
+
+    if (Permissions.canUseViolations(betas)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: null,
+        });
+    }
+
+    if (shouldDeleteTransactionThread) {
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+                value: null,
+            },
+        );
+    }
+
+    optimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: updatedReportAction,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            value: {
+                lastMessageText: reportLastMessageText,
+                lastVisibleActionCreated: lastVisibleAction?.created,
+            },
+        },
+    );
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction,
+        },
+    ];
+
+    if (Permissions.canUseViolations(betas)) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations,
+        });
+    }
+
+    if (shouldDeleteTransactionThread) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+            value: transactionThread,
+        });
+    }
+
+    failureData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    ...reportAction,
+                    pendingAction: null,
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            value: chatReport,
+        },
+    );
+
+    const parameters: DeleteMoneyRequestParams = {
+        transactionID,
+        reportActionID: reportAction.reportActionID,
+    };
+
+    return {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread, chatReport};
+}
+
 /**
  * Gathers all the data needed to make a money request. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
@@ -1017,6 +1170,9 @@ function getMoneyRequestInformation(
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
+    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
+    linkedTrackedExpenseReportID?: string,
+    shouldDeleteLinkedTrackedExpense?: boolean,
 ): MoneyRequestInformation {
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -1181,6 +1337,13 @@ function getMoneyRequestInformation(
         policyCategories,
         optimisticNextStep,
     );
+
+    if(shouldDeleteLinkedTrackedExpense && linkedTrackedExpenseReportAction && linkedTrackedExpenseReportID) {
+        const {optimisticData: deleteOptimisticData, successData: deleteSuccessData, failureData: deleteFailureData} = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, optimisticTransaction.transactionID, linkedTrackedExpenseReportAction);
+        optimisticData.push(...deleteOptimisticData);
+        successData.push(...deleteSuccessData);
+        failureData.push(...deleteFailureData);
+    }
 
     return {
         payerAccountID,
@@ -2085,12 +2248,19 @@ function requestMoney(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints = undefined,
+    action?: ValueOf<typeof CONST.IOU.ACTION>,
+    actionableWhisperReportActionID?: string,
+    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
+    linkedTrackedExpenseReportID?: string,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
+    const isConvertingFromTrackExpenseToRequest = action === CONST.IOU.ACTION.MOVE;
+    const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
+
     const {
         payerAccountID,
         payerEmail,
@@ -2105,7 +2275,7 @@ function requestMoney(
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation(
-        currentChatReport,
+        isConvertingFromTrackExpenseToRequest || isCategorizing ? {} : currentChatReport,
         participant,
         comment,
         amount,
@@ -2113,7 +2283,7 @@ function requestMoney(
         currentCreated,
         merchant,
         receipt,
-        undefined,
+        isConvertingFromTrackExpenseToRequest || isCategorizing ? (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID : undefined,
         category,
         tag,
         billable,
@@ -2123,39 +2293,76 @@ function requestMoney(
         payeeAccountID,
         payeeEmail,
         moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        isConvertingFromTrackExpenseToRequest || isCategorizing,
     );
+
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
-    const parameters: RequestMoneyParams = {
-        debtorEmail: payerEmail,
-        debtorAccountID: payerAccountID,
-        amount,
-        currency,
-        comment,
-        created: currentCreated,
-        merchant,
-        iouReportID: iouReport.reportID,
-        chatReportID: chatReport.reportID,
-        transactionID: transaction.transactionID,
-        reportActionID: iouAction.reportActionID,
-        createdChatReportActionID,
-        createdIOUReportActionID,
-        reportPreviewReportActionID: reportPreviewAction.reportActionID,
-        receipt,
-        receiptState: receipt?.state,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
-        gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
-        transactionThreadReportID,
-        createdReportActionIDForThread,
-    };
+    switch (action) {
+        case CONST.IOU.ACTION.MOVE: {
+            const parameters = {
+                payerAccountID,
+                iouReportID: iouReport.reportID,
+                chatReportID: chatReport.reportID,
+                transactionID: transaction.transactionID,
+                reportActionID: iouAction.reportActionID,
+                createdChatReportActionID,
+                createdIOUReportActionID,
+                reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            };
+            API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, onyxData);
+            break;
+        }
+        case CONST.IOU.ACTION.CATEGORIZE: {
+            const parameters = {
+                policyID: chatReport.policyID,
+                transactionID: (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID,
+                actionableWhisperReportActionID,
+                moneyRequestReportID: iouReport.reportID,
+                moneyRequestCreatedReportActionID: createdChatReportActionID,
+            };
 
-    API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
-    resetMoneyRequestInfo();
+            console.log('Categorizing tracked expense', parameters);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, parameters, onyxData);
+            break;
+        }
+        default: {
+            const parameters: RequestMoneyParams = {
+                debtorEmail: payerEmail,
+                debtorAccountID: payerAccountID,
+                amount,
+                currency,
+                comment,
+                created: currentCreated,
+                merchant,
+                iouReportID: iouReport.reportID,
+                chatReportID: chatReport.reportID,
+                transactionID: transaction.transactionID,
+                reportActionID: iouAction.reportActionID,
+                createdChatReportActionID,
+                createdIOUReportActionID,
+                reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                receipt,
+                receiptState: receipt?.state,
+                category,
+                tag,
+                taxCode,
+                taxAmount,
+                billable,
+                // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
+                gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+                transactionThreadReportID,
+                createdReportActionIDForThread,
+            };
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            resetMoneyRequestInfo();
+        }
+    }
     Navigation.dismissModal(activeReportID);
     Report.notifyNewAction(activeReportID, payeeAccountID);
 }
@@ -3868,154 +4075,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 }
 
 function deleteTrackExpense(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
-    // STEP 1: Get all collections we're updating
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    const transactionThreadID = reportAction.childReportID;
-    let transactionThread = null;
-    if (transactionThreadID) {
-        transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
-    }
-
-    // STEP 2: Decide if we need to:
-    // 1. Delete the transactionThread - delete if there are no visible comments in the thread
-    // 2. Update the moneyRequestPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
-    const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
-    const shouldShowDeletedRequestMessage = !!transactionThreadID && !shouldDeleteTransactionThread;
-
-    // STEP 3: Update the IOU reportAction.
-    const updatedReportAction = {
-        [reportAction.reportActionID]: {
-            pendingAction: shouldShowDeletedRequestMessage ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            previousMessage: reportAction.message,
-            message: [
-                {
-                    type: 'COMMENT',
-                    html: '',
-                    text: '',
-                    isEdited: true,
-                    isDeletedParentAction: shouldShowDeletedRequestMessage,
-                },
-            ],
-            originalMessage: {
-                IOUTransactionID: null,
-            },
-            errors: undefined,
-        },
-    } as OnyxTypes.ReportActions;
-
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(chatReport?.reportID ?? '', updatedReportAction);
-    const reportLastMessageText = ReportActionsUtils.getLastVisibleMessage(chatReport?.reportID ?? '', updatedReportAction).lastMessageText;
-
-    // STEP 4: Build Onyx data
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: null,
-        },
-    ];
-
-    if (Permissions.canUseViolations(betas)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: null,
-        });
-    }
-
-    if (shouldDeleteTransactionThread) {
-        optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
-                value: null,
-            },
-        );
-    }
-
-    optimisticData.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: updatedReportAction,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: {
-                lastMessageText: reportLastMessageText,
-                lastVisibleActionCreated: lastVisibleAction?.created,
-            },
-        },
-    );
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [reportAction.reportActionID]: {
-                    pendingAction: null,
-                    errors: null,
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
-        },
-    ];
-
-    if (Permissions.canUseViolations(betas)) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations,
-        });
-    }
-
-    if (shouldDeleteTransactionThread) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-            value: transactionThread,
-        });
-    }
-
-    failureData.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [reportAction.reportActionID]: {
-                    ...reportAction,
-                    pendingAction: null,
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: chatReport,
-        },
-    );
-
-    const parameters: DeleteMoneyRequestParams = {
-        transactionID,
-        reportActionID: reportAction.reportActionID,
-    };
+    const {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread, chatReport} = getDeleteTrackExpenseInformation(chatReportID, transactionID, reportAction);
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});

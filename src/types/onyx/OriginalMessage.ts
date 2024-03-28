@@ -25,6 +25,7 @@ type OriginalMessageActionName =
     | 'TASKREOPENED'
     | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
+    | 'ACTIONABLETRACKEXPENSEWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
@@ -280,6 +281,16 @@ type OriginalMessageReimbursementQueued = {
     };
 };
 
+type OriginalMessageActionableTrackedExpenseWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLETRACKEXPENSEWHISPER;
+    originalMessage: {
+        transactionID: string;
+        lastModified: string;
+        //  todo: add constants for tracking expense whisper resolution
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>;
+    };
+};
+
 type OriginalMessageReimbursementDequeued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
     originalMessage: {
@@ -319,7 +330,8 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
-    | OriginalMessageMarkedReimbursed;
+    | OriginalMessageMarkedReimbursed
+    | OriginalMessageActionableTrackedExpenseWhisper;
 
 export default OriginalMessage;
 export type {
@@ -343,4 +355,5 @@ export type {
     OriginalMessageReimbursementDequeued,
     DecisionName,
     PaymentMethodType,
+    OriginalMessageActionableTrackedExpenseWhisper,
 };

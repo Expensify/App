@@ -4,8 +4,11 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import * as Illustrations from '@components/Icon/Illustrations';
+import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -17,12 +20,16 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Beta features list */
@@ -62,6 +69,9 @@ const propTypes = {
 
     /** Whether the parent screen transition has ended */
     didScreenTransitionEnd: PropTypes.bool,
+
+    /** The action of the IOU, i.e. create, split, move */
+    iouAction: PropTypes.oneOf(_.values(CONST.IOU.ACTION)),
 };
 
 const defaultProps = {
@@ -71,6 +81,7 @@ const defaultProps = {
     betas: [],
     dismissedReferralBanners: {},
     didScreenTransitionEnd: false,
+    iouAction: CONST.IOU.ACTION.CREATE,
 };
 
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
@@ -84,6 +95,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     iouRequestType,
     dismissedReferralBanners,
     didScreenTransitionEnd,
+    iouAction,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -97,6 +109,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -120,9 +133,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
             // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to request money from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.TYPE.REQUEST,
+            iouType === CONST.IOU.TYPE.REQUEST && iouAction !== CONST.IOU.ACTION.MOVE,
 
-            canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouAction !== CONST.IOU.ACTION.CATEGORIZE,
             false,
             {},
             [],
@@ -180,7 +193,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, canUseP2PDistanceRequests, translate]);
+    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, canUseP2PDistanceRequests, translate, iouAction]);
 
     /**
      * Adds a single participant to the request
@@ -344,6 +357,33 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     );
 
     const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
+
+    const renderEmptyWorkspaceView = () => (
+        <>
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyWorkspaceIconWidth}
+                iconHeight={variables.emptyWorkspaceIconHeight}
+                title={translate('workspace.emptyWorkspace.notFound')}
+                subtitle={translate('workspace.emptyWorkspace.description')}
+                shouldShowLink={false}
+            />
+            <Button
+                success
+                large
+                text={translate('footer.learnMore')}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                style={[styles.mh5, styles.mb5]}
+            />
+            {isSmallScreenWidth && <OfflineIndicator />}
+        </>
+    );
+
+    const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
+
+    if (iouAction === CONST.IOU.ACTION.CATEGORIZE && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
+        return renderEmptyWorkspaceView();
+    }
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>

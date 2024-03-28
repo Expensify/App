@@ -32,7 +32,7 @@ const defaultProps = {
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {iouType, reportID, transactionID, action: iouAction},
     },
     transaction,
     transaction: {participants = []},
@@ -44,6 +44,12 @@ function IOURequestStepParticipants({
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const headerTitle = useMemo(() => {
+        if (iouAction === CONST.IOU.ACTION.CATEGORIZE) {
+            return translate('iou.categorize');
+        }
+        if (iouAction === CONST.IOU.ACTION.MOVE) {
+            return translate('iou.request');
+        }
         if (isSplitRequest) {
             return translate('iou.split');
         }
@@ -51,7 +57,7 @@ function IOURequestStepParticipants({
             return translate('common.send');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate, isSplitRequest]);
+    }, [iouType, transaction, translate, isSplitRequest, iouAction]);
 
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
@@ -126,16 +132,24 @@ function IOURequestStepParticipants({
                 nextStepIOUType = CONST.IOU.TYPE.SEND;
             }
 
+            const isCategorizing = iouAction === CONST.IOU.ACTION.CATEGORIZE;
+
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
+
+            const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID, iouAction);
+            if (isCategorizing) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouAction, nextStepIOUType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
+            } else {
+                Navigation.navigate(iouConfirmationPageRoute);
+            }
         },
-        [iouType, transactionID, reportID],
+        [iouType, transactionID, reportID, iouAction],
     );
 
     const navigateBack = useCallback(() => {
-        IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID);
-    }, [iouRequestType, iouType, transactionID, reportID]);
+        IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, iouAction);
+    }, [iouRequestType, iouType, transactionID, reportID, iouAction]);
 
     return (
         <StepScreenWrapper
@@ -153,6 +167,7 @@ function IOURequestStepParticipants({
                     iouType={iouType}
                     iouRequestType={iouRequestType}
                     didScreenTransitionEnd={didScreenTransitionEnd}
+                    iouAction={iouAction}
                 />
             )}
         </StepScreenWrapper>

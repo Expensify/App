@@ -67,7 +67,7 @@ const getTaxAmount = (transaction, defaultTaxValue, amount) => {
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {iouType, reportID, transactionID, backTo, action: iouAction},
     },
     transaction,
     transaction: {currency},
@@ -117,7 +117,7 @@ function IOURequestStepAmount({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams(), iouAction));
     };
 
     /**

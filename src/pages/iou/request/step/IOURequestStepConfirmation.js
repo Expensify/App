@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -81,7 +82,7 @@ function IOURequestStepConfirmation({
     policyCategories,
     report,
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {iouType, reportID, transactionID, action: iouAction},
     },
     transaction,
 }) {
@@ -97,6 +98,12 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = useMemo(() => {
+        if (iouAction === CONST.IOU.ACTION.CATEGORIZE) {
+            return translate('iou.categorize');
+        }
+        if (iouAction === CONST.IOU.ACTION.MOVE) {
+            return translate('iou.request');
+        }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             return translate('iou.split');
         }
@@ -107,7 +114,7 @@ function IOURequestStepConfirmation({
             return translate('common.send');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate]);
+    }, [iouType, transaction, translate, iouAction]);
 
     const participants = useMemo(
         () =>
@@ -167,11 +174,11 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction.participantsAutoAssigned) {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, undefined, iouAction));
             return;
         }
-        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
-    }, [transaction, iouType, requestType, transactionID, reportID]);
+        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, iouAction);
+    }, [transaction, iouType, requestType, transactionID, reportID, iouAction]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
@@ -199,7 +206,7 @@ function IOURequestStepConfirmation({
         (selectedParticipants, trimmedComment, receiptObj, gpsPoints) => {
             IOU.requestMoney(
                 report,
-                transaction.amount,
+                TransactionUtils.getAmount(transaction, undefined, [CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(iouAction)),
                 transaction.currency,
                 transaction.created,
                 transaction.merchant,
@@ -217,9 +224,24 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 gpsPoints,
+                iouAction,
+                transaction.actionableWhisperReportActionID,
+                transaction.linkedTrackedExpenseReportAction,
+                transaction.linkedTrackedExpenseReportID,
             );
         },
-        [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+        [
+            report,
+            transaction,
+            transactionTaxCode,
+            transactionTaxAmount,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            policy,
+            policyTags,
+            policyCategories,
+            iouAction,
+        ],
     );
 
     /**
@@ -523,7 +545,7 @@ function IOURequestStepConfirmation({
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                             selectedParticipants={participants}
-                            iouAmount={transaction.amount}
+                            iouAmount={TransactionUtils.getAmount(transaction, undefined, true)}
                             iouComment={lodashGet(transaction, 'comment.comment', '')}
                             iouCurrencyCode={transaction.currency}
                             iouIsBillable={transaction.billable}
@@ -546,9 +568,10 @@ function IOURequestStepConfirmation({
                             policyID={report.policyID}
                             bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                             iouMerchant={transaction.merchant}
-                            iouCreated={transaction.created}
+                            iouCreated={format(new Date(transaction.created), 'yyyy-MM-dd')}
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                            iouAction={iouAction}
                         />
                     </View>
                 </View>
