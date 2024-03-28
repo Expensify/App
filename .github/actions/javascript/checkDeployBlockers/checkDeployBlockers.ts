@@ -38,7 +38,7 @@ const run = function () {
 
             // If comments is undefined that means we found an unchecked QA item in the
             // issue description, so there's nothing more to do but return early.
-            if (!comments) {
+            if (comments === undefined) {
                 return;
             }
 

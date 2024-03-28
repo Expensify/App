@@ -39,7 +39,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
         .then(() => GitHubUtils.getAllComments(issue))
         .then((comments) => {
             console.log(`Pulled ${comments.length} comments, now adding them to the list...`);
-            combinedComments.push(...comments.map((comment) => comment ?? ''));
+            combinedComments.push(...(comments.filter(Boolean) as string[]));
         })
         .then(() => {
             console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
