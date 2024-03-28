@@ -313,6 +313,7 @@ export default {
         member: 'Member',
         role: 'Role',
         currency: 'Currency',
+        rate: 'Rate',
     },
     location: {
         useCurrent: 'Use current location',
@@ -725,6 +726,7 @@ export default {
         set: 'set',
         changed: 'changed',
         removed: 'removed',
+        chooseARate: 'Choose a rate to use below',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',

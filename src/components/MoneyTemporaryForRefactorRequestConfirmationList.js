@@ -224,7 +224,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     isReadOnly,
     isScanRequest,
     listStyles,
-    mileageRate,
+    mileageRates,
     onConfirm,
     onSelectParticipant,
     onSendMoney,
@@ -254,9 +254,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
     const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
-    const {unit, rate, currency} = mileageRate;
+    const personalPolicy = policyID === CONST.POLICY.ID_FAKE ? PolicyUtils.getPersonalPolicy() : policy;
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
+        ? DistanceRequestUtils.getRateForP2P(personalPolicy.outputCurrency)
+        : mileageRates[transaction.comment.customUnit.customUnitRateID];
+
+    const {unit, rate} = mileageRate || {
+        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * 100,
+    };
+
+    const currency = personalPolicy.outputCurrency;
+
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
-    const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
     const taxRates = lodashGet(policy, 'taxRates', {});
 
     // A flag for showing the categories field
@@ -287,7 +297,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(
-              shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : iouAmount,
+              isDistanceRequest && iouAmount === 0 ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : iouAmount,
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
@@ -354,13 +364,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isMerchantRequired, merchantError]);
 
     useEffect(() => {
-        if (!shouldCalculateDistanceAmount) {
+        if (!isDistanceRequest) {
             return;
         }
 
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate);
         IOU.setMoneyRequestAmount_temporaryForRefactor(transaction.transactionID, amount, currency);
-    }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
+    }, [isDistanceRequest, distance, rate, unit, transaction, currency]);
 
     /**
      * Returns the participants with amount
@@ -738,7 +748,45 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     interactive={!isReadOnly}
                 />
             ),
-            shouldShow: isDistanceRequest,
+            shouldShow: isDistanceRequest && !canUseP2PDistanceRequests,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.distance')}
+                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
+                    title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
+                    description={translate('common.distance')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm || !isTypeRequest}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.rate')}
+                    shouldShowRightIcon={!isReadOnly && isPolicyExpenseChat}
+                    title={DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit)}
+                    description={translate('common.rate')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
+                    }}
+                    disabled={didConfirm || !isTypeRequest}
+                    interactive={!isReadOnly && isPolicyExpenseChat}
+                />
+            ),
+            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
             isSupplementary: true,
         },
         {
@@ -1013,6 +1061,10 @@ export default compose(
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
+        },
+        mileageRates: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            selector: (policy) => DistanceRequestUtils.getMileageRates(policy ? policy.id : ''),
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

@@ -303,6 +303,7 @@ export default {
         member: 'Miembro',
         role: 'Role',
         currency: 'Divisa',
+        rate: 'Tarifa',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -723,6 +724,7 @@ export default {
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
+        chooseARate: 'Elige una tarifa para utilizar a continuación',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
