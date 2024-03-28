@@ -135,7 +135,7 @@ function ReportActionsView({
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
         if (!reportActionID) {
-            // here we avoid of using it if we're not in the Comment Linking flow
+            // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
         isFirstLinkedActionRender.current = true;
