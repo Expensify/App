@@ -187,6 +187,7 @@ function SidebarLinksData({
     return (
         <View
             accessibilityElementsHidden={!isFocused}
+            collapsable={false}
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
         >

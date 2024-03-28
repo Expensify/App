@@ -1,0 +1,4 @@
+diff --git a/node_modules/react-native-vision-camera/ios/CameraViewManager.m b/node_modules/react-native-vision-camera/ios/CameraViewManager.mm
+similarity index 100%
+rename from node_modules/react-native-vision-camera/ios/CameraViewManager.m
+rename to node_modules/react-native-vision-camera/ios/CameraViewManager.mm
