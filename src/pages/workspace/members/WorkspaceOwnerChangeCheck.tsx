@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -33,8 +33,32 @@ type WorkspaceOwnerChangeCheckProps = WorkspaceOwnerChangeCheckOnyxProps & {
 function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [displayTexts, setDisplayTexts] = useState({
+        title: '',
+        text: '',
+        buttonText: '',
+    });
 
     const policyID = policy?.id ?? '';
+
+    const updateDisplayTexts = useCallback(() => {
+        const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
+        if (error !== changeOwnerErrors[0]) {
+            return;
+        }
+
+        const texts = WorkspaceSettingsUtils.getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
+        setDisplayTexts(texts);
+    }, [accountID, error, personalDetails, policy, translate]);
+
+    useEffect(() => {
+        updateDisplayTexts();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        updateDisplayTexts();
+    }, [updateDisplayTexts]);
 
     const confirm = useCallback(() => {
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
@@ -47,17 +71,15 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
         PolicyActions.requestWorkspaceOwnerChange(policyID);
     }, [accountID, error, policyID]);
 
-    const {title, text, buttonText} = WorkspaceSettingsUtils.getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
-
     return (
         <>
-            <Text style={[styles.textHeadline, styles.mt3, styles.mb2]}>{title}</Text>
-            <Text style={styles.flex1}>{text}</Text>
+            <Text style={[styles.textHeadline, styles.mt3, styles.mb2]}>{displayTexts.title}</Text>
+            <Text style={styles.flex1}>{displayTexts.text}</Text>
             <Button
                 success
                 large
                 onPress={confirm}
-                text={buttonText}
+                text={displayTexts.buttonText}
             />
         </>
     );

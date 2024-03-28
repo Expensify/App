@@ -1131,6 +1131,8 @@ function addBillingCardAndRequestPolicyOwnerChange(
             value: {
                 errorFields: null,
                 isLoading: true,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: false,
             },
         },
     ];
@@ -1141,6 +1143,8 @@ function addBillingCardAndRequestPolicyOwnerChange(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 isLoading: false,
+                isChangeOwnerSuccessful: true,
+                isChangeOwnerFailed: false,
             },
         },
     ];
@@ -1151,6 +1155,8 @@ function addBillingCardAndRequestPolicyOwnerChange(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 isLoading: false,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: true,
             },
         },
     ];
