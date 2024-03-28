@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import EnvironmentBadge from './EnvironmentBadge';
@@ -18,12 +18,15 @@ type HeaderProps = {
 
     /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
+
+    /** Additional header container styles */
+    containerStyles?: StyleProp<ViewStyle>;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
+function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
     const styles = useThemeStyles();
     return (
-        <View style={[styles.flex1, styles.flexRow]}>
+        <View style={[styles.flex1, styles.flexRow, containerStyles]}>
             <View style={styles.mw100}>
                 {typeof title === 'string'
                     ? Boolean(title) && (
