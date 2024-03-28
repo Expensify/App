@@ -64,7 +64,6 @@ function WorkspaceOwnerPaymentCardCurrencyModal({isVisible, currencies, currentC
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    shouldDelayFocus
                     sections={sections}
                     onSelectRow={(option) => {
                         onCurrencyChange?.(option.value);

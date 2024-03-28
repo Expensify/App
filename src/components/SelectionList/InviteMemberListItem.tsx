@@ -1,10 +1,9 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import SelectCircle from '@components/SelectCircle';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -14,9 +13,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {UserListItemProps} from './types';
+import type {InviteMemberListItemProps} from './types';
 
-function UserListItem({
+function InviteMemberListItem({
     item,
     isFocused,
     showTooltip,
@@ -27,7 +26,7 @@ function UserListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-}: UserListItemProps) {
+}: InviteMemberListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -70,27 +69,6 @@ function UserListItem({
         >
             {(hovered?: boolean) => (
                 <>
-                    {canSelectMultiple && (
-                        <PressableWithFeedback
-                            accessibilityLabel={item.text ?? ''}
-                            role={CONST.ROLE.BUTTON}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
-                        >
-                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                {item.isSelected && (
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={theme.textLight}
-                                        height={14}
-                                        width={14}
-                                    />
-                                )}
-                            </View>
-                        </PressableWithFeedback>
-                    )}
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
                             <SubscriptAvatar
@@ -131,12 +109,26 @@ function UserListItem({
                         )}
                     </View>
                     {!!item.rightElement && item.rightElement}
+                    {canSelectMultiple && (
+                        <PressableWithFeedback
+                            onPress={handleCheckboxPress}
+                            disabled={isDisabled}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={item.text ?? ''}
+                            style={[styles.ml2, styles.optionSelectCircle]}
+                        >
+                            <SelectCircle
+                                isChecked={item.isSelected ?? false}
+                                selectCircleStyles={styles.ml0}
+                            />
+                        </PressableWithFeedback>
+                    )}
                 </>
             )}
         </BaseListItem>
     );
 }
 
-UserListItem.displayName = 'UserListItem';
+InviteMemberListItem.displayName = 'InviteMemberListItem';
 
-export default UserListItem;
+export default InviteMemberListItem;
