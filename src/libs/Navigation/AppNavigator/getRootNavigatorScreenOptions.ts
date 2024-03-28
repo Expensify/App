@@ -4,6 +4,10 @@ import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
+import getRightModalNavigatorOptions from './getRightModalNavigatorOptions';
+import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
+import leftModalNavigatorOptions from './leftModalNavigatorOptions';
+import transition from './transition';
 
 type ScreenOptions = Record<string, StackNavigationOptions>;
 
@@ -23,25 +27,15 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
     return {
         rightModalNavigator: {
             ...commonScreenOptions,
+            ...getRightModalNavigatorOptions(isSmallScreenWidth),
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-            presentation: 'transparentModal',
-
-            // We want pop in RHP since there are some flows that would work weird otherwise
-            animationTypeForReplace: 'pop',
-            cardStyle: {
-                ...StyleUtils.getNavigationModalCardStyle(),
-
-                // This is necessary to cover translated sidebar with overlay.
-                width: isSmallScreenWidth ? '100%' : '200%',
-                // Excess space should be on the left so we need to position from right.
-                right: 0,
-            },
+            animation: transition,
+            ...hideKeyboardOnSwipe,
         },
         leftModalNavigator: {
             ...commonScreenOptions,
-            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-            presentation: 'transparentModal',
-            gestureDirection: 'horizontal-inverted',
+            ...leftModalNavigatorOptions,
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
 
             // We want pop in LHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
@@ -58,8 +52,8 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         homeScreen: {
             title: CONFIG.SITE_TITLE,
             ...commonScreenOptions,
+            // Note: The card* properties won't be applied on mobile platforms, as they use the native defaults.
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
-
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -72,6 +66,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
 
         fullScreen: {
             ...commonScreenOptions,
+
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
@@ -79,6 +74,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 // This is necessary to cover whole screen. Including translated sidebar.
                 marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
             },
+            animation: 'slide_from_right',
         },
 
         centralPaneNavigator: {
@@ -86,7 +82,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...commonScreenOptions,
             animationEnabled: isSmallScreenWidth,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
-
+            ...hideKeyboardOnSwipe,
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
                 paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
