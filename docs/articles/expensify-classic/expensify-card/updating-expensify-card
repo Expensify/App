@@ -1,0 +1,28 @@
+title: Updating-the-Expensify Card.md 
+
+# Overview 
+Expensify has partnered with a new bank for the Expensify Card program in order to provide admins with more tools to manage spend. The new Expensify Visa® Commercial Card offers a sleek new design on top of enhanced individual spend controls. 
+ 
+# How to upgrade to the new Expensify Visa® Commercial Card 
+
+1. A domain admin will need to agree to Expensify terms via a task on their Home page. 
+2. New virtual cards will be available immediately to any cardholders with existing virtual cards. Both new and old cards will work for now. Cardholders can view their cards by navigating to **Settings > Account > Credit Card Import**.
+3. If you have Positive Pay or other restrictive features enabled on your settlement account, reach out to your bank ASAP to whitelist our new company ACH ID: 2270239450 to avoid any issues.
+4. To receive a new physical Expensify Card, each cardholder will need to log into Expensify to confirm their shipping address via a task on their Home page. Note: current Expensify Cards will continue to work in the meantime.
+5. We recommend deactivating your old cards once you’ve switched over any subscriptions tied to them by clicking the “Terminate” button (**Settings > Account > Credit Card Import**). You can read more about how to best manage subscriptions with virtual cards [here](https://help.expensify.com/expensify-classic/hubs/expensify-card/).
+
+If you have any questions or concerns, reach out to Concierge or your Account Manager. 
+
+# FAQ 
+
+## Why don’t I see the task to agree to new terms on my Home page?
+
+You may not be a domain admin, or another domain admin has already accepted the terms, so you won’t have a task to complete. It may also be hidden! Scroll to the bottom of the page and click “Show Hidden Tasks” to see all of your available tasks. 
+
+## Will this affect the continuous reconciliation process?
+
+Nope! During the transition period, you may have some employees with old cards and some with new cards, so you’ll have two different debits (settlements) made to your settlement account each settlement period. Once all spend has transitioned to the new cards, you’ll only see one debit/settlement. Business as usual!
+
+## Do I have to upgrade to the new Expensify Visa® Commercial Card?
+
+ Yes, if you have an Expensify Card already, you’ll need to have it reissued and it’ll upgrade automatically. We’ll let you know about any deadlines shortly. Don’t worry, you’ll have plenty of time to upgrade!    
