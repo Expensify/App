@@ -25,6 +25,7 @@ function Template(props: HeaderWithBackButtonProps) {
 const Default: HeaderWithBackButtonStory = Template.bind({});
 const Attachment: HeaderWithBackButtonStory = Template.bind({});
 const Profile: HeaderWithBackButtonStory = Template.bind({});
+const ProgressBar: HeaderWithBackButtonStory = Template.bind({});
 Default.args = {
     title: 'Settings',
 };
@@ -34,8 +35,12 @@ Attachment.args = {
 };
 Profile.args = {
     title: 'Profile',
-    shouldShowBackButton: true,
+};
+ProgressBar.args = {
+    title: 'ProgressBar',
+    progressBarPercentage: 33,
+    shouldShowBackButton: false,
 };
 
 export default story;
-export {Default, Attachment, Profile};
+export {Default, Attachment, Profile, ProgressBar};

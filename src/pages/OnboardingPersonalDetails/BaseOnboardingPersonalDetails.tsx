@@ -1,18 +1,17 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,76 +19,81 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
-type DisplayNamePageOnyxProps = {
-    isLoadingApp: OnyxEntry<boolean>;
+type BaseOnboardingPersonalDetailsProps = {
+    /* Whether to use native styles tailored for native devices */
+    shouldUseNativeStyles: boolean;
 };
 
-type DisplayNamePageProps = DisplayNamePageOnyxProps & WithCurrentUserPersonalDetailsProps;
-
-/**
- * Submit form to update user's first and last name (and display name)
- */
-const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-    PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
-    Navigation.goBack();
-};
-
-function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: DisplayNamePageProps) {
+function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles}: WithCurrentUserPersonalDetailsProps & BaseOnboardingPersonalDetailsProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useOnboardingLayout();
 
-    const currentUserDetails = currentUserPersonalDetails ?? {};
+    const saveAndNavigate = useCallback((values: FormOnyxValues<'displayNameForm'>) => {
+        PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
+    }, []);
+
+    const validate = (values: FormOnyxValues<'displayNameForm'>) => {
+        const errors = {};
 
         // First we validate the first name field
+        if (values.firstName.length === 0) {
+            ErrorUtils.addErrorMessage(errors, 'firstName', 'onboarding.error.requiredFirstName');
+        }
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
-        } else if (values.firstName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', ['common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
         }
 
         // Then we validate the last name field
+        if (values.lastName.length === 0) {
+            ErrorUtils.addErrorMessage(errors, 'lastName', 'onboarding.error.requiredLastName');
+        }
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
-        } else if (values.lastName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', ['common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
         if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.containsReservedWord');
         }
+
         return errors;
     };
+
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={DisplayNamePage.displayName}
-        >
+        <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
-                title={translate('displayNamePage.headerTitle')}
-                onBackButtonPress={() => Navigation.goBack()}
+                shouldShowBackButton={false}
+                iconFill={theme.iconColorfulBackground}
+                progressBarPercentage={33.3}
             />
-            {isLoadingApp ? (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            ) : (
+            <KeyboardAvoidingView
+                style={[styles.flex1, styles.dFlex]}
+                behavior="padding"
+            >
                 <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
+                    style={[styles.flexGrow1, styles.mt5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
-                    onSubmit={updateDisplayName}
-                    submitButtonText={translate('common.save')}
+                    onSubmit={saveAndNavigate}
+                    submitButtonText={translate('common.continue')}
                     enabledWhenOffline
+                    submitFlexEnabled
                     shouldValidateOnBlur
                     shouldValidateOnChange
+                    shouldTrimValues={false}
                 >
-                    <Text style={[styles.mb6]}>{translate('displayNamePage.isShownOnProfile')}</Text>
+                    <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                        <Text style={styles.textHeroSmall}>{translate('onboarding.welcome')} </Text>
+                        <Text style={styles.textHeroSmall}>{translate('onboarding.whatsYourName')}</Text>
+                    </View>
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
@@ -98,8 +102,11 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
                             label={translate('common.firstName')}
                             aria-label={translate('common.firstName')}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserDetails.firstName ?? ''}
+                            defaultValue={currentUserPersonalDetails?.firstName}
+                            shouldSaveDraft
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
+                            autoFocus
                         />
                     </View>
                     <View>
@@ -110,22 +117,20 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
                             label={translate('common.lastName')}
                             aria-label={translate('common.lastName')}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={currentUserDetails.lastName ?? ''}
+                            defaultValue={currentUserPersonalDetails?.lastName}
+                            shouldSaveDraft
+                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                         />
                     </View>
                 </FormProvider>
-            )}
-        </ScreenWrapper>
+            </KeyboardAvoidingView>
+        </View>
     );
 }
 
-DisplayNamePage.displayName = 'DisplayNamePage';
+BaseOnboardingPersonalDetails.displayName = 'BaseOnboardingPersonalDetails';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<DisplayNamePageProps, DisplayNamePageOnyxProps>({
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-    })(DisplayNamePage),
-);
+export default withCurrentUserPersonalDetails(BaseOnboardingPersonalDetails);
+
+export type {BaseOnboardingPersonalDetailsProps};
