@@ -18,7 +18,6 @@ import type {Policy, Report, ReportAction, ReportActions, Session, Transaction} 
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
@@ -122,7 +121,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
-        if (!isOnHold && (isRequestIOU || canModifyStatus)) {
+        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.holdRequest'),
@@ -190,10 +189,17 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     <MoneyRequestHeaderStatusBar
                         title={translate('iou.receiptStatusTitle')}
                         description={translate('iou.receiptStatusText')}
-                        shouldShowBorderBottom
+                        shouldShowBorderBottom={!isOnHold}
                     />
                 )}
-                {isOnHold && <HoldBanner />}
+                {isOnHold && (
+                    <MoneyRequestHeaderStatusBar
+                        title={translate('iou.hold')}
+                        description={translate('iou.requestOnHold')}
+                        shouldShowBorderBottom
+                        danger
+                    />
+                )}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}
