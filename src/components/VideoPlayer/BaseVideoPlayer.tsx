@@ -26,7 +26,7 @@ const isMobileSafari = Browser.isMobileSafari();
 function BaseVideoPlayer({
     url,
     resizeMode = ResizeMode.CONTAIN,
-    onVideoLoaded = () => {},
+    onVideoLoaded,
     isLooping = false,
     style,
     videoPlayerStyle,
@@ -36,8 +36,8 @@ function BaseVideoPlayer({
     shouldUseSharedVideoElement = false,
     shouldUseSmallVideoControls = false,
     shouldShowVideoControls = true,
-    onPlaybackStatusUpdate = () => {},
-    onFullscreenUpdate = () => {},
+    onPlaybackStatusUpdate,
+    onFullscreenUpdate,
     // TODO: investigate what is the root cause of the bug with unexpected video switching
     // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
@@ -116,7 +116,7 @@ function BaseVideoPlayer({
                 setDuration(videoDuration * 1000);
                 setPosition(0);
 
-                onPlaybackStatusUpdate(status);
+                onPlaybackStatusUpdate?.(status);
                 return;
             }
             const isVideoPlaying = status.isPlaying;
@@ -135,14 +135,14 @@ function BaseVideoPlayer({
             setDuration(currentDuration);
             setPosition(currentPositon);
 
-            onPlaybackStatusUpdate(status);
+            onPlaybackStatusUpdate?.(status);
         },
         [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
     );
 
     const handleFullscreenUpdate = useCallback(
         (event: VideoFullscreenUpdateEvent) => {
-            onFullscreenUpdate(event);
+            onFullscreenUpdate?.(event);
 
             setIsFullscreen(event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_PRESENT);
 
@@ -289,7 +289,7 @@ function BaseVideoPlayer({
                                                 if (isCurrentlyURLSet && !isUploading) {
                                                     playVideo();
                                                 }
-                                                onVideoLoaded(e);
+                                                onVideoLoaded?.(e);
                                             }}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
