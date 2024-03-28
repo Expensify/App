@@ -6,7 +6,7 @@ import {DefinePlugin} from 'webpack';
 import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
 import {merge} from 'webpack-merge';
 import type Environment from './types';
-import getCommonConfig from './webpack.common';
+import getCommonConfiguration from './webpack.common';
 
 const BASE_PORT = 8082;
 
@@ -33,7 +33,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                       },
                   };
 
-        const baseConfig = getCommonConfig(environment);
+        const baseConfig = getCommonConfiguration(environment);
 
         const config = merge(baseConfig, {
             mode: 'development',
