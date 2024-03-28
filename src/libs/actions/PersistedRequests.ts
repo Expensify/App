@@ -26,7 +26,7 @@ function save(requestToPersist: Request) {
         // Get all the requests, potentially including the one we're adding, which will always be at the end of the array
         const potentiallyConflictingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
 
-        // Identify conflicting requests according to logic bound to the request
+        // Identify conflicting requests according to logic bound to the new request
         const conflictingRequests = getConflictingRequests(potentiallyConflictingRequests);
 
         conflictingRequests.forEach((conflictingRequest) => {
@@ -36,7 +36,7 @@ function save(requestToPersist: Request) {
                 requests.splice(index, 1);
             }
 
-            // Allow the request to perform any additional cleanup for a cancelled request
+            // Allow the new request to perform any additional cleanup for a cancelled request
             handleConflictingRequest?.(conflictingRequest);
         });
     }
