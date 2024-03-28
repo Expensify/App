@@ -629,7 +629,8 @@ function openReport(
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
-    if (!isEmptyObject(newReportObject)) {
+    const isCreatingNewReport = !isEmptyObject(newReportObject);
+    if (isCreatingNewReport) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
         optimisticData[0].onyxMethod = Onyx.METHOD.SET;
@@ -744,12 +745,7 @@ function openReport(
             {optimisticData, successData, failureData},
             {
                 getConflictingRequests: (persistedRequests) =>
-                    persistedRequests.filter((request) => {
-                        if (request.command !== WRITE_COMMANDS.OPEN_REPORT) {
-                            return true;
-                        }
-                        return isEmptyObject(newReportObject) ? request.data?.reportID === reportID : false;
-                    }),
+                    persistedRequests.filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && !isCreatingNewReport && request.data?.reportID === reportID),
             },
         );
     }
