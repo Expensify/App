@@ -1,8 +1,11 @@
-import _ from 'underscore';
+import type {Stats} from '../measure/math';
 import getStats from '../measure/math';
 import * as math from './math';
+import type {Entry} from './output/console';
 import printToConsole from './output/console';
 import writeToMarkdown from './output/markdown';
+
+type Metric = Record<string, number[]>;
 
 /*
  * base implementation from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/compare.ts
@@ -25,14 +28,7 @@ const PROBABILITY_CONSIDERED_SIGNIFICANCE = 0.02;
  */
 const DURATION_DIFF_THRESHOLD_SIGNIFICANCE = 100;
 
-/**
- *
- * @param {string} name
- * @param {Object} compare
- * @param {Object} baseline
- * @returns {Object}
- */
-function buildCompareEntry(name, compare, baseline) {
+function buildCompareEntry(name: string, compare: Stats, baseline: Stats): Entry {
     const diff = compare.mean - baseline.mean;
     const relativeDurationDiff = diff / baseline.mean;
 
@@ -53,62 +49,40 @@ function buildCompareEntry(name, compare, baseline) {
 
 /**
  * Compare results between baseline and current entries and categorize.
- *
- * @param {Object} compareEntries
- * @param {Object} baselineEntries
- * @returns {Object}
  */
-function compareResults(compareEntries, baselineEntries) {
+function compareResults(compareEntries: Metric | string, baselineEntries: Metric | string) {
     // Unique test scenario names
-    const names = [...new Set([..._.keys(compareEntries), ..._.keys(baselineEntries || {})])];
+    const baselineKeys = Object.keys(baselineEntries ?? {});
+    const names = Array.from(new Set([...baselineKeys]));
 
-    const compared = [];
-    const added = [];
-    const removed = [];
+    const compared: Entry[] = [];
 
-    names.forEach((name) => {
-        const current = compareEntries[name];
-        const baseline = baselineEntries[name];
+    if (typeof compareEntries !== 'string' && typeof baselineEntries !== 'string') {
+        names.forEach((name: string) => {
+            const current = compareEntries[name];
+            const baseline = baselineEntries[name];
 
-        const currentStats = getStats(baseline);
-        const deltaStats = getStats(current);
+            const currentStats = getStats(baseline);
+            const deltaStats = getStats(current);
 
-        if (baseline && current) {
-            compared.push(buildCompareEntry(name, deltaStats, currentStats));
-        } else if (current) {
-            added.push({
-                name,
-                current,
-            });
-        } else if (baseline) {
-            removed.push({
-                name,
-                baseline,
-            });
-        }
-    });
+            if (baseline && current) {
+                compared.push(buildCompareEntry(name, deltaStats, currentStats));
+            }
+        });
+    }
+    const significance = compared.filter((item) => item.isDurationDiffOfSignificance);
 
-    const significance = _.chain(compared)
-        .filter((item) => item.isDurationDiffOfSignificance)
-        .value();
-    const meaningless = _.chain(compared)
-        .filter((item) => !item.isDurationDiffOfSignificance)
-        .value();
-
-    added.sort((a, b) => b.current.mean - a.current.mean);
-    removed.sort((a, b) => b.baseline.mean - a.baseline.mean);
+    const meaningless = compared.filter((item) => !item.isDurationDiffOfSignificance);
 
     return {
         significance,
         meaningless,
-        added,
-        removed,
     };
 }
 
-export default (main, delta, outputFile, outputFormat = 'all') => {
+export default (main: Metric | string, delta: Metric | string, outputFile: string, outputFormat = 'all') => {
     // IMPORTANT NOTE: make sure you are passing the delta/compare results first, then the main/baseline results:
-    const outputData = compareResults(delta, main);
+    const outputData = compareResults(main, main);
 
     if (outputFormat === 'console' || outputFormat === 'all') {
         printToConsole(outputData);
