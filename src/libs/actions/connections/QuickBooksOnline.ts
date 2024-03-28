@@ -4,7 +4,7 @@ import CONFIG from '@src/CONFIG';
 function getQuickBooksOnlineSetupLink(policyID: string) {
     const callbackPath = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}/workspace/${policyID}/accounting`;
     const otherParams = new URLSearchParams({callbackPath, policyID}).toString();
-    const commandURL = getCommandURL({command: 'ConnectToQuickbooksOnline'});
+    const commandURL = getCommandURL({command: 'ConnectPolicyToQuickbooksOnline'});
     return `${commandURL}&${otherParams}`;
 }
 
