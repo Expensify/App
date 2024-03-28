@@ -44,6 +44,11 @@ import variables from './variables';
 type ColorScheme = (typeof CONST.COLOR_SCHEME)[keyof typeof CONST.COLOR_SCHEME];
 type StatusBarStyle = (typeof CONST.STATUS_BAR_STYLE)[keyof typeof CONST.STATUS_BAR_STYLE];
 
+type AnchorDimensions = {
+    width: number;
+    height: number;
+};
+
 type AnchorPosition = {
     horizontal: number;
     vertical: number;
@@ -2373,29 +2378,12 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.modalBackground,
         },
 
-        PDFView: {
-            // `display: grid` is not supported in native platforms!
-            // It's being used on Web/Desktop only to vertically center short PDFs,
-            // while preventing the overflow of the top of long PDF files.
-            ...display.dGrid,
-            width: '100%',
-            height: '100%',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            alignItems: 'center',
-        },
-
-        PDFViewList: {
-            overflowX: 'hidden',
-            // There properties disable "focus" effect on list
-            boxShadow: 'none',
-            outline: 'none',
-        },
-
         getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : 350,
-                ...(isSmallScreenWidth && flex.flex1),
+                flexBasis: isSmallScreenWidth ? '100%' : 350,
+                flexGrow: 0,
+                alignSelf: 'flex-start',
             } satisfies ViewStyle),
 
         centeredModalStyles: (isSmallScreenWidth: boolean, isFullScreenWhenSmall: boolean) =>
@@ -4326,7 +4314,6 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 16,
             paddingVertical: 16,
             marginHorizontal: 20,
-            marginBottom: 12,
             backgroundColor: theme.highlightBG,
             borderRadius: 8,
         },
@@ -4605,6 +4592,8 @@ const styles = (theme: ThemeColors) =>
             fontWeight: '700',
             lineHeight: 16,
             color: theme.white,
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
         },
 
         volumeSliderContainer: {
@@ -4707,6 +4696,10 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
         },
+
+        textLineThrough: {
+            textDecorationLine: 'line-through',
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
@@ -4715,4 +4708,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition};
+export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions};

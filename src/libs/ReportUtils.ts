@@ -2175,8 +2175,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency);
-    const payerOrApproverName =
-        isExpenseReport(report) && !hasNonReimbursableTransactions(report?.reportID ?? '') ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
+    let payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerOrApproverName,
         amount: formattedAmount,
@@ -2193,7 +2192,8 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
-    if (hasNonReimbursableTransactions(report?.reportID)) {
+    if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
+        payerOrApproverName = getDisplayNameForParticipant(report?.ownerAccountID) ?? '';
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
@@ -2548,7 +2548,7 @@ function getReportPreviewMessage(
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
     const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const policyName = getPolicyName(report, false, policy);
-    const payerName = isExpenseReport(report) && !containsNonReimbursable ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
+    const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
@@ -2628,10 +2628,10 @@ function getReportPreviewMessage(
     }
 
     if (containsNonReimbursable) {
-        return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName ?? '', amount: formattedAmount});
+        return Localize.translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant(report.ownerAccountID) ?? '', amount: formattedAmount});
     }
 
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
 }
 
 /**
@@ -3044,34 +3044,6 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
         childCommenterCount,
         childLastVisibleActionCreated: lastVisibleActionCreated,
         childOldestFourAccountIDs,
-    };
-}
-
-/**
- * Get optimistic data of parent report action
- * @param reportID The reportID of the report that is updated
- * @param lastVisibleActionCreated Last visible action created of the child report
- * @param type The type of action in the child report
- * @param parentReportID Custom reportID to be updated
- * @param parentReportActionID Custom reportActionID to be updated
- */
-function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string, parentReportID = '', parentReportActionID = ''): OnyxUpdate | EmptyObject {
-    const report = getReport(reportID);
-    if (!report || isEmptyObject(report)) {
-        return {};
-    }
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    if (!parentReportAction || isEmptyObject(parentReportAction)) {
-        return {};
-    }
-
-    const optimisticParentReportAction = updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type);
-    return {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || report?.parentReportID}`,
-        value: {
-            [parentReportActionID || (report?.parentReportActionID ?? '')]: optimisticParentReportAction,
-        },
     };
 }
 
@@ -4123,10 +4095,11 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction | Optimisti
 /**
  * Build optimistic money request entities:
  *
- * 1. CREATED action for the iouReport
- * 2. IOU action for the iouReport linked to the transaction thread via `childReportID`
- * 3. Transaction Thread linked to the IOU action via `parentReportActionID`
- * 4. CREATED action for the Transaction Thread
+ * 1. CREATED action for the chatReport
+ * 2. CREATED action for the iouReport
+ * 3. IOU action for the iouReport linked to the transaction thread via `childReportID`
+ * 4. Transaction Thread linked to the IOU action via `parentReportActionID`
+ * 5. CREATED action for the Transaction Thread
  */
 function buildOptimisticMoneyRequestEntities(
     iouReport: Report,
@@ -4142,10 +4115,11 @@ function buildOptimisticMoneyRequestEntities(
     isSendMoneyFlow = false,
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
-): [OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction] {
-    const iouActionCreationTime = DateUtils.getDBTime();
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction] {
+    const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
+    const iouActionCreationTime = DateUtils.getDBTime();
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
     const iouAction = buildOptimisticIOUReportAction(
         type,
@@ -4170,7 +4144,7 @@ function buildOptimisticMoneyRequestEntities(
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
     iouAction.childReportID = transactionThread.reportID;
 
-    return [createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
+    return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
 
 function isUnread(report: OnyxEntry<Report>): boolean {
@@ -5407,7 +5381,7 @@ function getAllAncestorReportActions(report: Report | null | undefined, shouldHi
     return allAncestors.reverse();
 }
 
-function getAllAncestorReportActionIDs(report: Report | null | undefined): AncestorIDs {
+function getAllAncestorReportActionIDs(report: Report | null | undefined, includeTransactionThread = false): AncestorIDs {
     if (!report) {
         return {
             reportIDs: [],
@@ -5426,7 +5400,7 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined): Ances
         const parentReport = getReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
 
-        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
+        if (!parentReportAction || (!includeTransactionThread && ReportActionsUtils.isTransactionThread(parentReportAction)) || !parentReport) {
             break;
         }
 
@@ -5438,6 +5412,45 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined): Ances
     }
 
     return allAncestorIDs;
+}
+
+/**
+ * Get optimistic data of parent report action
+ * @param reportID The reportID of the report that is updated
+ * @param lastVisibleActionCreated Last visible action created of the child report
+ * @param type The type of action in the child report
+ */
+function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | EmptyObject> {
+    const report = getReport(reportID);
+
+    if (!report || isEmptyObject(report)) {
+        return [];
+    }
+
+    const ancestors = getAllAncestorReportActionIDs(report, true);
+    const totalAncestor = ancestors.reportIDs.length;
+
+    return Array.from(Array(totalAncestor), (_, index) => {
+        const ancestorReport = getReport(ancestors.reportIDs[index]);
+
+        if (!ancestorReport || isEmptyObject(ancestorReport)) {
+            return {} as EmptyObject;
+        }
+
+        const ancestorReportAction = ReportActionsUtils.getReportAction(ancestorReport.reportID, ancestors.reportActionsIDs[index]);
+
+        if (!ancestorReportAction || isEmptyObject(ancestorReportAction)) {
+            return {} as EmptyObject;
+        }
+
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
+            value: {
+                [ancestorReportAction?.reportActionID ?? '']: updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type),
+            },
+        };
+    });
 }
 
 function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | EmptyObject): boolean {
