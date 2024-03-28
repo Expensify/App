@@ -20,46 +20,59 @@ const GitHubUtils = __nccwpck_require__(9296);
 const {promiseDoWhile} = __nccwpck_require__(9438);
 
 function run() {
+    console.info('[awaitStagingDeploys] run()');
+    console.info('[awaitStagingDeploys] ActionUtils', ActionUtils);
+    console.info('[awaitStagingDeploys] GitHubUtils', GitHubUtils);
+    console.info('[awaitStagingDeploys] promiseDoWhile', promiseDoWhile);
+
     const tag = ActionUtils.getStringInput('TAG', {required: false});
+    console.info('[awaitStagingDeploys] run() tag', tag);
+
     let currentStagingDeploys = [];
+
+    console.info('[awaitStagingDeploys] run()  _.throttle', _.throttle);
+
+    const throttleFunc = () =>
+        Promise.all([
+            // These are active deploys
+            GitHubUtils.octokit.actions.listWorkflowRuns({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                workflow_id: 'platformDeploy.yml',
+                event: 'push',
+                branch: tag,
+            }),
+
+            // These have the potential to become active deploys, so we need to wait for them to finish as well (unless we're looking for a specific tag)
+            // In this context, we'll refer to unresolved preDeploy workflow runs as staging deploys as well
+            !tag &&
+                GitHubUtils.octokit.actions.listWorkflowRuns({
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
+                    workflow_id: 'preDeploy.yml',
+                }),
+        ])
+            .then((responses) => {
+                const workflowRuns = responses[0].data.workflow_runs;
+                if (!tag) {
+                    workflowRuns.push(...responses[1].data.workflow_runs);
+                }
+                return workflowRuns;
+            })
+            .then((workflowRuns) => (currentStagingDeploys = _.filter(workflowRuns, (workflowRun) => workflowRun.status !== 'completed')))
+            .then(() =>
+                console.log(
+                    _.isEmpty(currentStagingDeploys)
+                        ? 'No current staging deploys found'
+                        : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`,
+                ),
+            );
+    console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
+
     return promiseDoWhile(
         () => !_.isEmpty(currentStagingDeploys),
         _.throttle(
-            () =>
-                Promise.all([
-                    // These are active deploys
-                    GitHubUtils.octokit.actions.listWorkflowRuns({
-                        owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
-                        repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
-                        workflow_id: 'platformDeploy.yml',
-                        event: 'push',
-                        branch: tag,
-                    }),
-
-                    // These have the potential to become active deploys, so we need to wait for them to finish as well (unless we're looking for a specific tag)
-                    // In this context, we'll refer to unresolved preDeploy workflow runs as staging deploys as well
-                    !tag &&
-                        GitHubUtils.octokit.actions.listWorkflowRuns({
-                            owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
-                            repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
-                            workflow_id: 'preDeploy.yml',
-                        }),
-                ])
-                    .then((responses) => {
-                        const workflowRuns = responses[0].data.workflow_runs;
-                        if (!tag) {
-                            workflowRuns.push(...responses[1].data.workflow_runs);
-                        }
-                        return workflowRuns;
-                    })
-                    .then((workflowRuns) => (currentStagingDeploys = _.filter(workflowRuns, (workflowRun) => workflowRun.status !== 'completed')))
-                    .then(() =>
-                        console.log(
-                            _.isEmpty(currentStagingDeploys)
-                                ? 'No current staging deploys found'
-                                : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`,
-                        ),
-                    ),
+            throttleFunc,
 
             // Poll every 60 seconds instead of every 10 seconds
             GitHubUtils.POLL_RATE * 6,
@@ -72,6 +85,132 @@ if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
 }
 
 module.exports = run;
+
+
+/***/ }),
+
+/***/ 970:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param {String} name - The name of the input.
+ * @param {Object} options - Options to pass to core.getInput
+ * @param {*} [defaultValue] - A default value to provide for the input.
+ *                             Not required if the {required: true} option is given in the second arg to this function.
+ * @returns {any}
+ */
+function getJSONInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ *
+ * @param {String} name
+ * @param {Object} options
+ * @param {*} [defaultValue]
+ * @returns {string|undefined}
+ */
+function getStringInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+
+module.exports = {
+    getJSONInput,
+    getStringInput,
+};
+
+
+/***/ }),
+
+/***/ 4097:
+/***/ ((module) => {
+
+const CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+};
+
+CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
+CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
+
+module.exports = CONST;
+
+
+/***/ }),
+
+/***/ 4502:
+/***/ ((module) => {
+
+/**
+ * Simulates a while loop where the condition is determined by the result of a Promise.
+ *
+ * @param {Function} condition
+ * @param {Function} action
+ * @returns {Promise}
+ */
+function promiseWhile(condition, action) {
+    console.info('[promiseWhile] promiseWhile()');
+
+    return new Promise((resolve, reject) => {
+        const loop = function () {
+            if (!condition()) {
+                resolve();
+            } else {
+                const actionResult = action();
+                console.info('[promiseWhile] promiseWhile() actionResult', actionResult);
+                Promise.resolve(actionResult).then(loop).catch(reject);
+            }
+        };
+        loop();
+    });
+}
+
+/**
+ * Simulates a do-while loop where the condition is determined by the result of a Promise.
+ *
+ * @param {Function} condition
+ * @param {Function} action
+ * @returns {Promise}
+ */
+function promiseDoWhile(condition, action) {
+    console.info('[promiseWhile] promiseDoWhile()');
+
+    return new Promise((resolve, reject) => {
+        console.info('[promiseWhile] promiseDoWhile() condition', condition);
+        const actionResult = action();
+        console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
+        actionResult
+            .then(() => promiseWhile(condition, action))
+            .then(() => resolve())
+            .catch(reject);
+    });
+}
+
+module.exports = {
+    promiseWhile,
+    promiseDoWhile,
+};
 
 
 /***/ }),
