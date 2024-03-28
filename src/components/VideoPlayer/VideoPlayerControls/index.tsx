@@ -27,7 +27,7 @@ type VideoPlayerControlsProps = {
     url: string;
 
     /** Ref for video player. */
-    videoPlayerRef: MutableRefObject<Video>;
+    videoPlayerRef: MutableRefObject<Video | null>;
 
     /** Is video playing. */
     isPlaying: boolean;
@@ -60,12 +60,12 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
     const enterFullScreenMode = useCallback(() => {
         isFullScreenRef.current = true;
         updateCurrentlyPlayingURL(url);
-        videoPlayerRef.current.presentFullscreenPlayer();
+        videoPlayerRef.current?.presentFullscreenPlayer();
     }, [isFullScreenRef, updateCurrentlyPlayingURL, url, videoPlayerRef]);
 
     const seekPosition = useCallback(
         (newPosition: number) => {
-            videoPlayerRef.current.setStatusAsync({positionMillis: newPosition});
+            videoPlayerRef.current?.setStatusAsync({positionMillis: newPosition});
         },
         [videoPlayerRef],
     );
