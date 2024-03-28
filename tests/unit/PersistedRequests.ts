@@ -23,12 +23,16 @@ describe('PersistedRequests', () => {
     });
 
     it('save a new request with conflict resolution', () => {
+        const handleConflictingRequest = jest.fn();
         const newRequest = {
-            command: 'OpenReport',
+            command: 'ReconnectApp',
             getConflictingRequests: (requests: Request[]) => requests,
+            handleConflictingRequest,
         };
         PersistedRequests.save(newRequest);
         expect(PersistedRequests.getAll().length).toBe(1);
+        expect(handleConflictingRequest).toHaveBeenCalledWith(request);
+        expect(handleConflictingRequest).toHaveBeenCalledTimes(1);
     });
 
     it('remove a request from the PersistedRequests array', () => {
