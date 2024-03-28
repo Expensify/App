@@ -182,9 +182,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Pending members of the report */
         pendingChatMembers?: PendingChatMember[];
 
-        /** If the report contains reportFields, save the field id and its value */
-        reportFields?: Record<string, PolicyReportField>;
-
         /** The ID of the single transaction thread report associated with this report, if one exists */
         transactionThreadReportID?: string;
 

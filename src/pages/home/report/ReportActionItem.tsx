@@ -1,4 +1,3 @@
-import lodashIsEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
@@ -50,6 +49,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -193,7 +193,7 @@ function ReportActionItem({
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
     const originalReport = report.reportID === originalReportID ? report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
-    const transactionCurrency = !lodashIsEmpty(transaction?.modifiedCurrency) ? transaction?.modifiedCurrency : transaction?.currency;
+    const transactionCurrency = TransactionUtils.getCurrency(transaction);
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(
@@ -934,7 +934,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     },
     transaction: {
         key: ({transactionThreadReport, reportActions}) => {
-            const parentReportActionID = lodashIsEmpty(transactionThreadReport) ? '0' : transactionThreadReport.parentReportActionID;
+            const parentReportActionID = isEmptyObject(transactionThreadReport) ? '0' : transactionThreadReport.parentReportActionID;
             const action = reportActions?.find((reportAction) => reportAction.reportActionID === parentReportActionID);
             const transactionID = (action as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID ? (action as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;

@@ -1261,7 +1261,7 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | stri
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(reportID: string): boolean {
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+    const reportActions = reportActionsByReport?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
     return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== null;
 }
 
@@ -1269,7 +1269,7 @@ function isOneTransactionReport(reportID: string): boolean {
  * Checks if a report is a transaction thread associated with a report that has only one transaction
  */
 function isOneTransactionThread(reportID: string, parentReportID: string): boolean {
-    const parentReportActions = ReportActionsUtils.getAllReportActions(parentReportID);
+    const parentReportActions = reportActionsByReport?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? ([] as ReportAction[]);
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReportActions);
     return reportID === transactionThreadReportID;
 }
