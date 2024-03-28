@@ -12,6 +12,7 @@ import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as PolicyAction from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
@@ -45,7 +46,10 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
         }
         const isPolicyMember = PolicyUtils.isPolicyMember(policyID, policies as Record<string, Policy>);
         if (isPolicyMember) {
-            Navigation.goBack(undefined, false, true);
+            Navigation.isNavigationReady().then(() => {
+                Navigation.goBack(undefined, false, true);
+                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? ''));
+            });
             return;
         }
         PolicyAction.inviteMemberToWorkspace(policyID, inviterEmail);
