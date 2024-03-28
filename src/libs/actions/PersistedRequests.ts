@@ -19,28 +19,16 @@ function clear() {
 
 function save(requestToPersist: Request) {
     const requests = [...persistedRequests, requestToPersist];
-    for (let i = requests.length - 1; i > 0; i--) {
-        // since we're deleting elements from the array, it may be reindexed.
-        // In this case, we need to make sure our index is still in bounds
-        if (i >= requests.length) {
-            // eslint-disable-next-line no-continue
-            continue;
-        }
 
-        const request = requests[i];
-
-        // identify and handle any existing requests that conflict with the new one
-        const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = request;
-        if (!getConflictingRequests) {
-            // eslint-disable-next-line no-continue
-            continue;
-        }
-
-        // Get all the remaining requests, potentially excluding the one we're adding, which will always be at the end of the array
-        const remainingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
+    // identify and handle any existing requests that conflict with the new one
+    const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = requestToPersist;
+    if (getConflictingRequests) {
+        // Get all the potentially excluding the one we're adding, which will always be at the end of the array
+        const potentiallyConflictingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
 
         // Identify conflicting requests according to logic bound to the request
-        const conflictingRequests = getConflictingRequests(remainingRequests);
+        const conflictingRequests = getConflictingRequests(potentiallyConflictingRequests);
+
         conflictingRequests.forEach((conflictingRequest) => {
             // delete the conflicting request
             const index = requests.findIndex((req) => req === conflictingRequest);
@@ -53,14 +41,15 @@ function save(requestToPersist: Request) {
         });
     }
 
-    // Save the updated set of requests
+    // Don't try to serialize conflict resolution functions
     persistedRequests = requests.map((request) => {
-        // Don't try to serialize conflict resolution functions
         delete request.getConflictingRequests;
         delete request.handleConflictingRequest;
         delete request.shouldIncludeCurrentRequest;
         return request;
     });
+
+    // Save the updated set of requests
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
