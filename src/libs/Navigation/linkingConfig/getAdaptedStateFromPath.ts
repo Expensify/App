@@ -159,6 +159,11 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const reportAttachmentsScreen = state.routes.find((route) => route.name === SCREENS.REPORT_ATTACHMENTS);
 
+    if (isNarrowLayout) {
+        metainfo.isFullScreenNavigatorMandatory = false;
+        metainfo.isCentralPaneAndBottomTabMandatory = false;
+    }
+
     if (rhpNavigator) {
         // Routes
         // - matching bottom tab
@@ -235,9 +240,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - default bottom tab
         // - default central pane on desktop layout
         // - found fullscreen
-
-        // Full screen navigator can have any central pane and bottom tab under. They will be covered anyway.
-        metainfo.isCentralPaneAndBottomTabMandatory = false;
 
         const routes = [];
         routes.push(

@@ -1363,7 +1363,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.5):
+  - RNLiveMarkdown (0.1.33):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1904,7 +1904,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 25b969a1ffc806b9f9ad2e170d4a3b049c6af85e
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 35eeecf7e57eb26fdc279d5d4815982a9a9f7beb
+  RNLiveMarkdown: aaf75630fb2129db43fb5a873d33125e7173f3a0
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: fcf7f1cbdc8bd7569c267d07284e8a5c7bee06ed
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
