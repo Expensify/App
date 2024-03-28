@@ -1907,7 +1907,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
             value: {
                 id: policyID,
-                type: CONST.POLICY.TYPE.FREE,
+                type: CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
@@ -1967,7 +1967,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 id: policyID,
-                type: CONST.POLICY.TYPE.FREE,
+                type: CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
@@ -2163,7 +2163,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         ownerEmail: policyOwnerEmail,
         makeMeAdmin,
         policyName: workspaceName,
-        type: CONST.POLICY.TYPE.FREE,
+        type: CONST.POLICY.TYPE.TEAM,
         announceCreatedReportActionID,
         adminsCreatedReportActionID,
         expenseCreatedReportActionID,
@@ -2217,8 +2217,7 @@ function openPolicyWorkflowsPage(policyID: string) {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-                key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     isLoading: true,
                 },
@@ -2227,8 +2226,7 @@ function openPolicyWorkflowsPage(policyID: string) {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-                key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     isLoading: false,
                 },
@@ -2237,8 +2235,7 @@ function openPolicyWorkflowsPage(policyID: string) {
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-                key: `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     isLoading: false,
                 },
