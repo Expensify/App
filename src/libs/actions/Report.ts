@@ -361,7 +361,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
-    let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
+    let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     if (text && !file) {
         const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
@@ -380,6 +380,9 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     // When there is both text and a file, the text for the report comment needs to be parsed
     if (text && file) {
         reportCommentText = ReportUtils.getParsedComment(text ?? '');
+
+        // When there is both text and a file, call the API specifically built to handle both so that the comment and file are both combined in a single comment
+        commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
     }
 
     // Always prefer the file as the last action over text
