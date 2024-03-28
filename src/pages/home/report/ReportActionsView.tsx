@@ -132,9 +132,10 @@ function ReportActionsView({
         setCurrentReportActionID('');
     }, [route]);
 
+    // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
         if (!reportActionID) {
-            // We only trigger a change of the list ID for comment linking to ensure proper positioning
+            // here we avoid of using it if we're not in the Comment Linking flow
             return listOldID;
         }
         isFirstLinkedActionRender.current = true;
