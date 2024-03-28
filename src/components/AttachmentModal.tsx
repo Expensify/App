@@ -63,12 +63,12 @@ type AttachmentModalOnyxProps = {
 };
 
 type ImagePickerResponse = {
-    height: number;
+    height?: number;
     name: string;
-    size: number;
+    size?: number | null;
     type: string;
     uri: string;
-    width: number;
+    width?: number;
 };
 
 type FileObject = Partial<File | ImagePickerResponse>;
@@ -284,14 +284,14 @@ function AttachmentModal({
     }, [transaction, report]);
 
     const isValidFile = useCallback((fileObject: FileObject) => {
-        if (fileObject.size !== undefined && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
             setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
             return false;
         }
 
-        if (fileObject.size !== undefined && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
             setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
@@ -627,4 +627,4 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     },
 })(memo(AttachmentModal));
 
-export type {FileObject};
+export type {Attachment, FileObject, ImagePickerResponse};
