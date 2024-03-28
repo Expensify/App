@@ -19,7 +19,6 @@ type RequestData = {
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
     finallyData?: OnyxUpdate[];
-    idempotencyKey?: string;
     getConflictingRequests?: (persistedRequests: Request[]) => Request[];
     handleConflictingRequest?: (persistedRequest: Request) => unknown;
     resolve?: (value: Response) => void;
