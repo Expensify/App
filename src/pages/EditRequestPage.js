@@ -100,8 +100,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
 
     const taxRates = lodashGet(policy, 'taxRates', {});
 
-    console.log(' transactionTaxCode === taxRates.foreignTaxDefault ', transactionTaxCode === taxRates.foreignTaxDefault);
-
     const taxRateTitle = TransactionUtils.getDefaultTaxName(taxRates, transaction, true, transactionTaxCode);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
