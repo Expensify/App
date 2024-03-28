@@ -1,9 +1,8 @@
 import Onyx from 'react-native-onyx';
-import _ from 'underscore';
-import CONST from '../../src/CONST';
-import * as CurrencyUtils from '../../src/libs/CurrencyUtils';
-import LocaleListener from '../../src/libs/Localize/LocaleListener';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import CONST from '@src/CONST';
+import * as CurrencyUtils from '@src/libs/CurrencyUtils';
+import LocaleListener from '@src/libs/Localize/LocaleListener';
+import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // This file can get outdated. In that case, you can follow these steps to update it:
 // - open your browser console and navigate to the Network tab
@@ -13,7 +12,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // - update currencyList.json
 import currencyList from './currencyList.json';
 
-const currencyCodeList = _.keys(currencyList);
+const currencyCodeList = Object.keys(currencyList);
 const AVAILABLE_LOCALES = [CONST.LOCALES.EN, CONST.LOCALES.ES];
 
 describe('CurrencyUtils', () => {
@@ -37,7 +36,7 @@ describe('CurrencyUtils', () => {
     describe('getLocalizedCurrencySymbol', () => {
         test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (prefrredLocale) =>
             Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, prefrredLocale).then(() => {
-                _.forEach(currencyCodeList, (currencyCode) => {
+                currencyCodeList.forEach((currencyCode: string) => {
                     const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(currencyCode);
 
                     expect(localizedSymbol).toBeTruthy();

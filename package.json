@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.4.57-0",
+  "version": "1.4.57-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
-    "@expensify/react-native-live-markdown": "0.1.5",
+    "@expensify/react-native-live-markdown": "0.1.33",
     "@expo/metro-runtime": "~3.1.1",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-listformat": "^7.2.2",
