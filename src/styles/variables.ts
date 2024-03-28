@@ -125,6 +125,8 @@ export default {
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
+    emptyLHNIconHeight: 16,
     emptyWorkspaceIconWidth: 84,
     emptyWorkspaceIconHeight: 84,
     modalTopIconWidth: 200,
