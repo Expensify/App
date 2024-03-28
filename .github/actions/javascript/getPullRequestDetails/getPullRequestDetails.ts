@@ -1,9 +1,10 @@
-import core from '@actions/core';
-import {PullRequest} from 'tests/unit/GithubUtilsTest';
-import {isEmptyObject} from '../../../../src/types/utils/EmptyObject';
-import ActionUtils from '../../../libs/ActionUtils';
-import CONST from '../../../libs/CONST';
-import GithubUtils from '../../../libs/GithubUtils';
+import * as core from '@actions/core';
+import ActionUtils from '@github/libs/ActionUtils';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+type PullRequest = Awaited<ReturnType<typeof GithubUtils.octokit.pulls.get>>['data'];
 
 const DEFAULT_PAYLOAD = {
     owner: CONST.GITHUB_OWNER,
@@ -23,8 +24,6 @@ if (user) {
 
 /**
  * Output pull request merge actor.
- *
- * @param {Object} PR
  */
 function outputMergeActor(PR: PullRequest) {
     if (user === CONST.OS_BOTIFY) {
@@ -36,23 +35,22 @@ function outputMergeActor(PR: PullRequest) {
 
 /**
  * Output forked repo URL if PR includes changes from a fork.
- *
- * @param {Object} PR
  */
 function outputForkedRepoUrl(PR: PullRequest) {
-    if (PR.head?.repo.html_url === CONST.APP_REPO_URL) {
+    if (PR.head?.repo?.html_url === CONST.APP_REPO_URL) {
         core.setOutput('FORKED_REPO_URL', '');
     } else {
-        core.setOutput('FORKED_REPO_URL', `${PR.head?.repo.html_url}.git`);
+        core.setOutput('FORKED_REPO_URL', `${PR.head?.repo?.html_url}.git`);
     }
 }
 
 GithubUtils.octokit.pulls
     .get({
         ...DEFAULT_PAYLOAD,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         pull_number: pullRequestNumber,
     })
-    .then(({data: PR}: {data: PullRequest}) => {
+    .then(({data: PR}) => {
         if (!isEmptyObject(PR)) {
             console.log(`Found matching pull request: ${PR.html_url}`);
             core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);

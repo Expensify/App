@@ -7,7 +7,7 @@ import type {StagingDeployCashData} from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
-async function run(): Promise<ReturnType<Awaited<typeof GithubUtils.octokit.issues.create>> | ReturnType<Awaited<typeof GithubUtils.octokit.issues.update>> | void> {
+async function run(): Promise<Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'] | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
     const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     const newVersionTag: string = packageJson.version;
@@ -42,14 +42,16 @@ async function run(): Promise<ReturnType<Awaited<typeof GithubUtils.octokit.issu
 
         // Next, we generate the checklist body
         let checklistBody = '';
-        let checklistAssignees = [];
+        let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
-            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
+            const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersionTag,
                 mergedPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
-            checklistBody = issueBody;
-            checklistAssignees = issueAssignees;
+            if (stagingDeployCashBodyAndAssignees !== undefined) {
+                checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
+                checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean) as string[];
+            }
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = mergedPRs.map((prNum) => {
@@ -91,7 +93,7 @@ async function run(): Promise<ReturnType<Awaited<typeof GithubUtils.octokit.issu
             });
 
             const didVersionChange = newVersionTag !== currentChecklistData.tag;
-            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
+            const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersionTag,
                 PRList.map((pr) => pr.url),
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
@@ -102,8 +104,10 @@ async function run(): Promise<ReturnType<Awaited<typeof GithubUtils.octokit.issu
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,
             );
-            checklistBody = issueBody;
-            checklistAssignees = issueAssignees;
+            if (stagingDeployCashBodyAndAssignees !== undefined) {
+                checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
+                checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean) as string[];
+            }
         }
 
         // Finally, create or update the checklist
@@ -131,9 +135,9 @@ async function run(): Promise<ReturnType<Awaited<typeof GithubUtils.octokit.issu
         });
         console.log(`Successfully updated StagingDeployCash! 🎉 ${updatedChecklist.html_url}`);
         return updatedChecklist;
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('An unknown error occurred!', err);
-        core.setFailed(err);
+        core.setFailed(err as Error);
     }
 }
 

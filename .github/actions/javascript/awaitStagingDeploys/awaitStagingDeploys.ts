@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import ActionUtils from '../../../libs/ActionUtils';
-import CONST from '../../../libs/CONST';
-import GitHubUtils from '../../../libs/GithubUtils';
-
-type Workflow = {
-    status: string;
-};
+import ActionUtils from '@github/libs/ActionUtils';
+import CONST from '@github/libs/CONST';
+import GitHubUtils, {POLL_RATE} from '@github/libs/GithubUtils';
 
 async function run(): Promise<void> {
     const tag = ActionUtils.getStringInput('TAG', {required: false});
@@ -32,7 +28,7 @@ async function run(): Promise<void> {
         if (!tag && responses[1]) {
             workflowRuns.push(...responses[1].data.workflow_runs);
         }
-        currentStagingDeploys = workflowRuns.filter((workflowRun: Workflow) => workflowRun.status !== 'completed');
+        currentStagingDeploys = workflowRuns.filter((workflowRun) => workflowRun.status !== 'completed');
 
         console.log(
             currentStagingDeploys.length === 0
@@ -41,7 +37,7 @@ async function run(): Promise<void> {
         );
     };
 
-    const pollInterval = GitHubUtils.POLL_RATE * 6;
+    const pollInterval = POLL_RATE * 6;
 
     do {
         await throttledPoll();

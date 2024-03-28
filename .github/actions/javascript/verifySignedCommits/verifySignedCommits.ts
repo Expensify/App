@@ -3,19 +3,6 @@ import github from '@actions/github';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
 
-type CommitData = {
-    commit: {
-        verification: {
-            verified: boolean;
-        };
-    };
-    sha: string;
-};
-
-type Commit = {
-    data: CommitData[];
-};
-
 const PR_NUMBER = Number.parseInt(core.getInput('PR_NUMBER'), 10) || github.context.payload.pull_request?.number;
 
 GitHubUtils.octokit.pulls
@@ -25,8 +12,8 @@ GitHubUtils.octokit.pulls
         // eslint-disable-next-line @typescript-eslint/naming-convention
         pull_number: PR_NUMBER ?? 0,
     })
-    .then(({data}: Commit) => {
-        const unsignedCommits = data.filter((datum) => !datum.commit.verification.verified);
+    .then(({data}) => {
+        const unsignedCommits = data.filter((datum) => !datum.commit.verification?.verified);
 
         if (unsignedCommits.length > 0) {
             const errorMessage = `Error: the following commits are unsigned: ${JSON.stringify(unsignedCommits.map((commitObj) => commitObj.sha))}`;
