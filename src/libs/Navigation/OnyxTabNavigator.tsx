@@ -6,11 +6,12 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorOnyxProps = {
-    selectedTab: OnyxEntry<string>;
+    selectedTab: OnyxEntry<SelectedTabRequest>;
 };
 
 type OnyxTabNavigatorProps = OnyxTabNavigatorOnyxProps &
@@ -19,7 +20,7 @@ type OnyxTabNavigatorProps = OnyxTabNavigatorOnyxProps &
         id: string;
 
         /** Name of the selected tab */
-        selectedTab?: string;
+        selectedTab?: SelectedTabRequest;
 
         /** A function triggered when a tab has been selected */
         onTabSelected?: (newIouType: string) => void;
@@ -32,7 +33,7 @@ export const TopTab = createMaterialTopTabNavigator();
 
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
-function OnyxTabNavigator({id, selectedTab = '', children, onTabSelected = () => {}, screenListeners, ...rest}: OnyxTabNavigatorProps) {
+function OnyxTabNavigator({id, selectedTab, children, onTabSelected = () => {}, screenListeners, ...rest}: OnyxTabNavigatorProps) {
     return (
         <TopTab.Navigator
             /* eslint-disable-next-line react/jsx-props-no-spreading */
@@ -47,7 +48,7 @@ function OnyxTabNavigator({id, selectedTab = '', children, onTabSelected = () =>
                     const state = event.data.state;
                     const index = state.index;
                     const routeNames = state.routeNames;
-                    Tab.setSelectedTab(id, routeNames[index]);
+                    Tab.setSelectedTab(id, routeNames[index] as SelectedTabRequest);
                     onTabSelected(routeNames[index]);
                 },
                 ...(screenListeners ?? {}),

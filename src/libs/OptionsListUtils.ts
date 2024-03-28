@@ -1814,7 +1814,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
 /**
  * Build the IOUConfirmationOptions for showing participants
  */
-function getIOUConfirmationOptionsFromParticipants(participants: Participant[], amountText: string): Participant[] {
+function getIOUConfirmationOptionsFromParticipants(participants: Array<Participant | ReportUtils.OptionData>, amountText: string): Array<Participant | ReportUtils.OptionData> {
     return participants.map((participant) => ({
         ...participant,
         descriptiveText: amountText,
