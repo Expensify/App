@@ -90,6 +90,22 @@ type CategorySection = CategorySectionBase & {
     data: Option[];
 };
 
+type TaxRatesOption = {
+    text?: string;
+    code?: string;
+    searchText?: string;
+    tooltipText?: string;
+    isDisabled?: boolean;
+    data: Partial<TaxRate>;
+};
+
+type TaxSection = {
+    title: string | undefined;
+    shouldShow: boolean;
+    indexOffset: number;
+    data: TaxRatesOption[];
+};
+
 type CategoryTreeSection = CategorySectionBase & {
     data: OptionTree[];
 };
@@ -1234,7 +1250,7 @@ function sortTaxRates(taxRates: TaxRates): TaxRate[] {
 /**
  * Builds the options for taxRates
  */
-function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
+function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[] {
     return taxRates.map((taxRate) => ({
         text: taxRate.modifiedName,
         keyForList: taxRate.code,
@@ -1248,7 +1264,7 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string, defaultTaxKey?: string): CategorySection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string, defaultTaxKey?: string): TaxSection[] {
     const policyRatesSections = [];
 
     const taxes = transformedTaxRates(taxRates, defaultTaxKey);
@@ -2095,4 +2111,4 @@ export {
     getTaxRatesSection,
 };
 
-export type {MemberForList, CategorySection, GetOptions, PayeePersonalDetails, Category};
+export type {MemberForList, CategorySection, GetOptions, PayeePersonalDetails, Category, TaxRatesOption};

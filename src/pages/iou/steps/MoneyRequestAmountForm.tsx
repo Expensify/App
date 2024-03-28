@@ -21,6 +21,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 
+type CurrentMoney = {amount: string; currency: string};
+
 type MoneyRequestAmountFormProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
@@ -38,7 +40,7 @@ type MoneyRequestAmountFormProps = {
     onCurrencyButtonPress: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-    onSubmitButtonPress: ({amount, currency}: {amount: string; currency: string}) => void;
+    onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab?: ValueOf<typeof CONST.TAB_REQUEST>;
@@ -342,3 +344,4 @@ function MoneyRequestAmountForm(
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
 export default React.forwardRef(MoneyRequestAmountForm);
+export type {CurrentMoney};

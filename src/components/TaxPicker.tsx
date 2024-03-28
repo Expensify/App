@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 import type {TaxRatesWithDefault} from '@src/types/onyx';
 import SelectionList from './SelectionList';
 import RadioListItem from './SelectionList/RadioListItem';
-import type {ListItem} from './SelectionList/types';
 
 type TaxPickerProps = {
     /** Collection of tax rates attached to a policy */
@@ -24,7 +23,7 @@ type TaxPickerProps = {
     insets?: EdgeInsets;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: (tax: ListItem) => void;
+    onSubmit: (tax: OptionsListUtils.TaxRatesOption) => void;
 };
 
 function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPickerProps) {
