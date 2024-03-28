@@ -56,6 +56,7 @@ function save(requestToPersist: Request) {
 
     // Save the updated set of requests
     persistedRequests = requests.map((request) => {
+        // Don't try to serialize conflict resolution functions
         delete request.getConflictingRequests;
         delete request.handleConflictingRequest;
         delete request.shouldIncludeCurrentRequest;
