@@ -222,7 +222,7 @@ function MoneyRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
+    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions(iouType);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;

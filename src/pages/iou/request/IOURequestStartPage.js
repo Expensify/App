@@ -82,7 +82,7 @@ function IOURequestStartPage({
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);
-    let {canUseP2PDistanceRequests} = usePermissions();
+    const {canUseP2PDistanceRequests} = usePermissions(iouType);
     const isFromGlobalCreate = _.isEmpty(report.reportID);
 
     useFocusEffect(
@@ -110,9 +110,6 @@ function IOURequestStartPage({
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-
-    // Allow using P2P distance request for TrackExpense outside of the beta, because that project doesn't want to be limited by the more cautious P2P distance beta
-    canUseP2PDistanceRequests = canUseP2PDistanceRequests || iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
 
     const shouldDisplayDistanceRequest = canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
