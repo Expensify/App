@@ -1,15 +1,15 @@
 import Str from 'expensify-common/lib/str';
-import React, { memo, useEffect, useState } from 'react';
-import type { GestureResponderEvent, StyleProp, ViewStyle } from 'react-native';
-import { View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
-import type { Attachment, AttachmentSource } from '@components/Attachments/types';
+import React, {memo, useEffect, useState} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import ScrollView from '@components/ScrollView';
-import { usePlaybackContext } from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -18,10 +18,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import type { ColorValue } from '@styles/utils/types';
+import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Transaction } from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
@@ -93,8 +93,8 @@ function AttachmentView({
     duration,
     isUsedAsChatAttachment,
 }: AttachmentViewProps) {
-    const { translate } = useLocalize();
-    const { updateCurrentlyPlayingURL } = usePlaybackContext();
+    const {translate} = useLocalize();
+    const {updateCurrentlyPlayingURL} = usePlaybackContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -111,7 +111,7 @@ function AttachmentView({
 
     const [imageError, setImageError] = useState(false);
 
-    useNetwork({ onReconnect: () => setImageError(false) });
+    useNetwork({onReconnect: () => setImageError(false)});
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
@@ -251,9 +251,9 @@ AttachmentView.displayName = 'AttachmentView';
 export default memo(
     withOnyx<AttachmentViewProps, AttachmentViewOnyxProps>({
         transaction: {
-            key: ({ transactionID }) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
     })(AttachmentView),
 );
 
-export type { AttachmentViewProps };
+export type {AttachmentViewProps};
