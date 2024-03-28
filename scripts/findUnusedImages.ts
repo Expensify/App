@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
-/* eslint-disable @lwc/lwc/no-async-await */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import type {PathOrFileDescriptor} from 'fs';
+import path from 'path';
 
 /**
  * Regular expression to match the asset imports
@@ -14,7 +13,7 @@ const path = require('path');
 const regexToMatchAssetImport = /import\s+([a-zA-Z][a-zA-Z0-9_-]*)\s+from\s+['"]@assets\/images\/(?:[\w-_]+\/)*([a-zA-Z][a-zA-Z0-9_-]+\.[a-zA-Z]+)['"]/g;
 
 // Function to recursively get all files in a directory
-function getAllFiles(dir, fileList = []) {
+function getAllFiles(dir: string, fileList: string[] = []) {
     const files = fs.readdirSync(dir);
     files.forEach((file) => {
         const filePath = path.join(dir, file);
@@ -28,7 +27,7 @@ function getAllFiles(dir, fileList = []) {
 }
 
 // Function to parse imports from a file
-function parseImports(filePath) {
+function parseImports(filePath: PathOrFileDescriptor) {
     const content = fs.readFileSync(filePath, 'utf8');
 
     const matches = [];
@@ -36,19 +35,22 @@ function parseImports(filePath) {
     while (match !== null) {
         matches.push({
             assetName: match[1],
-            imagePath: match[0].split('@').pop().slice(0, -1),
+            imagePath: match?.[0]?.split('@')?.pop()?.slice(0, -1) ?? '',
         });
         match = regexToMatchAssetImport.exec(content);
     }
     return matches;
 }
 
-function containsNumber(str) {
+function containsNumber(str: string) {
     // Check if the string contains any digit between 0 and 9
     return /\d/.test(str);
 }
 
-function isWhiteList(assetName) {
+// MCCGroupIcons are used in the app dynamically
+const MCCGroupIcons = ['Airlines', 'Commuter', 'Gas', 'Goods', 'Groceries', 'Hotel', 'Mail', 'Meals', 'Rental', 'Services', 'Taxi', 'Miscellaneous', 'Utilities'];
+
+function isWhiteList(assetName: string) {
     // We have assets named like Avatar1, Avatar2, Avatar3, etc. which are used in the app
     if (assetName.includes('Avatar') && containsNumber(assetName)) {
         return true;
@@ -80,14 +82,18 @@ function isWhiteList(assetName) {
         return true;
     }
 
+    if (MCCGroupIcons.includes(assetName)) {
+        return true;
+    }
+
     return false;
 }
 
 // Main function to find unused assets
-function findUnusedAssets(projectDir) {
+function findUnusedAssets(projectDir: string) {
     const allFiles = getAllFiles(projectDir);
-    const assetMap = new Set();
-    const unusedAssets = new Map();
+    const assetMap = new Set<string>();
+    const unusedAssets = new Map<string, string>();
 
     // Parse imports from all the files and add them to the assetMap and unusedAssets map
     allFiles.forEach((file) => {
@@ -128,7 +134,7 @@ function findUnusedAssets(projectDir) {
 }
 
 // Function to delete unused assets
-function removeUnusedAssets(unusedAssets) {
+function removeUnusedAssets(unusedAssets: Map<string, string>) {
     unusedAssets.forEach((assetName) => {
         fs.unlinkSync(assetName);
     });
