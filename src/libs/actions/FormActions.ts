@@ -1,6 +1,6 @@
+import type {NullishDeep, OnyxValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {NullishDeep} from 'react-native-onyx';
-import type {OnyxFormDraftKey, OnyxFormKey, OnyxValue} from '@src/ONYXKEYS';
+import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
@@ -31,4 +31,4 @@ function clearDraftValues(formID: OnyxFormKey) {
     Onyx.set(`${formID}Draft`, null);
 }
 
-export {setDraftValues, setErrorFields, setErrors, clearErrors, clearErrorFields, setIsLoading, clearDraftValues};
+export {clearDraftValues, clearErrorFields, clearErrors, setDraftValues, setErrorFields, setErrors, setIsLoading};
