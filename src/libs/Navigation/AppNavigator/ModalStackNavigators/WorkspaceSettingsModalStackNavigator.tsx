@@ -1,13 +1,12 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
-import useThemeStyles from '@hooks/useThemeStyles';
+import React from 'react';
 import SCREENS from '@src/SCREENS';
+import useModalScreenOptions from './useModalScreenOptions';
 
 const StackNavigator = createStackNavigator();
 
 function WorkspaceSettingsModalStackNavigator() {
-    const styles = useThemeStyles();
-    const screenOptions = useMemo(() => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}), [styles]);
+    const screenOptions = useModalScreenOptions((styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}));
 
     return (
         <StackNavigator.Navigator screenOptions={screenOptions}>
