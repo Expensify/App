@@ -189,10 +189,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
                                     : translate('workflowsPage.connectBankAccount')
                             }
                             description={bankDisplayName}
+                            disabled={isOffline || !isPolicyAdmin}
                             onPress={() => {
-                                if (isOffline || !isPolicyAdmin) {
-                                    return;
-                                }
                                 if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                                     setIsCurrencyModalOpen(true);
                                     return;
@@ -244,6 +242,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkfl
         canUseDelayedSubmission,
         displayNameForAuthorizedPayer,
         session?.accountID,
+        isOffline,
+        isPolicyAdmin,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
