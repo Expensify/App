@@ -260,7 +260,9 @@ function MoneyRequestView({
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                    }
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
@@ -285,9 +287,7 @@ function MoneyRequestView({
                 shouldShowRightIcon={canEditDistance}
                 titleStyle={styles.flex1}
                 onPress={() =>
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
-                    )
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
                 }
             />
         </OfflineWithFeedback>
