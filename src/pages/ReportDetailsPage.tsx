@@ -252,6 +252,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 <ParentNavigationSubtitle
                                     parentNavigationSubtitleData={parentNavigationSubtitleData}
                                     parentReportID={report?.parentReportID}
+                                    parentReportActionID={report?.parentReportActionID}
                                     pressableStyles={[styles.mt1, styles.mw100]}
                                 />
                             )}

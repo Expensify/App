@@ -34,6 +34,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Linked report action ID */
     linkedReportActionID?: string;
+
+    /** Whether we should display "Replies" divider */
+    shouldDisplayReplyDivider: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -46,6 +49,7 @@ function ReportActionsListItemRenderer({
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID = '',
+    shouldDisplayReplyDivider,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -119,6 +123,7 @@ function ReportActionsListItemRenderer({
     return shouldDisplayParentAction ? (
         <ReportActionItemParentAction
             shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
+            shouldDisplayReplyDivider={shouldDisplayReplyDivider}
             parentReportAction={parentReportAction}
             reportID={report.reportID}
             report={report}
