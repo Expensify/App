@@ -4181,6 +4181,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
+        moneyRequestHeaderStatusBarBadgeDangerBackground: {
+            backgroundColor: theme.danger,
+        },
+
         staticHeaderImage: {
             minHeight: 240,
         },

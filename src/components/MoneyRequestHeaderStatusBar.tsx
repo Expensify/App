@@ -1,5 +1,4 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Text from './Text';
@@ -14,15 +13,15 @@ type MoneyRequestHeaderStatusBarProps = {
     /** Whether we show the border bottom */
     shouldShowBorderBottom: boolean;
 
-    /** Badge background color Style */
-    badgeColorStyle?: StyleProp<ViewStyle>;
+    /** Red Badge background */
+    danger?: boolean;
 };
 
-function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom, badgeColorStyle}: MoneyRequestHeaderStatusBarProps) {
+function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom, danger}: MoneyRequestHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const borderBottomStyle = shouldShowBorderBottom ? styles.borderBottom : {};
-    const badgeBackgroundColorStyle = badgeColorStyle ?? styles.moneyRequestHeaderStatusBarBadgeBackground;
-    const badgeTextColorStyle = badgeColorStyle ? styles.textMicroBoldDangerColor : styles.textMicroBoldColor;
+    const badgeBackgroundColorStyle = danger ? styles.moneyRequestHeaderStatusBarBadgeDangerBackground : styles.moneyRequestHeaderStatusBarBadgeBackground;
+    const badgeTextColorStyle = danger ? styles.textMicroBoldDangerColor : styles.textMicroBoldColor;
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.overflowHidden, styles.ph5, styles.pb3, borderBottomStyle]}>

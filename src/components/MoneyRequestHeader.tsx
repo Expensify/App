@@ -192,7 +192,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         title={translate('iou.hold')}
                         description={translate('iou.requestOnHold')}
                         shouldShowBorderBottom
-                        badgeColorStyle={styles.badgeDanger}
+                        danger
                     />
                 )}
             </View>
