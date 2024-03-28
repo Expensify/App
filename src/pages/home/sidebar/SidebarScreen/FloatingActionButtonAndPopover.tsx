@@ -5,6 +5,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -27,7 +28,6 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction'>;
 
@@ -68,7 +68,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         pendingAction: policy.pendingAction,
     }) as PolicySelector;
 
-const getQuickActionIcon = (action: QuickActionName | undefined) => {
+const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return Expensicons.MoneyCircle;
@@ -89,7 +89,7 @@ const getQuickActionIcon = (action: QuickActionName | undefined) => {
     }
 };
 
-const getQuickActionTitle = (action: QuickActionName | undefined) => {
+const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return 'quickAction.requestMoney';
@@ -108,6 +108,7 @@ const getQuickActionTitle = (action: QuickActionName | undefined) => {
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
         default:
+            return '' as TranslationPaths;
     }
 };
 
@@ -116,7 +117,7 @@ const getQuickActionTitle = (action: QuickActionName | undefined) => {
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover(
-    {onHideCreateMenu, onShowCreateMenu, isLoading, allPolicies, quickAction, session, personalDetails}: FloatingActionButtonAndPopoverProps,
+    {onHideCreateMenu, onShowCreateMenu, isLoading = false, allPolicies, quickAction, session, personalDetails}: FloatingActionButtonAndPopoverProps,
     ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
     const styles = useThemeStyles();
@@ -128,7 +129,7 @@ function FloatingActionButtonAndPopover(
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
 
-    const quickActionReport: OnyxEntry<OnyxTypes.Report> | EmptyObject = useMemo(() => (quickAction ? ReportUtils.getReport(quickAction.chatReportID) : {}), [quickAction]);
+    const quickActionReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => (quickAction ? ReportUtils.getReport(quickAction.chatReportID) : null), [quickAction]);
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
@@ -142,30 +143,29 @@ function FloatingActionButtonAndPopover(
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
-                return;
+                break;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
-                return;
+                break;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
-                return;
+                break;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
-                return;
+                break;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
-                return;
+                break;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
-                return;
+                break;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, quickAction?.chatReportID ?? '');
-                return;
+                break;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
                 Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID, quickAction.targetAccountID ?? 0);
-                return;
+                break;
             default:
-                return '';
         }
     };
 
@@ -320,7 +320,7 @@ function FloatingActionButtonAndPopover(
                         ? [
                               {
                                   icon: getQuickActionIcon(quickAction?.action),
-                                  text: translate(getQuickActionTitle(quickAction?.action) as TranslationPaths),
+                                  text: translate(getQuickActionTitle(quickAction?.action)),
                                   label: translate('quickAction.shortcut'),
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
@@ -352,7 +352,6 @@ FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<FloatingActionButtonAndPopoverRef>, FloatingActionButtonAndPopoverOnyxProps>({
     allPolicies: {
         key: ONYXKEYS.COLLECTION.POLICY,
-        // This assertion is needed because the selector in withOnyx expects that the return type will be the same as type in ONYXKEYS but for collection keys the selector is executed for each collection item. This is a bug in withOnyx typings that we don't have a solution yet, when useOnyx hook is introduced it will be fixed.
         selector: policySelector,
     },
     isLoading: {

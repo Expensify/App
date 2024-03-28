@@ -529,12 +529,12 @@ function getChatType(report: OnyxEntry<Report> | Participant | EmptyObject): Val
 /**
  * Get the report given a reportID
  */
-function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
+function getReport(reportID: string | undefined): OnyxEntry<Report> {
     if (!allReports) {
-        return {};
+        return null;
     }
 
-    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
 /**
@@ -1597,7 +1597,7 @@ function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> =
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
 function getIcons(
-    report: OnyxEntry<Report> | EmptyObject,
+    report: OnyxEntry<Report>,
     personalDetails: OnyxCollection<PersonalDetails>,
     defaultIcon: UserUtils.AvatarSource | null = null,
     defaultName = '',

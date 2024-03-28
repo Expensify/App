@@ -73,7 +73,7 @@ function SidebarLinksData({
     isLoadingApp = true,
     onLinkClick,
     policies,
-    priorityMode,
+    priorityMode = CONST.PRIORITY_MODE.DEFAULT,
     policyMembers,
     transactionViolations,
 }: SidebarLinksDataProps) {
@@ -121,7 +121,7 @@ function SidebarLinksData({
         if (!isLoading || !reportIDsRef.current || network.isOffline || (reportIDsRef.current && prevPriorityMode !== priorityMode)) {
             reportIDsRef.current = reportIDs;
         }
-        return reportIDsRef.current || [];
+        return reportIDsRef.current ?? [];
     }, [optionItemsMemoized, priorityMode, isLoading, network.isOffline, prevPriorityMode]);
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -142,7 +142,7 @@ function SidebarLinksData({
                 policyMemberAccountIDs,
             );
         }
-        return optionListItems;
+        return optionListItems ?? [];
     }, [currentReportID, optionListItems, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs]);
 
     const currentReportIDRef = useRef(currentReportID);
@@ -159,10 +159,10 @@ function SidebarLinksData({
                 // Forwarded props:
                 onLinkClick={onLinkClick}
                 insets={insets}
-                priorityMode={priorityMode}
+                priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
                 // Data props:
                 isActiveReport={isActiveReport}
-                isLoading={isLoading}
+                isLoading={isLoading ?? false}
                 optionListItems={optionListItemsWithCurrentReport}
                 activeWorkspaceID={activeWorkspaceID}
             />
@@ -265,7 +265,7 @@ const SidebarLinkDataWithCurrentReportID = withCurrentReportID(
     ),
 );
 
-export default withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
+export default withOnyx<Omit<SidebarLinksDataProps, 'currentReportID' | 'updateCurrentReportID'>, SidebarLinksDataOnyxProps>({
     chatReports: {
         key: ONYXKEYS.COLLECTION.REPORT,
         selector: chatReportSelector,

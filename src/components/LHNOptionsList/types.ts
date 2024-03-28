@@ -44,7 +44,7 @@ type CustomLHNOptionsListProps = {
     contentContainerStyles?: StyleProp<ContentStyle>;
 
     /** Sections for the section list */
-    data: string[] | null;
+    data: string[];
 
     /** Callback to fire when a row is selected */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
