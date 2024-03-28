@@ -42,16 +42,7 @@ type TripReceiptProps = {
     isHovered?: boolean;
 };
 
-function TripReceipt({
-    action,
-    chatReportID,
-    iouReportID,
-    containerStyles,
-    contextMenuAnchor,
-    isHovered = false,
-    isWhisper = false,
-    checkIfContextMenuActive = () => {},
-}: TripReceiptProps) {
+function TripReceipt({action, chatReportID, iouReportID, containerStyles, contextMenuAnchor, isHovered = false, isWhisper = false, checkIfContextMenuActive = () => {}}: TripReceiptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -93,9 +84,10 @@ function TripReceipt({
                         action={action}
                         isHovered={isHovered}
                         style={styles.mt2}
-                        isWhisper={isWhisper} 
-                        reportID={chatReportID} 
-                        isMostRecentIOUReportAction={false}                    />
+                        isWhisper={isWhisper}
+                        reportID={chatReportID}
+                        isMostRecentIOUReportAction={false}
+                    />
                     <View style={[styles.moneyRequestPreviewBox, styles.p4, styles.gap5, isHovered || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         <View style={styles.expenseAndReportPreviewTextContainer}>
                             <View style={styles.reportPreviewAmountSubtitleContainer}>
