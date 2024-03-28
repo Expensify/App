@@ -17,6 +17,8 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,13 +53,20 @@ type WorkspaceInviteMessagePageOnyxProps = {
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInviteMessagePageOnyxProps &
+    WithCurrentUserPersonalDetailsProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
-const parser = new ExpensiMark();
-
-function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsToAccountIDsDraft, policy, route, allPersonalDetails}: WorkspaceInviteMessagePageProps) {
+function WorkspaceInviteMessagePage({
+    workspaceInviteMessageDraft,
+    invitedEmailsToAccountIDsDraft,
+    policy,
+    route,
+    allPersonalDetails,
+    currentUserPersonalDetails,
+}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const parser = new ExpensiMark();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -67,14 +76,13 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
         // workspaceInviteMessageDraft can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         workspaceInviteMessageDraft ||
-        // policy?.description can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        policy?.description ||
-        parser.replace(
-            translate('workspace.common.welcomeNote', {
-                workspaceName: policy?.name ?? '',
-            }),
-        );
+        translate('workspace.inviteMessage.welcomeNote', {
+            workspaceName: policy?.name ?? '',
+            senderDisplayName: currentUserPersonalDetails?.displayName ?? '',
+            senderLogin: currentUserPersonalDetails?.login ?? '',
+            workspaceDescription: parser.htmlToMarkdown(policy?.description ?? ''),
+            workspaceLink: ROUTES.WORKSPACE_PROFILE.getRoute(route.params.policyID),
+        });
 
     useEffect(() => {
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
@@ -208,15 +216,17 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
 WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
 export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
-        allPersonalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        invitedEmailsToAccountIDsDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-        },
-        workspaceInviteMessageDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
-        },
-    })(WorkspaceInviteMessagePage),
+    withCurrentUserPersonalDetails(
+        withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
+            allPersonalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+            invitedEmailsToAccountIDsDraft: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
+            },
+            workspaceInviteMessageDraft: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
+            },
+        })(WorkspaceInviteMessagePage),
+    ),
 );
