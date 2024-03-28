@@ -145,7 +145,7 @@
     "react-native-linear-gradient": "^2.8.1",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
-    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx#cd778b55e419bf09ecf377b1e3ac013b7758434d",
+    "react-native-onyx": "2.0.25",
     "react-native-pager-view": "6.2.2",
     "react-native-pdf": "6.7.3",
     "react-native-performance": "^5.1.0",
