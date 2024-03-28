@@ -1262,7 +1262,7 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | stri
  */
 function isOneTransactionReport(reportID: string): boolean {
     const reportActions = ReportActionsUtils.getAllReportActions(reportID);
-    return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== '0';
+    return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== null;
 }
 
 /**
@@ -5696,7 +5696,6 @@ export {
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
-    isOneTransactionReport,
     isOneTransactionThread,
     isPayer,
     goBackToDetailsPage,

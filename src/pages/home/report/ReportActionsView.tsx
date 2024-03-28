@@ -1,6 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import lodashIsEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
@@ -26,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
@@ -132,7 +132,23 @@ function ReportActionsView({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route, isLoadingInitialReportActions]);
 
-    const combinedReportActions = ReportActionsUtils.getCombinedReportActionsForDisplay(allReportActions, transactionThreadReportActions);
+    // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
+    // so that we display transaction-level and report-level report actions in order in the one-transaction view
+    const combinedReportActions = useMemo(() => {
+        if (isEmptyObject(transactionThreadReportActions)) {
+            return allReportActions;
+        }
+
+        // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
+        const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+        // Filter out "created" IOU report actions because we don't want to show any preview actions for one transaction reports
+        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter(
+            (action) => ((action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '') !== CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        );
+        return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
+    }, [allReportActions, transactionThreadReportActions]);
+
     const indexOfLinkedAction = useMemo(() => {
         if (!reportActionID || isLoading) {
             return -1;
@@ -179,7 +195,7 @@ function ReportActionsView({
             }
 
             // If this is a one transaction report, ensure we load newer actions for both this report and the report associated with the transaction
-            if (!lodashIsEmpty(transactionThreadReport)) {
+            if (!isEmptyObject(transactionThreadReport)) {
                 // Get newer actions based on the newest reportAction for the current report
                 const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
                 Report.getNewerActions(newestActionCurrentReport?.reportID ?? '0', newestActionCurrentReport?.reportActionID ?? '0');
@@ -333,7 +349,7 @@ function ReportActionsView({
             return;
         }
 
-        if (!lodashIsEmpty(transactionThreadReport)) {
+        if (!isEmptyObject(transactionThreadReport)) {
             // Get newer actions based on the newest reportAction for the current report
             const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
             Report.getNewerActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');

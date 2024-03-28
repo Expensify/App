@@ -218,11 +218,14 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
     );
 }
 
-function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions> | ReportAction[]): string {
+/**
+ * Returns the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions with a childReportID. Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ */
+function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions> | ReportAction[]): string | null {
     const reportActionsArray = Object.values(reportActions ?? {});
 
     if (!reportActionsArray.length) {
-        return '0';
+        return null;
     }
 
     // Get all IOU report actions for the report.
@@ -235,13 +238,13 @@ function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions>
             action.originalMessage.IOUTransactionID,
     );
 
-    // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report and we don't want to return the transactionThreadReportActions
+    // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
     if (!iouRequestActions.length || iouRequestActions.length > 1) {
-        return '0';
+        return null;
     }
 
     // Ensure we have a childReportID associated with the IOU report action
-    return iouRequestActions[0].childReportID ?? '0';
+    return iouRequestActions[0].childReportID ?? null;
 }
 
 /**
@@ -616,25 +619,6 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null | 
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
     return getSortedReportActions(baseURLAdjustedReportActions, true);
-}
-
-/**
- * This method returns a combined array of report actions from a parent report and child transaction thread report that
- * are ready for display in the ReportActionView.
- */
-function getCombinedReportActionsForDisplay(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[]): ReportAction[] {
-    if (_.isEmpty(transactionThreadReportActions)) {
-        return reportActions;
-    }
-
-    // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action
-    const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
-
-    // Sort the combined list of parent report actions and transaction thread report actions
-    const sortedReportActions = getSortedReportActions([...reportActions, ...filteredTransactionThreadReportActions], true);
-
-    // Filter out "created" IOU report actions because we don't want to show any preview actions for one transaction reports
-    return sortedReportActions.filter((action) => ((action as OriginalMessageIOU).originalMessage?.type ?? '') !== CONST.IOU.REPORT_ACTION_TYPE.CREATE);
 }
 
 /**
@@ -1090,7 +1074,6 @@ export {
     getReportPreviewAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
-    getCombinedReportActionsForDisplay,
     isConsecutiveActionMadeByPreviousActor,
     isCreatedAction,
     isCreatedTaskReportAction,
