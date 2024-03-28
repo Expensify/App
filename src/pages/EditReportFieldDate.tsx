@@ -4,9 +4,7 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -46,40 +44,29 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            onEntryTransitionEnd={() => {
-                inputRef.current?.focus();
-            }}
-            testID={EditReportFieldDatePage.displayName}
+        <FormProvider
+            style={[styles.flexGrow1, styles.ph5]}
+            formID={ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM}
+            onSubmit={onSubmit}
+            validate={validate}
+            submitButtonText={translate('common.save')}
+            enabledWhenOffline
         >
-            <HeaderWithBackButton title={fieldName} />
-            <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM}
-                onSubmit={onSubmit}
-                validate={validate}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={styles.mb4}>
-                    {/* @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript. */}
-                    <InputWrapper<unknown>
-                        InputComponent={DatePicker}
-                        inputID={fieldKey}
-                        name={fieldKey}
-                        defaultValue={fieldValue}
-                        label={fieldName}
-                        accessibilityLabel={fieldName}
-                        role={CONST.ROLE.PRESENTATION}
-                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                        minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                        ref={inputRef}
-                    />
-                </View>
-            </FormProvider>
-        </ScreenWrapper>
+            <View style={styles.mb4}>
+                <InputWrapper
+                    InputComponent={DatePicker}
+                    inputID={fieldKey}
+                    name={fieldKey}
+                    defaultValue={fieldValue}
+                    label={fieldName}
+                    accessibilityLabel={fieldName}
+                    role={CONST.ROLE.PRESENTATION}
+                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                    ref={inputRef}
+                />
+            </View>
+        </FormProvider>
     );
 }
 
