@@ -514,7 +514,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             </View>
                         )}
                         {!!headerMessage && (
-                            <View style={[styles.ph5, styles.pb5]}>
+                            <View style={[headerMessageStyle]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
