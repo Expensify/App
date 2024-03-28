@@ -123,8 +123,12 @@ describe('CurrencyUtils', () => {
             [2550, '25.50'],
             [25, '0.25'],
             [2500.5, '25.00'],
-        ])('Correctly converts %s to amount in units handled in frontend as a string', (amount, expectedResult) => {
-            expect(CurrencyUtils.convertToFrontendAmountAsString(amount)).toBe(expectedResult);
+            [null, ''],
+            [undefined, ''],
+            ['', '0.00'],
+            [0, '0.00'],
+        ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult) => {
+            expect(CurrencyUtils.convertToFrontendAmountAsString(input)).toBe(expectedResult);
         });
     });
     describe('convertToDisplayString', () => {
