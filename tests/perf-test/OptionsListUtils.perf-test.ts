@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
-import type * as ReportUtils from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
