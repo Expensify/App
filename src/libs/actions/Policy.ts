@@ -1499,13 +1499,35 @@ function clearAvatarErrors(policyID: string) {
  */
 function updateGeneralSettings(policyID: string, name: string, currency: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const customUnitID = distanceUnit?.customUnitID;
 
-    if (!policy) {
+    if (!policy || !customUnitID) {
         return;
     }
 
-    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-    const distanceRate = Object.values(distanceUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
+    const currentRates = distanceUnit?.rates ?? {};
+    const optimisticRates: Record<string, Rate> = {};
+    const finallyRates: Record<string, Rate> = {};
+    const failureRates: Record<string, Rate> = {};
+
+    for (const rateID of Object.keys(currentRates)) {
+        optimisticRates[rateID] = {
+            ...currentRates[rateID],
+            pendingFields: {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            currency,
+        };
+        finallyRates[rateID] = {
+            ...currentRates[rateID],
+            pendingFields: {currency: null},
+            currency,
+        };
+        failureRates[rateID] = {
+            ...currentRates[rateID],
+            pendingFields: {currency: null},
+            errorFields: {currency: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+        };
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1526,21 +1548,12 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 },
                 name,
                 outputCurrency: currency,
-                ...(distanceUnit?.customUnitID && distanceRate?.customUnitRateID
-                    ? {
-                          customUnits: {
-                              [distanceUnit?.customUnitID]: {
-                                  ...distanceUnit,
-                                  rates: {
-                                      [distanceRate?.customUnitRateID]: {
-                                          ...distanceRate,
-                                          currency,
-                                      },
-                                  },
-                              },
-                          },
-                      }
-                    : {}),
+                customUnits: {
+                    [customUnitID]: {
+                        ...distanceUnit,
+                        rates: optimisticRates,
+                    },
+                },
             },
         },
     ];
@@ -1551,6 +1564,11 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
             value: {
                 pendingFields: {
                     generalSettings: null,
+                },
+                customUnits: {
+                    [customUnitID]: {
+                        rates: finallyRates,
+                    },
                 },
             },
         },
@@ -1564,13 +1582,11 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 errorFields: {
                     generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
-                ...(distanceUnit?.customUnitID
-                    ? {
-                          customUnits: {
-                              [distanceUnit.customUnitID]: distanceUnit,
-                          },
-                      }
-                    : {}),
+                customUnits: {
+                    [customUnitID]: {
+                        rates: failureRates,
+                    },
+                },
             },
         },
     ];
