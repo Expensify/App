@@ -6,20 +6,20 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ConnectionConfig, ConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 function updatePolicyConnectionConfig({
     policyID,
     connectionName,
-    updatedField,
-    updatedPartialConfig,
-    originalPartialConfig,
+    settingName,
+    settingValue,
+    originalSettingValue,
 }: {
     policyID: string;
     connectionName: ConnectionName;
-    updatedField: string;
-    updatedPartialConfig: Partial<ConnectionConfig>;
-    originalPartialConfig: Partial<ConnectionConfig>;
+    settingName: string;
+    settingValue: unknown;
+    originalSettingValue: unknown;
 }) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -27,11 +27,13 @@ function updatePolicyConnectionConfig({
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    [updatedField]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
                 connections: {
                     [connectionName]: {
-                        config: updatedPartialConfig,
+                        config: {
+                            [settingName]: settingValue,
+                        },
                     },
                 },
             },
@@ -44,7 +46,7 @@ function updatePolicyConnectionConfig({
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    [updatedField]: null,
+                    [settingName]: null,
                 },
             },
         },
@@ -56,14 +58,16 @@ function updatePolicyConnectionConfig({
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    [updatedField]: null,
+                    [settingName]: null,
                 },
                 errorFields: {
-                    [updatedField]: ErrorUtils.getMicroSecondOnyxError('workspace.connection.error.genericUpdate'),
+                    [settingName]: ErrorUtils.getMicroSecondOnyxError('workspace.connection.error.genericUpdate'),
                 },
                 connections: {
                     [connectionName]: {
-                        config: originalPartialConfig,
+                        config: {
+                            [settingName]: originalSettingValue,
+                        },
                     },
                 },
             },
@@ -71,10 +75,10 @@ function updatePolicyConnectionConfig({
     ];
 
     const parameters: UpdateConnectionConfigParams = {
-        policyId: policyID,
+        policyID,
         connectionName,
-        config: updatedPartialConfig,
-        idempotencyKey: updatedField,
+        settingName,
+        settingValue,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CONNECTION_CONFIG, parameters, {optimisticData, successData, failureData});

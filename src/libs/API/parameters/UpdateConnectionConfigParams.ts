@@ -1,10 +1,10 @@
-import type {ConnectionConfig, ConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type UpdateConnectionConfigParams = {
-    policyId: string;
+    policyID: string;
     connectionName: ConnectionName;
-    config: Partial<ConnectionConfig>;
-    idempotencyKey: string;
+    settingName: string;
+    settingValue: unknown;
 };
 
 export default UpdateConnectionConfigParams;
