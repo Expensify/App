@@ -57,6 +57,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {whiteSpace: 'pre'},
                 contentModel: HTMLContentModel.textual,
             }),
+            'thread-title': HTMLElementModel.fromCustomModel({tagName: 'thread-title', contentModel: HTMLContentModel.block}),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
@@ -83,7 +84,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
 
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps: TextProps = useMemo(() => ({selectable: textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [textSelectable]);
-    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
+    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText, styles.mw100]};
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}

@@ -2,6 +2,15 @@ import _ from 'lodash';
 import CONST from '@src/CONST';
 
 /**
+ * Check if the text contains HTML
+ * @param text
+ * @return whether the text contains HTML
+ */
+function containsHtml(text: string): boolean {
+    return /<\/?[a-z][\s\S]*>/i.test(text);
+}
+
+/**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
  * @param str - The input string to be sanitized.
  * @returns The sanitized string
@@ -72,4 +81,4 @@ function normalizeCRLF(value?: string): string | undefined {
     return value?.replace(/\r\n/g, '\n');
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF};
+export default {containsHtml, sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF};

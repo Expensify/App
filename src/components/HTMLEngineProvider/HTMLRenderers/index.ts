@@ -8,6 +8,7 @@ import MentionHereRenderer from './MentionHereRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
+import ThreadTitleRenderer from './ThreadTitleRenderer';
 import VideoRenderer from './VideoRenderer';
 
 /**
@@ -28,6 +29,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'mention-here': MentionHereRenderer,
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
+    'thread-title': ThreadTitleRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

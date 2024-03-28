@@ -405,7 +405,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber;
     }
 
-    const reportName = ReportUtils.getReportName(report, policy);
+    const reportName = ReportUtils.getReportName(report, policy, false, true);
 
     result.text = reportName;
     result.subtitle = subtitle;

@@ -10,13 +10,19 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
     const {textDecorationLine, ...textStyles} = flattenTextStyle;
 
     const data = getCurrentData(defaultRendererProps);
+    const numberOfLines = defaultRendererProps.propsFromParent?.numberOfLines;
 
     return (
         <TDefaultRenderer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
         >
-            <Text style={[boxModelStyle, textStyles]}>{data}</Text>
+            <Text
+                numberOfLines={numberOfLines}
+                style={[boxModelStyle, textStyles]}
+            >
+                {data}
+            </Text>
         </TDefaultRenderer>
     );
 }
