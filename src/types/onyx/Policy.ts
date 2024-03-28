@@ -406,6 +406,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Tags feature is enabled */
         areTagsEnabled?: boolean;
 
+        /** Whether the Accounting feature is enabled */
+        areAccountingEnabled?: boolean;
+
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
 
