@@ -2962,7 +2962,8 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, onyxData);
     if (shouldTurnOffCategoriesEnabled) {
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+        Navigation.goBack();
+        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID), CONST.NAVIGATION.TYPE.UP);
     }
 }
 
