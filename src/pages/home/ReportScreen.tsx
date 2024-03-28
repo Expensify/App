@@ -102,7 +102,7 @@ type ReportScreenProps = OnyxHOCProps & CurrentReportIDContextValue & ReportScre
 function getReportID(route: ReportScreenNavigationProps['route']): string {
     // The report ID is used in an onyx key. If it's an empty string, onyx will return
     // a collection instead of an individual report.
-    return String(route.params?.reportID || 0);
+    return String(route.params?.reportID || '');
 }
 
 /**
@@ -335,28 +335,21 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !ReportUtils.isValidReportIDFromPath(reportIDFromRoute) || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         isLinkingToMessage ||
         !isCurrentReportLoadedFromOnyx ||
         (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
         isLoading ||
         (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
+
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
-        (): boolean =>
-            !shouldShowSkeleton &&
-            ((!wasReportAccessibleRef.current &&
-                !firstRenderRef.current &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !reportMetadata?.isLoadingInitialReportActions &&
-                !userLeavingStatus) ||
-                shouldHideReport ||
-                (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute))),
-        [shouldShowSkeleton, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, reportIDFromRoute],
-    );
+    const shouldShowNotFoundPage =
+        !firstRenderRef.current &&
+        ((!wasReportAccessibleRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
+            shouldHideReport ||
+            (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute)));
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
