@@ -52,11 +52,12 @@ function IOURequestStepRate({
         alternateText: DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit),
         keyForList: rate.name ?? '',
         value: rate.customUnitRateID,
+        isSelected: lastSelectedRate === rate.customUnitRateID,
     }));
 
     const initiallyFocusedOption = rates[lastSelectedRate]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
 
-    function selectDistanceRate(customUnitRateID = '0') {
+    function selectDistanceRate(customUnitRateID: string) {
         IOU.setLastSelectedDistanceRates(policy?.id ?? '', customUnitRateID);
         IOU.updateDistanceRequestRate('1', customUnitRateID);
         Navigation.goBack(backTo);
@@ -74,7 +75,7 @@ function IOURequestStepRate({
             <SelectionList
                 sections={[{data}]}
                 ListItem={RadioListItem}
-                onSelectRow={({value}) => selectDistanceRate(value)}
+                onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 initiallyFocusedOptionKey={initiallyFocusedOption}
             />
         </StepScreenWrapper>
@@ -96,4 +97,5 @@ export default compose(
             key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
         },
     }),
+    // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
 )(IOURequestStepRate);
