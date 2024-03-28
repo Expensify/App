@@ -11,6 +11,7 @@ type PlaybackContext = {
     currentlyPlayingURL: string | null;
     originalParent: View | HTMLDivElement | null;
     sharedElement: View | HTMLDivElement | null;
+    videoResumeTryNumber: MutableRefObject<number>;
     currentVideoPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
     shareVideoPlayerElements: (ref: VideoWithOnFullScreenUpdate | null, parent: View | HTMLDivElement | null, child: View | HTMLDivElement | null, isUploading: boolean) => void;
     playVideo: () => void;

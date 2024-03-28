@@ -14,7 +14,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [originalParent, setOriginalParent] = useState<View | HTMLDivElement | null>(null);
     const currentVideoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
     const {currentReportID} = useCurrentReportID() ?? {};
-    const videoResumeTryNumber = useRef(0);
+    const videoResumeTryNumber = useRef<number>(0);
 
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
