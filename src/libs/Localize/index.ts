@@ -72,6 +72,29 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
     }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
 );
 
+const memoizedPluralRules: Record<string, Intl.PluralRules> = {};
+
+function deserializePhraseParamsForCount(phraseParameters: any[]): number | undefined {
+  for (const param of phraseParameters) {
+    if (typeof param === 'number') {
+      return param;
+    } 
+    
+    if (Array.isArray(param)) {
+      const countParam = deserializePhraseParamsForCount(param);
+      if (countParam !== undefined) {
+        return countParam;
+      }
+    } else if (typeof param === 'object' && param !== null) {
+      const countParam = deserializePhraseParamsForCount(Object.values(param));
+      if (countParam !== undefined) {
+        return countParam;
+      }
+    }
+  }
+  return undefined;
+}
+
 /**
  * Helper function to get the translated string for given
  * locale and phrase. This function is used to avoid
@@ -111,33 +134,90 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     const translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
 
     if (translatedPhrase) {
-        if (typeof translatedPhrase === 'function') {
-            return translatedPhrase(...phraseParameters);
-        }
-
-        // We set the translated value in the cache only for the phrases without parameters.
+      // If the translated phrase is a string, cache it and return it
+      if (typeof translatedPhrase === 'string') {
         cacheForLocale?.set(phraseKey, translatedPhrase);
         return translatedPhrase;
+      }
+  
+      let phrase: string | Record<Intl.LDMLPluralRule, string>;
+  
+      // If the translated phrase is a function, evaluate it with the provided parameters
+      if (typeof translatedPhrase === 'function') {
+        phrase = translatedPhrase(...phraseParameters);
+      } else {
+        // If the translated phrase is an object, assign it directly to `phrase`
+        phrase = translatedPhrase as Record<Intl.LDMLPluralRule, string>;
+      }
+  
+      // If `phrase` is a string, return it as the final translated phrase
+      if (typeof phrase === 'string') {
+        return phrase;
+      }
+  
+      // Extract the count from `phraseParameters` (if provided)
+      const count = deserializePhraseParamsForCount(phraseParameters);
+  
+      // Memoize the `Intl.PluralRules` instance for the current language
+      if (!memoizedPluralRules[language]) {
+        memoizedPluralRules[language] = new Intl.PluralRules(language);
+      }
+  
+      // Determine the pluralization category based on the count and language rules
+      const pluralCategory = memoizedPluralRules[language].select(count);
+  
+      // Check if the `phrase` object has a translation for the pluralization category
+    if (Object.prototype.hasOwnProperty.call(phrase, pluralCategory)) {
+        const translation = phrase[pluralCategory];
+        // If the translation is a function, evaluate it with the provided parameters
+        if (typeof translation === 'function') {
+            return translation(...phraseParameters) as string | null;
+        }
+        // Otherwise, return the translation as is
+        return translation;
     }
-
-    if (!fallbackLanguage) {
-        return null;
+  
+      // If no translation is found for the exact category, fallback to the 'other' category
+    if (Object.prototype.hasOwnProperty.call(phrase, 'other')) {
+        const fallbackTranslation = phrase.other;
+        // If the fallback translation is a function, evaluate it with the provided parameters
+        if (typeof fallbackTranslation === 'function') {
+            return fallbackTranslation(...phraseParameters) as string | null;
+        }
+        // Otherwise, return the fallback translation as is
+        const warningMessage = `Plural form '${pluralCategory}' not found for phrase '${phraseKey}'. Using the 'other' category as fallback.`;
+        Log.warn(warningMessage);
+        if (__DEV__) {
+            throw new Error(warningMessage);
+        }
+        return fallbackTranslation;
     }
-
-    // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbacktranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...phraseParameters);
-
-    if (fallbacktranslatedPhrase) {
-        return fallbacktranslatedPhrase;
+  
+      // If no translation is found for the category or the 'other' fallback
+      const errorMessage = `Plural form '${pluralCategory}' not found for phrase '${phraseKey}' and 'other' category is missing.`;
+      Log.warn(errorMessage);
+      if (__DEV__) {
+        throw new Error(errorMessage);
+      }
     }
-
-    if (fallbackLanguage !== CONST.LOCALES.DEFAULT) {
-        Log.alert(`${phraseKey} was not found in the ${fallbackLanguage} locale`);
+  
+    // If no translated phrase is found for the current language, try the fallback language
+    if (fallbackLanguage) {
+      const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...phraseParameters);
+      if (fallbackTranslatedPhrase) {
+        return fallbackTranslatedPhrase;
+      }
     }
-
-    // Phrase is not translated, search it in default language (en)
-    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...phraseParameters);
-}
+  
+    // If no translation is found in the fallback language, try the default language (en)
+    if (language !== CONST.LOCALES.DEFAULT) {
+      Log.alert(`${phraseKey} was not found in the ${language} locale`);
+      return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...phraseParameters);
+    }
+  
+    // If no translation is found in the default language, return null
+    return null;
+  }
 
 /**
  * Return translated string for given locale and phrase
@@ -152,7 +232,7 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
     const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
 
     const translatedPhrase = getTranslatedPhrase(language, phraseKey, languageAbbreviation, ...phraseParameters);
-    if (translatedPhrase !== null && translatedPhrase !== undefined) {
+    if (translatedPhrase !== null) {
         return translatedPhrase;
     }
 
