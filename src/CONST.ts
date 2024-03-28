@@ -4154,6 +4154,7 @@ const CONST = {
         },
     },
 
+    MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
 } as const;
 
