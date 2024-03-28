@@ -221,8 +221,8 @@ function ReportActionItemMessageEdit(
             }, 1000),
         [reportID, action],
     );
-    
-    useEffect(() => () => debouncedSaveDraft.cancel(), [debouncedSaveDraft])
+
+    useEffect(() => () => debouncedSaveDraft.cancel(), [debouncedSaveDraft]);
 
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
