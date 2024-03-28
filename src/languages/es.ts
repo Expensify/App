@@ -1827,6 +1827,18 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
+        qbo: {
+            export: 'Exportar',
+            exportDescription: 'Configure cómo se exportan los datos de Expensify a QuickBooks Online.',
+            preferredExporter: 'Exportador preferido',
+            date: 'Fecha',
+            exportExpenses: 'Exportar gastos de bolsillo como',
+            exportInvoices: 'Exportar facturas a',
+            exportCompany: 'Exportar tarjetas de empresa como',
+            exportExpensifyCard: 'Exportar transacciones de la tarjeta Expensify como',
+            deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
+            deepDiveExpensifyCardIntegration: 'nuestra integración.',
+        },
         type: {
             free: 'Gratis',
             control: 'Control',

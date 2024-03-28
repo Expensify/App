@@ -452,9 +452,17 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/profile',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile` as const,
     },
+    WORKSPACE_ACCOUNTING: {
+        route: 'settings/workspaces/:policyID/accounting',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
+    },
     WORKSPACE_PROFILE_CURRENCY: {
         route: 'settings/workspaces/:policyID/profile/currency',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/currency` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const,
     },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',

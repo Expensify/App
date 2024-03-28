@@ -208,6 +208,7 @@ const SCREENS = {
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
+        ACCOUNTING: 'Workspace_Accounting',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CATEGORIES: 'Workspace_Categories',
@@ -249,6 +250,7 @@ const SCREENS = {
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
+        QUICKBOOKSONLINE_EXPORT: 'Workspace_Accounting_QuickbooksOnline_Export',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
     },
 

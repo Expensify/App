@@ -1805,6 +1805,18 @@ export default {
             control: 'Control',
             collect: 'Collect',
         },
+        qbo: {
+            export: 'Export',
+            exportDescription: 'Configure how data in Expensify gets exported to QuickBooks Online.',
+            preferredExporter: 'Preferred exporter',
+            date: 'Date',
+            exportExpenses: 'Export out-of-pocket expenses as',
+            exportInvoices: 'Export invoices to',
+            exportCompany: 'Export company cards as',
+            exportExpensifyCard: 'Export Expensify Card transactions as',
+            deepDiveExpensifyCard: 'Expensify Card transactions automatically export to a “Expensify Card Liability Account” created with',
+            deepDiveExpensifyCardIntegration: 'our integration.',
+        },
         categories: {
             deleteCategories: 'Delete categories',
             deleteCategoriesPrompt: 'Are you sure you want to delete these categories?',
