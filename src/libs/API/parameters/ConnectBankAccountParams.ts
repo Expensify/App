@@ -8,7 +8,6 @@ type ConnectBankAccountParams = {
     plaidMask?: string;
     isSavings?: boolean;
     policyID?: string;
-    canUseNewVbbaFlow?: boolean;
 };
 
 export default ConnectBankAccountParams;

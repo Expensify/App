@@ -21,6 +21,9 @@ type UseSubStep<TProps extends SubStepProps> = {
     /** array of components that will become sub steps */
     bodyContent: Array<ComponentType<SubStepProps & TProps>>;
 
+    /** called after each sub step */
+    onNextSubStep?: () => void;
+
     /** called on last sub step */
     onFinished: () => void;
 
