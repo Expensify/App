@@ -757,13 +757,17 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
+                    shouldShowRightIcon={!isReadOnly}
                     title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    disabled={didConfirm || !isTypeRequest}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        )
+                    }
+                    disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
             ),
@@ -784,7 +788,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             ROUTES.MONEY_REQUEST_STEP_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
-                    disabled={didConfirm || !isTypeRequest}
+                    disabled={didConfirm}
                     interactive={!isReadOnly && isPolicyExpenseChat}
                 />
             ),
