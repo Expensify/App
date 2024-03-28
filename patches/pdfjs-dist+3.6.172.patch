@@ -1,0 +1,17 @@
+diff --git a/node_modules/pdfjs-dist/build/pdf.js b/node_modules/pdfjs-dist/build/pdf.js
+index d572c0b..b12d9bf 100644
+--- a/node_modules/pdfjs-dist/build/pdf.js
++++ b/node_modules/pdfjs-dist/build/pdf.js
+@@ -577,6 +577,12 @@ class FeatureTest {
+         isMac: false
+       });
+     }
++    if (navigator.product === 'ReactNative') {
++      return shadow(this, "platform", {
++        isWin: false,
++        isMac: false
++      }); 
++    }
+     return shadow(this, "platform", {
+       isWin: navigator.platform.includes("Win"),
+       isMac: navigator.platform.includes("Mac")
