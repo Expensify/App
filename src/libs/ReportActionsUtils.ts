@@ -214,6 +214,35 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
 }
 
 /**
+ * Returns the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions with a childReportID. Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ */
+function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions> | ReportAction[]): string | null {
+    const reportActionsArray = Object.values(reportActions ?? {});
+
+    if (!reportActionsArray.length) {
+        return null;
+    }
+
+    // Get all IOU report actions for the report.
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.PAY];
+    const iouRequestActions = reportActionsArray.filter(
+        (action) =>
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+            (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
+            action.childReportID &&
+            action.originalMessage.IOUTransactionID,
+    );
+
+    // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
+    if (!iouRequestActions.length || iouRequestActions.length > 1) {
+        return null;
+    }
+
+    // Ensure we have a childReportID associated with the IOU report action
+    return iouRequestActions[0].childReportID ?? null;
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -1030,6 +1059,7 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
 
 export {
     extractLinksFromMessageHtml,
+    getOneTransactionThreadReportID,
     getAllReportActions,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
