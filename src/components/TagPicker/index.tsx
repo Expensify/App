@@ -39,7 +39,7 @@ type TagPickerProps = TagPickerOnyxProps & {
     tagListName: string;
 
     /** Callback to submit the selected tag */
-    onSubmit: () => void;
+    onSubmit: (selectedTag: Partial<ReportUtils.OptionData>) => void;
 
     /**
      * Safe area insets required for reflecting the portion of the view,
