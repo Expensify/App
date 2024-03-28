@@ -64,15 +64,19 @@ function isWhiteList(assetName) {
         return true;
     }
 
-    if (assetName.includes('ConciergeAvatar')) {
+    if (assetName === 'ConciergeAvatar') {
         return true;
     }
 
-    if (assetName.includes('NotificationsAvatar')) {
+    if (assetName === 'NotificationsAvatar') {
         return true;
     }
 
     if (assetName.includes('GenericBank')) {
+        return true;
+    }
+
+    if (assetName === 'FrequentlyUsed' || assetName === 'History') {
         return true;
     }
 
@@ -110,9 +114,6 @@ function findUnusedAssets(projectDir) {
                 unusedAssets.delete(assetName);
                 hasMatch = true;
             } else if (content.match(regex) && !file.includes('src/components/Icon/')) {
-                unusedAssets.delete(assetName);
-                hasMatch = true;
-            } else if (content.match(regex) && file === 'src/components/Icon/BankIcons') {
                 unusedAssets.delete(assetName);
                 hasMatch = true;
             }
