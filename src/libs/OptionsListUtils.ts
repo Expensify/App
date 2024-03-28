@@ -900,15 +900,10 @@ function sortCategories(categories: Record<string, Category>): Category[] {
  * Sorts tags alphabetically by name.
  */
 function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
-    let sortedTags;
+    const sortedTags = Array.isArray(tags) ? tags : Object.values(tags);
 
-    if (Array.isArray(tags)) {
-        sortedTags = tags.sort((a, b) => localeCompare(a.name, b.name));
-    } else {
-        sortedTags = Object.values(tags).sort((a, b) => localeCompare(a.name, b.name));
-    }
-
-    return sortedTags;
+    // Use lodash's sortBy to ensure consistency with oldDot.
+    return lodashSortBy(sortedTags, 'name', localeCompare);
 }
 
 /**
@@ -1105,7 +1100,7 @@ function getTagListSections(
     maxRecentReportsToShow: number,
 ) {
     const tagSections = [];
-    const sortedTags = sortTags(tags);
+    const sortedTags = sortTags(tags) as PolicyTag[];
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
     const numberOfTags = enabledTags.length;
@@ -2089,6 +2084,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
+    sortTags,
     getCategoryOptionTree,
     hasEnabledTags,
     formatMemberForList,
