@@ -81,12 +81,11 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() => OptionsListUtils.getMemberInviteOptions(personalDetails, mockedBetas, SEARCH_VALUE));
     });
-});
 
-/* formatSectionsFromSearchTerm performance tests */
-describe('formatSectionsFromSearchTerm', () => {
+
+    /* formatSectionsFromSearchTerm performance tests */
     test('[OptionsListUtils] formatSectionsFromSearchTerm with an empty search term and a large number of selectedOptions', async () => {
-        const selectedOptions: ReportUtils.OptionData[] = Array.from({length: SELECTED_OPTIONS_COUNT}, (_, i) => ({
+        const selectedOptions: OptionData[] = Array.from({length: SELECTED_OPTIONS_COUNT}, (_, i) => ({
             login: `user${i}@example.com`,
             searchText: `Option ${i}`,
             reportID: `report_${i}`,
@@ -97,7 +96,7 @@ describe('formatSectionsFromSearchTerm', () => {
     });
 
     test('[OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches a subset of a large selectedOptions array', async () => {
-        const selectedOptions: ReportUtils.OptionData[] = Array.from({length: SELECTED_OPTIONS_COUNT}, (_, i) => ({
+        const selectedOptions: OptionData[] = Array.from({length: SELECTED_OPTIONS_COUNT}, (_, i) => ({
             login: `user${i}@example.com`,
             searchText: i % 2 === 0 ? 'John Smith' : `Option ${i}`,
             reportID: `report_${i}`,
@@ -108,13 +107,13 @@ describe('formatSectionsFromSearchTerm', () => {
     });
 
     test('[OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches recent reports but not personal details', async () => {
-        const selectedOptions: ReportUtils.OptionData[] = [];
-        const filteredRecentReports: ReportUtils.OptionData[] = Array.from({length: RECENT_REPORTS_COUNT}, (_, i) => ({
+        const selectedOptions: OptionData[] = [];
+        const filteredRecentReports: OptionData[] = Array.from({length: RECENT_REPORTS_COUNT}, (_, i) => ({
             login: `user${i}@example.com`,
             searchText: `Recent Report ${i}`,
             reportID: `report_${i}`,
         }));
-        const filteredPersonalDetails: ReportUtils.OptionData[] = [];
+        const filteredPersonalDetails: OptionData[] = [];
         
         await measureFunction(() =>
             formatSectionsFromSearchTerm('recent', selectedOptions, filteredRecentReports, filteredPersonalDetails, false, 0, personalDetails, false),
@@ -122,9 +121,9 @@ describe('formatSectionsFromSearchTerm', () => {
     });
 
     test('OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches personal details but not recent reports', async () => {
-        const selectedOptions: ReportUtils.OptionData[] = [];
-        const filteredRecentReports: ReportUtils.OptionData[] = [];
-        const filteredPersonalDetails: ReportUtils.OptionData[] = Array.from({length: PERSONAL_DETAILS_COUNT}, (_, i) => ({
+        const selectedOptions: OptionData[] = [];
+        const filteredRecentReports: OptionData[] = [];
+        const filteredPersonalDetails: OptionData[] = Array.from({length: PERSONAL_DETAILS_COUNT}, (_, i) => ({
             login: `user${i}@example.com`,
             searchText: `Personal Detail ${i}`,
             reportID: `report_${i}`,
@@ -136,17 +135,17 @@ describe('formatSectionsFromSearchTerm', () => {
     });
 
     test('[OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches neither recent reports nor personal details', async () => {
-        const selectedOptions: ReportUtils.OptionData[] = Array.from({length: 10}, (_, i) => ({
+        const selectedOptions: OptionData[] = Array.from({length: 10}, (_, i) => ({
             login: `user${i}@example.com`,
             searchText: `Option ${i}`,
             reportID: `report_${i}`,
         }));
-        const filteredRecentReports: ReportUtils.OptionData[] = Array.from({length: RECENT_REPORTS_COUNT}, (_, i) => ({
+        const filteredRecentReports: OptionData[] = Array.from({length: RECENT_REPORTS_COUNT}, (_, i) => ({
             login: `user${i + 10}@example.com`,
             searchText: `Recent Report ${i}`,
             reportID: `report_${i + 10}`,
         }));
-        const filteredPersonalDetails: ReportUtils.OptionData[] = Array.from({length: PERSONAL_DETAILS_COUNT}, (_, i) => ({
+        const filteredPersonalDetails: OptionData[] = Array.from({length: PERSONAL_DETAILS_COUNT}, (_, i) => ({
             login: `user${i + 110}@example.com`,
             searchText: `Personal Detail ${i}`,
             reportID: `report_${i + 110}`,
