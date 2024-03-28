@@ -1,5 +1,6 @@
+import type React from "react";
 import type {ImageSourcePropType} from 'react-native';
-import type {Svg} from 'react-native-svg';
+import type {Svg, SvgProps} from 'react-native-svg';
 import type {QRCodeLogoMarginRatio, QRCodeLogoRatio} from '@components/QRCode';
 
 type QRShareProps = {
@@ -19,9 +20,20 @@ type QRShareProps = {
     subtitle?: string;
 
     /**
+     * Todo
+     */
+    logoSVG?: React.FC<SvgProps>;
+
+    /**
      * The logo which will be display in the middle of the QR code
      */
     logo?: ImageSourcePropType;
+
+    /**
+     * Todo
+     */
+    logoBackground?: string;
+    logoColor?: string;
 
     /**
      * The size ratio of logo to QR code
