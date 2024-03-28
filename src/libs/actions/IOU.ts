@@ -103,6 +103,7 @@ type SplitData = {
     reportActionID: string;
     policyID?: string;
     createdReportActionID?: string;
+    chatType?: string;
 };
 
 type SplitsAndOnyxData = {
@@ -2278,11 +2279,32 @@ function createSplitsAndOnyxData(
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
-    const existingSplitChatReport =
-        existingSplitChatReportID || participants[0].reportID
-            ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
-            : ReportUtils.getChatByParticipants(participantAccountIDs);
-    const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+
+    const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
+    let existingSplitChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
+    if (!existingSplitChatReport) {
+        existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
+    }
+    let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
+    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
+    if (!existingSplitChatReport && participants.length > 1) {
+        newChat = ReportUtils.buildOptimisticChatReport(
+            allParticipantsAccountIDs,
+            '',
+            CONST.REPORT.CHAT_TYPE.GROUP,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        );
+    }
+    if (isEmptyObject(newChat)) {
+        newChat = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
+    }
+    const splitChatReport = existingSplitChatReport ?? newChat;
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -2611,6 +2633,7 @@ function createSplitsAndOnyxData(
         transactionID: splitTransaction.transactionID,
         reportActionID: splitIOUReportAction.reportActionID,
         policyID: splitChatReport.policyID,
+        chatType: splitChatReport.chatType,
     };
 
     if (!existingSplitChatReport) {
@@ -2675,6 +2698,7 @@ function splitBill(
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
+        chatType: splitData.chatType,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
@@ -2733,6 +2757,7 @@ function splitBillAndOpenReport(
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
+        chatType: splitData.chatType,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
