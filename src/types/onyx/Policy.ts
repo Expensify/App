@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
+import PolicyMember from "@src/types/onyx/PolicyMember";
 
 type Unit = 'mi' | 'km';
 
@@ -320,7 +321,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         submitsTo?: number;
 
         /** The employee list of the policy */
-        employeeList?: [];
+        employeeList?: PolicyMember[];
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
