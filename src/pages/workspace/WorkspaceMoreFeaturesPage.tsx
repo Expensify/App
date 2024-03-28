@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
@@ -43,6 +44,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {canUseAccountingIntegrations} = usePermissions();
 
     const spendItems: Item[] = [
         {
@@ -124,12 +126,15 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
             items: organizeItems,
         },
-        {
+    ];
+
+    if (canUseAccountingIntegrations) {
+        sections.push({
             titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
             items: integrateItems,
-        },
-    ];
+        });
+    }
 
     const renderItem = useCallback(
         (item: Item) => (
