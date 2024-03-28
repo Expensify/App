@@ -47,7 +47,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
