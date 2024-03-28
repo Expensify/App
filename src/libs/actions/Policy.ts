@@ -60,6 +60,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -2851,27 +2852,29 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
 
 function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Record<string, {name: string; enabled: boolean}>) {
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const optimisticPolicyCategoriesData = {
+        ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
+            acc[key] = {
+                ...policyCategories[key],
+                ...categoriesToUpdate[key],
+                errors: null,
+                pendingFields: {
+                    enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            };
 
+            return acc;
+        }, {}),
+    };
+    const shouldTurnOffCategoriesEnabled = !OptionsListUtils.hasEnabledOptions({...policyCategories, ...optimisticPolicyCategoriesData});
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
-                        acc[key] = {
-                            ...policyCategories[key],
-                            ...categoriesToUpdate[key],
-                            errors: null,
-                            pendingFields: {
-                                enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        };
-
-                        return acc;
-                    }, {}),
-                },
+                value: optimisticPolicyCategoriesData,
             },
         ],
         successData: [
@@ -2917,6 +2920,37 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             },
         ],
     };
+    if (shouldTurnOffCategoriesEnabled) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areCategoriesEnabled: false,
+                pendingFields: {
+                    areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    areCategoriesEnabled: null,
+                },
+            },
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areCategoriesEnabled: policy?.areCategoriesEnabled,
+                pendingFields: {
+                    areCategoriesEnabled: null,
+                },
+            },
+        });
+    }
 
     const parameters = {
         policyID,
@@ -2924,6 +2958,10 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, onyxData);
+    if (shouldTurnOffCategoriesEnabled) {
+        Navigation.goBack();
+        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID), CONST.NAVIGATION.TYPE.UP);
+    }
 }
 
 function createPolicyCategory(policyID: string, categoryName: string) {
