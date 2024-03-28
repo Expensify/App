@@ -88,8 +88,8 @@ const ROUTES = {
         getRoute: (domain: string, cardId: string) => `settings/wallet/card/${domain}/${cardId}` as const,
     },
     SETTINGS_REPORT_FRAUD: {
-        route: 'settings/wallet/card/:domain/report-virtual-fraud',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/report-virtual-fraud` as const,
+        route: 'settings/wallet/card/:domain/:cardId/report-virtual-fraud',
+        getRoute: (domain: string, cardId: string) => `settings/wallet/card/${domain}/${cardId}/report-virtual-fraud` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
         route: 'settings/wallet/card/:domain/get-physical/name',
@@ -117,12 +117,12 @@ const ROUTES = {
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
-        route: 'settings/wallet/card/:domain/report-card-lost-or-damaged',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/report-card-lost-or-damaged` as const,
+        route: 'settings/wallet/card/:domain/:cardId/report-card-lost-or-damaged',
+        getRoute: (domain: string, cardId: string) => `settings/wallet/card/${domain}/${cardId}/report-card-lost-or-damaged` as const,
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
-        route: 'settings/wallet/card/:domain/activate',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/activate` as const,
+        route: 'settings/wallet/card/:domain/:cardId/activate',
+        getRoute: (domain: string, cardId: string) => `settings/wallet/card/${domain}/${cardId}/activate` as const,
     },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',

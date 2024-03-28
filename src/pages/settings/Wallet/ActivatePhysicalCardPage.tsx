@@ -19,7 +19,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PublicScreensParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as CardSettings from '@userActions/Card';
 import CONST from '@src/CONST';
@@ -34,7 +34,7 @@ type ActivatePhysicalCardPageOnyxProps = {
     cardList: OnyxEntry<Record<string, Card>>;
 };
 
-type ActivatePhysicalCardPageProps = ActivatePhysicalCardPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type ActivatePhysicalCardPageProps = ActivatePhysicalCardPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ACTIVATE>;
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
 const MAGIC_INPUT_MIN_HEIGHT = 86;
@@ -42,7 +42,7 @@ const MAGIC_INPUT_MIN_HEIGHT = 86;
 function ActivatePhysicalCardPage({
     cardList,
     route: {
-        params: {domain = ''},
+        params: {domain = '', cardId = ''},
     },
 }: ActivatePhysicalCardPageProps) {
     const theme = useTheme();
@@ -56,8 +56,7 @@ function ActivatePhysicalCardPage({
     const [lastPressedDigit, setLastPressedDigit] = useState('');
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain] ?? [];
-    const physicalCard = domainCards.find((card) => !card.isVirtual);
-    const cardID = physicalCard?.cardID ?? 0;
+    const physicalCard = domainCards.find((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED);
     const cardError = ErrorUtils.getLatestErrorMessage(physicalCard ?? {});
 
     const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
@@ -66,19 +65,18 @@ function ActivatePhysicalCardPage({
      * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, navigate to card details screen.
      */
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (physicalCard?.isLoading || cardList?.[cardID]?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
+        if (physicalCard?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN || physicalCard?.isLoading) {
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
-    }, [cardID, cardList, domain, physicalCard?.isLoading]);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardId));
+    }, [cardId, cardList, domain, physicalCard?.isLoading, physicalCard?.state]);
 
     useEffect(
         () => () => {
-            CardSettings.clearCardListErrors(cardID);
+            CardSettings.clearCardListErrors(physicalCard?.cardID ?? 0);
         },
-        [cardID],
+        [physicalCard?.cardID],
     );
 
     /**
@@ -96,7 +94,7 @@ function ActivatePhysicalCardPage({
         setFormError('');
 
         if (cardError) {
-            CardSettings.clearCardListErrors(cardID);
+            CardSettings.clearCardListErrors(physicalCard?.cardID ?? 0);
         }
 
         setLastFourDigits(text);
@@ -110,8 +108,8 @@ function ActivatePhysicalCardPage({
             return;
         }
 
-        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, cardID);
-    }, [lastFourDigits, cardID]);
+        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, physicalCard?.cardID ?? 0);
+    }, [lastFourDigits, physicalCard?.cardID]);
 
     if (isEmptyObject(physicalCard)) {
         return <NotFoundPage />;
@@ -120,7 +118,7 @@ function ActivatePhysicalCardPage({
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardId))}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}

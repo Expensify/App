@@ -249,7 +249,7 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={Expensicons.Flag}
                                             shouldShowRightIcon
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain))}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain, cardId))}
                                         />
                                     </>
                                 ))}
@@ -267,7 +267,7 @@ function ExpensifyCardPage({
                                                     title={translate('reportCardLostOrDamaged.report')}
                                                     icon={Expensicons.Flag}
                                                     shouldShowRightIcon
-                                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain))}
+                                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain, cardId))}
                                                 />
                                             </>
                                         ),
@@ -280,7 +280,7 @@ function ExpensifyCardPage({
                             success
                             large
                             style={[styles.w100, styles.p5]}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(domain))}
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(domain, cardId))}
                             text={translate('activateCardPage.activatePhysicalCard')}
                         />
                     )}

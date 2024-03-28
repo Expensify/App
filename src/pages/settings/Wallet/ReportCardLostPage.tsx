@@ -13,9 +13,8 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PublicScreensParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {ReplacementReason} from '@userActions/Card';
@@ -62,7 +61,7 @@ type ReportCardLostPageOnyxProps = {
     cardList: OnyxEntry<Record<string, Card>>;
 };
 
-type ReportCardLostPageProps = ReportCardLostPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type ReportCardLostPageProps = ReportCardLostPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED>;
 
 function ReportCardLostPage({
     privatePersonalDetails = {
@@ -77,15 +76,14 @@ function ReportCardLostPage({
     },
     cardList = {},
     route: {
-        params: {domain = ''},
+        params: {domain = '', cardId = ''},
     },
     formData,
 }: ReportCardLostPageProps) {
     const styles = useThemeStyles();
     usePrivatePersonalDetails();
 
-    const domainCards = CardUtils.getDomainCards(cardList ?? {})[domain];
-    const physicalCard = CardUtils.findPhysicalCard(domainCards);
+    const physicalCard = cardList?.[cardId];
 
     const {translate} = useLocalize();
 
@@ -103,8 +101,8 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
-    }, [domain, formData?.isLoading, prevIsLoading, physicalCard?.errors]);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardId));
+    }, [domain, formData?.isLoading, prevIsLoading, physicalCard?.errors, cardId]);
 
     useEffect(() => {
         if (formData?.isLoading && isEmptyObject(physicalCard?.errors)) {

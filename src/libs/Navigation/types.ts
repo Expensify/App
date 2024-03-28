@@ -117,10 +117,20 @@ type SettingsNavigatorParamList = {
         /** cardId passed via route /settings/wallet/card/:domain/:card */
         cardId: string;
     };
-    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: undefined;
+    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
+        /** domain passed via route /settings/wallet/card/:domain/:card */
+        domain: string;
+        /** cardId passed via route /settings/wallet/card/:domain/:card */
+        cardId: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
+        /** domain passed via route /settings/wallet/card/:domain/:card */
+        domain: string;
+        /** cardId passed via route /settings/wallet/card/:domain/:card */
+        cardId: string;
+    };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
-        /** domain passed via route /settings/wallet/card/:domain */
+        /** domain passed via route /settings/wallet/card/:domain/:card */
         domain: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
@@ -255,7 +265,12 @@ type SettingsNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
-    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
+    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
+        /** domain passed via route /settings/wallet/card/:domain/:card */
+        domain: string;
+        /** cardId passed via route /settings/wallet/card/:domain/:card */
+        cardId: string;
+    };
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
