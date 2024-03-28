@@ -29,8 +29,8 @@ function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Messa
             return {text: Localize.translateLocal('task.messages.reopened')};
         case CONST.REPORT.ACTIONS.TYPE.TASKEDITED:
             return {
-                text: action?.message?.[0].text ?? '',
-                html: action?.message?.[0].html,
+                text: action?.message?.[0]?.text ?? '',
+                html: action?.message?.[0]?.html,
             };
         default:
             return {text: Localize.translateLocal('task.task')};
