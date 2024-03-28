@@ -1,6 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
-import type {CSSProperties} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 type PDFViewBaseProps = {
@@ -10,14 +8,14 @@ type PDFViewBaseProps = {
     /** PDF file name */
     fileName?: string;
 
-    /** (web only) Additional style props */
-    style?: CSSProperties;
+    /** Additional style props */
+    style?: StyleProp<ViewStyle>;
 
     /** Notify parent that the keyboard has opened or closed */
     onToggleKeyboard?: (isKeyboardOpen: boolean) => void;
 
     /** Handles press events like toggling attachment arrows natively */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent | undefined) => void | Promise<void>;
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Handles scale changed event in PDF component */
     onScaleChanged?: (newScale: number) => void;
@@ -29,12 +27,17 @@ type PDFViewBaseProps = {
     isFocused?: boolean;
 
     /** Styles for the error label */
-    errorLabelStyles: StyleProp<TextStyle>;
+    errorLabelStyles?: StyleProp<TextStyle>;
 };
 
 type PDFViewOnyxProps = {
+    // Maximum canvas area to render the PDF preview
     maxCanvasArea: OnyxEntry<number>;
+
+    // Maximum canvas height to render the PDF preview
     maxCanvasHeight: OnyxEntry<number>;
+
+    // Maximum canvas width to render the PDF preview
     maxCanvasWidth: OnyxEntry<number>;
 };
 

@@ -1,3 +1,4 @@
+import type {KeyboardEvent} from 'react';
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
@@ -12,13 +13,14 @@ import variables from '@styles/variables';
 
 type PDFInfoMessageProps = {
     /** Callback function to indicate that PDF password form should be shown */
-    onShowForm: () => void | ((event: GestureResponderEvent) => void);
+    onShowForm: (event: GestureResponderEvent | KeyboardEvent) => void;
 };
 
 function PDFInfoMessage({onShowForm}: PDFInfoMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     return (
         <View style={styles.alignItemsCenter}>
             <Icon

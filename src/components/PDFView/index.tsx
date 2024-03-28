@@ -1,5 +1,7 @@
 import 'core-js/features/array/at';
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {CSSProperties} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -7,6 +9,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
@@ -20,13 +23,13 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
-    const prevWindowHeight = useRef(windowHeight);
+    const prevWindowHeight = usePrevious(windowHeight);
     const {translate} = useLocalize();
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
      *
-     * @param {Boolean} isKeyboardOpen True if keyboard is open
+     * @param isKeyboardOpen True if keyboard is open
      */
     const toggleKeyboardOnSmallScreens = useCallback(
         (isKBOpen: boolean) => {
@@ -58,20 +61,23 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
 
     useEffect(() => {
         retrieveCanvasLimits();
+        // This rule needs to be applied so that this effect is executed only when the component is mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // shouldComponentUpdate(nextProps, nextState) {
-    //     return !_.isEqual(state, nextState) || !_.isEqual(props, nextProps);
-    // }
-
     useEffect(() => {
-        if (!isKeyboardOpen && windowHeight < prevWindowHeight.current - 100) {
+        // Use window height changes to toggle the keyboard. To maintain keyboard state
+        // on all platforms we also use focus/blur events. So we need to make sure here
+        // that we avoid redundant keyboard toggling.
+        // Minus 100px is needed to make sure that when the internet connection is
+        // disabled in android chrome and a small 'No internet connection' text box appears,
+        // we do not take it as a sign to open the keyboard
+        if (!isKeyboardOpen && windowHeight < prevWindowHeight - 100) {
             toggleKeyboardOnSmallScreens(true);
-        } else if (isKeyboardOpen && windowHeight > prevWindowHeight.current) {
+        } else if (isKeyboardOpen && windowHeight > prevWindowHeight) {
             toggleKeyboardOnSmallScreens(false);
         }
-    }, [isKeyboardOpen, toggleKeyboardOnSmallScreens, windowHeight]);
+    }, [isKeyboardOpen, prevWindowHeight, toggleKeyboardOnSmallScreens, windowHeight]);
 
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
@@ -82,7 +88,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
                 tabIndex={0}
             >
                 <PDFPreviewer
-                    contentContainerStyle={style}
+                    contentContainerStyle={style as CSSProperties}
                     file={sourceURL}
                     pageMaxWidth={variables.pdfPageMaxWidth}
                     isSmallScreen={isSmallScreenWidth}
