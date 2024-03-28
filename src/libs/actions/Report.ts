@@ -136,6 +136,8 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
         currentReportData[reportID] = report;
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        handleReportChanged(report);
     },
 });
 
@@ -1125,11 +1127,6 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         reconnect(report.reportID);
     }
 }
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: handleReportChanged,
-});
 
 /** Deletes a comment from the report, basically sets it as empty string */
 function deleteReportComment(reportID: string, reportAction: ReportAction) {
