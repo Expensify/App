@@ -34,6 +34,9 @@ const propTypes = {
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 
+    /** Whether the user input should be kept or not */
+    shouldKeepUserInput: PropTypes.bool,
+
     /** The policy of the report */
     policy: PropTypes.shape({
         /**
@@ -57,6 +60,7 @@ const defaultProps = {
     report: {},
     transaction: {},
     policy: {},
+    shouldKeepUserInput: false,
 };
 
 const getTaxAmount = (transaction, defaultTaxValue, amount) => {
@@ -72,6 +76,7 @@ function IOURequestStepAmount({
     transaction,
     transaction: {currency},
     policy,
+    shouldKeepUserInput,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
@@ -133,7 +138,7 @@ function IOURequestStepAmount({
             IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
         }
 
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true);
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true, shouldKeepUserInput);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -167,6 +172,7 @@ function IOURequestStepAmount({
                 currency={currency}
                 amount={transaction.amount}
                 ref={(e) => (textInput.current = e)}
+                shouldKeepUserInput={transaction.shouldShowOriginalAmount}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={navigateToNextPage}
                 selectedTab={iouRequestType}
