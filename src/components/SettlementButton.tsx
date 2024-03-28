@@ -159,6 +159,21 @@ function SettlementButton({
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
+            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
+                text: translate('iou.settlePersonalBank', {formattedAmount}),
+                icon: Expensicons.Bank,
+                value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            },
+            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
+                text: translate('iou.settleBusinessBank', {formattedAmount}),
+                icon: Expensicons.Bank,
+                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            },
+            [CONST.PAYMENT_METHODS.DEBIT_CARD]: {
+                text: translate('iou.settleDebitCard', {formattedAmount}),
+                icon: Expensicons.CreditCard,
+                value: CONST.PAYMENT_METHODS.DEBIT_CARD,
+            },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', {formattedAmount}),
                 icon: Expensicons.Cash,
@@ -182,6 +197,11 @@ function SettlementButton({
         // If the user has previously chosen a specific payment option or paid for some request or expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
+
+        buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+        buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
+        buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]);
+
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
@@ -205,7 +225,10 @@ function SettlementButton({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+        if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA 
+            || iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT 
+            || iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
+            || iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
