@@ -244,17 +244,6 @@ Onyx.connect({
     },
 });
 
-const policyExpenseReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!ReportUtils.isPolicyExpenseChat(report)) {
-            return;
-        }
-        policyExpenseReports[key] = report;
-    },
-});
-
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -763,13 +752,13 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
-    const expenseReport = policyExpenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
+    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
 
     const option = createOption(
         expenseReport?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
-        expenseReport ?? null,
+        !isEmptyObject(expenseReport) ? expenseReport : null,
         {},
         {
             showChatPreviewLine: false,
@@ -780,8 +769,8 @@ function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = ReportUtils.getPolicyName(expenseReport);
     option.alternateText = Localize.translateLocal('workspace.common.workspace');
-    option.selected = report.selected;
-    option.isSelected = report.selected;
+    option.selected = participant.selected;
+    option.isSelected = participant.selected;
     return option;
 }
 
@@ -911,15 +900,10 @@ function sortCategories(categories: Record<string, Category>): Category[] {
  * Sorts tags alphabetically by name.
  */
 function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
-    let sortedTags;
+    const sortedTags = Array.isArray(tags) ? tags : Object.values(tags);
 
-    if (Array.isArray(tags)) {
-        sortedTags = tags.sort((a, b) => localeCompare(a.name, b.name));
-    } else {
-        sortedTags = Object.values(tags).sort((a, b) => localeCompare(a.name, b.name));
-    }
-
-    return sortedTags;
+    // Use lodash's sortBy to ensure consistency with oldDot.
+    return lodashSortBy(sortedTags, 'name', localeCompare);
 }
 
 /**
@@ -1116,7 +1100,7 @@ function getTagListSections(
     maxRecentReportsToShow: number,
 ) {
     const tagSections = [];
-    const sortedTags = sortTags(tags);
+    const sortedTags = sortTags(tags) as PolicyTag[];
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
     const numberOfTags = enabledTags.length;
@@ -2100,6 +2084,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
+    sortTags,
     getCategoryOptionTree,
     hasEnabledTags,
     formatMemberForList,
