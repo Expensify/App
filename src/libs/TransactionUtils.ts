@@ -565,6 +565,13 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
     return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
 }
 
+/**
+ * Checks if any violations for the provided transaction are of type 'note'
+ */
+function hasNoteTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice'));
+}
+
 function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
@@ -633,6 +640,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    hasNoteTypeViolation,
 };
 
 export type {TransactionChanges};

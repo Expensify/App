@@ -6,6 +6,7 @@ import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {ReceiptAuditHeader, ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
@@ -40,6 +41,9 @@ import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewTransactionOnyxProps = {
+    /** Session info for the currently logged in user. */
+    session: OnyxEntry<OnyxTypes.Session>;
+
     /** The transaction associated with the transactionThread */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -84,6 +88,7 @@ function MoneyRequestView({
     policyTagList,
     policy,
     transactionViolations,
+    session,
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -127,6 +132,12 @@ function MoneyRequestView({
     const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+
+    const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
+    const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
@@ -148,6 +159,8 @@ function MoneyRequestView({
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
         [canUseViolations, getViolationsForField],
     );
+    const noteTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
+    const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report) && (isActionOwner || isPolicyAdmin || isApprover);
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -189,7 +202,6 @@ function MoneyRequestView({
         }
     }
 
-    const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
     const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
@@ -240,7 +252,12 @@ function MoneyRequestView({
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+                {hasReceipt && (
+                    <ReceiptAuditHeader
+                        notes={noteTypeViolations}
+                        showAuditMessage={shouldShowNotesViolations}
+                    />
+                )}
                 {(showMapAsImage || hasReceipt) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
@@ -287,7 +304,8 @@ function MoneyRequestView({
                         }
                     />
                 )}
-                {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
+                {shouldShowNotesViolations && <ReceiptAuditMessages notes={noteTypeViolations} />}
+                <ViolationMessages violations={getViolationsForField('receipt')} />
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
@@ -482,6 +500,9 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
                 const transactionID = originalMessage?.IOUTransactionID ?? 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
             },
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     })(MoneyRequestView),
 );
