@@ -263,7 +263,8 @@ function ReportScreen({
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
     }
     const [isComposerFocus, setIsComposerFocus] = useState(false);
-    const viewportOffsetTop = useViewportOffsetTop(Browser.isMobileSafari() && isComposerFocus && !modal?.willAlertModalBecomeVisible);
+    const shouldAdjustScrollView = useMemo(() => Browser.isMobileSafari() && isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
+    const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
 
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
