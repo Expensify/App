@@ -1,5 +1,4 @@
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {RequireAllOrNone, Spread} from 'type-fest';
 import type Response from './Response';
 
 type OnyxData = {
@@ -9,35 +8,25 @@ type OnyxData = {
     optimisticData?: OnyxUpdate[];
 };
 
-type RequestConflictResolver = {
-    getConflictingRequests: (persistedRequests: Request[]) => Request[];
-    handleConflictingRequest: (persistedRequest: Request) => unknown;
-};
-
 type RequestType = 'get' | 'post';
 
-type RequestData = RequireAllOrNone<
-    Spread<
-        {
-            command: string;
-            commandName?: string;
-            data?: Record<string, unknown>;
-            type?: RequestType;
-            shouldUseSecure?: boolean;
-            successData?: OnyxUpdate[];
-            failureData?: OnyxUpdate[];
-            finallyData?: OnyxUpdate[];
-            idempotencyKey?: string;
-
-            resolve?: (value: Response) => void;
-            reject?: (value?: unknown) => void;
-        },
-        RequestConflictResolver
-    >,
-    keyof RequestConflictResolver
->;
+type RequestData = {
+    command: string;
+    commandName?: string;
+    data?: Record<string, unknown>;
+    type?: RequestType;
+    shouldUseSecure?: boolean;
+    successData?: OnyxUpdate[];
+    failureData?: OnyxUpdate[];
+    finallyData?: OnyxUpdate[];
+    idempotencyKey?: string;
+    getConflictingRequests?: (persistedRequests: Request[]) => Request[];
+    handleConflictingRequest?: (persistedRequest: Request) => unknown;
+    resolve?: (value: Response) => void;
+    reject?: (value?: unknown) => void;
+};
 
 type Request = RequestData & OnyxData;
 
 export default Request;
-export type {OnyxData, RequestType, RequestConflictResolver};
+export type {OnyxData, RequestType};
