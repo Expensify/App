@@ -1075,16 +1075,19 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Option[] {
+function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>, selectedOptions?: SelectedTagOption[]): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
+        const selectedOptionsNames = selectedOptions?.map(({name}) => name);
+
         return {
             text: cleanedName,
             keyForList: tag.name,
             searchText: tag.name,
             tooltipText: cleanedName,
             isDisabled: !tag.enabled,
+            isSelected: selectedOptionsNames?.includes(tag.name),
         };
     });
 }
@@ -1118,7 +1121,7 @@ function getTagListSections(
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getTagsOptions(selectedTagOptions),
+            data: getTagsOptions(selectedTagOptions, selectedOptions),
         });
 
         return tagSections;
@@ -1132,7 +1135,7 @@ function getTagListSections(
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getTagsOptions(searchTags),
+            data: getTagsOptions(searchTags, selectedOptions),
         });
 
         return tagSections;
@@ -1144,7 +1147,7 @@ function getTagListSections(
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getTagsOptions(enabledTags),
+            data: getTagsOptions(enabledTags, selectedOptions),
         });
 
         return tagSections;
@@ -1170,7 +1173,7 @@ function getTagListSections(
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getTagsOptions(selectedTagOptions),
+            data: getTagsOptions(selectedTagOptions, selectedOptions),
         });
 
         indexOffset += selectedOptions.length;
@@ -1184,7 +1187,7 @@ function getTagListSections(
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
-            data: getTagsOptions(cutRecentlyUsedTags),
+            data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
 
         indexOffset += filteredRecentlyUsedTags.length;
@@ -1195,7 +1198,7 @@ function getTagListSections(
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getTagsOptions(filteredTags),
+        data: getTagsOptions(filteredTags, selectedOptions),
     });
 
     return tagSections;
