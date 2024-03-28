@@ -2183,6 +2183,7 @@ function trackExpense(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints = undefined,
+    validWaypoints?: WaypointCollection,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {
@@ -2239,6 +2240,7 @@ function trackExpense(
         gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
     };
 
     API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);

@@ -25,6 +25,7 @@ type TrackExpenseParams = {
     gpsPoints?: string;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
+    waypoints?: string;
 };
 
 export default TrackExpenseParams;

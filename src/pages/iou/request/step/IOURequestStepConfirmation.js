@@ -249,6 +249,7 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 gpsPoints,
+                TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true),
             );
         },
         [
@@ -267,6 +268,7 @@ function IOURequestStepConfirmation({
             policy,
             policyTags,
             policyCategories,
+            transaction.comment.waypoints,
         ],
     );
 
