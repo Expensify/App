@@ -6,13 +6,46 @@ import type UseHtmlPaste from './types';
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
     const navigation = useNavigation();
 
+    const insertByCommand = (text: string) => {
+        document.execCommand('insertText', false, text);
+    };
+
+    function insertAtCaret(text: string) {
+        const selection = window.getSelection();
+        if (selection?.rangeCount) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            const node = document.createTextNode(text);
+            range.insertNode(node);
+
+            // Move caret to the end of the newly inserted text node.
+            range.setStart(node, node.length);
+            range.setEnd(node, node.length);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // dispatch input event to trigger Markdown Input to parser text
+            (textInputRef.current as HTMLElement)?.dispatchEvent(
+                new Event('input', {
+                    bubbles: true,
+                }),
+            );
+        } else {
+            insertByCommand(text);
+        }
+    }
+
     /**
      * Set pasted text to clipboard
      * @param {String} text
      */
     const paste = useCallback((text: string) => {
         try {
-            document.execCommand('insertText', false, text);
+            if ((textInputRef.current as HTMLElement)?.hasAttribute('contenteditable')) {
+                insertAtCaret(text);
+            } else {
+                insertByCommand(text);
+            }
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             textInputRef.current?.blur();
