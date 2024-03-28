@@ -49,9 +49,9 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
         BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
     };
 
-    const handleOnfidoError = () => {
+    const handleOnfidoError = (error) => {
         // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
-        Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
+        Growl.error(error || translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
         BankAccounts.clearOnfidoToken();
         BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
     };
