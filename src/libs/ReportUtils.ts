@@ -28,6 +28,7 @@ import type {
     ReportMetadata,
     Session,
     Task,
+    TaxRate,
     Transaction,
     TransactionViolation,
     UserWallet,
@@ -405,6 +406,9 @@ type OptionData = {
     isDisabled?: boolean | null;
     name?: string | null;
     isSelfDM?: boolean | null;
+    reportID?: string;
+    enabled?: boolean;
+    data?: Partial<TaxRate>;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -960,7 +964,7 @@ function filterReportsByPolicyIDAndMemberAccountIDs(reports: Report[], policyMem
 /**
  * Given an array of reports, return them sorted by the last read timestamp.
  */
-function sortReportsByLastRead(reports: Report[], reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
+function sortReportsByLastRead(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
     return reports
         .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
         .sort((a, b) => {

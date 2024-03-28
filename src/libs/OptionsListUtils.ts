@@ -2110,4 +2110,4 @@ export {
     getTaxRatesSection,
 };
 
-export type {MemberForList, CategorySection, GetOptions, PayeePersonalDetails, Category};
+export type {MemberForList, CategorySection, CategoryTreeSection, GetOptions, PayeePersonalDetails, Category, Tag};
