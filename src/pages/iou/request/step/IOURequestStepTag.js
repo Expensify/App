@@ -91,15 +91,15 @@ function IOURequestStepTag({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const tagIndex = Number(rawTagIndex);
-    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const tagListIndex = Number(rawTagIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const currentTransaction = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionTag = TransactionUtils.getTag(currentTransaction);
-    const tag = TransactionUtils.getTag(currentTransaction, tagIndex);
+    const tag = TransactionUtils.getTag(currentTransaction, tagListIndex);
     const reportAction = reportActions[report.parentReportActionID || reportActionID];
     const canEditSplitBill = isSplitBill && reportAction && session.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
@@ -119,7 +119,7 @@ function IOURequestStepTag({
      */
     const updateTag = (selectedTag) => {
         const isSelectedTag = selectedTag.searchText === tag;
-        const updatedTag = IOUUtils.insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTag.searchText, tagIndex);
+        const updatedTag = IOUUtils.insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTag.searchText, tagListIndex);
         if (isEditingSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {tag: updatedTag});
             navigateBack();
@@ -147,8 +147,8 @@ function IOURequestStepTag({
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
                     <TagPicker
                         policyID={report.policyID}
-                        tag={policyTagListName}
-                        tagIndex={tagIndex}
+                        tagListName={policyTagListName}
+                        tagListIndex={tagListIndex}
                         selectedTag={tag}
                         insets={insets}
                         onSubmit={updateTag}
