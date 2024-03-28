@@ -35,7 +35,6 @@ function ExplanationModal() {
 
     return (
         <WelcomeVideoModal onClose={onClose}>
-            {/* TO DO: Add proper translations and text content */}
             <Text style={styles.textHeroSmall}>{translate('onboarding.explanationModal.title')}</Text>
             <Text style={styles.textSupporting}>{translate('onboarding.explanationModal.description1')}</Text>
             <Text style={[styles.textSupporting, styles.mt4]}>{translate('onboarding.explanationModal.description2')}</Text>
