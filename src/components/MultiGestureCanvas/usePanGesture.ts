@@ -137,7 +137,6 @@ const usePanGesture = ({
             }
         } else {
             const finalTranslateY = offsetY.value + panVelocityY.value * 0.2;
-
             if (finalTranslateY > SNAP_POINT && zoomScale.value <= 1) {
                 offsetY.value = withSpring(SNAP_POINT_HIDDEN, SPRING_CONFIG, () => {
                     isSwipingDownToClose.value = false;

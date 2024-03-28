@@ -531,14 +531,16 @@ function AttachmentModal({
                             />
                         )}
                         {!isEmptyObject(report) && !isReceiptAttachment ? (
-                            <AttachmentCarousel
-                                report={report}
-                                onNavigate={onNavigate}
-                                onClose={closeModal}
-                                source={source}
-                                onToggleKeyboard={updateConfirmButtonVisibility}
-                                setDownloadButtonVisibility={setDownloadButtonVisibility}
-                            />
+                            <AttachmentCarouselPagerContext.Provider value={context}>
+                                <AttachmentCarousel
+                                    report={report}
+                                    onNavigate={onNavigate}
+                                    onClose={closeModal}
+                                    source={source}
+                                    onToggleKeyboard={updateConfirmButtonVisibility}
+                                    setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                />
+                            </AttachmentCarouselPagerContext.Provider>
                         ) : (
                             !!sourceForAttachmentView &&
                             shouldLoadAttachment &&
