@@ -1195,6 +1195,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         return;
     }
 
+    const isDeletedParentAction = ReportActionsUtils.isThreadParentMessage(reportAction, reportID);
     const deletedMessage: Message[] = [
         {
             translationKey: '',
@@ -1202,7 +1203,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             html: '',
             text: '',
             isEdited: true,
-            isDeletedParentAction: ReportActionsUtils.isThreadParentMessage(reportAction, reportID),
+            isDeletedParentAction,
         },
     ];
     const optimisticReportActions: NullishDeep<ReportActions> = {
@@ -1299,19 +1300,22 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     };
 
     CachedPDFPaths.clearByKey(reportActionID);
+
     API.write(
         WRITE_COMMANDS.DELETE_COMMENT,
         parameters,
         {optimisticData, successData, failureData},
         {
-            getConflictingRequests: (persistedRequests) =>
-                persistedRequests.filter(
-                    (request) =>
-                        ([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.DELETE_COMMENT, WRITE_COMMANDS.UPDATE_COMMENT] as string[]).includes(request.command) &&
-                        request.data?.reportActionID === reportActionID,
-                ),
+            getConflictingRequests: (persistedRequests) => {
+                const conflictingCommands = (
+                    isDeletedParentAction
+                        ? [WRITE_COMMANDS.UPDATE_COMMENT]
+                        : [WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.UPDATE_COMMENT, WRITE_COMMANDS.DELETE_COMMENT]
+                ) as string[];
+                return persistedRequests.filter((request) => conflictingCommands.includes(request.command) && request.data?.reportActionID === reportActionID);
+            },
             handleConflictingRequest: () => Onyx.update(successData),
-            shouldIncludeCurrentRequest: true,
+            shouldIncludeCurrentRequest: !isDeletedParentAction,
         },
     );
 }
