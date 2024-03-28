@@ -4421,10 +4421,6 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
     );
 }
 
-function getChatByReportID(reportID: string) {
-    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]
-}
-
 /**
  * Attempts to find a report in onyx with the provided list of participants in given policy
  */
@@ -5750,7 +5746,6 @@ export {
     shouldCreateNewMoneyRequestReport,
     isTrackExpenseReport,
     hasActionsWithErrors,
-    getChatByReportID,
 };
 
 export type {
