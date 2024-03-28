@@ -133,26 +133,29 @@ function ReportActionsView({
     }, [route]);
 
     const listID = useMemo(() => {
+        if (!reportActionID) {
+            return listOldID;
+        }
         isFirstLinkedActionRender.current = true;
         const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
         listOldID = newID;
         return newID;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, isLoadingInitialReportActions]);
+    }, [route, isLoadingInitialReportActions, reportActionID]);
 
     const indexOfLinkedAction = useMemo(() => {
-        if (!reportActionID || isLoading) {
+        if (!reportActionID) {
             return -1;
         }
 
         return allReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
-    }, [allReportActions, currentReportActionID, reportActionID, isLoading]);
+    }, [allReportActions, currentReportActionID, reportActionID]);
 
     const reportActions = useMemo(() => {
         if (!reportActionID) {
             return allReportActions;
         }
-        if (isLoading || indexOfLinkedAction === -1) {
+        if (indexOfLinkedAction === -1) {
             return [];
         }
 
@@ -208,7 +211,7 @@ function ReportActionsView({
     }, []);
 
     useEffect(() => {
-        if (!reportActionID) {
+        if (!reportActionID || indexOfLinkedAction > -1) {
             return;
         }
 
@@ -217,7 +220,7 @@ function ReportActionsView({
         // There should be only one openReport execution per page start or navigating
         Report.openReport(reportID, reportActionID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route]);
+    }, [route, indexOfLinkedAction]);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
