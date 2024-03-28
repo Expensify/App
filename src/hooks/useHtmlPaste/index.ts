@@ -7,7 +7,7 @@ const insertByCommand = (text: string) => {
     document.execCommand('insertText', false, text);
 };
 
-function insertAtCaret(target: HTMLElement, text: string) {
+const insertAtCaret = (target: HTMLElement, text: string) => {
     const selection = window.getSelection();
     if (selection?.rangeCount) {
         const range = selection.getRangeAt(0);
@@ -22,15 +22,11 @@ function insertAtCaret(target: HTMLElement, text: string) {
         selection.addRange(range);
 
         // Dispatch input event to trigger Markdown Input to parse the new text
-        target.dispatchEvent(
-            new Event('input', {
-                bubbles: true,
-            }),
-        );
+        target.dispatchEvent(new Event('input', {bubbles: true}));
     } else {
         insertByCommand(text);
     }
-}
+};
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
     const navigation = useNavigation();
