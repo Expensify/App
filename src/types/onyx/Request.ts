@@ -25,7 +25,13 @@ type RequestData = {
     reject?: (value?: unknown) => void;
 };
 
-type Request = RequestData & OnyxData;
+type RequestConflictResolver = {
+    getConflictingRequests?: (persistedRequests: Request[]) => Request[];
+    shouldIncludeCurrentRequest?: boolean;
+    handleConflictingRequest?: (persistedRequest: Request) => unknown;
+};
+
+type Request = RequestData & OnyxData & RequestConflictResolver;
 
 export default Request;
-export type {OnyxData, RequestType};
+export type {OnyxData, RequestType, RequestConflictResolver};

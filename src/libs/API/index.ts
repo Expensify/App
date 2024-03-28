@@ -7,6 +7,7 @@ import * as Pusher from '@libs/Pusher/pusher';
 import * as Request from '@libs/Request';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
+import type {RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import pkg from '../../../package.json';
 import type {ApiRequest, ApiRequestCommandParameters, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
@@ -57,7 +58,7 @@ function write<TCommand extends WriteCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData = {},
-    conflictResolver: Pick<OnyxRequest, 'getConflictingRequests' | 'handleConflictingRequest'> = {},
+    conflictResolver: RequestConflictResolver = {},
 ) {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;

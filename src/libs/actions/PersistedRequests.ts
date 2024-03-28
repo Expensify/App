@@ -31,14 +31,14 @@ function save(requestToPersist: Request) {
         const request = requests[i];
 
         // identify and handle any existing requests that conflict with the new one
-        const {getConflictingRequests, handleConflictingRequest} = request;
+        const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = request;
         if (!getConflictingRequests) {
             // eslint-disable-next-line no-continue
             continue;
         }
 
-        // Get all the remaining requests, excluding the one we're adding, which will always be at the end of the array
-        const remainingRequests = requests.slice(0, requests.length - 1);
+        // Get all the remaining requests, potentially excluding the one we're adding, which will always be at the end of the array
+        const remainingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
 
         // Identify conflicting requests according to logic bound to the request
         const conflictingRequests = getConflictingRequests(remainingRequests);
