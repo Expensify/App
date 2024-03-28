@@ -11491,6 +11491,51 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 8564:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const ActionUtils = __importStar(__nccwpck_require__(970));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+// Parse the stringified JSON array of PR numbers, and cast each from String -> Number
+const PRList = ActionUtils.getJSONInput('PR_LIST', { required: true });
+console.log(`Got PR list: ${PRList}`);
+const releaseBody = GithubUtils_1.default.getReleaseBody(PRList);
+console.log(`Generated release body: ${releaseBody}`);
+core.setOutput('RELEASE_BODY', releaseBody);
+
+
+/***/ }),
+
 /***/ 9296:
 /***/ (function(module, exports, __nccwpck_require__) {
 
@@ -12151,24 +12196,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-const core = __nccwpck_require__(2186);
-const ActionUtils = __nccwpck_require__(970);
-const GithubUtils = __nccwpck_require__(9296);
-
-// Parse the stringified JSON array of PR numbers, and cast each from String -> Number
-const PRList = ActionUtils.getJSONInput('PR_LIST', {required: true});
-console.log(`Got PR list: ${PRList}`);
-
-const releaseBody = GithubUtils.getReleaseBody(PRList);
-console.log(`Generated release body: ${releaseBody}`);
-
-core.setOutput('RELEASE_BODY', releaseBody);
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(8564);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

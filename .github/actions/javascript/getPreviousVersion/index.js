@@ -2840,6 +2840,49 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 516:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(186));
+const fs_1 = __nccwpck_require__(147);
+const versionUpdater = __importStar(__nccwpck_require__(7));
+const semverLevel = core.getInput('SEMVER_LEVEL', { required: true });
+if (!semverLevel || !Object.values(versionUpdater.SEMANTIC_VERSION_LEVELS).includes(semverLevel)) {
+    core.setFailed(`'Error: Invalid input for 'SEMVER_LEVEL': ${semverLevel}`);
+}
+const { version: currentVersion } = JSON.parse((0, fs_1.readFileSync)('./package.json').toString());
+const previousVersion = versionUpdater.getPreviousVersion(currentVersion, semverLevel);
+core.setOutput('PREVIOUS_VERSION', previousVersion);
+
+
+/***/ }),
+
 /***/ 491:
 /***/ ((module) => {
 
@@ -5177,25 +5220,12 @@ module.exports = underscoreNodeF._;
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-const {readFileSync} = __nccwpck_require__(147);
-const core = __nccwpck_require__(186);
-const _ = __nccwpck_require__(67);
-const versionUpdater = __nccwpck_require__(7);
-
-const semverLevel = core.getInput('SEMVER_LEVEL', {require: true});
-if (!semverLevel || !_.contains(versionUpdater.SEMANTIC_VERSION_LEVELS, semverLevel)) {
-    core.setFailed(`'Error: Invalid input for 'SEMVER_LEVEL': ${semverLevel}`);
-}
-
-const {version: currentVersion} = JSON.parse(readFileSync('./package.json'));
-const previousVersion = versionUpdater.getPreviousVersion(currentVersion, semverLevel);
-core.setOutput('PREVIOUS_VERSION', previousVersion);
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(516);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
