@@ -220,7 +220,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
             options.push({
                 text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
                 value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.ENABLE,
-                icon: Expensicons.DocumentSlash,
+                icon: Expensicons.Document,
                 onSelected: enableRates,
             });
         }
