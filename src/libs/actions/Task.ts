@@ -718,14 +718,14 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID: string, report: OnyxEntry<OnyxTypes.Report>, accountID = 0) {
+function clearOutTaskInfoAndNavigate(reportID: string, chatReport: OnyxEntry<OnyxTypes.Report>, accountID = 0) {
     clearOutTaskInfo();
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
     }
     if (accountID > 0) {
         const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
-        setAssigneeValue(accountLogin, accountID, reportID, report);
+        setAssigneeValue(accountLogin, accountID, reportID, chatReport);
     }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
