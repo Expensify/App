@@ -10,12 +10,15 @@ import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
@@ -132,7 +135,12 @@ function ReportActionsView({
         setCurrentReportActionID('');
     }, [route]);
 
+    // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
+        if (!reportActionID) {
+            // Keep the old list ID since we're not in the Comment Linking flow
+            return listOldID;
+        }
         isFirstLinkedActionRender.current = true;
         const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
         listOldID = newID;
@@ -409,6 +417,60 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
+    // When we are offline before opening a money request report,
+    // the total of the report and sometimes the money request aren't displayed because these actions aren't returned until `OpenReport` API is complete.
+    // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
+    // and we also generate a money request action if the number of money requests in reportActions is less than the total number of money requests
+    // to display at least one money request action to match the total data.
+    const reportActionsToDisplay = useMemo(() => {
+        if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {
+            return reportActions;
+        }
+
+        const actions = [...reportActions];
+        const lastAction = reportActions[reportActions.length - 1];
+
+        if (!ReportActionsUtils.isCreatedAction(lastAction)) {
+            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
+            optimisticCreatedAction.pendingAction = null;
+            actions.push(optimisticCreatedAction);
+        }
+
+        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '', report.reportID);
+        const moneyRequestActions = reportActions.filter(
+            (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        );
+
+        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0)) {
+            const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
+                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                0,
+                CONST.CURRENCY.USD,
+                '',
+                [],
+                NumberUtils.rand64(),
+                undefined,
+                report.reportID,
+                false,
+                false,
+                {},
+                false,
+                DateUtils.subtractMillisecondsFromDateTime(actions[actions.length - 1].created, 1),
+            ) as OnyxTypes.ReportAction;
+            moneyRequestActions.push(optimisticIOUAction);
+            actions.splice(actions.length - 1, 0, optimisticIOUAction);
+        }
+
+        // Update pending action of created action if we have some requests that are pending
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const createdAction = actions.pop()!;
+        if (moneyRequestActions.filter((action) => Boolean(action.pendingAction)).length > 0) {
+            createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        }
+
+        return [...actions, createdAction];
+    }, [reportActions, report]);
+
     // Comments have not loaded at all yet do nothing
     if (!reportActions.length) {
         return null;
@@ -422,7 +484,7 @@ function ReportActionsView({
                 report={report}
                 parentReportAction={parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={reportActions}
+                sortedReportActions={reportActionsToDisplay}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
