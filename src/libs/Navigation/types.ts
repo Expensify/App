@@ -342,12 +342,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: string;
         transactionID: string;
         reportID: string;
     };
     [SCREENS.MONEY_REQUEST.CURRENCY]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: string;
         reportID: string;
         currency: string;
