@@ -79,7 +79,7 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}: EditS
             <EditRequestTagPage
                 defaultTag={transactionTag ?? ''}
                 policyID={report?.policyID ?? ''}
-                tagIndex={Number(tagIndex)}
+                tagListIndex={Number(tagIndex)}
                 onSubmit={(transactionChanges) => {
                     setDraftSplitTransaction({tag: transactionChanges.tag.trim()});
                 }}

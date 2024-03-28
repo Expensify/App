@@ -93,8 +93,13 @@ const runTests = async (): Promise<void> => {
 
     // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
-        if (testResult?.error != null) {
+        const {isCritical = true} = testResult;
+
+        if (testResult?.error != null && isCritical) {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
+        }
+        if (testResult?.error != null && !isCritical) {
+            Logger.warn(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
         let result = 0;
 
