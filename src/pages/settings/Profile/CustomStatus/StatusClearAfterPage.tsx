@@ -157,7 +157,7 @@ function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
 
     const timePeriodOptions = useCallback(
         () =>
-            Object.values(statusType).map((item) => (
+            statusType.map((item) => (
                 <RadioListItem
                     item={item}
                     onSelectRow={() => updateMode(item)}
