@@ -9,7 +9,6 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
@@ -44,7 +43,6 @@ function SuggestionMention(
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
-    const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -281,14 +279,8 @@ function SuggestionMention(
     );
 
     useEffect(() => {
-        if (value.length < previousValue.length) {
-            // A workaround to not show the suggestions list when the user deletes a character before the mention.
-            // It is caused by a buggy behavior of the TextInput on iOS. Should be fixed after migration to Fabric.
-            // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
-            return;
-        }
         calculateMentionSuggestion(selection.end);
-    }, [selection, value, previousValue, calculateMentionSuggestion]);
+    }, [selection, calculateMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
