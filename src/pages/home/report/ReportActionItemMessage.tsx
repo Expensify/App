@@ -125,9 +125,6 @@ ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
 export default withOnyx<ReportActionItemMessageProps, ReportActionItemMessageOnyxProps>({
     transaction: {
-        key: ({action}) => {
-            const originalMessage = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${originalMessage?.IOUTransactionID ?? 0}`;
-        },
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? 0}`,
     },
 })(ReportActionItemMessage);
