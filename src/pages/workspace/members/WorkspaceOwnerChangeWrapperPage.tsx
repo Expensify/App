@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -57,9 +57,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper
-                    testID={WorkspaceOwnerChangeWrapperPage.displayName}
-                >
+                <ScreenWrapper testID={WorkspaceOwnerChangeWrapperPage.displayName}>
                     <HeaderWithBackButton
                         title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                         onBackButtonPress={() => {
