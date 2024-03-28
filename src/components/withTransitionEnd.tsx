@@ -33,7 +33,7 @@ export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & 
 
     WithTransitionEnd.displayName = `WithTransitionEnd(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithTransitionEnd;
+    return React.forwardRef(WithTransitionEnd);
 }
 
 export type {WithTransitionEndProps};
