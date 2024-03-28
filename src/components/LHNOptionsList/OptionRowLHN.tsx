@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
-import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -107,8 +106,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const report = ReportUtils.getReport(optionItem.reportID ?? '');
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : null);
 
-    const isGroupChat = optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.chatType && !optionItem.isThread && (optionItem.displayNamesWithTooltips?.length ?? 0) > 2;
-    const fullTitle = isGroupChat ? getGroupChatName(!isEmptyObject(report) ? report : null) : optionItem.text;
+    const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
+
+    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(report?.participantAccountIDs ?? []) : optionItem.text;
 
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     return (

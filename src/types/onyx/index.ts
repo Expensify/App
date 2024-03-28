@@ -27,6 +27,7 @@ import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
+import type NewGroupChatDraft from './NewGroupChatDraft';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
@@ -168,6 +169,7 @@ export type {
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
+    NewGroupChatDraft,
     Log,
     PolicyJoinMember,
 };

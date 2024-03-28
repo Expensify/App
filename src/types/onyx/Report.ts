@@ -192,4 +192,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, PendingChatMember, ReportCollectionDataSet};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants};

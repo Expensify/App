@@ -261,6 +261,7 @@ const SCREENS = {
     NEW_CHAT: {
         ROOT: 'NewChat_Root',
         NEW_CHAT: 'chat',
+        NEW_CHAT_CONFIRM: 'NewChat_Confirm',
         NEW_ROOM: 'room',
     },
 

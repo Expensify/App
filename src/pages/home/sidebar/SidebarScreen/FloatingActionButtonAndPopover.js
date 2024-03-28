@@ -21,6 +21,7 @@ import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
+import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -266,7 +267,7 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.ChatBubble,
                         text: translate('sidebarScreen.fabNewChat'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
+                        onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
                     {
                         icon: Expensicons.MoneyCircle,
