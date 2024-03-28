@@ -2,9 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -35,8 +33,6 @@ type ReportActionItemParentActionProps = {
 
 function ReportActionItemParentAction({report, parentReportAction, index = 0, shouldHideThreadDividerLine = false}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
 
@@ -70,9 +66,8 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
     }, []);
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
-            <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
+        <View style={styles.pRelative}>
+            <AnimatedEmptyStateBackground isOverlapBackgroundImage />
             {allAncestors.map((ancestor) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}

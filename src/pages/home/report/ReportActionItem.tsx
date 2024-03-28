@@ -678,20 +678,18 @@ function ReportActionItem({
                     message = 'parentReportAction.deletedRequest';
                 }
                 return (
-                    <View>
-                        <AnimatedEmptyStateBackground />
-                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                            <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
-                                <ReportActionItemSingle
-                                    action={parentReportAction}
-                                    showHeader
-                                    report={report}
-                                >
-                                    <RenderHTML html={`<comment>${translate(message)}</comment>`} />
-                                </ReportActionItemSingle>
-                                <View style={styles.threadDividerLine} />
-                            </OfflineWithFeedback>
-                        </View>
+                    <View style={styles.pRelative}>
+                        <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+                        <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
+                            <ReportActionItemSingle
+                                action={parentReportAction}
+                                showHeader
+                                report={report}
+                            >
+                                <RenderHTML html={`<comment>${translate(message)}</comment>`} />
+                            </ReportActionItemSingle>
+                            <View style={styles.threadDividerLine} />
+                        </OfflineWithFeedback>
                     </View>
                 );
             }
@@ -707,32 +705,28 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <View>
-                        <AnimatedEmptyStateBackground />
-                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                            <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
-                                <ReportActionItemSingle
-                                    action={parentReportAction}
-                                    showHeader={draftMessage === undefined}
-                                    report={report}
-                                >
-                                    <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
-                                </ReportActionItemSingle>
-                            </OfflineWithFeedback>
-                            <View style={styles.reportHorizontalRule} />
-                        </View>
+                    <View style={styles.pRelative}>
+                        <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+                        <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
+                            <ReportActionItemSingle
+                                action={parentReportAction}
+                                showHeader={draftMessage === undefined}
+                                report={report}
+                            >
+                                <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
+                            </ReportActionItemSingle>
+                        </OfflineWithFeedback>
+                        <View style={styles.reportHorizontalRule} />
                     </View>
                 );
             }
             return (
-                <View>
-                    <AnimatedEmptyStateBackground />
-                    <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                        <TaskView
-                            report={report}
-                            shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                        />
-                    </View>
+                <View style={styles.pRelative}>
+                    <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+                    <TaskView
+                        report={report}
+                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                    />
                 </View>
             );
         }

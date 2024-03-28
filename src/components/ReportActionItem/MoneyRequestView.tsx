@@ -13,12 +13,10 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -87,8 +85,6 @@ function MoneyRequestView({
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
@@ -237,9 +233,9 @@ function MoneyRequestView({
     );
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
-            <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
+        <View style={styles.pRelative}>
+            <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+            <>
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {(showMapAsImage || hasReceipt) && (
                     <OfflineWithFeedback
@@ -437,7 +433,7 @@ function MoneyRequestView({
                         />
                     </View>
                 )}
-            </View>
+            </>
             <SpacerView
                 shouldShow={shouldShowHorizontalRule}
                 style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
