@@ -680,7 +680,13 @@ function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shar
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
         }
 
-        setAssigneeChatReport(chatReport);
+        setAssigneeChatReport({
+            ...chatReport,
+            isOptimisticReport: chatReport?.isOptimisticReport,
+            pendingFields: chatReport?.pendingFields,
+            pendingAction: chatReport?.pendingAction,
+            errorFields: chatReport?.errorFields,
+        });
 
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
