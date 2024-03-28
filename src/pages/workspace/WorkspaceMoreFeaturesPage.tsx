@@ -105,12 +105,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Accounting,
             titleTranslationKey: 'workspace.moreFeatures.connections.title',
             subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
-            //TODO: Look at the policy connection object?
-            isActive: false,
-            pendingAction: policy?.pendingFields?.tax, //TODO: which pending field?
+            isActive: !!policy?.areConnectionsEnabled,
+            pendingAction: policy?.pendingFields?.connections,
             action: (isEnabled: boolean) => {
-                //TODO: should be a function to enable the connection feature?
-                Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
+                Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
         },
     ];
