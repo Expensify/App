@@ -72,7 +72,8 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
     }, [policy, route.params.policyID]);
 
-    useNetwork({onReconnect: fetchData});
+    const {isOffline} = useNetwork({onReconnect: fetchData});
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
     useEffect(() => {
         fetchData();
@@ -182,6 +183,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                     : translate('workflowsPage.connectBankAccount')
                             }
                             description={bankDisplayName}
+                            disabled={isOffline || !isPolicyAdmin}
                             onPress={() => {
                                 if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                                     setIsCurrencyModalOpen(true);
@@ -189,7 +191,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                 }
                                 navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                             }}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={!isOffline && isPolicyAdmin}
                             wrapperStyle={containerStyle}
                             hoverAndPressStyle={[styles.mr0, styles.br2]}
                         />
@@ -233,6 +235,8 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         preferredLocale,
         canUseDelayedSubmission,
         displayNameForAuthorizedPayer,
+        isOffline,
+        isPolicyAdmin,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
@@ -255,7 +259,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = Boolean(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
