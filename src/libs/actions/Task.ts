@@ -652,16 +652,13 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  */
-function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareToReportID: string, isCurrentUser = false, report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTypes.Report> {
-    let chatReport: OnyxEntry<OnyxTypes.Report> = null;
-
+function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareToReportID: string, isCurrentUser = false, chatReport: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTypes.Report> {
     if (!isCurrentUser) {
-        if(report) {
-            chatReport = report;
+        // Check for the chatReport by participants IDs
+        if(!chatReport) {
+            chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);    
         }
-        else {
-            chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
-        }
+        // If chat report is still not found we need to build new optimistic chat report
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
             chatReport.isOptimisticReport = true;
