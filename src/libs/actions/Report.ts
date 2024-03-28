@@ -779,9 +779,11 @@ function openReport(
             {optimisticData, successData, failureData},
             {
                 getConflictingRequests: (persistedRequests) =>
-                    persistedRequests.filter(
-                        (request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID && !isCreatingNewReport && !request.data?.createdReportActionID,
-                    ),
+                    // requests conflict only if:
+                    // 1. they are OpenReport commands
+                    // 2. they have the same reportID
+                    // 3. they are not creating a report - all calls to OpenReport that create a report will be unique and have a unique createdReportActionID
+                    persistedRequests.filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID && !request.data?.createdReportActionID),
             },
         );
     }
