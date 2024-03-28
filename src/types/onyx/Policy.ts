@@ -140,12 +140,12 @@ type QBOConnectionData = {
     vendors: Vendor[];
 };
 
-type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
+type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD' | false | true;
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
  */
-type QBOConnectionConfig = {
+type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     realmId: string;
     companyName: string;
     autoSync: {
@@ -165,14 +165,18 @@ type QBOConnectionConfig = {
     syncClasses: IntegrationEntityMap;
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
+    syncAccounts: IntegrationEntityMap;
+    syncTaxes: IntegrationEntityMap;
     exportDate: string;
     lastConfigurationTime: number;
     syncTax: boolean;
     enableNewCategories: boolean;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
     export: {
         exporter: string;
     };
-};
+}>;
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
@@ -432,4 +436,17 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
 export default Policy;
 
-export type {PolicyReportField, PolicyReportFieldType, Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};
+export type {
+    PolicyReportField,
+    PolicyReportFieldType,
+    Unit,
+    CustomUnit,
+    Attributes,
+    Rate,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
+    PolicyFeatureName,
+    IntegrationEntityMap,
+    PendingJoinRequestPolicy,
+};

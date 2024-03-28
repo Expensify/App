@@ -246,6 +246,24 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_CHART_OF_ACCOUNTS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_LOCATIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_CLASSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_CUSTOMERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_TAXES]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
@@ -596,6 +614,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
@@ -613,6 +634,15 @@ type WorkspacesCentralPaneNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_CHART_OF_ACCOUNTS]: {
         policyID: string;
     };
 };

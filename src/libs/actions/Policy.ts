@@ -3590,6 +3590,77 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
+function updatePolicyConnectionConfig(policyID: string, connectionName: string, settingName: string, settingValue: string | boolean) {
+    const parameters = {policyID, connectionName, settingName, settingValue, idempotencyKey: settingName};
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            [settingName]: settingValue,
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            [settingName]: settingValue,
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            [settingName]: settingValue,
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
+}
+
 function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
     const isNarrowLayout = getIsNarrowLayout();
 
@@ -4851,6 +4922,7 @@ export {
     setWorkspaceTagEnabled,
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
+    updatePolicyConnectionConfig,
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
