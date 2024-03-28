@@ -879,6 +879,7 @@ export default {
             submitBug: 'envíe un error',
             confirmResetDescription: 'Todos los borradores no enviados se perderán, pero el resto de tus datos estarán a salvo.',
             resetAndRefresh: 'Restablecer y actualizar',
+            clientSideLogging: 'Registro del lado del cliente',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -887,6 +888,7 @@ export default {
             execute: 'Ejecutar',
             noLogsAvailable: 'No hay registros disponibles',
             logSizeTooLarge: ({size}: LogSizeParams) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
+            logs: 'Registros',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',

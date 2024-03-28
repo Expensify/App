@@ -1,5 +1,4 @@
 import {format} from 'date-fns';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
@@ -17,7 +16,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addLog} from '@libs/actions/Console';
-import {createLog, sanitizeConsoleInput} from '@libs/Console';
+import {createLog, parseStringifiedMessages, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
 import localFileDownload from '@libs/localFileDownload';
@@ -25,8 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-
-type CapturedLogs = Record<number, Log>;
+import type {CapturedLogs} from '@src/types/onyx';
 
 type ConsolePageOnyxProps = {
     /** Logs captured on the current device */
@@ -37,30 +35,6 @@ type ConsolePageOnyxProps = {
 };
 
 type ConsolePageProps = ConsolePageOnyxProps;
-
-/**
- * Loops through all the logs and parses the message if it's a stringified JSON
- * @param logs Logs captured on the current device
- * @returns CapturedLogs with parsed messages
- */
-const parseStringifyMessages = (logs: Log[]) => {
-    if (isEmpty(logs)) {
-        return;
-    }
-
-    return logs.map((log) => {
-        try {
-            const parsedMessage = JSON.parse(log.message);
-            return {
-                ...log,
-                message: parsedMessage,
-            };
-        } catch {
-            // If the message can't be parsed, just return the original log
-            return log;
-        }
-    });
-};
 
 function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const [input, setInput] = useState('');
@@ -97,14 +71,14 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, executeArbitraryCode);
 
     const saveLogs = () => {
-        const logsWithParsedMessages = parseStringifyMessages(logsList);
+        const logsWithParsedMessages = parseStringifiedMessages(logsList);
 
         localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
     };
 
     const shareLogs = () => {
         setIsGeneratingLogsFile(true);
-        const logsWithParsedMessages = parseStringifyMessages(logsList);
+        const logsWithParsedMessages = parseStringifiedMessages(logsList);
 
         // Generate a file with the logs and pass its path to the list of reports to share it with
         localFileCreate('logs', JSON.stringify(logsWithParsedMessages, null, 2)).then(({path, size}) => {
