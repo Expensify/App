@@ -1261,6 +1261,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
                         request.data?.reportActionID === reportActionID,
                 ),
             handleConflictingRequest: () => Onyx.update(successData),
+            shouldIncludeCurrentRequest: true,
         },
     );
 }
