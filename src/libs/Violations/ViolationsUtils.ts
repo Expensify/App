@@ -121,7 +121,7 @@ const ViolationsUtils = {
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
     ): OnyxUpdate | null {
-        const isPartialTransaction = TransactionUtils.isMerchantMissing(updatedTransaction) && TransactionUtils.isAmountMissing(updatedTransaction);
+        const isPartialTransaction = TransactionUtils.isPartialMerchant(TransactionUtils.getMerchant(updatedTransaction)) && TransactionUtils.isAmountMissing(updatedTransaction);
         if (isPartialTransaction) {
             return null;
         }
