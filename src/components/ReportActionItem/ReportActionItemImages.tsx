@@ -71,8 +71,8 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                     // Show a border to separate multiple images. Shown to the right for each except the last.
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                     const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
-                    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-                    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
+                    const isDistanceRequest = transaction && TransactionUtils.isDistanceRequest(transaction);
+                    const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
                     const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
                     return (
                         <View
@@ -80,7 +80,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                             style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
                         >
                             {showMapAsImage ? (
-                                <View style={{...styles.reportActionItemImages, width: '100%'}}>
+                                <View style={[styles.w100, styles.h100]}>
                                     <ConfirmedRoute transaction={transaction} />
                                 </View>
                             ) : (
