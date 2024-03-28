@@ -48,17 +48,22 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             return;
         }
 
-        // Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS)});
-        Welcome.isOnboardingFlowCompleted({
-            onNotCompleted: () =>
+        Welcome.isFirstTimeHybridAppUser({
+            // When user opens New Expensify from HybridApp we always want to show explanation modal first.
+            onFirstTimeInHybridApp: () =>
                 Navigation.navigate(
-                    // Uncomment once Stage 1 Onboarding Flow is ready
-                    //
-                    // ROUTES.ONBOARDING_PERSONAL_DETAILS
-                    //
-                    ROUTES.ONBOARD,
+                    ROUTES.EXPLANATION_MODAL_ROOT,
                 ),
-        });
+            // In other scenarios we need to check if onboarding was completed.
+            onSubsequentRunsOrNotInHybridApp: () => Welcome.isOnboardingFlowCompleted({
+                    onNotCompleted: () =>
+                    Navigation.navigate(
+                        // Uncomment once Stage 1 Onboarding Flow is ready
+                        // ROUTES.ONBOARDING_PERSONAL_DETAILS
+                        ROUTES.ONBOARD,
+                    ), 
+                }),
+        })
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 

@@ -1,3 +1,4 @@
+import {NativeModules} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,7 +13,7 @@ let hasDismissedModal: boolean | undefined;
 let hasSelectedChoice: boolean | undefined;
 let isLoadingReportData = true;
 
-type DetermineOnboardingStatusProps = {
+type DetermineStatusProps = {
     onAble?: () => void;
     onNotAble?: () => void;
 };
@@ -20,6 +21,11 @@ type DetermineOnboardingStatusProps = {
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
     onNotCompleted?: () => void;
+};
+
+type HasOpenedForTheFirstTimeFromHybridAppProps = {
+    onFirstTimeInHybridApp?: () => void;
+    onSubsequentRunsOrNotInHybridApp?: () => void;
 };
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
@@ -32,6 +38,11 @@ const isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
     resolveOnboardingFlowStatus = resolve;
 });
 
+let resolveFirstTimeUserStatus: (value?: Promise<void>) => void | undefined;
+const isFirstTimeUserStatusKnownPromise = new Promise<void>((resolve) => {
+    resolveFirstTimeUserStatus = resolve;
+});
+
 function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
 }
@@ -41,10 +52,23 @@ function onServerDataReady(): Promise<void> {
  * onboarding flow status have been loaded (namely,
  * are not undefined).
  */
-function isAbleToDetermineOnboardingStatus({onAble, onNotAble}: DetermineOnboardingStatusProps) {
+function isAbleToDetermineOnboardingStatus({onAble, onNotAble}: DetermineStatusProps) {
     const hasRequiredOnyxKeysBeenLoaded = [hasProvidedPersonalDetails, hasSelectedPurpose].every((value) => value !== undefined);
 
     if (hasRequiredOnyxKeysBeenLoaded) {
+        onAble?.();
+    } else {
+        onNotAble?.();
+    }
+}
+
+/**
+ * Checks if Onyx key required to determine if we should
+ * display explanation modal, have been loaded (namely,
+ * are not undefined).
+ */
+function isAbleToDetermineIfFirstTimeUser({onAble, onNotAble}: DetermineStatusProps) {
+    if (isFirstTimeNewExpensifyUser !== undefined) {
         onAble?.();
     } else {
         onNotAble?.();
@@ -78,6 +102,21 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
 
             onNotCompleted?.();
         }
+    });
+}
+
+/**
+ * Determines whether the application is being launched for the first time by a hybrid app user, 
+ * and executes corresponding callback functions.
+ */
+function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRunsOrNotInHybridApp}: HasOpenedForTheFirstTimeFromHybridAppProps) {
+    isFirstTimeUserStatusKnownPromise.then(() => {
+        if (NativeModules.HybridAppModule && isFirstTimeNewExpensifyUser) {
+            onFirstTimeInHybridApp?.();
+            return;
+        }
+
+        onSubsequentRunsOrNotInHybridApp?.();
     });
 }
 
@@ -122,6 +161,7 @@ Onyx.connect({
 
         isFirstTimeNewExpensifyUser = value ?? undefined;
 
+        isAbleToDetermineIfFirstTimeUser({onAble: resolveFirstTimeUserStatus});
         checkOnReady();
     },
 });
@@ -195,4 +235,4 @@ Onyx.connect({
     },
 });
 
-export {onServerDataReady, isOnboardingFlowCompleted};
+export {onServerDataReady, isOnboardingFlowCompleted, isFirstTimeHybridAppUser};
