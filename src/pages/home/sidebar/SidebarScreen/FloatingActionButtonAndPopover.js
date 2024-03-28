@@ -154,6 +154,11 @@ function FloatingActionButtonAndPopover(props) {
         return [];
     }, [props.personalDetails, props.session.accountID, quickActionReport]);
 
+    const quickActionTitle = useMemo(() => {
+        const titleKey = getQuickActionTitle(props.quickAction.action);
+        return titleKey ? translate(titleKey) : '';
+    }, [props.quickAction.action, translate]);
+
     const navigateToQuickAction = () => {
         switch (props.quickAction.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
@@ -339,7 +344,7 @@ function FloatingActionButtonAndPopover(props) {
                         ? [
                               {
                                   icon: getQuickActionIcon(props.quickAction.action),
-                                  text: translate(getQuickActionTitle(props.quickAction.action)),
+                                  text: quickActionTitle,
                                   label: translate('quickAction.shortcut'),
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
