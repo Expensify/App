@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
-import StatePicker from '@components/StatePicker';
+import StateSelector from '@components/StateSelector';
 import TextInput from '@components/TextInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -128,7 +128,7 @@ function AddressForm(props) {
 
             <View style={[styles.mt3, styles.mhn5]}>
                 <InputWrapper
-                    InputComponent={StatePicker}
+                    InputComponent={StateSelector}
                     inputID={props.inputKeys.state}
                     shouldSaveDraft={props.shouldSaveDraft}
                     value={props.values.state}

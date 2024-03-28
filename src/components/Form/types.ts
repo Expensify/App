@@ -13,7 +13,7 @@ import type Picker from '@components/Picker';
 import type RadioButtons from '@components/RadioButtons';
 import type RoomNameInput from '@components/RoomNameInput';
 import type SingleChoiceQuestion from '@components/SingleChoiceQuestion';
-import type StatePicker from '@components/StatePicker';
+import type StateSelector from '@components/StateSelector';
 import type TextInput from '@components/TextInput';
 import type TextPicker from '@components/TextPicker';
 import type ValuePicker from '@components/ValuePicker';
@@ -40,7 +40,7 @@ type ValidInputs =
     | typeof CountrySelector
     | typeof AmountForm
     | typeof BusinessTypePicker
-    | typeof StatePicker
+    | typeof StateSelector
     | typeof RoomNameInput
     | typeof ValuePicker
     | typeof DatePicker

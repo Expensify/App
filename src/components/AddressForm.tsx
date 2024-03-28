@@ -16,7 +16,7 @@ import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormOnyxValues} from './Form/types';
-import StatePicker from './StatePicker';
+import StateSelector from './StateSelector';
 import TextInput from './TextInput';
 
 type CountryZipRegex = {
@@ -190,7 +190,7 @@ function AddressForm({
             {isUSAForm ? (
                 <View style={styles.mhn5}>
                     <InputWrapper
-                        InputComponent={StatePicker}
+                        InputComponent={StateSelector}
                         inputID={INPUT_IDS.STATE}
                         defaultValue={state}
                         onValueChange={onAddressChanged}
