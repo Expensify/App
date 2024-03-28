@@ -14,6 +14,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withTransitionEnd from '@components/withTransitionEnd';
+import type {WithTransitionEndProps} from '@components/withTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -41,7 +43,7 @@ type UseOptions = {
     reports: OnyxCollection<Report>;
 };
 
-type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps;
+type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithTransitionEndProps;
 
 function useOptions({reports}: UseOptions) {
     const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -90,7 +92,7 @@ function useOptions({reports}: UseOptions) {
     return {...options, isLoading, searchValue, debouncedSearchValue, setSearchValue};
 }
 
-function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalProps) {
+function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: TaskAssigneeSelectorModalProps) {
     const styles = useThemeStyles();
     const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
@@ -212,26 +214,24 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             includeSafeAreaPaddingBottom={false}
             testID={TaskAssigneeSelectorModal.displayName}
         >
-            {({didScreenTransitionEnd}) => (
-                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                    <HeaderWithBackButton
-                        title={translate('task.assignee')}
-                        onBackButtonPress={handleBackButtonPress}
+            <FullPageNotFoundView shouldShow={isTaskNonEditable}>
+                <HeaderWithBackButton
+                    title={translate('task.assignee')}
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <SelectionList
+                        sections={didScreenTransitionEnd && !isLoading ? sections : []}
+                        ListItem={UserListItem}
+                        onSelectRow={selectReport}
+                        onChangeText={onChangeText}
+                        textInputValue={searchValue}
+                        headerMessage={headerMessage}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        showLoadingPlaceholder={isLoading || !didScreenTransitionEnd}
                     />
-                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <SelectionList
-                            sections={didScreenTransitionEnd && !isLoading ? sections : []}
-                            ListItem={UserListItem}
-                            onSelectRow={selectReport}
-                            onChangeText={onChangeText}
-                            textInputValue={searchValue}
-                            headerMessage={headerMessage}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            showLoadingPlaceholder={isLoading || !didScreenTransitionEnd}
-                        />
-                    </View>
-                </FullPageNotFoundView>
-            )}
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
@@ -247,4 +247,4 @@ const TaskAssigneeSelectorModalWithOnyx = withOnyx<TaskAssigneeSelectorModalProp
     },
 })(TaskAssigneeSelectorModal);
 
-export default withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx);
+export default withTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx));
