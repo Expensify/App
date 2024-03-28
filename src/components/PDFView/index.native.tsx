@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -12,11 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
-import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
-
-const propTypes = {
-    ...pdfViewPropTypes,
-};
+import type {PDFViewNativeProps} from './types';
 
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
@@ -32,8 +29,7 @@ const propTypes = {
  * so that PDFPasswordForm doesn't bounce when react-native-pdf/PDF
  * is (temporarily) rendered.
  */
-
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, errorLabelStyles}) {
+function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, errorLabelStyles}: PDFViewNativeProps) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -48,7 +44,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const StyleUtils = useStyleUtils();
 
     useEffect(() => {
-        onToggleKeyboard(isKeyboardShown);
+        onToggleKeyboard?.(isKeyboardShown);
     });
 
     /**
@@ -75,7 +71,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         }
     }, [password]);
 
-    const handleFailureToLoadPDF = (error) => {
+    const handleFailureToLoadPDF = ((error: Error) => {
         if (error.message.match(/password/i)) {
             initiatePasswordChallenge();
             return;
@@ -84,16 +80,17 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldShowLoadingIndicator(false);
         setShouldRequestPassword(false);
         setShouldAttemptPDFLoad(false);
-    };
+        // eslint-disable-next-line @typescript-eslint/ban-types
+    }) as (error: object) => void;
 
     /**
      * When the password is submitted via PDFPasswordForm, save the password
      * in state and attempt to load the PDF. Also show the loading indicator
      * since react-native-pdf/PDF will need to reload the PDF.
      *
-     * @param {String} pdfPassword Password submitted via PDFPasswordForm
+     * @param pdfPassword Password submitted via PDFPasswordForm
      */
-    const attemptPDFLoadWithPassword = (pdfPassword) => {
+    const attemptPDFLoadWithPassword = (pdfPassword: string) => {
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
         // Thus react-native-pdf/PDF will be rendered - but not visible.
@@ -104,10 +101,10 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     /**
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
-     * @param {Number} numberOfPages
-     * @param {Number} path - Path to cache location
+     * @param numberOfPages
+     * @param path - Path to cache location
      */
-    const finishPDFLoad = (numberOfPages, path) => {
+    const finishPDFLoad = (numberOfPages: number, path: string) => {
         setShouldRequestPassword(false);
         setShouldShowLoadingIndicator(false);
         setSuccessToLoadPDF(true);
@@ -115,7 +112,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     };
 
     function renderPDFView() {
-        const pdfStyles = [themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(windowWidth, windowHeight)];
+        const pdfStyles: StyleProp<ViewStyle> = [themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(windowWidth, windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
@@ -151,7 +148,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                 {shouldRequestPassword && (
                     <KeyboardAvoidingView style={themeStyles.flex1}>
                         <PDFPasswordForm
-                            isFocused={isFocused}
+                            isFocused={!!isFocused}
                             onSubmit={attemptPDFLoadWithPassword}
                             onPasswordUpdated={() => setIsPasswordInvalid(false)}
                             isPasswordInvalid={isPasswordInvalid}
@@ -168,6 +165,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             onPress={onPress}
             style={[themeStyles.flex1, themeStyles.alignSelfStretch, !failedToLoadPDF && themeStyles.flexRow]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
         >
             {renderPDFView()}
@@ -178,7 +176,5 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
 }
 
 PDFView.displayName = 'PDFView';
-PDFView.propTypes = propTypes;
-PDFView.defaultProps = defaultProps;
 
 export default PDFView;
