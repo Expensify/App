@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -39,6 +40,8 @@ type SearchPageOnyxProps = {
 
 type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT>;
 
+type Options = OptionsListUtils.GetOptions & {headerMessage: string};
+
 type SearchPageSectionItem = {
     data: ReportUtils.OptionData[];
     shouldShow: boolean;
@@ -74,13 +77,26 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
         Report.searchInServer(debouncedSearchValue.trim());
     }, [debouncedSearchValue]);
 
-    const {
-        recentReports,
-        personalDetails: localPersonalDetails,
-        userToInvite,
-        headerMessage,
-    } = useMemo(() => {
+    const searchOptions: Options = useMemo(() => {
         if (!isScreenTransitionEnd) {
+            return {
+                recentReports: [],
+                personalDetails: [],
+                userToInvite: null,
+                currentUserOption: null,
+                categoryOptions: [],
+                tagOptions: [],
+                taxRatesOptions: [],
+                headerMessage: '',
+            };
+        }
+        const options = OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas ?? []);
+        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), '');
+        return {...options, headerMessage: header};
+    }, [betas, isScreenTransitionEnd, personalDetails, reports]);
+
+    const filteredOptions = useMemo(() => {
+        if (debouncedSearchValue.trim() === '') {
             return {
                 recentReports: [],
                 personalDetails: [],
@@ -88,10 +104,18 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
                 headerMessage: '',
             };
         }
-        const options = OptionsListUtils.getSearchOptions(reports, personalDetails, debouncedSearchValue.trim(), betas ?? []);
-        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), debouncedSearchValue);
-        return {...options, headerMessage: header};
-    }, [debouncedSearchValue, reports, personalDetails, betas, isScreenTransitionEnd]);
+
+        const options = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length > 0, false, debouncedSearchValue);
+        return {
+            recentReports: options.recentReports,
+            personalDetails: options.personalDetails,
+            userToInvite: null,
+            headerMessage: header,
+        };
+    }, [searchOptions, debouncedSearchValue]);
+
+    const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
     const sections = useMemo((): SearchPageSectionList => {
         const newSections: SearchPageSectionList = [];
@@ -115,7 +139,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
             indexOffset += recentReports.length;
         }
 
-        if (userToInvite) {
+        if (!isEmpty(userToInvite)) {
             newSections.push({
                 data: [userToInvite],
                 shouldShow: true,

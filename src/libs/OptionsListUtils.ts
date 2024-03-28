@@ -39,6 +39,8 @@ import times from '@src/utils/times';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
+import filterArrayByMatch from './filterArrayByMatch';
+import type {KeyOption} from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -1355,6 +1357,35 @@ function isReportSelected(reportOption: ReportUtils.OptionData, selectedOptions:
 }
 
 /**
+ * Options need to be sorted in the specific order
+ * @param options - list of options to be sorted
+ * @param searchValue - search string
+ * @returns a sorted list of options
+ */
+function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined) {
+    return lodashOrderBy(
+        options,
+        [
+            (option) => {
+                if (!!option.isChatRoom || option.isArchivedRoom) {
+                    return 3;
+                }
+                if (!option.login) {
+                    return 2;
+                }
+                if (option.login.toLowerCase() !== searchValue?.toLowerCase()) {
+                    return 1;
+                }
+
+                // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
+                return 0;
+            },
+        ],
+        ['asc'],
+    );
+}
+
+/**
  * Build the options
  */
 function getOptions(
@@ -1453,7 +1484,7 @@ function getOptions(
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
     const reportMapForAccountIDs: Record<number, Report> = {};
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
-    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
+    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = Object.values(reports ?? {}).filter((report) => {
@@ -1712,26 +1743,7 @@ function getOptions(
         // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
         recentReportOptions.push(...personalDetailsOptions);
         personalDetailsOptions = [];
-        recentReportOptions = lodashOrderBy(
-            recentReportOptions,
-            [
-                (option) => {
-                    if (!!option.isChatRoom || option.isArchivedRoom) {
-                        return 3;
-                    }
-                    if (!option.login) {
-                        return 2;
-                    }
-                    if (option.login.toLowerCase() !== searchValue?.toLowerCase()) {
-                        return 1;
-                    }
-
-                    // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
-                    return 0;
-                },
-            ],
-            ['asc'],
-        );
+        recentReportOptions = orderOptions(recentReportOptions, searchValue);
     }
 
     return {
@@ -2059,6 +2071,102 @@ function formatSectionsFromSearchTerm(
     };
 }
 
+/**
+ * Filters options based on the search input value
+ */
+function filterOptions(options: GetOptions, searchInputValue: string): GetOptions {
+    const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
+    const searchTerms = searchValue ? searchValue.split(' ') : [];
+
+    const createFilter = (items: ReportUtils.OptionData[], keys: ReadonlyArray<KeyOption<ReportUtils.OptionData>>, term: string) =>
+        filterArrayByMatch(items, term, {
+            keys,
+            strict: true,
+        });
+
+    // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+    // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+    const emailRegex = /\.(?=[^\s@]*@)/g;
+
+    const getParticipantsLoginsArray = (item: ReportUtils.OptionData) => {
+        const keys: string[] = [];
+        const visibleChatMemberAccountIDs = item.participantsList ?? [];
+        if (allPersonalDetails) {
+            visibleChatMemberAccountIDs.forEach((participant) => {
+                const login = participant?.login;
+
+                if (participant?.displayName) {
+                    keys.push(participant.displayName);
+                }
+
+                if (login) {
+                    keys.push(login);
+                    keys.push(login.replace(emailRegex, ''));
+                }
+            });
+        }
+
+        return keys;
+    };
+
+    const matchResults = searchTerms.reduceRight((items, term) => {
+        const recentReports = createFilter(
+            items.recentReports ?? [],
+            [
+                (item) => {
+                    let keys: string[] = [];
+
+                    keys.push(item.text ?? '');
+
+                    if (item.login) {
+                        keys.push(item.login);
+                        keys.push(item.login.replace(emailRegex, ''));
+                    }
+
+                    if (item.isThread) {
+                        if (item.alternateText) {
+                            keys.push(item.alternateText);
+                        }
+                        keys = keys.concat(getParticipantsLoginsArray(item));
+                    } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
+                        if (item.subtitle) {
+                            keys.push(item.subtitle);
+                        }
+                    } else {
+                        keys = keys.concat(getParticipantsLoginsArray(item));
+                    }
+
+                    return uniqFast(keys);
+                },
+            ],
+            term,
+        );
+        const personalDetails = createFilter(items.personalDetails ?? [], ['participantsList.0.displayName', 'login', (item) => item.login?.replace(emailRegex, '') ?? ''], term);
+
+        return {
+            recentReports: recentReports ?? ([] as ReportUtils.OptionData[]),
+            personalDetails: personalDetails ?? ([] as ReportUtils.OptionData[]),
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
+        };
+    }, options);
+
+    const recentReports = matchResults.recentReports.concat(matchResults.personalDetails);
+
+    return {
+        personalDetails: [],
+        recentReports: orderOptions(recentReports, searchValue),
+        userToInvite: null,
+        currentUserOption: null,
+        categoryOptions: [],
+        tagOptions: [],
+        taxRatesOptions: [],
+    };
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2091,6 +2199,7 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
     getShareLogOptions,
+    filterOptions,
     getReportOption,
     getTaxRatesSection,
 };
