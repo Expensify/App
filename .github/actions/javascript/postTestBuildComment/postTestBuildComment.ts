@@ -1,13 +1,9 @@
-const _ = require('underscore');
-const core = require('@actions/core');
-const {context} = require('@actions/github');
-const CONST = require('../../../libs/CONST');
-const GithubUtils = require('../../../libs/GithubUtils');
+import * as core from '@actions/core';
+import {context} from '@actions/github';
+import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
 
-/**
- * @returns {String}
- */
-function getTestBuildMessage() {
+function getTestBuildMessage(): string {
     console.log('Input for android', core.getInput('ANDROID', {required: true}));
     const androidSuccess = core.getInput('ANDROID', {required: true}) === 'success';
     const desktopSuccess = core.getInput('DESKTOP', {required: true}) === 'success';
@@ -45,37 +41,36 @@ function getTestBuildMessage() {
     return message;
 }
 
-/**
- * Comment on a single PR
- *
- * @param {Number} PR
- * @param {String} message
- * @returns {Promise<void>}
- */
-async function commentPR(PR, message) {
+/** Comment on a single PR */
+async function commentPR(PR: number, message: string) {
     console.log(`Posting test build comment on #${PR}`);
     try {
         await GithubUtils.createComment(context.repo.repo, PR, message);
         console.log(`Comment created on #${PR} successfully 🎉`);
     } catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
-        core.setFailed(err.message);
+
+        if (err instanceof Error) {
+            core.setFailed(err.message);
+        }
     }
 }
 
 async function run() {
-    const PR_NUMBER = core.getInput('PR_NUMBER', {required: true});
+    const PR_NUMBER = Number(core.getInput('PR_NUMBER', {required: true}));
     const comments = await GithubUtils.paginate(
         GithubUtils.octokit.issues.listComments,
         {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             issue_number: PR_NUMBER,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             per_page: 100,
         },
         (response) => response.data,
     );
-    const testBuildComment = _.find(comments, (comment) => comment.body.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
+    const testBuildComment = comments.find((comment) => comment.body?.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
     if (testBuildComment) {
         console.log('Found previous build comment, hiding it', testBuildComment);
         await GithubUtils.graphql(`
@@ -95,4 +90,4 @@ if (require.main === module) {
     run();
 }
 
-module.exports = run;
+export default run;

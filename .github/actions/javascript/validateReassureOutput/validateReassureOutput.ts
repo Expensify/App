@@ -1,10 +1,11 @@
-const core = require('@actions/core');
-const fs = require('fs');
+import * as core from '@actions/core';
+import type {CompareResult, PerformanceEntry} from '@callstack/reassure-compare/src/types';
+import fs from 'fs';
 
-const run = () => {
-    const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
-    const countDeviation = core.getInput('COUNT_DEVIATION', {required: true});
-    const durationDeviation = core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true});
+const run = (): boolean => {
+    const regressionOutput: CompareResult = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
+    const countDeviation = Number(core.getInput('COUNT_DEVIATION', {required: true}));
+    const durationDeviation = Number(core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true}));
 
     if (regressionOutput.countChanged === undefined || regressionOutput.countChanged.length === 0) {
         console.log('No countChanged data available. Exiting...');
@@ -15,8 +16,8 @@ const run = () => {
 
     for (let i = 0; i < regressionOutput.countChanged.length; i++) {
         const measurement = regressionOutput.countChanged[i];
-        const baseline = measurement.baseline;
-        const current = measurement.current;
+        const baseline: PerformanceEntry = measurement.baseline;
+        const current: PerformanceEntry = measurement.current;
 
         console.log(`Processing measurement ${i + 1}: ${measurement.name}`);
 
@@ -44,4 +45,4 @@ if (require.main === module) {
     run();
 }
 
-module.exports = run;
+export default run;
