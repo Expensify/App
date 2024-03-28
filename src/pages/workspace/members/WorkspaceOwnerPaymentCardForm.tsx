@@ -42,17 +42,17 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
 
     const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
     const [currency, setCurrency] = useState<keyof typeof CONST.CURRENCY>(CONST.CURRENCY.USD);
-    const [canBeRendered, setCanBeRendered] = useState(false);
+    const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
 
     const policyID = policy?.id ?? '';
 
     const checkIfCanBeRendered = useCallback(() => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
         if (changeOwnerErrors[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
-            setCanBeRendered(false);
+            setShouldShowPaymentCardForm(false);
         }
 
-        setCanBeRendered(true);
+        setShouldShowPaymentCardForm(true);
     }, [policy?.errorFields?.changeOwner]);
 
     useEffect(
@@ -128,7 +128,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
         setIsCurrencyModalVisible(false);
     }, []);
 
-    if (!canBeRendered) {
+    if (!shouldShowPaymentCardForm) {
         return null;
     }
 
