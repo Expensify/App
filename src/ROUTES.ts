@@ -424,6 +424,8 @@ const ROUTES = {
     ONBOARD_MANAGE_EXPENSES: 'onboard/manage-expenses',
     ONBOARD_EXPENSIFY_CLASSIC: 'onboard/expensify-classic',
 
+    TRAVEL_DETAILS: 'r/:reportID/trip/:transactionID',
+
     TEACHERS_UNITE: 'teachersunite',
     I_KNOW_A_TEACHER: 'teachersunite/i-know-a-teacher',
     I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',

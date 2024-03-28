@@ -523,6 +523,10 @@ type ProcessMoneyRequestHoldNavigatorParamList = {
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
 };
 
+type TripDetailsNavigatorParamList = {
+    [SCREENS.TRIP_DETAILS_ROOT]: undefined;
+};
+
 type PrivateNotesNavigatorParamList = {
     [SCREENS.PRIVATE_NOTES.LIST]: undefined;
     [SCREENS.PRIVATE_NOTES.EDIT]: {
@@ -561,6 +565,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: NavigatorScreenParams<EditRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SIGN_IN]: NavigatorScreenParams<SignInNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.TRIP_DETAILS]: NavigatorScreenParams<TripDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
 };

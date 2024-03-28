@@ -23,6 +23,9 @@ const SCREENS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
+    TRAVEL: {
+        TRIP_DETAILS: 'Trip_Details',
+    },
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -124,6 +127,7 @@ const SCREENS = {
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
+        TRIP_DETAILS: 'TripDetails',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
@@ -287,6 +291,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    TRIP_DETAILS_ROOT: 'TripDetails_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',

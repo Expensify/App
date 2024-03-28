@@ -585,6 +585,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.TRIP_DETAILS]: {
+                    screens: {
+                        [SCREENS.TRIP_DETAILS_ROOT]: ROUTES.TRAVEL_DETAILS,
+                    }
+                }
             },
         },
 
