@@ -59,7 +59,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
     }, [props.policy?.customUnits]);
 
     return (
-        <WorkspacePageWithSections adsfsdfds
+        <WorkspacePageWithSections
             headerText={translate('workspace.reimburse.trackDistanceRate')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
@@ -67,7 +67,7 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
             backButtonRoute={ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '')}
             shouldShowLoading={false}
             shouldShowBackButton
-        >
+        >asdfas
             {() => (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM}
