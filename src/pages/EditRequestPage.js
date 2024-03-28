@@ -100,7 +100,11 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
 
     const taxRates = lodashGet(policy, 'taxRates', {});
 
-    const taxRateTitle = TransactionUtils.getDefaultTaxName(taxRates, transaction, true, transactionTaxCode);
+    const taxRateTitle =
+        taxRates &&
+        (transactionTaxCode === taxRates.defaultExternalID
+            ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
+            : transactionTaxCode && TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode));
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
@@ -219,7 +223,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         return (
             <EditRequestTaxAmountPage
                 defaultAmount={transactionTaxAmount}
-                defaultTaxAmount={getTaxAmount(transaction.amount, transactionTaxCode, taxRates)}
+                defaultTaxAmount={getTaxAmount(TransactionUtils.getAmount(transaction), transactionTaxCode, taxRates)}
                 defaultCurrency={defaultCurrency}
                 onSubmit={updateTaxAmount}
             />

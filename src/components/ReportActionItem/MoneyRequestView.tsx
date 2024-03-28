@@ -122,7 +122,11 @@ function MoneyRequestView({
     const formattedTaxAmount = transactionTaxAmount ? CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency) : '';
 
     const taxRatesDescription = taxRates?.name;
-    const taxRateTitle = (transaction && transactionTaxCode && taxRates && TransactionUtils.getDefaultTaxName(taxRates, transaction, true, transactionTaxCode)) ?? '';
+    const taxRateTitle =
+        taxRates &&
+        (transactionTaxCode === taxRates?.defaultExternalID
+            ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
+            : transactionTaxCode && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode));
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
@@ -431,7 +435,7 @@ function MoneyRequestView({
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <MenuItemWithTopDescription
-                            title={taxRateTitle}
+                            title={taxRateTitle ?? ''}
                             description={taxRatesDescription}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
