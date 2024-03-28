@@ -123,14 +123,6 @@ function ReportActionsView({
         Report.openReport(reportID, reportActionID);
     };
 
-    const reconnectReportIfNecessary = () => {
-        if (!shouldFetchReport(report)) {
-            return;
-        }
-
-        Report.reconnect(reportID);
-    };
-
     useLayoutEffect(() => {
         setCurrentReportActionID('');
     }, [route]);
@@ -223,34 +215,12 @@ function ReportActionsView({
     }, [route]);
 
     useEffect(() => {
-        const prevNetwork = prevNetworkRef.current;
-        // When returning from offline to online state we want to trigger a request to OpenReport which
-        // will fetch the reportActions data and mark the report as read. If the report is not fully visible
-        // then we call ReconnectToReport which only loads the reportActions data without marking the report as read.
-        const wasNetworkChangeDetected = prevNetwork.isOffline && !network.isOffline;
-        if (wasNetworkChangeDetected) {
-            if (isReportFullyVisible) {
-                openReportIfNecessary();
-            } else {
-                reconnectReportIfNecessary();
-            }
-        }
-        // update ref with current network state
-        prevNetworkRef.current = network;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [network, isReportFullyVisible]);
-
-    useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(report)) {
-            if (isReportFullyVisible) {
-                openReportIfNecessary();
-            } else {
-                reconnectReportIfNecessary();
-            }
+            openReportIfNecessary();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session, report, isReportFullyVisible]);
+    }, [session, report]);
 
     useEffect(() => {
         const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
