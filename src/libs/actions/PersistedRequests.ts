@@ -55,7 +55,12 @@ function save(requestToPersist: Request) {
     }
 
     // Save the updated set of requests
-    persistedRequests = requests;
+    persistedRequests = requests.map((request) => {
+        delete request.getConflictingRequests;
+        delete request.handleConflictingRequest;
+        delete request.shouldIncludeCurrentRequest;
+        return request;
+    });
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
