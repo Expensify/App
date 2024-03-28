@@ -37,8 +37,11 @@ function save(requestToPersist: Request) {
             continue;
         }
 
+        // Get all the remaining requests, excluding the one we're adding, which will always be at the end of the array
+        const remainingRequests = requests.slice(0, requests.length - 1);
+
         // Identify conflicting requests according to logic bound to the request
-        const conflictingRequests = getConflictingRequests(requests);
+        const conflictingRequests = getConflictingRequests(remainingRequests);
         conflictingRequests.forEach((conflictingRequest) => {
             // delete the conflicting request
             const index = requests.findIndex((req) => req === conflictingRequest);
