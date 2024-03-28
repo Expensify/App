@@ -7,6 +7,7 @@ import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import refPropTypes from '@components/refPropTypes';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import stylePropTypes from '@styles/stylePropTypes';
@@ -110,7 +111,8 @@ function ListEmptyComponent() {
 
 function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrapperStyle, forwardedRef, data, renderItem, stickyHeaderIndices, extraData, alwaysBounceVertical}) {
     const styles = useThemeStyles();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     // Estimated list size should be a whole integer to avoid floating point precision errors
     // More info: https://github.com/Expensify/App/issues/34522

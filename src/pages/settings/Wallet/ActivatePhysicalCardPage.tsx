@@ -12,9 +12,9 @@ import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -47,7 +47,7 @@ function ActivatePhysicalCardPage({
 }: ActivatePhysicalCardPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isExtraSmallScreenHeight} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 

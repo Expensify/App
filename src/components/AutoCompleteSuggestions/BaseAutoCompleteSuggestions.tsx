@@ -7,6 +7,7 @@ import {ScrollView} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -42,7 +43,8 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     }: AutoCompleteSuggestionsProps<TSuggestion>,
     ref: ForwardedRef<View | HTMLDivElement>,
 ) {
-    const {windowWidth, isLargeScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);

@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -46,7 +47,8 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
 function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
@@ -78,7 +80,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
-    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
+    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && shouldUseNarrowLayout);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -103,15 +105,15 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
-                shouldShowBackButton={isSmallScreenWidth}
+                shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
+                shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             >
-                {shouldShowSettlementButton && !isSmallScreenWidth && (
+                {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
@@ -131,7 +133,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                         />
                     </View>
                 )}
-                {shouldShowSubmitButton && !isSmallScreenWidth && (
+                {shouldShowSubmitButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <Button
                             medium
@@ -145,7 +147,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 )}
             </HeaderWithBackButton>
             <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
-                {shouldShowSettlementButton && isSmallScreenWidth && (
+                {shouldShowSettlementButton && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
@@ -164,7 +166,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                         />
                     </View>
                 )}
-                {shouldShowSubmitButton && isSmallScreenWidth && (
+                {shouldShowSubmitButton && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <Button
                             medium

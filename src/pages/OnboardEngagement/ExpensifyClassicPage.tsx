@@ -6,9 +6,9 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
@@ -19,7 +19,7 @@ import SCREENS from '@src/SCREENS';
 function ExpensifyClassicModal() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isExtraSmallScreenHeight} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const theme = useTheme();
 
     const navigateBack = () => {

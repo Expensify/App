@@ -1,6 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {PixelRatio, View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -11,7 +12,8 @@ type AttachmentCarouselCellRendererProps = {
 
 function AttachmentCarouselCellRenderer(props: AttachmentCarouselCellRendererProps) {
     const styles = useThemeStyles();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
     const style = [props.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
 

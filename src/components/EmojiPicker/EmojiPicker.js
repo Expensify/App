@@ -4,6 +4,7 @@ import {Dimensions} from 'react-native';
 import _ from 'underscore';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -40,7 +41,8 @@ const EmojiPicker = forwardRef((props, ref) => {
     const onEmojiSelected = useRef(() => {});
     const activeEmoji = useRef();
     const emojiSearchInput = useRef();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     /**
      * Get the popover anchor ref
