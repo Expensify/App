@@ -62,7 +62,7 @@ const ONYXKEYS = {
 
     /**
      * PERSONAL_DETAILS_METADATA is a perf optimization used to hold loading states of each entry in PERSONAL_DETAILS_LIST.
-     * A lot of components are connected to the PERSONAL_DETAILS_LIST entity and do not care about the actions.
+     * A lot of components are connected to the PERSONAL_DETAILS_LIST entity and do not care about the loading state.
      * Setting the loading state directly on the personal details entry caused a lot of unnecessary re-renders.
      */
     PERSONAL_DETAILS_METADATA: 'personalDetailsMetadata',
