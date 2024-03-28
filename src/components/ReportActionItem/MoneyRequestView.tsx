@@ -122,7 +122,7 @@ function MoneyRequestView({
     const formattedTaxAmount = transactionTaxAmount ? CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency) : '';
 
     const taxRatesDescription = taxRates?.name;
-    const taxRateTitle = (transactionTaxCode && taxRates && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode)) ?? '';
+    const taxRateTitle = (transaction && transactionTaxCode && taxRates && TransactionUtils.getDefaultTaxName(taxRates, transaction, true, transactionTaxCode)) ?? '';
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
