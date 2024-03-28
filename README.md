@@ -54,7 +54,7 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 
 ## Running the web app 🕸
 * To run the **development web app**: `npm run web`
-* Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
+* Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
 
 ## Running the iOS app 📱
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.

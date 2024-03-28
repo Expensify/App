@@ -1,34 +1,39 @@
-const path = require('path');
-const portfinder = require('portfinder');
-const {DefinePlugin} = require('webpack');
-const {merge} = require('webpack-merge');
-const {TimeAnalyticsPlugin} = require('time-analytics-webpack-plugin');
-const getCommonConfig = require('./webpack.common');
+import path from 'path';
+import portfinder from 'portfinder';
+import {TimeAnalyticsPlugin} from 'time-analytics-webpack-plugin';
+import type {Configuration} from 'webpack';
+import {DefinePlugin} from 'webpack';
+import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
+import {merge} from 'webpack-merge';
+import type Environment from './types';
+import getCommonConfiguration from './webpack.common';
 
 const BASE_PORT = 8082;
 
 /**
  * Configuration for the local dev server
- * @param {Object} env
- * @returns {Configuration}
  */
-module.exports = (env = {}) =>
+const getConfiguration = (environment: Environment): Promise<Configuration> =>
     portfinder.getPortPromise({port: BASE_PORT}).then((port) => {
         // Check if the USE_WEB_PROXY variable has been provided
         // and rewrite any requests to the local proxy server
-        const proxySettings =
+        const proxySettings: Pick<DevServerConfiguration, 'proxy'> =
             process.env.USE_WEB_PROXY === 'false'
                 ? {}
                 : {
                       proxy: {
+                          // eslint-disable-next-line @typescript-eslint/naming-convention
                           '/api': 'http://[::1]:9000',
+                          // eslint-disable-next-line @typescript-eslint/naming-convention
                           '/staging': 'http://[::1]:9000',
+                          // eslint-disable-next-line @typescript-eslint/naming-convention
                           '/chat-attachments': 'http://[::1]:9000',
+                          // eslint-disable-next-line @typescript-eslint/naming-convention
                           '/receipts': 'http://[::1]:9000',
                       },
                   };
 
-        const baseConfig = getCommonConfig(env);
+        const baseConfig = getCommonConfiguration(environment);
 
         const config = merge(baseConfig, {
             mode: 'development',
@@ -55,12 +60,13 @@ module.exports = (env = {}) =>
             },
             plugins: [
                 new DefinePlugin({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     'process.env.PORT': port,
                 }),
             ],
             cache: {
                 type: 'filesystem',
-                name: env.platform || 'default',
+                name: environment.platform ?? 'default',
                 buildDependencies: {
                     // By default, webpack and loaders are build dependencies
                     // This (also) makes all dependencies of this config file - build dependencies
@@ -78,3 +84,5 @@ module.exports = (env = {}) =>
 
         return TimeAnalyticsPlugin.wrap(config);
     });
+
+export default getConfiguration;
