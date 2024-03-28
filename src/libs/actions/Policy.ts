@@ -1076,6 +1076,8 @@ function requestWorkspaceOwnerChange(policyID: string) {
                 isLoading: false,
                 isChangeOwnerSuccessful: true,
                 isChangeOwnerFailed: false,
+                owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
             },
         },
     ];
@@ -1141,6 +1143,8 @@ function addBillingCardAndRequestPolicyOwnerChange(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 isLoading: false,
+                owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
             },
         },
     ];
