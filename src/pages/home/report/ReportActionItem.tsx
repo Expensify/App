@@ -678,7 +678,7 @@ function ReportActionItem({
                     message = 'parentReportAction.deletedRequest';
                 }
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.justifyContentEnd]}>
+                    <View>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
@@ -707,7 +707,7 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+                    <View>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
@@ -725,7 +725,7 @@ function ReportActionItem({
                 );
             }
             return (
-                <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+                <View>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                         <TaskView
@@ -797,7 +797,7 @@ function ReportActionItem({
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
-            onPress={onPress}
+            onPress={draftMessage === undefined ? onPress : undefined}
             style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
@@ -829,7 +829,7 @@ function ReportActionItem({
                         />
                         <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined)}>
                             <OfflineWithFeedback
-                                onClose={() => ReportActions.clearReportActionErrors(report.reportID, action)}
+                                onClose={() => ReportActions.clearAllRelatedReportActionErrors(report.reportID, action)}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
