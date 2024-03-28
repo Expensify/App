@@ -682,10 +682,9 @@ function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shar
 
         setAssigneeChatReport({
             ...chatReport,
-            isOptimisticReport: chatReport?.isOptimisticReport,
+            isOptimisticReport: chatReport?.isOptimisticReport ?? false,
             pendingFields: chatReport?.pendingFields,
             pendingAction: chatReport?.pendingAction,
-            errorFields: chatReport?.errorFields,
         });
 
         // If there is no share destination set, automatically set it to the assignee chat report
