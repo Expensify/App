@@ -99,6 +99,7 @@ function IOURequestStepAmount({
     const taxRates = lodashGet(policy, 'taxRates', {});
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
     const isTaxTrackingEnabled = isPolicyExpenseChat && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
+    const skipConfirmation = transaction.skipConfirmation && !ReportUtils.isArchivedRoom(report);
 
     useFocusEffect(
         useCallback(() => {
@@ -167,7 +168,7 @@ function IOURequestStepAmount({
             });
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
-            if (transaction.skipConfirmation) {
+            if (skipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBillAndOpenReport(
                         participants,
@@ -228,7 +229,7 @@ function IOURequestStepAmount({
                 isEditing={Boolean(backTo)}
                 currency={transaction.currency}
                 amount={transaction.amount}
-                skipConfirmation={transaction.skipConfirmation}
+                skipConfirmation={skipConfirmation}
                 iouType={iouType}
                 policyID={policy.policyID}
                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}

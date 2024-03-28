@@ -29,6 +29,7 @@ import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import * as ReportUtils from "@libs/ReportUtils";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -85,6 +86,7 @@ function IOURequestStepDistance({
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = Navigation.getActiveRoute().includes('start');
+    const skipConfirmation = transaction.skipConfirmation && !ReportUtils.isArchivedRoom(report);
 
     useEffect(() => {
         MapboxToken.init();
