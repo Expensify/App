@@ -13,10 +13,12 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
         const {isOffline} = useNetwork();
 
         useEffect(() => {
-            if (!!policy?.connections || !policy?.id) {
+            if (!policy?.areConnectionsEnabled || !!policy?.connections || !policy?.id) {
                 return;
             }
 
+            // If the policy doesn't have the connections data when it has the accounting connections feature enabled,
+            // call the API to get the data
             openPolicyAccountingPage(policy.id);
         }, [policy]);
 
