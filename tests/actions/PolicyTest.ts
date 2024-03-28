@@ -55,7 +55,7 @@ describe('actions/Policy', () => {
             // check if policy was created with correct values
             expect(policy?.id).toBe(policyID);
             expect(policy?.name).toBe(WORKSPACE_NAME);
-            expect(policy?.type).toBe(CONST.POLICY.TYPE.FREE);
+            expect(policy?.type).toBe(CONST.POLICY.TYPE.TEAM);
             expect(policy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policy?.owner).toBe(ESH_EMAIL);
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
