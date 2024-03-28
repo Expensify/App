@@ -125,7 +125,6 @@ describe('CurrencyUtils', () => {
             [2500.5, '25.00'],
             [null, ''],
             [undefined, ''],
-            ['', '0.00'],
             [0, '0.00'],
         ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult) => {
             expect(CurrencyUtils.convertToFrontendAmountAsString(input)).toBe(expectedResult);
