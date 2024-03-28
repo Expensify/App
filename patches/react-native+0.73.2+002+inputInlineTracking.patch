@@ -1,0 +1,712 @@
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
+index 4073836..95ba88e 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
+@@ -416,7 +416,20 @@ export type NativeProps = $ReadOnly<{|
+   onSelectionChange?: ?DirectEventHandler<
+     $ReadOnly<{|
+       target: Int32,
+-      selection: $ReadOnly<{|start: Double, end: Double|}>,
++      selection: $ReadOnly<{|
++        start: Double,
++        end: Double,
++        cursorPosition?: $ReadOnly<{|
++          start: $ReadOnly<{|
++            x: Double,
++            y: Double,
++          |}>,
++          end: $ReadOnly<{|
++            x: Double,
++            y: Double,
++          |}>,
++        |}>,
++      |}>,
+     |}>,
+   >,
+ 
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
+index 5cb6bf1..af1b199 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
+@@ -435,6 +435,16 @@ export interface TextInputSelectionChangeEventData extends TargetedEvent {
+   selection: {
+     start: number;
+     end: number;
++    cursorPosition?: {
++      start: {
++        x: number;
++        y: number;
++      };
++      end: {
++        x: number;
++        y: number;
++      };
++    };
+   };
+ }
+ 
+@@ -864,7 +874,28 @@ export interface TextInputProps
+    * The start and end of the text input's selection. Set start and end to
+    * the same value to position the cursor.
+    */
+-  selection?: {start: number; end?: number | undefined} | undefined;
++  selection?:
++  | {
++      start: number;
++      end?: number | undefined;
++      cursorPosition?:
++        | {
++            start:
++              | {
++                  x: number;
++                  y: number;
++                }
++              | undefined;
++            end:
++              | {
++                  x: number;
++                  y: number;
++                }
++              | undefined;
++          }
++        | undefined;
++    }
++  | undefined;
+ 
+   /**
+    * The highlight (and cursor on ios) color of the text input
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
+index dc52051..fde1100 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
+@@ -69,6 +69,16 @@ export type FocusEvent = TargetEvent;
+ type Selection = $ReadOnly<{|
+   start: number,
+   end: number,
++  cursorPosition?: $ReadOnly<{|
++    start: $ReadOnly<{|
++      x: number,
++      y: number,
++    |}>,
++    end: $ReadOnly<{|
++      x: number,
++      y: number,
++    |}>,
++  |}>,
+ |}>;
+ 
+ export type SelectionChangeEvent = SyntheticEvent<
+@@ -865,6 +875,16 @@ export type Props = $ReadOnly<{|
+   selection?: ?$ReadOnly<{|
+     start: number,
+     end?: ?number,
++    cursorPosition?: $ReadOnly<{|
++      start: $ReadOnly<{|
++        x: number,
++        y: number,
++      |}>,
++      end: $ReadOnly<{|
++        x: number,
++        y: number,
++      |}>,
++    |}>,
+   |}>,
+ 
+   /**
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+index 3ce7422..b9f3cd7 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+@@ -39,7 +39,14 @@ type TextInputInstance = React.ElementRef<HostComponent<mixed>> & {
+   +clear: () => void,
+   +isFocused: () => boolean,
+   +getNativeRef: () => ?React.ElementRef<HostComponent<mixed>>,
+-  +setSelection: (start: number, end: number) => void,
++  +setSelection: (
++    start: number,
++    end: number,
++    cursorPosition?: {
++      start: {x: number, y: number},
++      end: {x: number, y: number},
++    },
++  ) => void,
+ };
+ 
+ let AndroidTextInput;
+@@ -79,6 +86,16 @@ export type TextInputEvent = SyntheticEvent<
+     range: $ReadOnly<{|
+       start: number,
+       end: number,
++      cursorPosition?: $ReadOnly<{|
++        start: $ReadOnly<{|
++          x: number,
++          y: number,
++        |}>,
++        end: $ReadOnly<{|
++          x: number,
++          y: number,
++        |}>,
++      |}>,
+     |}>,
+     target: number,
+     text: string,
+@@ -107,6 +124,16 @@ export type FocusEvent = TargetEvent;
+ type Selection = $ReadOnly<{|
+   start: number,
+   end: number,
++  cursorPosition?: $ReadOnly<{|
++    start: $ReadOnly<{|
++      x: number,
++      y: number,
++    |}>,
++    end: $ReadOnly<{|
++      x: number,
++      y: number,
++    |}>,
++  |}>,
+ |}>;
+ 
+ export type SelectionChangeEvent = SyntheticEvent<
+@@ -825,7 +852,7 @@ export type Props = $ReadOnly<{|
+   /**
+    * Callback that is called when the text input selection is changed.
+    * This will be called with
+-   * `{ nativeEvent: { selection: { start, end } } }`.
++   * `{ nativeEvent: { selection: { start, end, cursorPosition: {start: {x, y}, end: {x, y}}} } }`.
+    */
+   onSelectionChange?: ?(e: SelectionChangeEvent) => mixed,
+ 
+@@ -902,10 +929,21 @@ export type Props = $ReadOnly<{|
+   /**
+    * The start and end of the text input's selection. Set start and end to
+    * the same value to position the cursor.
++   * cursorPosition specify the location of the cursor
+    */
+   selection?: ?$ReadOnly<{|
+     start: number,
+     end?: ?number,
++    cursorPosition?: $ReadOnly<{|
++      start: $ReadOnly<{|
++        x: number,
++        y: number,
++      |}>,
++      end: $ReadOnly<{|
++        x: number,
++        y: number,
++      |}>,
++    |}>,
+   |}>,
+ 
+   /**
+@@ -1122,6 +1160,16 @@ function InternalTextInput(props: Props): React.Node {
+       : {
+           start: propsSelection.start,
+           end: propsSelection.end ?? propsSelection.start,
++          cursorPosition: {
++            start: {
++              x: propsSelection?.cursorPosition?.start?.x ?? 0,
++              y: propsSelection?.cursorPosition?.start?.y ?? 0,
++            },
++            end: {
++              x: propsSelection?.cursorPosition?.end?.x ?? 0,
++              y: propsSelection?.cursorPosition?.end?.y ?? 0,
++            },
++          },
+         };
+ 
+   const [mostRecentEventCount, setMostRecentEventCount] = useState<number>(0);
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
+index b0d71dc..09f3379 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
+@@ -212,37 +212,42 @@ RCT_NOT_IMPLEMENTED(-(instancetype)initWithFrame : (CGRect)frame)
+ {
+   id<RCTBackedTextInputViewProtocol> backedTextInputView = self.backedTextInputView;
+   UITextRange *selectedTextRange = backedTextInputView.selectedTextRange;
+-  return [[RCTTextSelection new]
+-      initWithStart:[backedTextInputView offsetFromPosition:backedTextInputView.beginningOfDocument
+-                                                 toPosition:selectedTextRange.start]
+-                end:[backedTextInputView offsetFromPosition:backedTextInputView.beginningOfDocument
+-                                                 toPosition:selectedTextRange.end]];
+-}
+ 
+-- (void)setSelection:(RCTTextSelection *)selection
+-{
+-  if (!selection) {
+-    return;
+-  }
++  CGPoint selectionOriginStart = [backedTextInputView caretRectForPosition:selectedTextRange.start].origin;
++  CGRect caretRectEnd = [backedTextInputView caretRectForPosition:selectedTextRange.end];
++  CGPoint selectionOriginEnd = caretRectEnd.origin;
++  CGFloat cursorHeightEnd = caretRectEnd.size.height;
++  CGFloat cursorWidthEnd = caretRectEnd.size.width;
+ 
+-  id<RCTBackedTextInputViewProtocol> backedTextInputView = self.backedTextInputView;
++  NSString *formattedStartY = @"0";
++  NSString *formattedStartX = @"0";
++  NSString *formattedEndY = @"0";
++  NSString *formattedEndX = @"0";
+ 
+-  UITextRange *previousSelectedTextRange = backedTextInputView.selectedTextRange;
+-  UITextPosition *start = [backedTextInputView positionFromPosition:backedTextInputView.beginningOfDocument
+-                                                             offset:selection.start];
+-  UITextPosition *end = [backedTextInputView positionFromPosition:backedTextInputView.beginningOfDocument
+-                                                           offset:selection.end];
+-  UITextRange *selectedTextRange = [backedTextInputView textRangeFromPosition:start toPosition:end];
++  formattedStartY = [self formatPositionValue:selectionOriginStart.y];
++  formattedStartX = [self formatPositionValue:selectionOriginStart.x];
+ 
+-  NSInteger eventLag = _nativeEventCount - _mostRecentEventCount;
+-  if (eventLag == 0 && ![previousSelectedTextRange isEqual:selectedTextRange]) {
+-    [backedTextInputView setSelectedTextRange:selectedTextRange notifyDelegate:NO];
+-  } else if (eventLag > RCTTextUpdateLagWarningThreshold) {
+-    RCTLog(
+-        @"Native TextInput(%@) is %lld events ahead of JS - try to make your JS faster.",
+-        backedTextInputView.attributedText.string,
+-        (long long)eventLag);
+-  }
++  // We add the height/width of the cursor to the position of the caret to get the bottom right position of the end of the selection
++  formattedEndY = [self formatPositionValue:(selectionOriginEnd.y + cursorHeightEnd)];
++  formattedEndX = [self formatPositionValue:(selectionOriginEnd.x + cursorWidthEnd)];
++
++  NSDictionary *cursorPosition = @{
++    @"start": @{
++      @"x": formattedStartX,
++      @"y": formattedStartY
++    },
++    @"end": @{
++      @"x": formattedEndX,
++      @"y": formattedEndY
++    }
++  };
++
++  return [[RCTTextSelection new]
++      initWithStart:[backedTextInputView offsetFromPosition:backedTextInputView.beginningOfDocument
++                                                 toPosition:selectedTextRange.start]
++                end:[backedTextInputView offsetFromPosition:backedTextInputView.beginningOfDocument
++                                                 toPosition:selectedTextRange.end]
++       cursorPosition:cursorPosition];
+ }
+ 
+ - (void)setSelectionStart:(NSInteger)start selectionEnd:(NSInteger)end
+@@ -546,6 +551,15 @@ RCT_NOT_IMPLEMENTED(-(instancetype)initWithFrame : (CGRect)frame)
+   }
+ }
+ 
++- (NSString *)formatPositionValue:(CGFloat)positionValue {
++  if (positionValue < 0) {
++    return @"0";
++  }
++  NSInteger roundedValue = round(positionValue);
++  NSString *formattedValue = [NSString stringWithFormat:@"%ld", (long)roundedValue];
++  return formattedValue;
++}
++
+ - (void)textInputDidChangeSelection
+ {
+   if (!_onSelectionChange) {
+@@ -554,11 +568,24 @@ RCT_NOT_IMPLEMENTED(-(instancetype)initWithFrame : (CGRect)frame)
+ 
+   RCTTextSelection *selection = self.selection;
+ 
++   NSDictionary *startCursorPosition = selection.cursorPosition[@"start"];
++   NSDictionary *endCursorPosition = selection.cursorPosition[@"end"];
++
+   _onSelectionChange(@{
+     @"selection" : @{
+       @"start" : @(selection.start),
+       @"end" : @(selection.end),
+-    },
++      @"cursorPosition": @{
++        @"start": @{
++          @"x": startCursorPosition[@"x"],
++          @"y": startCursorPosition[@"y"]
++        },
++        @"end": @{
++          @"x": endCursorPosition[@"x"],
++          @"y": endCursorPosition[@"y"]
++        }
++      }
++    }
+   });
+ }
+ 
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTTextSelection.h b/node_modules/react-native/Libraries/Text/TextInput/RCTTextSelection.h
+index baa2e0e..ef31343 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/RCTTextSelection.h
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTTextSelection.h
+@@ -14,8 +14,9 @@
+ 
+ @property (nonatomic, assign, readonly) NSInteger start;
+ @property (nonatomic, assign, readonly) NSInteger end;
++@property (nonatomic, strong, readonly) NSDictionary *cursorPosition;
+ 
+-- (instancetype)initWithStart:(NSInteger)start end:(NSInteger)end;
++- (instancetype)initWithStart:(NSInteger)start end:(NSInteger)end cursorPosition:(NSDictionary *)cursorPosition; 
+ 
+ @end
+ 
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTTextSelection.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTTextSelection.mm
+index bbcf63b..d126590 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/RCTTextSelection.mm
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTTextSelection.mm
+@@ -9,11 +9,12 @@
+ 
+ @implementation RCTTextSelection
+ 
+-- (instancetype)initWithStart:(NSInteger)start end:(NSInteger)end
++- (instancetype)initWithStart:(NSInteger)start end:(NSInteger)end cursorPosition:(NSDictionary *)cursorPosition
+ {
+   if (self = [super init]) {
+     _start = start;
+     _end = end;
++    _cursorPosition = cursorPosition;
+   }
+   return self;
+ }
+@@ -27,7 +28,10 @@
+   if ([json isKindOfClass:[NSDictionary class]]) {
+     NSInteger start = [self NSInteger:json[@"start"]];
+     NSInteger end = [self NSInteger:json[@"end"]];
+-    return [[RCTTextSelection alloc] initWithStart:start end:end];
++    NSDictionary *cursorPosition = json[@"cursorPosition"];
++    return [[RCTTextSelection alloc] initWithStart:start
++                                               end:end 
++                                    cursorPosition:cursorPosition];
+   }
+ 
+   return nil;
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index e7b69bf..20b220e 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -530,6 +530,7 @@ using namespace facebook::react;
+   TextInputMetrics metrics;
+   metrics.text = RCTStringFromNSString(_backedTextInputView.attributedText.string);
+   metrics.selectionRange = [self _selectionRange];
++  metrics.cursorPosition = [self _cursorPosition];
+   metrics.eventCount = _mostRecentEventCount;
+ 
+   CGPoint contentOffset = _backedTextInputView.contentOffset;
+@@ -564,6 +565,33 @@ using namespace facebook::react;
+   _state->updateState(std::move(data));
+ }
+ 
++- (CursorPosition)_cursorPosition
++{
++  UITextRange *selectedTextRange = _backedTextInputView.selectedTextRange;
++  
++  // Get the caret rectangle for the start of the selected text range.
++  CGRect caretRectStart = [_backedTextInputView caretRectForPosition:selectedTextRange.start];
++  CGPoint cursorPositionStart = caretRectStart.origin;
++  
++  // Get the caret rectangle for the end of the selected text range.
++  CGRect caretRectEnd = [_backedTextInputView caretRectForPosition:selectedTextRange.end];
++  CGPoint cursorPositionEnd = caretRectEnd.origin;
++  CGSize cursorPositionEndSize = caretRectEnd.size;
++  
++  // Check if y-values are negative(can be -1). If yes, set them to 0.
++  cursorPositionStart.y = cursorPositionStart.y < 0 ? 0 : cursorPositionStart.y;
++  cursorPositionEnd.y = cursorPositionEnd.y < 0 ? 0 : cursorPositionEnd.y;
++  
++  // Create a pair of integers representing the x and y coordinates of the cursor positions.
++  std::pair<int, int> cursorPositionStartInt = {static_cast<int>(cursorPositionStart.x), static_cast<int>(cursorPositionStart.y)};
++  std::pair<int, int> cursorPositionEndInt = {static_cast<int>(cursorPositionEnd.x + cursorPositionEndSize.width), static_cast<int>(cursorPositionEnd.y + cursorPositionEndSize.height)};
++  
++  // Create a CursorPosition structure and set the start and end cursor positions.
++  CursorPosition cursorPosition = {cursorPositionStartInt, cursorPositionEndInt};
++
++  return cursorPosition;
++}
++
+ - (AttributedString::Range)_selectionRange
+ {
+   UITextRange *selectedTextRange = _backedTextInputView.selectedTextRange;
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+index e4d975b..197b990 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+@@ -29,6 +29,7 @@ import android.view.KeyEvent;
+ import android.view.View;
+ import android.view.ViewGroup;
+ import android.view.inputmethod.EditorInfo;
++import android.view.ViewTreeObserver;
+ import android.widget.TextView;
+ import androidx.annotation.Nullable;
+ import androidx.autofill.HintConstants;
+@@ -1230,18 +1231,67 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+     @Override
+     public void onSelectionChanged(int start, int end) {
+       // Android will call us back for both the SELECTION_START span and SELECTION_END span in text
+-      // To prevent double calling back into js we cache the result of the previous call and only
++      // To prevent double calling back into js, we cache the result of the previous call and only
+       // forward it on if we have new values
+ 
+       // Apparently Android might call this with an end value that is less than the start value
+       // Lets normalize them. See https://github.com/facebook/react-native/issues/18579
++      Layout layout = mReactEditText.getLayout();
++      if (layout == null) {
++        mReactEditText.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
++            @Override
++            public void onGlobalLayout() {
++              mReactEditText.getViewTreeObserver().removeOnGlobalLayoutListener(this);
++              onSelectionChanged(start, end);
++            }
++          });
++          return;
++      }
+       int realStart = Math.min(start, end);
+       int realEnd = Math.max(start, end);
++      int cursorPositionStartX = 0;
++      int cursorPositionStartY = 0;
++      int cursorPositionEndX = 0;
++      int cursorPositionEndY = 0;
++
++      int lineStart = layout.getLineForOffset(realStart);
++      int baselineStart = layout.getLineBaseline(lineStart);
++      int ascentStart = layout.getLineAscent(lineStart);
++      cursorPositionStartX = (int) Math.round(PixelUtil.toDIPFromPixel(layout.getPrimaryHorizontal(realStart)));
++      cursorPositionStartY = (int) Math.round(PixelUtil.toDIPFromPixel(baselineStart + ascentStart));
++      int lineEnd = layout.getLineForOffset(realEnd);
++      int baselineEnd = layout.getLineBaseline(lineEnd);
++      int ascentEnd = layout.getLineAscent(lineEnd);
++      int descentEnd = layout.getLineDescent(lineEnd);
++
++      float right = layout.getPrimaryHorizontal(realEnd);
++      float bottom = layout.getLineBaseline(lineEnd) + layout.getLineDescent(lineEnd);
++      int cursorWidth = 0;
++
++      Drawable cursorDrawable = null;
++      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
++        cursorDrawable = mReactEditText.getTextCursorDrawable();
++        if (cursorDrawable != null) {
++          cursorWidth = cursorDrawable.getIntrinsicWidth();
++        }
++      }
++      
++      cursorPositionEndX = (int) Math.round(PixelUtil.toDIPFromPixel(right + cursorWidth));
++      cursorPositionEndY = (int) Math.round(PixelUtil.toDIPFromPixel(bottom));
+ 
+       if (mPreviousSelectionStart != realStart || mPreviousSelectionEnd != realEnd) {
+         mEventDispatcher.dispatchEvent(
+-            new ReactTextInputSelectionEvent(
+-                mSurfaceId, mReactEditText.getId(), realStart, realEnd));
++          new ReactTextInputSelectionEvent(
++            mSurfaceId,
++            mReactEditText.getId(),
++            realStart,
++            realEnd,
++            cursorPositionStartX,
++            cursorPositionStartY,
++            cursorPositionEndX,
++            cursorPositionEndY
++          )
++        );
+ 
+         mPreviousSelectionStart = realStart;
+         mPreviousSelectionEnd = realEnd;
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputSelectionEvent.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputSelectionEvent.java
+index ede96cd..a39e7b7 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputSelectionEvent.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputSelectionEvent.java
+@@ -5,49 +5,85 @@
+  * LICENSE file in the root directory of this source tree.
+  */
+ 
+-package com.facebook.react.views.textinput;
+-
+-import androidx.annotation.Nullable;
+-import com.facebook.react.bridge.Arguments;
+-import com.facebook.react.bridge.WritableMap;
+-import com.facebook.react.uimanager.common.ViewUtil;
+-import com.facebook.react.uimanager.events.Event;
+-
+-/** Event emitted by EditText native view when the text selection changes. */
+-/* package */ class ReactTextInputSelectionEvent extends Event<ReactTextInputSelectionEvent> {
+-
+-  private static final String EVENT_NAME = "topSelectionChange";
+-
+-  private int mSelectionStart;
+-  private int mSelectionEnd;
+-
+-  @Deprecated
+-  public ReactTextInputSelectionEvent(int viewId, int selectionStart, int selectionEnd) {
+-    this(ViewUtil.NO_SURFACE_ID, viewId, selectionStart, selectionEnd);
+-  }
+-
+-  public ReactTextInputSelectionEvent(
+-      int surfaceId, int viewId, int selectionStart, int selectionEnd) {
+-    super(surfaceId, viewId);
+-    mSelectionStart = selectionStart;
+-    mSelectionEnd = selectionEnd;
+-  }
+-
+-  @Override
+-  public String getEventName() {
+-    return EVENT_NAME;
+-  }
+-
+-  @Nullable
+-  @Override
+-  protected WritableMap getEventData() {
+-    WritableMap eventData = Arguments.createMap();
+-
+-    WritableMap selectionData = Arguments.createMap();
+-    selectionData.putInt("end", mSelectionEnd);
+-    selectionData.putInt("start", mSelectionStart);
+-
+-    eventData.putMap("selection", selectionData);
+-    return eventData;
+-  }
+-}
++ package com.facebook.react.views.textinput;
++
++ import androidx.annotation.Nullable;
++ import com.facebook.react.bridge.Arguments;
++ import com.facebook.react.bridge.WritableMap;
++ import com.facebook.react.uimanager.common.ViewUtil;
++ import com.facebook.react.uimanager.events.Event;
++ 
++ /** Event emitted by EditText native view when the text selection changes. */
++ /* package */ class ReactTextInputSelectionEvent extends Event<ReactTextInputSelectionEvent> {
++ 
++   private static final String EVENT_NAME = "topSelectionChange";
++ 
++   private int mSelectionStart;
++   private int mSelectionEnd;
++   private int mCursorPositionStartX;
++   private int mCursorPositionStartY;
++   private int mCursorPositionEndX;
++   private int mCursorPositionEndY;
++ 
++   @Deprecated
++   public ReactTextInputSelectionEvent(
++       int viewId,
++       int selectionStart,
++       int selectionEnd,
++       int cursorPositionStartX,
++       int cursorPositionStartY,
++       int cursorPositionEndX,
++       int cursorPositionEndY) {
++     this(-1, viewId, selectionStart, selectionEnd, cursorPositionStartX, cursorPositionStartY, cursorPositionEndX, cursorPositionEndY);
++   }
++ 
++   public ReactTextInputSelectionEvent(
++       int surfaceId,
++       int viewId,
++       int selectionStart,
++       int selectionEnd,
++       int cursorPositionStartX,
++       int cursorPositionStartY,
++       int cursorPositionEndX,
++       int cursorPositionEndY) {
++     super(surfaceId, viewId);
++     mSelectionStart = selectionStart;
++     mSelectionEnd = selectionEnd;
++     mCursorPositionStartX = cursorPositionStartX;
++     mCursorPositionStartY = cursorPositionStartY;
++     mCursorPositionEndX = cursorPositionEndX;
++     mCursorPositionEndY = cursorPositionEndY;
++   }
++ 
++   @Override
++   public String getEventName() {
++     return EVENT_NAME;
++   }
++ 
++   @Nullable
++   @Override
++   protected WritableMap getEventData() {
++     WritableMap eventData = Arguments.createMap();
++     WritableMap selectionData = Arguments.createMap();
++ 
++     WritableMap startPosition = Arguments.createMap();
++     startPosition.putInt("x", mCursorPositionStartX);
++     startPosition.putInt("y", mCursorPositionStartY);
++ 
++     WritableMap endPosition = Arguments.createMap();
++     endPosition.putInt("x", mCursorPositionEndX);
++     endPosition.putInt("y", mCursorPositionEndY);
++ 
++     WritableMap selectionPosition = Arguments.createMap();
++     selectionPosition.putMap("start", startPosition);
++     selectionPosition.putMap("end", endPosition);
++ 
++     selectionData.putInt("end", mSelectionEnd);
++     selectionData.putInt("start", mSelectionStart);
++     selectionData.putMap("cursorPosition", selectionPosition);
++ 
++     eventData.putMap("selection", selectionData);
++     return eventData;
++   }
++ }
++ 
+\ No newline at end of file
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
+index 88ae3f3..2e341e5 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include "TextInputEventEmitter.h"
++#include <iostream>
+ 
+ namespace facebook::react {
+ 
+@@ -31,6 +32,32 @@ static jsi::Value textInputMetricsPayload(
+         textInputMetrics.selectionRange.location +
+             textInputMetrics.selectionRange.length);
+     payload.setProperty(runtime, "selection", selection);
++          
++    auto cursorPosition = jsi::Object(runtime);
++    auto cursorStartPosition = jsi::Object(runtime);
++
++    cursorStartPosition.setProperty(
++        runtime,
++        "x",
++        textInputMetrics.cursorPosition.start.first);
++    cursorStartPosition.setProperty(
++        runtime,
++        "y",
++        textInputMetrics.cursorPosition.start.second);
++    cursorPosition.setProperty(runtime, "start", cursorStartPosition);
++
++    auto cursorEndPosition = jsi::Object(runtime);
++    cursorEndPosition.setProperty(
++        runtime,
++        "x",
++        textInputMetrics.cursorPosition.end.first);
++    cursorEndPosition.setProperty(
++        runtime,
++        "y",
++        textInputMetrics.cursorPosition.end.second);
++    cursorPosition.setProperty(runtime, "end", cursorEndPosition);
++
++    selection.setProperty(runtime, "cursorPosition", cursorPosition);
+   }
+ 
+   return payload;
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.h
+index 0ab2b18..12b5298 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.h
+@@ -11,6 +11,10 @@
+ #include <react/renderer/components/view/ViewEventEmitter.h>
+ 
+ namespace facebook::react {
++struct CursorPosition {
++  std::pair<int, int> start;
++  std::pair<int, int> end;
++};
+ 
+ class TextInputMetrics {
+  public:
+@@ -24,6 +28,7 @@ class TextInputMetrics {
+   int eventCount;
+   Size layoutMeasurement;
+   float zoomScale;
++  CursorPosition cursorPosition;
+ };
+ 
+ class KeyPressMetrics {
