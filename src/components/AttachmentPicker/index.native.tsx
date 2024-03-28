@@ -1,11 +1,12 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Alert, Image as RNImage, View} from 'react-native';
+import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
+import ImageSize from 'react-native-image-size';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -281,7 +282,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             };
             /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
             if (fileDataName && Str.isImage(fileDataName)) {
-                RNImage.getSize(fileDataUri, (width, height) => {
+                ImageSize.getSize(fileDataUri).then(({width, height}) => {
                     fileDataObject.width = width;
                     fileDataObject.height = height;
                     validateAndCompleteAttachmentSelection(fileDataObject);
