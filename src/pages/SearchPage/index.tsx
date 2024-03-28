@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,9 +8,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
@@ -52,13 +51,12 @@ const setPerformanceTimersEnd = () => {
     Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
 };
 
-const SearchPageFooterInstance = <SearchPageFooter />;
+const SerachPageFooterInstance = <SearchPageFooter />;
 
 function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
 
     const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
@@ -144,6 +142,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
     };
 
     const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
+    const {isDismissed} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND});
 
     return (
         <ScreenWrapper
@@ -153,29 +152,27 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
             shouldEnableMaxHeight
             navigation={navigation}
         >
-            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+            {({didScreenTransitionEnd}) => (
                 <>
                     <HeaderWithBackButton
                         title={translate('common.search')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
-                        <SelectionList<ReportUtils.OptionData>
-                            sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
-                            ListItem={UserListItem}
-                            textInputValue={searchValue}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputHint={offlineMessage}
-                            onChangeText={setSearchValue}
-                            headerMessage={headerMessage}
-                            onLayout={setPerformanceTimersEnd}
-                            autoFocus
-                            onSelectRow={selectReport}
-                            showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
-                            footerContent={SearchPageFooterInstance}
-                            isLoadingNewOptions={isSearchingForReports ?? undefined}
-                        />
-                    </View>
+                    <SelectionList
+                        sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                        ListItem={UserListItem}
+                        textInputValue={searchValue}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        textInputHint={offlineMessage}
+                        onChangeText={setSearchValue}
+                        headerMessage={headerMessage}
+                        onLayout={setPerformanceTimersEnd}
+                        autoFocus
+                        onSelectRow={selectReport}
+                        showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
+                        footerContent={!isDismissed && SerachPageFooterInstance}
+                        isLoadingNewOptions={isSearchingForReports ?? undefined}
+                    />
                 </>
             )}
         </ScreenWrapper>
