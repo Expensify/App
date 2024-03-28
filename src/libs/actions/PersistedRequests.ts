@@ -32,7 +32,7 @@ function save(requestToPersist: Request) {
 
         // identify and handle any existing requests that conflict with the new one
         const {getConflictingRequests, handleConflictingRequest} = request;
-        if (!getConflictingRequests || !handleConflictingRequest) {
+        if (!getConflictingRequests) {
             // eslint-disable-next-line no-continue
             continue;
         }
@@ -50,7 +50,7 @@ function save(requestToPersist: Request) {
             }
 
             // Allow the request to perform any additional cleanup for a cancelled request
-            handleConflictingRequest(conflictingRequest);
+            handleConflictingRequest?.(conflictingRequest);
         });
     }
 
