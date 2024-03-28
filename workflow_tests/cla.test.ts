@@ -3,8 +3,8 @@ import type {Step} from '@kie/act-js';
 import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
 import kieMockGithub from '@kie/mock-github';
 import path from 'path';
-import assertions from './assertions/claAssertions';
-import mocks from './mocks/claMocks';
+import {assertCLAJobExecuted} from './assertions/claAssertions';
+import {CLA__CLA__CHECK_MATCH__STEP_MOCKS, CLA__CLA__NO_MATCHES__STEP_MOCKS, CLA__CLA__RECHECK_MATCH__STEP_MOCKS} from './mocks/claMocks';
 import ExtendedAct from './utils/ExtendedAct';
 import * as utils from './utils/utils';
 
@@ -72,7 +72,7 @@ describe('test workflow cla', () => {
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
 
                 const testMockSteps = {
-                    CLA: mocks.CLA__CLA__NO_MATCHES__STEP_MOCKS,
+                    CLA: CLA__CLA__NO_MATCHES__STEP_MOCKS,
                 };
 
                 const result = await act.runEvent(event, {
@@ -82,7 +82,7 @@ describe('test workflow cla', () => {
                     logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                 });
 
-                assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, false);
+                assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, false);
             });
         });
         describe('check regex matches', () => {
@@ -105,7 +105,7 @@ describe('test workflow cla', () => {
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
 
                 const testMockSteps = {
-                    CLA: mocks.CLA__CLA__CHECK_MATCH__STEP_MOCKS,
+                    CLA: CLA__CLA__CHECK_MATCH__STEP_MOCKS,
                 };
 
                 const result = await act.runEvent(event, {
@@ -115,7 +115,7 @@ describe('test workflow cla', () => {
                     logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                 });
 
-                assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
+                assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
             });
         });
         describe('re-check regex matches', () => {
@@ -138,7 +138,7 @@ describe('test workflow cla', () => {
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
 
                 const testMockSteps = {
-                    CLA: mocks.CLA__CLA__RECHECK_MATCH__STEP_MOCKS,
+                    CLA: CLA__CLA__RECHECK_MATCH__STEP_MOCKS,
                 };
 
                 const result = await act.runEvent(event, {
@@ -148,7 +148,7 @@ describe('test workflow cla', () => {
                     logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                 });
 
-                assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
+                assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
             });
         });
     });
@@ -170,7 +170,7 @@ describe('test workflow cla', () => {
                 act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
 
                 const testMockSteps = {
-                    CLA: mocks.CLA__CLA__NO_MATCHES__STEP_MOCKS,
+                    CLA: CLA__CLA__NO_MATCHES__STEP_MOCKS,
                 };
 
                 const result = await act.runEvent(event, {
@@ -180,7 +180,7 @@ describe('test workflow cla', () => {
                     logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                 });
 
-                assertions.assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, true, true);
+                assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, true, true);
             });
         });
     });
@@ -197,7 +197,7 @@ describe('test workflow cla', () => {
             act = utils.setUpActParams(act, event, eventData, secrets, githubToken);
 
             const testMockSteps = {
-                CLA: mocks.CLA__CLA__NO_MATCHES__STEP_MOCKS,
+                CLA: CLA__CLA__NO_MATCHES__STEP_MOCKS,
             };
 
             const result: Step[] = await act.runEvent(event, {
@@ -207,7 +207,7 @@ describe('test workflow cla', () => {
                 logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
             });
 
-            assertions.assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, false);
+            assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, false);
         });
     });
 });
