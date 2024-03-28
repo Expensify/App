@@ -89,6 +89,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Description of the report */
         description?: string;
 
+        /** Whether the report is archived */
+        isArchived?: boolean;
+
         /** Whether the parent action was deleted */
         isDeletedParentAction?: boolean;
 
