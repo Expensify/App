@@ -15,24 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 
-/**
- * This page requires either an icon or an animation, but not both
- */
-type RequiredIllustrationProps = MergeExclusive<
-    {
-        /** Expensicon for the page */
-        icon: React.FC<SvgProps> | ImageSourcePropType;
-    },
-    {
-        /** Animation for the page */
-        animation: DotLottieAnimation;
-    }
->;
-
-type BlockingViewProps = RequiredIllustrationProps & {
-    /** Color for the icon (should be from theme) */
-    iconColor?: string;
-
+type BaseBlockingViewProps = {
     /** Title message below the icon */
     title: string;
 
@@ -45,27 +28,43 @@ type BlockingViewProps = RequiredIllustrationProps & {
     /** Whether we should show a link to navigate elsewhere */
     shouldShowLink?: boolean;
 
-    /** The custom icon width */
-    iconWidth?: number;
-
-    /** The custom icon height */
-    iconHeight?: number;
-
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
 
     /** Whether we should embed the link with subtitle */
     shouldEmbedLinkWithSubtitle?: boolean;
 
+    /** Render custom subtitle */
+    CustomSubtitle?: React.ReactElement;
+};
+
+type BlockingViewIconProps = {
+    /** Expensicon for the page */
+    icon: React.FC<SvgProps> | ImageSourcePropType;
+
+    /** The custom icon width */
+    iconWidth?: number;
+
+    /** The custom icon height */
+    iconHeight?: number;
+
+    /** Color for the icon (should be from theme) */
+    iconColor?: string;
+};
+
+type BlockingViewAnimationProps = {
+    /** Animation for the page */
+    animation: DotLottieAnimation;
+
     /** Style for the animation */
     animationStyles?: StyleProp<ViewStyle>;
 
     /** Style for the animation on web */
     animationWebStyle?: WebStyle;
-
-    /** Render custom subtitle */
-    CustomSubtitle?: React.ReactElement;
 };
+
+// This page requires either an icon or an animation, but not both
+type BlockingViewProps = BaseBlockingViewProps & MergeExclusive<BlockingViewIconProps, BlockingViewAnimationProps>;
 
 function BlockingView({
     animation,
