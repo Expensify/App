@@ -144,6 +144,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         participantAccountIDs?: number[];
         visibleChatMemberAccountIDs?: number[];
         total?: number;
+        unheldTotal?: number;
         currency?: string;
         errors?: OnyxCommon.Errors;
         managerEmail?: string;
@@ -192,4 +193,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, PendingChatMember, ReportCollectionDataSet};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants};

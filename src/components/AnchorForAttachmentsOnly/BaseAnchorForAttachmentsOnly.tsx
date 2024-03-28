@@ -59,7 +59,6 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                     role={CONST.ROLE.BUTTON}
                 >
                     <AttachmentView
-                        // @ts-expect-error TODO: Remove this once AttachmentView (https://github.com/Expensify/App/issues/25150) is migrated to TypeScript.
                         source={sourceURLWithAuth}
                         file={{name: displayName}}
                         shouldShowDownloadIcon={!isOffline}
