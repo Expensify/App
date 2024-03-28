@@ -13,6 +13,10 @@ type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'is
 
     /** Triggered when the PDF's onScaleChanged event is triggered */
     onScaleChanged?: (scale: number) => void;
+
+    onError?: () => void;
+
+    isUsedAsChatAttachment?: boolean;
 };
 
 export default AttachmentViewPdfProps;
