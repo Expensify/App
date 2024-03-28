@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -20,10 +21,6 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-
-type MoneyRequestCreated = {
-    moneyRequestCreated: string;
-};
 
 type IOURequestStepDateOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
@@ -66,7 +63,7 @@ function IOURequestStepDate({
         Navigation.goBack(backTo);
     };
 
-    const updateDate = (value: MoneyRequestCreated) => {
+    const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
         const newCreated = value.moneyRequestCreated;
 
         // Only update created if it has changed

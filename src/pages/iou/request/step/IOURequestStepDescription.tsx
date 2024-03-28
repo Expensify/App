@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -21,15 +22,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-
-type MoneyRequestComment = {
-    moneyRequestComment: string;
-};
 
 type IOURequestStepDescriptionOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
@@ -73,7 +69,7 @@ function IOURequestStepDescription({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
-    const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
     const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment.comment ?? '' : transaction?.comment.comment ?? '';
@@ -96,13 +92,13 @@ function IOURequestStepDescription({
     /**
      * @returns - An object containing the errors for each inputID
      */
-    const validate = useCallback((value: MoneyRequestComment): Errors => {
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM> => {
         const errors = {};
 
-        if (value.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
+        if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
             ErrorUtils.addErrorMessage(errors, 'moneyRequestComment', [
                 'common.error.characterLimitExceedCounter',
-                {length: value.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT},
+                {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT},
             ]);
         }
 
@@ -113,7 +109,7 @@ function IOURequestStepDescription({
         Navigation.goBack(backTo);
     };
 
-    const updateComment = (value: {moneyRequestComment: string}) => {
+    const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
         const newComment = value.moneyRequestComment.trim();
 
         // Only update comment if it has changed
