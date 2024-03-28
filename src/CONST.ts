@@ -56,6 +56,7 @@ const chatTypes = {
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const CONST = {
+    RECENT_WAYPOINTS_NUMBER: 20,
     MERGED_ACCOUNT_PREFIX: 'MERGED_',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
     ANDROID_PACKAGE_NAME,

@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
-import {Keyboard} from 'react-native';
+import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -104,7 +104,7 @@ function FormWrapper({
                 ref={formContentRef}
                 style={[style, safeAreaPaddingBottomStyle]}
             >
-                {children}
+                <View style={styles.flex1}>{children}</View>
                 {isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={submitButtonText}
@@ -153,7 +153,7 @@ function FormWrapper({
                 scrollContextEnabled ? (
                     <ScrollViewWithContext
                         style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
+                        contentContainerStyle={styles.flex1}
                         keyboardShouldPersistTaps="handled"
                         ref={formRef}
                     >
@@ -162,7 +162,7 @@ function FormWrapper({
                 ) : (
                     <ScrollView
                         style={[styles.w100, styles.flex1]}
-                        contentContainerStyle={styles.flexGrow1}
+                        contentContainerStyle={styles.flex1}
                         keyboardShouldPersistTaps="handled"
                         ref={formRef}
                     >
