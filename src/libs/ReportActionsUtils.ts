@@ -50,17 +50,12 @@ type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMe
 
 const policyChangeActionsSet = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG));
 
-const allReports: OnyxCollection<Report> = {};
-
+let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!key || !report) {
-            return;
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReports[reportID] = report;
+    waitForCollectionCallback: true,
+    callback: (reports) => {
+        allReports = reports;
     },
 });
 

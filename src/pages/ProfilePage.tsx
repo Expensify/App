@@ -36,13 +36,16 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList, Report, Session} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PersonalDetailsMetadata, Report, Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 type ProfilePageOnyxProps = {
     /** The personal details of the person who is logged in */
     personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** Loading status of the personal details */
+    personalDetailsMetadata: OnyxEntry<Record<string, PersonalDetailsMetadata>>;
 
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
@@ -74,12 +77,12 @@ const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyO
     return login ? Str.removeSMSDomain(login) : '';
 };
 
-function ProfilePage({personalDetails, route, session, report}: ProfilePageProps) {
+function ProfilePage({personalDetails, personalDetailsMetadata, route, session, report}: ProfilePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
     const isCurrentUser = session?.accountID === accountID;
-    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {isLoading: false, accountID: 0, avatar: ''});
+    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {accountID: 0, avatar: ''});
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -102,7 +105,7 @@ function ProfilePage({personalDetails, route, session, report}: ProfilePageProps
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
     const hasMinimumDetails = !isEmptyObject(details.avatar);
-    const isLoading = Boolean(details?.isLoading) || isEmptyObject(details);
+    const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
@@ -264,6 +267,9 @@ export default withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    personalDetailsMetadata: {
+        key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
     },
     session: {
         key: ONYXKEYS.SESSION,
