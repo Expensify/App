@@ -266,7 +266,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * 100,
     };
 
-    const currency = personalPolicy.outputCurrency;
+    const currency = mileageRate.currency || personalPolicy.outputCurrency;
 
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const taxRates = lodashGet(policy, 'taxRates', {});
