@@ -55,6 +55,7 @@ function save(requestToPersist: Request) {
     }
 
     // Save the updated set of requests
+    persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
