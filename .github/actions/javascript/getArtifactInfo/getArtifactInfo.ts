@@ -1,13 +1,12 @@
-const _ = require('underscore');
-const core = require('@actions/core');
-const GithubUtils = require('../../../libs/GithubUtils');
+import * as core from '@actions/core';
+import GithubUtils from '@github/libs/GithubUtils';
 
-const run = function () {
+const run = function (): Promise<void> {
     const artifactName = core.getInput('ARTIFACT_NAME', {required: true});
 
     return GithubUtils.getArtifactByName(artifactName)
         .then((artifact) => {
-            if (_.isUndefined(artifact)) {
+            if (artifact === undefined) {
                 console.log(`No artifact found with the name ${artifactName}`);
                 core.setOutput('ARTIFACT_FOUND', false);
                 return;
@@ -16,9 +15,9 @@ const run = function () {
             console.log('Artifact info', artifact);
             core.setOutput('ARTIFACT_FOUND', true);
             core.setOutput('ARTIFACT_ID', artifact.id);
-            core.setOutput('ARTIFACT_WORKFLOW_ID', artifact.workflow_run.id);
+            core.setOutput('ARTIFACT_WORKFLOW_ID', artifact.workflow_run?.id);
         })
-        .catch((error) => {
+        .catch((error: Error) => {
             console.error('A problem occurred while trying to communicate with the GitHub API', error);
             core.setFailed(error);
         });
@@ -28,4 +27,4 @@ if (require.main === module) {
     run();
 }
 
-module.exports = run;
+export default run;
