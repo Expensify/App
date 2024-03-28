@@ -143,3 +143,5 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
 TabSelector.displayName = 'TabSelector';
 
 export default TabSelector;
+
+export type { TabSelectorProps }
