@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {RadioListItemProps} from './types';
 
@@ -13,12 +14,18 @@ function RadioListItem({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    checkmarkPosition,
+    isMultilineSupported = false,
 }: RadioListItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
+    const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
+    const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
 
     return (
         <BaseListItem
@@ -30,32 +37,40 @@ function RadioListItem({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
+            checkmarkPosition={checkmarkPosition}
             keyForList={item.keyForList}
         >
-            <View style={[styles.flex1, styles.alignItemsStart]}>
-                <TextWithTooltip
-                    shouldShowTooltip={showTooltip}
-                    text={item.text}
-                    textStyles={[
-                        styles.optionDisplayName,
-                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                        styles.sidebarLinkTextBold,
-                        styles.pre,
-                        item.alternateText ? styles.mb1 : null,
-                    ]}
-                />
-
-                {!!item.alternateText && (
+            <>
+                <View style={[styles.flex1, styles.alignItemsStart]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
-                        text={item.alternateText}
-                        textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                        text={fullTitle ?? ''}
+                        style={[
+                            styles.optionDisplayName,
+                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            styles.sidebarLinkTextBold,
+                            isMultilineSupported ? styles.preWrap : styles.pre,
+                            item.alternateText ? styles.mb1 : null,
+                            isDisabled && styles.colorMuted,
+                            isMultilineSupported ? {paddingLeft} : null,
+                        ]}
+                        numberOfLines={isMultilineSupported ? 2 : 1}
                     />
-                )}
-            </View>
+
+                    {!!item.alternateText && (
+                        <TextWithTooltip
+                            shouldShowTooltip={showTooltip}
+                            text={item.alternateText}
+                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                        />
+                    )}
+                </View>
+                {!!item.rightElement && item.rightElement}
+            </>
         </BaseListItem>
     );
 }

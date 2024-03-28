@@ -229,7 +229,12 @@ function OptionRow({
                                         numberOfLines={isMultilineSupported ? 2 : 1}
                                         textStyles={displayNameStyle}
                                         shouldUseFullTitle={
-                                            !!option.isChatRoom || !!option.isPolicyExpenseChat || !!option.isMoneyRequestReport || !!option.isThread || !!option.isTaskReport
+                                            !!option.isChatRoom ||
+                                            !!option.isPolicyExpenseChat ||
+                                            !!option.isMoneyRequestReport ||
+                                            !!option.isThread ||
+                                            !!option.isTaskReport ||
+                                            !!option.isSelfDM
                                         }
                                     />
                                     {option.alternateText ? (
@@ -262,32 +267,29 @@ function OptionRow({
                                         />
                                     </View>
                                 )}
-                                {showSelectedState && (
-                                    <>
-                                        {shouldShowSelectedStateAsButton && !isSelected ? (
-                                            <Button
-                                                style={[styles.pl2]}
-                                                text={selectedStateButtonText ?? translate('common.select')}
-                                                onPress={() => onSelectedStatePressed(option)}
-                                                small
-                                                shouldUseDefaultHover={false}
+                                {showSelectedState &&
+                                    (shouldShowSelectedStateAsButton && !isSelected ? (
+                                        <Button
+                                            style={[styles.pl2]}
+                                            text={selectedStateButtonText ?? translate('common.select')}
+                                            onPress={() => onSelectedStatePressed(option)}
+                                            small
+                                            shouldUseDefaultHover={false}
+                                        />
+                                    ) : (
+                                        <PressableWithFeedback
+                                            onPress={() => onSelectedStatePressed(option)}
+                                            disabled={isDisabled}
+                                            role={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={CONST.ROLE.BUTTON}
+                                            style={[styles.ml2, styles.optionSelectCircle]}
+                                        >
+                                            <SelectCircle
+                                                isChecked={isSelected}
+                                                selectCircleStyles={styles.ml0}
                                             />
-                                        ) : (
-                                            <PressableWithFeedback
-                                                onPress={() => onSelectedStatePressed(option)}
-                                                disabled={isDisabled}
-                                                role={CONST.ROLE.BUTTON}
-                                                accessibilityLabel={CONST.ROLE.BUTTON}
-                                                style={[styles.ml2, styles.optionSelectCircle]}
-                                            >
-                                                <SelectCircle
-                                                    isChecked={isSelected}
-                                                    selectCircleStyles={styles.ml0}
-                                                />
-                                            </PressableWithFeedback>
-                                        )}
-                                    </>
-                                )}
+                                        </PressableWithFeedback>
+                                    ))}
                                 {isSelected && highlightSelected && (
                                     <View style={styles.defaultCheckmarkWrapper}>
                                         <Icon
@@ -343,3 +345,5 @@ export default React.memo(
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
         prevProps.option.customIcon === nextProps.option.customIcon,
 );
+
+export type {OptionRowProps};

@@ -3,12 +3,14 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyMembers, PolicyTagList, PolicyTags} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import Navigation from './Navigation/Navigation';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
-type UnitRate = {rate: number};
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -26,6 +28,20 @@ function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefin
  */
 function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean {
     return Object.values(policyMembers ?? {}).some((member) => Object.keys(member?.errors ?? {}).length > 0);
+}
+
+/**
+ *  Check if the policy has any tax rate errors.
+ */
+function hasTaxRateError(policy: OnyxEntry<Policy>): boolean {
+    return Object.values(policy?.taxRates?.taxes ?? {}).some((taxRate) => Object.keys(taxRate?.errors ?? {}).length > 0 || Object.values(taxRate?.errorFields ?? {}).some(Boolean));
+}
+
+/**
+ * Check if the policy has any errors within the categories.
+ */
+function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>): boolean {
+    return Object.keys(policyCategories ?? {}).some((categoryName) => Object.keys(policyCategories?.[categoryName]?.errors ?? {}).length > 0);
 }
 
 /**
@@ -49,7 +65,7 @@ function hasCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
-function getNumericValue(value: number, toLocaleDigit: (arg: string) => string): number | string {
+function getNumericValue(value: number | string, toLocaleDigit: (arg: string) => string): number | string {
     const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
     if (Number.isNaN(numValue)) {
         return NaN;
@@ -65,7 +81,7 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
 }
 
-function getUnitRateValue(customUnitRate: UnitRate, toLocaleDigit: (arg: string) => string) {
+function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Rate) {
     return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit);
 }
 
@@ -89,18 +105,15 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, policyMemb
  */
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolean {
     return (
-        !!policy && policy?.isPolicyExpenseChatEnabled && (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
+        !!policy &&
+        (policy?.isPolicyExpenseChatEnabled || Boolean(policy?.isJoinRequestPending)) &&
+        (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
     );
 }
 
 function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
-}
-
-function isExpensifyGuideTeam(email: string): boolean {
-    const emailDomain = Str.extractEmailDomain(email ?? '');
-    return emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
 /**
@@ -179,7 +192,9 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
         return [];
     }
 
-    return Object.values(policyTagList).filter((policyTagListValue) => policyTagListValue !== null);
+    return Object.values(policyTagList)
+        .filter((policyTagListValue) => policyTagListValue !== null)
+        .sort((tagA, tagB) => tagA.orderWeight - tagB.orderWeight);
 }
 
 /**
@@ -223,19 +238,26 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
  * Checks if policy's scheduled submit / auto reporting frequency is "instant".
  * Note: Free policies have "instant" submit always enabled.
  */
-function isInstantSubmitEnabled(policy: OnyxEntry<Policy>): boolean {
-    return policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || policy?.type === CONST.POLICY.TYPE.FREE;
+function isInstantSubmitEnabled(policy: OnyxEntry<Policy> | EmptyObject): boolean {
+    return policy?.type === CONST.POLICY.TYPE.FREE || (policy?.autoReporting === true && policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
 }
 
 /**
  * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
  */
-function isSubmitAndClose(policy: OnyxEntry<Policy>): boolean {
+function isSubmitAndClose(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
 function extractPolicyIDFromPath(path: string) {
     return path.match(CONST.REGEX.POLICY_ID_FROM_PATH)?.[1];
+}
+
+/**
+ * Whether the policy has active accounting integration connections
+ */
+function hasAccountingConnections(policy: OnyxEntry<Policy>) {
+    return Boolean(policy?.connections);
 }
 
 function getPathWithoutPolicyID(path: string) {
@@ -250,8 +272,33 @@ function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<Po
         : [];
 }
 
+function goBackFromInvalidPolicy() {
+    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+}
+
+/** Get a tax with given ID from policy */
+function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefined {
+    return policy?.taxRates?.taxes?.[taxID];
+}
+
+/**
+ * Whether the tax rate can be deleted and disabled
+ */
+function canEditTaxRate(policy: Policy, taxID: string): boolean {
+    return policy.taxRates?.defaultExternalID !== taxID;
+}
+
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
+        return Boolean(policy?.tax?.trackingEnabled);
+    }
+
+    return Boolean(policy?.[featureName]);
+}
+
 export {
     getActivePolicies,
+    hasAccountingConnections,
     hasPolicyMemberError,
     hasPolicyError,
     hasPolicyErrorFields,
@@ -261,7 +308,6 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,
-    isExpensifyGuideTeam,
     isInstantSubmitEnabled,
     isFreeGroupPolicy,
     isPolicyAdmin,
@@ -270,6 +316,7 @@ export {
     getIneligibleInvitees,
     getTagLists,
     getTagListName,
+    canEditTaxRate,
     getTagList,
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
@@ -279,6 +326,11 @@ export {
     extractPolicyIDFromPath,
     getPathWithoutPolicyID,
     getPolicyMembersByIdWithoutCurrentUser,
+    goBackFromInvalidPolicy,
+    isPolicyFeatureEnabled,
+    hasTaxRateError,
+    getTaxByID,
+    hasPolicyCategoriesError,
 };
 
 export type {MemberEmailsToAccountIDs};

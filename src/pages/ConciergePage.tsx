@@ -40,7 +40,7 @@ function ConciergePage({session}: ConciergePageProps) {
                 if (isUnmounted.current) {
                     return;
                 }
-                Report.navigateToConciergeChat(undefined, true, () => !isUnmounted.current);
+                Report.navigateToConciergeChat(true, () => !isUnmounted.current);
             });
         } else {
             Navigation.navigate();

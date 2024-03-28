@@ -8,6 +8,7 @@ import OptionsList from '@components/OptionsList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import localeCompare from '@libs/LocaleCompare';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,8 +50,10 @@ const getAllParticipants = (
                 !!userPersonalDetail?.login && !CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID) ? LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login) : translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
+            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
             return {
                 alternateText: userLogin,
+                pendingAction: pendingChatMember?.pendingAction,
                 displayName,
                 accountID: userPersonalDetail?.accountID ?? accountID,
                 icons: [
@@ -69,7 +72,7 @@ const getAllParticipants = (
                 reportID: report?.reportID ?? '',
             };
         })
-        .sort((a, b) => a.displayName.localeCompare(b.displayName.toLowerCase()));
+        .sort((a, b) => localeCompare(a.displayName, b.displayName));
 
 function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPageProps) {
     const {translate} = useLocalize();
@@ -86,7 +89,7 @@ function ReportParticipantsPage({report, personalDetails}: ReportParticipantsPag
             testID={ReportParticipantsPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report)}>
+                <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
                     <HeaderWithBackButton
                         onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
                         title={translate(

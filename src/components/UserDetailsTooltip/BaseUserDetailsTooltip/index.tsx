@@ -19,7 +19,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     const personalDetails = usePersonalDetails();
 
     const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};
-    let userDisplayName = ReportUtils.getDisplayNameForParticipant(accountID) || (userDetails.displayName ? userDetails.displayName.trim() : '');
+    let userDisplayName = ReportUtils.getUserDetailTooltipText(accountID, userDetails.displayName ? userDetails.displayName.trim() : '');
     let userLogin = userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? Str.removeSMSDomain(userDetails.login) : '';
 
     let userAvatar = userDetails.avatar;
@@ -29,7 +29,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     // the Copilot feature is implemented.
     if (delegateAccountID) {
         const delegateUserDetails = personalDetails?.[delegateAccountID];
-        const delegateUserDisplayName = ReportUtils.getDisplayNameForParticipant(delegateAccountID);
+        const delegateUserDisplayName = ReportUtils.getUserDetailTooltipText(delegateAccountID);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails?.login ?? '';
         userAvatar = delegateUserDetails?.avatar;

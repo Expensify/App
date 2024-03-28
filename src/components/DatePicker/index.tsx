@@ -35,10 +35,10 @@ type DatePickerProps = {
     maxDate?: Date;
 
     /** A function that is passed by FormWrapper */
-    onInputChange: (value: Date) => void;
+    onInputChange?: (value: Date) => void;
 
     /** A function that is passed by FormWrapper */
-    onTouched: () => void;
+    onTouched?: () => void;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;

@@ -1,8 +1,9 @@
 import {StyleSheet} from 'react-native';
-import type {Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
+import type ImageSVGProps from '@components/ImageSVG/types';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -288,6 +289,20 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
 }
 
 /**
+ * Helper method to return eReceipt color code for Receipt Thumbnails
+ */
+function getFileExtensionColorCode(fileExtension?: string): EReceiptColorName {
+    switch (fileExtension) {
+        case CONST.IOU.FILE_TYPES.DOC:
+            return CONST.ERECEIPT_COLORS.PINK;
+        case CONST.IOU.FILE_TYPES.HTML:
+            return CONST.ERECEIPT_COLORS.TANGERINE;
+        default:
+            return CONST.ERECEIPT_COLORS.GREEN;
+    }
+}
+
+/**
  * Helper method to return eReceipt color styles
  */
 function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyle | undefined {
@@ -453,11 +468,58 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     return {};
 }
 
-function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
+function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
     return {
         width,
         height: height ?? width,
     };
+}
+
+function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, hasText?: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
+    switch (true) {
+        case small:
+            return {width: hasText ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: hasText ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
+        case medium:
+            return {width: hasText ? variables.iconSizeSmall : variables.iconSizeNormal, height: hasText ? variables.iconSizeSmall : variables.iconSizeNormal};
+        case large:
+            return {width: hasText ? variables.iconSizeNormal : variables.iconSizeLarge, height: hasText ? variables.iconSizeNormal : variables.iconSizeLarge};
+        default: {
+            return {width, height};
+        }
+    }
+}
+
+function getButtonStyleWithIcon(
+    styles: ThemeStyles,
+    small: boolean,
+    medium: boolean,
+    large: boolean,
+    hasIcon?: boolean,
+    hasText?: boolean,
+    shouldShowRightIcon?: boolean,
+): ViewStyle | undefined {
+    const useDefaultButtonStyles = Boolean(hasIcon && shouldShowRightIcon) || Boolean(!hasIcon && !shouldShowRightIcon);
+    switch (true) {
+        case small: {
+            const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
+            return useDefaultButtonStyles ? styles.buttonSmall : {...styles.buttonSmall, ...(hasText ? verticalStyle : styles.ph0)};
+        }
+        case medium: {
+            const verticalStyle = hasIcon ? styles.pl3 : styles.pr3;
+            return useDefaultButtonStyles ? styles.buttonMedium : {...styles.buttonMedium, ...(hasText ? verticalStyle : styles.ph0)};
+        }
+        case large: {
+            const verticalStyle = hasIcon ? styles.pl4 : styles.pr4;
+            return useDefaultButtonStyles ? styles.buttonLarge : {...styles.buttonLarge, ...(hasText ? verticalStyle : styles.ph0)};
+        }
+        default: {
+            if (hasIcon && !hasText) {
+                return {...styles.buttonMedium, ...styles.ph0};
+            }
+
+            return undefined;
+        }
+    }
 }
 
 /**
@@ -707,7 +769,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMon
     if (isSmallScreenWidth) {
         return {
             height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '200%',
+            width: '100%',
             position: 'absolute',
         };
     }
@@ -823,6 +885,12 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
     return {
         fontSize: 15,
         lineHeight: 22,
+    };
+}
+
+function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
+    return {
+        transform: [{scale: scaleValue}],
     };
 }
 
@@ -1063,6 +1131,7 @@ const staticStyleUtils = {
     getEmojiPickerListHeight,
     getEmojiPickerStyle,
     getEmojiReactionBubbleTextStyle,
+    getTransformScaleStyle,
     getFontFamilyMonospace,
     getCodeFontSize,
     getFontSizeStyle,
@@ -1084,11 +1153,14 @@ const staticStyleUtils = {
     parseStyleFromFunction,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
+    getIconWidthAndHeightStyle,
+    getButtonStyleWithIcon,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1478,12 +1550,22 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
 
+    /**
+     * Returns the styles for the Tools modal
+     */
+    getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
+
     getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
-        ...styles.mr3,
         ...(isSelected && styles.checkedContainer),
         ...(isSelected && styles.borderColorFocus),
         ...(isDisabled && styles.cursorDisabled),
         ...(isDisabled && styles.buttonOpacityDisabled),
+    }),
+
+    // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
+    getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({
+        ...StyleSheet.flatten(descriptionTextStyle),
+        opacity: styles.opacitySemiTransparent.opacity,
     }),
 });
 

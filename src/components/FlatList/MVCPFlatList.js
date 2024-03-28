@@ -38,20 +38,21 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
     const firstVisibleViewRef = React.useRef(null);
     const mutationObserverRef = React.useRef(null);
     const lastScrollOffsetRef = React.useRef(0);
+    const isListRenderedRef = React.useRef(false);
 
     const getScrollOffset = React.useCallback(() => {
         if (scrollRef.current == null) {
             return 0;
         }
-        return horizontal ? scrollRef.current.getScrollableNode().scrollLeft : scrollRef.current.getScrollableNode().scrollTop;
+        return horizontal ? scrollRef.current?.getScrollableNode()?.scrollLeft : scrollRef.current?.getScrollableNode()?.scrollTop;
     }, [horizontal]);
 
-    const getContentView = React.useCallback(() => scrollRef.current?.getScrollableNode().childNodes[0], []);
+    const getContentView = React.useCallback(() => scrollRef.current?.getScrollableNode()?.childNodes[0], []);
 
     const scrollToOffset = React.useCallback(
         (offset, animated) => {
             const behavior = animated ? 'smooth' : 'instant';
-            scrollRef.current?.getScrollableNode().scroll(horizontal ? {left: offset, behavior} : {top: offset, behavior});
+            scrollRef.current?.getScrollableNode()?.scroll(horizontal ? {left: offset, behavior} : {top: offset, behavior});
         },
         [horizontal],
     );
@@ -67,12 +68,13 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
         }
 
         const scrollOffset = getScrollOffset();
+        lastScrollOffsetRef.current = scrollOffset;
 
         const contentViewLength = contentView.childNodes.length;
         for (let i = mvcpMinIndexForVisible; i < contentViewLength; i++) {
             const subview = contentView.childNodes[i];
             const subviewOffset = horizontal ? subview.offsetLeft : subview.offsetTop;
-            if (subviewOffset > scrollOffset || i === contentViewLength - 1) {
+            if (subviewOffset > scrollOffset) {
                 prevFirstVisibleOffsetRef.current = subviewOffset;
                 firstVisibleViewRef.current = subview;
                 break;
@@ -125,6 +127,7 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
                 }
 
                 adjustForMaintainVisibleContentPosition();
+                prepareForMaintainVisibleContentPosition();
             });
         });
         mutationObserver.observe(contentView, {
@@ -134,9 +137,12 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
         });
 
         mutationObserverRef.current = mutationObserver;
-    }, [adjustForMaintainVisibleContentPosition, getContentView, getScrollOffset, scrollToOffset]);
+    }, [adjustForMaintainVisibleContentPosition, prepareForMaintainVisibleContentPosition, getContentView, getScrollOffset, scrollToOffset]);
 
     React.useEffect(() => {
+        if (!isListRenderedRef.current) {
+            return;
+        }
         requestAnimationFrame(() => {
             prepareForMaintainVisibleContentPosition();
             setupMutationObserver();
@@ -168,13 +174,11 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
 
     const onScrollInternal = React.useCallback(
         (ev) => {
-            lastScrollOffsetRef.current = getScrollOffset();
-
             prepareForMaintainVisibleContentPosition();
 
             onScroll?.(ev);
         },
-        [getScrollOffset, prepareForMaintainVisibleContentPosition, onScroll],
+        [prepareForMaintainVisibleContentPosition, onScroll],
     );
 
     return (
@@ -186,6 +190,10 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
             onScroll={onScrollInternal}
             scrollEventThrottle={1}
             ref={onRef}
+            onLayout={(e) => {
+                isListRenderedRef.current = true;
+                props.onLayout?.(e);
+            }}
         />
     );
 });

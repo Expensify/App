@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import React from 'react';
 import {View} from 'react-native';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -18,9 +19,11 @@ function UserListItem({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    checkmarkPosition,
 }: UserListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -41,9 +44,11 @@ function UserListItem({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
+            checkmarkPosition={checkmarkPosition}
             errors={item.errors}
             pendingAction={item.pendingAction}
             FooterComponent={
@@ -55,38 +60,35 @@ function UserListItem({
             }
             keyForList={item.keyForList}
         >
-            {(hovered) => (
+            {(hovered?: boolean) => (
                 <>
-                    {!!item.icons && (
-                        <>
-                            {item.shouldShowSubscript ? (
-                                <SubscriptAvatar
-                                    mainAvatar={item.icons[0]}
-                                    secondaryAvatar={item.icons[1]}
-                                    showTooltip={showTooltip}
-                                    backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                />
-                            ) : (
-                                <MultipleAvatars
-                                    icons={item.icons ?? []}
-                                    shouldShowTooltip={showTooltip}
-                                    secondAvatarStyle={[
-                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                        hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                    ]}
-                                />
-                            )}
-                        </>
-                    )}
+                    {!!item.icons &&
+                        (item.shouldShowSubscript ? (
+                            <SubscriptAvatar
+                                mainAvatar={item.icons[0]}
+                                secondaryAvatar={item.icons[1]}
+                                showTooltip={showTooltip}
+                                backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                            />
+                        ) : (
+                            <MultipleAvatars
+                                icons={item.icons ?? []}
+                                shouldShowTooltip={showTooltip}
+                                secondAvatarStyle={[
+                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                ]}
+                            />
+                        ))}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
-                            text={item.text}
-                            textStyles={[
+                            text={Str.removeSMSDomain(item.text ?? '')}
+                            style={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkTextBold,
+                                item.isBold !== false && styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
                             ]}
@@ -94,8 +96,8 @@ function UserListItem({
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={item.alternateText}
-                                textStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                text={Str.removeSMSDomain(item.alternateText ?? '')}
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}
                     </View>
