@@ -2142,6 +2142,11 @@ export default {
             errorDescriptionPartTwo: 'reach out to Concierge',
             errorDescriptionPartThree: 'for help.',
         },
+        connection: {
+            error: {
+                genericUpdate: `Unexpected error while updating the field, please try again later`,
+            },
+        },
     },
     getAssistancePage: {
         title: 'Get assistance',

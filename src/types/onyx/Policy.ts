@@ -183,6 +183,11 @@ type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
+// Represents a union of all `config` property types from each connection type in `Connections`.
+type ConnectionConfig = Connections[keyof Connections] extends Connection<unknown, infer Config> ? Config : never;
+
+type ConnectionName = keyof Connections;
+
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
 type PolicyReportFieldType = 'text' | 'date' | 'dropdown' | 'formula';
@@ -432,4 +437,20 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
 export default Policy;
 
-export type {PolicyReportField, PolicyReportFieldType, Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};
+export type {
+    PolicyReportField,
+    PolicyReportFieldType,
+    Unit,
+    CustomUnit,
+    Attributes,
+    Rate,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
+    PolicyFeatureName,
+    PendingJoinRequestPolicy,
+    QBOConnectionConfig,
+    Connections,
+    ConnectionName,
+    ConnectionConfig,
+};

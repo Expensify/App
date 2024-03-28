@@ -2172,6 +2172,11 @@ export default {
             errorDescriptionPartTwo: 'contacta con el conserje',
             errorDescriptionPartThree: 'por ayuda.',
         },
+        connection: {
+            error: {
+                genericUpdate: `Error inesperado al actualizar el campo. Por favor, inténtalo más tarde'`,
+            },
+        },
     },
     getAssistancePage: {
         title: 'Obtener ayuda',
