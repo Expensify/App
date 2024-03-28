@@ -286,7 +286,7 @@ function openPublicProfilePage(accountID: number) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
             value: {
                 [accountID]: {
                     isLoading: true,
@@ -298,7 +298,7 @@ function openPublicProfilePage(accountID: number) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
             value: {
                 [accountID]: {
                     isLoading: false,
@@ -310,7 +310,7 @@ function openPublicProfilePage(accountID: number) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
             value: {
                 [accountID]: {
                     isLoading: false,
