@@ -1,6 +1,7 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
 
@@ -61,7 +62,7 @@ describe('getViolationsOnyxData', () => {
     });
 
     it('should not add violation when the transaction is partial', () => {
-        const partialTransaction = {...transaction, amount: 0, merchant: ''};
+        const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT};
         transactionViolations = [
             {name: 'duplicatedTransaction', type: 'violation'},
             {name: 'receiptRequired', type: 'violation'},
