@@ -47,7 +47,7 @@ function computeVerticalShift(anchorTopEdge: number, menuHeight: number, windowH
 
     if (popoverBottomEdge > windowHeight) {
         // Anchor is in Bottom window Edge, shift top by a multiple of four.
-        canSwitchPosition = popoverBottomEdge - menuHeight - anchorHeight >= 0;
+        canSwitchPosition = anchorTopEdge - menuHeight - anchorHeight >= 0;
         return roundToNearestMultipleOfFour(shoudSwitchPositionIfOverflow && canSwitchPosition ? -(menuHeight + anchorHeight) : windowHeight - popoverBottomEdge);
     }
 
