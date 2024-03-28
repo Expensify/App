@@ -23,7 +23,7 @@ function save(requestToPersist: Request) {
     // identify and handle any existing requests that conflict with the new one
     const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = requestToPersist;
     if (getConflictingRequests) {
-        // Get all the potentially excluding the one we're adding, which will always be at the end of the array
+        // Get all the requests, potentially including the one we're adding, which will always be at the end of the array
         const potentiallyConflictingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
 
         // Identify conflicting requests according to logic bound to the request
