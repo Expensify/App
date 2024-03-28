@@ -254,7 +254,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
     const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
-    const personalPolicy = policyID === CONST.POLICY.ID_FAKE ? PolicyUtils.getPersonalPolicy() : policy;
+    // if there is no policyID that means that the transaction was started from Global Create and the participant is not a policy
+    const personalPolicy = policyID === CONST.POLICY.ID_FAKE || !policyID ? PolicyUtils.getPersonalPolicy() : policy;
+
     const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
         ? DistanceRequestUtils.getRateForP2P(personalPolicy.outputCurrency)
         : mileageRates[transaction.comment.customUnit.customUnitRateID];
