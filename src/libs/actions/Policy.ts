@@ -25,6 +25,7 @@ import type {
     EnablePolicyTagsParams,
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
+    LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
     OpenPolicyCategoriesPageParams,
     OpenPolicyDistanceRatesPageParams,
@@ -197,11 +198,13 @@ Onyx.connect({
 
 let sessionEmail = '';
 let sessionAccountID = 0;
+let sessionAuthToken = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionEmail = val?.email ?? '';
         sessionAccountID = val?.accountID ?? -1;
+        sessionAuthToken = val?.authToken ?? '';
     },
 });
 
@@ -767,7 +770,7 @@ function clearWorkspaceReimbursementErrors(policyID: string) {
 /**
  * Build optimistic data for removing users from the announcement room
  */
-function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: number[]): AnnounceRoomMembersOnyxData {
+function removeOptimisticAnnounceRoomMembers(policyID: string, policyName: string, accountIDs: number[]): AnnounceRoomMembersOnyxData {
     const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     const announceRoomMembers: AnnounceRoomMembersOnyxData = {
         onyxOptimisticData: [],
@@ -790,9 +793,16 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
                 participantAccountIDs: [...remainUsers],
                 visibleChatMemberAccountIDs: [...remainUsers],
                 pendingChatMembers,
+                ...(accountIDs.includes(sessionAccountID)
+                    ? {
+                          statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                          stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                          oldPolicyName: policyName,
+                          hasDraft: false,
+                      }
+                    : {}),
             },
         });
-
         announceRoomMembers.onyxFailureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
@@ -800,6 +810,14 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
                 participantAccountIDs: announceReport.participantAccountIDs,
                 visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
                 pendingChatMembers: announceReport?.pendingChatMembers ?? null,
+                ...(accountIDs.includes(sessionAccountID)
+                    ? {
+                          statusNum: announceReport.statusNum,
+                          stateNum: announceReport.stateNum,
+                          oldPolicyName: announceReport.oldPolicyName,
+                          hasDraft: announceReport.hasDraft,
+                      }
+                    : {}),
             },
         });
         announceRoomMembers.onyxSuccessData.push({
@@ -830,7 +848,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
     const optimisticClosedReportActions = workspaceChats.map(() => ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
 
-    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
+    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy.id, policy.name, accountIDs);
 
     const optimisticMembersState: OnyxCollection<PolicyMember> = {};
     const successMembersState: OnyxCollection<PolicyMember> = {};
@@ -953,11 +971,40 @@ function removeMembers(accountIDs: number[], policyID: string) {
         });
     });
 
+    if (accountIDs.includes(sessionAccountID)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: policy.pendingAction,
+            },
+        });
+
+        const params: LeavePolicyParams = {
+            policyID,
+            email: sessionEmail,
+            authToken: sessionAuthToken,
+        };
+
+        // TODO: Extract into a distinct function
+        API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
+
+        return;
+    }
+
     const params: DeleteMembersFromWorkspaceParams = {
         emailList: accountIDs.map((accountID) => allPersonalDetails?.[accountID]?.login).join(','),
         policyID,
     };
 
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 

@@ -5469,6 +5469,10 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+function isReportOwner(report: OnyxEntry<Report>): boolean {
+    return report?.ownerAccountID === currentUserPersonalDetails?.accountID;
+}
+
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number): boolean {
     const policy = getPolicy(report?.policyID);
     const {preventSelfApproval} = policy;
@@ -5730,6 +5734,7 @@ export {
     hasUpdatedTotal,
     isReportFieldDisabled,
     getAvailableReportFields,
+    isReportOwner,
     getReportFieldKey,
     reportFieldsEnabled,
     getAllAncestorReportActionIDs,
