@@ -31,7 +31,7 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Type of payment */
     paymentType?: PaymentMethodType;
 
-    /** Type of action handled either 'pay' or 'approve' */
+    /** Type of action handled */
     requestType?: 'pay' | 'approve';
 };
 

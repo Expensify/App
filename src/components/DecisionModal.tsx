@@ -29,7 +29,7 @@ type DecisionModalProps = {
     /** onSubmit callback fired after clicking on first button */
     onFirstOptionSubmit: () => void;
 
-    /** onSubmit callback fired after clicking on  */
+    /** onSubmit callback fired after clicking on second button */
     onSecondOptionSubmit: () => void;
 
     /** Is the window width narrow, like on a mobile device? */
