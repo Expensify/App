@@ -162,7 +162,20 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [canSelectMultiple, sections]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex] = useState(() => flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey));
+    const [focusedIndex, setFocusedIndex] = useState(-1);
+    const isFocusedIndexSet = useRef(false);
+
+    useEffect(() => {
+        if (isFocusedIndexSet.current || (flattenedSections.allOptions.length < 1 && initiallyFocusedOptionKey === undefined)) {
+            return;
+        }
+        console.log('initiallyFocusedOptionKey', initiallyFocusedOptionKey);
+        const index = flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey);
+        if (index !== -1) {
+            setFocusedIndex(index);
+            isFocusedIndexSet.current = true;
+        }
+    }, [flattenedSections.allOptions, initiallyFocusedOptionKey]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(
         () => [

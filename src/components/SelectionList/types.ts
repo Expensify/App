@@ -278,7 +278,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     shouldDelayFocus?: boolean;
 
     /** Component to display on the right side of each child */
-    rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem> | ReactElement | null | undefined) | null;
 
     /** Direction of checkmark to show */
     checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
