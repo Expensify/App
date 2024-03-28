@@ -18,17 +18,40 @@ function clear() {
 }
 
 function save(requestToPersist: Request) {
-    const requests = [...persistedRequests];
-    const existingRequestIndex = requests.findIndex((request) => request.data?.idempotencyKey && request.data?.idempotencyKey === requestToPersist.data?.idempotencyKey);
-    if (existingRequestIndex > -1) {
-        // Merge the new request into the existing one, keeping its place in the queue
-        requests.splice(existingRequestIndex, 1, requestToPersist);
-    } else {
-        // If not, push the new request to the end of the queue
-        requests.push(requestToPersist);
-    }
-    persistedRequests = requests;
+    const requests = [...persistedRequests, requestToPersist];
+    for (let i = requests.length - 1; i > 0; i--) {
+        // since we're deleting elements from the array, it may be reindexed.
+        // In this case, we need to make sure our index is still in bounds
+        if (i >= requests.length) {
+            i--;
+            // eslint-disable-next-line no-continue
+            continue;
+        }
 
+        const request = requests[i];
+
+        // identify and handle any existing requests that conflict with the new one
+        const {getConflictingRequests, handleConflictingRequest} = request;
+        if (!getConflictingRequests || !handleConflictingRequest) {
+            // eslint-disable-next-line no-continue
+            continue;
+        }
+
+        // Identify conflicting requests according to logic bound to the request
+        const conflictingRequests = getConflictingRequests(requests);
+        conflictingRequests.forEach((conflictingRequest) => {
+            // delete the conflicting request
+            const index = requests.findIndex((req) => req === conflictingRequest);
+            if (index !== -1) {
+                requests.splice(index, 1);
+            }
+
+            // Allow the request to perform any additional cleanup for a cancelled request
+            handleConflictingRequest(conflictingRequest);
+        });
+    }
+
+    // Save the updated set of requests
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 

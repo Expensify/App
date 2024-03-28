@@ -46,32 +46,6 @@ function flushOnyxUpdatesQueue() {
 }
 
 /**
- * Identifies and removes conflicting requests from the queue
- */
-function reconcileRequests(newRequest: OnyxRequest) {
-    const persistedRequests = PersistedRequests.getAll();
-    [...persistedRequests, newRequest].reverse().forEach((request) => {
-        const {getConflictingRequests, handleConflictingRequest} = request;
-        if (!getConflictingRequests || !handleConflictingRequest) {
-            return;
-        }
-
-        // Identify conflicting requests according to logic bound to the request
-        const conflictingRequests = getConflictingRequests(persistedRequests);
-        conflictingRequests.forEach((conflictingRequest) => {
-            // delete the conflicting request
-            const index = persistedRequests.findIndex((req) => req === conflictingRequest);
-            if (index !== -1) {
-                persistedRequests.splice(index, 1);
-            }
-
-            // Allow the request to perform any additional cleanup for a cancelled request
-            handleConflictingRequest(conflictingRequest);
-        });
-    });
-}
-
-/**
  * Process any persisted requests, when online, one at a time until the queue is empty.
  *
  * If a request fails due to some kind of network error, such as a request being throttled or when our backend is down, then we retry it with an exponential back off process until a response
@@ -186,9 +160,6 @@ function isRunning(): boolean {
 NetworkStore.onReconnection(flush);
 
 function push(request: OnyxRequest) {
-    // Remove conflicting requests from the queue to avoid processing them
-    reconcileRequests(request);
-
     // Add request to Persisted Requests so that it can be retried if it fails
     PersistedRequests.save(request);
 
