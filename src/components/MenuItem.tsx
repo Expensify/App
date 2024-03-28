@@ -6,6 +6,7 @@ import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react
 import {View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -149,6 +150,9 @@ type MenuItemBaseProps = {
     /** Whether item is focused or active */
     focused?: boolean;
 
+    /** Whether item is highlighted */
+    highlighted?: boolean;
+
     /** Should we disable this menu item? */
     disabled?: boolean;
 
@@ -286,6 +290,7 @@ function MenuItem(
         success = false,
         focused = false,
         disabled = false,
+        highlighted = false,
         title,
         subtitle,
         shouldShowBasicTitle,
@@ -325,10 +330,10 @@ function MenuItem(
     const StyleUtils = useStyleUtils();
     const combinedStyle = [style, styles.popoverMenuItem];
     const {isSmallScreenWidth} = useWindowDimensions();
+    const animatedHighlightStyle = useAnimatedHighlightStyle({shouldHighlight: highlighted, height: 56});
     const [html, setHtml] = useState('');
     const titleRef = useRef('');
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
-
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
@@ -429,6 +434,7 @@ function MenuItem(
                         onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={ControlSelection.unblock}
                         onSecondaryInteraction={onSecondaryInteraction}
+                        wrapperStyle={animatedHighlightStyle}
                         style={({pressed}) =>
                             [
                                 containerStyle,

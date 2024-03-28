@@ -438,7 +438,7 @@ const ROUTES = {
     WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
         route: 'settings/workspaces/:policyID',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}` as const,
+        getRoute: (policyID: string, featureRouteName?: string) => `settings/workspaces/${policyID}${featureRouteName ? `?enabledFeatureRouteName=${featureRouteName}` : ''}` as const,
     },
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
