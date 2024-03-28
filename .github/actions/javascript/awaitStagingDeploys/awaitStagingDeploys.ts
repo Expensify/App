@@ -1,14 +1,28 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import lodashThrotle from 'lodash/throttle';
 import ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GitHubUtils, {POLL_RATE} from '@github/libs/GithubUtils';
+import {promiseDoWhile} from '@github/libs/promiseWhile';
 
-async function run(): Promise<void> {
+type CurrentStagingDeploys = Awaited<ReturnType<typeof GitHubUtils.octokit.actions.listWorkflowRuns>>['data']['workflow_runs'];
+
+function run() {
+    console.info('[awaitStagingDeploys] run()');
+    console.info('[awaitStagingDeploys] ActionUtils', ActionUtils);
+    console.info('[awaitStagingDeploys] GitHubUtils', GitHubUtils);
+    console.info('[awaitStagingDeploys] promiseDoWhile', promiseDoWhile);
+
     const tag = ActionUtils.getStringInput('TAG', {required: false});
-    let currentStagingDeploys = [];
+    console.info('[awaitStagingDeploys] run() tag', tag);
 
-    const throttledPoll = async (): Promise<void> => {
-        const responses = await Promise.all([
+    let currentStagingDeploys: CurrentStagingDeploys = [];
+
+    console.info('[awaitStagingDeploys] run()  _.throttle', lodashThrotle);
+
+    const throttleFunc = () =>
+        Promise.all([
+            // These are active deploys
             GitHubUtils.octokit.actions.listWorkflowRuns({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
@@ -16,35 +30,42 @@ async function run(): Promise<void> {
                 event: 'push',
                 branch: tag,
             }),
+
+            // These have the potential to become active deploys, so we need to wait for them to finish as well (unless we're looking for a specific tag)
+            // In this context, we'll refer to unresolved preDeploy workflow runs as staging deploys as well
             !tag &&
                 GitHubUtils.octokit.actions.listWorkflowRuns({
                     owner: CONST.GITHUB_OWNER,
                     repo: CONST.APP_REPO,
                     workflow_id: 'preDeploy.yml',
                 }),
-        ]);
+        ])
+            .then((responses) => {
+                const workflowRuns = responses[0].data.workflow_runs;
+                if (!tag && typeof responses[1] === 'object') {
+                    workflowRuns.push(...responses[1].data.workflow_runs);
+                }
+                return workflowRuns;
+            })
+            .then((workflowRuns) => (currentStagingDeploys = workflowRuns.filter((workflowRun) => workflowRun.status !== 'completed')))
+            .then(() =>
+                console.log(
+                    !currentStagingDeploys.length
+                        ? 'No current staging deploys found'
+                        : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`,
+                ),
+            );
+    console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
 
-        const workflowRuns = responses[0].data.workflow_runs;
-        if (!tag && responses[1]) {
-            workflowRuns.push(...responses[1].data.workflow_runs);
-        }
-        currentStagingDeploys = workflowRuns.filter((workflowRun) => workflowRun.status !== 'completed');
+    return promiseDoWhile(
+        () => currentStagingDeploys.length,
+        lodashThrotle(
+            throttleFunc,
 
-        console.log(
-            currentStagingDeploys.length === 0
-                ? 'No current staging deploys found'
-                : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`,
-        );
-    };
-
-    const pollInterval = POLL_RATE * 6;
-
-    do {
-        await throttledPoll();
-        await new Promise((resolve) => {
-            setTimeout(resolve, pollInterval * 1000);
-        });
-    } while (currentStagingDeploys.length > 0);
+            // Poll every 60 seconds instead of every 10 seconds
+            POLL_RATE * 6,
+        ),
+    );
 }
 
 if (require.main === module) {

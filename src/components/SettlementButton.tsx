@@ -11,8 +11,8 @@ import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {LastPaymentMethod, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -101,7 +101,7 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 };
 
 function SettlementButton({
-    addDebitCardRoute = '',
+    addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
     addBankAccountRoute = '',
     kycWallAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
