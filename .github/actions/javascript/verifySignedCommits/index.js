@@ -11498,10 +11498,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const github_1 = __importDefault(__nccwpck_require__(5438));
+const github = __importStar(__nccwpck_require__(5438));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
-const PR_NUMBER = Number.parseInt(core.getInput('PR_NUMBER'), 10) || github_1.default.context.payload.pull_request?.number;
+const PR_NUMBER = Number.parseInt(core.getInput('PR_NUMBER'), 10) || github.context.payload.pull_request?.number;
 GithubUtils_1.default.octokit.pulls
     .listCommits({
     owner: CONST_1.default.GITHUB_OWNER,

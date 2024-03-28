@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import github from '@actions/github';
+import * as github from '@actions/github';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
 
