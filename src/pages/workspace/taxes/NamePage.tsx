@@ -88,7 +88,7 @@ function NamePage({
                         <FormProvider
                             formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
                             submitButtonText={translate('workspace.editor.save')}
-                            style={[styles.flexGrow1, styles.ph5]}
+                            style={[styles.flex1, styles.ph5]}
                             onSubmit={submit}
                             enabledWhenOffline
                             validate={validate}
