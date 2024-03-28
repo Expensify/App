@@ -23,7 +23,6 @@ function save(requestToPersist: Request) {
         // since we're deleting elements from the array, it may be reindexed.
         // In this case, we need to make sure our index is still in bounds
         if (i >= requests.length) {
-            i--;
             // eslint-disable-next-line no-continue
             continue;
         }
