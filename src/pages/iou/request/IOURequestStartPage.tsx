@@ -1,9 +1,9 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import { withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -11,7 +11,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -23,53 +22,34 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import reportPropTypes from '@pages/reportPropTypes';
+import type * as OnyxTypes from '@src/types/onyx';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
-import IOURequestStepRoutePropTypes from './step/IOURequestStepRoutePropTypes';
 import IOURequestStepScan from './step/IOURequestStepScan';
+import type { WithWritableReportOrNotFoundProps } from './step/withWritableReportOrNotFound';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
-
-    /* Onyx Props */
-    /** The report that holds the transaction */
-    report: reportPropTypes,
-
-    /** The policy tied to the report */
-    policy: PropTypes.shape({
-        /** Type of the policy */
-        type: PropTypes.string,
-    }),
-
-    /** The tab to select by default (whatever the user visited last) */
-    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
-
-    /** The transaction being modified */
-    transaction: transactionPropTypes,
+type IOURequestStartPageOnyxProps = {
+    report?: OnyxEntry<OnyxTypes.Report>,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    selectedTab?: typeof CONST.TAB_REQUEST[keyof typeof CONST.TAB_REQUEST],
+    transaction?: OnyxEntry<OnyxTypes.Transaction>,
 };
 
-const defaultProps = {
-    report: {},
-    policy: {},
-    selectedTab: CONST.TAB_REQUEST.SCAN,
-    transaction: {},
-};
+type IOURequestStartPageProps = WithWritableReportOrNotFoundProps & IOURequestStartPageOnyxProps;
 
 function IOURequestStartPage({
-    report,
-    policy,
     route,
     route: {
         params: {iouType, reportID},
     },
+    report,
+    policy,
     selectedTab,
     transaction,
-}) {
+}: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const navigation = useNavigation();

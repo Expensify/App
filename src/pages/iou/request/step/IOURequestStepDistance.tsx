@@ -1,7 +1,8 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import { withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
@@ -17,7 +18,6 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
@@ -25,50 +25,39 @@ import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import type * as OnyxTypes from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+import type { WithWritableReportOrNotFoundProps } from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
+type IOURequestStepDistanceOnyxProps = {
+    transactionBackup?: OnyxEntry<OnyxTypes.Transaction>,
+}
 
-    /* Onyx Props */
-    /** The report that the transaction belongs to */
-    report: reportPropTypes,
-
-    /** The transaction object being modified in Onyx */
-    transaction: transactionPropTypes,
-
-    /** backup version of the original transaction  */
-    transactionBackup: transactionPropTypes,
-};
-
-const defaultProps = {
-    report: {},
-    transaction: {},
-    transactionBackup: {},
+type IOURequestStepDistanceProps = WithWritableReportOrNotFoundProps & IOURequestStepDistanceOnyxProps & {
+    report?: OnyxEntry<OnyxTypes.Report>,
+    transaction?: OnyxEntry<OnyxTypes.Transaction>,
 };
 
 function IOURequestStepDistance({
-    report,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
+    report,
     transaction,
     transactionBackup,
-}) {
+}: IOURequestStepDistanceProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState(null);
     const waypoints = useMemo(() => optimisticWaypoints || lodashGet(transaction, 'comment.waypoints', {waypoint0: {}, waypoint1: {}}), [optimisticWaypoints, transaction]);
-    const waypointsList = _.keys(waypoints);
+    const waypointsList = Object.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
-    const numberOfWaypoints = _.size(waypoints);
-    const numberOfPreviousWaypoints = _.size(previousWaypoints);
+    const numberOfWaypoints = Object.keys(waypoints).length;
+    const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
     const scrollViewRef = useRef(null);
     const isLoadingRoute = lodashGet(transaction, 'comment.isLoading', false);
     const isLoading = lodashGet(transaction, 'isLoading', false);
@@ -82,7 +71,7 @@ function IOURequestStepDistance({
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const nonEmptyWaypointsCount = useMemo(() => _.filter(_.keys(waypoints), (key) => !_.isEmpty(waypoints[key])).length, [waypoints]);
     const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
-    const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
+    const atLeastTwoDifferentWaypointsError = useMemo(() => Object.keys(validatedWaypoints) < 2, [validatedWaypoints]);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = Navigation.getActiveRoute().includes('start');
 
@@ -284,8 +273,6 @@ function IOURequestStepDistance({
 }
 
 IOURequestStepDistance.displayName = 'IOURequestStepDistance';
-IOURequestStepDistance.propTypes = propTypes;
-IOURequestStepDistance.defaultProps = defaultProps;
 
 export default compose(
     withWritableReportOrNotFound,
