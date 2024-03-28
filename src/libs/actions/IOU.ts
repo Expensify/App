@@ -1535,7 +1535,7 @@ function getUpdateMoneyRequestParams(
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them and the report action is created on the server
     // with the response from the MapBox API
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
     if (!hasPendingWaypoints) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -1745,6 +1745,7 @@ function getUpdateTrackExpenseParams(
     transactionThreadReportID: string,
     transactionChanges: TransactionChanges,
     onlyIncludeChangedFields: boolean,
+    policy: OnyxEntry<OnyxTypes.Policy>,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -1811,7 +1812,7 @@ function getUpdateTrackExpenseParams(
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them and the report action is created on the server
     // with the response from the MapBox API
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy);
     if (!hasPendingWaypoints) {
         params.reportActionID = updatedReportAction.reportActionID;
 
@@ -1924,7 +1925,7 @@ function updateMoneyRequestDate(
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     if (ReportUtils.isTrackExpenseReport(transactionThreadReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
     }
@@ -1963,7 +1964,7 @@ function updateMoneyRequestMerchant(
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     if (ReportUtils.isTrackExpenseReport(transactionThreadReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
@@ -1987,6 +1988,38 @@ function updateMoneyRequestTag(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
 
+/** Updates the created tax amount of a money request */
+function updateMoneyRequestTaxAmount(
+    transactionID: string,
+    optimisticReportActionID: string,
+    taxAmount: number,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
+    const transactionChanges = {
+        taxAmount,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories, true);
+    API.write('UpdateMoneyRequestTaxAmount', params, onyxData);
+}
+
+/** Updates the created tax rate of a money request */
+function updateMoneyRequestTaxRate(
+    transactionID: string,
+    optimisticReportActionID: string,
+    taxCode: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
+    const transactionChanges = {
+        taxCode,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories, true);
+    API.write('UpdateMoneyRequestTaxRate', params, onyxData);
+}
+
 /** Updates the waypoints of a distance money request */
 function updateMoneyRequestDistance(
     transactionID: string,
@@ -2002,7 +2035,7 @@ function updateMoneyRequestDistance(
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     if (ReportUtils.isTrackExpenseReport(transactionThreadReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
@@ -2041,7 +2074,7 @@ function updateMoneyRequestDescription(
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     if (ReportUtils.isTrackExpenseReport(transactionThreadReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, true, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
     }
@@ -3290,7 +3323,7 @@ function editRegularMoneyRequest(
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
 
     // STEP 2: Build new modified expense report action.
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy);
     const updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
 
     // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
@@ -4974,8 +5007,8 @@ function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
 
-function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
+function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxAmount});
 }
 
 function setMoneyRequestBillable(billable: boolean) {
@@ -5212,6 +5245,8 @@ export {
     updateMoneyRequestBillable,
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
+    updateMoneyRequestTaxAmount,
+    updateMoneyRequestTaxRate,
     updateMoneyRequestDistance,
     updateMoneyRequestCategory,
     updateMoneyRequestAmountAndCurrency,

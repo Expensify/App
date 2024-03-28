@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceCurrencyDefault} from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
@@ -31,6 +32,7 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const selectedTaxRate = TransactionUtils.getTaxName(policy?.taxRates?.taxes ?? {}, policy?.taxRates?.foreignTaxDefault ?? '');
     const submit = ({keyForList}: ListItem) => {
         setWorkspaceCurrencyDefault(policyID, keyForList ?? '');
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
@@ -55,8 +57,7 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
 
                                 <View style={[styles.mb4, styles.flex1]}>
                                     <TaxPicker
-                                        selectedTaxRate={policy?.taxRates?.defaultExternalID}
-                                        taxRates={policy?.taxRates}
+                                        selectedTaxRate={selectedTaxRate}
                                         insets={insets}
                                         onSubmit={submit}
                                     />

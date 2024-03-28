@@ -102,6 +102,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
+        /** The transaction tax amount */
+        taxAmount?: number;
+
+        /** The transaction tax code */
+        taxCode?: string;
+
         /** Whether the request is billable */
         billable?: boolean;
 
@@ -176,9 +182,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction tax rate */
         taxRate?: TaxRate;
-
-        /** Tax amount */
-        taxAmount?: number;
 
         /** Card Transactions */
 

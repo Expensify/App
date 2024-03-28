@@ -2319,7 +2319,7 @@ describe('OptionsListUtils', () => {
                         // Adds 'Default' title to default tax.
                         // Adds value to tax name for more description.
                         text: 'Tax exempt 1 (0%) • Default',
-                        keyForList: 'CODE1',
+                        keyForList: 'Tax exempt 1 (0%) • Default',
                         searchText: 'Tax exempt 1 (0%) • Default',
                         tooltipText: 'Tax exempt 1 (0%) • Default',
                         isDisabled: undefined,
@@ -2333,7 +2333,7 @@ describe('OptionsListUtils', () => {
                     },
                     {
                         text: 'Tax option 3 (5%)',
-                        keyForList: 'CODE3',
+                        keyForList: 'Tax option 3 (5%)',
                         searchText: 'Tax option 3 (5%)',
                         tooltipText: 'Tax option 3 (5%)',
                         isDisabled: undefined,
@@ -2346,7 +2346,7 @@ describe('OptionsListUtils', () => {
                     },
                     {
                         text: 'Tax rate 2 (3%)',
-                        keyForList: 'CODE2',
+                        keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
                         isDisabled: undefined,
@@ -2370,7 +2370,7 @@ describe('OptionsListUtils', () => {
                 data: [
                     {
                         text: 'Tax rate 2 (3%)',
-                        keyForList: 'CODE2',
+                        keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
                         isDisabled: undefined,

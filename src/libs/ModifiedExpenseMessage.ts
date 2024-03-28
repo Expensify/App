@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagList, ReportAction} from '@src/types/onyx';
+import type {PolicyTagList, Report, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import getReportPolicyID from './getReportPolicyID';
@@ -22,6 +22,13 @@ Onyx.connect({
         }
         allPolicyTags = value;
     },
+});
+
+let allReports: OnyxCollection<Report> = null;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 /**
@@ -53,6 +60,14 @@ function buildMessageFragmentForValue(
         const fragment = Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
         changeFragments.push(fragment);
     }
+}
+
+/**
+ * Get the absolute value for a tax amount.
+ */
+function getTaxAmountAbsValue(taxAmount: number): number {
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    return Math.abs(taxAmount ?? 0);
 }
 
 /**
@@ -116,6 +131,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = reportActionOriginalMessage && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
+
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? '';
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
@@ -213,6 +229,31 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
                 );
             }
         });
+    }
+
+    const hasModifiedTaxAmount = reportActionOriginalMessage && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
+    if (hasModifiedTaxAmount) {
+        const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
+        const currency = iouReport?.currency ?? '';
+
+        const taxAmount = CurrencyUtils.convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
+        const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
+        const oldTaxAmount = oldTaxAmountValue > 0 ? CurrencyUtils.convertToDisplayString(oldTaxAmountValue, currency) : '';
+        buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
+    }
+
+    const hasModifiedTaxRate = reportActionOriginalMessage && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
+    if (hasModifiedTaxRate) {
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage?.taxRate ?? '',
+            reportActionOriginalMessage?.oldTaxRate ?? '',
+            Localize.translateLocal('iou.taxRate'),
+            false,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
     }
 
     const hasModifiedBillable = reportActionOriginalMessage && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
