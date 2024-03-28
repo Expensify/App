@@ -62,6 +62,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [isChatPinned, setIsChatPinned] = useState(false);
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
+    const [shoudSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -218,6 +219,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             setIsChronosReportEnabled(isChronosReport);
             setIsChatPinned(isPinnedChat);
             setHasUnreadMessages(isUnreadChat);
+            setShoudSwitchPositionIfOverflow(isOverflowMenu);
         });
     };
 
@@ -328,7 +330,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 withoutOverlay
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
-                shoudSwitchPositionIfOverflow
+                shoudSwitchPositionIfOverflow={shoudSwitchPositionIfOverflow}
             >
                 <BaseReportActionContextMenu
                     isVisible

@@ -37,15 +37,18 @@ function computeHorizontalShift(anchorLeftEdge: number, menuWidth: number, windo
  */
 function computeVerticalShift(anchorTopEdge: number, menuHeight: number, windowHeight: number, anchorHeight: number, shoudSwitchPositionIfOverflow = false): number {
     const popoverBottomEdge = anchorTopEdge + menuHeight;
+    let canSwitchPosition = false;
 
     if (anchorTopEdge < 0) {
         // Anchor is in top window Edge, shift bottom by a multiple of four.
-        return roundToNearestMultipleOfFour(shoudSwitchPositionIfOverflow ? menuHeight + anchorHeight : 0 - anchorTopEdge);
+        canSwitchPosition = popoverBottomEdge + menuHeight + anchorHeight <= windowHeight;
+        return roundToNearestMultipleOfFour(shoudSwitchPositionIfOverflow && canSwitchPosition ? menuHeight + anchorHeight : 0 - anchorTopEdge);
     }
 
     if (popoverBottomEdge > windowHeight) {
         // Anchor is in Bottom window Edge, shift top by a multiple of four.
-        return roundToNearestMultipleOfFour(shoudSwitchPositionIfOverflow ? -(menuHeight + anchorHeight) : windowHeight - popoverBottomEdge);
+        canSwitchPosition = anchorTopEdge - menuHeight - anchorHeight >= 0;
+        return roundToNearestMultipleOfFour(shoudSwitchPositionIfOverflow && canSwitchPosition ? -(menuHeight + anchorHeight) : windowHeight - popoverBottomEdge);
     }
 
     // Anchor is not in the gutter, so no need to shift it vertically
