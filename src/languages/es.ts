@@ -48,6 +48,7 @@ import type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    ReimbursementRateUnit,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -724,7 +725,7 @@ export default {
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
-        chooseARate: 'Elige una tarifa para utilizar a continuación',
+        chooseARate: ({unit}: ReimbursementRateUnit) => `Seleccione una tasa de reembolso del espacio de trabajo por ${unit}`,
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',

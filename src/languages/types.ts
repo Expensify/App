@@ -297,6 +297,8 @@ type HeldRequestParams = {comment: string};
 
 type DistanceRateOperationsParams = {count: number};
 
+type ReimbursementRateUnit = {unit: string};
+
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
@@ -400,4 +402,5 @@ export type {
     ZipCodeExampleFormatParams,
     LogSizeParams,
     HeldRequestParams,
+    ReimbursementRateUnit,
 };

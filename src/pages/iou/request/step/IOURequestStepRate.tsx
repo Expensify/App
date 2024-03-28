@@ -45,15 +45,17 @@ function IOURequestStepRate({
     const {translate, toLocaleDigit} = useLocalize();
     const rates = DistanceRequestUtils.getMileageRates(policy?.id);
 
-    const lastSelectedRate = lastSelectedDistanceRates[policy?.id ?? '0'] ?? '0';
+    const lastSelectedRate = lastSelectedDistanceRates[policy?.id ?? '0'] ?? rates[0]?.customUnitRateID;
 
     const data = Object.values(rates).map((rate) => ({
         text: rate.name ?? '',
         alternateText: DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit),
         keyForList: rate.name ?? '',
         value: rate.customUnitRateID,
-        isSelected: lastSelectedRate === rate.customUnitRateID,
+        isSelected: lastSelectedRate ? lastSelectedRate === rate.customUnitRateID : Boolean(rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE),
     }));
+
+    const unit = Object.values(rates)[0]?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
 
     const initiallyFocusedOption = rates[lastSelectedRate]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
 
@@ -70,7 +72,7 @@ function IOURequestStepRate({
             shouldShowWrapper={Boolean(backTo)}
             testID="rate"
         >
-            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
+            <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>
 
             <SelectionList
                 sections={[{data}]}

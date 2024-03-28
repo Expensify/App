@@ -49,6 +49,7 @@ import type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    ReimbursementRateUnit,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -726,7 +727,7 @@ export default {
         set: 'set',
         changed: 'changed',
         removed: 'removed',
-        chooseARate: 'Choose a rate to use below',
+        chooseARate: ({unit}: ReimbursementRateUnit) => `Select a workspace reimbursement rate per ${unit}`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
