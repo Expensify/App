@@ -417,7 +417,6 @@ function ReportActionsView({
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
     // and we also generate a money request action if the number of money requests in reportActions is less than the total number of money requests
     // to display at least one money request action to match the total data.
-    // For more details: https://github.com/Expensify/App/issues/26424#issuecomment-1869154198
     const reportActionsToDisplay = useMemo(() => {
         if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {
             return reportActions;
