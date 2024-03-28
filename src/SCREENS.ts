@@ -32,6 +32,7 @@ const SCREENS = {
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
+        ADD_BANK_ACCOUNT_REFACTOR: 'Settings_Add_Bank_Account_Refactor',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
