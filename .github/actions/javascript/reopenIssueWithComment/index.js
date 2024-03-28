@@ -4,30 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 4097:
-/***/ ((module) => {
-
-const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        INTERNAL_QA: 'InternalQA',
-    },
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-};
-
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-
-module.exports = CONST;
-
-
-/***/ }),
-
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -11445,6 +11421,34 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 9873:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const GIT_CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+};
+const CONST = {
+    ...GIT_CONST,
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+};
+exports["default"] = CONST;
+
+
+/***/ }),
+
 /***/ 9296:
 /***/ (function(module, exports, __nccwpck_require__) {
 
@@ -11485,7 +11489,7 @@ const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
 const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
@@ -11830,7 +11834,6 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
-        // @ts-expect-error TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated to TypeScript
         return `${CONST_1.default.APP_REPO_URL}/pull/${value}`;
     }
     /**
@@ -12100,16 +12103,31 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony import */ var _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(9873);
+
+
 const core = __nccwpck_require__(2186);
-const CONST = __nccwpck_require__(4097);
 const GithubUtils = __nccwpck_require__(9296);
 
 const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});
@@ -12119,16 +12137,16 @@ function reopenIssueWithComment() {
     console.log(`Reopening issue #${issueNumber}`);
     return GithubUtils.octokit.issues
         .update({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
+            owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
+            repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
             issue_number: issueNumber,
             state: 'open',
         })
         .then(() => {
             console.log(`Commenting on issue #${issueNumber}`);
             return GithubUtils.octokit.issues.createComment({
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
+                owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
+                repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
                 issue_number: issueNumber,
                 body: comment,
             });

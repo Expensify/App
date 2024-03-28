@@ -1,11 +1,7 @@
 /**
  * Simulates a while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
  */
-function promiseWhile(condition, action) {
+function promiseWhile(condition: () => boolean, action: () => Promise<void>): Promise<void> {
     console.info('[promiseWhile] promiseWhile()');
 
     return new Promise((resolve, reject) => {
@@ -24,12 +20,8 @@ function promiseWhile(condition, action) {
 
 /**
  * Simulates a do-while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
  */
-function promiseDoWhile(condition, action) {
+function promiseDoWhile(condition: () => boolean, action: () => Promise<void>): Promise<void> {
     console.info('[promiseWhile] promiseDoWhile()');
 
     return new Promise((resolve, reject) => {
@@ -43,7 +35,4 @@ function promiseDoWhile(condition, action) {
     });
 }
 
-module.exports = {
-    promiseWhile,
-    promiseDoWhile,
-};
+export {promiseWhile, promiseDoWhile};
