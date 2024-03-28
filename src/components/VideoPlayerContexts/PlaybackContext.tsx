@@ -13,17 +13,18 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [originalParent, setOriginalParent] = useState<View | null>(null);
     const currentVideoPlayerRef = useRef<Video | null>(null);
     const {currentReportID} = useCurrentReportID() ?? {};
+    const videoResumeTryNumber = useRef(0);
 
     const pauseVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.setStatusAsync({shouldPlay: false});
+        currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
     }, [currentVideoPlayerRef]);
 
     const stopVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.stopAsync();
+        currentVideoPlayerRef.current?.stopAsync?.();
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.getStatusAsync().then((status) => {
+        currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
             const newStatus: AVPlaybackStatusToSet = {shouldPlay: true};
             if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
                 newStatus.positionMillis = 0;
@@ -33,11 +34,11 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const unloadVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.unloadAsync();
+        currentVideoPlayerRef.current?.unloadAsync?.();
     }, [currentVideoPlayerRef]);
 
     const updateCurrentlyPlayingURL = useCallback(
-        (url: string) => {
+        (url: string | null) => {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
@@ -61,7 +62,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const checkVideoPlaying = useCallback(
         (statusCallback: StatusCallback) => {
-            currentVideoPlayerRef.current?.getStatusAsync().then((status) => {
+            currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
                 statusCallback('isPlaying' in status && status.isPlaying);
             });
         },
@@ -69,6 +70,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const resetVideoPlayerData = useCallback(() => {
+        videoResumeTryNumber.current = 0;
         stopVideo();
         setCurrentlyPlayingURL(null);
         setSharedElement(null);
@@ -95,6 +97,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             playVideo,
             pauseVideo,
             checkVideoPlaying,
+            videoResumeTryNumber,
         }),
         [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo, checkVideoPlaying],
     );
@@ -111,4 +114,4 @@ function usePlaybackContext() {
 
 PlaybackContextProvider.displayName = 'PlaybackContextProvider';
 
-export {PlaybackContextProvider, usePlaybackContext};
+export {Context as PlaybackContext, PlaybackContextProvider, usePlaybackContext};

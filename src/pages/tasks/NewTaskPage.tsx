@@ -180,7 +180,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                                 interactive={!task?.parentReportID}
                                 shouldShowRightIcon={!task?.parentReportID}
-                                titleWithTooltips={shareDestination?.shouldUseFullTitleToDisplay ? shareDestination?.displayNamesWithTooltips : []}
+                                titleWithTooltips={shareDestination?.shouldUseFullTitleToDisplay ? undefined : shareDestination?.displayNamesWithTooltips}
                             />
                         </View>
                     </View>

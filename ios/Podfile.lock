@@ -34,14 +34,20 @@ PODS:
   - EXAV (13.10.4):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
+  - EXImageLoader (4.6.0):
+    - ExpoModulesCore
+    - React-Core
   - Expo (50.0.4):
     - ExpoModulesCore
-  - ExpoImage (1.10.1):
+  - ExpoImage (1.11.0):
     - ExpoModulesCore
     - SDWebImage (~> 5.17.0)
     - SDWebImageAVIFCoder (~> 0.10.1)
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.13.0)
+  - ExpoImageManipulator (11.8.0):
+    - EXImageLoader
+    - ExpoModulesCore
   - ExpoModulesCore (1.11.8):
     - glog
     - RCT-Folly (= 2022.05.16.00)
@@ -1117,8 +1123,6 @@ PODS:
     - React-Core
   - react-native-geolocation (3.0.6):
     - React-Core
-  - react-native-image-manipulator (1.0.5):
-    - React
   - react-native-image-picker (7.0.3):
     - React-Core
   - react-native-key-command (1.0.6):
@@ -1359,7 +1363,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.5):
+  - RNLiveMarkdown (0.1.33):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1423,8 +1427,10 @@ DEPENDENCIES:
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
+  - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
+  - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
@@ -1462,7 +1468,6 @@ DEPENDENCIES:
   - react-native-config (from `../node_modules/react-native-config`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
-  - "react-native-image-manipulator (from `../node_modules/@oguzhnatly/react-native-image-manipulator`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
@@ -1576,10 +1581,14 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXAV:
     :path: "../node_modules/expo-av/ios"
+  EXImageLoader:
+    :path: "../node_modules/expo-image-loader/ios"
   Expo:
     :path: "../node_modules/expo"
   ExpoImage:
     :path: "../node_modules/expo-image/ios"
+  ExpoImageManipulator:
+    :path: "../node_modules/expo-image-manipulator/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
   FBLazyVector:
@@ -1649,8 +1658,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-document-picker"
   react-native-geolocation:
     :path: "../node_modules/@react-native-community/geolocation"
-  react-native-image-manipulator:
-    :path: "../node_modules/@oguzhnatly/react-native-image-manipulator"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
   react-native-key-command:
@@ -1781,8 +1788,10 @@ SPEC CHECKSUMS:
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
   EXAV: 09a4d87fa6b113fbb0ada3aade6799f78271cb44
+  EXImageLoader: 55080616b2fe9da19ef8c7f706afd9814e279b6b
   Expo: 1e3bcf9dd99de57a636127057f6b488f0609681a
-  ExpoImage: 1cdaa65a6a70bb01067e21ad1347ff2d973885f5
+  ExpoImage: 390c524542b258f8173f475c1cc71f016444a7be
+  ExpoImageManipulator: c1d7cb865eacd620a35659f3da34c70531f10b59
   ExpoModulesCore: 96d1751929ad10622773bb729ab28a8423f0dd0c
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
   FBReactNativeSpec: 86de768f89901ef6ed3207cd686362189d64ac88
@@ -1847,7 +1856,6 @@ SPEC CHECKSUMS:
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
   react-native-document-picker: 3599b238843369026201d2ef466df53f77ae0452
   react-native-geolocation: 0f7fe8a4c2de477e278b0365cce27d089a8c5903
-  react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: 2381c008bbb09e72395a2d043c147b11bd1523d9
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
@@ -1896,7 +1904,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 25b969a1ffc806b9f9ad2e170d4a3b049c6af85e
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 35eeecf7e57eb26fdc279d5d4815982a9a9f7beb
+  RNLiveMarkdown: aaf75630fb2129db43fb5a873d33125e7173f3a0
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: fcf7f1cbdc8bd7569c267d07284e8a5c7bee06ed
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
@@ -1913,7 +1921,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 0a6794d1974aed5d653d0d0cb900493e2583e35a
-  Yoga: 13c8ef87792450193e117976337b8527b49e8c03
+  Yoga: e64aa65de36c0832d04e8c7bd614396c77a80047
 
 PODFILE CHECKSUM: a431c146e1501391834a2f299a74093bac53b530
 
