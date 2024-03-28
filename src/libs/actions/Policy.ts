@@ -2929,6 +2929,18 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 areCategoriesEnabled: false,
+                pendingFields: {
+                    areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    areCategoriesEnabled: null,
+                },
             },
         });
         onyxData.failureData?.push({
@@ -2936,6 +2948,9 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 areCategoriesEnabled: policy?.areCategoriesEnabled,
+                pendingFields: {
+                    areCategoriesEnabled: null,
+                },
             },
         });
     }
