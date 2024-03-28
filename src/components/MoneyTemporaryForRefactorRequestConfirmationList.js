@@ -301,7 +301,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const taxRateTitle = TransactionUtils.getDefaultTaxName(taxRates, transaction);
 
-    const previousTransactionTaxAmount = usePrevious(transaction.taxAmount);
+    const previousTransactionAmount = usePrevious(transaction.amount);
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
@@ -373,11 +373,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     useEffect(() => {
         const taxAmount = getTaxAmount(transaction, taxRates.defaultValue);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
-        if (previousTransactionTaxAmount !== transaction.taxAmount && amountInSmallestCurrencyUnits !== transaction.taxAmount) {
-            return;
+
+        if (transaction.taxAmount && previousTransactionAmount === transaction.amount) {
+            return IOU.setMoneyRequestTaxAmount(transaction.transactionID, transaction.taxAmount, true);
         }
+
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
-    }, [taxRates.defaultValue, transaction, previousTransactionTaxAmount]);
+    }, [taxRates.defaultValue, transaction, previousTransactionAmount]);
 
     /**
      * Returns the participants with amount
