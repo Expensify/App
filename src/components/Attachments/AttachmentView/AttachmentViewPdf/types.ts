@@ -14,9 +14,14 @@ type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'is
     /** Triggered when the PDF's onScaleChanged event is triggered */
     onScaleChanged?: (scale: number) => void;
 
+    /** Triggered when the PDF fails to load */
     onError?: () => void;
 
+    /** Whether the PDF is used as a chat attachment */
     isUsedAsChatAttachment?: boolean;
+
+    /** Render a fallback view when the PDF fails to load */
+    renderFallbackAttachmentView?: () => JSX.Element;
 };
 
 export default AttachmentViewPdfProps;

@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
 import withLocalize from '@components/withLocalize';
 import withThemeStyles from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -94,7 +93,7 @@ class PDFView extends Component {
                     maxCanvasHeight={this.props.maxCanvasHeight}
                     maxCanvasArea={this.props.maxCanvasArea}
                     LoadingComponent={<FullScreenLoadingIndicator />}
-                    ErrorComponent={<Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
+                    ErrorComponent={this.props.renderFallbackAttachmentView}
                     renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
                         <PDFPasswordForm
                             isFocused={this.props.isFocused}
