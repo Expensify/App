@@ -23,7 +23,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
@@ -73,7 +72,7 @@ type ReportActionComposeOnyxProps = {
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps &
-    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'disabled' | 'listHeight' | 'lastReportAction'> & {
+    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'disabled' | 'listHeight' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
         onSubmit: (newComment: string | undefined) => void;
 
@@ -93,10 +92,6 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
         onComposerBlur?: () => void;
     };
 
-// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function ReportActionCompose({
@@ -111,7 +106,6 @@ function ReportActionCompose({
     listHeight = 0,
     shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
-    isEmptyChat,
     lastReportAction,
     onComposerFocus,
     onComposerBlur,
@@ -129,7 +123,7 @@ function ReportActionCompose({
      */
     const [isFocused, setIsFocused] = useState(() => {
         const initialModalState = getModalState();
-        return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
+        return shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
 
@@ -431,10 +425,7 @@ function ReportActionCompose({
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                         raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
-                                        parentReportID={report?.parentReportID}
-                                        parentReportActionID={report?.parentReportActionID}
                                         includeChronos={ReportUtils.chatIncludesChronos(report)}
-                                        isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                         isMenuVisible={isMenuVisible}
                                         inputPlaceholder={inputPlaceholder}

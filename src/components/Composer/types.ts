@@ -76,6 +76,8 @@ type ComposerProps = TextInputProps & {
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */
     shouldContainScroll?: boolean;
+
+    showSoftInputOnFocus?: boolean;
 };
 
 export type {TextSelection, ComposerProps};
