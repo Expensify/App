@@ -85,7 +85,6 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
-    const isScanRequest = hasReceipt && TransactionUtils.isScanRequest(transaction);
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const shouldShowRBR = hasViolations || hasFieldErrors;
@@ -135,17 +134,9 @@ function MoneyRequestPreviewContent({
 
         if (isDistanceRequest) {
             message = translate('common.distance');
-        }
-
-        if (isScanRequest) {
-            message = translate('tabSelector.scan');
-        }
-
-        if (isScanning) {
+        } else if (isScanning) {
             message = translate('common.receipt');
-        }
-
-        if (isBillSplit) {
+        } else if (isBillSplit) {
             message = translate('iou.split');
         }
 
@@ -153,7 +144,13 @@ function MoneyRequestPreviewContent({
             message = translate('iou.card');
             if (TransactionUtils.isPending(transaction)) {
                 message += ` • ${translate('iou.pending')}`;
+                return message;
             }
+        }
+
+        if (isSettled && !iouReport?.isCancelledIOU) {
+            message += ` • ${getSettledMessage()}`;
+            return message;
         }
 
         if (shouldShowRBR && transaction) {
@@ -178,7 +175,7 @@ function MoneyRequestPreviewContent({
             }
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('iou.approved')}`;
-        } else if (iouReport?.isWaitingOnBankAccount && !isCardTransaction) {
+        } else if (iouReport?.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
@@ -245,9 +242,7 @@ function MoneyRequestPreviewContent({
                             <View style={styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow]}>
-                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>
-                                            {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
-                                        </Text>
+                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{getPreviewHeaderText()}</Text>
                                         {!isSettled && shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
