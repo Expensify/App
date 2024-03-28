@@ -147,9 +147,12 @@ function WorkspaceMembersPage({
     }, [selectedEmployees, policy?.owner, session?.accountID]);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         getWorkspaceMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isFocused]);
 
     useEffect(() => {
         validateSelection();

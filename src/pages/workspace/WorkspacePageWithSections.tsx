@@ -1,6 +1,6 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -135,9 +135,11 @@ function WorkspacePageWithSections({
         firstRender.current = false;
     }, []);
 
-    useEffect(() => {
-        fetchData(policyID, shouldSkipVBBACall);
-    }, [policyID, shouldSkipVBBACall]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchData(policyID, shouldSkipVBBACall);
+        }, [policyID, shouldSkipVBBACall]),
+    );
 
     const shouldShow = useMemo(() => {
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
