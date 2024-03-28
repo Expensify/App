@@ -195,8 +195,8 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         const localizedTagListName = Localize.translateLocal('common.tag');
         const sortedTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
 
-        sortedTagKeys.forEach((_, index) => {
-            const policyTagListName = PolicyUtils.getTagListName(policyTags, index) || localizedTagListName;
+        sortedTagKeys.forEach((policyTagKey, index) => {
+            const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag[index] ?? '';
             const oldTag = splittedOldTag[index] ?? '';
