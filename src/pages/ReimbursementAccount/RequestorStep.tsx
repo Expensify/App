@@ -1,17 +1,18 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef} from 'react';
+import type {View} from 'react-native';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
 import VerifyIdentity from './VerifyIdentity/VerifyIdentity';
 
-const propTypes = {
+type RequestorStepProps = {
     /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
+    onBackButtonPress: () => void;
 
     /** If we should show Onfido flow */
-    shouldShowOnfido: PropTypes.bool.isRequired,
+    shouldShowOnfido: boolean;
 };
 
-const RequestorStep = React.forwardRef(({shouldShowOnfido, onBackButtonPress}, ref) => {
+function RequestorStep({shouldShowOnfido, onBackButtonPress}: RequestorStepProps, ref: ForwardedRef<View>) {
     if (shouldShowOnfido) {
         return <VerifyIdentity onBackButtonPress={onBackButtonPress} />;
     }
@@ -22,9 +23,8 @@ const RequestorStep = React.forwardRef(({shouldShowOnfido, onBackButtonPress}, r
             onBackButtonPress={onBackButtonPress}
         />
     );
-});
+}
 
-RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
 
-export default RequestorStep;
+export default forwardRef(RequestorStep);

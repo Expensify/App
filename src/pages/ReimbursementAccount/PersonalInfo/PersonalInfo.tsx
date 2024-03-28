@@ -1,3 +1,4 @@
+import type {RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -95,7 +96,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
 
 PersonalInfo.displayName = 'PersonalInfo';
 
-export default withOnyx<PersonalInfoProps, PersonalInfoOnyxProps>({
+export default withOnyx<RefAttributes<View> & PersonalInfoProps, PersonalInfoOnyxProps>({
     // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

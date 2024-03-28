@@ -81,7 +81,6 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
             <AddressForm
                 inputKeys={INPUT_KEYS}
                 shouldSaveDraft={!isEditing}
-                translate={translate}
                 defaultValues={defaultValues}
                 streetTranslationKey="common.companyAddress"
             />

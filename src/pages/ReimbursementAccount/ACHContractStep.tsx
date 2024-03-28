@@ -1,16 +1,14 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 
-const propTypes = {
+type ACHContractStepProps = {
     /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
+    onBackButtonPress: () => void;
 };
 
-function ACHContractStep({onBackButtonPress}) {
+function ACHContractStep({onBackButtonPress}: ACHContractStepProps) {
     return <CompleteVerification onBackButtonPress={onBackButtonPress} />;
 }
 
-ACHContractStep.propTypes = propTypes;
 ACHContractStep.displayName = 'ACHContractStep';
 export default ACHContractStep;
