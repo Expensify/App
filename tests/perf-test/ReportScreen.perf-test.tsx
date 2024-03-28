@@ -163,7 +163,6 @@ const reportActions = ReportTestUtils.getMockedReportActionsMap(500);
 const mockRoute = {params: {reportID: '1'}};
 
 test('[ReportScreen] should render ReportScreen with composer interactions', () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const scenario = async () => {
         /**
@@ -232,7 +231,6 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
 });
 
 test('[ReportScreen] should press of the report item', () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const scenario = async () => {
         /**
