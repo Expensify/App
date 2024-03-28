@@ -779,7 +779,9 @@ function openReport(
             {optimisticData, successData, failureData},
             {
                 getConflictingRequests: (persistedRequests) =>
-                    persistedRequests.filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && !isCreatingNewReport && request.data?.reportID === reportID),
+                    persistedRequests.filter(
+                        (request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID && !isCreatingNewReport && !request.data?.createdReportActionID,
+                    ),
             },
         );
     }
