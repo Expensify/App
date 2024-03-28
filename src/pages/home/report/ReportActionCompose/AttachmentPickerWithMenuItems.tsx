@@ -162,7 +162,7 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
-                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID, 0, report),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID, report),
             },
         ];
     }, [report, reportID, translate]);
