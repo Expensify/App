@@ -617,7 +617,6 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
-        idempotencyKey: `${SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT}_${reportID}`,
     };
 
     if (isFromDeepLink) {
@@ -632,7 +631,8 @@ function openReport(
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
-    if (!isEmptyObject(newReportObject)) {
+    const isCreatingNewReport = !isEmptyObject(newReportObject);
+    if (isCreatingNewReport) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
         optimisticData[0].onyxMethod = Onyx.METHOD.SET;
@@ -716,7 +716,6 @@ function openReport(
 
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
-        parameters.idempotencyKey = `${parameters.idempotencyKey}_NewReport_${optimisticCreatedAction.reportActionID}`;
 
         // If we are creating a thread, ensure the report action has childReportID property added
         if (newReportObject.parentReportID && parentReportActionID) {
@@ -742,7 +741,15 @@ function openReport(
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData});
+        API.write(
+            WRITE_COMMANDS.OPEN_REPORT,
+            parameters,
+            {optimisticData, successData, failureData},
+            {
+                getConflictingRequests: (persistedRequests) =>
+                    persistedRequests.filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && !isCreatingNewReport && request.data?.reportID === reportID),
+            },
+        );
     }
 }
 
@@ -1241,7 +1248,21 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     };
 
     CachedPDFPaths.clearByKey(reportActionID);
-    API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.DELETE_COMMENT,
+        parameters,
+        {optimisticData, successData, failureData},
+        {
+            getConflictingRequests: (persistedRequests) =>
+                persistedRequests.filter(
+                    (request) =>
+                        ([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.DELETE_COMMENT, WRITE_COMMANDS.UPDATE_COMMENT] as string[]).includes(request.command) &&
+                        request.data?.reportActionID === reportActionID,
+                ),
+            handleConflictingRequest: () => Onyx.update(successData),
+            shouldIncludeCurrentRequest: true,
+        },
+    );
 }
 
 /**
