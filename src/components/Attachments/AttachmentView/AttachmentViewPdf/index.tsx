@@ -24,6 +24,7 @@ function AttachmentViewPdf({
             onToggleKeyboard={onToggleKeyboard}
             onLoadComplete={onLoadComplete}
             isUsedAsChatAttachment={isUsedAsChatAttachment}
+            renderFallbackAttachmentView={renderFallbackAttachmentView}
         />
     );
 }
