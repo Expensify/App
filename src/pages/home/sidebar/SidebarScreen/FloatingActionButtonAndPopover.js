@@ -268,6 +268,23 @@ function FloatingActionButtonAndPopover(props) {
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
                     },
+                    ...(canUseTrackExpense
+                        ? [
+                              {
+                                  icon: Expensicons.DocumentPlus,
+                                  text: translate('iou.trackExpense'),
+                                  onSelected: () =>
+                                      interceptAnonymousUser(() =>
+                                          IOU.startMoneyRequest(
+                                              CONST.IOU.TYPE.TRACK_EXPENSE,
+                                              // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
+                                              // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
+                                              ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                                          ),
+                                      ),
+                              },
+                          ]
+                        : []),
                     {
                         icon: Expensicons.MoneyCircle,
                         text: translate('iou.requestMoney'),
@@ -294,23 +311,6 @@ function FloatingActionButtonAndPopover(props) {
                                 ),
                             ),
                     },
-                    ...(canUseTrackExpense
-                        ? [
-                              {
-                                  icon: Expensicons.DocumentPlus,
-                                  text: translate('iou.trackExpense'),
-                                  onSelected: () =>
-                                      interceptAnonymousUser(() =>
-                                          IOU.startMoneyRequest(
-                                              CONST.IOU.TYPE.TRACK_EXPENSE,
-                                              // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
-                                              // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
-                                              ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
-                                          ),
-                                      ),
-                              },
-                          ]
-                        : []),
                     {
                         icon: Expensicons.Task,
                         text: translate('newTaskPage.assignTask'),
