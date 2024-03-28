@@ -1,0 +1,108 @@
+name: Build iOS App
+
+on:
+  workflow_call:
+    inputs:
+      BUILD_TYPE:
+        description: The environment to build for. Must be one of ("release", "ad-hoc")
+        required: true
+        type: string
+
+concurrency:
+  group: build-ios-${{ inputs.BUILD_TYPE }}
+  cancel-in-progress: ${{ inputs.BUILD_TYPE == 'release' }}
+
+jobs:
+  buildIOS:
+    name: Build iOS app
+    runs-on: macos-13-xlarge
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
+    steps:
+      - name: Validate build type
+        id: validateBuildType
+        run: |
+          if [[ ${{ contains(fromJSON('["release", "ad-hoc"]'), inputs.BUILD_TYPE) }} == 'true' ]]; then
+            echo "Environment ${{ inputs.BUILD_TYPE }} is valid for iOS"
+          else
+            echo "Environment ${{ inputs.BUILD_TYPE }} is not valid for iOS."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      - name: Cache Pod dependencies
+        uses: actions/cache@v4
+        id: pods-cache
+        with:
+          path: ios/Pods
+          key: pods-cache-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: pods-cache-
+
+      - name: Compare Podfile.lock and Manifest.lock
+        id: compare-podfile-and-manifest
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Install cocoapods
+        uses: nick-invision/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true'
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: cd ios && bundle exec pod install
+
+      - name: Decrypt AppStore profile
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Decrypt AppStore Notification Service profile
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore_Notification_Service.mobileprovision NewApp_AppStore_Notification_Service.mobileprovision.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+  
+      - name: Decrypt certificate
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Run Fastlane build
+        id: build
+        run: |
+          if [[ ${{ inputs.BUILD_TYPE }} == "release" ]]; then
+            bundle exec fastlane ios build_release
+          else
+            bundle exec fastlane ios build_adhoc
+          fi
+
+      - name: Upload API as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ inputs.BUILD_TYPE }}-${{ github.ref }}.api
+          # Note: this output comes from inside the Fastfile
+          path: ${{ steps.build.outputs.IPA_PATH }}
+
+      - name: Upload iOS sourcemaps
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-${{ inputs.BUILD_TYPE }}-sourcemap-${{ github.ref }}
+          path: main.jsbundle.map
+
+      - name: Post a message in slack if the build fails
+        if: failure()
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

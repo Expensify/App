@@ -1,0 +1,142 @@
+on:
+  workflow_call:
+    inputs:
+      ENV:
+        description: The environment to deploy. Must be one of ('staging', 'production', 'ad-hoc').
+        required: true
+        type: string
+      PR_NUMBER:
+        description: For ad-hoc builds, the number of the PR associated with the build
+        required: false
+        type: string
+
+# TODO: workflow-level concurrency?
+
+jobs:
+  # TODO: add a a validate job
+
+  # TODO: move concurrency here?
+  # TODO: inline the build job here directly?
+  build:
+    if: inputs.ENV != 'production'
+    uses: ./.github/workflows/buildAndroid.yml@main
+    secrets: inherit
+    with:
+      BUILD_TYPE: ${{ inputs.ENV == 'staging' && 'release' || 'ad-hoc' }}
+
+  deployStaging:
+    if: inputs.ENV == 'staging'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      - name: Download Android aab
+        id: download
+        uses: actions/download-artifact@v3
+        with:
+          name: android-release-${{ github.ref }}.aab
+
+      - name: Decrypt Fastlane json key
+        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Upload beta to Google Play
+        run: "bundle exec fastlane android upload_to_play_store aab_path:${{ steps.download.outputs.download-path }}"
+
+      - name: Upload Android version to Browser Stack
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ steps.download.outputs.download-path }}"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Announce failed workflow in Slack
+        if: failure()
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+  deployProduction:
+    if: inputs.ENV == 'production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      - name: Decrypt Fastlane json key
+        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Set version in ENV
+        run: echo "VERSION=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
+
+      - name: Release Google Play build to production
+        run: bundle exec fastlane android release_production
+
+      - name: Warn deployers if Android production deploy failed
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 Android production deploy failed. Please manually submit ${{ github.event.release.tag_name }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  deployAdHoc:
+    if: inputs.ENV == 'ad-hoc'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Download Android apk
+        id: download
+        uses: actions/download-artifact@v3
+        with:
+          name: android-release-${{ github.ref }}.apk
+
+      - name: Upload test build to S3
+        run: bundle exec fastlane android upload_s3 aab_path:${{ steps.download.outputs.download-path }}
+        env:
+          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          S3_BUCKET: ad-hoc-expensify-cash
+          S3_REGION: us-east-1
+          PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
+
+      - name: Announce failed workflow in Slack
+        if: failure()
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

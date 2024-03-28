@@ -1,0 +1,82 @@
+name: Build desktop app
+
+on:
+  workflow_call:
+    inputs:
+      BUILD_TYPE:
+        description: The environment to build for. Must be one of ("staging", "production", "ad-hoc")
+        required: true
+        type: string
+
+concurrency:
+  group: build-android-${{ inputs.BUILD_TYPE }}
+  # TODO: Fix cancel-in-progress
+  cancel-in-progress: ${{ inputs.BUILD_TYPE == "ad-hoc" }}
+
+jobs:
+  buildWeb:
+    name: Build desktop app
+    runs-on: ubuntu-latest-xl
+    steps:
+      - name: Validate build type
+        id: validateBuildType
+        run: |
+          if [[ ${{ contains(fromJSON('["staging", "production", "ad-hoc"]'), inputs.BUILD_TYPE) }} == 'true' ]]; then
+            echo "Build type ${{ inputs.BUILD_TYPE }} is valid for desktop."
+          else
+            echo "Build type ${{ inputs.BUILD_TYPE }} is not valid for desktop."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env.adhoc file based on staging
+        if: inputs.BUILD_TYPE == 'ad-hoc'
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
+      - name: Decrypt Developer ID Certificate
+        run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
+        env:
+          DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Configure AWS Credentials
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Run desktop build
+        run: |
+          if [[ ${{ inputs.BUILD_TYPE }} == 'ad-hoc' ]]; then
+            npm run desktop-build-adhoc -- --publish never
+          elif [[ ${{ inputs.BUILD_TYPE }} == 'staging' ]]; then
+            npm run desktop-build-staging -- --publish never
+          else
+            npm run desktop-build -- --publish never
+          fi
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Upload DMG as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NewExpensify.dmg
+          path: desktop-build/NewExpensify.dmg
+
+      - name: Post a message in slack if the build fails
+        if: failure()
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

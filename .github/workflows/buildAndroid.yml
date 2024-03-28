@@ -1,0 +1,113 @@
+name: Build Android app
+
+on:
+  workflow_call:
+    inputs:
+      BUILD_TYPE:
+        description: The environment to build for. Must be one of ("release", "ad-hoc", "e2e", "e2eDelta")
+        required: true
+        type: string
+      PR_NUMBER:
+        description: For AdHoc builds, the pull request being built from
+        required: false
+        type: number
+
+concurrency:
+  group: build-android-${{ inputs.BUILD_TYPE }}
+  # TODO: cancel in-progress adhoc/e2e builds based on ref. Maybe pass in cancel-in-progress as an input?
+  cancel-in-progress: ${{ inputs.BUILD_TYPE == 'release' }}
+
+jobs:
+  buildAndroid:
+    name: Build Android app
+    runs-on: ubuntu-latest-xl
+    steps:
+      - name: Validate build type
+        id: validateBuildType
+        run: |
+          if [[ ${{ contains(fromJSON('["release", "ad-hoc", "e2e", "e2eDelta"]'), inputs.BUILD_TYPE) }} == 'true' ]]; then
+            echo "Build type ${{ inputs.BUILD_TYPE }} is valid for Android"
+          else
+            echo "Build type ${{ inputs.BUILD_TYPE }} is not valid for Android."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: oracle
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      - name: Decrypt keystore
+        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Set version in ENV
+        run: |
+          echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
+          echo "NPM_VERSION=$(< package.json jq -r .version)" >> "$GITHUB_ENV"
+
+      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
+        if: inputs.BUILD_TYPE == 'ad-hoc'
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
+      - name: Run Fastlane build
+        id: build
+        run: |
+          if [[ ${{ inputs.BUILD_TYPE }} == "release" ]]; then
+            bundle exec fastlane android build_release
+          elif [[ ${{ inputs.BUILD_TYPE }} == "ad-hoc" ]]; then
+            bundle exec fastlane android build_adhoc
+          elif [[ ${{ inputs.BUILD_TYPE }} == "e2e" ]]; then
+            bundle exec fastlane android build_e2e
+          else
+            bundle exec fastlane android build_e2e_delta
+          fi
+
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.BUILD_TYPE }}-${{ github.ref }}.apk
+          # Note: this output comes from inside the Fastfile
+          path: ${{ steps.build.outputs.APK_PATH }}
+
+      - name: Upload AAB as workflow artifact
+        if: inputs.BUILD_TYPE == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.BUILD_TYPE }}-${{ github.ref }}.aab
+          # Note: this output comes from inside the Fastfile
+          path: ${{ steps.build.outputs.AAB_PATH }}
+
+      - name: Archive Android sourcemaps
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.BUILD_TYPE }}-sourcemap-${{ github.ref }}
+          path: android/app/build/generated/sourcemaps/react/release/*.map
+
+      - name: Post a message in slack if the build fails
+        if: failure()
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

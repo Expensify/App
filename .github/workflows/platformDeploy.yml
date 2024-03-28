@@ -40,95 +40,14 @@ jobs:
     needs: validateActor
     secrets: inherit
 
-  android:
-    name: Build and deploy Android
+  deployAndroid:
+    name: Deploy Android app
     needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: ubuntu-latest-xl
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'oracle'
-          java-version: '17'
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
-        with:
-          ruby-version: '2.7'
-          bundler-cache: true
-
-      - name: Decrypt keystore
-        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt json key
-        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Set version in ENV
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
-
-      - name: Run Fastlane beta
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android beta
-        env:
-          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
-          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
-
-      - name: Run Fastlane production
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android production
-        env:
-          VERSION: ${{ env.VERSION_CODE }}
-
-      - name: Archive Android sourcemaps
-        uses: actions/upload-artifact@v3
-        with:
-          name: android-sourcemap
-          path: android/app/build/generated/sourcemaps/react/release/*.map
-
-      - name: Upload Android version to GitHub artifacts
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: app-production-release.aab
-          path: android/app/build/outputs/bundle/productionRelease/app-production-release.aab
-
-      - name: Upload Android version to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/productionRelease/app-production-release.aab"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Warn deployers if Android production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android production deploy failed. Please manually submit ${{ github.event.release.tag_name }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+    if: fromJSON(needs.validateActor.outputs.IS_DEPLOYER)
+    uses: ./.github/workflows/deployAndroid.yml
+    secrets: inherit
+    with:
+      ENV: ${{ github.event_name == 'release' && 'production' || 'staging' }}
 
   desktop:
     name: Build and deploy Desktop
@@ -356,7 +275,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [android, desktop, iOS, web]
+    needs: [deployAndroid, desktop, iOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -370,7 +289,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ success() }}
-    needs: [android, desktop, iOS, web]
+    needs: [deployAndroid, desktop, iOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -431,7 +350,7 @@ jobs:
     name: Post a GitHub comment when platforms are done building and deploying
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
-    needs: [android, desktop, iOS, web]
+    needs: [deployAndroid, desktop, iOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
