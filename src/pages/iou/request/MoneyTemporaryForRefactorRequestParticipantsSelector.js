@@ -62,6 +62,9 @@ const propTypes = {
 
     /** Whether the parent screen transition has ended */
     didScreenTransitionEnd: PropTypes.bool,
+
+    /** Whether or not we are searching for reports on the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -71,6 +74,7 @@ const defaultProps = {
     betas: [],
     dismissedReferralBanners: {},
     didScreenTransitionEnd: false,
+    isSearchingForReports: false,
 };
 
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
@@ -84,6 +88,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     iouRequestType,
     dismissedReferralBanners,
     didScreenTransitionEnd,
+    isSearchingForReports,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -361,6 +366,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 headerMessage={headerMessage}
                 showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
                 rightHandSideComponent={itemRightSideComponent}
+                isLoadingNewOptions={isSearchingForReports}
             />
         </View>
     );
@@ -379,5 +385,9 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
     },
 })(MoneyTemporaryForRefactorRequestParticipantsSelector);
