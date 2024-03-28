@@ -1,28 +1,31 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TimePicker from '@components/TimePicker/TimePicker';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@libs/actions/User';
-import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
 
-const propTypes = {
-    ...withLocalizePropTypes,
+type SetTimePageOnyxProps = {
+    customStatus: OnyxEntry<OnyxTypes.CustomStatusDraft>;
 };
 
-function SetTimePage({translate, customStatus}) {
-    const styles = useThemeStyles();
-    const clearAfter = lodashGet(customStatus, 'clearAfter', '');
+type SetTimePageProps = SetTimePageOnyxProps;
 
-    const onSubmit = (time) => {
+function SetTimePage({customStatus}: SetTimePageProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const clearAfter = customStatus?.clearAfter ?? '';
+
+    const onSubmit = (time: string) => {
         const timeToUse = DateUtils.combineDateAndTime(time, clearAfter);
 
         User.updateDraftCustomStatus({clearAfter: timeToUse});
@@ -40,9 +43,7 @@ function SetTimePage({translate, customStatus}) {
             />
             <View style={styles.flex1}>
                 <TimePicker
-                    inputID="timePicker"
                     defaultValue={clearAfter}
-                    style={styles.flexGrow1}
                     onSubmit={onSubmit}
                 />
             </View>
@@ -50,14 +51,10 @@ function SetTimePage({translate, customStatus}) {
     );
 }
 
-SetTimePage.propTypes = propTypes;
 SetTimePage.displayName = 'SetTimePage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        customStatus: {
-            key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
-        },
-    }),
-)(SetTimePage);
+export default withOnyx<SetTimePageProps, SetTimePageOnyxProps>({
+    customStatus: {
+        key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
+    },
+})(SetTimePage);
