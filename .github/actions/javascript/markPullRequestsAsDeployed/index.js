@@ -11536,7 +11536,6 @@ async function commentPR(PR, message) {
 }
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 async function run() {
-    // @ts-expect-error - We dont know what the input will be
     const prList = ActionUtils.getJSONInput('PR_LIST', { required: true }).map((num) => Number.parseInt(num, 10));
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', { required: true });
     const version = core.getInput('DEPLOY_VERSION', { required: true });
