@@ -4,13 +4,15 @@
  * @jest-environment node
  */
 import * as core from '@actions/core';
-import asMutable from '@src/types/utils/AsMutable';
+import asMutable from '@src/types/utils/asMutable';
 import run from '../../.github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
+import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
 type Workflow = {
     workflow_id: string;
     branch: string;
+    owner: string;
 };
 
 type WorkflowStatus = {status: string};
@@ -60,15 +62,15 @@ beforeAll(() => {
     asMutable(core).getInput = mockGetInput;
 
     // Mock octokit module
-    const moctokit = {
+    const moctokit: InternalOctokit = {
         rest: {
+            // @ts-expect-error This error was removed because getting the rest of the data from internalOctokit makes the test to break
             actions: {
-                listWorkflowRuns: mockListWorkflowRuns,
+                listWorkflowRuns: mockListWorkflowRuns as unknown as typeof GithubUtils.octokit.actions.listWorkflowRuns,
             },
         },
     };
 
-    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
     GithubUtils.internalOctokit = moctokit;
     GithubUtils.POLL_RATE = TEST_POLL_RATE;
 });
