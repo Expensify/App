@@ -4999,7 +4999,9 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
 
     // If we're adding a receipt, that means the user came from the confirmation page and we need to navigate back to it.
     if (path.slice(1) === ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, report?.reportID)) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType as ValueOf<typeof CONST.IOU.TYPE>, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report?.reportID ?? '1'));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType as ValueOf<typeof CONST.IOU.TYPE>, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report?.reportID ?? '1'),
+        );
         return;
     }
 
@@ -5015,7 +5017,9 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
                 : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
             setMoneyRequestParticipants(participants);
         }
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType as ValueOf<typeof CONST.IOU.TYPE>, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType as ValueOf<typeof CONST.IOU.TYPE>, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID),
+        );
         return;
     }
     Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
