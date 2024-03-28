@@ -1,8 +1,7 @@
 import type {ParamListBase} from '@react-navigation/routers';
 import type {StackNavigationOptions} from '@react-navigation/stack';
-import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
-import useThemeStyles from '@hooks/useThemeStyles';
+import {createStackNavigator} from '@react-navigation/stack';
+import React from 'react';
 import type {
     AddPersonalBankAccountNavigatorParamList,
     DetailsNavigatorParamList,
@@ -35,6 +34,7 @@ import type {
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import useModalScreenOptions from './ModalStackNavigators/useModalScreenOptions';
 import WorkspaceSettingsModalStackNavigator from './ModalStackNavigators/WorkspaceSettingsModalStackNavigator';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
@@ -49,19 +49,10 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
     const ModalStackNavigator = createStackNavigator<TStackParams>();
 
     function ModalStack() {
-        const styles = useThemeStyles();
-
-        const defaultSubRouteOptions = useMemo(
-            (): StackNavigationOptions => ({
-                cardStyle: styles.navigationScreenCardStyle,
-                headerShown: false,
-                cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-            }),
-            [styles],
-        );
+        const screenOptions = useModalScreenOptions(getScreenOptions);
 
         return (
-            <ModalStackNavigator.Navigator screenOptions={getScreenOptions?.(styles) ?? defaultSubRouteOptions}>
+            <ModalStackNavigator.Navigator screenOptions={screenOptions}>
                 {Object.keys(screens as Required<Screens>).map((name) => (
                     <ModalStackNavigator.Screen
                         key={name}
