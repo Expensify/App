@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,7 +10,6 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
@@ -58,7 +56,6 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const themeStyles = useThemeStyles();
     const personalDetails = usePersonalDetails();
 
     const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
@@ -153,29 +150,27 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
             shouldEnableMaxHeight
             navigation={navigation}
         >
-            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+            {({didScreenTransitionEnd}) => (
                 <>
                     <HeaderWithBackButton
                         title={translate('common.search')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
-                        <SelectionList<ReportUtils.OptionData>
-                            sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
-                            ListItem={UserListItem}
-                            textInputValue={searchValue}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputHint={offlineMessage}
-                            onChangeText={setSearchValue}
-                            headerMessage={headerMessage}
-                            onLayout={setPerformanceTimersEnd}
-                            autoFocus
-                            onSelectRow={selectReport}
-                            showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
-                            footerContent={SearchPageFooterInstance}
-                            isLoadingNewOptions={isSearchingForReports ?? undefined}
-                        />
-                    </View>
+                    <SelectionList<ReportUtils.OptionData>
+                        sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                        ListItem={UserListItem}
+                        textInputValue={searchValue}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        textInputHint={offlineMessage}
+                        onChangeText={setSearchValue}
+                        headerMessage={headerMessage}
+                        onLayout={setPerformanceTimersEnd}
+                        autoFocus
+                        onSelectRow={selectReport}
+                        showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
+                        footerContent={SearchPageFooterInstance}
+                        isLoadingNewOptions={isSearchingForReports ?? undefined}
+                    />
                 </>
             )}
         </ScreenWrapper>
