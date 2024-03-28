@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/deployBlockerAssertions';
@@ -58,7 +59,6 @@ describe('test workflow deployBlocker', () => {
             issue: {
                 title: 'Labeled issue title',
                 number: '1234',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 html_url: 'http://issue.html.url',
             },
         };

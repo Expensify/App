@@ -22,16 +22,6 @@ type MockJob = {
 
 type MockJobs = Record<string, MockJob>;
 
-type MockJobStep = {
-    id?: string;
-    name: string;
-    run?: string;
-    mockWith?: string;
-    with?: string;
-    envs?: string[];
-    inputs?: string[];
-};
-
 class JobMocker {
     workflowFile: string;
 
@@ -115,4 +105,4 @@ class JobMocker {
 }
 
 export default JobMocker;
-export type {MockJob, MockJobs, YamlWorkflow, YamlMockJob, MockJobStep};
+export type {MockJob, MockJobs, YamlWorkflow, YamlMockJob};
