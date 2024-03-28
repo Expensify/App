@@ -42,6 +42,7 @@ import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import DocumentPlus from '@assets/images/document-plus.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
@@ -99,6 +100,7 @@ import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
@@ -256,6 +258,7 @@ export {
     Megaphone,
     MoneyBag,
     MoneyCircle,
+    MoneyWaving,
     Monitor,
     Mute,
     ExpensifyLogoNew,
@@ -314,4 +317,5 @@ export {
     ChatBubbleUnread,
     ChatBubbleReply,
     Lightbulb,
+    DocumentPlus,
 };

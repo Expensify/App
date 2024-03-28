@@ -185,7 +185,7 @@ function BankAccountStep(props) {
                         </View>
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href="https://use.expensify.com/privacy">{props.translate('common.privacy')}</TextLink>
+                        <TextLink href={CONST.PRIVACY_URL}>{props.translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
                             onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
                             style={[styles.flexRow, styles.alignItemsCenter]}

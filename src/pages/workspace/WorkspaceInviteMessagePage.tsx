@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -52,6 +53,8 @@ type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInviteMessagePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
+const parser = new ExpensiMark();
+
 function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsToAccountIDsDraft, policy, route, allPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -64,20 +67,25 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
         // workspaceInviteMessageDraft can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         workspaceInviteMessageDraft ||
-        translate('workspace.inviteMessage.welcomeNote', {
-            workspaceName: policy?.name ?? '',
-        });
+        // policy?.description can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        policy?.description ||
+        parser.replace(
+            translate('workspace.common.welcomeNote', {
+                workspaceName: policy?.name ?? '',
+            }),
+        );
 
     useEffect(() => {
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
-            setWelcomeNote(getDefaultWelcomeNote());
+            setWelcomeNote(parser.htmlToMarkdown(getDefaultWelcomeNote()));
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const debouncedSaveDraft = lodashDebounce((newDraft: string) => {
+    const debouncedSaveDraft = lodashDebounce((newDraft: string | null) => {
         Policy.setWorkspaceInviteMessageDraft(route.params.policyID, newDraft);
     });
 
@@ -85,6 +93,7 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
         Keyboard.dismiss();
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
+        debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
         Navigation.goBack();
