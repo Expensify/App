@@ -270,7 +270,7 @@ const ONYXKEYS = {
     MAX_CANVAS_HEIGHT: 'maxCanvasHeight',
 
     /** Onboarding Purpose selected by the user during Onboarding flow */
-    ONBOARDING_PURPOSE_SELECTED: 'OnboardingPurposeSelected',
+    ONBOARDING_PURPOSE_SELECTED: 'onboardingPurposeSelected',
 
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
