@@ -40,7 +40,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, action, checkIfContextMenuActive}) => (
+            {({onShowContextMenu, anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFeedback
                     style={[style, isOffline && styles.cursorDefault]}
                     onPress={() => {
@@ -52,8 +52,9 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
-                    // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={(event) =>
+                        onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report)))
+                    }
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}
                     role={CONST.ROLE.BUTTON}

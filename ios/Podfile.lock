@@ -1127,6 +1127,10 @@ PODS:
     - React-Core
   - react-native-key-command (1.0.6):
     - React-Core
+  - react-native-keyboard-controller (1.11.5):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - react-native-launch-arguments (4.0.2):
     - React
   - react-native-netinfo (11.2.1):
@@ -1470,6 +1474,7 @@ DEPENDENCIES:
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
+  - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
@@ -1662,6 +1667,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-key-command:
     :path: "../node_modules/react-native-key-command"
+  react-native-keyboard-controller:
+    :path: "../node_modules/react-native-keyboard-controller"
   react-native-launch-arguments:
     :path: "../node_modules/react-native-launch-arguments"
   react-native-netinfo:
@@ -1858,6 +1865,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: 0f7fe8a4c2de477e278b0365cce27d089a8c5903
   react-native-image-picker: 2381c008bbb09e72395a2d043c147b11bd1523d9
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
+  react-native-keyboard-controller: c43324786e9821951828337d0e85dedea4235575
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
   react-native-pager-view: 02a5c4962530f7efc10dd51ee9cdabeff5e6c631
