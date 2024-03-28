@@ -84,7 +84,7 @@ function IOURequestStepDistance({
     const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isCreatingNewRequest = Navigation.getActiveRoute().includes('start');
+    const isCreatingNewRequest = !(backTo || isEditing);
 
     useEffect(() => {
         MapboxToken.init();
