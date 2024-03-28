@@ -85,15 +85,18 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isOnHold = TransactionUtils.isOnHold(transaction);
+    const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
+    const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
-    const shouldShowRBR = hasViolations || hasFieldErrors;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
-    const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const shouldShowRBR =
+        hasViolations || hasFieldErrors || (!(isSettled && !isSettlementOrApprovalPartial) && !(ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial) && isOnHold);
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -130,27 +133,29 @@ function MoneyRequestPreviewContent({
     };
 
     const getPreviewHeaderText = (): string => {
+        let message = translate('iou.cash');
+
         if (isDistanceRequest) {
-            return translate('common.distance');
-        }
-
-        if (isScanning) {
-            return translate('common.receipt');
-        }
-
-        if (isBillSplit) {
-            return translate('iou.split');
+            message = translate('common.distance');
+        } else if (isScanning) {
+            message = translate('common.receipt');
+        } else if (isBillSplit) {
+            message = translate('iou.split');
         }
 
         if (isCardTransaction) {
-            let message = translate('iou.card');
+            message = translate('iou.card');
             if (TransactionUtils.isPending(transaction)) {
                 message += ` • ${translate('iou.pending')}`;
+                return message;
             }
+        }
+
+        if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
+            message += ` • ${getSettledMessage()}`;
             return message;
         }
 
-        let message = translate('iou.cash');
         if (shouldShowRBR && transaction) {
             const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
             if (violations?.[0]) {
@@ -168,16 +173,18 @@ function MoneyRequestPreviewContent({
                 message += ` • ${translate('violations.reviewRequired')}`;
             } else if (isAmountMissing) {
                 message += ` • ${translate('iou.missingAmount')}`;
-            } else {
+            } else if (isMerchantMissing) {
                 message += ` • ${translate('iou.missingMerchant')}`;
+            } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
+                message += ` • ${translate('iou.hold')}`;
             }
-        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
+        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
             message += ` • ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
             message += ` • ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` • ${translate('iou.canceled')}`;
-        } else if (isOnHold) {
+        } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
             message += ` • ${translate('iou.hold')}`;
         }
         return message;
@@ -240,9 +247,7 @@ function MoneyRequestPreviewContent({
                             <View style={styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow]}>
-                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>
-                                            {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
-                                        </Text>
+                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{getPreviewHeaderText()}</Text>
                                         {!isSettled && shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
@@ -264,7 +269,7 @@ function MoneyRequestPreviewContent({
                                                 >
                                                     {displayAmount}
                                                 </Text>
-                                                {ReportUtils.isSettled(iouReport?.reportID) && !isBillSplit && (
+                                                {ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
                                                     <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
@@ -332,7 +337,12 @@ function MoneyRequestPreviewContent({
             shouldUseHapticsOnLongPress
             accessibilityLabel={isBillSplit ? translate('iou.split') : translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-            style={[styles.moneyRequestPreviewBox, containerStyles, shouldDisableOnPress && styles.cursorDefault]}
+            style={[
+                styles.moneyRequestPreviewBox,
+                containerStyles,
+                shouldDisableOnPress && styles.cursorDefault,
+                (isSettled || ReportUtils.isReportApproved(iouReport)) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
+            ]}
         >
             {childContainer}
         </PressableWithoutFeedback>

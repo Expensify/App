@@ -15,11 +15,14 @@ type ParentNavigationSubtitleProps = {
     /** parent Report ID */
     parentReportID?: string;
 
+    /** parent Report Action ID */
+    parentReportActionID?: string;
+
     /** PressableWithoutFeedack additional styles */
     pressableStyles?: StyleProp<ViewStyle>;
 };
 
-function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportID = '', pressableStyles}: ParentNavigationSubtitleProps) {
+function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportActionID, parentReportID = '', pressableStyles}: ParentNavigationSubtitleProps) {
     const styles = useThemeStyles();
     const {workspaceName, reportName} = parentNavigationSubtitleData;
 
@@ -28,7 +31,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportID 
     return (
         <PressableWithoutFeedback
             onPress={() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
             role={CONST.ROLE.LINK}

@@ -42,12 +42,23 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
 
     const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
     const [currency, setCurrency] = useState<keyof typeof CONST.CURRENCY>(CONST.CURRENCY.USD);
+    const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
 
     const policyID = policy?.id ?? '';
+
+    const checkIfCanBeRendered = useCallback(() => {
+        const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
+        if (changeOwnerErrors[0] !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD) {
+            setShouldShowPaymentCardForm(false);
+        }
+
+        setShouldShowPaymentCardForm(true);
+    }, [policy?.errorFields?.changeOwner]);
 
     useEffect(
         () => {
             PaymentMethods.clearDebitCardFormErrorAndSubmit();
+            checkIfCanBeRendered();
 
             return () => {
                 PaymentMethods.clearDebitCardFormErrorAndSubmit();
@@ -56,6 +67,10 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
+
+    useEffect(() => {
+        checkIfCanBeRendered();
+    }, [checkIfCanBeRendered]);
 
     const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
@@ -112,6 +127,10 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
         setCurrency(newCurrency);
         setIsCurrencyModalVisible(false);
     }, []);
+
+    if (!shouldShowPaymentCardForm) {
+        return null;
+    }
 
     return (
         <>
