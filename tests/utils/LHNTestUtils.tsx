@@ -217,7 +217,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
     };
 }
 
-function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boolean, hasAddWorkspaceError: boolean, isUnread: boolean, isPinned: boolean, hasDraft: boolean): Report {
+function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boolean, hasAddWorkspaceError: boolean, isUnread: boolean, isPinned: boolean): Report {
     return {
         ...getFakeReport([1, 2], 0, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
@@ -226,7 +226,6 @@ function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boo
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.APPROVED : 0,
         errorFields: hasAddWorkspaceError ? {1708946640843000: {addWorkspaceRoom: 'blah'}} : undefined,
         isPinned,
-        hasDraft,
     };
 }
 

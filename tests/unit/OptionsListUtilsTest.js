@@ -17,7 +17,6 @@ describe('OptionsListUtils', () => {
             participantAccountIDs: [2, 1],
             visibleChatMemberAccountIDs: [2, 1],
             reportName: 'Iron Man, Mister Fantastic',
-            hasDraft: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
         2: {
