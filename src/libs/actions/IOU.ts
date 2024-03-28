@@ -4320,8 +4320,18 @@ function getSendMoneyParams(
     };
 }
 
-function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType): PayMoneyRequestData {
-    const total = iouReport.total ?? 0;
+function getPayMoneyRequestParams(
+    chatReport: OnyxTypes.Report,
+    iouReport: OnyxTypes.Report,
+    recipient: Participant,
+    paymentMethodType: PaymentMethodType,
+    full: boolean,
+): PayMoneyRequestData {
+    let total = iouReport.total ?? 0;
+    if (ReportUtils.hasHeldExpenses(iouReport.reportID) && !full && !!iouReport.unheldTotal) {
+        total = iouReport.unheldTotal;
+    }
+
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         ReportUtils.isExpenseReport(iouReport) ? -total : total,
@@ -4381,6 +4391,7 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
                 pendingFields: {
                     preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -4404,6 +4415,7 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
                 pendingFields: {
                     preview: null,
                     reimbursed: null,
+                    partial: null,
                 },
             },
         },
@@ -4422,7 +4434,9 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: iouReport,
+            value: {
+                ...iouReport,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4462,6 +4476,7 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
+            full,
             amount: Math.abs(total),
         },
         optimisticData,
@@ -4566,9 +4581,13 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObj
     });
 }
 
-function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
+function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full?: boolean) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
-    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
+    let total = expenseReport.total ?? 0;
+    if (ReportUtils.hasHeldExpenses(expenseReport.reportID) && !full && !!expenseReport.unheldTotal) {
+        total = expenseReport.unheldTotal;
+    }
+    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
     const chatReport = ReportUtils.getReport(expenseReport.chatReportID);
 
@@ -4591,6 +4610,9 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
             lastMessageHtml: optimisticApprovedReportAction.message?.[0].html,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            pendingFields: {
+                partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
         },
     };
 
@@ -4619,6 +4641,15 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                pendingFields: {
+                    partial: null,
+                },
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -4636,6 +4667,9 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
                 hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
+                pendingFields: {
+                    partial: null,
+                },
             },
         },
         {
@@ -4865,9 +4899,9 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
     );
 }
 
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report) {
+function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, full = true) {
     const recipient = {accountID: iouReport.ownerAccountID};
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
 
     // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
@@ -5057,6 +5091,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 comment: {
                     hold: createdReportAction.reportActionID,
                 },
@@ -5064,13 +5099,22 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
+    ];
 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                pendingAction: null,
                 comment: {
                     hold: null,
                 },
@@ -5108,6 +5152,7 @@ function unholdRequest(transactionID: string, reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 comment: {
                     hold: null,
                 },
@@ -5120,9 +5165,20 @@ function unholdRequest(transactionID: string, reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                pendingAction: null,
                 comment: {
                     hold: null,
                 },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
             },
         },
     ];
@@ -5133,7 +5189,7 @@ function unholdRequest(transactionID: string, reportID: string) {
             transactionID,
             reportActionID: createdReportAction.reportActionID,
         },
-        {optimisticData, successData, failureData: []},
+        {optimisticData, successData, failureData},
     );
 }
 // eslint-disable-next-line rulesdir/no-negated-variables

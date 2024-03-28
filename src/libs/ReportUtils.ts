@@ -419,7 +419,6 @@ type Ancestor = {
     report: Report;
     reportAction: ReportAction;
     shouldDisplayNewMarker: boolean;
-    shouldHideThreadDividerLine: boolean;
 };
 
 type AncestorIDs = {
@@ -1473,7 +1472,14 @@ function canShowReportRecipientLocalTime(personalDetails: OnyxCollection<Persona
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
     const reportRecipientTimezone = reportRecipient?.timezone ?? CONST.DEFAULT_TIME_ZONE;
     const isReportParticipantValidated = reportRecipient?.validated ?? false;
-    return Boolean(!hasMultipleParticipants && !isChatRoom(report) && !isPolicyExpenseChat(report) && reportRecipient && reportRecipientTimezone?.selected && isReportParticipantValidated);
+    return Boolean(
+        !hasMultipleParticipants &&
+            !isChatRoom(report) &&
+            !isPolicyExpenseChat(getRootParentReport(report)) &&
+            reportRecipient &&
+            reportRecipientTimezone?.selected &&
+            isReportParticipantValidated,
+    );
 }
 
 /**
@@ -1943,9 +1949,9 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
 
 /**
  * Determines if the option requires action from the current user. This can happen when it:
- - is unread and the user was mentioned in one of the unread comments
- - is for an outstanding task waiting on the user
- - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
+ *  - is unread and the user was mentioned in one of the unread comments
+ *  - is for an outstanding task waiting on the user
+ *  - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
  *
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
@@ -2547,6 +2553,7 @@ function getReportPreviewMessage(
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
     const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
+
     const policyName = getPolicyName(report, false, policy);
     const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
 
@@ -3826,7 +3833,7 @@ function buildOptimisticHoldReportActionComment(comment: string, created = DateU
  * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
+function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): OptimisticHoldReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.UNHOLD,
@@ -5292,6 +5299,22 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): b
 }
 
 /**
+ * Check if Report has any held expenses
+ */
+function hasHeldExpenses(iouReportID?: string): boolean {
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return transactions.some((transaction) => TransactionUtils.isOnHold(transaction));
+}
+
+/**
+ * Check if all expenses in the Report are on hold
+ */
+function hasOnlyHeldExpenses(iouReportID: string): boolean {
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return !transactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
+}
+
+/**
  * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -5311,7 +5334,26 @@ function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
     const hasTransactionWithDifferentCurrency = transactions.some((transaction) => transaction.currency !== report.currency);
 
-    return !(hasPendingTransaction && hasTransactionWithDifferentCurrency);
+    return !(hasPendingTransaction && hasTransactionWithDifferentCurrency) && !(hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined);
+}
+
+/**
+ * Return held and full amount formatted with used currency
+ */
+function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>): string[] {
+    const transactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID ?? '');
+    const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
+
+    if (hasUpdatedTotal(iouReport) && hasPendingTransaction) {
+        const unheldTotal = transactions.reduce((currentVal, transaction) => currentVal - (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
+
+        return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
+    }
+
+    return [
+        CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * -1, iouReport?.currency ?? ''),
+        CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? ''),
+    ];
 }
 
 /**
@@ -5342,7 +5384,7 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
     );
 }
 
-function getAllAncestorReportActions(report: Report | null | undefined, shouldHideThreadDividerLine: boolean): Ancestor[] {
+function getAllAncestorReportActions(report: Report | null | undefined): Ancestor[] {
     if (!report) {
         return [];
     }
@@ -5352,7 +5394,6 @@ function getAllAncestorReportActions(report: Report | null | undefined, shouldHi
 
     // Store the child of parent report
     let currentReport = report;
-    let currentUnread = shouldHideThreadDividerLine;
 
     while (parentReportID) {
         const parentReport = getReport(parentReportID);
@@ -5367,14 +5408,11 @@ function getAllAncestorReportActions(report: Report | null | undefined, shouldHi
             report: currentReport,
             reportAction: parentReportAction,
             shouldDisplayNewMarker: isParentReportActionUnread,
-            // We should hide the thread divider line if the previous ancestor action is unread
-            shouldHideThreadDividerLine: currentUnread,
         });
         parentReportID = parentReport?.parentReportID;
         parentReportActionID = parentReport?.parentReportActionID;
         if (!isEmptyObject(parentReport)) {
             currentReport = parentReport;
-            currentUnread = isParentReportActionUnread;
         }
     }
 
@@ -5710,6 +5748,9 @@ export {
     navigateToPrivateNotes,
     canEditWriteCapability,
     isHoldCreator,
+    hasHeldExpenses,
+    hasOnlyHeldExpenses,
+    getNonHeldAndFullAmount,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
     buildOptimisticHoldReportAction,

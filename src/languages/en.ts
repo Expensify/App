@@ -2408,6 +2408,7 @@ export default {
         hiddenMessage: '[Hidden message]',
     },
     threads: {
+        thread: 'Thread',
         replies: 'Replies',
         reply: 'Reply',
         from: 'From',
