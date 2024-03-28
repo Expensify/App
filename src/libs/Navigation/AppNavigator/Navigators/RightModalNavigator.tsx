@@ -6,10 +6,10 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
-import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import * as ModalStackNavigators from './ModalStackNavigators';
 import Overlay from './Overlay';
 
 type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
