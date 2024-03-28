@@ -47,8 +47,8 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
         const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter((p) => !isEmptyObject(p));
         const {categoryOptions} = OptionsListUtils.getFilteredOptions(
-            {},
-            {},
+            [],
+            [],
             [],
             debouncedSearchValue,
             selectedOptions,

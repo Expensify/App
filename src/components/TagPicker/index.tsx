@@ -91,7 +91,7 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
     const sections = useMemo(
-        () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
+        () => OptionsListUtils.getFilteredOptions([], [], [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
         [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
     );
 

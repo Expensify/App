@@ -1,9 +1,10 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -15,7 +16,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import doInteractionTask from '@libs/DoInteractionTask';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
@@ -24,12 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type NewChatPageWithOnyxProps = {
-    /** All reports shared with the user */
-    reports: OnyxCollection<OnyxTypes.Report>;
-
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** An object that holds data about which referral banners have been dismissed */
@@ -45,17 +39,21 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
+function NewChatPage({betas, isGroupChat, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
     const {translate} = useLocalize();
+
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState<ReportUtils.OptionData[]>([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<ReportUtils.OptionData[]>([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState<ReportUtils.OptionData | null>();
+    const [filteredRecentReports, setFilteredRecentReports] = useState<OptionData[]>([]);
+    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<OptionData[]>([]);
+    const [filteredUserToInvite, setFilteredUserToInvite] = useState<OptionData | null>();
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -67,8 +65,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         maxParticipantsReached,
         selectedOptions.some((participant) => participant?.searchText?.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
-
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     const sections = useMemo((): OptionsListUtils.CategorySection[] => {
         const sectionsList: OptionsListUtils.CategorySection[] = [];
@@ -130,8 +126,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             personalDetails: newChatPersonalDetails,
             userToInvite,
         } = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports ?? [],
+            options.personalDetails ?? [],
             betas ?? [],
             searchTerm,
             newSelectedOptions,
@@ -184,8 +180,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             personalDetails: newChatPersonalDetails,
             userToInvite,
         } = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports ?? [],
+            options.personalDetails ?? [],
             betas ?? [],
             searchTerm,
             selectedOptions,
@@ -205,7 +201,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         setFilteredUserToInvite(userToInvite);
         // props.betas is not added as dependency since it doesn't change during the component lifecycle
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reports, personalDetails, searchTerm]);
+    }, [options, searchTerm]);
 
     useEffect(() => {
         const interactionTask = doInteractionTask(() => {
@@ -262,7 +258,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                             headerMessage={headerMessage}
                             boldStyle
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
+                            shouldShowOptions={areOptionsInitialized}
                             shouldShowConfirmButton
                             shouldShowReferralCTA={!dismissedReferralBanners?.[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
@@ -287,12 +283,6 @@ NewChatPage.displayName = 'NewChatPage';
 export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
     dismissedReferralBanners: {
         key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     betas: {
         key: ONYXKEYS.BETAS,

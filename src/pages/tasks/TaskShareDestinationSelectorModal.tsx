@@ -1,9 +1,9 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -22,8 +22,6 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
 type TaskShareDestinationSelectorModalOnyxProps = {
-    reports: OnyxCollection<Report>;
-
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
@@ -40,29 +38,36 @@ const selectReportHandler = (option: unknown) => {
     Navigation.goBack(ROUTES.NEW_TASK);
 };
 
-const reportFilter = (reports: OnyxCollection<Report>) =>
-    Object.keys(reports ?? {}).reduce((filtered, reportKey) => {
-        const report: OnyxEntry<Report> = reports?.[reportKey] ?? null;
+const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>>) =>
+    (reportOptions ?? []).reduce((filtered: Array<OptionsListUtils.SearchOption<Report>>, option) => {
+        const report = option.item;
         if (ReportUtils.canUserPerformWriteAction(report) && ReportUtils.canCreateTaskInReport(report) && !ReportUtils.isCanceledTaskReport(report)) {
-            return {...filtered, [reportKey]: report};
+            filtered.push(option);
         }
         return filtered;
-    }, {});
+    }, []);
 
-function TaskShareDestinationSelectorModal({reports, isSearchingForReports}: TaskShareDestinationSelectorModalProps) {
+function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDestinationSelectorModalProps) {
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
-    const personalDetails = usePersonalDetails();
     const {isOffline} = useNetwork();
+    const {options: optionList, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
     const options = useMemo(() => {
-        const filteredReports = reportFilter(reports);
-
-        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, personalDetails, [], debouncedSearchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
-
+        if (!areOptionsInitialized) {
+            return {
+                sections: [],
+                headerMessage: '',
+            };
+        }
+        const filteredReports = reportFilter(optionList.reports);
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], debouncedSearchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
         const headerMessage = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, debouncedSearchValue);
 
         const sections =
@@ -84,7 +89,7 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports}: Tas
                 : [];
 
         return {sections, headerMessage};
-    }, [personalDetails, reports, debouncedSearchValue]);
+    }, [areOptionsInitialized, optionList.reports, optionList.personalDetails, debouncedSearchValue]);
 
     useEffect(() => {
         ReportActions.searchInServer(debouncedSearchValue);
@@ -94,29 +99,28 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports}: Tas
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID="TaskShareDestinationSelectorModal"
+            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
-            {({didScreenTransitionEnd}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('newTaskPage.shareSomewhere')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+            <>
+                <HeaderWithBackButton
+                    title={translate('newTaskPage.shareSomewhere')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+                />
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <SelectionList
+                        ListItem={UserListItem}
+                        sections={areOptionsInitialized ? options.sections : []}
+                        onSelectRow={selectReportHandler}
+                        onChangeText={setSearchValue}
+                        textInputValue={searchValue}
+                        headerMessage={options.headerMessage}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? options.sections.length === 0 : !didScreenTransitionEnd}
+                        isLoadingNewOptions={isSearchingForReports ?? undefined}
+                        textInputHint={textInputHint}
                     />
-                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <SelectionList
-                            ListItem={UserListItem}
-                            sections={didScreenTransitionEnd ? options.sections : []}
-                            onSelectRow={selectReportHandler}
-                            onChangeText={setSearchValue}
-                            textInputValue={searchValue}
-                            headerMessage={options.headerMessage}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            showLoadingPlaceholder={!didScreenTransitionEnd}
-                            isLoadingNewOptions={isSearchingForReports ?? undefined}
-                            textInputHint={textInputHint}
-                        />
-                    </View>
-                </>
-            )}
+                </View>
+            </>
         </ScreenWrapper>
     );
 }
@@ -124,9 +128,6 @@ function TaskShareDestinationSelectorModal({reports, isSearchingForReports}: Tas
 TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorModal';
 
 export default withOnyx<TaskShareDestinationSelectorModalProps, TaskShareDestinationSelectorModalOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
     isSearchingForReports: {
         key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
         initWithStoredValues: false,

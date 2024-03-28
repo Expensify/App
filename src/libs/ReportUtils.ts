@@ -514,6 +514,23 @@ Onyx.connect({
     },
 });
 
+let lastUpdatedReport: OnyxEntry<Report>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+
+        lastUpdatedReport = value;
+    },
+});
+
+function getLastUpdatedReport(): OnyxEntry<Report> {
+    return lastUpdatedReport;
+}
+
 function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
     return currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
 }
@@ -5744,6 +5761,7 @@ export {
     isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    getLastUpdatedReport,
     isTrackExpenseReport,
     hasActionsWithErrors,
 };

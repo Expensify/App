@@ -1,5 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
-import type {StackNavigationProp} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -9,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
@@ -18,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -50,8 +48,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [invitePersonalDetails, setInvitePersonalDetails] = useState<ReportUtils.OptionData[]>([]);
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const navigation: StackNavigationProp<RootStackParamList> = useNavigation();
+    const {options, areOptionsInitialized} = useOptionsList();
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
@@ -67,7 +64,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     );
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetails, betas ?? [], searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
@@ -85,26 +82,14 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         setUserToInvite(inviteOptions.userToInvite);
         setInvitePersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [personalDetails, betas, searchTerm, excludedUsers]);
-
-    useEffect(() => {
-        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
-            setDidScreenTransitionEnd(true);
-        });
-
-        return () => {
-            unsubscribeTransitionEnd();
-        };
-        // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [personalDetails, betas, searchTerm, excludedUsers, options.personalDetails]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
         let indexOffset = 0;
 
-        if (!didScreenTransitionEnd) {
+        if (!areOptionsInitialized) {
             return [];
         }
 
@@ -151,7 +136,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         }
 
         return sectionsArr;
-    }, [invitePersonalDetails, searchTerm, selectedOptions, translate, userToInvite, didScreenTransitionEnd]);
+    }, [areOptionsInitialized, selectedOptions, searchTerm, invitePersonalDetails, userToInvite, translate]);
 
     const toggleOption = useCallback(
         (option: OptionsListUtils.MemberForList) => {
@@ -214,6 +199,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         }
         return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
     }, [searchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -246,7 +232,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                     onConfirm={inviteUsers}
                     showScrollIndicator
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                    showLoadingPlaceholder={!areOptionsInitialized}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton
