@@ -5,30 +5,9 @@ import {StackView} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import navigationRef from '@libs/Navigation/navigationRef';
-import NAVIGATORS from '@src/NAVIGATORS';
 import CustomRouter from './CustomRouter';
+import {reduceReportRoutes} from './helpers';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
-
-type Routes = StackNavigationState<ParamListBase>['routes'];
-function reduceReportRoutes(routes: Routes): Routes {
-    const result: Routes = [];
-    let count = 0;
-    const reverseRoutes = [...routes].reverse();
-
-    reverseRoutes.forEach((route) => {
-        if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
-            // Remove all report routes except the last 3. This will improve performance.
-            if (count < 3) {
-                result.push(route);
-                count++;
-            }
-        } else {
-            result.push(route);
-        }
-    });
-
-    return result.reverse();
-}
 
 function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
     const {isSmallScreenWidth} = useWindowDimensions();

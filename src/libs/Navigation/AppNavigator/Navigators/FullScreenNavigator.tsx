@@ -19,7 +19,7 @@ function FullScreenNavigator() {
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
 
     return (
-        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+        <View style={styles.rootNavigatorContainerStyles}>
             <RootStack.Navigator>
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE.INITIAL}

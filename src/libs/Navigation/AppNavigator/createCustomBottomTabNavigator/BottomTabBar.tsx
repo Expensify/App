@@ -1,5 +1,5 @@
 import {useNavigation, useNavigationState} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef, {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
@@ -37,10 +38,8 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
 
-    const navigation = useNavigation();
-
     useEffect(() => {
-        const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
+        const navigationState = navigationRef.getState() as State<RootStackParamList> | undefined;
         const routes = navigationState?.routes;
         const currentRoute = routes?.[navigationState?.index ?? 0];
         if (Boolean(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) || Session.isAnonymousUser()) {
@@ -51,11 +50,16 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
-    // Parent navigator of the bottom tab bar is the root navigator.
-    const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
-        const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
+    const navigationState = navigationSidebarRef.isReady() ? navigationSidebarRef.getRootState() : undefined;
+
+    const currentTabName = useMemo(() => {
+        if (!navigationState) {
+            return SCREENS.HOME;
+        }
+        const topmostBottomTabRoute = getTopmostBottomTabRoute(navigationState);
+
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
-    });
+    }, [navigationState]);
 
     const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
@@ -64,7 +68,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             <Tooltip text={translate('common.chats')}>
                 <PressableWithFeedback
                     onPress={() => {
-                        Navigation.navigate(ROUTES.HOME);
+                        navigationSidebarRef.navigate(SCREENS.HOME);
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.chats')}

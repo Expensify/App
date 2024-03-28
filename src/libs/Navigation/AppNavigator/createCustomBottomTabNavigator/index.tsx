@@ -49,6 +49,7 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
         <ScreenWrapper
             testID={CustomBottomTabNavigator.displayName}
             shouldShowOfflineIndicator={false}
+            style={styles.appBG}
         >
             <View style={styles.flex1}>
                 <NavigationContent>

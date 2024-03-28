@@ -3,6 +3,7 @@ import type {StackNavigationOptions} from '@react-navigation/stack';
 import React from 'react';
 import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import type {BottomTabNavigatorParamList} from '@libs/Navigation/types';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
 import SCREENS from '@src/SCREENS';
@@ -18,7 +19,7 @@ const screenOptions: StackNavigationOptions = {
 };
 
 function BottomTabNavigator() {
-    const activeRoute = useNavigationState(getTopmostCentralPaneRoute);
+    const activeRoute = getTopmostCentralPaneRoute(navigationSidebarRef.getRootState());
 
     return (
         <ActiveRouteContext.Provider value={activeRoute?.name ?? ''}>

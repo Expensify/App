@@ -2,9 +2,11 @@ import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@rea
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
-import React, {useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import navigationRef from '@libs/Navigation/navigationRef';
 import CustomRouter from './CustomRouter';
+import {reduceReportRoutes} from './helpers';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 
 function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
@@ -26,12 +28,29 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         initialRouteName: props.initialRouteName,
     });
 
+    useEffect(() => {
+        if (!navigationRef.isReady()) {
+            return;
+        }
+        navigationRef.resetRoot(navigationRef.getRootState());
+    }, [isSmallScreenWidth]);
+
+    const stateToRender = useMemo(() => {
+        const result = reduceReportRoutes(state.routes);
+
+        return {
+            ...state,
+            index: result.length - 1,
+            routes: [...result],
+        };
+    }, [state]);
+
     return (
         <NavigationContent>
             <StackView
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                state={state}
+                state={!isSmallScreenWidth ? stateToRender : state}
                 descriptors={descriptors}
                 navigation={navigation}
             />

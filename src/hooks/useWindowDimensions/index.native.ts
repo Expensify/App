@@ -8,12 +8,14 @@ import type WindowDimensions from './types';
  */
 export default function (): WindowDimensions {
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
+
     const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
-    const isSmallScreenWidth = true;
-    const isMediumScreenWidth = false;
-    const isLargeScreenWidth = false;
+    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
+    const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
+    const lowerScreenDimension = Math.min(windowWidth, windowHeight);
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
-    const isSmallScreen = true;
+    const isSmallScreen = lowerScreenDimension <= variables.mobileResponsiveWidthBreakpoint;
 
     return {
         windowWidth,

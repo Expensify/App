@@ -89,7 +89,6 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
 
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
-                paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,
             },
         },
 
@@ -102,7 +101,6 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
 
                 // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
-                marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
                 ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
             },
         },

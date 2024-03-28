@@ -6,9 +6,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
+// import Navigation from '@libs/Navigation/Navigation';
+import {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+// import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
@@ -32,7 +34,10 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
             return;
         }
 
-        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SETTINGS));
+        interceptAnonymousUser(() => {
+            // Navigation.navigate(ROUTES.SETTINGS);
+            navigationSidebarRef.navigate(SCREENS.SETTINGS.ROOT);
+        });
     }, [isCreateMenuOpen]);
 
     let children;

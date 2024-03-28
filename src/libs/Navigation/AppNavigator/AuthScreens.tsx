@@ -1,3 +1,4 @@
+import {NavigationContainer} from '@react-navigation/native';
 import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -9,6 +10,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
+import {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -261,13 +263,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }, []);
 
     return (
-        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+        <View style={styles.rootNavigatorContainerStyles}>
+            <View style={{flex: 1, maxWidth: isSmallScreenWidth ? '100%' : 375}}>
+                <NavigationContainer
+                    ref={navigationSidebarRef}
+                    independent
+                >
+                    <BottomTabNavigator />
+                </NavigationContainer>
+            </View>
             <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
-                <RootStack.Screen
-                    name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
-                    options={screenOptions.bottomTab}
-                    component={BottomTabNavigator}
-                />
                 <RootStack.Screen
                     name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
                     options={screenOptions.centralPaneNavigator}
