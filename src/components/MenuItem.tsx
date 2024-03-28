@@ -246,6 +246,9 @@ type MenuItemBaseProps = {
 
     /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
+
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -317,6 +320,7 @@ function MenuItem(
         contentFit = 'cover',
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
+        onFocus,
     }: MenuItemProps,
     ref: ForwardedRef<View>,
 ) {
@@ -447,6 +451,7 @@ function MenuItem(
                         role={CONST.ROLE.MENUITEM}
                         accessibilityLabel={title ? title.toString() : ''}
                         accessible
+                        onFocus={onFocus}
                     >
                         {({pressed}) => (
                             <>

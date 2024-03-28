@@ -20,6 +20,7 @@ function RadioListItem({
     rightHandSideComponent,
     checkmarkPosition,
     isMultilineSupported = false,
+    onFocus,
 }: RadioListItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -43,6 +44,7 @@ function RadioListItem({
             rightHandSideComponent={rightHandSideComponent}
             checkmarkPosition={checkmarkPosition}
             keyForList={item.keyForList}
+            onFocus={onFocus}
         >
             <>
                 <View style={[styles.flex1, styles.alignItemsStart]}>

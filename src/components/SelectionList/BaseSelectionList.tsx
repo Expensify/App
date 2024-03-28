@@ -4,7 +4,6 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
 import {View} from 'react-native';
-import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
@@ -16,6 +15,7 @@ import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -161,9 +161,6 @@ function BaseSelectionList<TItem extends ListItem>(
         };
     }, [canSelectMultiple, sections]);
 
-    // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex] = useState(() => flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey));
-
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
         const processedSections = sections.map((section) => {
@@ -217,6 +214,17 @@ function BaseSelectionList<TItem extends ListItem>(
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [flattenedSections.allOptions],
     );
+
+    // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
+        maxIndex: flattenedSections.allOptions.length - 1,
+        isActive: true,
+        onFocusedIndexChange: (index: number) => {
+            setFocusedIndex(index);
+            scrollToIndex(index, true);
+        },
+    });
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
@@ -335,6 +343,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 checkmarkPosition={checkmarkPosition}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
+                onFocus={() => setFocusedIndex(index)}
             />
         );
     };
@@ -473,128 +482,121 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     return (
-        <ArrowKeyFocusManager
-            disabledIndexes={flattenedSections.disabledOptionsIndexes}
-            focusedIndex={focusedIndex}
-            maxIndex={slicedSections.flatMap((section) => section.data).length - 1}
-            onFocusedIndexChanged={updateAndScrollToFocusedIndex}
-        >
-            <SafeAreaConsumer>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
-                        {shouldShowTextInput && (
-                            <View style={[styles.ph4, styles.pb3]}>
-                                <TextInput
-                                    ref={(element) => {
-                                        innerTextInputRef.current = element as RNTextInput;
+        <SafeAreaConsumer>
+            {({safeAreaPaddingBottomStyle}) => (
+                <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
+                    {shouldShowTextInput && (
+                        <View style={[styles.ph4, styles.pb3]}>
+                            <TextInput
+                                ref={(element) => {
+                                    innerTextInputRef.current = element as RNTextInput;
 
-                                        if (!textInputRef) {
-                                            return;
-                                        }
+                                    if (!textInputRef) {
+                                        return;
+                                    }
 
-                                        // eslint-disable-next-line no-param-reassign
-                                        textInputRef.current = element as RNTextInput;
-                                    }}
-                                    label={textInputLabel}
-                                    accessibilityLabel={textInputLabel}
-                                    hint={textInputHint}
-                                    role={CONST.ROLE.PRESENTATION}
-                                    value={textInputValue}
-                                    placeholder={textInputPlaceholder}
-                                    maxLength={textInputMaxLength}
-                                    onChangeText={onChangeText}
-                                    inputMode={inputMode}
-                                    selectTextOnFocus
-                                    spellCheck={false}
-                                    onSubmitEditing={selectFocusedOption}
-                                    blurOnSubmit={!!flattenedSections.allOptions.length}
-                                    isLoading={isLoadingNewOptions}
-                                    testID="selection-list-text-input"
-                                />
-                            </View>
-                        )}
-                        {!!headerMessage && (
-                            <View style={[styles.ph5, styles.pb5]}>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
-                            </View>
-                        )}
-                        {!!headerContent && headerContent}
-                        {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                            <OptionsListSkeletonView shouldAnimate />
-                        ) : (
-                            <>
-                                {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                                    <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle]}>
-                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            <Checkbox
-                                                accessibilityLabel={translate('workspace.people.selectAll')}
-                                                isChecked={flattenedSections.allSelected}
+                                    // eslint-disable-next-line no-param-reassign
+                                    textInputRef.current = element as RNTextInput;
+                                }}
+                                label={textInputLabel}
+                                accessibilityLabel={textInputLabel}
+                                hint={textInputHint}
+                                role={CONST.ROLE.PRESENTATION}
+                                value={textInputValue}
+                                placeholder={textInputPlaceholder}
+                                maxLength={textInputMaxLength}
+                                onChangeText={onChangeText}
+                                inputMode={inputMode}
+                                selectTextOnFocus
+                                spellCheck={false}
+                                onSubmitEditing={selectFocusedOption}
+                                blurOnSubmit={!!flattenedSections.allOptions.length}
+                                isLoading={isLoadingNewOptions}
+                                testID="selection-list-text-input"
+                            />
+                        </View>
+                    )}
+                    {!!headerMessage && (
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
+                        </View>
+                    )}
+                    {!!headerContent && headerContent}
+                    {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
+                        <OptionsListSkeletonView shouldAnimate />
+                    ) : (
+                        <>
+                            {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
+                                <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle]}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                        <Checkbox
+                                            accessibilityLabel={translate('workspace.people.selectAll')}
+                                            isChecked={flattenedSections.allSelected}
+                                            onPress={selectAllRow}
+                                            disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                        />
+                                        {!customListHeader && (
+                                            <PressableWithFeedback
+                                                style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                                                 onPress={selectAllRow}
+                                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                                role="button"
+                                                accessibilityState={{checked: flattenedSections.allSelected}}
                                                 disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                            />
-                                            {!customListHeader && (
-                                                <PressableWithFeedback
-                                                    style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
-                                                    onPress={selectAllRow}
-                                                    accessibilityLabel={translate('workspace.people.selectAll')}
-                                                    role="button"
-                                                    accessibilityState={{checked: flattenedSections.allSelected}}
-                                                    disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                                    onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                                                >
-                                                    <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                                                </PressableWithFeedback>
-                                            )}
-                                        </View>
-                                        {customListHeader}
+                                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                                            >
+                                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                            </PressableWithFeedback>
+                                        )}
                                     </View>
-                                )}
-                                {!headerMessage && !canSelectMultiple && customListHeader}
-                                <SectionList
-                                    ref={listRef}
-                                    sections={slicedSections}
-                                    stickySectionHeadersEnabled={false}
-                                    renderSectionHeader={renderSectionHeader}
-                                    renderItem={renderItem}
-                                    getItemLayout={getItemLayout}
-                                    onScroll={onScroll}
-                                    onScrollBeginDrag={onScrollBeginDrag}
-                                    keyExtractor={(item, index) => item.keyForList ?? `${index}`}
-                                    extraData={focusedIndex}
-                                    indicatorStyle="white"
-                                    keyboardShouldPersistTaps="always"
-                                    showsVerticalScrollIndicator={showScrollIndicator}
-                                    initialNumToRender={12}
-                                    maxToRenderPerBatch={maxToRenderPerBatch}
-                                    windowSize={5}
-                                    viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                                    testID="selection-list"
-                                    onLayout={onSectionListLayout}
-                                    style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
-                                    ListFooterComponent={ShowMoreButtonInstance}
-                                />
-                                {children}
-                            </>
-                        )}
-                        {showConfirmButton && (
-                            <FixedFooter style={[styles.mtAuto]}>
-                                <Button
-                                    success
-                                    large
-                                    style={[styles.w100]}
-                                    text={confirmButtonText || translate('common.confirm')}
-                                    onPress={onConfirm}
-                                    pressOnEnter
-                                    enterKeyEventListenerPriority={1}
-                                />
-                            </FixedFooter>
-                        )}
-                        {!!footerContent && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
-                    </View>
-                )}
-            </SafeAreaConsumer>
-        </ArrowKeyFocusManager>
+                                    {customListHeader}
+                                </View>
+                            )}
+                            {!headerMessage && !canSelectMultiple && customListHeader}
+                            <SectionList
+                                ref={listRef}
+                                sections={slicedSections}
+                                stickySectionHeadersEnabled={false}
+                                renderSectionHeader={renderSectionHeader}
+                                renderItem={renderItem}
+                                getItemLayout={getItemLayout}
+                                onScroll={onScroll}
+                                onScrollBeginDrag={onScrollBeginDrag}
+                                keyExtractor={(item, index) => item.keyForList ?? `${index}`}
+                                extraData={focusedIndex}
+                                indicatorStyle="white"
+                                keyboardShouldPersistTaps="always"
+                                showsVerticalScrollIndicator={showScrollIndicator}
+                                initialNumToRender={12}
+                                maxToRenderPerBatch={maxToRenderPerBatch}
+                                windowSize={5}
+                                viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                                testID="selection-list"
+                                onLayout={onSectionListLayout}
+                                style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
+                                ListFooterComponent={ShowMoreButtonInstance}
+                            />
+                            {children}
+                        </>
+                    )}
+                    {showConfirmButton && (
+                        <FixedFooter style={[styles.mtAuto]}>
+                            <Button
+                                success
+                                large
+                                style={[styles.w100]}
+                                text={confirmButtonText || translate('common.confirm')}
+                                onPress={onConfirm}
+                                pressOnEnter
+                                enterKeyEventListenerPriority={1}
+                            />
+                        </FixedFooter>
+                    )}
+                    {!!footerContent && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
+                </View>
+            )}
+        </SafeAreaConsumer>
     );
 }
 

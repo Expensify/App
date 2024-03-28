@@ -52,6 +52,9 @@ type CommonListItemProps<TItem> = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
 };
 
 type ListItem = {

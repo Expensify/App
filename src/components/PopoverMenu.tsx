@@ -12,10 +12,11 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
+import PopoverMenuItem from './PopoverMenuItem';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import Text from './Text';
 
-type PopoverMenuItem = MenuItemProps & {
+type PopoverMenuListItem = MenuItemProps & {
     /** Text label */
     text: string;
 
@@ -23,7 +24,7 @@ type PopoverMenuItem = MenuItemProps & {
     onSelected?: () => void;
 
     /** Sub menu items to be rendered after a menu item is selected */
-    subMenuItems?: PopoverMenuItem[];
+    subMenuItems?: PopoverMenuListItem[];
 
     /** Determines whether the menu item is disabled or not */
     disabled?: boolean;
@@ -39,10 +40,10 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     isVisible: boolean;
 
     /** Callback to fire when a CreateMenu item is selected */
-    onItemSelected: (selectedItem: PopoverMenuItem, index: number) => void;
+    onItemSelected: (selectedItem: PopoverMenuListItem, index: number) => void;
 
     /** Menu items to be rendered on the list */
-    menuItems: PopoverMenuItem[];
+    menuItems: PopoverMenuListItem[];
 
     /** Optional non-interactive text to display as a header for any create menu */
     headerText?: string;
@@ -193,7 +194,7 @@ function PopoverMenu({
                 {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
                 {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                 {currentMenuItems.map((item, menuIndex) => (
-                    <MenuItem
+                    <PopoverMenuItem
                         key={item.text}
                         icon={item.icon}
                         iconWidth={item.iconWidth}
@@ -215,6 +216,7 @@ function PopoverMenu({
                         floatRightAvatarSize={item.floatRightAvatarSize}
                         shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
                         disabled={item.disabled}
+                        onFocus={() => setFocusedIndex(menuIndex)}
                     />
                 ))}
             </View>
@@ -225,4 +227,4 @@ function PopoverMenu({
 PopoverMenu.displayName = 'PopoverMenu';
 
 export default React.memo(PopoverMenu);
-export type {PopoverMenuItem, PopoverMenuProps};
+export type {PopoverMenuListItem, PopoverMenuProps};
