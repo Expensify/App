@@ -13,7 +13,6 @@ import Section from '@components/Section';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +32,8 @@ type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
     /** User's private personal details */
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+    /** Whether app is loading */
+    isLoadingApp: OnyxEntry<boolean>;
 };
 
 type ProfilePageProps = ProfilePageOnyxProps & WithCurrentUserPersonalDetailsProps;
@@ -53,6 +54,7 @@ function ProfilePage({
         },
     },
     currentUserPersonalDetails,
+    isLoadingApp,
 }: ProfilePageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -67,10 +69,8 @@ function ProfilePage({
 
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    usePrivatePersonalDetails();
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
-    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
     const publicOptions = [
         {
@@ -167,7 +167,7 @@ function ProfilePage({
                             childrenStyles={styles.pt3}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            {isLoadingPersonalDetails ? (
+                            {isLoadingApp ? (
                                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
                             ) : (
                                 <>
@@ -201,6 +201,9 @@ export default withCurrentUserPersonalDetails(
         },
         privatePersonalDetails: {
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
         },
     })(ProfilePage),
 );

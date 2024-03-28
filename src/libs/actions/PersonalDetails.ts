@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
-import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as Session from './Session';
 
@@ -41,12 +41,6 @@ let allPersonalDetails: OnyxEntry<PersonalDetailsList> = null;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
-});
-
-let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails> = null;
-Onyx.connect({
-    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    callback: (val) => (privatePersonalDetails = val),
 });
 
 function updatePronouns(pronouns: string) {
@@ -446,17 +440,9 @@ function clearAvatarErrors() {
     });
 }
 
-/**
- * Get private personal details value
- */
-function getPrivatePersonalDetails(): OnyxEntry<PrivatePersonalDetails> {
-    return privatePersonalDetails;
-}
-
 export {
     clearAvatarErrors,
     deleteAvatar,
-    getPrivatePersonalDetails,
     openPersonalDetails,
     openPublicProfilePage,
     updateAddress,
