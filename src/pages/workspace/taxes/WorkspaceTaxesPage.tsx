@@ -269,7 +269,7 @@ function WorkspaceTaxesPage({
                         )}
                         <SelectionList
                             canSelectMultiple
-                            sections={[{data: taxesList, indexOffset: 0, isDisabled: false}]}
+                            sections={[{data: taxesList, isDisabled: false}]}
                             onCheckboxPress={toggleTax}
                             onSelectRow={navigateToEditTaxRate}
                             onSelectAll={toggleAllTaxes}

@@ -77,7 +77,7 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 headerMessage={headerMessage}
                 textInputLabel={translate('common.country')}
                 textInputValue={searchValue}
-                sections={[{data: searchResults, indexOffset: 0}]}
+                sections={[{data: searchResults}]}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
                 onChangeText={setSearchValue}

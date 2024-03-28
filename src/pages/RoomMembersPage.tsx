@@ -285,7 +285,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     <View style={[styles.w100, styles.mt4, styles.flex1]}>
                         <SelectionList
                             canSelectMultiple
-                            sections={[{data, indexOffset: 0, isDisabled: false}]}
+                            sections={[{data, isDisabled: false}]}
                             textInputLabel={translate('optionsSelector.findMember')}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}

@@ -9,11 +9,12 @@ import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {BaseOptionListProps, OptionsList, OptionsListData, Section} from './types';
+import type {BaseOptionListProps, OptionsList, OptionsListData, OptionsListDataWithIndexOffset, SectionWithIndexOffset} from './types';
 
 function BaseOptionsList(
     {
@@ -67,6 +68,7 @@ function BaseOptionsList(
 
     const listContainerStyles = useMemo(() => listContainerStylesProp ?? [styles.flex1], [listContainerStylesProp, styles.flex1]);
     const contentContainerStyles = useMemo(() => [safeAreaPaddingBottomStyle, contentContainerStylesProp], [contentContainerStylesProp, safeAreaPaddingBottomStyle]);
+    const sectionsWithIndexOffset = getSectionsWithIndexOffset(sections);
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
@@ -133,7 +135,8 @@ function BaseOptionsList(
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      */
-    const getItemLayout = (_data: OptionsListData[] | null, flatDataArrayIndex: number) => {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const getItemLayout = (_data: OptionsListDataWithIndexOffset[] | null, flatDataArrayIndex: number) => {
         if (!flattenedData.current[flatDataArrayIndex]) {
             flattenedData.current = buildFlatSectionArray();
         }
@@ -161,7 +164,7 @@ function BaseOptionsList(
      * @return {Component}
      */
 
-    const renderItem: SectionListRenderItem<OptionData, Section> = ({item, index, section}) => {
+    const renderItem: SectionListRenderItem<OptionData, SectionWithIndexOffset> = ({item, index, section}) => {
         const isItemDisabled = isDisabled || !!section.isDisabled || !!item.isDisabled;
         const isSelected = selectedOptions?.some((option) => {
             if (option.keyForList && option.keyForList === item.keyForList) {
@@ -202,7 +205,7 @@ function BaseOptionsList(
     /**
      * Function which renders a section header component
      */
-    const renderSectionHeader = ({section: {title, shouldShow}}: {section: OptionsListData}) => {
+    const renderSectionHeader = ({section: {title, shouldShow}}: {section: OptionsListDataWithIndexOffset}) => {
         if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
             return <View style={sectionHeaderStyle} />;
         }
@@ -235,7 +238,7 @@ function BaseOptionsList(
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>
                     ) : null}
-                    <SectionList<OptionData, Section>
+                    <SectionList<OptionData, SectionWithIndexOffset>
                         ref={ref}
                         style={listStyles}
                         indicatorStyle="white"
@@ -247,7 +250,7 @@ function BaseOptionsList(
                         onScroll={onScroll}
                         contentContainerStyle={contentContainerStyles}
                         showsVerticalScrollIndicator={showScrollIndicator}
-                        sections={sections}
+                        sections={sectionsWithIndexOffset}
                         keyExtractor={extractKey}
                         stickySectionHeadersEnabled={false}
                         renderItem={renderItem}

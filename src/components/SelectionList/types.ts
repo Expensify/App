@@ -161,9 +161,6 @@ type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
 
-    /** The initial index of this section given the total number of options in each section's data array */
-    indexOffset?: number;
-
     /** Array of options */
     data?: TItem[];
 
@@ -172,6 +169,11 @@ type Section<TItem extends ListItem> = {
 
     /** Whether this section should be shown or not */
     shouldShow?: boolean;
+};
+
+type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
+    /** The initial index of this section given the total number of options in each section's data array */
+    indexOffset: number;
 };
 
 type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
@@ -324,12 +326,13 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type SectionListDataType<TItem extends ListItem> = SectionListData<TItem, Section<TItem>>;
+type SectionListDataType<TItem extends ListItem> = SectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
 export type {
     BaseSelectionListProps,
     CommonListItemProps,
     Section,
+    SectionWithIndexOffset,
     BaseListItemProps,
     UserListItemProps,
     RadioListItemProps,

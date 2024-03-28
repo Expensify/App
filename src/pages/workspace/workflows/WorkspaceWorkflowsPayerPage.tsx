@@ -149,14 +149,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         sectionsArray.push({
             data: formattedAuthorizedPayer,
             shouldShow: true,
-            indexOffset: 0,
         });
 
         sectionsArray.push({
             title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
             shouldShow: true,
-            indexOffset: formattedAuthorizedPayer.length,
         });
         return sectionsArray;
     }, [formattedPolicyAdmins, formattedAuthorizedPayer, translate, searchTerm]);

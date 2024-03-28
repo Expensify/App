@@ -163,7 +163,6 @@ function WorkspaceInvitePage({
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
-        let indexOffset = 0;
 
         if (!didScreenTransitionEnd) {
             return [];
@@ -187,9 +186,7 @@ function WorkspaceInvitePage({
             title: undefined,
             data: filterSelectedOptions,
             shouldShow: true,
-            indexOffset,
         });
-        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
@@ -200,9 +197,7 @@ function WorkspaceInvitePage({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
             shouldShow: !isEmptyObject(personalDetailsFormatted),
-            indexOffset,
         });
-        indexOffset += personalDetailsFormatted.length;
 
         Object.values(usersToInvite).forEach((userToInvite) => {
             const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === userToInvite.login);
@@ -212,7 +207,6 @@ function WorkspaceInvitePage({
                     title: undefined,
                     data: [OptionsListUtils.formatMemberForList(userToInvite)],
                     shouldShow: true,
-                    indexOffset: indexOffset++,
                 });
             }
         });

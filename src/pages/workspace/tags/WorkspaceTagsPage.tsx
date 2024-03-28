@@ -308,7 +308,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         {tagList.length > 0 && !isLoading && (
                             <SelectionList
                                 canSelectMultiple
-                                sections={[{data: tagList, indexOffset: 0, isDisabled: false}]}
+                                sections={[{data: tagList, isDisabled: false}]}
                                 onCheckboxPress={toggleTag}
                                 onSelectRow={navigateToTagSettings}
                                 onSelectAll={toggleAllTags}

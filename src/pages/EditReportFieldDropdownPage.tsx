@@ -139,6 +139,8 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
                         textInputLabel={translate('common.search')}
                         boldStyle
                         sections={sections}
+                        // Focus the first option when searching
+                        focusedIndex={0}
                         value={searchValue}
                         onSelectRow={(option: Record<string, string>) =>
                             onSubmit({

@@ -137,14 +137,12 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
             title: undefined,
             data: formattedApprover,
             shouldShow: formattedApprover.length > 0,
-            indexOffset: 0,
         });
 
         sectionsArray.push({
             title: translate('common.all'),
             data: formattedPolicyMembers,
             shouldShow: true,
-            indexOffset: formattedApprover.length,
         });
 
         return sectionsArray;

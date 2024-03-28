@@ -38,24 +38,20 @@ jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType
     return WithNavigationFocus;
 });
 
-type GenerateSectionsProps = Array<{numberOfItems: number; indexOffset: number; shouldShow?: boolean}>;
+type GenerateSectionsProps = Array<{numberOfItems: number; shouldShow?: boolean}>;
 
 const generateSections = (sections: GenerateSectionsProps) =>
-    sections.map(({numberOfItems, indexOffset, shouldShow = true}) => ({
+    sections.map(({numberOfItems, shouldShow = true}) => ({
         data: Array.from({length: numberOfItems}, (v, i) => ({
-            text: `Item ${i + indexOffset}`,
-            keyForList: `item-${i + indexOffset}`,
+            text: `Item ${i}`,
+            keyForList: `item-${i}`,
         })),
-        indexOffset,
         shouldShow,
     }));
 
-const singleSectionsConfig = [{numberOfItems: 1000, indexOffset: 0}];
+const singleSectionsConfig = [{numberOfItems: 1000}];
 
-const mutlipleSectionsConfig = [
-    {numberOfItems: 1000, indexOffset: 0},
-    {numberOfItems: 100, indexOffset: 70},
-];
+const mutlipleSectionsConfig = [{numberOfItems: 1000}, {numberOfItems: 100}];
 // @ts-expect-error TODO: Remove this once OptionsSelector is migrated to TypeScript.
 function OptionsSelectorWrapper(args) {
     const sections = generateSections(singleSectionsConfig);
