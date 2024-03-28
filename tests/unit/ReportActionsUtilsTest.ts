@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {CollectionKeyBase} from 'react-native-onyx/dist/types';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -1963,7 +1964,6 @@ describe('ReportActionsUtils', () => {
                             new Promise<void>((resolve) => {
                                 const connectionID = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                                    waitForCollectionCallback: true,
                                     callback: () => {
                                         Onyx.disconnect(connectionID);
                                         const res = ReportActionsUtils.getLastVisibleAction(report.reportID);
