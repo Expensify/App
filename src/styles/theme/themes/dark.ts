@@ -73,6 +73,7 @@ const darkTheme = {
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green600,
     reactionActiveText: colors.green100,
+    onboardingVideoBG: colors.green700,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
     mentionText: colors.blue100,
@@ -87,6 +88,8 @@ const darkTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
     mapAttributionText: colors.black,
     white: colors.white,
+    progressBarBackground: colors.productDark400,
+    progressBarFill: colors.green400,
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
 

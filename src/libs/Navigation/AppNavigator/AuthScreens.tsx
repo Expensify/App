@@ -1,7 +1,8 @@
-import React, {memo, useEffect, useRef} from 'react';
+import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -39,9 +40,12 @@ import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
+import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -154,7 +158,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useOnboardingLayout();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const onboardingScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {
@@ -354,6 +360,21 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={screenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
+                    options={onboardingScreenOptions}
+                    component={WelcomeVideoModalNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
+                    options={onboardingScreenOptions}
+                    component={ExplanationModalNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
+                    options={onboardingScreenOptions}
+                    component={OnboardingModalNavigator}
                 />
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE_JOIN_USER}
