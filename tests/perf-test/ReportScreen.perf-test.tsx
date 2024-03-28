@@ -79,7 +79,10 @@ jest.mock('@src/libs/Permissions', () => ({
 }));
 jest.mock('@src/hooks/usePermissions.ts');
 
-jest.mock('@src/libs/Navigation/Navigation');
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    ...jest.requireActual('@src/libs/Navigation/Navigation'),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+}));
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
