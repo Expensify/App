@@ -2136,7 +2136,7 @@ export default {
             failedToClearBalanceButtonText: 'OK',
             failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
             successTitle: 'Woohoo! All set.',
-            successDescription: "You're now the owner if this workspace.",
+            successDescription: "You're now the owner of this workspace.",
             errorTitle: 'Oops! Not so fast...',
             errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
             errorDescriptionPartTwo: 'reach out to Concierge',

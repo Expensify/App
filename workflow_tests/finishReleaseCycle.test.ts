@@ -1,12 +1,14 @@
-const path = require('path');
-const kieMockGithub = require('@kie/mock-github');
-const utils = require('./utils/utils');
-const assertions = require('./assertions/finishReleaseCycleAssertions');
-const mocks = require('./mocks/finishReleaseCycleMocks').default;
-const ExtendedAct = require('./utils/ExtendedAct').default;
+import {MockGithub} from '@kie/mock-github';
+import path from 'path';
+import assertions from './assertions/finishReleaseCycleAssertions';
+import mocks from './mocks/finishReleaseCycleMocks';
+import ExtendedAct from './utils/ExtendedAct';
+import type {MockJobs} from './utils/JobMocker';
+import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
-let mockGithub;
+let mockGithub: MockGithub;
+
 const FILES_TO_COPY_INTO_TEST_REPO = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
     {
@@ -16,7 +18,7 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 ];
 
 describe('test workflow finishReleaseCycle', () => {
-    beforeAll(async () => {
+    beforeAll(() => {
         // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
         // which breaks the next test run, this removes any possible leftovers
         utils.removeMockRepoDir();
@@ -24,7 +26,7 @@ describe('test workflow finishReleaseCycle', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new kieMockGithub.MockGithub({
+        mockGithub = new MockGithub({
             repo: {
                 testFinishReleaseCycleWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,
@@ -50,7 +52,7 @@ describe('test workflow finishReleaseCycle', () => {
             describe('actor is a team member', () => {
                 describe('no deploy blockers', () => {
                     it('production updated, new version created', async () => {
-                        const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') || '';
+                        const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml');
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
@@ -71,7 +73,7 @@ describe('test workflow finishReleaseCycle', () => {
                             updateProduction: mocks.FINISHRELEASECYCLE__UPDATEPRODUCTION__STEP_MOCKS,
                             updateStaging: mocks.FINISHRELEASECYCLE__UPDATESTAGING__STEP_MOCKS,
                         };
-                        const testMockJobs = {
+                        const testMockJobs: MockJobs = {
                             createNewPatchVersion: {
                                 steps: mocks.FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS,
                                 outputs: {
@@ -96,7 +98,7 @@ describe('test workflow finishReleaseCycle', () => {
                 });
                 describe('deploy blockers', () => {
                     it('production not updated, new version not created, issue reopened', async () => {
-                        const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') || '';
+                        const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') ?? '';
                         const workflowPath = path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml');
                         let act = new ExtendedAct(repoPath, workflowPath);
                         act = utils.setUpActParams(
@@ -143,7 +145,7 @@ describe('test workflow finishReleaseCycle', () => {
             });
             describe('actor is not a team member', () => {
                 it('production not updated, new version not created, issue reopened', async () => {
-                    const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') || '';
+                    const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') ?? '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml');
                     let act = new ExtendedAct(repoPath, workflowPath);
                     act = utils.setUpActParams(
@@ -190,7 +192,7 @@ describe('test workflow finishReleaseCycle', () => {
         });
         describe('issue does not have StagingDeployCash', () => {
             it('validate job not run', async () => {
-                const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') || '';
+                const repoPath = mockGithub.repo.getPath('testFinishReleaseCycleWorkflowRepo') ?? '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml');
                 let act = new ExtendedAct(repoPath, workflowPath);
                 act = utils.setUpActParams(

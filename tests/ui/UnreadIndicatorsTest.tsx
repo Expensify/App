@@ -233,7 +233,7 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
-            const createdReportActionID = NumberUtils.rand64();
+            const createdReportActionID = NumberUtils.rand64().toString();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
                 [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
