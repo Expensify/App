@@ -130,27 +130,29 @@ function MoneyRequestPreviewContent({
     };
 
     const getPreviewHeaderText = (): string => {
+        let message = translate('iou.cash');
+
         if (isDistanceRequest) {
-            return translate('common.distance');
-        }
-
-        if (isScanning) {
-            return translate('common.receipt');
-        }
-
-        if (isBillSplit) {
-            return translate('iou.split');
+            message = translate('common.distance');
+        } else if (isScanning) {
+            message = translate('common.receipt');
+        } else if (isBillSplit) {
+            message = translate('iou.split');
         }
 
         if (isCardTransaction) {
-            let message = translate('iou.card');
+            message = translate('iou.card');
             if (TransactionUtils.isPending(transaction)) {
                 message += ` • ${translate('iou.pending')}`;
+                return message;
             }
+        }
+
+        if (isSettled && !iouReport?.isCancelledIOU) {
+            message += ` • ${getSettledMessage()}`;
             return message;
         }
 
-        let message = translate('iou.cash');
         if (shouldShowRBR && transaction) {
             const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
             if (violations?.[0]) {
@@ -240,9 +242,7 @@ function MoneyRequestPreviewContent({
                             <View style={styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow]}>
-                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>
-                                            {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
-                                        </Text>
+                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{getPreviewHeaderText()}</Text>
                                         {!isSettled && shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
