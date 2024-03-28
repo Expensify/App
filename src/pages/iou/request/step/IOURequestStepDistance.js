@@ -15,7 +15,6 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as TransactionEdit from '@userActions/TransactionEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -23,6 +22,7 @@ import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
+import * as TransactionEdit from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -235,7 +235,20 @@ function IOURequestStepDistance({
         }
 
         navigateToNextStep();
-    }, [duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, isCreatingNewRequest, isEditing, navigateToNextStep, transactionBackup, waypoints, transaction.transactionID, report.reportID]);
+    }, [
+        duplicateWaypointsError,
+        atLeastTwoDifferentWaypointsError,
+        hasRouteError,
+        isLoadingRoute,
+        isLoading,
+        isCreatingNewRequest,
+        isEditing,
+        navigateToNextStep,
+        transactionBackup,
+        waypoints,
+        transaction.transactionID,
+        report.reportID,
+    ]);
 
     return (
         <StepScreenWrapper
