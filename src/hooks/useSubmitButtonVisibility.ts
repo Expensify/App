@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import {Dimensions, Platform} from 'react-native';
+import {Dimensions} from 'react-native';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import useSafeAreaInsets from './useSafeAreaInsets';
@@ -49,7 +49,9 @@ function useSubmitButtonVisibility() {
     // Web: the submit button is only hidden when the window height becomes smaller,
     // so executing this function won't do anything
     const hideSubmitButton = () => {
-        if (!['ios', 'android'].includes(Platform.OS)) {
+        const platform = getPlatform();
+        const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+        if (!isNative) {
             return;
         }
         setIsSubmitButtonVisible(false);
