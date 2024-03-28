@@ -2,14 +2,13 @@
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
+import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import * as CollectionUtils from './CollectionUtils';
@@ -62,18 +61,18 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
  */
 function getOrderedReportIDs(
     currentReportId: string | null,
-    allReports: Record<string, Report>,
-    betas: Beta[],
-    policies: Record<string, Policy>,
-    priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
-    allReportActions: OnyxCollection<ReportAction[]>,
+    allReports: OnyxCollection<Report>,
+    betas: OnyxEntry<Beta[]>,
+    policies: OnyxCollection<Policy>,
+    priorityMode: OnyxEntry<PriorityMode>,
+    allReportActions: OnyxCollection<ReportActions>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
 ): string[] {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
-    const allReportsDictValues = Object.values(allReports);
+    const allReportsDictValues = Object.values(allReports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay = allReportsDictValues.filter((report) => {
@@ -84,14 +83,14 @@ function getOrderedReportIDs(
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
         const parentReportActions = allReportActions?.[parentReportActionsKey];
         const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
-        const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
+        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
         const doesReportHaveViolations =
-            betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+            !!betas && betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const hasErrors = Object.keys(OptionsListUtils.getAllReportErrors(report, reportActions) ?? {}).length !== 0;
         const hasBrickError = hasErrors || doesReportHaveViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        const shouldOverrideHidden = hasBrickError || isFocused || report.isPinned;
+        const shouldOverrideHidden = hasBrickError || isFocused || report?.isPinned;
         if (isHidden && !shouldOverrideHidden) {
             return false;
         }
@@ -100,7 +99,7 @@ function getOrderedReportIDs(
             report,
             currentReportId: currentReportId ?? '',
             isInGSDMode,
-            betas,
+            betas: betas ?? [],
             policies,
             excludeEmptyChats: true,
             doesReportHaveViolations,
@@ -131,12 +130,18 @@ function getOrderedReportIDs(
     const archivedReports: Report[] = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
-        reportsToDisplay = reportsToDisplay.filter(
-            (report) => report.reportID === currentReportId || ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID),
-        );
+        reportsToDisplay = reportsToDisplay.filter((report) => {
+            if (!report) {
+                return false;
+            }
+            return report.reportID === currentReportId || ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID);
+        });
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
+        if (!report) {
+            return;
+        }
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.

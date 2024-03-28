@@ -9,7 +9,7 @@ import type {PersonalDetails, TransactionViolation} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import createCollection from '../utils/collections/createCollection';
+import createCollection, {createNestedCollection} from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
@@ -51,25 +51,11 @@ const policies = createCollection<Policy>(
 
 const mockedBetas = Object.values(CONST.BETAS);
 
-const allReportActions = Object.fromEntries(
-    Object.keys(reportActions).map((key) => [
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`,
-        [
-            {
-                errors: reportActions[key].errors ?? [],
-                message: [
-                    {
-                        moderationDecision: {
-                            decision: reportActions[key].message?.[0]?.moderationDecision?.decision,
-                        },
-                    },
-                ],
-                reportActionID: reportActions[key].reportActionID,
-            },
-        ],
-    ]),
-) as unknown as OnyxCollection<ReportAction[]>;
-
+const allReportActions = createNestedCollection<ReportAction>(
+    (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
+    (item) => `${item.reportActionID}`,
+    (index) => createRandomReportAction(index),
+);
 const currentReportId = '1';
 const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
