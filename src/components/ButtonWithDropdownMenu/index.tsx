@@ -8,7 +8,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -93,18 +92,19 @@ function ButtonWithDropdownMenu<IValueType>({
                         style={[styles.pl0]}
                         onPress={() => setIsMenuVisible(!isMenuVisible)}
                         shouldRemoveLeftBorderRadius
-                        medium
+                        large={isButtonSizeLarge}
+                        medium={!isButtonSizeLarge}
                         innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     >
                         <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                             <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
-                            <View style={[styles.dropDownButtonArrowContain]}>
+                            <View style={[isButtonSizeLarge ? styles.dropDownLargeButtonArrowContain : styles.dropDownMediumButtonArrowContain]}>
                                 <Icon
+                                    medium={isButtonSizeLarge}
+                                    small={!isButtonSizeLarge}
                                     src={Expensicons.DownArrow}
                                     fill={success ? theme.buttonSuccessText : theme.icon}
-                                    width={variables.iconSizeSmall}
-                                    height={variables.iconSizeSmall}
                                 />
                             </View>
                         </View>
