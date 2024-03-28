@@ -16,6 +16,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -50,6 +51,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
+    const {canUseSpotnanaTravel} = usePermissions();
 
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
@@ -216,20 +218,22 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 </Text>
                             </View>
                         </OfflineWithFeedback>
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
-                            <View>
-                                <MenuItemWithTopDescription
-                                    title={formattedAddress}
-                                    description={translate('workspace.editor.addressInputLabel')}
-                                    shouldShowRightIcon={!readOnly}
-                                    disabled={readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressAddress}
-                                    shouldGreyOutWhenDisabled={false}
-                                    shouldUseDefaultCursorWhenDisabled
-                                />
-                            </View>
-                        </OfflineWithFeedback>
+                        {canUseSpotnanaTravel ?? (
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
+                                <View>
+                                    <MenuItemWithTopDescription
+                                        title={formattedAddress}
+                                        description={translate('workspace.editor.addressInputLabel')}
+                                        shouldShowRightIcon={!readOnly}
+                                        disabled={readOnly}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={onPressAddress}
+                                        shouldGreyOutWhenDisabled={false}
+                                        shouldUseDefaultCursorWhenDisabled
+                                    />
+                                </View>
+                            </OfflineWithFeedback>
+                        )}
                         {!readOnly && (
                             <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
                                 <Button
