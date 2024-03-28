@@ -35,7 +35,7 @@ import type {
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import WorkspaceSettingsModalStackNavigator from './WorkspaceSettingsModalStackNavigator';
+import WorkspaceSettingsModalStackNavigator from './ModalStackNavigators/WorkspaceSettingsModalStackNavigator';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
