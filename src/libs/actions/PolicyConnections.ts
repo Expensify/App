@@ -81,7 +81,7 @@ function updatePolicyConnectionConfig({
         settingValue,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_CONNECTION_CONFIG, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIGURATION, parameters, {optimisticData, successData, failureData});
 }
 
 export default {updatePolicyConnectionConfig};
