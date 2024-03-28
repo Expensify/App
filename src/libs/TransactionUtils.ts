@@ -63,10 +63,10 @@ function getRequestType(transaction: Transaction | OnyxEntry<Transaction>): Valu
     return CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
-function isManualRequest(transaction: Transaction | OnyxEntry<Transaction>): boolean {
+function isManualRequest(transaction: Transaction): boolean {
     // This is used during the request creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     }
 
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;

@@ -86,7 +86,6 @@ function MoneyRequestPreviewContent({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const isScanRequest = hasReceipt && TransactionUtils.isScanRequest(transaction);
-    const isManualRequest = hasReceipt && TransactionUtils.isManualRequest(transaction);
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const shouldShowRBR = hasViolations || hasFieldErrors;
@@ -140,10 +139,6 @@ function MoneyRequestPreviewContent({
 
         if (isScanRequest) {
             message = translate('tabSelector.scan');
-        }
-
-        if (isManualRequest) {
-            message = translate('tabSelector.manual');
         }
 
         if (isScanning) {
