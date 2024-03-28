@@ -86,7 +86,6 @@ const WRITE_COMMANDS = {
     RESTART_BANK_ACCOUNT_SETUP: 'RestartBankAccountSetup',
     OPT_IN_TO_PUSH_NOTIFICATIONS: 'OptInToPushNotifications',
     OPT_OUT_OF_PUSH_NOTIFICATIONS: 'OptOutOfPushNotifications',
-    RECONNECT_TO_REPORT: 'ReconnectToReport',
     READ_NEWEST_ACTION: 'ReadNewestAction',
     MARK_AS_UNREAD: 'MarkAsUnread',
     TOGGLE_PINNED_CHAT: 'TogglePinnedChat',
