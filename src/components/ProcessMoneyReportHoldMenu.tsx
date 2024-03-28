@@ -6,7 +6,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import DecisionModal from './DecisionModal';
 
-type ProcessMoneyRequestHoldMenuProps = {
+type ProcessMoneyReportHoldMenuProps = {
     /** The chat report this report is linked to */
     chatReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -32,10 +32,10 @@ type ProcessMoneyRequestHoldMenuProps = {
     paymentType?: PaymentMethodType;
 
     /** Type of action handled either 'pay' or 'approve' */
-    requestType?: string;
+    requestType?: 'pay' | 'approve';
 };
 
-function ProcessMoneyRequestHoldMenu({
+function ProcessMoneyReportHoldMenu({
     requestType,
     nonHeldAmount,
     fullAmount,
@@ -45,7 +45,7 @@ function ProcessMoneyRequestHoldMenu({
     paymentType,
     chatReport,
     moneyRequestReport,
-}: ProcessMoneyRequestHoldMenuProps) {
+}: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === 'approve';
 
@@ -73,6 +73,6 @@ function ProcessMoneyRequestHoldMenu({
     );
 }
 
-ProcessMoneyRequestHoldMenu.displayName = 'ProcessMoneyRequestHoldMenu';
+ProcessMoneyReportHoldMenu.displayName = 'ProcessMoneyReportHoldMenu';
 
-export default ProcessMoneyRequestHoldMenu;
+export default ProcessMoneyReportHoldMenu;

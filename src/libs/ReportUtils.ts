@@ -5356,7 +5356,7 @@ function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
     const hasTransactionWithDifferentCurrency = transactions.some((transaction) => transaction.currency !== report.currency);
 
-    return !(hasPendingTransaction && hasTransactionWithDifferentCurrency);
+    return !(hasPendingTransaction && hasTransactionWithDifferentCurrency) && !(hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined);
 }
 
 /**

@@ -50,7 +50,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [confirmationType, setConfirmationType] = useState<string>();
+    const [requestType, setRequestType] = useState<'pay' | 'approve'>();
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
     const policyType = policy?.type;
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
@@ -88,10 +88,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         if (!type) {
             return;
         }
-
         setPaymentType(type);
-        setConfirmationType('pay');
-
+        setRequestType('pay');
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport) {
@@ -100,7 +98,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     };
 
     const confirmApproval = () => {
-        setConfirmationType('approve');
+        setRequestType('approve');
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
@@ -210,10 +208,10 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     </View>
                 )}
             </View>
-            {isHoldMenuVisible && (
+            {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? nonHeldAmount : undefined}
-                    requestType={confirmationType}
+                    requestType={requestType}
                     fullAmount={fullAmount}
                     isSmallScreenWidth={isSmallScreenWidth}
                     onClose={() => setIsHoldMenuVisible(false)}
