@@ -7,7 +7,7 @@ type PermissionKey = keyof typeof Permissions;
 type UsePermissions = Partial<Record<PermissionKey, boolean>>;
 let permissionKey: PermissionKey;
 
-export default function usePermissions(iouType: IOUType|undefined = undefined): UsePermissions {
+export default function usePermissions(iouType: IOUType | undefined = undefined): UsePermissions {
     const betas = useContext(BetasContext);
     return useMemo(() => {
         const permissions: UsePermissions = {};
