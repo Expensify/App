@@ -60,6 +60,13 @@ const ONYXKEYS = {
     /** Contains all the private personal details of the user */
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
+    /**
+     * PERSONAL_DETAILS_METADATA is a perf optimization used to hold loading states of each entry in PERSONAL_DETAILS_LIST.
+     * A lot of components are connected to the PERSONAL_DETAILS_LIST entity and do not care about the loading state.
+     * Setting the loading state directly on the personal details entry caused a lot of unnecessary re-renders.
+     */
+    PERSONAL_DETAILS_METADATA: 'personalDetailsMetadata',
+
     /** Contains all the info for Tasks */
     TASK: 'task',
 
@@ -290,6 +297,9 @@ const ONYXKEYS = {
     // Paths of PDF file that has been cached during one session
     CACHED_PDF_PATHS: 'cachedPDFPaths',
 
+    /** Holds the checks used while transferring the ownership of the workspace */
+    POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -353,6 +363,8 @@ const ONYXKEYS = {
         WORKSPACE_TAX_CUSTOM_NAME_DRAFT: 'workspaceTaxCustomNameDraft',
         POLICY_CREATE_DISTANCE_RATE_FORM: 'policyCreateDistanceRateForm',
         POLICY_CREATE_DISTANCE_RATE_FORM_DRAFT: 'policyCreateDistanceRateFormDraft',
+        POLICY_DISTANCE_RATE_EDIT_FORM: 'policyDistanceRateEditForm',
+        POLICY_DISTANCE_RATE_EDIT_FORM_DRAFT: 'policyDistanceRateEditFormDraft',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         CLOSE_ACCOUNT_FORM_DRAFT: 'closeAccountDraft',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
@@ -482,6 +494,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM]: FormTypes.WorkspaceNewTaxForm;
     [ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM]: FormTypes.PolicyCreateDistanceRateForm;
+    [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM]: FormTypes.PolicyDistanceRateEditForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
 };
@@ -543,6 +556,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.INPUT_FOCUSED]: boolean;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
+    [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
     [ONYXKEYS.WORKSPACE_RATE_AND_UNIT]: OnyxTypes.WorkspaceRateAndUnit;
     [ONYXKEYS.CURRENCY_LIST]: OnyxTypes.CurrencyList;
@@ -617,6 +631,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LOGS]: Record<number, OnyxTypes.Log>;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
+    [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
 };
 

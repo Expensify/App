@@ -2,6 +2,8 @@ import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Decision, Reaction} from './OriginalMessage';
@@ -70,6 +72,9 @@ type Message = {
 
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+
+    /** The time this report action was deleted */
+    deleted?: string;
 };
 
 type ImageMetadata = {
@@ -227,5 +232,7 @@ type ReportAction = ReportActionBase & OriginalMessage;
 
 type ReportActions = Record<string, ReportAction>;
 
+type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
+
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet};

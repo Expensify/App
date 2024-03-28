@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +10,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
@@ -47,7 +49,14 @@ function PolicyDistanceRatesSettingsPage({policy, route}: PolicyDistanceRatesSet
     };
 
     const setNewCategory = (category: ListItem) => {
-        Policy.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {...customUnit, defaultCategory: category.text});
+        if (!category.searchText) {
+            return;
+        }
+
+        Policy.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {
+            ...customUnit,
+            defaultCategory: defaultCategory === category.searchText ? '' : category.searchText,
+        });
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
@@ -55,10 +64,10 @@ function PolicyDistanceRatesSettingsPage({policy, route}: PolicyDistanceRatesSet
     };
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
                 <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
+                    policyID={policyID}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
                 >
                     <ScreenWrapper
@@ -67,35 +76,37 @@ function PolicyDistanceRatesSettingsPage({policy, route}: PolicyDistanceRatesSet
                         testID={PolicyDistanceRatesSettingsPage.displayName}
                     >
                         <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                        <OfflineWithFeedback
-                            errors={errorFields?.attributes}
-                            pendingAction={customUnits[customUnitID].pendingFields?.attributes}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('attributes')}
-                        >
-                            <UnitSelector
-                                label={translate('workspace.distanceRates.unit')}
-                                defaultValue={defaultUnit}
-                                wrapperStyle={[styles.ph5, styles.mt3]}
-                                setNewUnit={setNewUnit}
-                            />
-                        </OfflineWithFeedback>
-                        {policy?.areCategoriesEnabled && (
+                        <View style={styles.flexGrow1}>
                             <OfflineWithFeedback
-                                errors={errorFields?.defaultCategory}
-                                pendingAction={customUnits[customUnitID].pendingFields?.defaultCategory}
+                                errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'attributes')}
+                                pendingAction={customUnits[customUnitID].pendingFields?.attributes}
                                 errorRowStyles={styles.mh5}
-                                onClose={() => clearErrorFields('defaultCategory')}
+                                onClose={() => clearErrorFields('attributes')}
                             >
-                                <CategorySelector
-                                    policyID={policyID}
-                                    label={translate('workspace.distanceRates.defaultCategory')}
-                                    defaultValue={defaultCategory}
+                                <UnitSelector
+                                    label={translate('workspace.distanceRates.unit')}
+                                    defaultValue={defaultUnit}
                                     wrapperStyle={[styles.ph5, styles.mt3]}
-                                    setNewCategory={setNewCategory}
+                                    setNewUnit={setNewUnit}
                                 />
                             </OfflineWithFeedback>
-                        )}
+                            {policy?.areCategoriesEnabled && (
+                                <OfflineWithFeedback
+                                    errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'defaultCategory')}
+                                    pendingAction={customUnits[customUnitID].pendingFields?.defaultCategory}
+                                    errorRowStyles={styles.mh5}
+                                    onClose={() => clearErrorFields('defaultCategory')}
+                                >
+                                    <CategorySelector
+                                        policyID={policyID}
+                                        label={translate('workspace.distanceRates.defaultCategory')}
+                                        defaultValue={defaultCategory}
+                                        wrapperStyle={[styles.ph5, styles.mt3]}
+                                        setNewCategory={setNewCategory}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
+                        </View>
                     </ScreenWrapper>
                 </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>

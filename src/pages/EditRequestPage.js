@@ -20,7 +20,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
-import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
@@ -38,7 +37,7 @@ const propTypes = {
             /** reportID for the "transaction thread" */
             threadReportID: PropTypes.string,
 
-            /** The index of a tag list */
+            /** Indicates which tag list index was selected */
             tagIndex: PropTypes.string,
         }),
     }).isRequired,
@@ -79,10 +78,10 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
-    const tagIndex = Number(lodashGet(route, ['params', 'tagIndex'], undefined));
+    const tagListIndex = Number(lodashGet(route, ['params', 'tagIndex'], undefined));
 
-    const tag = TransactionUtils.getTag(transaction, tagIndex);
-    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const tag = TransactionUtils.getTag(transaction, tagListIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
@@ -130,14 +129,14 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             IOU.updateMoneyRequestTag(
                 transaction.transactionID,
                 report.reportID,
-                IOUUtils.insertTagIntoTransactionTagsString(transactionTag, updatedTag, tagIndex),
+                IOUUtils.insertTagIntoTransactionTagsString(transactionTag, updatedTag, tagListIndex),
                 policy,
                 policyTags,
                 policyCategories,
             );
             Navigation.dismissModal();
         },
-        [tag, transaction.transactionID, report.reportID, transactionTag, tagIndex, policy, policyTags, policyCategories],
+        [tag, transaction.transactionID, report.reportID, transactionTag, tagListIndex, policy, policyTags, policyCategories],
     );
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
@@ -160,7 +159,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             <EditRequestTagPage
                 defaultTag={tag}
                 tagName={policyTagListName}
-                tagIndex={tagIndex}
+                tagListIndex={tagListIndex}
                 policyID={lodashGet(report, 'policyID', '')}
                 onSubmit={saveTag}
             />
@@ -172,16 +171,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             <EditRequestReceiptPage
                 route={route}
                 transactionID={transaction.transactionID}
-            />
-        );
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE) {
-        return (
-            <EditRequestDistancePage
-                report={report}
-                transactionID={transaction.transactionID}
-                route={route}
             />
         );
     }
