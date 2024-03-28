@@ -81,7 +81,7 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType, reportActionID},
+        params: {action, orderWeight: rawTagIndex, transactionID, backTo, iouType, reportActionID},
     },
     transaction,
     splitDraftTransaction,

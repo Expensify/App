@@ -173,17 +173,14 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
 /**
  * Gets a tag name of policy tags based on a tag index.
  */
-function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): string {
+function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: number): string {
     if (isEmptyObject(policyTagList)) {
         return '';
     }
 
-    const policyTagKeys = Object.keys(policyTagList ?? {});
-    const policyTagKey = policyTagKeys[tagIndex] ?? '';
-
-    return policyTagList?.[policyTagKey]?.name ?? '';
+    const policyTags = Object.values(policyTagList ?? {});
+    return policyTags.find((policy) => policy.orderWeight === orderWeight)?.name ?? '';
 }
-
 /**
  * Gets all tag lists of a policy
  */
