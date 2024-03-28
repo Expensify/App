@@ -78,7 +78,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
             Object.values(policyCategories ?? {})
                 .sort((a, b) => localeCompare(a.name, b.name))
                 .map((value) => {
-                    const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.values(value.pendingFields ?? {}).length > 0;
+                    const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                     return {
                         text: value.name,
                         keyForList: value.name,

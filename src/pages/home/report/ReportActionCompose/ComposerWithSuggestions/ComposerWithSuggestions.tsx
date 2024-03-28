@@ -180,9 +180,16 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
  */
-const debouncedBroadcastUserIsTyping = lodashDebounce((reportID: string) => {
-    Report.broadcastUserIsTyping(reportID);
-}, 100);
+const debouncedBroadcastUserIsTyping = lodashDebounce(
+    (reportID: string) => {
+        Report.broadcastUserIsTyping(reportID);
+    },
+    1000,
+    {
+        maxWait: 1000,
+        leading: true,
+    },
+);
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
@@ -646,6 +653,9 @@ function ComposerWithSuggestions(
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
+            // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
+            // @ts-expect-error need to reassign this ref
+            ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
             setUpComposeFocusManager();
         });
         KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
