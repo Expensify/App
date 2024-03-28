@@ -11568,7 +11568,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-const core_1 = __importDefault(__nccwpck_require__(2186));
+const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const ActionUtils = __importStar(__nccwpck_require__(970));
 const CONST_1 = __importDefault(__nccwpck_require__(4097));
@@ -11600,7 +11600,7 @@ async function commentPR(PR, message) {
     catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
         if (err instanceof Error) {
-            core_1.default.setFailed(err.message);
+            core.setFailed(err.message);
         }
     }
 }
@@ -11608,11 +11608,11 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
 async function run() {
     const prList = ActionUtils.getJSONInput('PR_LIST', { required: true }).map((num) => Number.parseInt(num, 10));
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', { required: true });
-    const version = core_1.default.getInput('DEPLOY_VERSION', { required: true });
-    const androidResult = getDeployTableMessage(core_1.default.getInput('ANDROID', { required: true }));
-    const desktopResult = getDeployTableMessage(core_1.default.getInput('DESKTOP', { required: true }));
-    const iOSResult = getDeployTableMessage(core_1.default.getInput('IOS', { required: true }));
-    const webResult = getDeployTableMessage(core_1.default.getInput('WEB', { required: true }));
+    const version = core.getInput('DEPLOY_VERSION', { required: true });
+    const androidResult = getDeployTableMessage(core.getInput('ANDROID', { required: true }));
+    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', { required: true }));
+    const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: true }));
+    const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     function getDeployMessage(deployer, deployVerb, prTitle) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
@@ -11653,7 +11653,7 @@ async function run() {
     if (!currentTag) {
         const err = `Could not find tag matching ${version}`;
         console.error(err);
-        core_1.default.setFailed(err);
+        core.setFailed(err);
         return;
     }
     const { data: commit } = await GithubUtils_1.default.octokit.git.getCommit({
