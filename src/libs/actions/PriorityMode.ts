@@ -91,7 +91,7 @@ function resetHasReadRequiredDataFromStorage() {
 }
 
 function checkRequiredData() {
-    if (allReports === undefined || hasTriedFocusMode === undefined || isInFocusMode === undefined || isLoadingReportData) {
+    if (allReports === undefined || typeof hasTriedFocusMode !== 'boolean' || isInFocusMode === undefined || isLoadingReportData) {
         return;
     }
 
