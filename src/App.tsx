@@ -32,6 +32,7 @@ import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
+import {SuggestionsContextProvider} from './pages/home/report/ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 
@@ -78,6 +79,7 @@ function App({url}: AppProps) {
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
                         PlaybackContextProvider,
+                        SuggestionsContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
                     ]}
