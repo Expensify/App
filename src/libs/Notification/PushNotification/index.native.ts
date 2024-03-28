@@ -84,11 +84,6 @@ function refreshNotificationOptInStatus() {
 const init: Init = () => {
     // Setup event listeners
     Airship.addListener(EventType.PushReceived, (notification) => {
-        // By default, refresh notification opt-in status to true if we receive a notification
-        if (!isUserOptedInToPushNotifications) {
-            PushNotificationActions.setPushNotificationOptInStatus(true);
-        }
-
         pushNotificationEventCallback(EventType.PushReceived, notification.pushPayload);
     });
 

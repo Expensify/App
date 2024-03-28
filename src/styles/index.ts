@@ -4694,6 +4694,10 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
         },
+
+        textLineThrough: {
+            textDecorationLine: 'line-through',
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
