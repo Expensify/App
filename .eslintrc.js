@@ -119,6 +119,7 @@ module.exports = {
                             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                             '@src': './src',
                             '@desktop': './desktop',
+                            '@github': './.github',
                         },
                     },
                 ],
