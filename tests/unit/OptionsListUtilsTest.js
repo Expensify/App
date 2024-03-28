@@ -1,35 +1,30 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import CONST from '@src/CONST';
-import type {Tag} from '@src/libs/OptionsListUtils';
-import * as OptionsListUtils from '@src/libs/OptionsListUtils';
-import * as ReportUtils from '@src/libs/ReportUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, PolicyCategories, Report, TaxRatesWithDefault} from '@src/types/onyx';
+import _ from 'underscore';
+import CONST from '../../src/CONST';
+import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
+import * as ReportUtils from '../../src/libs/ReportUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
 
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
-    const REPORTS: OnyxCollection<Report> = {
-        '1': {
+    const REPORTS = {
+        1: {
             lastReadTime: '2021-01-14 11:25:39.295',
             lastVisibleActionCreated: '2022-11-22 03:26:02.015',
             isPinned: false,
-            reportID: '1',
+            reportID: 1,
             participantAccountIDs: [2, 1],
             visibleChatMemberAccountIDs: [2, 1],
             reportName: 'Iron Man, Mister Fantastic',
             hasDraft: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
-        '2': {
+        2: {
             lastReadTime: '2021-01-14 11:25:39.296',
             lastVisibleActionCreated: '2022-11-22 03:26:02.016',
             isPinned: false,
-            reportID: '2',
+            reportID: 2,
             participantAccountIDs: [3],
             visibleChatMemberAccountIDs: [3],
             reportName: 'Spider-Man',
@@ -37,41 +32,41 @@ describe('OptionsListUtils', () => {
         },
 
         // This is the only report we are pinning in this test
-        '3': {
+        3: {
             lastReadTime: '2021-01-14 11:25:39.297',
             lastVisibleActionCreated: '2022-11-22 03:26:02.170',
             isPinned: true,
-            reportID: '3',
+            reportID: 3,
             participantAccountIDs: [1],
             visibleChatMemberAccountIDs: [1],
             reportName: 'Mister Fantastic',
             type: CONST.REPORT.TYPE.CHAT,
         },
-        '4': {
+        4: {
             lastReadTime: '2021-01-14 11:25:39.298',
             lastVisibleActionCreated: '2022-11-22 03:26:02.180',
             isPinned: false,
-            reportID: '4',
+            reportID: 4,
             participantAccountIDs: [4],
             visibleChatMemberAccountIDs: [4],
             reportName: 'Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
         },
-        '5': {
+        5: {
             lastReadTime: '2021-01-14 11:25:39.299',
             lastVisibleActionCreated: '2022-11-22 03:26:02.019',
             isPinned: false,
-            reportID: '5',
+            reportID: 5,
             participantAccountIDs: [5],
             visibleChatMemberAccountIDs: [5],
             reportName: 'Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
         },
-        '6': {
+        6: {
             lastReadTime: '2021-01-14 11:25:39.300',
             lastVisibleActionCreated: '2022-11-22 03:26:02.020',
             isPinned: false,
-            reportID: '6',
+            reportID: 6,
             participantAccountIDs: [6],
             visibleChatMemberAccountIDs: [6],
             reportName: 'Thor',
@@ -79,11 +74,11 @@ describe('OptionsListUtils', () => {
         },
 
         // Note: This report has the largest lastVisibleActionCreated
-        '7': {
+        7: {
             lastReadTime: '2021-01-14 11:25:39.301',
             lastVisibleActionCreated: '2022-11-22 03:26:03.999',
             isPinned: false,
-            reportID: '7',
+            reportID: 7,
             participantAccountIDs: [7],
             visibleChatMemberAccountIDs: [7],
             reportName: 'Captain America',
@@ -91,11 +86,11 @@ describe('OptionsListUtils', () => {
         },
 
         // Note: This report has no lastVisibleActionCreated
-        '8': {
+        8: {
             lastReadTime: '2021-01-14 11:25:39.301',
             lastVisibleActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
-            reportID: '8',
+            reportID: 8,
             participantAccountIDs: [12],
             visibleChatMemberAccountIDs: [12],
             reportName: 'Silver Surfer',
@@ -103,23 +98,23 @@ describe('OptionsListUtils', () => {
         },
 
         // Note: This report has an IOU
-        '9': {
+        9: {
             lastReadTime: '2021-01-14 11:25:39.302',
             lastVisibleActionCreated: '2022-11-22 03:26:02.998',
             isPinned: false,
-            reportID: '9',
+            reportID: 9,
             participantAccountIDs: [8],
             visibleChatMemberAccountIDs: [8],
             reportName: 'Mister Sinister',
-            iouReportID: '100',
+            iouReportID: 100,
             type: CONST.REPORT.TYPE.CHAT,
         },
 
         // This report is an archived room – it does not have a name and instead falls back on oldPolicyName
-        '10': {
+        10: {
             lastReadTime: '2021-01-14 11:25:39.200',
             lastVisibleActionCreated: '2022-11-22 03:26:02.001',
-            reportID: '10',
+            reportID: 10,
             isPinned: false,
             participantAccountIDs: [2, 7],
             visibleChatMemberAccountIDs: [2, 7],
@@ -136,81 +131,71 @@ describe('OptionsListUtils', () => {
     };
 
     // And a set of personalDetails some with existing reports and some without
-    const PERSONAL_DETAILS: PersonalDetailsList = {
+    const PERSONAL_DETAILS = {
         // These exist in our reports
-        '1': {
+        1: {
             accountID: 1,
             displayName: 'Mister Fantastic',
             login: 'reedrichards@expensify.com',
             isSelected: true,
-            reportID: '1',
         },
-        '2': {
+        2: {
             accountID: 2,
             displayName: 'Iron Man',
             login: 'tonystark@expensify.com',
-            reportID: '1',
         },
-        '3': {
+        3: {
             accountID: 3,
             displayName: 'Spider-Man',
             login: 'peterparker@expensify.com',
-            reportID: '1',
         },
-        '4': {
+        4: {
             accountID: 4,
             displayName: 'Black Panther',
             login: 'tchalla@expensify.com',
-            reportID: '1',
         },
-        '5': {
+        5: {
             accountID: 5,
             displayName: 'Invisible Woman',
             login: 'suestorm@expensify.com',
-            reportID: '1',
         },
-        '6': {
+        6: {
             accountID: 6,
             displayName: 'Thor',
             login: 'thor@expensify.com',
-            reportID: '1',
         },
-        '7': {
+        7: {
             accountID: 7,
             displayName: 'Captain America',
             login: 'steverogers@expensify.com',
-            reportID: '1',
         },
-        '8': {
+        8: {
             accountID: 8,
             displayName: 'Mr Sinister',
             login: 'mistersinister@marauders.com',
-            reportID: '1',
         },
 
         // These do not exist in reports at all
-        '9': {
+        9: {
             accountID: 9,
             displayName: 'Black Widow',
             login: 'natasharomanoff@expensify.com',
-            reportID: '',
         },
-        '10': {
+        10: {
             accountID: 10,
             displayName: 'The Incredible Hulk',
             login: 'brucebanner@expensify.com',
-            reportID: '',
         },
     };
 
-    const REPORTS_WITH_CONCIERGE: OnyxCollection<Report> = {
+    const REPORTS_WITH_CONCIERGE = {
         ...REPORTS,
 
-        '11': {
+        11: {
             lastReadTime: '2021-01-14 11:25:39.302',
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
-            reportID: '11',
+            reportID: 11,
             participantAccountIDs: [999],
             visibleChatMemberAccountIDs: [999],
             reportName: 'Concierge',
@@ -218,13 +203,13 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_CHRONOS: OnyxCollection<Report> = {
+    const REPORTS_WITH_CHRONOS = {
         ...REPORTS,
-        '12': {
+        12: {
             lastReadTime: '2021-01-14 11:25:39.302',
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
-            reportID: '12',
+            reportID: 12,
             participantAccountIDs: [1000],
             visibleChatMemberAccountIDs: [1000],
             reportName: 'Chronos',
@@ -232,13 +217,13 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_RECEIPTS: OnyxCollection<Report> = {
+    const REPORTS_WITH_RECEIPTS = {
         ...REPORTS,
-        '13': {
+        13: {
             lastReadTime: '2021-01-14 11:25:39.302',
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
-            reportID: '13',
+            reportID: 13,
             participantAccountIDs: [1001],
             visibleChatMemberAccountIDs: [1001],
             reportName: 'Receipts',
@@ -246,77 +231,67 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_WORKSPACE_ROOMS: OnyxCollection<Report> = {
+    const REPORTS_WITH_WORKSPACE_ROOMS = {
         ...REPORTS,
-        '14': {
+        14: {
             lastReadTime: '2021-01-14 11:25:39.302',
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
-            reportID: '14',
+            reportID: 14,
             participantAccountIDs: [1, 10, 3],
             visibleChatMemberAccountIDs: [1, 10, 3],
             reportName: '',
             oldPolicyName: 'Avengers Room',
+            isArchivedRoom: false,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
     };
 
-    const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
+    const PERSONAL_DETAILS_WITH_CONCIERGE = {
         ...PERSONAL_DETAILS,
 
-        '999': {
+        999: {
             accountID: 999,
             displayName: 'Concierge',
             login: 'concierge@expensify.com',
-            reportID: '',
         },
     };
 
-    const PERSONAL_DETAILS_WITH_CHRONOS: PersonalDetailsList = {
+    const PERSONAL_DETAILS_WITH_CHRONOS = {
         ...PERSONAL_DETAILS,
 
-        '1000': {
+        1000: {
             accountID: 1000,
             displayName: 'Chronos',
             login: 'chronos@expensify.com',
-            reportID: '',
         },
     };
 
-    const PERSONAL_DETAILS_WITH_RECEIPTS: PersonalDetailsList = {
+    const PERSONAL_DETAILS_WITH_RECEIPTS = {
         ...PERSONAL_DETAILS,
 
-        '1001': {
+        1001: {
             accountID: 1001,
             displayName: 'Receipts',
             login: 'receipts@expensify.com',
-            reportID: '',
         },
     };
 
-    const PERSONAL_DETAILS_WITH_PERIODS: PersonalDetailsList = {
+    const PERSONAL_DETAILS_WITH_PERIODS = {
         ...PERSONAL_DETAILS,
 
-        '1002': {
+        1002: {
             accountID: 1002,
             displayName: 'The Flash',
             login: 'barry.allen@expensify.com',
-            reportID: '',
         },
     };
 
-    const policyID = 'ABC123';
-
-    const POLICY: Policy = {
-        id: policyID,
+    const POLICY = {
+        policyID: 'ABC123',
         name: 'Hero Policy',
-        role: 'user',
-        type: 'free',
-        owner: '',
-        outputCurrency: '',
-        isPolicyExpenseChatEnabled: false,
     };
 
     // Set the currently logged in user, report data, and personal details
@@ -325,12 +300,11 @@ describe('OptionsListUtils', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: 2, email: 'tonystark@expensify.com'},
-                [`${ONYXKEYS.COLLECTION.REPORT}100` as const]: {
-                    reportID: '',
+                [`${ONYXKEYS.COLLECTION.REPORT}100`]: {
                     ownerAccountID: 8,
-                    total: 1000,
+                    total: '1000',
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: POLICY,
+                [`${ONYXKEYS.COLLECTION.POLICY}${POLICY.policyID}`]: POLICY,
             },
         });
         Onyx.registerLogger(() => {});
@@ -345,7 +319,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(2);
 
         // Then all of the reports should be shown including the archived rooms.
-        expect(results.recentReports.length).toBe(Object.values(REPORTS).length);
+        expect(results.recentReports.length).toBe(_.size(REPORTS));
 
         // When we filter again but provide a searchValue
         results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, 'spider');
@@ -386,7 +360,7 @@ describe('OptionsListUtils', () => {
 
         // We should expect all personalDetails to be returned,
         // minus the currently logged in user and recent reports count
-        expect(results.personalDetails.length).toBe(Object.values(PERSONAL_DETAILS).length - 1 - MAX_RECENT_REPORTS);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 1 - MAX_RECENT_REPORTS);
 
         // We should expect personal details sorted alphabetically
         expect(results.personalDetails[0].text).toBe('Black Widow');
@@ -395,11 +369,11 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
 
         // Then the result which has an existing report should also have the reportID attached
-        const personalDetailWithExistingReport = results.personalDetails.find((personalDetail) => personalDetail.login === 'peterparker@expensify.com');
-        expect(personalDetailWithExistingReport?.reportID).toBe('2');
+        const personalDetailWithExistingReport = _.find(results.personalDetails, (personalDetail) => personalDetail.login === 'peterparker@expensify.com');
+        expect(personalDetailWithExistingReport.reportID).toBe(2);
 
         // When we only pass personal details
-        results = OptionsListUtils.getFilteredOptions({}, PERSONAL_DETAILS, [], '');
+        results = OptionsListUtils.getFilteredOptions([], PERSONAL_DETAILS, [], '');
 
         // We should expect personal details sorted alphabetically
         expect(results.personalDetails[0].text).toBe('Black Panther');
@@ -440,28 +414,28 @@ describe('OptionsListUtils', () => {
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
         // (minus the 5 that are already showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(Object.values(PERSONAL_DETAILS_WITH_CONCIERGE).length - 1 - MAX_RECENT_REPORTS);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 1 - MAX_RECENT_REPORTS);
         expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Concierge from the results
         results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, [], '', [], [CONST.EMAIL.CONCIERGE]);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(Object.values(PERSONAL_DETAILS_WITH_CONCIERGE).length - 2 - MAX_RECENT_REPORTS);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 2 - MAX_RECENT_REPORTS);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, [], '', [], [CONST.EMAIL.CHRONOS]);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(Object.values(PERSONAL_DETAILS_WITH_CHRONOS).length - 2 - MAX_RECENT_REPORTS);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CHRONOS) - 2 - MAX_RECENT_REPORTS);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getFilteredOptions(REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, [], '', [], [CONST.EMAIL.RECEIPTS]);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(Object.values(PERSONAL_DETAILS_WITH_RECEIPTS).length - 2 - MAX_RECENT_REPORTS);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_RECEIPTS) - 2 - MAX_RECENT_REPORTS);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
     });
 
@@ -474,7 +448,7 @@ describe('OptionsListUtils', () => {
 
         // And we should expect all the personalDetails to show (minus the 5 that are already
         // showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(Object.values(PERSONAL_DETAILS).length - 6);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 6);
 
         // We should expect personal details sorted alphabetically
         expect(results.personalDetails[0].text).toBe('Black Widow');
@@ -483,8 +457,8 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[3].text).toBe('The Incredible Hulk');
 
         // And none of our personalDetails should include any of the users with recent reports
-        const reportLogins = results.recentReports.map((reportOption) => reportOption.login);
-        const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.includes(personalDetailOption.login));
+        const reportLogins = _.map(results.recentReports, (reportOption) => reportOption.login);
+        const personalDetailsOverlapWithReports = _.every(results.personalDetails, (personalDetailOption) => _.contains(reportLogins, personalDetailOption.login));
         expect(personalDetailsOverlapWithReports).toBe(false);
 
         // When we search for an option that is only in a personalDetail with no existing report
@@ -513,15 +487,15 @@ describe('OptionsListUtils', () => {
 
         // Then one of our older report options (not in our five most recent) should appear in the personalDetails
         // but not in recentReports
-        expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
-        expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(false);
+        expect(_.every(results.recentReports, (option) => option.login !== 'peterparker@expensify.com')).toBe(true);
+        expect(_.every(results.personalDetails, (option) => option.login !== 'peterparker@expensify.com')).toBe(false);
 
         // When we provide a "selected" option to getFilteredOptions()
         results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '', [{login: 'peterparker@expensify.com'}]);
 
         // Then the option should not appear anywhere in either list
-        expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
-        expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
+        expect(_.every(results.recentReports, (option) => option.login !== 'peterparker@expensify.com')).toBe(true);
+        expect(_.every(results.personalDetails, (option) => option.login !== 'peterparker@expensify.com')).toBe(true);
 
         // When we add a search term for which no options exist and the searchValue itself
         // is not a potential email or phone
@@ -557,7 +531,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(0);
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite?.login).toBe('+15005550006');
+        expect(results.userToInvite.login).toBe('+15005550006');
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number with country code added
@@ -568,7 +542,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(0);
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite?.login).toBe('+15005550006');
+        expect(results.userToInvite.login).toBe('+15005550006');
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number with special characters added
@@ -579,7 +553,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(0);
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite?.login).toBe('+18003243233');
+        expect(results.userToInvite.login).toBe('+18003243233');
 
         // When we use a search term for contact number that contains alphabet characters
         results = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], '998243aaaa');
@@ -594,7 +568,7 @@ describe('OptionsListUtils', () => {
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
         // (minus the 5 that are already showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(Object.values(PERSONAL_DETAILS_WITH_CONCIERGE).length - 6);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 6);
         expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Concierge from the results
@@ -602,7 +576,7 @@ describe('OptionsListUtils', () => {
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
         // the currently logged in user and Concierge)
-        expect(results.personalDetails.length).toBe(Object.values(PERSONAL_DETAILS_WITH_CONCIERGE).length - 7);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 7);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
@@ -611,7 +585,7 @@ describe('OptionsListUtils', () => {
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
         // the currently logged in user and Concierge)
-        expect(results.personalDetails.length).toBe(Object.values(PERSONAL_DETAILS_WITH_CHRONOS).length - 7);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CHRONOS) - 7);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
@@ -620,27 +594,26 @@ describe('OptionsListUtils', () => {
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
         // the currently logged in user and Concierge)
-        expect(results.personalDetails.length).toBe(Object.values(PERSONAL_DETAILS_WITH_RECEIPTS).length - 7);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_RECEIPTS) - 7);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
     });
 
     it('getShareDestinationsOptions()', () => {
         // Filter current REPORTS as we do in the component, before getting share destination options
-        const filteredReports = Object.entries(REPORTS).reduce<Record<string, OnyxEntry<Report>>>((reports, [reportKey, report]) => {
-            if (!ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
-                return reports;
+        const filteredReports = {};
+        _.keys(REPORTS).forEach((reportKey) => {
+            if (!ReportUtils.canUserPerformWriteAction(REPORTS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS[reportKey])) {
+                return;
             }
-            // eslint-disable-next-line no-param-reassign
-            reports[reportKey] = report;
-            return reports;
-        }, {});
+            filteredReports[reportKey] = REPORTS[reportKey];
+        });
 
         // When we pass an empty search value
         let results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], '');
 
         // Then we should expect all the recent reports to show but exclude the archived rooms
-        expect(results.recentReports.length).toBe(Object.values(REPORTS).length - 1);
+        expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
 
         // When we pass a search value that doesn't match the group chat name
         results = OptionsListUtils.getShareDestinationOptions(filteredReports, PERSONAL_DETAILS, [], 'mutants');
@@ -655,19 +628,20 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(1);
 
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
-        const filteredReportsWithWorkspaceRooms = Object.entries(REPORTS_WITH_WORKSPACE_ROOMS).reduce<Record<string, OnyxEntry<Report>>>((reports, [reportKey, report]) => {
-            if (!ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
-                return reports;
+        const filteredReportsWithWorkspaceRooms = {};
+        _.keys(REPORTS_WITH_WORKSPACE_ROOMS).forEach((reportKey) => {
+            if (!ReportUtils.canUserPerformWriteAction(REPORTS_WITH_WORKSPACE_ROOMS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS_WITH_WORKSPACE_ROOMS[reportKey])) {
+                return;
             }
-            return {...reports, [reportKey]: report};
-        }, {});
+            filteredReportsWithWorkspaceRooms[reportKey] = REPORTS_WITH_WORKSPACE_ROOMS[reportKey];
+        });
 
         // When we also have a policy to return rooms in the results
         results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], '');
 
         // Then we should expect the DMS, the group chats and the workspace room to show
         // We should expect all the recent reports to show, excluding the archived rooms
-        expect(results.recentReports.length).toBe(Object.values(REPORTS_WITH_WORKSPACE_ROOMS).length - 1);
+        expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_WORKSPACE_ROOMS) - 1);
 
         // When we search for a workspace room
         results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, PERSONAL_DETAILS, [], 'Avengers Room');
@@ -711,51 +685,31 @@ describe('OptionsListUtils', () => {
         const emptySearch = '';
         const wrongSearch = 'bla bla';
         const recentlyUsedCategories = ['Taxi', 'Restaurant'];
-        const selectedOptions: Array<Partial<ReportUtils.OptionData>> = [
+        const selectedOptions = [
             {
                 name: 'Medical',
                 enabled: true,
             },
         ];
-        const smallCategoriesList: PolicyCategories = {
+        const smallCategoriesList = {
             Taxi: {
                 enabled: false,
                 name: 'Taxi',
-                unencodedName: 'Taxi',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             Restaurant: {
                 enabled: true,
                 name: 'Restaurant',
-                unencodedName: 'Restaurant',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             Food: {
                 enabled: true,
                 name: 'Food',
-                unencodedName: 'Food',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Food: Meat': {
                 enabled: true,
                 name: 'Food: Meat',
-                unencodedName: 'Food: Meat',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
         };
-        const smallResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const smallResultList = [
             {
                 title: '',
                 shouldShow: false,
@@ -788,7 +742,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const smallSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const smallSearchResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -813,7 +767,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const smallWrongSearchResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -821,135 +775,65 @@ describe('OptionsListUtils', () => {
                 data: [],
             },
         ];
-        const largeCategoriesList: PolicyCategories = {
+        const largeCategoriesList = {
             Taxi: {
                 enabled: false,
                 name: 'Taxi',
-                unencodedName: 'Taxi',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             Restaurant: {
                 enabled: true,
                 name: 'Restaurant',
-                unencodedName: 'Restaurant',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             Food: {
                 enabled: true,
                 name: 'Food',
-                unencodedName: 'Food',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Food: Meat': {
                 enabled: true,
                 name: 'Food: Meat',
-                unencodedName: 'Food: Meat',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Food: Milk': {
                 enabled: true,
                 name: 'Food: Milk',
-                unencodedName: 'Food: Milk',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Food: Vegetables': {
                 enabled: false,
                 name: 'Food: Vegetables',
-                unencodedName: 'Food: Vegetables',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Cars: Audi': {
                 enabled: true,
                 name: 'Cars: Audi',
-                unencodedName: 'Cars: Audi',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Cars: BMW': {
                 enabled: false,
                 name: 'Cars: BMW',
-                unencodedName: 'Cars: BMW',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Cars: Mercedes-Benz': {
                 enabled: true,
                 name: 'Cars: Mercedes-Benz',
-                unencodedName: 'Cars: Mercedes-Benz',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             Medical: {
                 enabled: false,
                 name: 'Medical',
-                unencodedName: 'Medical',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Travel: Meals': {
                 enabled: true,
                 name: 'Travel: Meals',
-                unencodedName: 'Travel: Meals',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Travel: Meals: Breakfast': {
                 enabled: true,
                 name: 'Travel: Meals: Breakfast',
-                unencodedName: 'Travel: Meals: Breakfast',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Travel: Meals: Dinner': {
                 enabled: false,
                 name: 'Travel: Meals: Dinner',
-                unencodedName: 'Travel: Meals: Dinner',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
             'Travel: Meals: Lunch': {
                 enabled: true,
                 name: 'Travel: Meals: Lunch',
-                unencodedName: 'Travel: Meals: Lunch',
-                areCommentsRequired: false,
-                'GL Code': '',
-                externalID: '',
-                origin: '',
             },
         };
-        const largeResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const largeResultList = [
             {
                 title: '',
                 shouldShow: false,
@@ -1076,7 +960,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const largeSearchResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -1109,7 +993,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const largeWrongSearchResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -1118,7 +1002,7 @@ describe('OptionsListUtils', () => {
             },
         ];
         const emptyCategoriesList = {};
-        const emptySelectedResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const emptySelectedResultList = [
             {
                 title: '',
                 shouldShow: false,
@@ -1205,29 +1089,25 @@ describe('OptionsListUtils', () => {
                 name: 'Medical',
             },
         ];
-        const smallTagsList: Record<string, Tag> = {
+        const smallTagsList = {
             Engineering: {
                 enabled: false,
                 name: 'Engineering',
-                accountID: null,
             },
             Medical: {
                 enabled: true,
                 name: 'Medical',
-                accountID: null,
             },
             Accounting: {
                 enabled: true,
                 name: 'Accounting',
-                accountID: null,
             },
             HR: {
                 enabled: true,
                 name: 'HR',
-                accountID: null,
             },
         };
-        const smallResultList: OptionsListUtils.CategorySection[] = [
+        const smallResultList = [
             {
                 title: '',
                 shouldShow: false,
@@ -1258,7 +1138,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const smallSearchResultList: OptionsListUtils.CategorySection[] = [
+        const smallSearchResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -1274,7 +1154,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const smallWrongSearchResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -1282,64 +1162,53 @@ describe('OptionsListUtils', () => {
                 data: [],
             },
         ];
-        const largeTagsList: Record<string, Tag> = {
+        const largeTagsList = {
             Engineering: {
                 enabled: false,
                 name: 'Engineering',
-                accountID: null,
             },
             Medical: {
                 enabled: true,
                 name: 'Medical',
-                accountID: null,
             },
             Accounting: {
                 enabled: true,
                 name: 'Accounting',
-                accountID: null,
             },
             HR: {
                 enabled: true,
                 name: 'HR',
-                accountID: null,
             },
             Food: {
                 enabled: true,
                 name: 'Food',
-                accountID: null,
             },
             Traveling: {
                 enabled: false,
                 name: 'Traveling',
-                accountID: null,
             },
             Cleaning: {
                 enabled: true,
                 name: 'Cleaning',
-                accountID: null,
             },
             Software: {
                 enabled: true,
                 name: 'Software',
-                accountID: null,
             },
             OfficeSupplies: {
                 enabled: false,
                 name: 'Office Supplies',
-                accountID: null,
             },
             Taxes: {
                 enabled: true,
                 name: 'Taxes',
-                accountID: null,
             },
             Benefits: {
                 enabled: true,
                 name: 'Benefits',
-                accountID: null,
             },
         };
-        const largeResultList: OptionsListUtils.CategorySection[] = [
+        const largeResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -1426,7 +1295,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList: OptionsListUtils.CategorySection[] = [
+        const largeSearchResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -1449,7 +1318,7 @@ describe('OptionsListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const largeWrongSearchResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -2194,7 +2063,7 @@ describe('OptionsListUtils', () => {
         const emptySearch = '';
         const wrongSearch = 'bla bla';
 
-        const taxRatesWithDefault: TaxRatesWithDefault = {
+        const taxRatesWithDefault = {
             name: 'Tax',
             defaultExternalID: 'CODE1',
             defaultValue: '0%',
@@ -2203,25 +2072,19 @@ describe('OptionsListUtils', () => {
                 CODE2: {
                     name: 'Tax rate 2',
                     value: '3%',
-                    code: 'CODE2',
-                    modifiedName: 'Tax rate 2 (3%)',
                 },
                 CODE3: {
                     name: 'Tax option 3',
                     value: '5%',
-                    code: 'CODE3',
-                    modifiedName: 'Tax option 3 (5%)',
                 },
                 CODE1: {
                     name: 'Tax exempt 1',
                     value: '0%',
-                    code: 'CODE1',
-                    modifiedName: 'Tax exempt 1 (0%) • Default',
                 },
             },
         };
 
-        const resultList: OptionsListUtils.CategorySection[] = [
+        const resultList = [
             {
                 title: '',
                 shouldShow: false,
@@ -2274,7 +2137,7 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const searchResultList: OptionsListUtils.CategorySection[] = [
+        const searchResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -2298,7 +2161,7 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const wrongSearchResultList: OptionsListUtils.CategorySection[] = [
+        const wrongSearchResultList = [
             {
                 title: '',
                 shouldShow: true,
@@ -2319,7 +2182,7 @@ describe('OptionsListUtils', () => {
     });
 
     it('formatMemberForList()', () => {
-        const formattedMembers = Object.values(PERSONAL_DETAILS).map((personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
+        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
 
         // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
         expect(formattedMembers[0].text).toBe('Mister Fantastic');
@@ -2330,9 +2193,9 @@ describe('OptionsListUtils', () => {
         expect(formattedMembers[0].isSelected).toBe(true);
 
         // And all the others to be unselected
-        expect(formattedMembers.slice(1).every((personalDetail) => !personalDetail.isSelected)).toBe(true);
+        expect(_.every(formattedMembers.slice(1), (personalDetail) => !personalDetail.isSelected)).toBe(true);
 
         // `isDisabled` is always false
-        expect(formattedMembers.every((personalDetail) => !personalDetail.isDisabled)).toBe(true);
+        expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isDisabled)).toBe(true);
     });
 });
