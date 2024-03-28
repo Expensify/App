@@ -652,12 +652,16 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  */
-function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareToReportID: string, isCurrentUser = false): OnyxEntry<OnyxTypes.Report> {
+function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareToReportID: string, isCurrentUser = false, report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTypes.Report> {
     let chatReport: OnyxEntry<OnyxTypes.Report> = null;
 
     if (!isCurrentUser) {
-        const reportID = shareToReportID;
-        chatReport = ReportUtils.getChatByReportID(reportID);
+        if(report) {
+            chatReport = report;
+        }
+        else {
+            chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
+        }
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
             chatReport.isOptimisticReport = true;
@@ -710,14 +714,14 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID: string, accountID = 0) {
+function clearOutTaskInfoAndNavigate(reportID: string, accountID = 0, report: OnyxEntry<OnyxTypes.Report>) {
     clearOutTaskInfo();
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
     }
     if (accountID > 0) {
         const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
-        setAssigneeValue(accountLogin, accountID, reportID);
+        setAssigneeValue(accountLogin, accountID, reportID, false, report);
     }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
