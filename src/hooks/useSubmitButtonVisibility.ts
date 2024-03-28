@@ -10,16 +10,17 @@ import useWindowDimensions from './useWindowDimensions';
 // to let form content fill the page when virtual keyboard is shown
 function useSubmitButtonVisibility() {
     const styles = useThemeStyles();
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const [isSubmitButtonVisible, setIsSubmitButtonVisible] = useState(true);
     const initialWindowHeightRef = useRef(windowHeight);
+    const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
     const {bottom} = useSafeAreaInsets();
 
     // Web: the submit button is shown when the height of the window is the same or greater,
     // otherwise it's hidden
     useEffect(() => {
         const dimensionsListener = Dimensions.addEventListener('change', ({window}) => {
-            if (getPlatform() !== CONST.PLATFORM.WEB) {
+            if (getPlatform() !== CONST.PLATFORM.WEB || !isSmallScreenWidthRef.current) {
                 return;
             }
 
