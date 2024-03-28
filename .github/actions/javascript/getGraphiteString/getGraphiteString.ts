@@ -1,6 +1,6 @@
-const core = require('@actions/core');
-const github = require('@actions/github');
-const fs = require('fs');
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import fs from 'fs';
 
 const run = () => {
     // Prefix path to the graphite metric
@@ -11,8 +11,10 @@ const run = () => {
         regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
     } catch (err) {
         // Handle errors that occur during file reading or parsing
-        console.error('Error while parsing output.json:', err.message);
-        core.setFailed(err);
+        if (err instanceof Error) {
+            console.error('Error while parsing output.json:', err.message);
+            core.setFailed(err);
+        }
     }
 
     const creationDate = regressionOutput.metadata.current.creationDate;
@@ -22,7 +24,7 @@ const run = () => {
     const timestamp = Math.floor(timestampInMili / 1000);
 
     // Get PR number from the github context
-    const prNumber = github.context.payload.pull_request.number;
+    const prNumber = github.context.payload.pull_request?.number;
 
     // We need to combine all tests from the 4 buckets
     const reassureTests = [...regressionOutput.meaningless, ...regressionOutput.significant, ...regressionOutput.countChanged, ...regressionOutput.added];
@@ -51,4 +53,4 @@ if (require.main === module) {
     run();
 }
 
-module.exports = run;
+export default run;
