@@ -113,11 +113,17 @@ function ReportActionItemMessageEdit(
     const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
+    // The ref to check whether the comment saving is in progress
+    const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
         const parser = new ExpensiMark();
         const originalMessage = parser.htmlToMarkdown(action.message?.[0].html ?? '');
-        if (ReportActionsUtils.isDeletedAction(action) || Boolean(action.message && draftMessage === originalMessage) || Boolean(prevDraftMessage === draftMessage)) {
+        if (
+            ReportActionsUtils.isDeletedAction(action) ||
+            Boolean(action.message && draftMessage === originalMessage) ||
+            Boolean(prevDraftMessage === draftMessage || isCommentPendingSaved.current)
+        ) {
             return;
         }
         setDraft(draftMessage);
@@ -218,6 +224,7 @@ function ReportActionItemMessageEdit(
         () =>
             lodashDebounce((newDraft: string) => {
                 Report.saveReportActionDraft(reportID, action, newDraft);
+                isCommentPendingSaved.current = false;
             }, 1000),
         [reportID, action],
     );
@@ -267,6 +274,7 @@ function ReportActionItemMessageEdit(
 
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
             debouncedSaveDraft(newDraft);
+            isCommentPendingSaved.current = true;
         },
         [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, preferredSkinTone, preferredLocale, selection.end],
     );
@@ -281,6 +289,7 @@ function ReportActionItemMessageEdit(
      */
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
+        isCommentPendingSaved.current = false;
         Report.deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
