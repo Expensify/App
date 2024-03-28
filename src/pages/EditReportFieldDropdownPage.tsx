@@ -89,7 +89,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
                 });
             }
 
-            const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((option) => option !== selectedValue);
+            const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((option) => option !== selectedValue && fieldOptions.includes(option));
             if (filteredRecentlyUsedOptions.length > 0) {
                 newSections.push({
                     title: translate('common.recents'),
