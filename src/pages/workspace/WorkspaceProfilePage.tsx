@@ -218,7 +218,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 </Text>
                             </View>
                         </OfflineWithFeedback>
-                        {canUseSpotnanaTravel ?? (
+                        {canUseSpotnanaTravel && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <View>
                                     <MenuItemWithTopDescription
