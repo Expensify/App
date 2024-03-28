@@ -1700,21 +1700,22 @@ function getUpdateMoneyRequestParams(
 
     if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(
-                updatedTransaction,
-                currentTransactionViolations,
-                !!policy.requiresTag,
-                policyTagList ?? {},
-                !!policy.requiresCategory,
-                policyCategories ?? {},
-            ),
+        const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+            updatedTransaction,
+            currentTransactionViolations,
+            !!policy.requiresTag,
+            policyTagList ?? {},
+            !!policy.requiresCategory,
+            policyCategories ?? {},
         );
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentTransactionViolations,
-        });
+        if (updatedViolationsOnyxData) {
+            optimisticData.push(updatedViolationsOnyxData);
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: currentTransactionViolations,
+            });
+        }
     }
 
     // Reset the transaction thread to its original state
@@ -3505,12 +3506,14 @@ function editRegularMoneyRequest(
             !!policy.requiresCategory,
             policyCategories,
         );
-        optimisticData.push(updatedViolationsOnyxData);
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentTransactionViolations,
-        });
+        if (updatedViolationsOnyxData) {
+            optimisticData.push(updatedViolationsOnyxData);
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: currentTransactionViolations,
+            });
+        }
     }
 
     // STEP 6: Call the API endpoint
