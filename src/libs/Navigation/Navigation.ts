@@ -94,7 +94,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
 function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
     switch (url) {
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
-            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
         default:
             return url;
     }
@@ -247,14 +247,6 @@ function resetToHome() {
 }
 
 /**
- * Close the full screen modal.
- */
-function closeFullScreen() {
-    const rootState = navigationRef.getRootState();
-    navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
-}
-
-/**
  * Update route params for the specified route.
  */
 function setParams(params: Record<string, unknown>, routeKey = '') {
@@ -359,6 +351,14 @@ function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
     return switchPolicyID(navigationRef.current, params);
 }
 
+/** Check if the modal is being displayed */
+function isDisplayedInModal() {
+    const state = navigationRef?.current?.getRootState();
+    const lastRoute = state?.routes?.at(-1);
+    const lastRouteName = lastRoute?.name;
+    return lastRouteName === NAVIGATORS.LEFT_MODAL_NAVIGATOR || lastRouteName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -376,9 +376,9 @@ export default {
     getTopmostReportActionId,
     waitForProtectedRoutes,
     parseHybridAppUrl,
-    closeFullScreen,
     navigateWithSwitchPolicyID,
     resetToHome,
+    isDisplayedInModal,
 };
 
 export {navigationRef};

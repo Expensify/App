@@ -8,6 +8,7 @@ import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
@@ -15,6 +16,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 import shouldReplayVideo from './shouldReplayVideo';
+import * as VideoUtils from './utils';
 import VideoPlayerControls from './VideoPlayerControls';
 
 const isMobileSafari = Browser.isMobileSafari();
@@ -44,12 +46,14 @@ function BaseVideoPlayer({
     const styles = useThemeStyles();
     const {pauseVideo, playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} =
         usePlaybackContext();
+    const {isOffline} = useNetwork();
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isBuffering, setIsBuffering] = useState(true);
-    const [sourceURL] = useState(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url));
+    // we add "#t=0.001" at the end of the URL to skip first milisecond of the video and always be able to show proper video preview when video is paused at the beginning
+    const [sourceURL] = useState(VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const videoPlayerRef = useRef(null);
@@ -62,16 +66,18 @@ function BaseVideoPlayer({
     const isUploading = _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => url.startsWith(prefix));
     const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
 
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
-        } else if (isPlaying) {
+        } else if (isPlaying && !isFullscreen) {
             pauseVideo();
-        } else {
+        } else if (!isFullscreen) {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, isFullscreen]);
 
     const showPopoverMenu = (e) => {
         setPopoverAnchorPosition({horizontal: e.nativeEvent.pageX, vertical: e.nativeEvent.pageY});
@@ -121,6 +127,8 @@ function BaseVideoPlayer({
     const handleFullscreenUpdate = useCallback(
         (e) => {
             onFullscreenUpdate(e);
+
+            setIsFullscreen(e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_PRESENT);
 
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
@@ -247,13 +255,20 @@ function BaseVideoPlayer({
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             videoStyle={[styles.w100, styles.h100, videoStyle]}
                                             source={{
-                                                uri: sourceURL,
+                                                // if video is loading and is offline, we want to change uri to null to
+                                                // reset the video player after connection is back
+                                                uri: !isLoading || (isLoading && !isOffline) ? sourceURL : null,
                                             }}
                                             shouldPlay={false}
                                             useNativeControls={false}
                                             resizeMode={resizeMode}
                                             isLooping={isLooping}
-                                            onReadyForDisplay={onVideoLoaded}
+                                            onReadyForDisplay={(e) => {
+                                                if (isCurrentlyURLSet && !isUploading) {
+                                                    playVideo();
+                                                }
+                                                onVideoLoaded(e);
+                                            }}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
                                         />

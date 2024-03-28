@@ -289,6 +289,20 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
 }
 
 /**
+ * Helper method to return eReceipt color code for Receipt Thumbnails
+ */
+function getFileExtensionColorCode(fileExtension?: string): EReceiptColorName {
+    switch (fileExtension) {
+        case CONST.IOU.FILE_TYPES.DOC:
+            return CONST.ERECEIPT_COLORS.PINK;
+        case CONST.IOU.FILE_TYPES.HTML:
+            return CONST.ERECEIPT_COLORS.TANGERINE;
+        default:
+            return CONST.ERECEIPT_COLORS.GREEN;
+    }
+}
+
+/**
  * Helper method to return eReceipt color styles
  */
 function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyle | undefined {
@@ -461,14 +475,14 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
     };
 }
 
-function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number): Pick<ImageSVGProps, 'width' | 'height'> {
+function getIconWidthAndHeightStyle(small: boolean, medium: boolean, large: boolean, width: number, height: number, hasText?: boolean): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
         case small:
-            return {width: variables.iconSizeExtraSmall, height: variables.iconSizeExtraSmall};
+            return {width: hasText ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: hasText ? variables.iconSizeExtraSmall : variables?.iconSizeSmall};
         case medium:
-            return {width: variables.iconSizeSmall, height: variables.iconSizeSmall};
+            return {width: hasText ? variables.iconSizeSmall : variables.iconSizeNormal, height: hasText ? variables.iconSizeSmall : variables.iconSizeNormal};
         case large:
-            return {width: variables.iconSizeNormal, height: variables.iconSizeNormal};
+            return {width: hasText ? variables.iconSizeNormal : variables.iconSizeLarge, height: hasText ? variables.iconSizeNormal : variables.iconSizeLarge};
         default: {
             return {width, height};
         }
@@ -499,6 +513,10 @@ function getButtonStyleWithIcon(
             return useDefaultButtonStyles ? styles.buttonLarge : {...styles.buttonLarge, ...(hasText ? verticalStyle : styles.ph0)};
         }
         default: {
+            if (hasIcon && !hasText) {
+                return {...styles.buttonMedium, ...styles.ph0};
+            }
+
             return undefined;
         }
     }
@@ -751,7 +769,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMon
     if (isSmallScreenWidth) {
         return {
             height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '200%',
+            width: '100%',
             position: 'absolute',
         };
     }
@@ -1135,6 +1153,7 @@ const staticStyleUtils = {
     parseStyleFromFunction,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
     getOpacityStyle,
@@ -1537,7 +1556,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
 
     getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
-        ...styles.mr3,
         ...(isSelected && styles.checkedContainer),
         ...(isSelected && styles.borderColorFocus),
         ...(isDisabled && styles.cursorDisabled),

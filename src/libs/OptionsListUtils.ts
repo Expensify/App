@@ -7,6 +7,7 @@ import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {SelectedTagOption} from '@components/TagPicker';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +20,7 @@ import type {
     PolicyCategories,
     PolicyTag,
     PolicyTagList,
+    PolicyTags,
     Report,
     ReportAction,
     ReportActions,
@@ -53,12 +55,6 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-
-type Tag = {
-    enabled: boolean;
-    name: string;
-    accountID: number | null;
-};
 
 type Option = Partial<ReportUtils.OptionData>;
 
@@ -131,7 +127,7 @@ type GetOptionsConfig = {
     categories?: PolicyCategories;
     recentlyUsedCategories?: string[];
     includeTags?: boolean;
-    tags?: Record<string, Tag>;
+    tags?: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
@@ -521,7 +517,8 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
  */
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
     return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
-        ? lastActorDetails.firstName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+        ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+          lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
         : '';
 }
 
@@ -569,6 +566,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             ReportUtils.isChatReport(report),
             null,
             true,
+            lastReportAction,
         );
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
@@ -734,6 +732,35 @@ function createOption(
 }
 
 /**
+ * Get the option for a given report.
+ */
+function getReportOption(participant: Participant): ReportUtils.OptionData {
+    const report = ReportUtils.getReport(participant.reportID);
+
+    const option = createOption(
+        report?.visibleChatMemberAccountIDs ?? [],
+        allPersonalDetails ?? {},
+        !isEmptyObject(report) ? report : null,
+        {},
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+    );
+
+    // Update text & alternateText because createOption returns workspace name only if report is owned by the user
+    if (option.isSelfDM) {
+        option.alternateText = Localize.translateLocal('reportActionsView.yourSpace');
+    } else {
+        option.text = ReportUtils.getPolicyName(report);
+        option.alternateText = Localize.translateLocal('workspace.common.workspace');
+    }
+    option.selected = participant.selected;
+    option.isSelected = participant.selected;
+    return option;
+}
+
+/**
  * Get the option for a policy expense report.
  */
 function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
@@ -862,7 +889,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
             if (name) {
                 const categoryObject: Category = {
                     name,
-                    enabled: categories[name].enabled ?? false,
+                    enabled: categories[name]?.enabled ?? false,
                 };
 
                 acc.push(categoryObject);
@@ -883,7 +910,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
 /**
  * Sorts tags alphabetically by name.
  */
-function sortTags(tags: Record<string, Tag> | Tag[]) {
+function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
     let sortedTags;
 
     if (Array.isArray(tags)) {
@@ -960,11 +987,11 @@ function getCategoryListSections(
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
 
     const categorySections: CategoryTreeSection[] = [];
-    const numberOfCategories = enabledCategories.length;
+    const numberOfEnabledCategories = enabledCategories.length;
 
     let indexOffset = 0;
 
-    if (numberOfCategories === 0 && selectedOptions.length > 0) {
+    if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
@@ -1000,22 +1027,6 @@ function getCategoryListSections(
         return categorySections;
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = [...selectedOptions, ...sortedCategories.filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
-    const numberOfVisibleCategories = enabledAndSelectedCategories.length;
-
-    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(enabledAndSelectedCategories),
-        });
-
-        return categorySections;
-    }
-
     if (selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
@@ -1026,6 +1037,21 @@ function getCategoryListSections(
         });
 
         indexOffset += selectedOptions.length;
+    }
+
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
+
+    if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(filteredCategories, false, selectedOptionNames),
+        });
+
+        return categorySections;
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
@@ -1049,8 +1075,6 @@ function getCategoryListSections(
         indexOffset += filteredRecentlyUsedCategories.length;
     }
 
-    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
-
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
@@ -1067,7 +1091,7 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Category[]): Option[] {
+function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
@@ -1084,7 +1108,13 @@ function getTagsOptions(tags: Category[]): Option[] {
 /**
  * Build the section list for tags
  */
-function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
+function getTagListSections(
+    tags: Array<PolicyTag | SelectedTagOption>,
+    recentlyUsedTags: string[],
+    selectedOptions: SelectedTagOption[],
+    searchInputValue: string,
+    maxRecentReportsToShow: number,
+) {
     const tagSections = [];
     const sortedTags = sortTags(tags);
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
@@ -1202,8 +1232,8 @@ function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>
  * @param  taxRates - The original tax rates object.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined): Record<string, TaxRate> {
-    const defaultTaxKey = taxRates?.defaultExternalID;
+function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined, defaultKey?: string): Record<string, TaxRate> {
+    const defaultTaxKey = defaultKey ?? taxRates?.defaultExternalID;
     const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
@@ -1234,10 +1264,10 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string, defaultTaxKey?: string): CategorySection[] {
     const policyRatesSections = [];
 
-    const taxes = transformedTaxRates(taxRates);
+    const taxes = transformedTaxRates(taxRates, defaultTaxKey);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
@@ -1264,7 +1294,7 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
     }
 
     if (searchInputValue) {
-        const searchTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         policyRatesSections.push({
             // "Search" section
@@ -1290,7 +1320,7 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const filteredTaxRates = enabledTaxRates.filter((taxRate) => !selectedOptionNames.includes(taxRate.modifiedName));
+    const filteredTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName && !selectedOptionNames.includes(taxRate.modifiedName));
 
     if (selectedOptions.length > 0) {
         const selectedTaxRatesOptions = selectedOptions.map((option) => {
@@ -1396,7 +1426,7 @@ function getOptions(
     }
 
     if (includeTags) {
-        const tagOptions = getTagListSections(Object.values(tags), recentlyUsedTags, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
+        const tagOptions = getTagListSections(Object.values(tags), recentlyUsedTags, selectedOptions as SelectedTagOption[], searchInputValue, maxRecentReportsToShow);
 
         return {
             recentReports: [],
@@ -1769,6 +1799,8 @@ function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: On
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
+        includeSelfDM: true,
+        includeThreads: true,
     });
 }
 
@@ -1821,7 +1853,7 @@ function getFilteredOptions(
     categories: PolicyCategories = {},
     recentlyUsedCategories: string[] = [],
     includeTags = false,
-    tags: Record<string, Tag> = {},
+    tags: PolicyTags | Array<PolicyTag | SelectedTagOption> = {},
     recentlyUsedTags: string[] = [],
     canInviteUser = true,
     includeSelectedOptions = false,
@@ -2074,6 +2106,8 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
     getShareLogOptions,
+    getReportOption,
+    getTaxRatesSection,
 };
 
-export type {MemberForList, CategorySection, GetOptions, PayeePersonalDetails};
+export type {MemberForList, CategorySection, CategoryTreeSection, GetOptions, PayeePersonalDetails, Category, Tag};
