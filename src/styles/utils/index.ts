@@ -1239,7 +1239,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             height: avatarSize,
             width: avatarSize,
             borderRadius: avatarSize,
-            backgroundColor: theme.offline,
+            backgroundColor: theme.border,
         };
     },
 
