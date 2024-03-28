@@ -13,8 +13,8 @@ type Entry = {
 type Data = {
     significance: Entry[];
     meaningless: Entry[];
-    errors: string[];
-    warnings: string[];
+    errors?: string[];
+    warnings?: string[];
 };
 
 const printRegularLine = (entry: Entry) => {

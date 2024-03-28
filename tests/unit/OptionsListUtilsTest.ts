@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {SelectedTagOption} from '@components/TagPicker';
 import CONST from '@src/CONST';
-import type {Tag} from '@src/libs/OptionsListUtils';
 import * as OptionsListUtils from '@src/libs/OptionsListUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1205,7 +1205,7 @@ describe('OptionsListUtils', () => {
                 name: 'Medical',
             },
         ];
-        const smallTagsList: Record<string, Tag> = {
+        const smallTagsList: Record<string, SelectedTagOption> = {
             Engineering: {
                 enabled: false,
                 name: 'Engineering',
@@ -1282,7 +1282,7 @@ describe('OptionsListUtils', () => {
                 data: [],
             },
         ];
-        const largeTagsList: Record<string, Tag> = {
+        const largeTagsList: Record<string, SelectedTagOption> = {
             Engineering: {
                 enabled: false,
                 name: 'Engineering',
@@ -2190,7 +2190,7 @@ describe('OptionsListUtils', () => {
     });
 
     it('sortTags', () => {
-        const createTagObjects = (names) => _.map(names, (name) => ({name, enabled: true}));
+        const createTagObjects = (names: string[]) => names.map((name) => ({name, enabled: true}));
 
         const unorderedTagNames = ['10bc', 'b', '0a', '1', '中国', 'b10', '!', '2', '0', '@', 'a1', 'a', '3', 'b1', '日本', '$', '20', '20a', '#', 'a20', 'c', '10'];
         const expectedOrderNames = ['!', '#', '$', '0', '0a', '1', '10', '10bc', '2', '20', '20a', '3', '@', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c', '中国', '日本'];
