@@ -180,8 +180,8 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         option?.login ?? '',
                         option?.accountID ?? -1,
                         report.reportID,
-                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
                         report,
+                        OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
                     );
 
                     // Pass through the selected assignee
@@ -194,8 +194,8 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                     option?.login ?? '',
                     option.accountID,
                     task?.shareDestination ?? '',
-                    OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                     report,
+                    OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
                 Navigation.goBack(ROUTES.NEW_TASK);
             }
