@@ -3,37 +3,37 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useCallback, useEffect} from 'react';
 import type UseHtmlPaste from './types';
 
+const insertByCommand = (text: string) => {
+    document.execCommand('insertText', false, text);
+};
+
+function insertAtCaret(target: HTMLElement, text: string) {
+    const selection = window.getSelection();
+    if (selection?.rangeCount) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        const node = document.createTextNode(text);
+        range.insertNode(node);
+
+        // Move caret to the end of the newly inserted text node.
+        range.setStart(node, node.length);
+        range.setEnd(node, node.length);
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        // Dispatch input event to trigger Markdown Input to parse the new text
+        target.dispatchEvent(
+            new Event('input', {
+                bubbles: true,
+            }),
+        );
+    } else {
+        insertByCommand(text);
+    }
+}
+
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
     const navigation = useNavigation();
-
-    const insertByCommand = (text: string) => {
-        document.execCommand('insertText', false, text);
-    };
-
-    function insertAtCaret(text: string) {
-        const selection = window.getSelection();
-        if (selection?.rangeCount) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            const node = document.createTextNode(text);
-            range.insertNode(node);
-
-            // Move caret to the end of the newly inserted text node.
-            range.setStart(node, node.length);
-            range.setEnd(node, node.length);
-            selection.removeAllRanges();
-            selection.addRange(range);
-
-            // Dispatch input event to trigger Markdown Input to parse the new text
-            (textInputRef.current as HTMLElement)?.dispatchEvent(
-                new Event('input', {
-                    bubbles: true,
-                }),
-            );
-        } else {
-            insertByCommand(text);
-        }
-    }
 
     /**
      * Set pasted text to clipboard
@@ -41,8 +41,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
      */
     const paste = useCallback((text: string) => {
         try {
-            if ((textInputRef.current as HTMLElement)?.hasAttribute('contenteditable')) {
-                insertAtCaret(text);
+            const textInputHTMLElement = textInputRef.current as HTMLElement;
+            if (textInputHTMLElement?.hasAttribute('contenteditable')) {
+                insertAtCaret(textInputHTMLElement, text);
             } else {
                 insertByCommand(text);
             }
