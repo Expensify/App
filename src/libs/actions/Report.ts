@@ -70,7 +70,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
+import type {
+    NewGroupChatDraft,
+    PersonalDetails,
+    PersonalDetailsList,
+    PolicyReportField,
+    RecentlyUsedReportFields,
+    ReportActionReactions,
+    ReportMetadata,
+    ReportUserIsTyping,
+} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -92,6 +101,7 @@ type ActionSubscriber = {
 
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
+let currentUserEmail: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -100,7 +110,7 @@ Onyx.connect({
             conciergeChatReportID = undefined;
             return;
         }
-
+        currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
     },
 });
@@ -136,6 +146,8 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
         currentReportData[reportID] = report;
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        handleReportChanged(report);
     },
 });
 
@@ -199,6 +211,21 @@ Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
     callback: (val) => (allRecentlyUsedReportFields = val),
 });
+
+let newGroupDraft: OnyxEntry<NewGroupChatDraft>;
+Onyx.connect({
+    key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
+    callback: (value) => (newGroupDraft = value),
+});
+
+function clearGroupChat() {
+    Onyx.set(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, null);
+}
+
+function startNewChat() {
+    clearGroupChat();
+    Navigation.navigate(ROUTES.NEW);
+}
 
 /** Get the private pusher channel name for a Report. */
 function getReportChannelName(reportID: string): string {
@@ -615,8 +642,14 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
-        idempotencyKey: `${SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT}_${reportID}`,
     };
+
+    if (ReportUtils.isGroupChat(newReportObject)) {
+        parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
+        parameters.groupChatAdminLogins = currentUserEmail;
+        parameters.optimisticAccountIDList = participantAccountIDList.join(',');
+        parameters.reportName = newReportObject.reportName ?? '';
+    }
 
     if (isFromDeepLink) {
         parameters.shouldRetry = false;
@@ -630,7 +663,8 @@ function openReport(
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
-    if (!isEmptyObject(newReportObject)) {
+    const isCreatingNewReport = !isEmptyObject(newReportObject);
+    if (isCreatingNewReport) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
         optimisticData[0].onyxMethod = Onyx.METHOD.SET;
@@ -714,7 +748,6 @@ function openReport(
 
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
-        parameters.idempotencyKey = `${parameters.idempotencyKey}_NewReport_${optimisticCreatedAction.reportActionID}`;
 
         // If we are creating a thread, ensure the report action has childReportID property added
         if (newReportObject.parentReportID && parentReportActionID) {
@@ -740,7 +773,19 @@ function openReport(
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData});
+        API.write(
+            WRITE_COMMANDS.OPEN_REPORT,
+            parameters,
+            {optimisticData, successData, failureData},
+            {
+                getConflictingRequests: (persistedRequests) =>
+                    // requests conflict only if:
+                    // 1. they are OpenReport commands
+                    // 2. they have the same reportID
+                    // 3. they are not creating a report - all calls to OpenReport that create a report will be unique and have a unique createdReportActionID
+                    persistedRequests.filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID && !request.data?.createdReportActionID),
+            },
+        );
     }
 }
 
@@ -750,16 +795,35 @@ function openReport(
  * @param userLogins list of user logins to start a chat report with.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true) {
+function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, reportName?: string) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
-
+    let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
-    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
 
-    if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    // If we are not creating a new Group Chat then we are creating a 1:1 DM and will look for an existing chat
+    if (!newGroupDraft) {
+        chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     }
-    const report = chat ?? newChat;
+
+    if (isEmptyObject(chat)) {
+        if (newGroupDraft) {
+            newChat = ReportUtils.buildOptimisticChatReport(
+                participantAccountIDs,
+                reportName,
+                CONST.REPORT.CHAT_TYPE.GROUP,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            );
+        } else {
+            newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+        }
+    }
+    const report = isEmptyObject(chat) ? newChat : chat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(report.reportID, '', userLogins, newChat);
@@ -1126,11 +1190,6 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     }
 }
 
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: handleReportChanged,
-});
-
 /** Deletes a comment from the report, basically sets it as empty string */
 function deleteReportComment(reportID: string, reportAction: ReportAction) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -1140,6 +1199,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         return;
     }
 
+    const isDeletedParentAction = ReportActionsUtils.isThreadParentMessage(reportAction, reportID);
     const deletedMessage: Message[] = [
         {
             translationKey: '',
@@ -1147,7 +1207,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             html: '',
             text: '',
             isEdited: true,
-            isDeletedParentAction: ReportActionsUtils.isThreadParentMessage(reportAction, reportID),
+            isDeletedParentAction,
         },
     ];
     const optimisticReportActions: NullishDeep<ReportActions> = {
@@ -1244,7 +1304,24 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     };
 
     CachedPDFPaths.clearByKey(reportActionID);
-    API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
+
+    API.write(
+        WRITE_COMMANDS.DELETE_COMMENT,
+        parameters,
+        {optimisticData, successData, failureData},
+        {
+            getConflictingRequests: (persistedRequests) => {
+                const conflictingCommands = (
+                    isDeletedParentAction
+                        ? [WRITE_COMMANDS.UPDATE_COMMENT]
+                        : [WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.UPDATE_COMMENT, WRITE_COMMANDS.DELETE_COMMENT]
+                ) as string[];
+                return persistedRequests.filter((request) => conflictingCommands.includes(request.command) && request.data?.reportActionID === reportActionID);
+            },
+            handleConflictingRequest: () => Onyx.update(successData),
+            shouldIncludeCurrentRequest: !isDeletedParentAction,
+        },
+    );
 }
 
 /**
@@ -2945,6 +3022,10 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
+function setGroupDraft(participants: Array<{login: string; accountID: number}>, reportName = '') {
+    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {participants, reportName});
+}
+
 export {
     getReportDraftStatus,
     searchInServer,
@@ -3016,4 +3097,7 @@ export {
     updateReportName,
     resolveActionableMentionWhisper,
     updateRoomVisibility,
+    setGroupDraft,
+    clearGroupChat,
+    startNewChat,
 };
