@@ -48,7 +48,7 @@ type NewChatPageWithOnyxProps = {
 };
 
 type NewChatPageProps = NewChatPageWithOnyxProps & {
-    isGroupChat: boolean;
+    isGroupChat?: boolean;
 };
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
