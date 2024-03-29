@@ -1,5 +1,7 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
@@ -57,7 +59,7 @@ type Geometry = {
     type?: GeometryType;
 };
 
-type ReceiptSource = string | number;
+type ReceiptSource = string;
 
 type Receipt = {
     receiptID?: number;
@@ -263,6 +265,8 @@ type AdditionalTransactionChanges = {
 
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
+type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
+
 export default Transaction;
 export type {
     WaypointCollection,
@@ -277,4 +281,5 @@ export type {
     ReceiptSource,
     Reservation,
     ReservationType,
+    TransactionCollectionDataSet,
 };
