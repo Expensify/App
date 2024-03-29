@@ -414,6 +414,19 @@ function ReportActionItem({
         ];
     }, [action, report.reportID]);
 
+    const renderThreadDivider = () =>
+        !shouldHideThreadDividerLine ? (
+            <SpacerView
+                shouldShow={!shouldHideThreadDividerLine}
+                style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
+            />
+        ) : (
+            <UnreadActionIndicator
+                reportActionID={report.reportID}
+                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+            />
+        );
+
     /**
      * Get the content of ReportActionItem
      * @param hovered whether the ReportActionItem is hovered
@@ -719,17 +732,7 @@ function ReportActionItem({
                         report={report}
                         shouldShowAnimatedBackground
                     />
-                    {!shouldHideThreadDividerLine ? (
-                        <SpacerView
-                            shouldShow={!shouldHideThreadDividerLine}
-                            style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
-                        />
-                    ) : (
-                        <UnreadActionIndicator
-                            reportActionID={report.reportID}
-                            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                        />
-                    )}
+                    {renderThreadDivider()}
                 </ShowContextMenuContext.Provider>
             );
         }
@@ -758,17 +761,7 @@ function ReportActionItem({
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                         <TaskView report={report} />
-                        {!shouldHideThreadDividerLine ? (
-                            <SpacerView
-                                shouldShow={!shouldHideThreadDividerLine}
-                                style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
-                            />
-                        ) : (
-                            <UnreadActionIndicator
-                                reportActionID={report.reportID}
-                                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                            />
-                        )}
+                        {renderThreadDivider()}
                     </View>
                 </View>
             );
@@ -784,17 +777,7 @@ function ReportActionItem({
                                         report={report}
                                         policy={policy}
                                     />
-                                    {!shouldHideThreadDividerLine ? (
-                                        <SpacerView
-                                            shouldShow={!shouldHideThreadDividerLine}
-                                            style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
-                                        />
-                                    ) : (
-                                        <UnreadActionIndicator
-                                            reportActionID={report.reportID}
-                                            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                                        />
-                                    )}
+                                    {renderThreadDivider()}
                                 </>
                             )}
                             <ShowContextMenuContext.Provider value={contextValue}>
@@ -802,17 +785,7 @@ function ReportActionItem({
                                     report={transactionThreadReport}
                                     shouldShowAnimatedBackground={transactionCurrency === report.currency}
                                 />
-                                {!shouldHideThreadDividerLine ? (
-                                    <SpacerView
-                                        shouldShow={!shouldHideThreadDividerLine}
-                                        style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
-                                    />
-                                ) : (
-                                    <UnreadActionIndicator
-                                        reportActionID={report.reportID}
-                                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                                    />
-                                )}
+                                {renderThreadDivider()}
                             </ShowContextMenuContext.Provider>
                         </>
                     ) : (
@@ -821,17 +794,7 @@ function ReportActionItem({
                                 report={report}
                                 policy={policy}
                             />
-                            {!shouldHideThreadDividerLine ? (
-                                <SpacerView
-                                    shouldShow={!shouldHideThreadDividerLine}
-                                    style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
-                                />
-                            ) : (
-                                <UnreadActionIndicator
-                                    reportActionID={report.reportID}
-                                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                                />
-                            )}
+                            {renderThreadDivider()}
                         </>
                     )}
                 </OfflineWithFeedback>

@@ -142,6 +142,7 @@ function ReportActionsListItemRenderer({
             reportActions={reportActions}
             transactionThreadReport={transactionThreadReport}
             index={index}
+            isFirstVisibleReportActionID={isFirstVisibleReportActionID}
         />
     ) : (
         <ReportActionItem
