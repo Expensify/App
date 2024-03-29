@@ -56,6 +56,15 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
+const onboardingChoices = {
+    TRACK: 'newDotTrack',
+    EMPLOYER: 'newDotEmployer',
+    MANAGE_TEAM: 'newDotManageTeam',
+    PERSONAL_SPEND: 'newDotPersonalSpend',
+    CHAT_SPLIT: 'newDotSplitChat',
+    LOOKING_AROUND: 'newDotLookingAround',
+};
+
 const CONST = {
     MERGED_ACCOUNT_PREFIX: 'MERGED_',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
@@ -3424,6 +3433,290 @@ const CONST = {
         NAME: 'Expensify',
         SUBSCRIPT_ICON_SIZE: 8,
         MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
+    },
+
+    WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+
+    ONBOARDING_CHOICES: {...onboardingChoices},
+
+    ONBOARDING_CONCIERGE: {
+        [onboardingChoices.TRACK]:
+            "# Welcome to Expensify, let's start tracking your expenses!\n" +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. "My business expenses”).\n' +
+            '\n' +
+            'Then, add expenses to your workspace:\n' +
+            '1. Find your workspace using the search field.\n' +
+            '2. Click the gray + button next to the message field.\n' +
+            '3. Click Request money, then add your expense type.\n' +
+            '\n' +
+            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
+        [onboardingChoices.EMPLOYER]:
+            '# Welcome to Expensify, the fastest way to get paid back!\n' +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            'To submit expenses for reimbursement:\n' +
+            '1. From the home screen, click the green + button > Request money.\n' +
+            "2. Enter an amount or scan a receipt, then input your boss's email.\n" +
+            '\n' +
+            "That'll send a request to get you paid back. Let me know if you have any questions!",
+        [onboardingChoices.MANAGE_TEAM]:
+            "# Welcome to Expensify, let's start managing your team's expenses!\n" +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "To manage your team's expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. “Sales team expenses”).\n' +
+            '\n' +
+            'Then, invite your team to your workspace via the Members pane and connect a business bank account to reimburse them. Let me know if you have any questions!',
+        [onboardingChoices.PERSONAL_SPEND]:
+            "# Welcome to Expensify, let's start tracking your expenses!\n" +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. "My expenses”).\n' +
+            '\n' +
+            'Then, add expenses to your workspace:\n' +
+            '1. Find your workspace using the search field.\n' +
+            '2. Click the gray + button next to the message field.\n' +
+            '3. Click Request money, then add your expense type.\n' +
+            '\n' +
+            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
+        [onboardingChoices.CHAT_SPLIT]:
+            '# Welcome to Expensify, where splitting the bill is an easy conversation!\n' +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            'To split an expense:\n' +
+            '1. From the home screen, click the green + button > Request money.\n' +
+            '2. Enter an amount or scan a receipt, then choose who you want to split it with.\n' +
+            '\n' +
+            "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
+        [onboardingChoices.LOOKING_AROUND]:
+            '# Welcome to Expensify!\n' +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
+    },
+
+    ONBOARDING_MESSAGES: {
+        [onboardingChoices.TRACK]: {
+            message: 'Here are some essential tasks to keep your business spend in shape for tax season.',
+            videoUrl: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+            tasks: [
+                {
+                    title: 'Create a workspace',
+                    subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more. ',
+                    message:
+                        'Here’s how to create a workspace:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Click Workspaces > New workspace.\n' +
+                        '\n' +
+                        'Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.',
+                    videoUrl: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                },
+                {
+                    title: 'Track an expense',
+                    subtitle: 'Track an expense in any currency, in just a few clicks.',
+                    message:
+                        'Here’s how to track an expense:\n' +
+                        '\n' +
+                        '1. Click the green + button.\n' +
+                        '2. Choose Track expense.\n' +
+                        '3. Enter an amount or scan a receipt.\n' +
+                        '4. Click Track.\n' +
+                        '\n' +
+                        'And you’re done! Yep, it’s that easy.',
+                    videoUrl: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                },
+            ],
+        },
+        [onboardingChoices.EMPLOYER]: {
+            message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
+            videoUrl: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+            tasks: [
+                {
+                    title: 'Submit an expense',
+                    subtitle: 'Submit an expense by entering an amount or scanning a receipt.',
+                    message:
+                        'Here’s how to submit an expense:\n' +
+                        '\n' +
+                        '1. Click the green + button.\n' +
+                        '2. Choose Submit expense.\n' +
+                        '3. Enter an amount or scan a receipt.\n' +
+                        '4. Add your reimburser to the request.\n' +
+                        '\n' +
+                        'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
+                    videoUrl: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                },
+                {
+                    title: 'Enable your wallet',
+                    subtitle: 'You’ll need to enable your Expensify Wallet to get paid back. Don’t worry, it’s easy!',
+                    message:
+                        'Here’s how to set up your wallet:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Click Wallet > Enable wallet.\n' +
+                        '3. Connect your bank account.\n' +
+                        '\n' +
+                        'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
+                    videoUrl: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                },
+            ],
+        },
+        [onboardingChoices.MANAGE_TEAM]: {
+            message: 'Here are some important tasks to help get your team’s expenses under control.',
+            videoUrl: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+            tasks: [
+                {
+                    title: 'Create a workspace',
+                    subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more. ',
+                    message:
+                        'Here’s how to create a workspace:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Click Workspaces > New workspace.\n' +
+                        '\n' +
+                        'Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.',
+                    videoUrl: 'https://...',
+                },
+                {
+                    title: 'Meet your setup specialist',
+                    subtitle: '',
+                    message:
+                        'Meet your setup specialist,              , who can answer any questions as you get started with Expensify. Yes, a real human!\n' +
+                        '\n' +
+                        'Chat with Alice in your #admins room or schedule a call today.',
+                    videoUrl: '',
+                },
+                {
+                    title: 'Set up categories',
+                    subtitle: 'Set up categories so your team can code expenses for easy reporting.',
+                    message:
+                        'Here’s how to set up categories:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to Workspaces > [your workspace].\n' +
+                        '3. Click Categories.\n' +
+                        '4. Enable and disable default categories.\n' +
+                        '5. Click Add categories to make your own.\n' +
+                        '\n' +
+                        'For more controls like requiring a category for every expense, click Settings. ',
+                    videoUrl: '',
+                },
+                {
+                    title: 'Add expense approvals',
+                    subtitle: 'Add expense approvals to review your team’s spend and keep it under control.',
+                    message:
+                        'Here’s how to add expense approvals:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to Workspaces > [your workspace].\n' +
+                        '3. Click More features.\n' +
+                        '4. Enable Workflows.\n' +
+                        '5. In Workflows, enable Add approvals.\n' +
+                        '\n' +
+                        'You’ll be set as the expense approver. You can change this to any admin once you invite your team. ',
+                    videoUrl: '',
+                },
+                {
+                    title: 'Invite your team',
+                    subtitle: 'Invite your team to Expensify so they can start tracking expenses today.',
+                    message:
+                        'Here’s how to invite your team:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to Workspaces > [your workspace].\n' +
+                        '3. Click Members > Invite member.\n' +
+                        '4. Enter emails or phone numbers. \n' +
+                        '5. Add an invite message if you want.\n' +
+                        '\n' +
+                        'That’s it! Happy expensing :)',
+                    videoUrl: '',
+                },
+            ],
+        },
+        [onboardingChoices.PERSONAL_SPEND]: {
+            message: 'Here’s how to track your spend in a few clicks.',
+            videoUrl: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+            tasks: [
+                {
+                    title: 'Track an expense',
+                    subtitle: 'Track an expense in any currency, whether you have a receipt or not.',
+                    message:
+                        'Here’s how to track an expense:\n' +
+                        '\n' +
+                        '1. Click the green + button.\n' +
+                        '2. Choose Track expense.\n' +
+                        '3. Enter an amount or scan a receipt.\n' +
+                        '4. Click Track.\n' +
+                        '\n' +
+                        'And you’re done! Yep, it’s that easy.',
+                    videoUrl: '',
+                },
+            ],
+        },
+        [onboardingChoices.CHAT_SPLIT]: {
+            message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
+            videoUrl: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+            tasks: [
+                {
+                    title: 'Start a chat',
+                    subtitle: 'Start a chat with a friend or group using their email or phone number.',
+                    message:
+                        'Here’s how to start a chat:\n' +
+                        '\n' +
+                        '1. rClick the green + button.\n' +
+                        'Choose Start chat.\n' +
+                        'Enter emails or phone numbers.\n' +
+                        '\n' +
+                        'If any of your friends aren’t using Expensify already, they’ll be invited automatically. \n' +
+                        '\n' +
+                        'Every chat will also turn into an email or text that they can respond to directly.',
+                    videoUrl: '',
+                },
+                {
+                    title: 'Split an expense',
+                    subtitle: 'Split an expense right in your chat with one or more friends.',
+                    message:
+                        'Here’s how to request money:\n' +
+                        '\n' +
+                        '1. Click the green + button.\n' +
+                        '2. Choose Split expense.\n' +
+                        '3. Scan a receipt or enter an amount.\n' +
+                        '4. Add your friend(s) to the request.\n' +
+                        '\n' +
+                        'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
+                    videoUrl: '',
+                },
+                {
+                    title: 'Enable your wallet',
+                    subtitle: 'You’ll need to enable your Expensify Wallet to get paid back. Don’t worry, it’s easy!',
+                    message:
+                        'Here’s how to enable your wallet:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Click Wallet > Enable wallet.\n' +
+                        '3. Add your bank account.\n' +
+                        '\n' +
+                        'Once that’s done, you can request money from anyone and get paid right into your personal bank account.',
+                    videoUrl: '',
+                },
+            ],
+        },
+        [onboardingChoices.LOOKING_AROUND]: {
+            message:
+                '# Welcome to Expensify!\n' +
+                "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+                '\n' +
+                "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
+            videoUrl: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+            tasks: [],
+        },
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',

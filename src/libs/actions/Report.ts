@@ -15,6 +15,7 @@ import type {
     AddEmojiReactionParams,
     AddWorkspaceRoomParams,
     CompleteEngagementModalParams,
+    CreateTaskParams,
     DeleteCommentParams,
     ExpandURLPreviewParams,
     FlagCommentParams,
@@ -2769,6 +2770,129 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
+const fetchFile = (url: string, choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>) =>
+    fetch(url)
+        .then((resp) => resp.blob())
+        .then(
+            (file) =>
+                new File([file], `${choice}.mp4`, {
+                    type: file.type || 'video/mp4',
+                }),
+        );
+
+async function completeOnboarding(data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>, accountEmail: ValueOf<typeof CONST.EMAIL>, choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>) {
+    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([accountEmail])[0];
+    const chatReport = ReportUtils.getChatByParticipants([actorAccountID]);
+    const chatReportID = chatReport?.reportID ?? '';
+    const chatPolicyID = chatReport?.reportID ?? '';
+    const videoFile: FileObject = await fetchFile(data.videoUrl, choice);
+
+    // Text message
+    const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID);
+    const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
+    const textCommentText = textComment.commentText;
+
+    const textMessage: AddCommentOrAttachementParams = {
+        reportID: chatReportID,
+        reportActionID: textCommentAction.reportActionID,
+        reportComment: textCommentText,
+    };
+
+    // Video message
+
+    const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(undefined, videoFile, actorAccountID);
+    const videoCommentAction: OptimisticAddCommentReportAction = videoComment.reportAction;
+    const videoCommentText = videoComment.commentText;
+
+    const videoMessage: AddCommentOrAttachementParams = {
+        reportID: chatReportID,
+        reportActionID: videoCommentAction.reportActionID,
+        file: videoFile,
+        reportComment: videoCommentText,
+    };
+
+    const tasksVideos = await Promise.all(data.tasks.map((item) => fetchFile(item.videoUrl, choice)));
+
+    // tasks
+    const tasks = data.tasks.reduce<unknown[]>((acc, curr, index) => {
+        const currTask = ReportUtils.buildOptimisticTaskReport(actorAccountID, undefined, chatReportID, curr.title, undefined, chatPolicyID);
+
+        // subtitle message
+        const subtitleComment = ReportUtils.buildOptimisticAddCommentReportAction(curr.subtitle, undefined, actorAccountID);
+        const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
+        const subtitleCommentText = subtitleComment.commentText;
+
+        const subtitleMessage: AddCommentOrAttachementParams = {
+            reportID: currTask.reportID,
+            reportActionID: subtitleCommentAction.reportActionID,
+            reportComment: subtitleCommentText,
+        };
+
+        // task video
+        const taskVideoFile: FileObject = tasksVideos[index];
+        const taskVideoComment = ReportUtils.buildOptimisticAddCommentReportAction(undefined, videoFile, actorAccountID);
+        const taskVideoCommentAction: OptimisticAddCommentReportAction = taskVideoComment.reportAction;
+        const taskVideoCommentText = taskVideoComment.commentText;
+
+        const taskVideoMessage: AddCommentOrAttachementParams = {
+            reportID: currTask.reportID,
+            reportActionID: taskVideoCommentAction.reportActionID,
+            file: taskVideoFile,
+            reportComment: taskVideoCommentText,
+        };
+
+        // instruction message
+        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(curr.message, undefined, actorAccountID);
+        const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
+        const instructionCommentText = instructionComment.commentText;
+
+        const instructionMessage: AddCommentOrAttachementParams = {
+            reportID: currTask.reportID,
+            reportActionID: instructionCommentAction.reportActionID,
+            reportComment: instructionCommentText,
+        };
+
+        return [
+            ...acc,
+            {
+                type: 'task',
+                task: choice,
+                ...currTask,
+            },
+            {
+                type: 'message',
+                ...subtitleMessage,
+            },
+            {
+                type: 'message',
+                ...taskVideoMessage,
+            },
+            {
+                type: 'message',
+                ...instructionMessage,
+            },
+        ];
+    }, []);
+
+    const parameters = {
+        choice,
+        actorAccountID,
+        data: [
+            {
+                type: 'message',
+                ...textMessage,
+            },
+            {
+                type: 'message',
+                ...videoMessage,
+            },
+            ...tasks,
+        ],
+    };
+
+    console.log('-------------------------------------');
+    console.log(JSON.stringify(parameters, ' ', 2));
+}
 /**
  * Completes the engagement modal that new NewDot users see when they first sign up/log in by doing the following:
  *
@@ -3100,4 +3224,5 @@ export {
     setGroupDraft,
     clearGroupChat,
     startNewChat,
+    completeOnboarding,
 };
