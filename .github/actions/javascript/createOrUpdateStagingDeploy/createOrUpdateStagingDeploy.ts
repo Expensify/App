@@ -5,9 +5,10 @@ import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import type {StagingDeployCashData} from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
-async function run(): Promise<Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'] | void> {
+type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
+
+async function run(): Promise<IssuesCreateResponse | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
     const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     const newVersionTag: string = packageJson.version;
@@ -35,7 +36,7 @@ async function run(): Promise<Awaited<ReturnType<typeof GithubUtils.octokit.issu
 
         // Parse the data from the previous and current checklists into the format used to generate the checklist
         const previousChecklistData = GithubUtils.getStagingDeployCashData(previousChecklist);
-        const currentChecklistData: StagingDeployCashData | EmptyObject = shouldCreateNewDeployChecklist ? {} : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
+        const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
         const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag ?? '', newVersionTag);
@@ -48,15 +49,15 @@ async function run(): Promise<Awaited<ReturnType<typeof GithubUtils.octokit.issu
                 newVersionTag,
                 mergedPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
-            if (stagingDeployCashBodyAndAssignees !== undefined) {
+            if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean) as string[];
             }
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = mergedPRs.map((prNum) => {
-                const indexOfPRInCurrentChecklist = currentChecklistData.PRList.findIndex((pr) => pr.number === prNum);
-                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData.PRList[indexOfPRInCurrentChecklist].isVerified : false;
+                const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
+                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
                     number: prNum,
                     url: GithubUtils.getPullRequestURLFromNumber(prNum),
@@ -74,8 +75,8 @@ async function run(): Promise<Awaited<ReturnType<typeof GithubUtils.octokit.issu
 
             // First, make sure we include all current deploy blockers
             const deployBlockers = openDeployBlockers.map((deployBlocker) => {
-                const indexInCurrentChecklist = currentChecklistData.deployBlockers.findIndex((item) => item.number === deployBlocker.number);
-                const isResolved = indexInCurrentChecklist >= 0 ? currentChecklistData.deployBlockers[indexInCurrentChecklist].isResolved : false;
+                const indexInCurrentChecklist = currentChecklistData?.deployBlockers.findIndex((item) => item.number === deployBlocker.number) ?? -1;
+                const isResolved = indexInCurrentChecklist >= 0 ? currentChecklistData?.deployBlockers[indexInCurrentChecklist].isResolved : false;
                 return {
                     number: deployBlocker.number,
                     url: deployBlocker.html_url,
@@ -84,7 +85,7 @@ async function run(): Promise<Awaited<ReturnType<typeof GithubUtils.octokit.issu
             });
 
             // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
-            currentChecklistData.deployBlockers.forEach((deployBlocker) => {
+            currentChecklistData?.deployBlockers.forEach((deployBlocker) => {
                 const isResolved = deployBlockers.findIndex((openBlocker) => openBlocker.number === deployBlocker.number) < 0;
                 deployBlockers.push({
                     ...deployBlocker,
@@ -92,19 +93,19 @@ async function run(): Promise<Awaited<ReturnType<typeof GithubUtils.octokit.issu
                 });
             });
 
-            const didVersionChange = newVersionTag !== currentChecklistData.tag;
+            const didVersionChange = newVersionTag !== currentChecklistData?.tag;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersionTag,
                 PRList.map((pr) => pr.url),
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
                 deployBlockers.map((blocker) => blocker.url),
                 deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
-                currentChecklistData.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
+                currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
                 didVersionChange ? false : currentChecklistData.isTimingDashboardChecked,
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,
             );
-            if (stagingDeployCashBodyAndAssignees !== undefined) {
+            if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean) as string[];
             }
@@ -131,7 +132,7 @@ async function run(): Promise<Awaited<ReturnType<typeof GithubUtils.octokit.issu
         const {data: updatedChecklist} = await GithubUtils.octokit.issues.update({
             ...defaultPayload,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            issue_number: currentChecklistData.number,
+            issue_number: currentChecklistData?.number ?? 0,
         });
         console.log(`Successfully updated StagingDeployCash! 🎉 ${updatedChecklist.html_url}`);
         return updatedChecklist;

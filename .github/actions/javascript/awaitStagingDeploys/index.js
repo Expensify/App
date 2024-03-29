@@ -12294,7 +12294,7 @@ function run() {
         ? 'No current staging deploys found'
         : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`));
     console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
-    return (0, promiseWhile_1.promiseDoWhile)(() => currentStagingDeploys.length, (0, throttle_1.default)(throttleFunc, 
+    return (0, promiseWhile_1.promiseDoWhile)(() => !!currentStagingDeploys.length, (0, throttle_1.default)(throttleFunc, 
     // Poll every 60 seconds instead of every 10 seconds
     GithubUtils_1.POLL_RATE * 6));
 }

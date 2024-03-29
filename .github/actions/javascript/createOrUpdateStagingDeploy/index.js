@@ -14400,7 +14400,7 @@ async function run() {
         }
         // Parse the data from the previous and current checklists into the format used to generate the checklist
         const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
-        const currentChecklistData = shouldCreateNewDeployChecklist ? {} : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
+        const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
         // Find the list of PRs merged between the current checklist and the previous checklist
         const mergedPRs = await GitUtils_1.default.getPullRequestsMergedBetween(previousChecklistData.tag ?? '', newVersionTag);
         // Next, we generate the checklist body
@@ -14408,7 +14408,7 @@ async function run() {
         let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
             const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersionTag, mergedPRs.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value)));
-            if (stagingDeployCashBodyAndAssignees !== undefined) {
+            if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
             }
@@ -14416,8 +14416,8 @@ async function run() {
         else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = mergedPRs.map((prNum) => {
-                const indexOfPRInCurrentChecklist = currentChecklistData.PRList.findIndex((pr) => pr.number === prNum);
-                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData.PRList[indexOfPRInCurrentChecklist].isVerified : false;
+                const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
+                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
                     number: prNum,
                     url: GithubUtils_1.default.getPullRequestURLFromNumber(prNum),
@@ -14433,8 +14433,8 @@ async function run() {
             });
             // First, make sure we include all current deploy blockers
             const deployBlockers = openDeployBlockers.map((deployBlocker) => {
-                const indexInCurrentChecklist = currentChecklistData.deployBlockers.findIndex((item) => item.number === deployBlocker.number);
-                const isResolved = indexInCurrentChecklist >= 0 ? currentChecklistData.deployBlockers[indexInCurrentChecklist].isResolved : false;
+                const indexInCurrentChecklist = currentChecklistData?.deployBlockers.findIndex((item) => item.number === deployBlocker.number) ?? -1;
+                const isResolved = indexInCurrentChecklist >= 0 ? currentChecklistData?.deployBlockers[indexInCurrentChecklist].isResolved : false;
                 return {
                     number: deployBlocker.number,
                     url: deployBlocker.html_url,
@@ -14442,16 +14442,16 @@ async function run() {
                 };
             });
             // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
-            currentChecklistData.deployBlockers.forEach((deployBlocker) => {
+            currentChecklistData?.deployBlockers.forEach((deployBlocker) => {
                 const isResolved = deployBlockers.findIndex((openBlocker) => openBlocker.number === deployBlocker.number) < 0;
                 deployBlockers.push({
                     ...deployBlocker,
                     isResolved,
                 });
             });
-            const didVersionChange = newVersionTag !== currentChecklistData.tag;
-            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersionTag, PRList.map((pr) => pr.url), PRList.filter((pr) => pr.isVerified).map((pr) => pr.url), deployBlockers.map((blocker) => blocker.url), deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url), currentChecklistData.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url), didVersionChange ? false : currentChecklistData.isTimingDashboardChecked, didVersionChange ? false : currentChecklistData.isFirebaseChecked, didVersionChange ? false : currentChecklistData.isGHStatusChecked);
-            if (stagingDeployCashBodyAndAssignees !== undefined) {
+            const didVersionChange = newVersionTag !== currentChecklistData?.tag;
+            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersionTag, PRList.map((pr) => pr.url), PRList.filter((pr) => pr.isVerified).map((pr) => pr.url), deployBlockers.map((blocker) => blocker.url), deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url), currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url), didVersionChange ? false : currentChecklistData.isTimingDashboardChecked, didVersionChange ? false : currentChecklistData.isFirebaseChecked, didVersionChange ? false : currentChecklistData.isGHStatusChecked);
+            if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
             }
@@ -14475,7 +14475,7 @@ async function run() {
         const { data: updatedChecklist } = await GithubUtils_1.default.octokit.issues.update({
             ...defaultPayload,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            issue_number: currentChecklistData.number,
+            issue_number: currentChecklistData?.number ?? 0,
         });
         console.log(`Successfully updated StagingDeployCash! 🎉 ${updatedChecklist.html_url}`);
         return updatedChecklist;

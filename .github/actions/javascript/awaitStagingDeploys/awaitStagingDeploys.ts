@@ -58,7 +58,7 @@ function run() {
     console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
 
     return promiseDoWhile(
-        () => currentStagingDeploys.length,
+        () => !!currentStagingDeploys.length,
         lodashThrotle(
             throttleFunc,
 
