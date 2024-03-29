@@ -106,7 +106,7 @@ export default () => {
                 canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer);
             }
 
-            // This function will apply the deferred updates in order after the missing updates are fetched and applied
+            // This function will check for gaps in the deferred updates and apply the updates in order after the missing updates are fetched and applied
             function validateAndApplyDeferredUpdates() {
                 // It should not be possible for lastUpdateIDAppliedToClient to be null, after the missing updates have been applied, therefore we don't need to handle this case
                 if (!lastUpdateIDAppliedToClient) {
@@ -135,6 +135,7 @@ export default () => {
 
                 function unpauseQueueAndReset() {
                     console.debug('[OnyxUpdateManager] Done applying all updates');
+                    deferredUpdates = {};
                     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
                     SequentialQueue.unpause();
                 }
@@ -186,7 +187,7 @@ export default () => {
                 const applyUpdates = (updates: DeferredUpdatesDictionary) => Promise.all(Object.values(updates).map((update) => OnyxUpdates.apply(update)));
 
                 //  If we detect a gap in the deferred updates, only apply the deferred updates before the gap,
-                // re-fetch the missing updates and then apply thedeferred updates again.
+                // re-fetch the missing updates and then apply the deferred updates again.
                 if (latestMissingUpdateID) {
                     applyUpdates(beforeGap).finally(() => {
                         // Same as above, we can ignore this case because
@@ -196,15 +197,14 @@ export default () => {
                         }
 
                         deferredUpdates = afterGap;
-                        canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, latestMissingUpdateID).finally(validateAndApplyDeferredUpdates);
+                        App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, latestMissingUpdateID)
+                            .then(() => applyUpdates(afterGap))
+                            .then(unpauseQueueAndReset);
                     });
                     return;
                 }
 
-                applyUpdates(pendingDeferredUpdates).finally(() => {
-                    unpauseQueueAndReset();
-                    deferredUpdates = {};
-                });
+                applyUpdates(pendingDeferredUpdates).finally(unpauseQueueAndReset);
             }
 
             canUnpauseQueuePromise.finally(validateAndApplyDeferredUpdates);
