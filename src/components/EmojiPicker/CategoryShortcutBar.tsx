@@ -16,12 +16,11 @@ function CategoryShortcutBar({onPress, headerEmojis}: CategoryShortcutBarProps) 
     const styles = useThemeStyles();
     return (
         <View style={[styles.ph4, styles.flexRow]}>
-            {headerEmojis.map((headerEmoji, i) => (
+            {headerEmojis.map((headerEmoji) => (
                 <CategoryShortcutButton
                     icon={headerEmoji.icon}
                     onPress={() => onPress(headerEmoji.index)}
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`categoryShortcut${i}`}
+                    key={`categoryShortcut${headerEmoji.index}`}
                     code={headerEmoji.code}
                 />
             ))}
