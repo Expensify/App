@@ -183,6 +183,14 @@ type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
+type ACHAccount = {
+    bankAccountID: number;
+    accountNumber: string;
+    routingNumber: string;
+    addressName: string;
+    bankName: string;
+};
+
 // Represents a union of all `config` property types from each connection type in `Connections`.
 type ConnectionConfig = Connections[keyof Connections] extends Connection<unknown, infer Config> ? Config : never;
 
@@ -422,6 +430,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
+
+        /** The verified bank account linked to the policy */
+        achAccount?: ACHAccount;
 
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
