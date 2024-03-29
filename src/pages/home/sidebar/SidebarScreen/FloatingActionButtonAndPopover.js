@@ -73,6 +73,12 @@ const getQuickActionTitle = (action) => {
             return 'quickAction.splitScan';
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
             return 'quickAction.splitDistance';
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+            return 'quickAction.trackManual';
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
+            return 'quickAction.trackScan';
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+            return 'quickAction.trackDistance';
         case CONST.QUICK_ACTIONS.SEND_MONEY:
             return 'quickAction.sendMoney';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
