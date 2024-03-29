@@ -2947,7 +2947,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                requiresCategory: policy?.areCategoriesEnabled,
+                requiresCategory: policy?.requiresCategory,
                 pendingFields: {
                     requiresCategory: null,
                 },
