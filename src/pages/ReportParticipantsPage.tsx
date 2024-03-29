@@ -26,7 +26,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -93,14 +92,14 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
                 pendingAction: pendingChatMember?.pendingAction,
-                icons: [
+                icons: details?.avatar ? [
                     {
-                        source: UserUtils.getAvatar(details?.avatar, accountID),
+                        source: details.avatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
                     },
-                ],
+                ] : [],
             });
         });
 

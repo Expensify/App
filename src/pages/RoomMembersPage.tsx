@@ -26,7 +26,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -207,14 +206,16 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 isDisabled: accountID === session?.accountID,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
-                icons: [
-                    {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login ?? '',
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: Number(accountID),
-                    },
-                ],
+                icons: details.avatar
+                    ? [
+                          {
+                              source: details.avatar,
+                              name: details.login ?? '',
+                              type: CONST.ICON_TYPE_AVATAR,
+                              id: Number(accountID),
+                          },
+                      ]
+                    : [],
                 pendingAction: pendingChatMember?.pendingAction,
             });
         });

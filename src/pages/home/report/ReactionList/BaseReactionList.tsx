@@ -7,7 +7,6 @@ import OptionRow from '@components/OptionRow';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -54,33 +53,38 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
      * so that the sticky headers function properly
      *
      */
-    const renderItem: FlatListProps<PersonalDetails>['renderItem'] = ({item}) => (
-        <OptionRow
-            boldStyle
-            style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
-            hoverStyle={hoveredComponentBG}
-            onSelectRow={() => {
-                onClose?.();
+    const renderItem: FlatListProps<PersonalDetails>['renderItem'] = ({item}) => {
+        const icons = item.avatar
+            ? [
+                  {
+                      id: item.accountID,
+                      source: item.avatar,
+                      name: item.login ?? '',
+                      type: CONST.ICON_TYPE_AVATAR,
+                  },
+              ]
+            : [];
+        return (
+            <OptionRow
+                boldStyle
+                style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
+                hoverStyle={hoveredComponentBG}
+                onSelectRow={() => {
+                    onClose?.();
 
-                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
-            }}
-            option={{
-                reportID: String(item.accountID),
-                text: Str.removeSMSDomain(item.displayName ?? ''),
-                alternateText: Str.removeSMSDomain(item.login ?? ''),
-                participantsList: [item],
-                icons: [
-                    {
-                        id: item.accountID,
-                        source: UserUtils.getAvatar(item.avatar, item.accountID),
-                        name: item.login ?? '',
-                        type: CONST.ICON_TYPE_AVATAR,
-                    },
-                ],
-                keyForList: item.login ?? String(item.accountID),
-            }}
-        />
-    );
+                    Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                }}
+                option={{
+                    reportID: String(item.accountID),
+                    text: Str.removeSMSDomain(item.displayName ?? ''),
+                    alternateText: Str.removeSMSDomain(item.login ?? ''),
+                    participantsList: [item],
+                    icons,
+                    keyForList: item.login ?? String(item.accountID),
+                }}
+            />
+        );
+    };
 
     return (
         <>

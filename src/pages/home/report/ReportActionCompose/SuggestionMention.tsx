@@ -5,6 +5,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -238,9 +239,10 @@ function SuggestionMention(
                     icons: [
                         {
                             name: detail?.login,
-                            source: UserUtils.getAvatar(detail?.avatar, detail?.accountID),
+                            source: detail?.avatar ?? FallbackAvatar,
                             type: CONST.ICON_TYPE_AVATAR,
                             fallbackIcon: detail?.fallbackIcon,
+                            id: detail?.accountID,
                         },
                     ],
                 });

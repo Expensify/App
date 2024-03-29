@@ -7,6 +7,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+import * as UserUtils from '@libs/UserUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
@@ -49,6 +50,9 @@ type AvatarProps = {
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
+
+    /** Optional account id if it's user avatar */
+    accountID?: number;
 };
 
 function Avatar({
@@ -62,6 +66,7 @@ function Avatar({
     fallbackIconTestID = '',
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
+    accountID,
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -75,16 +80,17 @@ function Avatar({
     }, [source]);
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
-    const iconSize = StyleUtils.getAvatarSize(size);
+    const isEmptySource = !source;
 
+    const iconSize = StyleUtils.getAvatarSize(size);
     const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
     // We pass the color styles down to the SVG for the workspace and fallback avatar.
-    const useFallBackAvatar = imageError || source === Expensicons.FallbackAvatar || !source;
+    const useFallBackAvatar = imageError || isEmptySource || source === Expensicons.FallbackAvatar;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
-    const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
+    const avatarSource = useFallBackAvatar ? fallbackAvatar : UserUtils.getAvatar(source, accountID) ?? Expensicons.FallbackAvatar;
 
     let iconColors;
     if (isWorkspace) {

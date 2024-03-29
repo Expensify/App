@@ -13,6 +13,9 @@ type AvatarWithIndicatorProps = {
     /** URL for the avatar */
     source: UserUtils.AvatarSource;
 
+    /** account id if it's user avatar */
+    accountID?: number;
+
     /** To show a tooltip on hover */
     tooltipText?: string;
 
@@ -23,7 +26,7 @@ type AvatarWithIndicatorProps = {
     isLoading?: boolean;
 };
 
-function AvatarWithIndicator({source, tooltipText = '', fallbackIcon = Expensicons.FallbackAvatar, isLoading = true}: AvatarWithIndicatorProps) {
+function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon = Expensicons.FallbackAvatar, isLoading = true}: AvatarWithIndicatorProps) {
     const styles = useThemeStyles();
 
     return (
@@ -35,7 +38,7 @@ function AvatarWithIndicator({source, tooltipText = '', fallbackIcon = Expensico
                     <>
                         <Avatar
                             size={CONST.AVATAR_SIZE.SMALL}
-                            source={UserUtils.getSmallSizeAvatar(source)}
+                            source={UserUtils.getSmallSizeAvatar(source, accountID)}
                             fallbackIcon={fallbackIcon}
                         />
                         <Indicator />
