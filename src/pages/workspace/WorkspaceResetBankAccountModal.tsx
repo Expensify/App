@@ -13,6 +13,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 type WorkspaceResetBankAccountModalOnyxProps = {
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
+
+    /** The user's data */
+    user: OnyxEntry<OnyxTypes.User>;
 };
 
 type WorkspaceResetBankAccountModalProps = WorkspaceResetBankAccountModalOnyxProps & {
@@ -20,7 +23,7 @@ type WorkspaceResetBankAccountModalProps = WorkspaceResetBankAccountModalOnyxPro
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 };
 
-function WorkspaceResetBankAccountModal({reimbursementAccount, session}: WorkspaceResetBankAccountModalProps) {
+function WorkspaceResetBankAccountModal({reimbursementAccount, session, user}: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const achData = reimbursementAccount?.achData;
@@ -46,7 +49,7 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}: Workspa
             }
             danger
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID ?? -1, session ?? {}, achData?.policyID ?? '')}
+            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID ?? -1, session, achData?.policyID ?? '', user)}
             shouldShowCancelButton
             isVisible
         />
@@ -58,5 +61,8 @@ WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 export default withOnyx<WorkspaceResetBankAccountModalProps, WorkspaceResetBankAccountModalOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    user: {
+        key: ONYXKEYS.USER,
     },
 })(WorkspaceResetBankAccountModal);
