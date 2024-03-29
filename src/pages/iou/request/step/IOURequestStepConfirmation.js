@@ -249,7 +249,7 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 gpsPoints,
-                TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true),
+                !_.isEmpty(transaction.comment.waypoints) ? TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true) : undefined,
             );
         },
         [
