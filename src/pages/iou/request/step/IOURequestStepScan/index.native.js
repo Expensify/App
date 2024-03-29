@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {PdfManager} from 'react-native-pdf';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevices} from 'react-native-vision-camera';
@@ -36,6 +37,7 @@ import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
 console.log('pdfjs', pdfjs);
+console.log('PdfManager', PdfManager);
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
