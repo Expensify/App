@@ -183,6 +183,7 @@ function ReportScreen({
             fieldList: reportProp?.fieldList,
             ownerAccountID: reportProp?.ownerAccountID,
             currency: reportProp?.currency,
+            unheldTotal: reportProp?.unheldTotal,
             participantAccountIDs: reportProp?.participantAccountIDs,
             isWaitingOnBankAccount: reportProp?.isWaitingOnBankAccount,
             iouReportID: reportProp?.iouReportID,
@@ -220,6 +221,7 @@ function ReportScreen({
             reportProp?.fieldList,
             reportProp?.ownerAccountID,
             reportProp?.currency,
+            reportProp?.unheldTotal,
             reportProp?.participantAccountIDs,
             reportProp?.isWaitingOnBankAccount,
             reportProp?.iouReportID,
@@ -427,12 +429,13 @@ function ReportScreen({
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
-        if (!isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        if (!isSmallScreenWidth || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             return;
         }
         Report.openReport(report.reportID);
 
         // We don't want to run this useEffect every time `report` is changed
+        // Excluding isSmallScreenWidth from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [prevIsFocused, report.notificationPreference, isFocused]);
 
