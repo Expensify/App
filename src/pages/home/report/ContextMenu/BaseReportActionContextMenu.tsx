@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -300,8 +301,7 @@ export default withOnyx<BaseReportActionContextMenuProps, BaseReportActionContex
     transaction: {
         key: ({reportActions, reportActionID}) => {
             const reportAction = reportActions?.[reportActionID];
-            const originalMessage = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction.originalMessage : null;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${originalMessage?.IOUTransactionID ?? 0}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && getLinkedTransactionID(reportAction)) ?? 0}`;
         },
     },
 })(
