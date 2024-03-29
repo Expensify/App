@@ -8,6 +8,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
@@ -15,15 +16,25 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import doInteractionTask from '@libs/DoInteractionTask';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 type NewChatPageWithOnyxProps = {
+    /** New group chat draft data */
+    newGroupDraft: OnyxEntry<OnyxTypes.NewGroupChatDraft>;
+
+    /** All of the personal details for everyone */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** An object that holds data about which referral banners have been dismissed */
@@ -39,7 +50,7 @@ type NewChatPageProps = NewChatPageWithOnyxProps & {
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, isSearchingForReports, dismissedReferralBanners}: NewChatPageProps) {
+function NewChatPage({betas, isGroupChat, personalDetails, isSearchingForReports, dismissedReferralBanners, newGroupDraft}: NewChatPageProps) {
     const {translate} = useLocalize();
 
     const styles = useThemeStyles();
@@ -54,6 +65,8 @@ function NewChatPage({betas, isGroupChat, isSearchingForReports, dismissedReferr
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+
+    const personalData = useCurrentUserPersonalDetails();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -142,7 +155,6 @@ function NewChatPage({betas, isGroupChat, isSearchingForReports, dismissedReferr
             [],
             true,
         );
-
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
@@ -154,27 +166,45 @@ function NewChatPage({betas, isGroupChat, isSearchingForReports, dismissedReferr
      * or navigates to the existing chat if one with those participants already exists.
      */
     const createChat = (option: OptionData) => {
-        if (!option.login) {
+        let login = '';
+
+        if (option.login) {
+            login = option.login;
+        } else if (selectedOptions.length === 1) {
+            login = selectedOptions[0].login ?? '';
+        }
+
+        if (!login) {
+            Log.warn('Tried to create chat with empty login');
             return;
         }
-        Report.navigateToAndOpenReport([option.login]);
+
+        Report.navigateToAndOpenReport([login]);
     };
-
     /**
-     * Creates a new group chat with all the selected options and the current user,
-     * or navigates to the existing chat if one with those participants already exists.
+     * Navigates to create group confirm page
      */
-    const createGroup = () => {
-        const logins = selectedOptions.map((option) => option.login).filter((login): login is string => typeof login === 'string');
-
-        if (logins.length < 1) {
+    const navigateToConfirmPage = () => {
+        if (!personalData || !personalData.login || !personalData.accountID) {
             return;
         }
-
-        Report.navigateToAndOpenReport(logins);
+        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
+        const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
+        Report.setGroupDraft(logins);
+        Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
     };
 
     const updateOptions = useCallback(() => {
+        let newSelectedOptions;
+        if (newGroupDraft?.participants) {
+            const selectedParticipants = newGroupDraft.participants.filter((participant) => participant.accountID !== personalData.accountID);
+            newSelectedOptions = selectedParticipants.map((participant): OptionData => {
+                const baseOption = OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, personalDetails);
+                return {...baseOption, reportID: baseOption.reportID ?? ''};
+            });
+            setSelectedOptions(newSelectedOptions);
+        }
+
         const {
             recentReports,
             personalDetails: newChatPersonalDetails,
@@ -184,7 +214,7 @@ function NewChatPage({betas, isGroupChat, isSearchingForReports, dismissedReferr
             options.personalDetails ?? [],
             betas ?? [],
             searchTerm,
-            selectedOptions,
+            newSelectedOptions ?? selectedOptions,
             isGroupChat ? excludedGroupEmails : [],
             false,
             true,
@@ -196,12 +226,13 @@ function NewChatPage({betas, isGroupChat, isSearchingForReports, dismissedReferr
             [],
             true,
         );
+
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
         // props.betas is not added as dependency since it doesn't change during the component lifecycle
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [options, searchTerm]);
+    }, [options, searchTerm, newGroupDraft]);
 
     useEffect(() => {
         const interactionTask = doInteractionTask(() => {
@@ -262,9 +293,9 @@ function NewChatPage({betas, isGroupChat, isSearchingForReports, dismissedReferr
                             shouldShowConfirmButton
                             shouldShowReferralCTA={!dismissedReferralBanners?.[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
-                            confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
+                            confirmButtonText={selectedOptions.length > 1 ? translate('common.next') : translate('newChatPage.createChat')}
                             textInputAlert={isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
-                            onConfirmSelection={createGroup}
+                            onConfirmSelection={selectedOptions.length > 1 ? navigateToConfirmPage : createChat}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             isLoadingNewOptions={isSearchingForReports}
@@ -283,6 +314,12 @@ NewChatPage.displayName = 'NewChatPage';
 export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
     dismissedReferralBanners: {
         key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
+    },
+    newGroupDraft: {
+        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     betas: {
         key: ONYXKEYS.BETAS,
