@@ -120,10 +120,14 @@ const ViolationsUtils = {
         policyTagList: PolicyTagList,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
-    ): OnyxUpdate | null {
+    ): OnyxUpdate {
         const isPartialTransaction = TransactionUtils.isPartialMerchant(TransactionUtils.getMerchant(updatedTransaction)) && TransactionUtils.isAmountMissing(updatedTransaction);
         if (isPartialTransaction) {
-            return null;
+            return {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
+                value: transactionViolations,
+            };
         }
 
         let newTransactionViolations = [...transactionViolations];
