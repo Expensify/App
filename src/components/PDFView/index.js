@@ -17,7 +17,7 @@ import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
-import {propTypes as pdfViewPropTypes, defaultProps as pdfViewDefaultProps} from './pdfViewPropTypes';
+import {defaultProps as pdfViewDefaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
