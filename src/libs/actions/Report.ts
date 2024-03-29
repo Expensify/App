@@ -377,11 +377,11 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         attachmentAction = attachment.reportAction;
     }
 
-    // When there is both text and a file, the text for the report comment needs to be parsed
     if (text && file) {
+        // When there is both text and a file, the text for the report comment needs to be parsed)
         reportCommentText = ReportUtils.getParsedComment(text ?? '');
 
-        // When there is both text and a file, call the API specifically built to handle both so that the comment and file are both combined in a single comment
+        // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
         commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
     }
 
