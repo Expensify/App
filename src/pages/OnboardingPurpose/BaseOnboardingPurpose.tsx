@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -24,6 +23,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type { BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps } from './types';
 
 type ValuesType<T> = T[keyof T];
 type SelectedPurposeType = ValuesType<typeof CONST.ONBOARDING_CHOICES> | undefined;
@@ -35,18 +35,6 @@ const menuIcons = {
     [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
     [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: Illustrations.SplitBill,
     [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
-};
-
-type BaseOnboardingPurposeOnyxProps = {
-    onboardingPurposeSelected: OnyxEntry<string>;
-};
-
-type BaseOnboardingPurposeProps = BaseOnboardingPurposeOnyxProps & {
-    /* Whether to use native styles tailored for native devices */
-    shouldUseNativeStyles: boolean;
-
-    /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
-    shouldEnableMaxHeight: boolean;
 };
 
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected}: BaseOnboardingPurposeProps) {

@@ -1,8 +1,8 @@
 import React from 'react';
-import type {BaseOnboardingPurposeProps} from './BaseOnboardingPurpose';
 import BaseOnboardingPurpose from './BaseOnboardingPurpose';
+import type { OnboardingPurposeProps } from './types';
 
-function OnboardingPurpose({...rest}: Omit<Omit<BaseOnboardingPurposeProps, 'shouldUseNativeStyles'>, 'shouldEnableMaxHeight'>) {
+function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
     return (
         <BaseOnboardingPurpose
             shouldUseNativeStyles={false}
