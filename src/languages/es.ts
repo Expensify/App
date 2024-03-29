@@ -1746,11 +1746,23 @@ export default {
         title: 'Reserva o gestiona tus viajes',
         subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos tus gastos de negocio en un solo lugar.',
         bookOrManage: 'Reservar o gestionar',
+        bookTravel: 'Reservar viajes',
         features: {
             saveMoney: 'Ahorra dinero en tus reservas',
             alerts: 'Recibe alertas en tiempo real si cambian tus planes de viaje',
         },
-        bookTravel: 'Reservar viajes',
+        termsAndConditions: {
+            header: 'Antes de continuar...',
+            title: 'Por favor lea los Términos y condiciones para viajar',
+            subtitle: 'Para permitir viajar en su espacio de trabajo debe aceptar nuestros ',
+            termsconditions: 'términos y condiciones',
+            travelTermsAndConditions: 'términos y condiciones de viaje',
+            helpDocIntro: 'Consulte este ',
+            helpDocOutro: 'para obtener más información o comuníquese con el conserje o su administrador de cuentas.',
+            helpDoc: 'documento de ayuda',
+            agree: 'Acepto los ',
+            error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
+        },
     },
     workspace: {
         common: {

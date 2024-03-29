@@ -1732,12 +1732,13 @@ export default {
             title: 'Please read the Terms & Conditions for travel',
             subtitle: 'To enable travel on your workspace you must agree to our ',
             termsconditions: 'terms & conditions',
+            travelTermsAndConditions: 'terms & conditions',
             helpDocIntro: 'Check out this ',
             helpDocOutro: 'for more information or reach out to Concierge or your Account Manager.',
             helpDoc: 'Help Doc',
             agree: 'I agree to the travel ',
-            error: 'You must accept the Terms & Conditions for travel to continue'
-        }
+            error: 'You must accept the Terms & Conditions for travel to continue',
+        },
     },
     workspace: {
         common: {

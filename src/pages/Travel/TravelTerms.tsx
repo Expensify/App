@@ -35,7 +35,7 @@ function TravelTerms() {
     const AgreeToTheLabel = useCallback(() => (
             <Text>
                 {`${translate('travel.termsAndConditions.agree')}`}
-                <TextLink href="https://www.spotnana.com/terms/">{`${translate('travel.termsAndConditions.termsconditions')}`}</TextLink>
+                <TextLink href="https://www.spotnana.com/terms/">{`${translate('travel.termsAndConditions.travelTermsAndConditions')}`}</TextLink>
             </Text>
         ), [translate]);
     
@@ -65,7 +65,7 @@ function TravelTerms() {
                         </Text>
                         <CheckboxWithLabel
                             style={styles.mt6}
-                            accessibilityLabel={translate('travel.termsAndConditions.termsconditions')}
+                            accessibilityLabel={translate('travel.termsAndConditions.travelTermsAndConditions')}
                             onInputChange={toggleTravelTerms}
                             LabelComponent={AgreeToTheLabel}
                         />
