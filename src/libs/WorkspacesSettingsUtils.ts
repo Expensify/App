@@ -247,7 +247,7 @@ function getOwnershipChecksDisplayText(
             title = translate('workspace.changeOwner.ownerOwesAmountTitle');
             text = translate('workspace.changeOwner.ownerOwesAmountText', {
                 email: ownerOwesAmount?.ownerEmail,
-                amount: CurrencyUtils.convertAmountToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
+                amount: CurrencyUtils.convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
             });
             buttonText = translate('workspace.changeOwner.ownerOwesAmountButtonText');
             break;
