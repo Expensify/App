@@ -690,7 +690,7 @@ function setAssigneeValue(
         }
 
         // The optimistic field may not exist in the existing report and it can be overridden by the optimistic field of previous report data when merging the assignee chat report
-        // So we should add these optimistic fields here to prevent merging incorrectly which can lead to creating duplicate created actions for an existing report
+        // Therefore, we should add these optimistic fields here to prevent incorrect merging, which could lead to the creation of duplicate actions for an existing report
         setAssigneeChatReport({
             ...report,
             isOptimisticReport: report?.isOptimisticReport ?? false,
