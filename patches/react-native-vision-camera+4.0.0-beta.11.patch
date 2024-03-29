@@ -1297,7 +1297,7 @@ index 0000000..46c2c2c
 +#endif /* RCT_NEW_ARCH_ENABLED */
 diff --git a/node_modules/react-native-vision-camera/ios/RNCameraView.mm b/node_modules/react-native-vision-camera/ios/RNCameraView.mm
 new file mode 100644
-index 0000000..068cbfd
+index 0000000..63fb00f
 --- /dev/null
 +++ b/node_modules/react-native-vision-camera/ios/RNCameraView.mm
 @@ -0,0 +1,373 @@
@@ -1306,10 +1306,10 @@ index 0000000..068cbfd
 +//#import "RNCameraView.h"
 +#import <React/RCTViewComponentView.h>
 +
-+#import <react/renderer/components/CameraNativeComponentSpec/ComponentDescriptors.h>
-+#import <react/renderer/components/CameraNativeComponentSpec/EventEmitters.h>
-+#import <react/renderer/components/CameraNativeComponentSpec/Props.h>
-+#import <react/renderer/components/CameraNativeComponentSpec/RCTComponentViewHelpers.h>
++#import <react/renderer/components/RNVisionCameraSpec/ComponentDescriptors.h>
++#import <react/renderer/components/RNVisionCameraSpec/EventEmitters.h>
++#import <react/renderer/components/RNVisionCameraSpec/Props.h>
++#import <react/renderer/components/RNVisionCameraSpec/RCTComponentViewHelpers.h>
 +
 +#import "RCTFabricComponentsPlugins.h"
 +#import <AVFoundation/AVCaptureAudioDataOutput.h>
