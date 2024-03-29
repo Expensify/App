@@ -222,6 +222,8 @@ function ReportActionItemMessageEdit(
         [reportID, action],
     );
 
+    useEffect(() => () => debouncedSaveDraft.cancel(), [debouncedSaveDraft]);
+
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
      * API is not called too often.
@@ -280,7 +282,6 @@ function ReportActionItemMessageEdit(
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
-        debouncedSaveDraft.cancel();
         Report.deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
@@ -295,7 +296,7 @@ function ReportActionItemMessageEdit(
                 keyboardDidHideListener.remove();
             });
         }
-    }, [action, debouncedSaveDraft, index, reportID, reportScrollManager, isActive]);
+    }, [action, index, reportID, reportScrollManager, isActive]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
@@ -307,10 +308,6 @@ function ReportActionItemMessageEdit(
             return;
         }
 
-        // To prevent re-mount after user saves edit before debounce duration (example: within 1 second), we cancel
-        // debounce here.
-        debouncedSaveDraft.cancel();
-
         const trimmedNewDraft = draft.trim();
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
@@ -321,7 +318,7 @@ function ReportActionItemMessageEdit(
         }
         Report.editReportComment(reportID, action, trimmedNewDraft);
         deleteDraft();
-    }, [action, debouncedSaveDraft, deleteDraft, draft, reportID]);
+    }, [action, deleteDraft, draft, reportID]);
 
     /**
      * @param emoji

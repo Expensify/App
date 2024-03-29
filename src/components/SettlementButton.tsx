@@ -98,6 +98,9 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
+
+    /** Callback to open confirmation modal if any of the transactions is on HOLD */
+    confirmApproval?: () => void;
 };
 
 function SettlementButton({
@@ -131,6 +134,7 @@ function SettlementButton({
     style,
     shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
+    confirmApproval,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -212,7 +216,11 @@ function SettlementButton({
         }
 
         if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-            IOU.approveMoneyRequest(iouReport ?? {});
+            if (confirmApproval) {
+                confirmApproval();
+            } else {
+                IOU.approveMoneyRequest(iouReport ?? {});
+            }
             return;
         }
 

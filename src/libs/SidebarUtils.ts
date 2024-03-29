@@ -393,7 +393,10 @@ function getOptionData({
                       .join(' ');
         }
 
-        result.alternateText = ReportUtils.isGroupChat(report) && lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageText}` : lastMessageText || formattedLogin;
+        result.alternateText =
+            (ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report)) && lastActorDisplayName
+                ? `${lastActorDisplayName}: ${lastMessageText}`
+                : lastMessageText || formattedLogin;
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);

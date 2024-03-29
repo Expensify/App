@@ -20,6 +20,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
+import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -163,7 +164,7 @@ function FloatingActionButtonAndPopover(
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, quickAction?.chatReportID ?? '');
                 break;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID, quickAction.targetAccountID ?? 0);
+                Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID, quickActionReport, quickAction.targetAccountID ?? 0);
                 break;
             default:
         }
@@ -247,7 +248,7 @@ function FloatingActionButtonAndPopover(
                     {
                         icon: Expensicons.ChatBubble,
                         text: translate('sidebarScreen.fabNewChat'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
+                        onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
                     {
                         icon: Expensicons.MoneyCircle,
