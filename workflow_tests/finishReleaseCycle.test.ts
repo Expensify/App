@@ -1,4 +1,4 @@
-import * as kieMockGithub from '@kie/mock-github';
+import {MockGithub} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/finishReleaseCycleAssertions';
 import mocks from './mocks/finishReleaseCycleMocks';
@@ -26,7 +26,7 @@ describe('test workflow finishReleaseCycle', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new kieMockGithub.MockGithub({
+        mockGithub = new MockGithub({
             repo: {
                 testFinishReleaseCycleWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,
