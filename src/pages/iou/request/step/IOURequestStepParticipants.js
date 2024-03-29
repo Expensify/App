@@ -30,8 +30,8 @@ const propTypes = {
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 
-    // eslint-disable-next-line
-    lastSelectedDistanceRates: PropTypes.object,
+    // eslint-disable-next-line react/require-default-props
+    lastSelectedDistanceRates: PropTypes.shape({}),
 };
 
 const defaultProps = {
