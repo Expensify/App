@@ -2871,7 +2871,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             return acc;
         }, {}),
     };
-    const shouldTurnOffCategoriesEnabled = !OptionsListUtils.hasEnabledOptions({...policyCategories, ...optimisticPolicyCategoriesData});
+    const shouldDisableRequiresCategory = !OptionsListUtils.hasEnabledOptions({...policyCategories, ...optimisticPolicyCategoriesData});
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2923,14 +2923,14 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             },
         ],
     };
-    if (shouldTurnOffCategoriesEnabled) {
+    if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                areCategoriesEnabled: false,
+                requiresCategory: false,
                 pendingFields: {
-                    areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    requiresCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         });
@@ -2939,7 +2939,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    areCategoriesEnabled: null,
+                    requiresCategory: null,
                 },
             },
         });
@@ -2947,9 +2947,9 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                areCategoriesEnabled: policy?.areCategoriesEnabled,
+                requiresCategory: policy?.areCategoriesEnabled,
                 pendingFields: {
-                    areCategoriesEnabled: null,
+                    requiresCategory: null,
                 },
             },
         });
@@ -2961,10 +2961,6 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, onyxData);
-    if (shouldTurnOffCategoriesEnabled) {
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID), CONST.NAVIGATION.TYPE.UP);
-    }
 }
 
 function createPolicyCategory(policyID: string, categoryName: string) {
