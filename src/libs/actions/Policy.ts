@@ -1076,6 +1076,8 @@ function requestWorkspaceOwnerChange(policyID: string) {
                 isLoading: false,
                 isChangeOwnerSuccessful: true,
                 isChangeOwnerFailed: false,
+                owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
             },
         },
     ];
@@ -1145,6 +1147,8 @@ function addBillingCardAndRequestPolicyOwnerChange(
                 isLoading: false,
                 isChangeOwnerSuccessful: true,
                 isChangeOwnerFailed: false,
+                owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
             },
         },
     ];
