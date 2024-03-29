@@ -19,19 +19,6 @@ type WithPolicyConnectionsProps = WithPolicyProps;
  * For other policies, the connections data needs to be fetched when it's needed.
  */
 function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnectionsProps>) {
-    /**
-     * Higher-order component that adds policy connections functionality to a component.
-     *
-     * @component
-     * @param {WithPolicyConnectionsProps} props - The props for the component.
-     * @returns {JSX.Element | null} The wrapped component with policy connections functionality.
-     */
-    /**
-     * Higher-order component that adds policy connections functionality to a component.
-     *
-     * @param {WithPolicyConnectionsProps} props - The props for the component.
-     * @returns {React.ReactNode} - The wrapped component.
-     */
     function WithPolicyConnections({policy, policyMembers, policyDraft, policyMembersDraft, route}: WithPolicyConnectionsProps) {
         const {isOffline} = useNetwork();
 
