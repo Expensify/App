@@ -8,8 +8,8 @@ import DefaultAttachmentView from '@components/Attachments/AttachmentView/Defaul
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize from '@components/withLocalize';
+import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
 import withThemeStyles from '@components/withThemeStyles';
-import withStyleUtils from '@components/withStyleUtils';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import variables from '@styles/variables';
@@ -17,10 +17,16 @@ import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
-import * as pdfViewPropTypes from './pdfViewPropTypes';
+import {propTypes as pdfViewPropTypes, defaultProps as pdfViewDefaultProps} from './pdfViewPropTypes';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
+
+const PDFViewPropTypes = {
+    ...pdfViewPropTypes,
+    ...withStyleUtilsPropTypes,
+};
+
 class PDFView extends Component {
     constructor(props) {
         super(props);
@@ -83,8 +89,13 @@ class PDFView extends Component {
         const styles = this.props.themeStyles;
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
         const loadingIndicatorStyles = this.props.isUsedAsChatAttachment
-        ? [this.props.themeStyles.chatItemPDFAttachmentLoading, this.props.StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT), styles.justifyContentCenter, styles.alignItemsCenter]
-        : [];
+            ? [
+                  this.props.themeStyles.chatItemPDFAttachmentLoading,
+                  this.props.StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
+                  styles.justifyContentCenter,
+                  styles.alignItemsCenter,
+              ]
+            : [];
 
         return (
             <View
@@ -99,7 +110,12 @@ class PDFView extends Component {
                     maxCanvasWidth={this.props.maxCanvasWidth}
                     maxCanvasHeight={this.props.maxCanvasHeight}
                     maxCanvasArea={this.props.maxCanvasArea}
-                    LoadingComponent={<FullScreenLoadingIndicator style={loadingIndicatorStyles} isFullScreen={!this.props.isUsedAsChatAttachment} />}
+                    LoadingComponent={
+                        <FullScreenLoadingIndicator
+                            style={loadingIndicatorStyles}
+                            isFullScreen={!this.props.isUsedAsChatAttachment}
+                        />
+                    }
                     ErrorComponent={
                         <DefaultAttachmentView
                             fileName={this.props.fileName}
@@ -138,8 +154,8 @@ class PDFView extends Component {
     }
 }
 
-PDFView.propTypes = pdfViewPropTypes.propTypes;
-PDFView.defaultProps = pdfViewPropTypes.defaultProps;
+PDFView.propTypes = PDFViewPropTypes;
+PDFView.defaultProps = pdfViewDefaultProps;
 
 export default compose(
     withLocalize,
