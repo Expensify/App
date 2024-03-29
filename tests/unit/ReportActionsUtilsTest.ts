@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import type {CollectionKeyBase} from 'react-native-onyx/dist/types';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
