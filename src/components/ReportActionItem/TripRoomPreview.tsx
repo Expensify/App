@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -150,9 +150,9 @@ function TripRoomPreview({
 
     const dateInfo = DateUtils.getFormattedDateRange(new Date(basicTripInfo.startDate.iso8601), new Date(basicTripInfo.endDate.iso8601));
 
-    const getDisplayAmount = (): string => {
+    const displayAmount = useMemo(() => {
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
-        let displayAmount = '';
+        let displayAmountValue = '';
         const actionMessage = action.message?.[0]?.text ?? '';
         const splits = actionMessage.split(' ');
 
@@ -161,11 +161,11 @@ function TripRoomPreview({
                 return;
             }
 
-            displayAmount = split;
+            displayAmountValue = split;
         });
 
-        return displayAmount;
-    };
+        return displayAmountValue;
+    }, [action]);
 
     return (
         <OfflineWithFeedback
@@ -197,7 +197,7 @@ function TripRoomPreview({
                             <View style={styles.reportPreviewAmountSubtitleContainer}>
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={styles.textHeadlineH2}>{getDisplayAmount()}</Text>
+                                        <Text style={styles.textHeadlineH2}>{displayAmount}</Text>
                                     </View>
                                 </View>
                                 <View style={styles.flexRow}>
