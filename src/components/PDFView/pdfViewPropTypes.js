@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import {withStyleUtilsPropTypes} from '@components/withStyleUtils';
 import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
@@ -40,6 +41,8 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...withThemeStylesPropTypes,
+
+    ...withStyleUtilsPropTypes,
 };
 
 const defaultProps = {
