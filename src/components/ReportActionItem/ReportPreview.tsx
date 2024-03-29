@@ -225,14 +225,14 @@ function ReportPreview({
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
      - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
-     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant is shown;
+     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant or description is shown;
 
      * There is an edge case when there is only one distance request with a pending route and amount = 0.
-       In this case, we don't want to show the merchant because it says: "Pending route...", which is already displayed in the amount field.
+       In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
-    const shouldShowSingleRequestMerchant = numberOfRequests === 1 && !!formattedMerchant && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
-    const shouldShowSingleRequestDescription = numberOfRequests === 1 && !!formattedDescription && !shouldShowSingleRequestMerchant;
-    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchant || shouldShowSingleRequestDescription || numberOfRequests > 1);
+    const shouldShowSingleRequestMerchantOrDescription =
+        numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
+    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
 
     return (
         <OfflineWithFeedback
