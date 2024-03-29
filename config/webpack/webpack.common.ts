@@ -1,13 +1,17 @@
-const path = require('path');
-const fs = require('fs');
-const {IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin} = require('webpack');
-const {CleanWebpackPlugin} = require('clean-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyPlugin = require('copy-webpack-plugin');
-const dotenv = require('dotenv');
-const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
+import {CleanWebpackPlugin} from 'clean-webpack-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
+import dotenv from 'dotenv';
+import fs from 'fs';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import path from 'path';
+import type {Configuration} from 'webpack';
+import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
+import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
+import CustomVersionFilePlugin from './CustomVersionFilePlugin';
+import type Environment from './types';
+
+// require is necessary, there are no types for this package and the declaration file can't be seen by the build process which causes an error.
 const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
-const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
     'react-native-animatable',
@@ -25,29 +29,25 @@ const includeModules = [
     'expo-av',
 ].join('|');
 
-const envToLogoSuffixMap = {
+const environmentToLogoSuffixMap: Record<string, string> = {
     production: '',
     staging: '-stg',
     dev: '-dev',
     adhoc: '-adhoc',
 };
 
-function mapEnvToLogoSuffix(envFile) {
-    let env = envFile.split('.')[2];
-    if (typeof env === 'undefined') {
-        env = 'dev';
+function mapEnvironmentToLogoSuffix(environmentFile: string): string {
+    let environment = environmentFile.split('.')[2];
+    if (typeof environment === 'undefined') {
+        environment = 'dev';
     }
-    return envToLogoSuffixMap[env];
+    return environmentToLogoSuffixMap[environment];
 }
 
 /**
  * Get a production grade config for web or desktop
- * @param {Object} env
- * @param {String} env.envFile path to the env file to be used
- * @param {'web'|'desktop'} env.platform
- * @returns {Configuration}
  */
-const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
+const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): Configuration => ({
     mode: 'production',
     devtool: 'source-map',
     entry: {
@@ -68,10 +68,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         new HtmlWebpackPlugin({
             template: 'web/index.html',
             filename: 'index.html',
-            splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`), 'utf-8'),
+            splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvironmentToLogoSuffix(file)}.svg`), 'utf-8'),
             isWeb: platform === 'web',
-            isProduction: envFile === '.env.production',
-            isStaging: envFile === '.env.staging',
+            isProduction: file === '.env.production',
+            isStaging: file === '.env.staging',
         }),
         new PreloadWebpackPlugin({
             rel: 'preload',
@@ -121,12 +121,14 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             ...(platform === 'desktop' ? {} : {process: {env: {}}}),
-            __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: envFile}).parsed),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
 
             // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
             // react-native-render-html uses variable to log exclusively during development.
             // See https://reactnative.dev/docs/javascript-environment
-            __DEV__: /staging|prod|adhoc/.test(envFile) === false,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            __DEV__: /staging|prod|adhoc/.test(file) === false,
         }),
 
         // This allows us to interactively inspect JS bundle contents
@@ -203,21 +205,34 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     },
     resolve: {
         alias: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native-config': 'react-web-config',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native$': 'react-native-web',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native-sound': 'react-native-web-sound',
             // Module alias for web & desktop
             // https://webpack.js.org/configuration/resolve/#resolvealias
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@assets': path.resolve(__dirname, '../../assets'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@components': path.resolve(__dirname, '../../src/components/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@hooks': path.resolve(__dirname, '../../src/hooks/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@libs': path.resolve(__dirname, '../../src/libs/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@navigation': path.resolve(__dirname, '../../src/libs/Navigation/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@pages': path.resolve(__dirname, '../../src/pages/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@styles': path.resolve(__dirname, '../../src/styles/'),
             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@src': path.resolve(__dirname, '../../src/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '@desktop': path.resolve(__dirname, '../../desktop'),
         },
 
@@ -242,6 +257,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             '.tsx',
         ],
         fallback: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'process/browser': require.resolve('process/browser'),
             crypto: false,
         },
@@ -275,4 +291,4 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     },
 });
 
-module.exports = webpackConfig;
+export default getCommonConfiguration;
