@@ -39,7 +39,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
     return (
         <PressableWithFeedback
             disabled={disabled}
-            style={[styles.switchTrack, !isOn && styles.switchInactive, styles.ml2]}
+            style={[styles.switchTrack, !isOn && styles.switchInactive]}
             onPress={() => onToggle(!isOn)}
             onLongPress={() => onToggle(!isOn)}
             role={CONST.ROLE.SWITCH}

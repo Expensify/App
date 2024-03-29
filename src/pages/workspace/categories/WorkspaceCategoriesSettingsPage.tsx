@@ -48,7 +48,7 @@ function WorkspaceCategoriesSettingsPage({route}: WorkspaceCategoriesSettingsPag
                                 >
                                     <View style={[styles.mt2, styles.mh4]}>
                                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.requiresCategory')}</Text>
+                                            <Text hasSibling style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.requiresCategory')}</Text>
                                             <Switch
                                                 isOn={policy?.requiresCategory ?? false}
                                                 accessibilityLabel={translate('workspace.categories.requiresCategory')}
