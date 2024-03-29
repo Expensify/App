@@ -1193,7 +1193,7 @@ function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): 
  * If the report is a thread and has a chat type set, it is a workspace chat.
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
-    return isThread(report) && isChatReport(report) && !isGroupChat(report) && !!getChatType(report);
+    return isThread(report) && isChatReport(report) && CONST.WORKSPACE_ROOM_TYPES.includes(getChatType(report));
 }
 
 /**
