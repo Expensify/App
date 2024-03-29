@@ -31,6 +31,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
@@ -67,7 +68,7 @@ type MoneyRequestConfirmationListOnyxProps = {
 };
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps & {
     /** Callback to inform parent modal of success */
-    onConfirm?: (selectedParticipants: Participant[]) => void;
+    onConfirm?: (selectedParticipants: Array<Participant | ReportUtils.OptionData>) => void;
 
     /** Callback to parent modal to send money */
     onSendMoney?: (paymentMethod: IouType | PaymentMethodType | undefined) => void;
@@ -109,10 +110,10 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     onToggleBillable?: (isOn: boolean) => void;
 
     /** Selected participants from MoneyRequestModal with login / accountID */
-    selectedParticipants: Participant[];
+    selectedParticipants: Array<Participant | ReportUtils.OptionData>;
 
     /** Payee of the money request with login */
-    payeePersonalDetails?: OnyxTypes.PersonalDetails;
+    payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails>;
 
     /** Can the participants be modified or not */
     canModifyParticipants?: boolean;
@@ -130,7 +131,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     reportID?: string;
 
     /** File path of the receipt */
-    receiptPath?: string;
+    receiptPath?: ReceiptSource;
 
     /** File name of the receipt */
     receiptFilename?: string;
@@ -322,7 +323,7 @@ function MoneyRequestConfirmationList({
      * Returns the participants with amount
      */
     const getParticipantsWithAmount = useCallback(
-        (participantsList: Participant[]): Participant[] => {
+        (participantsList: Array<Participant | ReportUtils.OptionData>): Array<Participant | ReportUtils.OptionData> => {
             const calculatedIouAmount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
@@ -358,7 +359,10 @@ function MoneyRequestConfirmationList({
         ];
     }, [isSplitBill, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
 
-    const selectedParticipants: Participant[] = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
+    const selectedParticipants: Array<Participant | ReportUtils.OptionData> = useMemo(
+        () => selectedParticipantsProp.filter((participant) => participant.selected),
+        [selectedParticipantsProp],
+    );
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
@@ -424,7 +428,7 @@ function MoneyRequestConfirmationList({
         canModifyParticipants,
     ]);
 
-    const selectedOptions: Array<Participant | OptionsListUtils.PayeePersonalDetails> = useMemo(() => {
+    const selectedOptions: Array<Participant | ReportUtils.OptionData | OptionsListUtils.PayeePersonalDetails> = useMemo(() => {
         if (!hasMultipleParticipants) {
             return [];
         }
