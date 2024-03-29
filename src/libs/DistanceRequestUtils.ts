@@ -94,7 +94,6 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
     return convertedDistance.toFixed(2);
 }
 
-// TODO: I wonder if it would be better to refactor these functions to pass params in an object
 /**
  * @param hasRoute Whether the route exists for the distance request
  * @param unit Unit that should be used to display the distance
