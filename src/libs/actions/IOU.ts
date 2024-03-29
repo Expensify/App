@@ -2280,31 +2280,7 @@ function createSplitsAndOnyxData(
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
-    const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
-    let existingSplitChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
-    if (!existingSplitChatReport) {
-        existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
-    }
-    let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
-    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
-    if (!existingSplitChatReport && participants.length > 1) {
-        newChat = ReportUtils.buildOptimisticChatReport(
-            allParticipantsAccountIDs,
-            '',
-            CONST.REPORT.CHAT_TYPE.GROUP,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-        );
-    }
-    if (isEmptyObject(newChat)) {
-        newChat = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
-    }
-    const splitChatReport = existingSplitChatReport ?? newChat;
+    const {splitChatReport, existingSplitChatReport} = getOrCreateSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -2647,6 +2623,35 @@ function createSplitsAndOnyxData(
     };
 }
 
+function getOrCreateSplitChatReport(existingSplitChatReportID: string, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
+    const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
+    let existingSplitChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
+    if (!existingSplitChatReport) {
+        existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
+    }
+    let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
+    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
+    if (!existingSplitChatReport && participants.length > 1) {
+        newChat = ReportUtils.buildOptimisticChatReport(
+            allParticipantsAccountIDs,
+            '',
+            CONST.REPORT.CHAT_TYPE.GROUP,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
+        );
+    }
+    if (isEmptyObject(newChat)) {
+        newChat = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
+    }
+    const splitChatReport = existingSplitChatReport ?? newChat;
+    return { splitChatReport, existingSplitChatReport };
+}
+
 /**
  * @param amount - always in smallest currency unit
  * @param existingSplitChatReportID - Either a group DM or a workspace chat
@@ -2785,11 +2790,7 @@ function startSplitBill(
 ) {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
-    const existingSplitChatReport =
-        existingSplitChatReportID || participants[0].reportID
-            ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
-            : ReportUtils.getChatByParticipants(participantAccountIDs);
-    const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    const {splitChatReport, existingSplitChatReport} = getOrCreateSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
