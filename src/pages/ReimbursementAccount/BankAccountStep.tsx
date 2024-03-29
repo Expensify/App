@@ -70,7 +70,7 @@ function BankAccountStep({
     receivedRedirectURI,
     reimbursementAccount,
     onBackButtonPress,
-    isPlaidDisabled,
+    isPlaidDisabled = false,
 }: BankAccountStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();

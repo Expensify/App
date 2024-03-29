@@ -36,7 +36,7 @@ type AddressFormProps = {
     shouldSaveDraft?: boolean;
 };
 
-function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, inputKeys, onFieldChange = () => {}, streetTranslationKey}: AddressFormProps) {
+function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, inputKeys, onFieldChange, streetTranslationKey}: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -45,7 +45,7 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
             <View>
                 <InputWrapper
                     InputComponent={AddressSearch}
-                    inputID={inputKeys?.street ?? 'streetInput'}
+                    inputID={inputKeys?.street}
                     shouldSaveDraft={shouldSaveDraft}
                     label={translate(streetTranslationKey)}
                     containerStyles={styles.mt6}
@@ -67,7 +67,7 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
                 role={CONST.ROLE.PRESENTATION}
                 value={values?.city}
                 defaultValue={defaultValues?.city}
-                onChangeText={(value) => onFieldChange({city: value})}
+                onChangeText={(value) => onFieldChange?.({city: value})}
                 errorText={errors?.city ? 'bankAccount.error.addressCity' : ''}
                 containerStyles={styles.mt6}
             />
@@ -79,13 +79,13 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
                     shouldSaveDraft={shouldSaveDraft}
                     value={values?.state as State}
                     defaultValue={defaultValues?.state}
-                    onInputChange={(value) => onFieldChange({state: value})}
+                    onInputChange={(value) => onFieldChange?.({state: value})}
                     errorText={errors?.state ? 'bankAccount.error.addressState' : ''}
                 />
             </View>
             <InputWrapper
                 InputComponent={TextInput}
-                inputID={inputKeys?.zipCode ?? 'zipCodeInput'}
+                inputID={inputKeys.zipCode ?? 'zipCodeInput'}
                 shouldSaveDraft={shouldSaveDraft}
                 label={translate('common.zip')}
                 accessibilityLabel={translate('common.zip')}
@@ -93,7 +93,7 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
-                onChangeText={(value) => onFieldChange({zipCode: value})}
+                onChangeText={(value) => onFieldChange?.({zipCode: value})}
                 errorText={errors?.zipCode ? 'bankAccount.error.zipCode' : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={['common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}]}
@@ -104,4 +104,5 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
 }
 
 AddressForm.displayName = 'AddressForm';
+
 export default AddressForm;

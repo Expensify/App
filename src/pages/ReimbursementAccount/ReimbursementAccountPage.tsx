@@ -211,9 +211,10 @@ function ReimbursementAccountPage({
 
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false);
 
-    const currentStep = achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+    // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
+    const currentStep = achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = policy?.name ?? '';
-    const policyID = route.params?.policyID ?? '';
+    const policyIDParam = route.params?.policyID ?? '';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -234,7 +235,7 @@ function ReimbursementAccountPage({
         const stepToOpen = getStepToOpenFromRouteParams(route);
         const subStep = achData?.subStep ?? '';
         const localCurrentStep = achData?.currentStep ?? '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyID);
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyIDParam);
     }
 
     useEffect(() => {
@@ -296,7 +297,6 @@ function ReimbursementAccountPage({
                 BankAccounts.hideBankAccountErrors();
             }
 
-            // eslint-disable-next-line no-shadow, @typescript-eslint/no-shadow
             const policyID = route.params.policyID;
             const backTo = route.params.backTo;
 
@@ -367,6 +367,7 @@ function ReimbursementAccountPage({
     };
 
     const isLoading = (!!isLoadingApp || !!account?.isLoading || reimbursementAccount?.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
+
     const shouldShowOfflineLoader = !(
         isOffline &&
         [
@@ -445,7 +446,7 @@ function ReimbursementAccountPage({
                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                 plaidLinkOAuthToken={plaidLinkToken}
                 policyName={policyName}
-                policyID={policyID}
+                policyID={policyIDParam}
             />
         );
     }

@@ -11,4 +11,5 @@ function ACHContractStep({onBackButtonPress}: ACHContractStepProps) {
 }
 
 ACHContractStep.displayName = 'ACHContractStep';
+
 export default ACHContractStep;
