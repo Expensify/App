@@ -245,14 +245,14 @@ function MoneyRequestConfirmPage(props) {
             if (iouType === CONST.IOU.TYPE.SPLIT && props.iou.receiptPath) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
                 const onSuccess = (receipt) => {
-                    IOU.startSplitBill(
-                        selectedParticipants,
-                        props.currentUserPersonalDetails.login,
-                        props.currentUserPersonalDetails.accountID,
-                        trimmedComment,
+                    IOU.startSplitBill({
+                        participants: selectedParticipants,
+                        currentUserLogin: props.currentUserPersonalDetails.login,
+                        currentUserAccountID: props.currentUserPersonalDetails.accountID,
+                        comment: trimmedComment,
                         receipt,
                         existingSplitChatReportID,
-                    );
+                    });
                 };
                 FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, onSuccess);
                 return;
@@ -261,34 +261,34 @@ function MoneyRequestConfirmPage(props) {
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType === CONST.IOU.TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID)) {
-                IOU.splitBill(
-                    selectedParticipants,
-                    props.currentUserPersonalDetails.login,
-                    props.currentUserPersonalDetails.accountID,
-                    props.iou.amount,
-                    trimmedComment,
-                    props.iou.currency,
-                    props.iou.category,
-                    props.iou.tag,
-                    reportID,
-                    props.iou.merchant,
-                );
+                IOU.splitBill({
+                    participants: selectedParticipants,
+                    currentUserLogin: props.currentUserPersonalDetails.login,
+                    currentUserAccountID: props.currentUserPersonalDetails.accountID,
+                    amount: props.iou.amount,
+                    comment: trimmedComment,
+                    currency: props.iou.currency,
+                    merchant: props.iou.merchant,
+                    category: props.iou.category,
+                    tag: props.iou.tag,
+                    existingSplitChatReportID: reportID,
+                });
                 return;
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
-                IOU.splitBillAndOpenReport(
-                    selectedParticipants,
-                    props.currentUserPersonalDetails.login,
-                    props.currentUserPersonalDetails.accountID,
-                    props.iou.amount,
-                    trimmedComment,
-                    props.iou.currency,
-                    props.iou.category,
-                    props.iou.tag,
-                    props.iou.merchant,
-                );
+                IOU.splitBillAndOpenReport({
+                    participants: selectedParticipants,
+                    currentUserLogin: props.currentUserPersonalDetails.login,
+                    currentUserAccountID: props.currentUserPersonalDetails.accountID,
+                    amount: props.iou.amount,
+                    comment: trimmedComment,
+                    currency: props.iou.currency,
+                    merchant: props.iou.merchant,
+                    category: props.iou.category,
+                    tag: props.iou.tag,
+                });
                 return;
             }
 

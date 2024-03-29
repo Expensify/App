@@ -309,57 +309,57 @@ function IOURequestStepConfirmation({
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
-                IOU.startSplitBill(
-                    selectedParticipants,
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    trimmedComment,
-                    transaction.category,
-                    transaction.tag,
+                IOU.startSplitBill({
+                    participants: selectedParticipants,
+                    currentUserLogin: currentUserPersonalDetails.login,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    comment: trimmedComment,
                     receiptFile,
-                    report.reportID,
-                    transaction.billable,
-                );
+                    existingSplitChatReportID: report.reportID,
+                    billable: transaction.billable,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                });
                 return;
             }
 
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType === CONST.IOU.TYPE.SPLIT && !transaction.isFromGlobalCreate) {
-                IOU.splitBill(
-                    selectedParticipants,
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    transaction.amount,
-                    trimmedComment,
-                    transaction.currency,
-                    transaction.merchant,
-                    transaction.created,
-                    transaction.category,
-                    transaction.tag,
-                    report.reportID,
-                    transaction.billable,
-                    transaction.iouRequestType,
-                );
+                IOU.splitBill({
+                    participants: selectedParticipants,
+                    currentUserLogin: currentUserPersonalDetails.login,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    amount: transaction.amount,
+                    comment: trimmedComment,
+                    currency: transaction.currency,
+                    merchant: transaction.merchant,
+                    created: transaction.created,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    existingSplitChatReportID: report.reportID,
+                    billable: transaction.billable,
+                    iouRequestType: transaction.iouRequestType,
+                });
                 return;
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
-                IOU.splitBillAndOpenReport(
-                    selectedParticipants,
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    transaction.amount,
-                    trimmedComment,
-                    transaction.currency,
-                    transaction.merchant,
-                    transaction.created,
-                    transaction.category,
-                    transaction.tag,
-                    transaction.billable,
-                    transaction.iouRequestType,
-                );
+                IOU.splitBillAndOpenReport({
+                    participants: selectedParticipants,
+                    currentUserLogin: currentUserPersonalDetails.login,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    amount: transaction.amount,
+                    comment: trimmedComment,
+                    currency: transaction.currency,
+                    merchant: transaction.merchant,
+                    created: transaction.created,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    billable: transaction.billable,
+                    iouRequestType: transaction.iouRequestType,
+                });
                 return;
             }
 

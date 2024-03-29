@@ -48,19 +48,22 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
 function isScanRequest(transaction: Transaction): boolean {
     // This is used during the request creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
     return Boolean(transaction?.receipt?.source);
 }
 
-function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
-    if (isDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE;
+function getRequestType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
+    if (transaction) {
+        if (isDistanceRequest(transaction)) {
+            return CONST.IOU.REQUEST_TYPE.DISTANCE;
+        }
+        if (isScanRequest(transaction)) {
+            return CONST.IOU.REQUEST_TYPE.SCAN;
+        }
     }
-    if (isScanRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.SCAN;
-    }
+
     return CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
@@ -417,7 +420,7 @@ function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CO
 /**
  * Returns the translation key to use for the header title
  */
-function getHeaderTitleTranslationKey(transaction: Transaction): TranslationPaths {
+function getHeaderTitleTranslationKey(transaction: OnyxEntry<Transaction>): TranslationPaths {
     const headerTitles: Record<string, TranslationPaths> = {
         [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
         [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
