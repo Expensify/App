@@ -182,6 +182,7 @@ function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: Task
                         option?.login ?? '',
                         option?.accountID ?? -1,
                         report.reportID,
+                        report,
                         OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
                     );
 
@@ -195,6 +196,7 @@ function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: Task
                     option?.login ?? '',
                     option.accountID,
                     task?.shareDestination ?? '',
+                    report,
                     OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
                 Navigation.goBack(ROUTES.NEW_TASK);
