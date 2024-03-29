@@ -4,67 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 1302:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
-const fs = __nccwpck_require__(7147);
-
-const run = () => {
-    // Prefix path to the graphite metric
-    const GRAPHITE_PATH = 'reassure';
-
-    let regressionOutput;
-    try {
-        regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
-    } catch (err) {
-        // Handle errors that occur during file reading or parsing
-        console.error('Error while parsing output.json:', err.message);
-        core.setFailed(err);
-    }
-
-    const creationDate = regressionOutput.metadata.current.creationDate;
-    const timestampInMili = new Date(creationDate).getTime();
-
-    // Graphite accepts timestamp in seconds
-    const timestamp = Math.floor(timestampInMili / 1000);
-
-    // Get PR number from the github context
-    const prNumber = github.context.payload.pull_request.number;
-
-    // We need to combine all tests from the 4 buckets
-    const reassureTests = [...regressionOutput.meaningless, ...regressionOutput.significant, ...regressionOutput.countChanged, ...regressionOutput.added];
-
-    // Map through every test and create string for meanDuration and meanCount
-    // eslint-disable-next-line rulesdir/prefer-underscore-method
-    const graphiteString = reassureTests
-        .map((test) => {
-            const current = test.current;
-            // Graphite doesn't accept metrics name with space, we replace spaces with "-"
-            const formattedName = current.name.split(' ').join('-');
-
-            const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
-            const renderCountString = `${GRAPHITE_PATH}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
-            const renderPRNumberString = `${GRAPHITE_PATH}.${formattedName}.prNumber ${prNumber} ${timestamp}`;
-
-            return `${renderDurationString}\n${renderCountString}\n${renderPRNumberString}`;
-        })
-        .join('\n');
-
-    // Set generated graphite string to the github variable
-    core.setOutput('GRAPHITE_STRING', graphiteString);
-};
-
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-
-module.exports = run;
-
-
-/***/ }),
-
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -9567,6 +9506,87 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 7717:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const run = () => {
+    // Prefix path to the graphite metric
+    const GRAPHITE_PATH = 'reassure';
+    let regressionOutput;
+    try {
+        regressionOutput = JSON.parse(fs_1.default.readFileSync('.reassure/output.json', 'utf8'));
+    }
+    catch (err) {
+        // Handle errors that occur during file reading or parsing
+        if (err instanceof Error) {
+            console.error('Error while parsing output.json:', err.message);
+            core.setFailed(err);
+        }
+    }
+    const creationDate = regressionOutput.metadata.current.creationDate;
+    const timestampInMili = new Date(creationDate).getTime();
+    // Graphite accepts timestamp in seconds
+    const timestamp = Math.floor(timestampInMili / 1000);
+    // Get PR number from the github context
+    const prNumber = github.context.payload.pull_request?.number;
+    // We need to combine all tests from the 4 buckets
+    const reassureTests = [...regressionOutput.meaningless, ...regressionOutput.significant, ...regressionOutput.countChanged, ...regressionOutput.added];
+    // Map through every test and create string for meanDuration and meanCount
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    const graphiteString = reassureTests
+        .map((test) => {
+        const current = test.current;
+        // Graphite doesn't accept metrics name with space, we replace spaces with "-"
+        const formattedName = current.name.split(' ').join('-');
+        const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
+        const renderCountString = `${GRAPHITE_PATH}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
+        const renderPRNumberString = `${GRAPHITE_PATH}.${formattedName}.prNumber ${prNumber} ${timestamp}`;
+        return `${renderDurationString}\n${renderCountString}\n${renderPRNumberString}`;
+    })
+        .join('\n');
+    // Set generated graphite string to the github variable
+    core.setOutput('GRAPHITE_STRING', graphiteString);
+};
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -9745,7 +9765,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(1302);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(7717);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
