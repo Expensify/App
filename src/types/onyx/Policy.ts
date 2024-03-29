@@ -173,10 +173,10 @@ type QBOConnectionConfig = {
         exporter: string;
     };
 };
-type Connection<ConnectionData, ConnectionConfig> = {
+type Connection<TConnectionData, TConnectionConfig> = {
     lastSync?: ConnectionLastSync;
-    data: ConnectionData;
-    config: ConnectionConfig;
+    data: TConnectionData;
+    config: TConnectionConfig;
 };
 
 type Connections = {
