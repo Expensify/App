@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -11,8 +11,8 @@ import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
-import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -342,7 +342,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             textInputValue={searchTerm}
             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
             textInputHint={offlineMessage}
-            onChangeText={setSearchTermAndSearchInServer}
+            onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={addSingleParticipant}
             footerContent={footerContent}
