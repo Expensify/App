@@ -3337,6 +3337,7 @@ const CONST = {
     VIOLATION_TYPES: {
         VIOLATION: 'violation',
         NOTICE: 'notice',
+        WARNING: 'warning',
     },
 
     /**
