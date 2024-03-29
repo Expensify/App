@@ -1194,7 +1194,7 @@ function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): 
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
     const chatType = getChatType(report) ?? '';
-    return isThread(report) && isChatReport(report) && CONST.WORKSPACE_ROOM_TYPES.includes(chatType);
+    return isThread(report) && isChatReport(report) && typeof chatType === 'string' && CONST.WORKSPACE_ROOM_TYPES.includes(chatType);
 }
 
 /**
