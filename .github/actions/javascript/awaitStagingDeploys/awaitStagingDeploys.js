@@ -1,7 +1,6 @@
-// eslint-disable-next-line import/no-import-module-exports
-import CONST from '@github/libs/CONST';
-
 const _ = require('underscore');
+const lodashThrottle = require('lodash/throttle');
+const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GitHubUtils = require('../../../libs/GithubUtils');
 const {promiseDoWhile} = require('../../../libs/promiseWhile');
@@ -58,7 +57,7 @@ function run() {
 
     return promiseDoWhile(
         () => !_.isEmpty(currentStagingDeploys),
-        _.throttle(
+        lodashThrottle(
             throttleFunc,
 
             // Poll every 60 seconds instead of every 10 seconds
