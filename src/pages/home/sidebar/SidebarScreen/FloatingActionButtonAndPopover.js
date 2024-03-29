@@ -162,9 +162,9 @@ function FloatingActionButtonAndPopover(props) {
     }, [props.personalDetails, props.session.accountID, quickActionReport]);
 
     const quickActionTitle = useMemo(() => {
-        const titleKey = getQuickActionTitle(props.quickAction.action);
+        const titleKey = getQuickActionTitle(props.quickAction && props.quickAction.action);
         return titleKey ? translate(titleKey) : '';
-    }, [props.quickAction.action, translate]);
+    }, [props.quickAction, translate]);
 
     const navigateToQuickAction = () => {
         switch (props.quickAction.action) {
