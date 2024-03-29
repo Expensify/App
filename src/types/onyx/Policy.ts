@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 
 type Unit = 'mi' | 'km';
