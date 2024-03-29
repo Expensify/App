@@ -652,23 +652,32 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  */
-function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareDestination: string, isCurrentUser = false): OnyxEntry<OnyxTypes.Report> {
-    let chatReport: OnyxEntry<OnyxTypes.Report> = null;
-
+function setAssigneeValue(
+    assigneeEmail: string,
+    assigneeAccountID: number,
+    shareToReportID: string,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    isCurrentUser = false,
+): OnyxEntry<OnyxTypes.Report> {
+    let report = chatReport;
     if (!isCurrentUser) {
-        chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
-        if (!chatReport) {
-            chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
-            chatReport.isOptimisticReport = true;
+        // Check for the chatReport by participants IDs
+        if (!report) {
+            report = ReportUtils.getChatByParticipants([assigneeAccountID]);
+        }
+        // If chat report is still not found we need to build new optimistic chat report
+        if (!report) {
+            report = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
+            report.isOptimisticReport = true;
 
             // When assigning a task to a new user, by default we share the task in their DM
             // However, the DM doesn't exist yet - and will be created optimistically once the task is created
             // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
             // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
-            if (chatReport) {
-                chatReport.isHidden = true;
+            if (report) {
+                report.isHidden = true;
             }
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
             const optimisticPersonalDetailsListAction = {
@@ -680,12 +689,12 @@ function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shar
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
         }
 
-        setAssigneeChatReport(chatReport);
+        setAssigneeChatReport(report);
 
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
-        if (!shareDestination) {
-            setShareDestinationValue(chatReport?.reportID ?? '');
+        if (!shareToReportID) {
+            setShareDestinationValue(report?.reportID ?? '');
         }
     }
 
@@ -695,7 +704,7 @@ function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shar
     // When we're editing the assignee, we immediately call editTaskAssignee. Since setting the assignee is async,
     // the chatReport is not yet set when editTaskAssignee is called. So we return the chatReport here so that
     // editTaskAssignee can use it.
-    return chatReport;
+    return report;
 }
 
 /**
@@ -709,14 +718,14 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID: string, accountID = 0) {
+function clearOutTaskInfoAndNavigate(reportID: string, chatReport: OnyxEntry<OnyxTypes.Report>, accountID = 0) {
     clearOutTaskInfo();
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
     }
     if (accountID > 0) {
         const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
-        setAssigneeValue(accountLogin, accountID, reportID);
+        setAssigneeValue(accountLogin, accountID, reportID, chatReport);
     }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
