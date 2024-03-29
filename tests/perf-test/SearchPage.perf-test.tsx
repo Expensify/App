@@ -152,7 +152,6 @@ function SearchPageWithCachedOptions(args: SearchPageProps) {
 }
 
 test('[Search Page] should render list with cached options', async () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
