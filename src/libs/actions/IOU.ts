@@ -2248,6 +2248,35 @@ function trackExpense(
     Report.notifyNewAction(activeReportID, payeeAccountID);
 }
 
+function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
+    const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
+    let existingSplitChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
+    if (!existingSplitChatReport) {
+        existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
+    }
+    let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
+    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
+    if (!existingSplitChatReport && participants.length > 1) {
+        newChat = ReportUtils.buildOptimisticChatReport(
+            allParticipantsAccountIDs,
+            '',
+            CONST.REPORT.CHAT_TYPE.GROUP,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        );
+    }
+    if (isEmptyObject(newChat)) {
+        newChat = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
+    }
+    const splitChatReport = existingSplitChatReport ?? newChat;
+    return {splitChatReport, existingSplitChatReport};
+}
+
 /**
  * Build the Onyx data and IOU split necessary for splitting a bill with 3+ users.
  * 1. Build the optimistic Onyx data for the group chat, i.e. chatReport and iouReportAction creating the former if it doesn't yet exist.
@@ -2621,35 +2650,6 @@ function createSplitsAndOnyxData(
         splits,
         onyxData: {optimisticData, successData, failureData},
     };
-}
-
-function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
-    const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
-    let existingSplitChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
-    if (!existingSplitChatReport) {
-        existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
-    }
-    let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
-    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
-    if (!existingSplitChatReport && participants.length > 1) {
-        newChat = ReportUtils.buildOptimisticChatReport(
-            allParticipantsAccountIDs,
-            '',
-            CONST.REPORT.CHAT_TYPE.GROUP,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-        );
-    }
-    if (isEmptyObject(newChat)) {
-        newChat = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
-    }
-    const splitChatReport = existingSplitChatReport ?? newChat;
-    return {splitChatReport, existingSplitChatReport};
 }
 
 /**
