@@ -60,6 +60,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.SETTINGS_ABOUT,
                     exact: true,
                 },
+                [SCREENS.SETTINGS.TROUBLESHOOT]: {
+                    path: ROUTES.SETTINGS_TROUBLESHOOT,
+                    exact: true,
+                },
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
             },
         },
@@ -174,10 +178,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: {
                             path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.TROUBLESHOOT]: {
-                            path: ROUTES.SETTINGS_TROUBLESHOOT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.CONSOLE]: {

@@ -58,6 +58,7 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.SECURITY]: undefined;
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
 };
 
@@ -102,6 +103,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.CLOSE]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.CONSOLE]: undefined;

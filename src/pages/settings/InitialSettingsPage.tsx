@@ -251,6 +251,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     routeName: ROUTES.SETTINGS_ABOUT,
                 },
                 {
+                    translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
+                    icon: Expensicons.Lightbulb,
+                    routeName: ROUTES.SETTINGS_TROUBLESHOOT,
+                },
+                {
                     translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
                     action: () => {
