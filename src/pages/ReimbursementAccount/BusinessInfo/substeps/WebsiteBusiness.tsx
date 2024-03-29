@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
+import getDefaultCompanyWebsite from '@libs/BankAccountUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -48,7 +48,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session?.email, user?.isFromPublicDomain]);
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
