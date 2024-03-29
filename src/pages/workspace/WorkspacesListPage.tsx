@@ -19,6 +19,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -119,6 +120,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -132,6 +134,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
 
         Policy.deleteWorkspace(policyIDToDelete, policyNameToDelete);
         setIsDeleteModalOpen(false);
+
+        // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
+        if (activeWorkspaceID === policyIDToDelete) {
+            setActiveWorkspaceID(undefined);
+            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+        }
     };
 
     /**
@@ -174,21 +182,22 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             }
 
             return (
-                <PressableWithoutFeedback
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel="row"
-                    style={[styles.mh5, styles.mb3]}
-                    disabled={item.disabled}
-                    onPress={item.action}
+                <OfflineWithFeedback
+                    key={`${item.title}_${index}`}
+                    pendingAction={item.pendingAction}
+                    errorRowStyles={styles.ph5}
+                    onClose={item.dismissError}
+                    errors={item.errors}
+                    style={styles.mb3}
                 >
-                    {({hovered}) => (
-                        <OfflineWithFeedback
-                            key={`${item.title}_${index}`}
-                            pendingAction={item.pendingAction}
-                            errorRowStyles={styles.ph5}
-                            onClose={item.dismissError}
-                            errors={item.errors}
-                        >
+                    <PressableWithoutFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel="row"
+                        style={[styles.mh5]}
+                        disabled={item.disabled}
+                        onPress={item.action}
+                    >
+                        {({hovered}) => (
                             <WorkspacesListRow
                                 title={item.title}
                                 menuItems={threeDotsMenuItems}
@@ -201,9 +210,9 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
                             />
-                        </OfflineWithFeedback>
-                    )}
-                </PressableWithoutFeedback>
+                        )}
+                    </PressableWithoutFeedback>
+                </OfflineWithFeedback>
             );
         },
         [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
