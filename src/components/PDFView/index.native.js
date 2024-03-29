@@ -35,7 +35,7 @@ const propTypes = {
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
 
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onError, isUsedAsChatAttachment}) {
+function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onLoadError, isUsedAsChatAttachment}) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -86,7 +86,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldShowLoadingIndicator(false);
         setShouldRequestPassword(false);
         setShouldAttemptPDFLoad(false);
-        onError(error);
+        onLoadError();
     };
 
     /**

@@ -176,9 +176,9 @@ function AttachmentView({
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={onPDFLoadComplete}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
-                    isUsedInCarousel={isUsedInCarousel}
                     isUsedAsChatAttachment={isUsedAsChatAttachment}
-                    onError={() => {
+                    containerStyles={containerStyles}
+                    onLoadError={() => {
                         setIsPdfFailedToLoad(true);
                     }}
                 />
@@ -238,7 +238,7 @@ function AttachmentView({
 
     return (
         <DefaultAttachmentView
-            fileName={file?.name ?? ''}
+            fileName={file?.name}
             shouldShowDownloadIcon={shouldShowDownloadIcon}
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
             containerStyles={containerStyles}

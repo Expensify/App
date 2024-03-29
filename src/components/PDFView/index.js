@@ -4,6 +4,7 @@ import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import DefaultAttachmentView from '@components/Attachments/AttachmentView/DefaultAttachmentView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize from '@components/withLocalize';
@@ -93,7 +94,13 @@ class PDFView extends Component {
                     maxCanvasHeight={this.props.maxCanvasHeight}
                     maxCanvasArea={this.props.maxCanvasArea}
                     LoadingComponent={<FullScreenLoadingIndicator />}
-                    ErrorComponent={this.props.renderFallbackAttachmentView}
+                    ErrorComponent={
+                        <DefaultAttachmentView
+                            fileName={this.props.fileName}
+                            shouldShowDownloadIcon={this.props.isUsedAsChatAttachment}
+                            containerStyles={this.props.containerStyles}
+                        />
+                    }
                     renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
                         <PDFPasswordForm
                             isFocused={this.props.isFocused}

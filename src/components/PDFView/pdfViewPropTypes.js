@@ -32,7 +32,10 @@ const propTypes = {
     isUsedAsChatAttachment: PropTypes.bool,
 
     /** Callback when the pdf fails to load */
-    onError: PropTypes.func,
+    onLoadError: PropTypes.func,
+
+    /** Additional container styles */
+    containerStyles: stylePropTypes,
 
     ...windowDimensionsPropTypes,
 

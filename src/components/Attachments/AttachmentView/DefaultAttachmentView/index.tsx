@@ -10,13 +10,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type DefaultAttachmentViewProps = {
-    fileName: string;
+    fileName?: string;
     shouldShowDownloadIcon?: boolean;
     shouldShowLoadingSpinnerIcon?: boolean;
     containerStyles?: StyleProp<ViewStyle>;
 };
 
-function DefaultAttachmentView({fileName, shouldShowDownloadIcon, shouldShowLoadingSpinnerIcon, containerStyles}: DefaultAttachmentViewProps) {
+function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles}: DefaultAttachmentViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
