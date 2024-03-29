@@ -127,6 +127,7 @@ function ReportPreview({
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
@@ -138,14 +139,16 @@ function ReportPreview({
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
 
-    let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
+    const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
+
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
     }
     const previewSubtitle =
         // Formatted merchant can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        formattedMerchant ||
+        (formattedMerchant ?? formattedDescription) ||
         translate('iou.requestCount', {
             count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
             scanningReceipts: numberOfScanningReceipts,
@@ -228,7 +231,8 @@ function ReportPreview({
        In this case, we don't want to show the merchant because it says: "Pending route...", which is already displayed in the amount field.
      */
     const shouldShowSingleRequestMerchant = numberOfRequests === 1 && !!formattedMerchant && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
-    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchant || numberOfRequests > 1);
+    const shouldShowSingleRequestDescription = numberOfRequests === 1 && !!formattedDescription && !shouldShowSingleRequestMerchant;
+    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchant || shouldShowSingleRequestDescription || numberOfRequests > 1);
 
     return (
         <OfflineWithFeedback
