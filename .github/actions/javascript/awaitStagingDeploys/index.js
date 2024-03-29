@@ -5,19 +5,12 @@
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 1021:
-/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
-
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(9873);
-/* module decorator */ module = __nccwpck_require__.hmd(module);
-// eslint-disable-next-line import/no-import-module-exports
-
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(5067);
 const lodashThrottle = __nccwpck_require__(2891);
-const CONST = __nccwpck_require__(4097);
-const ActionUtils = __nccwpck_require__(970);
+const CONST = __nccwpck_require__(9873);
+const ActionUtils = __nccwpck_require__(6981);
 const GitHubUtils = __nccwpck_require__(9296);
 const {promiseDoWhile} = __nccwpck_require__(9438);
 
@@ -38,8 +31,8 @@ function run() {
         Promise.all([
             // These are active deploys
             GitHubUtils.octokit.actions.listWorkflowRuns({
-                owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
-                repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 workflow_id: 'platformDeploy.yml',
                 event: 'push',
                 branch: tag,
@@ -49,8 +42,8 @@ function run() {
             // In this context, we'll refer to unresolved preDeploy workflow runs as staging deploys as well
             !tag &&
                 GitHubUtils.octokit.actions.listWorkflowRuns({
-                    owner: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].GITHUB_OWNER,
-                    repo: _github_libs_CONST__WEBPACK_IMPORTED_MODULE_0__["default"].APP_REPO,
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
                     workflow_id: 'preDeploy.yml',
                 }),
         ])
@@ -82,7 +75,7 @@ function run() {
     );
 }
 
-if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
+if (require.main === require.cache[eval('__filename')]) {
     run();
 }
 
@@ -15157,8 +15150,8 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			id: moduleId,
-/******/ 			loaded: false,
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -15171,53 +15164,21 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
-/******/ 	// expose the module cache
-/******/ 	__nccwpck_require__.c = __webpack_module_cache__;
-/******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/harmony module decorator */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.hmd = (module) => {
-/******/ 			module = Object.create(module);
-/******/ 			if (!module.children) module.children = [];
-/******/ 			Object.defineProperty(module, 'exports', {
-/******/ 				enumerable: true,
-/******/ 				set: () => {
-/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
-/******/ 				}
-/******/ 			});
-/******/ 			return module;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
 /******/ 	
-/******/ 	// module cache are used so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	var __webpack_exports__ = __nccwpck_require__(__nccwpck_require__.s = 1021);
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(1021);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
