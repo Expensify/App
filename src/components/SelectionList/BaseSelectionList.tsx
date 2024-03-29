@@ -378,7 +378,7 @@ function BaseSelectionList<TItem extends ListItem>(
             setFocusedIndex(newFocusedIndex);
             scrollToIndex(newFocusedIndex, true);
         },
-        [scrollToIndex],
+        [scrollToIndex, setFocusedIndex],
     );
 
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
@@ -450,7 +450,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 setItemsToHighlight(null);
             }, timeout);
         },
-        [flattenedSections.allOptions, updateAndScrollToFocusedIndex],
+        [flattenedSections.allOptions, updateAndScrollToFocusedIndex, setFocusedIndex],
     );
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem}), [scrollAndHighlightItem]);

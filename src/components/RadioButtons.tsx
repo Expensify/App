@@ -46,7 +46,7 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyl
         }
         setCheckedValue(value ?? '');
     }, [checkedValue, value]);
-    
+
     return (
         <>
             <View
