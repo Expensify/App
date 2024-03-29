@@ -24,13 +24,6 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<Report> = null;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
-
 /**
  * Builds the partial message fragment for a modified field on the expense.
  */
@@ -233,9 +226,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
 
     const hasModifiedTaxAmount = reportActionOriginalMessage && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
     if (hasModifiedTaxAmount) {
-        const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
-        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
-        const currency = iouReport?.currency ?? '';
+        const currency = reportActionOriginalMessage?.currency;
 
         const taxAmount = CurrencyUtils.convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
         const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
