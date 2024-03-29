@@ -1,11 +1,9 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import Text from './Text';
 
 type SwitchProps = {
     /** Whether the switch is toggled to the on position */
