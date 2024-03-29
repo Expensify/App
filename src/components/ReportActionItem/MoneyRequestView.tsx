@@ -41,9 +41,6 @@ import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewTransactionOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-
     /** The transaction associated with the transactionThread */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -88,7 +85,6 @@ function MoneyRequestView({
     policyTagList,
     policy,
     transactionViolations,
-    session,
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -135,10 +131,6 @@ function MoneyRequestView({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
 
-    const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
-    const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
-
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
@@ -160,7 +152,7 @@ function MoneyRequestView({
         [canUseViolations, getViolationsForField],
     );
     const noteTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
-    const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report) && (isActionOwner || isPolicyAdmin || isApprover);
+    const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -500,9 +492,6 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
                 const transactionID = originalMessage?.IOUTransactionID ?? 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
             },
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     })(MoneyRequestView),
 );
