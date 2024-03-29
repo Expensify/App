@@ -50,6 +50,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onConfirm,
         headerContent,
         footerContent,
+        listFooterContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
@@ -169,7 +170,6 @@ function BaseSelectionList<TItem extends ListItem>(
         if (isFocusedIndexSet.current || (flattenedSections.allOptions.length < 1 && initiallyFocusedOptionKey === undefined)) {
             return;
         }
-        console.log('initiallyFocusedOptionKey', initiallyFocusedOptionKey);
         const index = flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey);
         if (index !== -1) {
             setFocusedIndex(index);
@@ -588,7 +588,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     testID="selection-list"
                                     onLayout={onSectionListLayout}
                                     style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
-                                    ListFooterComponent={ShowMoreButtonInstance}
+                                    ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 />
                                 {children}
                             </>

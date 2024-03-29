@@ -10,9 +10,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseListItem from './BaseListItem';
-import type {UserListItemProps} from './types';
+import type {ListItem, UserListItemProps} from './types';
 
-function UserListItem({
+function UserListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -24,7 +24,7 @@ function UserListItem({
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     checkmarkPosition,
-}: UserListItemProps) {
+}: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();

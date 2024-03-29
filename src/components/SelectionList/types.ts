@@ -10,7 +10,12 @@ import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
-type CommonListItemProps<TItem> = {
+type TRightHandSideComponent<TItem extends ListItem> = {
+    /** Component to display on the right side */
+    rightHandSideComponent?: ((item: TItem) => ReactElement | null | undefined) | ReactElement | null;
+};
+
+type CommonListItemProps<TItem extends ListItem> = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused?: boolean;
 
@@ -32,9 +37,6 @@ type CommonListItemProps<TItem> = {
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
-    /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
-
     /** Direction of checkmark to show */
     checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
 
@@ -52,7 +54,7 @@ type CommonListItemProps<TItem> = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
-};
+} & TRightHandSideComponent<TItem>;
 
 type ListItem = {
     /** Text to display */
@@ -115,9 +117,9 @@ type ListItem = {
     searchText?: string | null;
 };
 
-type ListItemProps = CommonListItemProps<ListItem> & {
+type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
-    item: ListItem;
+    item: TItem;
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
@@ -139,10 +141,10 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
-    children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
+    children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
 };
 
-type UserListItemProps = ListItemProps & {
+type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Errors that this user may contain */
     errors?: Errors | ReceiptErrors | null;
 
@@ -153,9 +155,9 @@ type UserListItemProps = ListItemProps & {
     FooterComponent?: ReactElement;
 };
 
-type RadioListItemProps = ListItemProps;
+type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type TableListItemProps = ListItemProps;
+type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -259,6 +261,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
 
+    /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
+    listFooterContent?: React.JSX.Element | null;
+
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
 
@@ -276,9 +281,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
-
-    /** Component to display on the right side of each child */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem> | ReactElement | null | undefined) | null;
 
     /** Direction of checkmark to show */
     checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
@@ -303,7 +305,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null>;
-};
+} & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;

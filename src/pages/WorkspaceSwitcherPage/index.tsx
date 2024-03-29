@@ -5,31 +5,27 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
-import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
-import * as App from '@userActions/App';
+import WorkspaceCardCreateAWorkspace from '@pages/workspace/card/WorkspaceCardCreateAWorkspace';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
+import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 
 type WorkspaceListItem = {
     text: string;
@@ -55,46 +51,7 @@ type WorkspaceSwitcherPageOnyxProps = {
 
 type WorkspaceSwitcherPageProps = WorkspaceSwitcherPageOnyxProps;
 
-function WorkspacesSectionHeader() {
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-
-    return (
-        <View style={[styles.mh4, styles.mt6, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
-            <View>
-                <Text
-                    style={styles.label}
-                    color={theme.textSupporting}
-                >
-                    {translate('common.workspaces')}
-                </Text>
-            </View>
-            <Tooltip text={translate('workspace.new.newWorkspace')}>
-                <PressableWithFeedback
-                    accessible={false}
-                    role={CONST.ROLE.BUTTON}
-                    onPress={() => {
-                        Navigation.goBack();
-                        interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt());
-                    }}
-                >
-                    {({hovered}) => (
-                        <Icon
-                            src={Expensicons.Plus}
-                            width={12}
-                            height={12}
-                            additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
-                            fill={theme.icon}
-                        />
-                    )}
-                </PressableWithFeedback>
-            </Tooltip>
-        </View>
-    );
-}
-
-const WorkspaceSectionHeaderInstance = <WorkspaceCardCreateAWorkspace />;
+const WorkspaceCardCreateAWorkspaceInstance = <WorkspaceCardCreateAWorkspace />;
 
 function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
     const theme = useTheme();
@@ -207,14 +164,12 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 ],
             },
         ];
-        if (filteredAndSortedUserWorkspaces.length > 0) {
-            options.push({
-                CustomSectionHeader: WorkspacesSectionHeader,
-                data: filteredAndSortedUserWorkspaces,
-                shouldShow: true,
-                indexOffset: 1,
-            });
-        }
+        options.push({
+            CustomSectionHeader: WorkspacesSectionHeader,
+            data: filteredAndSortedUserWorkspaces,
+            shouldShow: true,
+            indexOffset: 1,
+        });
         return options;
     }, [activeWorkspaceID, filteredAndSortedUserWorkspaces, getIndicatorTypeForPolicy, translate]);
 
@@ -279,7 +234,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
                         rightHandSideComponent={renderRightHandSideComponent}
-                        footerContent={shouldShowCreateWorkspace && WorkspaceSectionHeaderInstance}
+                        listFooterContent={shouldShowCreateWorkspace ? WorkspaceCardCreateAWorkspaceInstance : null}
                         initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
                         showLoadingPlaceholder
                     />
