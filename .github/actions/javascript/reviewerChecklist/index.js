@@ -11559,7 +11559,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
         .then(() => GithubUtils_1.default.getAllComments(issue))
         .then((comments) => {
         console.log(`Pulled ${comments.length} comments, now adding them to the list...`);
-        combinedComments.push(...comments.map((comment) => comment ?? ''));
+        combinedComments.push(...comments.filter(Boolean));
     })
         .then(() => {
         console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);

@@ -11511,7 +11511,7 @@ const run = function () {
         console.log('Checking the last comment for the :shipit: seal of approval', comments);
         // If comments is undefined that means we found an unchecked QA item in the
         // issue description, so there's nothing more to do but return early.
-        if (!comments) {
+        if (comments === undefined) {
             return;
         }
         // If there are no comments, then we have not yet gotten the :shipit: seal of approval.
