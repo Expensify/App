@@ -43,6 +43,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
+
+    /** If this is the first visible report action */
+    isFirstVisibleReportActionID: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -58,6 +61,7 @@ function ReportActionsListItemRenderer({
     shouldDisplayNewMarker,
     linkedReportActionID = '',
     shouldDisplayReplyDivider,
+    isFirstVisibleReportActionID = false,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -158,6 +162,7 @@ function ReportActionsListItemRenderer({
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
+            isFirstVisibleReportActionID={isFirstVisibleReportActionID}
         />
     );
 }

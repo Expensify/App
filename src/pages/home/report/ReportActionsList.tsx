@@ -420,6 +420,8 @@ function ReportActionsList({
         [sortedReportActions, isOffline, currentUnreadMarker],
     );
 
+    const firstVisibleReportActionID = useMemo(() => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline), [sortedReportActions, isOffline]);
+
     /**
      * Evaluate new unread marker visibility for each of the report actions.
      */
@@ -533,19 +535,21 @@ function ReportActionsList({
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
                 shouldDisplayReplyDivider={sortedReportActions.length > 1}
+                isFirstVisibleReportActionID={firstVisibleReportActionID === reportAction.reportActionID}
             />
         ),
         [
+            reportActions,
+            parentReportAction,
             report,
+            transactionThreadReport,
             linkedReportActionID,
             sortedVisibleReportActions,
-            sortedReportActions.length,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             shouldDisplayNewMarker,
-            parentReportAction,
-            reportActions,
-            transactionThreadReport,
+            sortedReportActions.length,
+            firstVisibleReportActionID,
         ],
     );
 

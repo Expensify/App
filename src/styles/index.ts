@@ -2730,6 +2730,17 @@ const styles = (theme: ThemeColors) =>
             ...cursor.cursorDefault,
         },
 
+        hideUnreadIndicatorContainer: {
+            position: 'relative',
+            width: '100%',
+            height: 17,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            zIndex: 1,
+            ...cursor.cursorDefault,
+        },
+
         unreadIndicatorLine: {
             height: 1,
             backgroundColor: theme.unreadIndicator,

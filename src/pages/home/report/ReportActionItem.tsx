@@ -29,6 +29,7 @@ import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TaskView from '@components/ReportActionItem/TaskView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
@@ -145,6 +146,9 @@ type ReportActionItemProps = {
 
     /** Callback to be called on onPress */
     onPress?: () => void;
+
+    /** If this is the first visible report action */
+    isFirstVisibleReportActionID: boolean;
 } & ReportActionItemOnyxProps;
 
 const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is OnyxTypes.ReportActionBase & OnyxTypes.OriginalMessageIOU =>
@@ -169,6 +173,7 @@ function ReportActionItem({
     policy,
     transaction,
     onPress = undefined,
+    isFirstVisibleReportActionID = false,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -712,9 +717,19 @@ function ReportActionItem({
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <MoneyRequestView
                         report={report}
-                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                         shouldShowAnimatedBackground
                     />
+                    {!shouldHideThreadDividerLine ? (
+                        <SpacerView
+                            shouldShow={!shouldHideThreadDividerLine}
+                            style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
+                        />
+                    ) : (
+                        <UnreadActionIndicator
+                            reportActionID={report.reportID}
+                            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                        />
+                    )}
                 </ShowContextMenuContext.Provider>
             );
         }
@@ -742,10 +757,18 @@ function ReportActionItem({
                 <View>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                        <TaskView
-                            report={report}
-                            shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                        />
+                        <TaskView report={report} />
+                        {!shouldHideThreadDividerLine ? (
+                            <SpacerView
+                                shouldShow={!shouldHideThreadDividerLine}
+                                style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
+                            />
+                        ) : (
+                            <UnreadActionIndicator
+                                reportActionID={report.reportID}
+                                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                            />
+                        )}
                     </View>
                 </View>
             );
@@ -756,26 +779,60 @@ function ReportActionItem({
                     {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                         <>
                             {transactionCurrency !== report.currency && (
-                                <MoneyReportView
-                                    report={report}
-                                    policy={policy}
-                                    shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                                />
+                                <>
+                                    <MoneyReportView
+                                        report={report}
+                                        policy={policy}
+                                    />
+                                    {!shouldHideThreadDividerLine ? (
+                                        <SpacerView
+                                            shouldShow={!shouldHideThreadDividerLine}
+                                            style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
+                                        />
+                                    ) : (
+                                        <UnreadActionIndicator
+                                            reportActionID={report.reportID}
+                                            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                                        />
+                                    )}
+                                </>
                             )}
                             <ShowContextMenuContext.Provider value={contextValue}>
                                 <MoneyRequestView
                                     report={transactionThreadReport}
-                                    shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                                     shouldShowAnimatedBackground={transactionCurrency === report.currency}
                                 />
+                                {!shouldHideThreadDividerLine ? (
+                                    <SpacerView
+                                        shouldShow={!shouldHideThreadDividerLine}
+                                        style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
+                                    />
+                                ) : (
+                                    <UnreadActionIndicator
+                                        reportActionID={report.reportID}
+                                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                                    />
+                                )}
                             </ShowContextMenuContext.Provider>
                         </>
                     ) : (
-                        <MoneyReportView
-                            report={report}
-                            policy={policy}
-                            shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                        />
+                        <>
+                            <MoneyReportView
+                                report={report}
+                                policy={policy}
+                            />
+                            {!shouldHideThreadDividerLine ? (
+                                <SpacerView
+                                    shouldShow={!shouldHideThreadDividerLine}
+                                    style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
+                                />
+                            ) : (
+                                <UnreadActionIndicator
+                                    reportActionID={report.reportID}
+                                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                                />
+                            )}
+                        </>
                     )}
                 </OfflineWithFeedback>
             );
@@ -846,7 +903,7 @@ function ReportActionItem({
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
-                        {shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={action.reportActionID} />}
+                        {shouldDisplayNewMarker && !isFirstVisibleReportActionID && <UnreadActionIndicator reportActionID={action.reportActionID} />}
                         <MiniReportActionContextMenu
                             reportID={report.reportID}
                             reportActionID={action.reportActionID}
