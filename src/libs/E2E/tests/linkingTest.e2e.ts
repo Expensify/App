@@ -18,6 +18,8 @@ const test = (config: NativeConfig) => {
     const linkedReportID = getConfigValueOrThrow('linkedReportID', config);
     const linkedReportActionID = getConfigValueOrThrow('linkedReportActionID', config);
 
+    console.log({linkedReportActionID});
+
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
             return waitForAppLoaded().then(() => E2EClient.submitTestDone());
@@ -59,7 +61,7 @@ const test = (config: NativeConfig) => {
                                 console.debug('[E2E] Error while submitting test results:', err);
                             });
                     } else {
-                        console.debug('[E2E] Message verification failed');
+                        console.debug('[E2E] Message verification failed', res, linkedReportActionID);
                     }
                 }, 3000);
             }

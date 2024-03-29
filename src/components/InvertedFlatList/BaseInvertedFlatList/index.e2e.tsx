@@ -10,14 +10,16 @@ type BaseInvertedFlatListProps = FlatListProps<ReportAction> & {
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
 let localViewableItems: ViewToken[];
-const getViewableItems = () => localViewableItems;
+const getViewableItems = () => console.log(787878798792) || localViewableItems;
 
 function BaseInvertedFlatListE2e(props: BaseInvertedFlatListProps, ref: React.ForwardedRef<FlatList<ReportAction>>) {
     const {shouldEnableAutoScrollToTopThreshold, ...rest} = props;
+    console.log("BaseInvertedFlatListE2e");
 
     const handleViewableItemsChanged = useMemo(
         () =>
             ({viewableItems}: {viewableItems: ViewToken[]}) => {
+                console.log("handleViewableItemsChanged", {viewableItems});
                 localViewableItems = viewableItems;
             },
         [],
