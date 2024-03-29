@@ -4,10 +4,10 @@ import type {EventMapCore, NavigationState, ScreenListeners} from '@react-naviga
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type { TabSelectorProps } from '@components/TabSelector/TabSelector';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorOnyxProps = {
@@ -25,7 +25,7 @@ type OnyxTabNavigatorProps = OnyxTabNavigatorOnyxProps &
         /** A function triggered when a tab has been selected */
         onTabSelected?: (newIouType: string) => void;
 
-        tabBar: (props:TabSelectorProps) => React.ReactNode
+        tabBar: (props: TabSelectorProps) => React.ReactNode;
 
         screenListeners?: ScreenListeners<NavigationState, MaterialTopTabNavigationEventMap>;
     };
@@ -37,7 +37,6 @@ export const TopTab = createMaterialTopTabNavigator();
 // except ID is now required, and it gets a `selectedTab` from Onyx
 function OnyxTabNavigator({id, selectedTab = '', children, onTabSelected = () => {}, screenListeners, ...rest}: OnyxTabNavigatorProps) {
     return (
-        // @ts-expect-error: Types of property 'tabBar' are incompatible.
         <TopTab.Navigator
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...rest}

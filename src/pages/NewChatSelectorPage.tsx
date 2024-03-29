@@ -1,14 +1,13 @@
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import useLocalize from '@hooks/useLocalize';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
-import useLocalize from '@hooks/useLocalize';
-import { useNavigation } from '@react-navigation/native';
-import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 import NewChatPage from './NewChatPage';
-
+import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 
 function NewChatSelectorPage() {
     const {translate} = useLocalize();
@@ -45,4 +44,4 @@ function NewChatSelectorPage() {
 
 NewChatSelectorPage.displayName = 'NewChatSelectorPage';
 
-export default NewChatSelectorPage
+export default NewChatSelectorPage;
