@@ -6,20 +6,18 @@ import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import {videoPlayerDefaultProps, videoPlayerPropTypes} from './propTypes';
 import shouldReplayVideo from './shouldReplayVideo';
 import * as VideoUtils from './utils';
 import VideoPlayerControls from './VideoPlayerControls';
-
-const isMobileSafari = Browser.isMobileSafari();
 
 function BaseVideoPlayer({
     url,
@@ -44,8 +42,19 @@ function BaseVideoPlayer({
     isVideoHovered,
 }) {
     const styles = useThemeStyles();
-    const {pauseVideo, playVideo, currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL} =
-        usePlaybackContext();
+    const {
+        pauseVideo,
+        playVideo,
+        currentlyPlayingURL,
+        updateSharedElements,
+        sharedElement,
+        originalParent,
+        shareVideoPlayerElements,
+        currentVideoPlayerRef,
+        updateCurrentlyPlayingURL,
+        videoResumeTryNumber,
+    } = usePlaybackContext();
+    const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
@@ -60,24 +69,21 @@ function BaseVideoPlayer({
     const videoPlayerElementParentRef = useRef(null);
     const videoPlayerElementRef = useRef(null);
     const sharedVideoPlayerParentRef = useRef(null);
-    const videoResumeTryNumber = useRef(0);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => url.startsWith(prefix));
-    const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
-
-    const [isFullscreen, setIsFullscreen] = useState(false);
+    const videoStateRef = useRef(null);
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
-        } else if (isPlaying && !isFullscreen) {
+        } else if (isPlaying) {
             pauseVideo();
-        } else if (!isFullscreen) {
+        } else {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, isFullscreen]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
 
     const showPopoverMenu = (e) => {
         setPopoverAnchorPosition({horizontal: e.nativeEvent.pageX, vertical: e.nativeEvent.pageY});
@@ -99,7 +105,7 @@ function BaseVideoPlayer({
             }
             videoResumeTryNumber.current -= 1;
         },
-        [playVideo],
+        [playVideo, videoResumeTryNumber],
     );
 
     const handlePlaybackStatusUpdate = useCallback(
@@ -118,7 +124,7 @@ function BaseVideoPlayer({
             setIsBuffering(e.isBuffering || false);
             setDuration(currentDuration);
             setPosition(currentPositon);
-
+            videoStateRef.current = e;
             onPlaybackStatusUpdate(e);
         },
         [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
@@ -127,22 +133,20 @@ function BaseVideoPlayer({
     const handleFullscreenUpdate = useCallback(
         (e) => {
             onFullscreenUpdate(e);
-
-            setIsFullscreen(e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_PRESENT);
-
             // fix for iOS native and mWeb: when switching to fullscreen and then exiting
             // the fullscreen mode while playing, the video pauses
-            if (!isPlaying || e.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
-                return;
+            if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
+                isFullScreenRef.current = false;
+                // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
+                // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
+                if (videoStateRef.current && videoStateRef.current.isPlaying) {
+                    pauseVideo();
+                    playVideo();
+                    videoResumeTryNumber.current = 3;
+                }
             }
-
-            if (isMobileSafari) {
-                pauseVideo();
-            }
-            playVideo();
-            videoResumeTryNumber.current = 3;
         },
-        [isPlaying, onFullscreenUpdate, pauseVideo, playVideo],
+        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
     );
 
     const bindFunctions = useCallback(() => {
@@ -156,7 +160,7 @@ function BaseVideoPlayer({
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
 
     useEffect(() => {
-        if (!isUploading) {
+        if (!isUploading || !videoPlayerRef.current) {
             return;
         }
 
@@ -164,37 +168,29 @@ function BaseVideoPlayer({
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading]);
 
-    useEffect(() => {
-        shouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
-    }, [shouldUseSharedVideoElement]);
-
-    useEffect(
-        () => () => {
-            if (shouldUseSharedVideoElementRef.current) {
-                return;
-            }
-
-            // If it's not a shared video player, clear the video player ref.
-            currentVideoPlayerRef.current = null;
-        },
-        [currentVideoPlayerRef],
-    );
-
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || isFullScreenRef.current) {
             return;
         }
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isUploading]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isUploading, isFullScreenRef]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement) {
+        if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
             return;
         }
 
         const newParentRef = sharedVideoPlayerParentRef.current;
+
+        if (!shouldUseSharedVideoElement) {
+            if (newParentRef && newParentRef.childNodes[0] && newParentRef.childNodes[0].remove) {
+                newParentRef.childNodes[0].remove();
+            }
+            return;
+        }
+
         videoPlayerRef.current = currentVideoPlayerRef.current;
         if (currentlyPlayingURL === url) {
             newParentRef.appendChild(sharedElement);
@@ -204,9 +200,10 @@ function BaseVideoPlayer({
             if (!originalParent && !newParentRef.childNodes[0]) {
                 return;
             }
+            newParentRef.childNodes[0].remove();
             originalParent.appendChild(sharedElement);
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     return (
         <>
@@ -222,6 +219,9 @@ function BaseVideoPlayer({
                             <PressableWithoutFeedback
                                 accessibilityRole="button"
                                 onPress={() => {
+                                    if (isFullScreenRef.current) {
+                                        return;
+                                    }
                                     togglePlayCurrentVideo();
                                 }}
                                 style={styles.flex1}

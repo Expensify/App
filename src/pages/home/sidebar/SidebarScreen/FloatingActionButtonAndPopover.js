@@ -21,6 +21,7 @@ import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
+import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -189,7 +190,7 @@ function FloatingActionButtonAndPopover(props) {
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, props.quickAction.chatReportID);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, _.get(props.quickAction, 'targetAccountID', 0));
+                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, quickActionReport, _.get(props.quickAction, 'targetAccountID', 0));
                 return;
             default:
                 return '';
@@ -277,7 +278,7 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.ChatBubble,
                         text: translate('sidebarScreen.fabNewChat'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
+                        onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
                     {
                         icon: Expensicons.MoneyCircle,
