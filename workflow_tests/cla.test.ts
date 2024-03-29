@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {Step} from '@kie/act-js';
 import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
-import kieMockGithub from '@kie/mock-github';
+import * as kieMockGithub from '@kie/mock-github';
 import path from 'path';
 import {assertCLAJobExecuted} from './assertions/claAssertions';
 import {CLA__CLA__CHECK_MATCH__STEP_MOCKS, CLA__CLA__NO_MATCHES__STEP_MOCKS, CLA__CLA__RECHECK_MATCH__STEP_MOCKS} from './mocks/claMocks';
