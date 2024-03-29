@@ -69,7 +69,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
-        headerMessageStyle = [styles.ph5, styles.pb5]
+        headerMessageStyle,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -515,7 +515,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             </View>
                         )}
                         {!!headerMessage && (
-                            <View style={[headerMessageStyle]}>
+                            <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
