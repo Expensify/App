@@ -245,6 +245,8 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates transaction loading */
         isLoading?: boolean;
 
+        // @TODO: Check whether this type is correct once the backend for it's ready
+        /** Travel reserviation list */
         reservationList?: Reservation[];
     },
     keyof Comment

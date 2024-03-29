@@ -1,6 +1,8 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -21,8 +23,9 @@ import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActio
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 import type {BasicTripInfo} from '@src/types/onyx/TripDetails';
 
@@ -40,7 +43,12 @@ const basicTripInfo: BasicTripInfo = {
     },
 };
 
-type TripRoomPreviewProps = {
+type TripRoomPreviewOnyxProps = {
+    /** Active IOU Report for current report */
+    iouReport: OnyxEntry<Report>;
+};
+
+type TripRoomPreviewProps = TripRoomPreviewOnyxProps & {
     /** All the data of the action */
     action: ReportAction;
 
@@ -101,9 +109,9 @@ function ReservationRow({reservation}: ReservationRowProps) {
     return (
         <MenuItemWithTopDescription
             description={translate(`travel.${reservation.type}`)}
-            descriptionTextStyle={[styles.textSupportingSmallSize, styles.lh14, styles.tripDescriptionMargin]}
+            descriptionTextStyle={[styles.textSupportingSmallSize, styles.lh14]}
             titleComponent={titleComponent}
-            titleContainerStyle={styles.justifyContentStart}
+            titleContainerStyle={styles.tripReservationTitleGap}
             secondaryIcon={reservationIcon}
             shouldShowRightIcon={false}
             wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
@@ -114,12 +122,14 @@ function ReservationRow({reservation}: ReservationRowProps) {
             hoverAndPressStyle={false}
             iconHeight={variables.iconSizeSmall}
             iconWidth={variables.iconSizeSmall}
-            iconStyles={[styles.tripReservationIconContainer, styles.mr2]}
+            iconStyles={[styles.tripReservationIconContainer, styles.mr3]}
             secondaryIconFill={theme.icon}
+            isSmallAvatarSubscriptMenu
         />
     );
 }
 function TripRoomPreview({
+    iouReport,
     action,
     chatReportID,
     iouReportID,
@@ -159,7 +169,7 @@ function TripRoomPreview({
 
     return (
         <OfflineWithFeedback
-            // pendingAction={iouReport?.pendingFields?.preview}
+            pendingAction={iouReport?.pendingFields?.preview}
             shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
             needsOffscreenAlphaCompositing
         >
@@ -170,7 +180,7 @@ function TripRoomPreview({
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, styles.cursorDefault]}
-                    role="button"
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
                     <View style={[styles.moneyRequestPreviewBox, styles.p4, styles.gap5, isHovered || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
@@ -217,4 +227,8 @@ function TripRoomPreview({
 
 TripRoomPreview.displayName = 'TripRoomPreview';
 
-export default TripRoomPreview;
+export default withOnyx<TripRoomPreviewProps, TripRoomPreviewOnyxProps>({
+    iouReport: {
+        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+    },
+})(TripRoomPreview);

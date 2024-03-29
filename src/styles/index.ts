@@ -4716,8 +4716,8 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        tripDescriptionMargin: {
-            marginBottom: 2,
+        tripReservationTitleGap: {
+            gap: 2,
         },
     } satisfies Styles);
 

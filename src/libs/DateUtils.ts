@@ -785,7 +785,7 @@ function getFormattedDateRange(date1: Date, date2: Date): string {
     }
     if (isSameMonth(date1, date2)) {
         // Dates in the same month and year, differ by days
-        return `${format(date1, 'MMM d')} - ${format(date2, 'd')}`;
+        return `${format(date1, 'MMM d')}-${format(date2, 'd')}`;
     }
     if (isSameYear(date1, date2)) {
         // Dates are in the same year, differ by months
