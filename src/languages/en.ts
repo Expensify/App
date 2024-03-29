@@ -595,6 +595,9 @@ export default {
         splitDistance: 'Split Distance',
         sendMoney: 'Send Money',
         assignTask: 'Assign Task',
+        trackManual: 'todo',
+        trackScan: 'todo',
+        trackDistance: 'todo',
         shortcut: 'Shortcut',
     },
     iou: {
