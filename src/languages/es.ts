@@ -1838,6 +1838,11 @@ export default {
             exportExpensifyCard: 'Exportar transacciones de la tarjeta Expensify como',
             deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
             deepDiveExpensifyCardIntegration: 'nuestra integración.',
+            exportDate: 'Fecha de exportación',
+            exportDateDescription: 'Utilice esta fecha al exportar informes a QuickBooks Online.',
+            lastExpense: {label: 'Fecha del último gasto', description: 'La fecha del gasto más reciente en el informe.'},
+            exportedDate: {label: 'Fecha de exportación', description: 'La fecha en que se exportó el informe a QuickBooks Online'},
+            submittedData: {label: 'Datos enviados', description: 'La fecha en que se presentó el informe para su aprobación.'},
         },
         type: {
             free: 'Gratis',

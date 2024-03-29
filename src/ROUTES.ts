@@ -669,6 +669,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/distance-rates/:rateID/edit',
         getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
     },
+    WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT_DATE: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/date',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/date` as const,
+    },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',

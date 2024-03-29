@@ -4134,6 +4134,12 @@ const CONST = {
         },
     },
 
+    QUICKBOOKS_EXPORT_DATE: {
+        LAST_EXPENSE: 'lastExpense',
+        EXPORTED_DATE: 'exportedDate',
+        SUBMITTED_DATA: 'submittedData',
+    },
+
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },

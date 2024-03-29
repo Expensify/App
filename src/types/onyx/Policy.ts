@@ -165,7 +165,7 @@ type QBOConnectionConfig = {
     syncClasses: IntegrationEntityMap;
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
-    exportDate: string;
+    exportDate: keyof typeof CONST.QUICKBOOKS_EXPORT_DATE;
     lastConfigurationTime: number;
     syncTax: boolean;
     enableNewCategories: boolean;

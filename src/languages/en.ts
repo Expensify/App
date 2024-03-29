@@ -1816,6 +1816,11 @@ export default {
             exportExpensifyCard: 'Export Expensify Card transactions as',
             deepDiveExpensifyCard: 'Expensify Card transactions automatically export to a “Expensify Card Liability Account” created with',
             deepDiveExpensifyCardIntegration: 'our integration.',
+            exportDate: 'Export Date',
+            exportDateDescription: 'Use this date when exporting reports to QuickBooks Online.',
+            lastExpense: {label: 'Date of last expense', description: 'The date of the most recent expense on the report'},
+            exportedDate: {label: 'Export date', description: 'The date the report was exported to QuickBooksOnline'},
+            submittedData: {label: 'Submitted data', description: 'The date the report was submitted for approval'},
         },
         categories: {
             deleteCategories: 'Delete categories',

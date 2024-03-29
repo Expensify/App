@@ -253,6 +253,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT]: () => require('../../../../pages/workspace/taxes/WorkspaceTaxesSettingsForeignCurrency').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT]: () => require('../../../../pages/workspace/taxes/WorkspaceTaxesSettingsWorkspaceCurrency').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKSONLINE_EXPORT]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_EXPORT_DATE]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportDatePage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,

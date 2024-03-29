@@ -233,6 +233,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
                         [SCREENS.WORKSPACE.QUICKBOOKSONLINE_EXPORT]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT.route},
+                        [SCREENS.WORKSPACE.QUICKBOOKSONLINE_EXPORT_DATE]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT_DATE.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
                         },

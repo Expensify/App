@@ -29,7 +29,7 @@ function QuickbooksExportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.qbo.date'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT_DATE.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncClasses),
             title: 'Date of last expense',
         },

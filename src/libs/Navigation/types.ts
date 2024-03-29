@@ -249,6 +249,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.QUICKBOOKSONLINE_EXPORT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_EXPORT_DATE]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
