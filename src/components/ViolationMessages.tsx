@@ -15,7 +15,7 @@ export default function ViolationMessages({violations, isLast, containerStyle, t
     const violationMessages = useMemo(() => violations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate)]), [translate, violations]);
 
     return (
-        <View style={[styles.mtn2, isLast ? styles.mb2 : styles.mb1, containerStyle]}>
+        <View style={[styles.mtn1, isLast ? styles.mb2 : styles.mb1, containerStyle, styles.gap1]}>
             {violationMessages.map(([name, message]) => (
                 <Text
                     key={`violationMessages.${name}`}
