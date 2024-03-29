@@ -2642,14 +2642,14 @@ function getOrCreateSplitChatReport(existingSplitChatReportID: string, participa
             undefined,
             undefined,
             undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
+            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         );
     }
     if (isEmptyObject(newChat)) {
         newChat = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
     }
     const splitChatReport = existingSplitChatReport ?? newChat;
-    return { splitChatReport, existingSplitChatReport };
+    return {splitChatReport, existingSplitChatReport};
 }
 
 /**
