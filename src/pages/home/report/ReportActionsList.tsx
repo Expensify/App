@@ -518,13 +518,23 @@ function ReportActionsList({
                 index={index}
                 report={report}
                 linkedReportActionID={linkedReportActionID}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+                shouldDisplayReplyDivider={sortedReportActions.length > 1}
             />
         ),
-        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, parentReportAction],
+        [
+            report,
+            linkedReportActionID,
+            sortedVisibleReportActions,
+            sortedReportActions.length,
+            mostRecentIOUReportActionID,
+            shouldHideThreadDividerLine,
+            shouldDisplayNewMarker,
+            parentReportAction,
+        ],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
