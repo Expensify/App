@@ -50,7 +50,7 @@ const getAllParticipants = (
                 !!userPersonalDetail?.login && !CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID) ? LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login) : translate('common.hidden');
             const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
-            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
+            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             return {
                 alternateText: userLogin,
                 pendingAction: pendingChatMember?.pendingAction,
