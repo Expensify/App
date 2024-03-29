@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
+import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -36,6 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type PolicyForList = {
@@ -79,26 +81,27 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
             fetchTags();
         }, [fetchTags]),
     );
-
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
             policyTagLists
                 .map((policyTagList) =>
-                    Object.values(policyTagList.tags || [])
-                        .sort((a, b) => localeCompare(a.name, b.name))
-                        .map((value) => ({
-                            value: value.name,
-                            text: value.name,
-                            keyForList: value.name,
-                            isSelected: !!selectedTags[value.name],
-                            pendingAction: value.pendingAction,
-                            errors: value.errors ?? undefined,
-                            enabled: value.enabled,
+                    lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
+                        const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
+                        const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                        return {
+                            value: tag.name,
+                            text: tag.name,
+                            keyForList: tag.name,
+                            isSelected: !!selectedTags[tag.name],
+                            pendingAction: tag.pendingAction,
+                            errors: tag.errors ?? undefined,
+                            enabled: tag.enabled,
+                            isDisabled,
                             rightElement: (
                                 <View style={styles.flexRow}>
                                     <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
-                                        {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                                        {tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
                                     </Text>
                                     <View style={[styles.p1, styles.pl2]}>
                                         <Icon
@@ -108,7 +111,8 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                                     </View>
                                 </View>
                             ),
-                        })),
+                        };
+                    }),
                 )
                 .flat(),
         [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],

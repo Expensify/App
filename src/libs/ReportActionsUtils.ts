@@ -50,17 +50,12 @@ type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMe
 
 const policyChangeActionsSet = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG));
 
-const allReports: OnyxCollection<Report> = {};
-
+let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!key || !report) {
-            return;
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReports[reportID] = report;
+    waitForCollectionCallback: true,
+    callback: (reports) => {
+        allReports = reports;
     },
 });
 
@@ -135,7 +130,7 @@ function isReportPreviewAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
-function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
@@ -263,9 +258,14 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     let index;
 
     if (id) {
-        index = sortedReportActions.findIndex((obj) => obj.reportActionID === id);
+        index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
     } else {
-        index = sortedReportActions.findIndex((obj) => obj.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        index = sortedReportActions.findIndex(
+            (reportAction) =>
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                !reportAction.isOptimisticAction,
+        );
     }
 
     if (index === -1) {
@@ -299,6 +299,9 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     while (
         (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
         sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        sortedReportActions[startIndex - 1]?.isOptimisticAction ||
         sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM
     ) {
         startIndex--;

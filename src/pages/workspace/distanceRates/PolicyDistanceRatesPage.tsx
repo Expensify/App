@@ -61,10 +61,12 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         [policy?.customUnits],
     );
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
-    const canDeleteSelectedRates = selectedDistanceRates.length !== Object.values(customUnitRates).length;
-    const canDisableSelectedRates = Object.values(customUnitRates)
-        .filter((rate: Rate) => !selectedDistanceRates.includes(rate))
-        .some((rate) => rate.enabled);
+    // Filter out rates that will be deleted
+    const allSelectableRates = useMemo(() => Object.values(customUnitRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [customUnitRates]);
+    const canDisableOrDeleteSelectedRates = useMemo(
+        () => allSelectableRates.filter((rate: Rate) => !selectedDistanceRates.some((selectedRate) => selectedRate.customUnitRateID === rate.customUnitRateID)).some((rate) => rate.enabled),
+        [allSelectableRates, selectedDistanceRates],
+    );
 
     const fetchDistanceRates = useCallback(() => {
         Policy.openPolicyDistanceRatesPage(policyID);
@@ -100,7 +102,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 keyForList: value.customUnitRateID ?? '',
                 isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                pendingAction: value.pendingAction ?? value.pendingFields?.rate ?? value.pendingFields?.enabled,
+                pendingAction: value.pendingAction ?? value.pendingFields?.rate ?? value.pendingFields?.enabled ?? value.pendingFields?.currency,
                 errors: value.errors ?? undefined,
                 rightElement: (
                     <View style={styles.flexRow}>
@@ -181,8 +183,6 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const toggleAllRates = () => {
-        const allSelectableRates = Object.values(customUnitRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-
         if (selectedDistanceRates.length === allSelectableRates.length) {
             setSelectedDistanceRates([]);
         } else {
@@ -203,7 +203,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
                 value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.DELETE,
                 icon: Expensicons.Trashcan,
-                onSelected: () => (canDeleteSelectedRates ? setIsDeleteModalVisible(true) : setIsWarningModalVisible(true)),
+                onSelected: () => (canDisableOrDeleteSelectedRates ? setIsDeleteModalVisible(true) : setIsWarningModalVisible(true)),
             },
         ];
 
@@ -213,7 +213,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
                 value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.DISABLE,
                 icon: Expensicons.DocumentSlash,
-                onSelected: () => (canDisableSelectedRates ? disableRates() : setIsWarningModalVisible(true)),
+                onSelected: () => (canDisableOrDeleteSelectedRates ? disableRates() : setIsWarningModalVisible(true)),
             });
         }
 
@@ -222,7 +222,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
             options.push({
                 text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
                 value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.ENABLE,
-                icon: Expensicons.DocumentSlash,
+                icon: Expensicons.Document,
                 onSelected: enableRates,
             });
         }
