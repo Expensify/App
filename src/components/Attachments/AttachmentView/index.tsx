@@ -68,7 +68,7 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
         /* Whether it is hovered or not */
         isHovered?: boolean;
 
-        /** Duration of the video */
+        /** Whether the attachment is used as a chat attachment */
         isUsedAsChatAttachment?: boolean;
     };
 
