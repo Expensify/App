@@ -2730,7 +2730,7 @@ const styles = (theme: ThemeColors) =>
             ...cursor.cursorDefault,
         },
 
-        hideUnreadIndicatorContainer: {
+        topUnreadIndicatorContainer: {
             position: 'relative',
             width: '100%',
             height: 17,

@@ -14,7 +14,7 @@ function UnreadActionIndicator({reportActionID, shouldHideThreadDividerLine}: Un
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const containerStyle = shouldHideThreadDividerLine ? styles.hideUnreadIndicatorContainer : styles.unreadIndicatorContainer;
+    const containerStyle = shouldHideThreadDividerLine ? styles.topUnreadIndicatorContainer : styles.unreadIndicatorContainer;
 
     return (
         <View
