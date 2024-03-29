@@ -747,34 +747,13 @@ describe('ReportUtils', () => {
 
         it('should return correctly all ancestors of a thread report', () => {
             const resultAncestors = [
-                {report: reports[1], reportAction: reportActions[0], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
-                {report: reports[2], reportAction: reportActions[1], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
-                {report: reports[3], reportAction: reportActions[2], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
-                {report: reports[4], reportAction: reportActions[3], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
+                {report: reports[1], reportAction: reportActions[0], shouldDisplayNewMarker: false},
+                {report: reports[2], reportAction: reportActions[1], shouldDisplayNewMarker: false},
+                {report: reports[3], reportAction: reportActions[2], shouldDisplayNewMarker: false},
+                {report: reports[4], reportAction: reportActions[3], shouldDisplayNewMarker: false},
             ];
 
-            expect(ReportUtils.getAllAncestorReportActions(reports[4], false)).toEqual(resultAncestors);
-        });
-
-        it('should hide thread divider line of the nearest ancestor if the first action of thread report is unread', () => {
-            const allAncestors = ReportUtils.getAllAncestorReportActions(reports[4], true);
-            expect(allAncestors.reverse()[0].shouldHideThreadDividerLine).toBe(true);
-        });
-
-        it('should hide thread divider line of the previous ancestor and display unread marker of the current ancestor if the current ancestor action is unread', () => {
-            let allAncestors = ReportUtils.getAllAncestorReportActions(reports[4], false);
-            expect(allAncestors[0].shouldHideThreadDividerLine).toBe(false);
-            expect(allAncestors[1].shouldDisplayNewMarker).toBe(false);
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
-                lastReadTime: '2024-02-01 04:42:28.001',
-            })
-                .then(() => waitForBatchedUpdates())
-                .then(() => {
-                    allAncestors = ReportUtils.getAllAncestorReportActions(reports[4], false);
-                    expect(allAncestors[0].shouldHideThreadDividerLine).toBe(true);
-                    expect(allAncestors[1].shouldDisplayNewMarker).toBe(true);
-                });
+            expect(ReportUtils.getAllAncestorReportActions(reports[4])).toEqual(resultAncestors);
         });
     });
 });
