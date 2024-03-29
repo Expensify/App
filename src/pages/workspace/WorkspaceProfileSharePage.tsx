@@ -48,7 +48,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const defaultWsAvatar = ReportUtils.getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
     const defaultWsAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyName);
 
-    const logoSVG = !hasAvatar ? (defaultWsAvatar as React.FC<SvgProps>) : undefined;
+    const logoSVG = !hasAvatar ? defaultWsAvatar : undefined;
     const logoBackground = !hasAvatar ? defaultWsAvatarColors.backgroundColor?.toString() : undefined;
     const logoColor = !hasAvatar ? defaultWsAvatarColors.fill : undefined;
 

@@ -2,7 +2,7 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+import type {SvgProps} from "react-native-svg";
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,17 +23,31 @@ import * as Url from '@libs/Url';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
+// import IconAsset from "@src/types/utils/IconAsset";
 
 type ShareCodePageOnyxProps = {
     /** The report currently being looked at */
     report?: OnyxEntry<Report>;
+
+    /** The policy for the report currently being looked at */
+    policy?: OnyxEntry<Policy>;
 };
 
 type ShareCodePageProps = ShareCodePageOnyxProps;
 
-function ShareCodePage({report}: ShareCodePageProps) {
+// In case of sharing a policy (workspace) only return user defined avatar. Default ws avatars have separate logic
+function getLogoForWorkspace(policy?: OnyxEntry<Policy>) {
+    if (policy && policy.avatar) {
+        return policy.avatar as ImageSourcePropType;
+    }
+
+    return undefined;
+}
+
+function ShareCodePage({report, policy}: ShareCodePageProps) {
     const themeStyles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareHandle>(null);
@@ -64,6 +79,21 @@ function ShareCodePage({report}: ShareCodePageProps) {
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
         : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? '')}`;
 
+    const logo = isReport ? getLogoForWorkspace(policy) : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
+
+    // default logos (avatars) are SVG and because of that require some special logic
+    let logoSVG : React.FC<SvgProps> | undefined;
+    let logoBackground;
+    let logoColor;
+
+    if (policy && !policy.avatar) {
+        logoSVG = ReportUtils.getDefaultWorkspaceAvatar(policy?.name) || Expensicons.FallbackAvatar;
+
+        const defaultWsAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy?.name);
+        logoBackground = defaultWsAvatarColors.backgroundColor?.toString();
+        logoColor = defaultWsAvatarColors.fill;
+    }
+
     return (
         <ScreenWrapper testID={ShareCodePage.displayName}>
             <HeaderWithBackButton
@@ -85,7 +115,10 @@ function ShareCodePage({report}: ShareCodePageProps) {
                         url={url}
                         title={title}
                         subtitle={subtitle}
-                        logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
+                        logo={logo}
+                        logoSVG={logoSVG}
+                        logoBackground={logoBackground}
+                        logoColor={logoColor}
                         logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                         logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                     />
