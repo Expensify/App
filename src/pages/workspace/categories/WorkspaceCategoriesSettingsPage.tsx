@@ -5,7 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceRequiresCategory} from '@libs/actions/Policy';
@@ -48,8 +47,9 @@ function WorkspaceCategoriesSettingsPage({route}: WorkspaceCategoriesSettingsPag
                                 >
                                     <View style={[styles.mt2, styles.mh4]}>
                                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                            <Text hasSibling style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.requiresCategory')}</Text>
                                             <Switch
+                                                label={translate('workspace.categories.requiresCategory')}
+                                                labelStyles={[styles.textNormal, styles.colorMuted]}
                                                 isOn={policy?.requiresCategory ?? false}
                                                 accessibilityLabel={translate('workspace.categories.requiresCategory')}
                                                 onToggle={updateWorkspaceRequiresCategory}

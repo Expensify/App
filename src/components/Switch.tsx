@@ -1,9 +1,11 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import Text from './Text';
 
 type SwitchProps = {
     /** Whether the switch is toggled to the on position */
@@ -17,6 +19,10 @@ type SwitchProps = {
 
     /** Whether the switch is disabled */
     disabled?: boolean;
+
+    label?: string;
+
+    labelStyles?: StyleProp<TextStyle>;
 };
 
 const OFFSET_X = {
@@ -24,7 +30,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, label, labelStyles}: SwitchProps) {
     const styles = useThemeStyles();
     const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
 
@@ -37,20 +43,23 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
     }, [isOn]);
 
     return (
-        <PressableWithFeedback
-            disabled={disabled}
-            style={[styles.switchTrack, !isOn && styles.switchInactive]}
-            onPress={() => onToggle(!isOn)}
-            onLongPress={() => onToggle(!isOn)}
-            role={CONST.ROLE.SWITCH}
-            aria-checked={isOn}
-            accessibilityLabel={accessibilityLabel}
-            // disable hover dim for switch
-            hoverDimmingValue={1}
-            pressDimmingValue={0.8}
-        >
-            <Animated.View style={[styles.switchThumb, styles.switchThumbTransformation(offsetX.current)]} />
-        </PressableWithFeedback>
+        <>
+            {label && <Text style={[styles.mr2, labelStyles]}>{label}</Text>}
+            <PressableWithFeedback
+                disabled={disabled}
+                style={[styles.switchTrack, !isOn && styles.switchInactive]}
+                onPress={() => onToggle(!isOn)}
+                onLongPress={() => onToggle(!isOn)}
+                role={CONST.ROLE.SWITCH}
+                aria-checked={isOn}
+                accessibilityLabel={accessibilityLabel}
+                // disable hover dim for switch
+                hoverDimmingValue={1}
+                pressDimmingValue={0.8}
+            >
+                <Animated.View style={[styles.switchThumb, styles.switchThumbTransformation(offsetX.current)]} />
+            </PressableWithFeedback>
+        </>
     );
 }
 
