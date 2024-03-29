@@ -50,6 +50,7 @@ function StateSelector(
     const isFocused = useIsFocused();
 
     useEffect(() => {
+        // Check if the state selector was opened and no value was selected, triggering onBlur to display an error
         if (isFocused && didOpenStateSelector.current) {
             didOpenStateSelector.current = false;
             if (!stateFromUrl) {
@@ -57,15 +58,18 @@ function StateSelector(
             }
         }
 
+        // If no state is selected from the URL, exit the effect early to avoid further processing.
         if (!stateFromUrl) {
             return;
         }
 
-        // This will cause the form to revalidate and remove any error related to country name
+        // If a state is selected, invoke `onInputChange` to update the form and clear any validation errors related to the state selection.
         if (onInputChange) {
             onInputChange(stateFromUrl);
         }
 
+        // Clears the `state` parameter from the URL to ensure the component state is driven by the parent component rather than URL parameters.
+        // This helps prevent issues where the component might not update correctly if the state is controlled by both the parent and the URL.
         Navigation.setParams({state: undefined});
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
