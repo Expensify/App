@@ -392,14 +392,12 @@ function MoneyRequestConfirmationList({
                     title: translate('moneyRequestConfirmationList.paidBy'),
                     data: [formattedPayeeOption],
                     shouldShow: true,
-                    indexOffset: 0,
                     isDisabled: shouldDisablePaidBySection,
                 },
                 {
                     title: translate('moneyRequestConfirmationList.splitWith'),
                     data: formattedParticipantsList,
                     shouldShow: true,
-                    indexOffset: 1,
                 },
             );
         } else {
@@ -411,7 +409,6 @@ function MoneyRequestConfirmationList({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
                 shouldShow: true,
-                indexOffset: 0,
             });
         }
         return sections;
