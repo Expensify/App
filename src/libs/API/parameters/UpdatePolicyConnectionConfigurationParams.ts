@@ -1,10 +1,10 @@
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, Connections} from '@src/types/onyx/Policy';
 
-type UpdatePolicyConnectionConfigurationParams = {
+type UpdatePolicyConnectionConfigurationParams<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']> = {
     policyID: string;
-    connectionName: ConnectionName;
-    settingName: string;
-    settingValue: unknown;
+    connectionName: TConnectionName;
+    settingName: TSettingName;
+    settingValue: Connections[TConnectionName]['config'][TSettingName];
 };
 
 export default UpdatePolicyConnectionConfigurationParams;

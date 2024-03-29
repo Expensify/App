@@ -6,9 +6,9 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, Connections} from '@src/types/onyx/Policy';
 
-function updatePolicyConnectionConfig({
+function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>({
     policyID,
     connectionName,
     settingName,
@@ -16,10 +16,10 @@ function updatePolicyConnectionConfig({
     originalSettingValue,
 }: {
     policyID: string;
-    connectionName: ConnectionName;
-    settingName: string;
-    settingValue: unknown;
-    originalSettingValue: unknown;
+    connectionName: TConnectionName;
+    settingName: TSettingName;
+    settingValue: Connections[TConnectionName]['config'][TSettingName];
+    originalSettingValue: Connections[TConnectionName]['config'][TSettingName];
 }) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -74,7 +74,7 @@ function updatePolicyConnectionConfig({
         },
     ];
 
-    const parameters: UpdateConnectionConfigParams = {
+    const parameters: UpdateConnectionConfigParams<TConnectionName, TSettingName> = {
         policyID,
         connectionName,
         settingName,
