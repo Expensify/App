@@ -174,7 +174,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 threeDotsMenuItems.push({
                     icon: Expensicons.ChatBubbles,
                     text: translate('common.leave'),
-                    onSelected: Session.checkIfActionIsAllowed(() => Policy.removeMembers([session?.accountID ?? 0], item.policyID ?? '')),
+                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '')),
                 });
             }
 
