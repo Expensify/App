@@ -69,6 +69,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
+        headerMessageStyle = [styles.ph5, styles.pb5]
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
