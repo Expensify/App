@@ -377,7 +377,7 @@ function Composer(
                 markdownStyle={markdownStyle}
                 value={value}
                 defaultValue={defaultValue}
-                autoFocus={autoFocus}
+                autoFocus={isReportActionCompose ? autoFocus : true}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
