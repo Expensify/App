@@ -5,4 +5,5 @@ import type * as OnyxTypes from '@src/types/onyx';
 function getDefaultCompanyWebsite(session: OnyxEntry<OnyxTypes.Session>, user: OnyxEntry<OnyxTypes.User>): string {
     return user?.isFromPublicDomain ? 'https://' : `https://www.${Str.extractEmailDomain(session?.email ?? '')}`;
 }
-export default getDefaultCompanyWebsite;
+// eslint-disable-next-line import/prefer-default-export
+export {getDefaultCompanyWebsite};
