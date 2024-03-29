@@ -145,7 +145,6 @@ function SearchPageWrapper(args: SearchPageProps) {
 }
 
 test('[Search Page] should interact when text input changes', async () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
@@ -175,7 +174,6 @@ test('[Search Page] should interact when text input changes', async () => {
 });
 
 test('[Search Page] should render selection list', async () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const smallMockedPersonalDetails = getMockedPersonalDetails(5);
 
@@ -205,7 +203,6 @@ test('[Search Page] should render selection list', async () => {
 });
 
 test('[Search Page] should search in selection list', async () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
@@ -237,7 +234,6 @@ test('[Search Page] should search in selection list', async () => {
 });
 
 test('[Search Page] should click on list item', async () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {

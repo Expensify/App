@@ -1,14 +1,11 @@
+import type {EventJSON} from '@kie/act-js/build/src/action-event/action-event.types';
 import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
 import type ExtendedAct from './ExtendedAct';
 
-type EventOptions = {
-    action?: string;
-};
-
-type StepAssertionInputEntry = {key: string; value: string};
+type StepAssertionInputEntry = {key: string; value: string | boolean};
 
 type StepAssertion = {
     name: string;
@@ -19,7 +16,7 @@ type StepAssertion = {
 function setUpActParams(
     act: ExtendedAct,
     event: string | null = null,
-    eventOptions: EventOptions | null = null,
+    eventOptions: EventJSON | null = null,
     secrets: Record<string, string> | null = null,
     githubToken: string | null = null,
     envVars: Record<string, string> | null = null,
@@ -69,7 +66,7 @@ function createMockStep(
     jobId: string | null = null,
     inputs: string[] | null = null,
     inEnvs: string[] | null = null,
-    outputs: Record<string, string> | null = null,
+    outputs: Record<string, string | boolean | number> | null = null,
     outEnvs: Record<string, string> | null = null,
     isSuccessful = true,
     id: string | null = null,

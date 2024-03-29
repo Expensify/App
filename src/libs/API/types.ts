@@ -10,7 +10,7 @@ type ApiRequest = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 const WRITE_COMMANDS = {
     SET_WORKSPACE_AUTO_REPORTING: 'SetWorkspaceAutoReporting',
     SET_WORKSPACE_AUTO_REPORTING_FREQUENCY: 'SetWorkspaceAutoReportingFrequency',
-    SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET: 'UpdatePolicy',
+    SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET: 'SetWorkspaceAutoReportingOffset',
     SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
     SET_WORKSPACE_PAYER: 'SetWorkspacePayer',
     SET_WORKSPACE_REIMBURSEMENT: 'SetWorkspaceReimbursement',
@@ -188,8 +188,13 @@ const WRITE_COMMANDS = {
     UPDATE_POLICY_TAX_VALUE: 'UpdatePolicyTaxValue',
     RENAME_POLICY_TAX: 'RenamePolicyTax',
     CREATE_POLICY_DISTANCE_RATE: 'CreatePolicyDistanceRate',
+    REQUEST_WORKSPACE_OWNER_CHANGE: 'RequestWorkspaceOwnerChange',
+    ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE: 'AddBillingCardAndRequestPolicyOwnerChange',
     SET_POLICY_DISTANCE_RATES_UNIT: 'SetPolicyDistanceRatesUnit',
     SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY: 'SetPolicyDistanceRatesDefaultCategory',
+    UPDATE_POLICY_DISTANCE_RATE_VALUE: 'UpdatePolicyDistanceRateValue',
+    SET_POLICY_DISTANCE_RATES_ENABLED: 'SetPolicyDistanceRatesEnabled',
+    DELETE_POLICY_DISTANCE_RATES: 'DeletePolicyDistanceRates',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -375,9 +380,14 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_POLICY_TAXES]: Parameters.DeletePolicyTaxesParams;
     [WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE]: Parameters.UpdatePolicyTaxValueParams;
     [WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE]: Parameters.CreatePolicyDistanceRateParams;
+    [WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE]: Parameters.RequestWorkspaceOwnerChangeParams;
+    [WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE]: Parameters.AddBillingCardAndRequestWorkspaceOwnerChangeParams;
     [WRITE_COMMANDS.RENAME_POLICY_TAX]: Parameters.RenamePolicyTaxParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE]: Parameters.UpdatePolicyDistanceRateValueParams;
+    [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED]: Parameters.SetPolicyDistanceRatesEnabledParams;
+    [WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES]: Parameters.DeletePolicyDistanceRatesParams;
 };
 
 const READ_COMMANDS = {
@@ -437,7 +447,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: Parameters.SearchForReportsParams;
     [READ_COMMANDS.SEND_PERFORMANCE_TIMING]: Parameters.SendPerformanceTimingParams;
     [READ_COMMANDS.GET_ROUTE]: Parameters.GetRouteParams;
-    [READ_COMMANDS.GET_ROUTE_FOR_DRAFT]: Parameters.GetRouteForDraftParams;
+    [READ_COMMANDS.GET_ROUTE_FOR_DRAFT]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
     [READ_COMMANDS.OPEN_ONFIDO_FLOW]: EmptyObject;
     [READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE]: EmptyObject;

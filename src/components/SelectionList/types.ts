@@ -44,6 +44,9 @@ type CommonListItemProps<TItem> = {
     /** Styles for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the container view */
+    containerStyle?: StyleProp<ViewStyle>;
+
     /** Styles for the checkbox wrapper view if select multiple option is on */
     selectMultipleStyle?: StyleProp<ViewStyle>;
 
@@ -107,6 +110,9 @@ type ListItem = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** The search value from the selection list */
+    searchText?: string | null;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {

@@ -174,12 +174,13 @@ const ROUTES = {
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
+    NEW_CHAT_CONFIRM: 'new/chat/confirm',
     NEW_ROOM: 'new/room',
 
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string) => `r/${reportID}` as const,
+        getRoute: (reportID: string, reportActionID?: string) => (reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const)),
     },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
@@ -204,7 +205,7 @@ const ROUTES = {
     },
     REPORT_ATTACHMENTS: {
         route: 'r/:reportID/attachment',
-        getRoute: (reportID: string, source: string) => `r/${reportID}/attachment?source=${encodeURI(source)}` as const,
+        getRoute: (reportID: string, source: string) => `r/${reportID}/attachment?source=${encodeURIComponent(source)}` as const,
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -304,13 +305,10 @@ const ROUTES = {
         route: ':iouType/new/receipt/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
     },
-    MONEY_REQUEST_DISTANCE: {
-        route: ':iouType/new/address/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}` as const,
-    },
     MONEY_REQUEST_CREATE: {
-        route: 'create/:iouType/start/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}` as const,
+        route: ':action/:iouType/start/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
+            `create/${iouType}/start/${transactionID}/${reportID}` as const,
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: 'create/:iouType/confirmation/:transactionID/:reportID',
@@ -352,9 +350,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/description/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_DISTANCE: {
-        route: 'create/:iouType/distance/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/distance/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/distance/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/distance/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_MERCHANT: {
         route: ':action/:iouType/merchant/:transactionID/:reportID',
@@ -395,16 +393,19 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, iouRequestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) => `start/${iouType}/${iouRequestType}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_DISTANCE: {
-        route: 'create/:iouType/start/:transactionID/:reportID/distance',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/distance` as const,
+        route: ':action/:iouType/start/:transactionID/:reportID/distance',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
+            `create/${iouType}/start/${transactionID}/${reportID}/distance` as const,
     },
     MONEY_REQUEST_CREATE_TAB_MANUAL: {
-        route: 'create/:iouType/start/:transactionID/:reportID/manual',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/manual` as const,
+        route: ':action/:iouType/start/:transactionID/:reportID/manual',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
+            `create/${iouType}/start/${transactionID}/${reportID}/manual` as const,
     },
     MONEY_REQUEST_CREATE_TAB_SCAN: {
-        route: 'create/:iouType/start/:transactionID/:reportID/scan',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/scan` as const,
+        route: ':action/:iouType/start/:transactionID/:reportID/scan',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
+            `create/${iouType}/start/${transactionID}/${reportID}/scan` as const,
     },
 
     IOU_REQUEST: 'request/new',
@@ -612,6 +613,19 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
     },
+    WORKSPACE_OWNER_CHANGE_SUCCESS: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/success',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/success` as const,
+    },
+    WORKSPACE_OWNER_CHANGE_ERROR: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/failure',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/failure` as const,
+    },
+    WORKSPACE_OWNER_CHANGE_CHECK: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/:error',
+        getRoute: (policyID: string, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) =>
+            `settings/workspaces/${policyID}/change-owner/${accountID}/${error}` as const,
+    },
     WORKSPACE_TAX_CREATE: {
         route: 'settings/workspaces/:policyID/taxes/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/new` as const,
@@ -637,8 +651,16 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates/new` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
-        route: 'settings/workspace/:policyID/distance-rates/settings',
-        getRoute: (policyID: string) => `settings/workspace/${policyID}/distance-rates/settings` as const,
+        route: 'settings/workspaces/:policyID/distance-rates/settings',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates/settings` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_DETAILS: {
+        route: 'settings/workspaces/:policyID/distance-rates/:rateID',
+        getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_EDIT: {
+        route: 'settings/workspaces/:policyID/distance-rates/:rateID/edit',
+        getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {

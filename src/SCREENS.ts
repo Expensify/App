@@ -155,7 +155,6 @@ const SCREENS = {
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
-        DISTANCE: 'Money_Request_Distance',
         RECEIPT: 'Money_Request_Receipt',
     },
 
@@ -243,9 +242,14 @@ const SCREENS = {
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
         MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
+        OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
+        OWNER_CHANGE_SUCCESS: 'Workspace_Owner_Change_Success',
+        OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
         DISTANCE_RATES: 'Distance_Rates',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
+        DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
+        DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
     },
 
     EDIT_REQUEST: {
@@ -257,6 +261,7 @@ const SCREENS = {
     NEW_CHAT: {
         ROOT: 'NewChat_Root',
         NEW_CHAT: 'chat',
+        NEW_CHAT_CONFIRM: 'NewChat_Confirm',
         NEW_ROOM: 'room',
     },
 
