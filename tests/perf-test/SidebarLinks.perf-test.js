@@ -16,13 +16,10 @@ jest.mock('../../src/components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/Navigation/Navigation', () => {
-    const actualNavigation = jest.requireActual('@src/libs/Navigation/Navigation');
-    return {
-        ...actualNavigation,
-        isNavigationReady: jest.fn(() => Promise.resolve()),
-    };
-});
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    isDisplayedInModal: jest.fn(),
+}));
 
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Array.from({length}, (__, i) => {
