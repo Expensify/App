@@ -50,7 +50,6 @@ function WorkspaceCategoriesSettingsPage({route}: WorkspaceCategoriesSettingsPag
                                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                             <Text style={[styles.textNormal, styles.colorMuted, styles.mr2]}>{translate('workspace.categories.requiresCategory')}</Text>
                                             <Switch
-                                                label={translate('workspace.categories.requiresCategory')}
                                                 isOn={policy?.requiresCategory ?? false}
                                                 accessibilityLabel={translate('workspace.categories.requiresCategory')}
                                                 onToggle={updateWorkspaceRequiresCategory}

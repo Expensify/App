@@ -35,7 +35,6 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
         fontSize,
         textAlign,
         fontFamily: FontUtils.fontFamily.platform[family],
-        marginRight: props.hasSibling ? variables.spacing2 : 0,
         ...StyleSheet.flatten(style),
     };
 
