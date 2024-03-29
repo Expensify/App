@@ -2,7 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
+import getDefaultCompanyWebsite from '@libs/BankAccountUtils';
 import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import CONST from '@src/CONST';
