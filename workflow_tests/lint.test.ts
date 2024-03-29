@@ -1,4 +1,4 @@
-import {MockGithub} from '@kie/mock-github';
+import * as kieMockGithub from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/lintAssertions';
 import mocks from './mocks/lintMocks';
@@ -28,7 +28,7 @@ describe('test workflow lint', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new MockGithub({
+        mockGithub = new kieMockGithub.MockGithub({
             repo: {
                 testLintWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,

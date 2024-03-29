@@ -1,6 +1,6 @@
 import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import type {CreateRepositoryFile} from '@kie/mock-github';
-import {MockGithub} from '@kie/mock-github';
+import * as kieMockGithub from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/failureNotifierAssertions';
 import mocks from './mocks/failureNotifierMocks';
@@ -20,7 +20,7 @@ describe('test workflow failureNotifier', () => {
     const actor = 'Dummy Actor';
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new MockGithub({
+        mockGithub = new kieMockGithub.MockGithub({
             repo: {
                 testFailureNotifierWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,

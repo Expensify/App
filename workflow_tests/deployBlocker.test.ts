@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {MockGithub} from '@kie/mock-github';
+import * as kieMockGithub from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/deployBlockerAssertions';
 import mocks from './mocks/deployBlockerMocks';
@@ -33,7 +33,7 @@ describe('test workflow deployBlocker', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new MockGithub({
+        mockGithub = new kieMockGithub.MockGithub({
             repo: {
                 testDeployBlockerWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,
