@@ -3,13 +3,17 @@ import {Video, VideoFullscreenUpdate} from 'expo-av';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -73,6 +77,8 @@ function BaseVideoPlayer({
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = _.some(CONST.ATTACHMENT_LOCAL_URL_PREFIX, (prefix) => url.startsWith(prefix));
     const videoStateRef = useRef(null);
+    const {translate} = useLocalize();
+    const theme = useTheme();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -275,9 +281,17 @@ function BaseVideoPlayer({
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-
-                            {(isLoading || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-
+                            {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                            {isLoading && isOffline && (
+                                <View style={[styles.pAbsolute, styles.h100, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <BlockingView
+                                        icon={Expensicons.OfflineCloud}
+                                        iconColor={theme.offline}
+                                        title={translate('common.youAppearToBeOffline')}
+                                        subtitle={translate('common.attachementWillBeAvailableOnceBackOnline')}
+                                    />
+                                </View>
+                            )}
                             {shouldShowVideoControls && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}

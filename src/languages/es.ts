@@ -257,6 +257,7 @@ export default {
         maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
+        attachementWillBeAvailableOnceBackOnline: 'El archivo adjunto estará disponible cuando vuelvas a estar en línea.',
         areYouSure: '¿Estás seguro?',
         verify: 'Verifique',
         yesContinue: 'Sí, continuar',
