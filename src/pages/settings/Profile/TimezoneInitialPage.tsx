@@ -44,8 +44,8 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                 <View style={[styles.ph5]}>
                     <Text style={[styles.mb5]}>{translate('timezonePage.isShownOnProfile')}</Text>
                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <Text style={[styles.mr2]}>{translate('timezonePage.getLocationAutomatically')}</Text>
                         <Switch
-                            label={translate('timezonePage.getLocationAutomatically')}
                             accessibilityLabel={translate('timezonePage.getLocationAutomatically')}
                             isOn={!!timezone.automatic}
                             onToggle={updateAutomaticTimezone}

@@ -25,9 +25,6 @@ type TextProps = RNTextProps &
 
         /** The family of the font to use */
         family?: keyof FontUtilsType['fontFamily']['platform'];
-
-        /** Check for sibling to know if there needs to be padding right */
-        hasSibling?: boolean;
     };
 
 function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {

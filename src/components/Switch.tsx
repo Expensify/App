@@ -19,10 +19,6 @@ type SwitchProps = {
 
     /** Whether the switch is disabled */
     disabled?: boolean;
-
-    label?: string;
-
-    labelStyles?: StyleProp<TextStyle>;
 };
 
 const OFFSET_X = {
@@ -43,23 +39,20 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, label, labelStyle
     }, [isOn]);
 
     return (
-        <>
-            {label && <Text style={[styles.mr2, labelStyles]}>{label}</Text>}
-            <PressableWithFeedback
-                disabled={disabled}
-                style={[styles.switchTrack, !isOn && styles.switchInactive]}
-                onPress={() => onToggle(!isOn)}
-                onLongPress={() => onToggle(!isOn)}
-                role={CONST.ROLE.SWITCH}
-                aria-checked={isOn}
-                accessibilityLabel={accessibilityLabel}
-                // disable hover dim for switch
-                hoverDimmingValue={1}
-                pressDimmingValue={0.8}
-            >
-                <Animated.View style={[styles.switchThumb, styles.switchThumbTransformation(offsetX.current)]} />
-            </PressableWithFeedback>
-        </>
+        <PressableWithFeedback
+            disabled={disabled}
+            style={[styles.switchTrack, !isOn && styles.switchInactive]}
+            onPress={() => onToggle(!isOn)}
+            onLongPress={() => onToggle(!isOn)}
+            role={CONST.ROLE.SWITCH}
+            aria-checked={isOn}
+            accessibilityLabel={accessibilityLabel}
+            // disable hover dim for switch
+            hoverDimmingValue={1}
+            pressDimmingValue={0.8}
+        >
+            <Animated.View style={[styles.switchThumb, styles.switchThumbTransformation(offsetX.current)]} />
+        </PressableWithFeedback>
     );
 }
 
