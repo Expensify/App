@@ -27,10 +27,11 @@ import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
+import type NewGroupChatDraft from './NewGroupChatDraft';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
-import type {PersonalDetailsList} from './PersonalDetails';
+import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
@@ -39,6 +40,7 @@ import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type {PolicyMembers} from './PolicyMember';
 import type PolicyMember from './PolicyMember';
+import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
@@ -62,6 +64,7 @@ import type Request from './Request';
 import type Response from './Response';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SecurityGroup from './SecurityGroup';
+import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type Task from './Task';
 import type Transaction from './Transaction';
@@ -109,12 +112,14 @@ export type {
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
+    PersonalDetailsMetadata,
     PlaidData,
     Policy,
     PolicyCategories,
     PolicyCategory,
     PolicyMember,
     PolicyMembers,
+    PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTags,
     PolicyTagList,
@@ -138,6 +143,7 @@ export type {
     Response,
     ScreenShareRequest,
     SecurityGroup,
+    SelectedTabRequest,
     Session,
     Task,
     TaxRate,
@@ -166,6 +172,7 @@ export type {
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
+    NewGroupChatDraft,
     Log,
     PolicyJoinMember,
 };

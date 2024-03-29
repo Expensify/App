@@ -31,14 +31,15 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
 import FormHelpMessage from './FormHelpMessage';
-import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import OptionsSelector from './OptionsSelector';
 import ReceiptEmptyState from './ReceiptEmptyState';
+import ReceiptImage from './ReceiptImage';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
@@ -67,7 +68,7 @@ type MoneyRequestConfirmationListOnyxProps = {
 };
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps & {
     /** Callback to inform parent modal of success */
-    onConfirm?: (selectedParticipants: Participant[]) => void;
+    onConfirm?: (selectedParticipants: Array<Participant | ReportUtils.OptionData>) => void;
 
     /** Callback to parent modal to send money */
     onSendMoney?: (paymentMethod: IouType | PaymentMethodType | undefined) => void;
@@ -109,10 +110,10 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     onToggleBillable?: (isOn: boolean) => void;
 
     /** Selected participants from MoneyRequestModal with login / accountID */
-    selectedParticipants: Participant[];
+    selectedParticipants: Array<Participant | ReportUtils.OptionData>;
 
     /** Payee of the money request with login */
-    payeePersonalDetails?: OnyxTypes.PersonalDetails;
+    payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails>;
 
     /** Can the participants be modified or not */
     canModifyParticipants?: boolean;
@@ -130,7 +131,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     reportID?: string;
 
     /** File path of the receipt */
-    receiptPath?: string;
+    receiptPath?: ReceiptSource;
 
     /** File name of the receipt */
     receiptFilename?: string;
@@ -322,7 +323,7 @@ function MoneyRequestConfirmationList({
      * Returns the participants with amount
      */
     const getParticipantsWithAmount = useCallback(
-        (participantsList: Participant[]): Participant[] => {
+        (participantsList: Array<Participant | ReportUtils.OptionData>): Array<Participant | ReportUtils.OptionData> => {
             const calculatedIouAmount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
@@ -358,7 +359,10 @@ function MoneyRequestConfirmationList({
         ];
     }, [isSplitBill, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
 
-    const selectedParticipants: Participant[] = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
+    const selectedParticipants: Array<Participant | ReportUtils.OptionData> = useMemo(
+        () => selectedParticipantsProp.filter((participant) => participant.selected),
+        [selectedParticipantsProp],
+    );
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
@@ -424,7 +428,7 @@ function MoneyRequestConfirmationList({
         canModifyParticipants,
     ]);
 
-    const selectedOptions: Array<Participant | OptionsListUtils.PayeePersonalDetails> = useMemo(() => {
+    const selectedOptions: Array<Participant | ReportUtils.OptionData | OptionsListUtils.PayeePersonalDetails> = useMemo(() => {
         if (!hasMultipleParticipants) {
             return [];
         }
@@ -536,7 +540,6 @@ function MoneyRequestConfirmationList({
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
-                addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                 currency={iouCurrencyCode}
                 policyID={policyID}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
@@ -577,8 +580,12 @@ function MoneyRequestConfirmationList({
         );
     }, [isReadOnly, iouType, bankAccountRoute, iouCurrencyCode, policyID, selectedParticipants.length, confirm, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
 
-    const {image: receiptImage, thumbnail: receiptThumbnail} =
-        receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
+    const {
+        image: receiptImage,
+        thumbnail: receiptThumbnail,
+        isThumbnail,
+        fileExtension,
+    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
     return (
         // @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q)
         <OptionsSelector
@@ -604,16 +611,17 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-
+            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
             {receiptImage || receiptThumbnail ? (
-                <Image
+                <ReceiptImage
                     style={styles.moneyRequestImage}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    source={{uri: String(receiptThumbnail || receiptImage)}}
+                    isThumbnail={isThumbnail}
+                    source={String(receiptThumbnail ?? receiptImage)}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!!receiptThumbnail}
+                    fileExtension={fileExtension}
                 />
             ) : (
                 // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
