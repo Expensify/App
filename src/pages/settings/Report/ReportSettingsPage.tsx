@@ -11,7 +11,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getGroupChatName} from '@libs/GroupChatUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
@@ -48,7 +47,8 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
-    const reportName = ReportUtils.isGroupChat(report) ? getGroupChatName(report) : ReportUtils.getReportName(report);
+    const reportName =
+        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report) ? ReportUtils.getGroupChatName(report.participantAccountIDs ?? []) : ReportUtils.getReportName(report);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
