@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import type {SelectedPurposeType} from '@pages/OnboardingPurpose/BaseOnboardingPurpose';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxPolicy from '@src/types/onyx/Policy';
-import type Report from '@src/types/onyx/Report';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let hasSelectedPurpose: boolean | undefined;
@@ -156,16 +155,6 @@ Onyx.connect({
     callback: (value) => {
         isLoadingReportData = value ?? false;
         checkOnReady();
-    },
-});
-
-let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    initWithStoredValues: false,
-    waitForCollectionCallback: true,
-    callback: (reports) => {
-        allReports = reports;
     },
 });
 
