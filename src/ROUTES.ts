@@ -174,6 +174,7 @@ const ROUTES = {
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
+    NEW_CHAT_CONFIRM: 'new/chat/confirm',
     NEW_ROOM: 'new/room',
 
     REPORT: 'r',
@@ -611,6 +612,19 @@ const ROUTES = {
     WORKSPACE_MEMBER_ROLE_SELECTION: {
         route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
+    },
+    WORKSPACE_OWNER_CHANGE_SUCCESS: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/success',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/success` as const,
+    },
+    WORKSPACE_OWNER_CHANGE_ERROR: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/failure',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/failure` as const,
+    },
+    WORKSPACE_OWNER_CHANGE_CHECK: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/:error',
+        getRoute: (policyID: string, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) =>
+            `settings/workspaces/${policyID}/change-owner/${accountID}/${error}` as const,
     },
     WORKSPACE_TAX_CREATE: {
         route: 'settings/workspaces/:policyID/taxes/new',

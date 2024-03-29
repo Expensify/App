@@ -162,7 +162,7 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
-                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID, report),
             },
         ];
     }, [report, reportID, translate]);
@@ -192,7 +192,6 @@ function AttachmentPickerWithMenuItems({
 
     return (
         <AttachmentPicker>
-            {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();

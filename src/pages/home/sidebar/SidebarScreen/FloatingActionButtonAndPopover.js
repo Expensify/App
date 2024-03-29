@@ -21,6 +21,7 @@ import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
+import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,9 +71,9 @@ const getQuickActionTitle = (action) => {
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             return 'quickAction.splitBill';
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-            return 'quickAction.splitReceipt';
-        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
             return 'quickAction.splitScan';
+        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
+            return 'quickAction.splitDistance';
         case CONST.QUICK_ACTIONS.SEND_MONEY:
             return 'quickAction.sendMoney';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
@@ -178,7 +179,7 @@ function FloatingActionButtonAndPopover(props) {
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, props.quickAction.chatReportID);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, _.get(props.quickAction, 'targetAccountID', 0));
+                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, quickActionReport, _.get(props.quickAction, 'targetAccountID', 0));
                 return;
             default:
                 return '';
@@ -266,7 +267,7 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.ChatBubble,
                         text: translate('sidebarScreen.fabNewChat'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW)),
+                        onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
                     {
                         icon: Expensicons.MoneyCircle,
@@ -335,7 +336,7 @@ function FloatingActionButtonAndPopover(props) {
                               },
                           ]
                         : []),
-                    ...(props.quickAction
+                    ...(props.quickAction && props.quickAction.action
                         ? [
                               {
                                   icon: getQuickActionIcon(props.quickAction.action),
