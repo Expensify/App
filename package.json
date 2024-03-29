@@ -62,7 +62,11 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
+<<<<<<< HEAD
     "@expensify/react-native-live-markdown": "0.1.33",
+=======
+    "@expensify/react-native-live-markdown": "0.1.35",
+>>>>>>> 7de6f2e (Merge pull request #39282 from software-mansion-labs/@Skalakid/fix-app-crashing-after-entering-emoji)
     "@expo/metro-runtime": "~3.1.1",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-listformat": "^7.2.2",
