@@ -423,6 +423,7 @@ type Ancestor = {
     report: Report;
     reportAction: ReportAction;
     shouldDisplayNewMarker: boolean;
+    shouldHideThreadDividerLine: boolean;
 };
 
 type AncestorIDs = {
@@ -5477,7 +5478,7 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
     );
 }
 
-function getAllAncestorReportActions(report: Report | null | undefined): Ancestor[] {
+function getAllAncestorReportActions(report: Report | null | undefined, shouldHideThreadDividerLine: boolean): Ancestor[] {
     if (!report) {
         return [];
     }
@@ -5487,6 +5488,7 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
 
     // Store the child of parent report
     let currentReport = report;
+    let currentUnread = shouldHideThreadDividerLine;
 
     while (parentReportID) {
         const parentReport = getReport(parentReportID);
@@ -5501,11 +5503,14 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
             report: currentReport,
             reportAction: parentReportAction,
             shouldDisplayNewMarker: isParentReportActionUnread,
+            // We should hide the thread divider line if the previous ancestor action is unread
+            shouldHideThreadDividerLine: currentUnread,
         });
         parentReportID = parentReport?.parentReportID;
         parentReportActionID = parentReport?.parentReportActionID;
         if (!isEmptyObject(parentReport)) {
             currentReport = parentReport;
+            currentUnread = isParentReportActionUnread;
         }
     }
 
