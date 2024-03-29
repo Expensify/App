@@ -129,11 +129,12 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                                 >
                                     {translate('initialSettingsPage.troubleshoot.submitBug')}
                                 </TextLink>
+                                .
                             </Text>
                         )}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
-                            <View style={[styles.mr8]}>
+                            <View>
                                 <TestToolRow title="Client side logging">
                                     <Switch
                                         accessibilityLabel="Client side logging"
@@ -147,7 +148,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                                 shouldUseSingleExecution
                             />
                             {!isProduction && (
-                                <View style={[styles.mr8, styles.mt6]}>
+                                <View style={[styles.mt6]}>
                                     <TestToolMenu />
                                 </View>
                             )}
