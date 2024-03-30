@@ -34,7 +34,6 @@ const defaultProps = {
     disabledIndexes: [],
     shouldExcludeTextAreaNodes: true,
     shouldResetIndexOnEndReached: true,
-    isFocused: false,
 };
 
 class BaseArrowKeyFocusManager extends Component {
