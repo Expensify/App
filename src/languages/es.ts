@@ -595,6 +595,9 @@ export default {
         trackScan: 'todo',
         trackDistance: 'todo',
         shortcut: 'Acceso Directo',
+        trackManual: 'Seguimiento de Gastos',
+        trackScan: 'Seguimiento de Recibo',
+        trackDistance: 'Seguimiento de Distancia',
     },
     iou: {
         amount: 'Importe',

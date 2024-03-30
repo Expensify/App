@@ -599,6 +599,9 @@ export default {
         trackScan: 'todo',
         trackDistance: 'todo',
         shortcut: 'Shortcut',
+        trackManual: 'Track Manual',
+        trackScan: 'Track Scan',
+        trackDistance: 'Track Distance',
     },
     iou: {
         amount: 'Amount',

@@ -1265,6 +1265,23 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | stri
 }
 
 /**
+ * Checks if a report has only one transaction associated with it
+ */
+function isOneTransactionReport(reportID: string): boolean {
+    const reportActions = reportActionsByReport?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
+    return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== null;
+}
+
+/**
+ * Checks if a report is a transaction thread associated with a report that has only one transaction
+ */
+function isOneTransactionThread(reportID: string, parentReportID: string): boolean {
+    const parentReportActions = reportActionsByReport?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? ([] as ReportAction[]);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReportActions);
+    return reportID === transactionThreadReportID;
+}
+
+/**
  * Should return true only for personal 1:1 report
  *
  */
@@ -1793,6 +1810,11 @@ function getIcons(
             fallbackIcon: personalDetails?.[report?.ownerAccountID ?? -1]?.fallbackIcon,
         };
         const isManager = currentUserAccountID === report?.managerID;
+
+        // For one transaction IOUs, display a simplified report icon
+        if (isOneTransactionReport(report?.reportID ?? '0')) {
+            return [ownerIcon];
+        }
 
         return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
     }
@@ -2682,7 +2704,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant(report.ownerAccountID) ?? '', amount: formattedAmount});
     }
 
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
 }
 
 /**
@@ -4397,6 +4419,11 @@ function shouldReportBeInOptionList({
         return false;
     }
 
+    // If this is a transaction thread associated with a report that only has one transaction, omit it
+    if (isOneTransactionThread(report.reportID, report.parentReportID ?? '0')) {
+        return false;
+    }
+
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
@@ -4864,6 +4891,10 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
     }
 
     if (isExpenseRequest(report)) {
+        return true;
+    }
+
+    if (isExpenseReport(report) && isOneTransactionReport(report?.reportID ?? '')) {
         return true;
     }
 
@@ -5778,6 +5809,7 @@ export {
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    isOneTransactionThread,
     isPayer,
     goBackToDetailsPage,
     getTransactionReportName,
