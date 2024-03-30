@@ -41,12 +41,6 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
-    /** The transaction thread report associated with the current report, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Array of report actions for the current report */
-    reportActions: OnyxTypes.ReportAction[];
-
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -131,8 +125,6 @@ const onScrollToIndexFailed = () => {};
 
 function ReportActionsList({
     report,
-    transactionThreadReport,
-    reportActions = [],
     parentReportAction,
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
@@ -522,11 +514,9 @@ function ReportActionsList({
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
             <ReportActionsListItemRenderer
                 reportAction={reportAction}
-                reportActions={reportActions}
                 parentReportAction={parentReportAction}
                 index={index}
                 report={report}
-                transactionThreadReport={transactionThreadReport}
                 linkedReportActionID={linkedReportActionID}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
@@ -544,8 +534,6 @@ function ReportActionsList({
             shouldHideThreadDividerLine,
             shouldDisplayNewMarker,
             parentReportAction,
-            reportActions,
-            transactionThreadReport,
         ],
     );
 
