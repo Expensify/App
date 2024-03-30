@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type {OptionData} from '@libs/ReportUtils';
+import createRandomOptionData from 'tests/utils/collections/optionData';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
@@ -85,74 +86,144 @@ describe('OptionsListUtils', () => {
 
     /* formatSectionsFromSearchTerm performance tests */
     test('[OptionsListUtils] formatSectionsFromSearchTerm with an empty search term and a large number of selectedOptions', async () => {
-        const selectedOptions: OptionData[] = Array.from({length: SELECTED_OPTIONS_COUNT}, (_, i) => ({
-            login: `user${i}@example.com`,
-            searchText: `Option ${i}`,
-            reportID: `report_${i}`,
-        }));
+        const selectedOptions = createCollection<OptionData>(
+            (item) => item.reportID,
+            createRandomOptionData,
+            SELECTED_OPTIONS_COUNT,
+        );
+        
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('', selectedOptions, [], [], false, 0, personalDetails, false),
+            formatSectionsFromSearchTerm('john', Object.values(selectedOptions), [], [], false, 0, personalDetails, false),
         );
     });
 
     test('[OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches a subset of a large selectedOptions array', async () => {
-        const selectedOptions: OptionData[] = Array.from({length: SELECTED_OPTIONS_COUNT}, (_, i) => ({
-            login: `user${i}@example.com`,
-            searchText: i % 2 === 0 ? 'John Smith' : `Option ${i}`,
-            reportID: `report_${i}`,
-        }));
+        const selectedOptions = createCollection<OptionData>(
+            (item) => item.reportID,
+            (index) => ({
+                ...createRandomOptionData(index),
+                searchText: index % 2 === 0 ? 'John Smith' : `Option ${index}`,
+            }),
+            SELECTED_OPTIONS_COUNT,
+        );
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('john', selectedOptions, [], [], false, 0, personalDetails, false),
+            formatSectionsFromSearchTerm('john', Object.values(selectedOptions), [], [], false, 0, personalDetails, false),
         );
     });
 
     test('[OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches recent reports but not personal details', async () => {
-        const selectedOptions: OptionData[] = [];
-        const filteredRecentReports: OptionData[] = Array.from({length: RECENT_REPORTS_COUNT}, (_, i) => ({
-            login: `user${i}@example.com`,
-            searchText: `Recent Report ${i}`,
-            reportID: `report_${i}`,
-        }));
-        const filteredPersonalDetails: OptionData[] = [];
+        const filteredRecentReports = createCollection<OptionData>(
+            (item) => item.reportID,
+            (index) => ({
+                ...createRandomOptionData(index),
+                searchText: `Recent Report ${index}`,
+            }),
+            RECENT_REPORTS_COUNT,
+        );
         
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('recent', selectedOptions, filteredRecentReports, filteredPersonalDetails, false, 0, personalDetails, false),
+            formatSectionsFromSearchTerm('recent', Object.values(filteredRecentReports), Object.values(filteredRecentReports), Object.values(filteredPersonalDetails), false, 0, personalDetails, false),
         );
     });
 
     test('OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches personal details but not recent reports', async () => {
-        const selectedOptions: OptionData[] = [];
-        const filteredRecentReports: OptionData[] = [];
-        const filteredPersonalDetails: OptionData[] = Array.from({length: PERSONAL_DETAILS_COUNT}, (_, i) => ({
-            login: `user${i}@example.com`,
-            searchText: `Personal Detail ${i}`,
-            reportID: `report_${i}`,
-        }));
+        const filteredPersonalDetails = createCollection<OptionData>(
+            (item) => item.reportID,
+            (index) => ({
+                ...createRandomOptionData(index),
+                searchText: `Personal Detail ${index}`,
+            }),
+            PERSONAL_DETAILS_COUNT,
+        );
         
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('personal', selectedOptions, filteredRecentReports, filteredPersonalDetails, false, 0, personalDetails, false),
+            formatSectionsFromSearchTerm('personal', [], [], Object.values(filteredPersonalDetails), false, 0, personalDetails, false),
         );
     });
 
     test('[OptionsListUtils] formatSectionsFromSearchTerm with a search term that matches neither recent reports nor personal details', async () => {
-        const selectedOptions: OptionData[] = Array.from({length: 10}, (_, i) => ({
-            login: `user${i}@example.com`,
-            searchText: `Option ${i}`,
-            reportID: `report_${i}`,
-        }));
-        const filteredRecentReports: OptionData[] = Array.from({length: RECENT_REPORTS_COUNT}, (_, i) => ({
-            login: `user${i + 10}@example.com`,
-            searchText: `Recent Report ${i}`,
-            reportID: `report_${i + 10}`,
-        }));
-        const filteredPersonalDetails: OptionData[] = Array.from({length: PERSONAL_DETAILS_COUNT}, (_, i) => ({
-            login: `user${i + 110}@example.com`,
-            searchText: `Personal Detail ${i}`,
-            reportID: `report_${i + 110}`,
-        }));
+        const selectedOptions = createCollection<OptionData>(
+            (item) => item.reportID,
+            createRandomOptionData,
+            10,
+        );
+        const filteredRecentReports = createCollection<OptionData>(
+            (item) => item.reportID,
+            (index) => ({
+                ...createRandomOptionData(index + 10),
+                searchText: `Recent Report ${index}`,
+            }),
+            RECENT_REPORTS_COUNT,
+        );
+        const filteredPersonalDetails = createCollection<OptionData>(
+            (item) => item.reportID,
+            (index) => ({
+                ...createRandomOptionData(index + 110),
+                searchText: `Personal Detail ${index}`,
+            }),
+            PERSONAL_DETAILS_COUNT,
+        );
         
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('unmatched', selectedOptions, filteredRecentReports, filteredPersonalDetails, false, 0, personalDetails, false),
+            formatSectionsFromSearchTerm('unmatched', Object.values(selectedOptions), Object.values(filteredRecentReports), Object.values(filteredPersonalDetails), false, 0, personalDetails, false),
+        );
+    });
+
+    test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {
+        const selectedOptions = createCollection<OptionData>(
+            (item) => item.reportID,
+            (index) => ({
+                ...createRandomOptionData(index),
+                searchText: index % 2 === 0 ? 'John Smith' : `Option ${index}`,
+            }),
+            SELECTED_OPTIONS_COUNT,
+        );
+        const filteredRecentReports = createCollection<OptionData>(
+            (item) => item.reportID,
+            (index) => ({
+                ...createRandomOptionData(index + SELECTED_OPTIONS_COUNT),
+                searchText: index % 3 === 0 ? 'John Smith' : `Recent Report ${index}`,
+            }),
+            RECENT_REPORTS_COUNT,
+        );
+        const filteredPersonalDetails = createCollection<OptionData>(
+            (item) => item.reportID,
+            (index) => ({
+                ...createRandomOptionData(index + SELECTED_OPTIONS_COUNT + RECENT_REPORTS_COUNT),
+                searchText: index % 5 === 0 ? 'John Smith' : `Personal Detail ${index}`,
+            }),
+            PERSONAL_DETAILS_COUNT,
+        );
+
+        await measureFunction(() => 
+            formatSectionsFromSearchTerm('john', Object.values(selectedOptions),  Object.values(filteredRecentReports),  Object.values(filteredPersonalDetails), false, 0, personalDetails, true)
+        );
+    });
+
+    test('[OptionsListUtils] with a large number of selectedOptions and shouldGetOptionDetails set to true', async () => {
+        const selectedOptions = createCollection<OptionData>(
+            (item) => item.reportID,
+            createRandomOptionData,
+            SELECTED_OPTIONS_COUNT,
+        );
+
+        await measureFunction(() =>
+            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], true, 0, personalDetails, true)
+        );
+    });
+
+    test('[OptionsListUtils] with a search term that matches selectedOptions and maxOptionsSelected set to true', async () => {
+        const selectedOptions = createCollection<OptionData>(
+            (item) => item.reportID,
+            (index) => ({
+                ...createRandomOptionData(index),
+                searchText: index % 2 === 0 ? 'John Smith' : `Option ${index}`,
+            }),
+            SELECTED_OPTIONS_COUNT,
+        );
+
+        await measureFunction(() =>
+            formatSectionsFromSearchTerm('john', Object.values(selectedOptions), [], [], true, 0, personalDetails, false)  
         );
     });
 });
