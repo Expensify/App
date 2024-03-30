@@ -414,18 +414,21 @@ function ReportActionItem({
         ];
     }, [action, report.reportID]);
 
-    const renderThreadDivider = () =>
-        !shouldHideThreadDividerLine ? (
-            <SpacerView
-                shouldShow={!shouldHideThreadDividerLine}
-                style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
-            />
-        ) : (
-            <UnreadActionIndicator
-                reportActionID={report.reportID}
-                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-            />
-        );
+    const renderThreadDivider = useMemo(
+        () =>
+            !shouldHideThreadDividerLine ? (
+                <SpacerView
+                    shouldShow={!shouldHideThreadDividerLine}
+                    style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
+                />
+            ) : (
+                <UnreadActionIndicator
+                    reportActionID={report.reportID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                />
+            ),
+        [shouldHideThreadDividerLine, styles.reportHorizontalRule, report.reportID],
+    );
 
     /**
      * Get the content of ReportActionItem
@@ -733,7 +736,7 @@ function ReportActionItem({
                             report={report}
                             shouldShowAnimatedBackground
                         />
-                        {renderThreadDivider()}
+                        {renderThreadDivider}
                     </View>
                 </ShowContextMenuContext.Provider>
             );
@@ -763,7 +766,7 @@ function ReportActionItem({
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                         <TaskView report={report} />
-                        {renderThreadDivider()}
+                        {renderThreadDivider}
                     </View>
                 </View>
             );
@@ -779,7 +782,7 @@ function ReportActionItem({
                                         report={report}
                                         policy={policy}
                                     />
-                                    {renderThreadDivider()}
+                                    {renderThreadDivider}
                                 </>
                             )}
                             <ShowContextMenuContext.Provider value={contextValue}>
@@ -788,7 +791,7 @@ function ReportActionItem({
                                         report={transactionThreadReport}
                                         shouldShowAnimatedBackground={transactionCurrency === report.currency}
                                     />
-                                    {renderThreadDivider()}
+                                    {renderThreadDivider}
                                 </View>
                             </ShowContextMenuContext.Provider>
                         </>
@@ -798,7 +801,7 @@ function ReportActionItem({
                                 report={report}
                                 policy={policy}
                             />
-                            {renderThreadDivider()}
+                            {renderThreadDivider}
                         </>
                     )}
                 </OfflineWithFeedback>
