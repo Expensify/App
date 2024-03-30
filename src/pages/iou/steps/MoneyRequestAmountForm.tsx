@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -20,6 +19,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
+import type {SelectedTabRequest} from '@src/types/onyx';
 
 type MoneyRequestAmountFormProps = {
     /** IOU amount saved in Onyx */
@@ -41,7 +41,7 @@ type MoneyRequestAmountFormProps = {
     onSubmitButtonPress: ({amount, currency}: {amount: string; currency: string}) => void;
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab?: ValueOf<typeof CONST.TAB_REQUEST>;
+    selectedTab?: SelectedTabRequest;
 };
 
 type Selection = {

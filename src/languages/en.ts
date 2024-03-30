@@ -144,6 +144,7 @@ export default {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         chats: 'Chats',
+        group: 'Group',
         profile: 'Profile',
         referral: 'Referral',
         payments: 'Payments',
@@ -595,6 +596,9 @@ export default {
         sendMoney: 'Send Money',
         assignTask: 'Assign Task',
         shortcut: 'Shortcut',
+        trackManual: 'Track Manual',
+        trackScan: 'Track Scan',
+        trackDistance: 'Track Distance',
     },
     iou: {
         amount: 'Amount',
@@ -1202,6 +1206,9 @@ export default {
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom decription for the room.',
     },
+    groupConfirmPage: {
+        groupName: 'Group name',
+    },
     languagePage: {
         language: 'Language',
         languages: {
@@ -1340,7 +1347,7 @@ export default {
     },
     newChatPage: {
         createChat: 'Create chat',
-        createGroup: 'Create group',
+        startGroup: 'Start group',
         addToGroup: 'Add to group',
     },
     yearPickerPage: {
@@ -2409,6 +2416,7 @@ export default {
         hiddenMessage: '[Hidden message]',
     },
     threads: {
+        thread: 'Thread',
         replies: 'Replies',
         reply: 'Reply',
         from: 'From',

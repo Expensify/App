@@ -441,14 +441,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     title: translate('moneyRequestConfirmationList.paidBy'),
                     data: [formattedPayeeOption],
                     shouldShow: true,
-                    indexOffset: 0,
                     isDisabled: shouldDisablePaidBySection,
                 },
                 {
                     title: translate('moneyRequestConfirmationList.splitWith'),
                     data: formattedParticipantsList,
                     shouldShow: true,
-                    indexOffset: 1,
                 },
             );
         } else {
@@ -460,7 +458,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
                 shouldShow: true,
-                indexOffset: 0,
             });
         }
         return sections;
