@@ -74,18 +74,6 @@ const allReportActions = Object.fromEntries(
 const currentReportId = '1';
 const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
-jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
-    return {
-        ...actualNav,
-        useNavigation: () => ({
-            navigate: jest.fn(),
-            addListener: () => jest.fn(),
-        }),
-        useIsFocused: () => true,
-    } as typeof Navigation;
-});
-
 describe('SidebarUtils', () => {
     beforeAll(() => {
         Onyx.init({
