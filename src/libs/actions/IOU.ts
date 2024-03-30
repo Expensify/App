@@ -4052,7 +4052,7 @@ function getSendMoneyParams(
     comment: string,
     paymentMethodType: PaymentMethodType,
     managerID: number,
-    recipient: Participant,
+    recipient: Participant | ReportUtils.OptionData,
 ): SendMoneyParamsData {
     const recipientEmail = PhoneNumber.addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
