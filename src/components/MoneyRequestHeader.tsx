@@ -71,8 +71,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
             const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
-            if (ReportActionsUtils.isTrackExpenseAction(parentReportAction) && ReportUtils.isSelfDM(parentReport)) {
-                IOU.deletePersonalTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+            if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+                IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
                 return;
             }
             IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);

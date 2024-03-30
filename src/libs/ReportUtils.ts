@@ -4766,12 +4766,13 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
  * - Send option should show for:
  *     - DMs
  * - Split options should show for:
- *     - chat/ policy rooms with more than 1 participants
+ *     - chat/policy rooms with more than 1 participant
  *     - groups chats with 3 and more participants
  *     - corporate workspace chats
  * - Track expense option should show for:
  *    - Self DMs
- *    - admin rooms
+ *    - own policy expense chats
+ *    - open and processing expense reports tied to own policy expense chat
  *
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.

@@ -4037,9 +4037,13 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     }
 }
 
-function deletePersonalTrackExpense(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function deleteTrackExpense(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
+    if (!ReportUtils.isSelfDM(chatReport)) {
+        return deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+    }
+
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
@@ -5396,7 +5400,7 @@ export {
     setMoneyRequestParticipants,
     createDistanceRequest,
     deleteMoneyRequest,
-    deletePersonalTrackExpense,
+    deleteTrackExpense,
     splitBill,
     splitBillAndOpenReport,
     setDraftSplitTransaction,
