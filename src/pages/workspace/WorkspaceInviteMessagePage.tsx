@@ -76,13 +76,14 @@ function WorkspaceInviteMessagePage({
         // workspaceInviteMessageDraft can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         workspaceInviteMessageDraft ||
-        translate('workspace.inviteMessage.welcomeNote', {
-            workspaceName: policy?.name ?? '',
-            senderDisplayName: currentUserPersonalDetails?.displayName ?? '',
-            senderLogin: currentUserPersonalDetails?.login ?? '',
-            workspaceDescription: parser.htmlToMarkdown(policy?.description ?? ''),
-            workspaceLink: ROUTES.WORKSPACE_PROFILE.getRoute(route.params.policyID),
-        });
+        // policy?.description can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        policy?.description ||
+        parser.replace(
+            translate('workspace.common.welcomeNote', {
+                workspaceName: policy?.name ?? '',
+            }),
+        );
 
     useEffect(() => {
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
@@ -100,7 +101,16 @@ function WorkspaceInviteMessagePage({
     const sendInvitation = () => {
         Keyboard.dismiss();
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
+        Policy.addMembersToWorkspace(
+            invitedEmailsToAccountIDsDraft ?? {},
+            translate('workspace.inviteMessage.welcomeNote', {
+                workspaceName: policy?.name ?? '',
+                senderDisplayName: currentUserPersonalDetails?.displayName ?? '',
+                senderLogin: currentUserPersonalDetails?.login ?? '',
+                inviteMessage: welcomeNote,
+            }),
+            route.params.policyID,
+        );
         debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.

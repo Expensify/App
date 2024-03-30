@@ -2048,14 +2048,8 @@ export default {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
-            welcomeNote: ({workspaceName, senderDisplayName, senderLogin, workspaceDescription, workspaceLink}: WelcomeNoteParams) => `${
-                senderDisplayName ? `#${senderDisplayName} (${senderLogin}) invited you to Expensify` : `#${senderLogin} invited you to Expensify`
-            }\nHi there 1 -\n\nTo join "${workspaceName}", [click here](${workspaceLink}) to start tracking your expenses!\n\nThey also added the message:\nYou have been invited to ${
-                workspaceName || 'a workspace'
-            }! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.\n\n${
-                workspaceDescription ? `Additionally, here is the workspace description:\n ${workspaceDescription}` : ''
-            }
-            `,
+            welcomeNote: ({workspaceName, senderDisplayName, senderLogin, inviteMessage}: WelcomeNoteParams) =>
+                `${`${senderDisplayName !== senderLogin ? `${senderDisplayName} (${senderLogin})` : senderLogin} invited you to ${workspaceName}`}\n\n${inviteMessage}`,
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
