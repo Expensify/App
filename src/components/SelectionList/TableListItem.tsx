@@ -31,6 +31,10 @@ function TableListItem({
     return (
         <BaseListItem
             item={item}
+            pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive]]}
+            wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
+            containerStyle={styles.mb3}
+            selectMultipleStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -62,6 +66,14 @@ function TableListItem({
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.text ?? ''}
+                            style={[
+                                styles.optionDisplayName,
+                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                styles.sidebarLinkTextBold,
+                                styles.pre,
+                                item.alternateText ? styles.mb1 : null,
+                                styles.justifyContentCenter,
+                            ]}
                         />
                         {!!item.alternateText && (
                             <TextWithTooltip
