@@ -172,7 +172,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         option?.login ?? '',
                         option?.accountID ?? -1,
                         report.reportID,
-                        null, // passing null as report because for editing task the report will be edit report page not the actual report where task was created
+                        null, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
                     );
 
