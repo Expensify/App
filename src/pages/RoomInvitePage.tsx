@@ -87,7 +87,6 @@ function RoomInvitePage({betas, personalDetails, report, policies, didScreenTran
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
-        let indexOffset = 0;
 
         if (!didScreenTransitionEnd) {
             return [];
@@ -110,9 +109,7 @@ function RoomInvitePage({betas, personalDetails, report, policies, didScreenTran
         sectionsArr.push({
             title: undefined,
             data: filterSelectedOptionsFormatted,
-            indexOffset,
         });
-        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
@@ -123,15 +120,12 @@ function RoomInvitePage({betas, personalDetails, report, policies, didScreenTran
         sectionsArr.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
-            indexOffset,
         });
-        indexOffset += personalDetailsFormatted.length;
 
         if (hasUnselectedUserToInvite) {
             sectionsArr.push({
                 title: undefined,
                 data: [OptionsListUtils.formatMemberForList(userToInvite)],
-                indexOffset,
             });
         }
 

@@ -818,21 +818,18 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
+function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false, shouldShowAnimatedBackground = true): ViewStyle {
     const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-    if (isSmallScreenWidth) {
-        return {
-            minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
-            display: 'flex',
-            justifyContent: 'space-between',
-        };
-    }
-
-    return {
-        minHeight: emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+    const baseStyles: ViewStyle = {
         display: 'flex',
         justifyContent: 'space-between',
     };
+
+    if (shouldShowAnimatedBackground) {
+        baseStyles.minHeight = isSmallScreenWidth ? emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT : emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT;
+    }
+
+    return baseStyles;
 }
 
 type GetBaseAutoCompleteSuggestionContainerStyleParams = {

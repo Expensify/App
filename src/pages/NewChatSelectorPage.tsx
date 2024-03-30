@@ -1,31 +1,16 @@
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import compose from '@libs/compose';
+import useLocalize from '@hooks/useLocalize';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 
-const propTypes = {
-    ...windowDimensionsPropTypes,
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    betas: [],
-    personalDetails: {},
-    reports: {},
-};
-
-function NewChatSelectorPage(props) {
+function NewChatSelectorPage() {
+    const {translate} = useLocalize();
     const navigation = useNavigation();
 
     return (
@@ -37,7 +22,7 @@ function NewChatSelectorPage(props) {
             testID={NewChatSelectorPage.displayName}
         >
             <HeaderWithBackButton
-                title={props.translate('sidebarScreen.fabNewChat')}
+                title={translate('sidebarScreen.fabNewChat')}
                 onBackButtonPress={navigation.goBack}
             />
             <OnyxTabNavigator
@@ -57,14 +42,6 @@ function NewChatSelectorPage(props) {
     );
 }
 
-NewChatSelectorPage.propTypes = propTypes;
-NewChatSelectorPage.defaultProps = defaultProps;
 NewChatSelectorPage.displayName = 'NewChatSelectorPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        betas: {key: ONYXKEYS.BETAS},
-    }),
-)(NewChatSelectorPage);
+export default NewChatSelectorPage;

@@ -689,7 +689,14 @@ function setAssigneeValue(
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
         }
 
-        setAssigneeChatReport(report);
+        // The optimistic field may not exist in the existing report and it can be overridden by the optimistic field of previous report data when merging the assignee chat report
+        // Therefore, we should add these optimistic fields here to prevent incorrect merging, which could lead to the creation of duplicate actions for an existing report
+        setAssigneeChatReport({
+            ...report,
+            isOptimisticReport: report?.isOptimisticReport ?? false,
+            pendingFields: report?.pendingFields,
+            pendingAction: report?.pendingAction,
+        });
 
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
