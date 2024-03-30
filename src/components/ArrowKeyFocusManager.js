@@ -18,7 +18,7 @@ const propTypes = {
     maxIndex: PropTypes.number.isRequired,
 
     /** Whether navigation is focused */
-    isFocused: PropTypes.bool.isRequired,
+    isFocused: PropTypes.bool,
 
     /** A callback executed when the focused input changes. */
     onFocusedIndexChanged: PropTypes.func.isRequired,
@@ -34,6 +34,7 @@ const defaultProps = {
     disabledIndexes: [],
     shouldExcludeTextAreaNodes: true,
     shouldResetIndexOnEndReached: true,
+    isFocused: false,
 };
 
 class BaseArrowKeyFocusManager extends Component {
