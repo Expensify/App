@@ -2249,15 +2249,30 @@ function trackExpense(
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
+    // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
     const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
+
+    // Check if the report is available locally if we do have one
     let existingSplitChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
-    if (!existingSplitChatReport) {
-        existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
+
+    // If we do not have one locally then we will search for a chat with the same participants (only for 1:1 chats).
+    const shouldGetOrCreateOneOneDM = participants.length < 2;
+    if (!existingSplitChatReport && shouldGetOrCreateOneOneDM) {
+        existingSplitChatReport = ReportUtils.getChatByParticipants(participantAccountIDs);
     }
-    let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
+
+    // We found an existing chat report we are done...
+    if (existingSplitChatReport) {
+        // Yes, these are the same, but give the caller a way to identify if we created a new report or not
+        return {existingSplitChatReport, splitChatReport: existingSplitChatReport};
+    }
+
+    // No existing chat by this point we need to create it
     const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
-    if (!existingSplitChatReport && participants.length > 1) {
-        newChat = ReportUtils.buildOptimisticChatReport(
+
+    // Create a Group Chat if we have multiple participants
+    if (participants.length > 1) {
+        const splitChatReport = ReportUtils.buildOptimisticChatReport(
             allParticipantsAccountIDs,
             '',
             CONST.REPORT.CHAT_TYPE.GROUP,
@@ -2269,12 +2284,12 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
             undefined,
             CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         );
+        return {existingSplitChatReport: null, splitChatReport};
     }
-    if (isEmptyObject(newChat)) {
-        newChat = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
-    }
-    const splitChatReport = existingSplitChatReport ?? newChat;
-    return {splitChatReport, existingSplitChatReport};
+
+    // Otherwise, create a new 1:1 chat report
+    const splitChatReport = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
+    return {existingSplitChatReport: null, splitChatReport};
 }
 
 /**
