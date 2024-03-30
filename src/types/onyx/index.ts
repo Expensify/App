@@ -27,6 +27,7 @@ import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
+import type NewGroupChatDraft from './NewGroupChatDraft';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
@@ -63,6 +64,7 @@ import type Request from './Request';
 import type Response from './Response';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SecurityGroup from './SecurityGroup';
+import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type Task from './Task';
 import type Transaction from './Transaction';
@@ -141,6 +143,7 @@ export type {
     Response,
     ScreenShareRequest,
     SecurityGroup,
+    SelectedTabRequest,
     Session,
     Task,
     TaxRate,
@@ -169,6 +172,7 @@ export type {
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
+    NewGroupChatDraft,
     Log,
     PolicyJoinMember,
 };
