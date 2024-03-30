@@ -728,11 +728,13 @@ function ReportActionItem({
             }
             return (
                 <ShowContextMenuContext.Provider value={contextValue}>
-                    <MoneyRequestView
-                        report={report}
-                        shouldShowAnimatedBackground
-                    />
-                    {renderThreadDivider()}
+                    <View>
+                        <MoneyRequestView
+                            report={report}
+                            shouldShowAnimatedBackground
+                        />
+                        {renderThreadDivider()}
+                    </View>
                 </ShowContextMenuContext.Provider>
             );
         }
@@ -781,11 +783,13 @@ function ReportActionItem({
                                 </>
                             )}
                             <ShowContextMenuContext.Provider value={contextValue}>
-                                <MoneyRequestView
-                                    report={transactionThreadReport}
-                                    shouldShowAnimatedBackground={transactionCurrency === report.currency}
-                                />
-                                {renderThreadDivider()}
+                                <View>
+                                    <MoneyRequestView
+                                        report={transactionThreadReport}
+                                        shouldShowAnimatedBackground={transactionCurrency === report.currency}
+                                    />
+                                    {renderThreadDivider()}
+                                </View>
                             </ShowContextMenuContext.Provider>
                         </>
                     ) : (
