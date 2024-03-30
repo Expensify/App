@@ -17,11 +17,11 @@ const propTypes = {
     /** The maximum index – provided so that the focus can be sent back to the beginning of the list when the end is reached. */
     maxIndex: PropTypes.number.isRequired,
 
-    /** A callback executed when the focused input changes. */
-    onFocusedIndexChanged: PropTypes.func.isRequired,
-
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
+
+    /** A callback executed when the focused input changes. */
+    onFocusedIndexChanged: PropTypes.func.isRequired,
 
     /** If this value is true, then we exclude TextArea Node. */
     shouldExcludeTextAreaNodes: PropTypes.bool,
