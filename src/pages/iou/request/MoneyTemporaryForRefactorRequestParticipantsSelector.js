@@ -137,7 +137,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             // sees the option to request money from their admin on their own Workspace Chat.
             iouType === CONST.IOU.TYPE.REQUEST && iouAction !== CONST.IOU.ACTION.MOVE,
 
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouAction !== CONST.IOU.ACTION.CATEGORIZE,
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouAction !== CONST.IOU.ACTION.CATEGORIZE && iouAction !== CONST.IOU.ACTION.SHARE,
             false,
             {},
             [],
@@ -188,7 +188,20 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [didScreenTransitionEnd, reports, personalDetails, betas, debouncedSearchTerm, participants, iouType, canUseP2PDistanceRequests, iouRequestType, maxParticipantsReached, translate, iouAction]);
+    }, [
+        didScreenTransitionEnd,
+        reports,
+        personalDetails,
+        betas,
+        debouncedSearchTerm,
+        participants,
+        iouType,
+        canUseP2PDistanceRequests,
+        iouRequestType,
+        maxParticipantsReached,
+        translate,
+        iouAction,
+    ]);
 
     /**
      * Adds a single participant to the request
@@ -266,7 +279,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouType !== CONST.IOU.TYPE.SEND;
+    const isAllowedToSplit =
+        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
+        iouType !== CONST.IOU.TYPE.SEND &&
+        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(iouAction) &&
+        !shouldShowSplitBillErrorMessage;
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -376,7 +393,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
     const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
 
-    if (iouAction === CONST.IOU.ACTION.CATEGORIZE && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
+    if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(iouAction) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
         return renderEmptyWorkspaceView();
     }
 

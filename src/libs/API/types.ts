@@ -198,6 +198,7 @@ const WRITE_COMMANDS = {
     DISMISS_ACTIONABLE_WHISPER: 'DismissActionableWhisper',
     CONVERT_TRACKED_EXPENSE_TO_REQUEST: 'ConvertTrackedExpenseToRequest',
     CATEGORIZE_TRACKED_TRANSACTION: 'CategorizeTrackedExpense',
+    SHARE_TRACKED_TRANSACTION: 'ShareTrackedExpense',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -394,6 +395,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DISMISS_ACTIONABLE_WHISPER]: Parameters.DismissTrackExpenseActionableWhisperParams;
     [WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST]: Parameters.ConvertTrackedExpenseToRequestParams;
     [WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION]: Parameters.CategorizeTrackedExpenseParams;
+    [WRITE_COMMANDS.SHARE_TRACKED_TRANSACTION]: Parameters.ShareTrackedExpenseParams;
 };
 
 const READ_COMMANDS = {

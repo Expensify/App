@@ -1351,6 +1351,7 @@ const CONST = {
             CREATE: 'create',
             MOVE: 'move',
             CATEGORIZE: 'categorize',
+            SHARE: 'share',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {

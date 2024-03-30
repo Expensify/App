@@ -200,3 +200,5 @@ export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrenc
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
 export type {default as DismissTrackExpenseActionableWhisperParams} from './DismissTrackExpenseActionableWhisperParams';
 export type {default as ConvertTrackedExpenseToRequestParams} from './ConvertTrackedExpenseToRequestParams';
+export type {default as ShareTrackedExpenseParams} from './ShareTrackedExpenseParams';
+export type {default as CategorizeTrackedExpenseParams} from './CategorizeTrackedExpenseParams';

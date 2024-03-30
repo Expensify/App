@@ -72,7 +72,7 @@ export default function (WrappedComponent) {
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
                 const userAction = lodashGet(route, 'params.action', CONST.IOU.ACTION.CREATE);
                 return `${
-                    [CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(userAction)
+                    [CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(userAction)
                         ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
                         : ONYXKEYS.COLLECTION.TRANSACTION
                 }${transactionID}`;

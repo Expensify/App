@@ -392,7 +392,7 @@ function ReportActionItem({
                 {
                     text: 'actionableMentionTrackExpense.share',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
-                    onPress: () => console.log('Share'),
+                    onPress: () => ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.SHARE, action.reportActionID),
                     isMediumSized: true,
                 },
                 {

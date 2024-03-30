@@ -995,7 +995,7 @@ function buildOnyxDataForTrackExpense(
     return [optimisticData, successData, failureData];
 }
 
-function getDeleteTrackExpenseInformation(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction) {
+function getDeleteTrackExpenseInformation(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, shouldDeleteTransactionFromOnyx = true) {
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -1037,13 +1037,15 @@ function getDeleteTrackExpenseInformation(chatReportID: string, transactionID: s
     const reportLastMessageText = ReportActionsUtils.getLastVisibleMessage(chatReport?.reportID ?? '', updatedReportAction).lastMessageText;
 
     // STEP 4: Build Onyx data
-    const optimisticData: OnyxUpdate[] = [
-        {
+    const optimisticData: OnyxUpdate[] = [];
+
+    if (shouldDeleteTransactionFromOnyx) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: null,
-        },
-    ];
+        });
+    }
 
     if (Permissions.canUseViolations(betas)) {
         optimisticData.push({
@@ -1097,13 +1099,15 @@ function getDeleteTrackExpenseInformation(chatReportID: string, transactionID: s
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
-        {
+    const failureData: OnyxUpdate[] = [];
+
+    if (shouldDeleteTransactionFromOnyx) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: transaction,
-        },
-    ];
+        });
+    }
 
     if (Permissions.canUseViolations(betas)) {
         failureData.push({
@@ -1339,8 +1343,12 @@ function getMoneyRequestInformation(
         optimisticNextStep,
     );
 
-    if(shouldDeleteLinkedTrackedExpense && linkedTrackedExpenseReportAction && linkedTrackedExpenseReportID) {
-        const {optimisticData: deleteOptimisticData, successData: deleteSuccessData, failureData: deleteFailureData} = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, optimisticTransaction.transactionID, linkedTrackedExpenseReportAction);
+    if (shouldDeleteLinkedTrackedExpense && linkedTrackedExpenseReportAction && linkedTrackedExpenseReportID) {
+        const {
+            optimisticData: deleteOptimisticData,
+            successData: deleteSuccessData,
+            failureData: deleteFailureData,
+        } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, optimisticTransaction.transactionID, linkedTrackedExpenseReportAction, false);
         optimisticData.push(...deleteOptimisticData);
         successData.push(...deleteSuccessData);
         failureData.push(...deleteFailureData);
@@ -2259,8 +2267,7 @@ function requestMoney(
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
-    const isConvertingFromTrackExpenseToRequest = action === CONST.IOU.ACTION.MOVE;
-    const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
+    const isMovingTransactionFromTrackExpense = [CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action);
 
     const {
         payerAccountID,
@@ -2276,7 +2283,7 @@ function requestMoney(
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation(
-        isConvertingFromTrackExpenseToRequest || isCategorizing ? {} : currentChatReport,
+        isMovingTransactionFromTrackExpense ? {} : currentChatReport,
         participant,
         comment,
         amount,
@@ -2284,7 +2291,7 @@ function requestMoney(
         currentCreated,
         merchant,
         receipt,
-        isConvertingFromTrackExpenseToRequest || isCategorizing ? (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID : undefined,
+        isMovingTransactionFromTrackExpense ? (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID : undefined,
         category,
         tag,
         billable,
@@ -2296,7 +2303,7 @@ function requestMoney(
         moneyRequestReportID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
-        isConvertingFromTrackExpenseToRequest || isCategorizing,
+        isMovingTransactionFromTrackExpense,
     );
 
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
@@ -2305,14 +2312,16 @@ function requestMoney(
         case CONST.IOU.ACTION.MOVE: {
             const parameters = {
                 payerAccountID,
-                iouReportID: iouReport.reportID,
                 chatReportID: chatReport.reportID,
-                transactionID: transaction.transactionID,
-                reportActionID: iouAction.reportActionID,
+                transactionID: (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID,
+                actionableWhisperReportActionID,
                 createdChatReportActionID,
-                createdIOUReportActionID,
-                reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                moneyRequestReportID: iouReport.reportID,
+                moneyRequestCreatedReportActionID: createdIOUReportActionID,
+                moneyRequestPreviewReportActionID: reportPreviewAction.reportActionID,
+                // modifiedExpenseReportActionID - not sure what need to be done here maybe `buildOptimisticModifiedExpenseReportAction` with transaction changes
             };
+
             API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, onyxData);
             break;
         }
@@ -2320,14 +2329,28 @@ function requestMoney(
             const parameters = {
                 policyID: chatReport.policyID,
                 transactionID: (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID,
-                actionableWhisperReportActionID,
+                moneyRequestPreviewReportActionID: reportPreviewAction.reportActionID,
                 moneyRequestReportID: iouReport.reportID,
-                moneyRequestCreatedReportActionID: createdChatReportActionID,
+                moneyRequestCreatedReportActionID: createdIOUReportActionID,
+                actionableWhisperReportActionID,
+                // modifiedExpenseReportActionID - not sure what need to be done here maybe `buildOptimisticModifiedExpenseReportAction` with transaction changes
             };
-
-            console.log('Categorizing tracked expense', parameters);
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, parameters, onyxData);
+            break;
+        }
+        case CONST.IOU.ACTION.SHARE: {
+            const parameters = {
+                policyID: chatReport.policyID,
+                transactionID: (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID,
+                moneyRequestPreviewReportActionID: reportPreviewAction.reportActionID,
+                moneyRequestReportID: iouReport.reportID,
+                moneyRequestCreatedReportActionID: createdIOUReportActionID,
+                actionableWhisperReportActionID,
+                // modifiedExpenseReportActionID - not sure what need to be done here maybe `buildOptimisticModifiedExpenseReportAction` with transaction changes
+            };
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            API.write(WRITE_COMMANDS.SHARE_TRACKED_TRANSACTION, parameters, onyxData);
             break;
         }
         default: {
@@ -2364,7 +2387,14 @@ function requestMoney(
             resetMoneyRequestInfo();
         }
     }
+
     Navigation.dismissModal(activeReportID);
+    if (action === CONST.IOU.ACTION.SHARE) {
+        // not sure the correct way to navigate to the share should it be instant? todo: ask for clarification
+        setTimeout(() => {
+            Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(activeReportID));
+        }, 1000);
+    }
     Report.notifyNewAction(activeReportID, payeeAccountID);
 }
 
