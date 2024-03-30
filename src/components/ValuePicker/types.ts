@@ -30,7 +30,10 @@ type ValueSelectorModalProps = {
     /** Function to call when the user closes the modal */
     onClose?: () => void;
 
-    /** Whether to show the toolip text */
+    /** Function to call when the user presses on the modal backdrop */
+    onBackdropPress?: () => void;
+
+    /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 };
 
@@ -56,7 +59,7 @@ type ValuePickerProps = {
     /** Text to display under the main menu item */
     furtherDetails?: string;
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 };
 

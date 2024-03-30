@@ -68,7 +68,7 @@ function showEmojiPicker(
 /**
  * Hide the Emoji Picker modal.
  */
-function hideEmojiPicker(isNavigating: boolean) {
+function hideEmojiPicker(isNavigating?: boolean) {
     if (!emojiPickerRef.current) {
         return;
     }
@@ -112,4 +112,4 @@ function resetEmojiPopoverAnchor() {
 }
 
 export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, clearActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};
-export type {AnchorOrigin};
+export type {AnchorOrigin, EmojiPickerRef};

@@ -16,9 +16,13 @@ function ValidateLoginPage({
     useEffect(() => {
         // Wait till navigation becomes available
         Navigation.isNavigationReady().then(() => {
-            if (session?.authToken) {
+            if (session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS) {
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
+                if (exitTo) {
+                    Session.handleExitToNavigation(exitTo);
+                    return;
+                }
                 Navigation.goBack();
             } else {
                 Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode, '', exitTo);

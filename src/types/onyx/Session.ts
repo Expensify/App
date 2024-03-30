@@ -12,7 +12,7 @@ type Session = {
     authToken?: string;
 
     /** Currently logged in user authToken type */
-    authTokenType?: string;
+    authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
 
     /** Currently logged in user support authToken */
     supportAuthToken?: string;

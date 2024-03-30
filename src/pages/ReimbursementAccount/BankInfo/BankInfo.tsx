@@ -118,12 +118,13 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                     [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
                     [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
-                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: '',
+                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: false,
                     [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
                 };
                 ReimbursementAccountUtils.updateReimbursementAccountDraft(bankAccountData);
+                ReimbursementAccountUtils.hideBankAccountErrors();
                 BankAccounts.setBankAccountSubStep(null);
             }
         } else {
@@ -136,7 +137,6 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
             testID={BankInfo.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 shouldShowBackButton

@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
-import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -52,11 +51,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         return null;
     }
 
-    const isHidden = optionItem?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    if (isHidden && !isFocused && !optionItem?.isPinned) {
-        return null;
-    }
-
+    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem?.isUnread && optionItem.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
@@ -74,8 +70,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
-    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -112,8 +106,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const report = ReportUtils.getReport(optionItem.reportID ?? '');
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : null);
 
-    const isGroupChat = optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.chatType && !optionItem.isThread && (optionItem.displayNamesWithTooltips?.length ?? 0) > 2;
-    const fullTitle = isGroupChat ? getGroupChatName(!isEmptyObject(report) ? report : null) : optionItem.text;
+    const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
+
+    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(report?.participantAccountIDs ?? []) : optionItem.text;
 
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     return (

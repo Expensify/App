@@ -177,50 +177,46 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             [mapRef],
         );
 
-        return (
-            <>
-                {!isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
-                    <View
-                        style={style}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...responder.panHandlers}
-                    >
-                        <Map
-                            onDrag={() => setUserInteractedWithMap(true)}
-                            ref={setRef}
-                            mapLib={mapboxgl}
-                            mapboxAccessToken={accessToken}
-                            initialViewState={{
-                                longitude: currentPosition?.longitude,
-                                latitude: currentPosition?.latitude,
-                                zoom: initialState.zoom,
-                            }}
-                            style={StyleUtils.getTextColorStyle(theme.mapAttributionText)}
-                            mapStyle={styleURL}
-                        >
-                            {waypoints?.map(({coordinate, markerComponent, id}) => {
-                                const MarkerComponent = markerComponent;
-                                return (
-                                    <Marker
-                                        key={id}
-                                        longitude={coordinate[0]}
-                                        latitude={coordinate[1]}
-                                    >
-                                        <MarkerComponent />
-                                    </Marker>
-                                );
-                            })}
-                            {directionCoordinates && <Direction coordinates={directionCoordinates} />}
-                        </Map>
-                    </View>
-                ) : (
-                    <PendingMapView
-                        title={translate('distance.mapPending.title')}
-                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                        style={styles.mapEditView}
-                    />
-                )}
-            </>
+        return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
+            <View
+                style={style}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...responder.panHandlers}
+            >
+                <Map
+                    onDrag={() => setUserInteractedWithMap(true)}
+                    ref={setRef}
+                    mapLib={mapboxgl}
+                    mapboxAccessToken={accessToken}
+                    initialViewState={{
+                        longitude: currentPosition?.longitude,
+                        latitude: currentPosition?.latitude,
+                        zoom: initialState.zoom,
+                    }}
+                    style={StyleUtils.getTextColorStyle(theme.mapAttributionText)}
+                    mapStyle={styleURL}
+                >
+                    {waypoints?.map(({coordinate, markerComponent, id}) => {
+                        const MarkerComponent = markerComponent;
+                        return (
+                            <Marker
+                                key={id}
+                                longitude={coordinate[0]}
+                                latitude={coordinate[1]}
+                            >
+                                <MarkerComponent />
+                            </Marker>
+                        );
+                    })}
+                    {directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                </Map>
+            </View>
+        ) : (
+            <PendingMapView
+                title={translate('distance.mapPending.title')}
+                subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                style={styles.mapEditView}
+            />
         );
     },
 );

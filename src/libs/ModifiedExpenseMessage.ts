@@ -5,10 +5,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagList, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import getReportPolicyID from './getReportPolicyID';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
-import * as ReportUtils from './ReportUtils';
 import type {ExpenseOriginalMessage} from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagList> = {};
 Onyx.connect({
@@ -96,12 +97,12 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
+function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): string {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         return '';
     }
     const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
-    const policyID = ReportUtils.getReportPolicyID(reportID) ?? '';
+    const policyID = getReportPolicyID(reportID) ?? '';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
@@ -189,12 +190,13 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
-        const splittedTag = transactionTag.split(CONST.COLON);
-        const splittedOldTag = oldTransactionTag.split(CONST.COLON);
+        const splittedTag = TransactionUtils.getTagArrayFromName(transactionTag);
+        const splittedOldTag = TransactionUtils.getTagArrayFromName(oldTransactionTag);
         const localizedTagListName = Localize.translateLocal('common.tag');
+        const sortedTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
 
-        Object.keys(policyTags).forEach((policyTagKey, index) => {
-            const policyTagListName = PolicyUtils.getTagListName(policyTags, index) || localizedTagListName;
+        sortedTagKeys.forEach((policyTagKey, index) => {
+            const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag[index] ?? '';
             const oldTag = splittedOldTag[index] ?? '';

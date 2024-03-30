@@ -1,6 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
 import React, {useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
@@ -21,7 +20,7 @@ import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -164,7 +163,6 @@ function WorkspaceInvitePage({
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
-        let indexOffset = 0;
 
         if (!didScreenTransitionEnd) {
             return [];
@@ -176,8 +174,8 @@ function WorkspaceInvitePage({
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
-                const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
-                const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+
+                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -188,9 +186,7 @@ function WorkspaceInvitePage({
             title: undefined,
             data: filterSelectedOptions,
             shouldShow: true,
-            indexOffset,
         });
-        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
@@ -201,9 +197,7 @@ function WorkspaceInvitePage({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
             shouldShow: !isEmptyObject(personalDetailsFormatted),
-            indexOffset,
         });
-        indexOffset += personalDetailsFormatted.length;
 
         Object.values(usersToInvite).forEach((userToInvite) => {
             const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === userToInvite.login);
@@ -213,7 +207,6 @@ function WorkspaceInvitePage({
                     title: undefined,
                     data: [OptionsListUtils.formatMemberForList(userToInvite)],
                     shouldShow: true,
-                    indexOffset: indexOffset++,
                 });
             }
         });
@@ -274,7 +267,9 @@ function WorkspaceInvitePage({
         if (
             usersToInvite.length === 0 &&
             excludedUsers.includes(
-                parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible ? OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)) : searchValue,
+                PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible
+                    ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue))
+                    : searchValue,
             )
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
@@ -285,12 +280,14 @@ function WorkspaceInvitePage({
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
+            shouldUseCachedViewportHeight
             testID={WorkspaceInvitePage.displayName}
         >
             <FullPageNotFoundView
                 shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
@@ -318,6 +315,7 @@ function WorkspaceInvitePage({
                     showScrollIndicator
                     showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetailsProp)}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    checkmarkPosition={CONST.DIRECTION.RIGHT}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton

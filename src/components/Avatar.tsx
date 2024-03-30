@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -19,7 +19,7 @@ type AvatarProps = {
     source?: AvatarSource;
 
     /** Extra styles to pass to Image */
-    imageStyles?: StyleProp<ViewStyle>;
+    imageStyles?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Additional styles to pass to Icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
@@ -81,7 +81,7 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(size);
 
-    const imageStyle = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
+    const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill;
@@ -92,7 +92,15 @@ function Avatar({
 
     return (
         <View style={[containerStyles, styles.pointerEventsNone]}>
-            {typeof avatarSource === 'function' || typeof avatarSource === 'number' ? (
+            {typeof avatarSource === 'string' ? (
+                <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
+                    <Image
+                        source={{uri: avatarSource}}
+                        style={imageStyle}
+                        onError={() => setImageError(true)}
+                    />
+                </View>
+            ) : (
                 <View style={iconStyle}>
                     <Icon
                         testID={fallbackAvatarTestID}
@@ -106,14 +114,6 @@ function Avatar({
                             imageError && StyleUtils.getBackgroundColorStyle(theme.fallbackIconColor),
                             iconAdditionalStyles,
                         ]}
-                    />
-                </View>
-            ) : (
-                <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
-                    <Image
-                        source={{uri: avatarSource}}
-                        style={imageStyle}
-                        onError={() => setImageError(true)}
                     />
                 </View>
             )}
