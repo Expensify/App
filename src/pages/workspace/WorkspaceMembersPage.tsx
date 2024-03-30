@@ -583,6 +583,7 @@ function WorkspaceMembersPage({
                     }}
                 />
                 <View style={[styles.w100, styles.flex1]}>
+																	//
                     <SelectionList
                         ref={selectionListRef}
                         canSelectMultiple={isPolicyAdmin}
