@@ -2,7 +2,6 @@ import {rand} from '@ngneat/falso';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import type Navigation from '@libs/Navigation/Navigation';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
