@@ -11,8 +11,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
-import withTransitionEnd from '@components/withTransitionEnd';
-import type {WithTransitionEndProps} from '@components/withTransitionEnd';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
+import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,7 +51,7 @@ type WorkspaceInvitePageOnyxProps = {
 };
 
 type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
-    WithTransitionEndProps &
+    WithNavigationTransitionEndProps &
     WorkspaceInvitePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
 
@@ -327,7 +327,7 @@ function WorkspaceInvitePage({
 
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
-export default withTransitionEnd(
+export default withNavigationTransitionEnd(
     withPolicyAndFullscreenLoading(
         withOnyx<WorkspaceInvitePageProps, WorkspaceInvitePageOnyxProps>({
             personalDetails: {

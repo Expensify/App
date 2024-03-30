@@ -5,10 +5,10 @@ import React, {useEffect, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {RootStackParamList} from '@libs/Navigation/types';
 
-type WithTransitionEndProps = {didScreenTransitionEnd: boolean};
+type WithNavigationTransitionEndProps = {didScreenTransitionEnd: boolean};
 
 export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): React.ComponentType<TProps & RefAttributes<TRef>> {
-    function WithTransitionEnd(props: TProps, ref: ForwardedRef<TRef>) {
+    function WithNavigationTransitionEnd(props: TProps, ref: ForwardedRef<TRef>) {
         const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
         const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
@@ -31,9 +31,9 @@ export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & 
         );
     }
 
-    WithTransitionEnd.displayName = `WithTransitionEnd(${getComponentDisplayName(WrappedComponent)})`;
+    WithNavigationTransitionEnd.displayName = `WithNavigationTransitionEnd(${getComponentDisplayName(WrappedComponent)})`;
 
-    return React.forwardRef(WithTransitionEnd);
+    return React.forwardRef(WithNavigationTransitionEnd);
 }
 
-export type {WithTransitionEndProps};
+export type {WithNavigationTransitionEndProps};

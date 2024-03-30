@@ -14,8 +14,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withTransitionEnd from '@components/withTransitionEnd';
-import type {WithTransitionEndProps} from '@components/withTransitionEnd';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
+import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -43,7 +43,7 @@ type UseOptions = {
     reports: OnyxCollection<Report>;
 };
 
-type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithTransitionEndProps;
+type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithNavigationTransitionEndProps;
 
 function useOptions({reports}: UseOptions) {
     const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -241,4 +241,4 @@ const TaskAssigneeSelectorModalWithOnyx = withOnyx<TaskAssigneeSelectorModalProp
     },
 })(TaskAssigneeSelectorModal);
 
-export default withTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx));
+export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx));
