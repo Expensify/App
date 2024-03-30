@@ -1,7 +1,40 @@
-import {Component} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import PropTypes from 'prop-types';
+import React, {Component} from 'react';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
-import {arrowKeyFocusManagerDefaultProps, arrowKeyFocusManagerPropTypes} from './propTypes';
+
+const propTypes = {
+    /** Children to render. */
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
+
+    /** Array of disabled indexes. */
+    disabledIndexes: PropTypes.arrayOf(PropTypes.number),
+
+    /** The current focused index. */
+    focusedIndex: PropTypes.number.isRequired,
+
+    /** The maximum index – provided so that the focus can be sent back to the beginning of the list when the end is reached. */
+    maxIndex: PropTypes.number.isRequired,
+
+    /** A callback executed when the focused input changes. */
+    onFocusedIndexChanged: PropTypes.func.isRequired,
+
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
+
+    /** If this value is true, then we exclude TextArea Node. */
+    shouldExcludeTextAreaNodes: PropTypes.bool,
+
+    /** If this value is true, then the arrow down callback would be triggered when the max index is exceeded */
+    shouldResetIndexOnEndReached: PropTypes.bool,
+};
+
+const defaultProps = {
+    disabledIndexes: [],
+    shouldExcludeTextAreaNodes: true,
+    shouldResetIndexOnEndReached: true,
+};
 
 class BaseArrowKeyFocusManager extends Component {
     componentDidMount() {
@@ -90,7 +123,20 @@ class BaseArrowKeyFocusManager extends Component {
     }
 }
 
-BaseArrowKeyFocusManager.propTypes = arrowKeyFocusManagerPropTypes;
-BaseArrowKeyFocusManager.defaultProps = arrowKeyFocusManagerDefaultProps;
+function ArrowKeyFocusManager(props) {
+    const isFocused = useIsFocused();
 
-export default BaseArrowKeyFocusManager;
+    return (
+        <BaseArrowKeyFocusManager
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            isFocused={isFocused}
+        />
+    );
+}
+
+BaseArrowKeyFocusManager.propTypes = propTypes;
+BaseArrowKeyFocusManager.defaultProps = defaultProps;
+ArrowKeyFocusManager.displayName = 'ArrowKeyFocusManager';
+
+export default ArrowKeyFocusManager;
