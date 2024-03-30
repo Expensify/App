@@ -3289,10 +3289,14 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     if (type === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
         const policy = getPolicy(report?.policyID);
         const ownerPersonalDetails = getPersonalDetailsForAccountID(policy?.submitsTo ?? 0);
-        const ownerDisplayName = ownerPersonalDetails?.displayName
-            ? `${ownerPersonalDetails.displayName}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`
-            : Localize.translateLocal('common.hidden');
-
+        let ownerDisplayName: string;
+        if (ownerPersonalDetails?.accountID === currentUserAccountID) {
+            ownerDisplayName = 'yourself';
+        } else {
+            ownerDisplayName = ownerPersonalDetails?.displayName
+                ? `${ownerPersonalDetails.displayName}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`
+                : 'Hidden';
+        }
         return [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
