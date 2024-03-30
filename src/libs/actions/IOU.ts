@@ -3781,13 +3781,17 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     const currency = TransactionUtils.getCurrency(transaction);
     const updatedReportPreviewAction: OnyxTypes.ReportAction | EmptyObject = {...reportPreviewAction};
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-    // todo
     if (iouReport && ReportUtils.isExpenseReport(iouReport)) {
         updatedIOUReport = {...iouReport};
 
         if (typeof updatedIOUReport.total === 'number' && currency === iouReport?.currency) {
             // Because of the Expense reports are stored as negative values, we add the total from the amount
-            updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
+            const amountDiff = TransactionUtils.getAmount(transaction, true);
+            updatedIOUReport.total += amountDiff;
+
+            if (!transaction?.reimbursable && typeof updatedIOUReport.nonReimbursableTotal === 'number') {
+                updatedIOUReport.nonReimbursableTotal += amountDiff;
+            }
         }
     } else {
         updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID ?? -1, TransactionUtils.getAmount(transaction, false), currency, true);

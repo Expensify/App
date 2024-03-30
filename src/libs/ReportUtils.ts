@@ -4813,10 +4813,11 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 
     if (canRequestMoney(report, policy, otherParticipants)) {
         options = [...options, CONST.IOU.TYPE.REQUEST];
-    }
 
-    if (canUseTrackExpense && isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat) {
-        options = [...options, CONST.IOU.TYPE.TRACK_EXPENSE];
+        // If the user can request money from the workspace report, they can also track expenses
+        if (canUseTrackExpense && (isPolicyExpenseChat(report) || isExpenseReport(report))) {
+            options = [...options, CONST.IOU.TYPE.TRACK_EXPENSE];
+        }
     }
 
     // Send money option should be visible only in 1:1 DMs
