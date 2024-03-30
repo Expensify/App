@@ -61,16 +61,6 @@ describe('getViolationsOnyxData', () => {
         expect(result.value).toEqual(expect.arrayContaining(transactionViolations));
     });
 
-    it('should not add violation when the transaction is partial', () => {
-        const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT};
-        transactionViolations = [
-            {name: 'duplicatedTransaction', type: 'violation'},
-            {name: 'receiptRequired', type: 'violation'},
-        ];
-        const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
-        expect(result.value).toEqual(transactionViolations);
-    });
-
     describe('policyRequiresCategories', () => {
         beforeEach(() => {
             policyRequiresCategories = true;
@@ -93,6 +83,12 @@ describe('getViolationsOnyxData', () => {
         it('should not include a categoryOutOfPolicy violation when category is in policy', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
+        });
+
+        it('should not add a category violation when the transaction is partial', () => {
+            const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, category: undefined};
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).not.toContainEqual(missingCategoryViolation);
         });
 
         it('should add categoryOutOfPolicy violation to existing violations if they exist', () => {
@@ -170,6 +166,12 @@ describe('getViolationsOnyxData', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
 
             expect(result.value).toEqual([]);
+        });
+
+        it('should not add a tag violation when the transaction is partial', () => {
+            const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, tag: undefined};
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).not.toContainEqual(missingTagViolation);
         });
 
         it('should add tagOutOfPolicy violation to existing violations if transaction has tag that is not in the policy', () => {
