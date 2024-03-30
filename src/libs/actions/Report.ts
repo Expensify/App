@@ -1241,7 +1241,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
-    // and and remove the pendingAction so the strike-through clears
+    // and remove the pendingAction so the strike-through clears
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
