@@ -2005,7 +2005,7 @@ function updateMoneyRequestDistance(
 function updateMoneyRequestCategory(
     transactionID: string,
     transactionThreadReportID: string,
-    category: string,
+    category: string | undefined,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
@@ -4052,7 +4052,7 @@ function getSendMoneyParams(
     comment: string,
     paymentMethodType: PaymentMethodType,
     managerID: number,
-    recipient: Participant | ReportUtils.OptionData,
+    recipient: Participant,
 ): SendMoneyParamsData {
     const recipientEmail = PhoneNumber.addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
@@ -4493,7 +4493,7 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
  * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyElsewhere(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | ReportUtils.OptionData) {
+function sendMoneyElsewhere(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
