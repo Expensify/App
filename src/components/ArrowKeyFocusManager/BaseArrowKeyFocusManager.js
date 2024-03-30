@@ -1,38 +1,9 @@
-import PropTypes from 'prop-types';
 import {Component} from 'react';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
+import {arrowKeyFocusManagerDefaultProps, arrowKeyFocusManagerPropTypes} from './propTypes';
 
-const propTypes = {
-    /** Children to render. */
-    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
-
-    /** Array of disabled indexes. */
-    disabledIndexes: PropTypes.arrayOf(PropTypes.number),
-
-    /** The current focused index. */
-    focusedIndex: PropTypes.number.isRequired,
-
-    /** The maximum index – provided so that the focus can be sent back to the beginning of the list when the end is reached. */
-    maxIndex: PropTypes.number.isRequired,
-
-    /** A callback executed when the focused input changes. */
-    onFocusedIndexChanged: PropTypes.func.isRequired,
-
-    /** If this value is true, then we exclude TextArea Node. */
-    shouldExcludeTextAreaNodes: PropTypes.bool,
-
-    /** If this value is true, then the arrow down callback would be triggered when the max index is exceeded */
-    shouldResetIndexOnEndReached: PropTypes.bool,
-};
-
-const defaultProps = {
-    disabledIndexes: [],
-    shouldExcludeTextAreaNodes: true,
-    shouldResetIndexOnEndReached: true,
-};
-
-class ArrowKeyFocusManager extends Component {
+class BaseArrowKeyFocusManager extends Component {
     componentDidMount() {
         const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
         const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
@@ -77,7 +48,7 @@ class ArrowKeyFocusManager extends Component {
     }
 
     onArrowUpKey() {
-        if (this.props.maxIndex < 0) {
+        if (this.props.maxIndex < 0 || !this.props.isFocused) {
             return;
         }
 
@@ -96,7 +67,7 @@ class ArrowKeyFocusManager extends Component {
     }
 
     onArrowDownKey() {
-        if (this.props.maxIndex < 0) {
+        if (this.props.maxIndex < 0 || !this.props.isFocused) {
             return;
         }
 
@@ -119,7 +90,7 @@ class ArrowKeyFocusManager extends Component {
     }
 }
 
-ArrowKeyFocusManager.propTypes = propTypes;
-ArrowKeyFocusManager.defaultProps = defaultProps;
+BaseArrowKeyFocusManager.propTypes = arrowKeyFocusManagerPropTypes;
+BaseArrowKeyFocusManager.defaultProps = arrowKeyFocusManagerDefaultProps;
 
-export default ArrowKeyFocusManager;
+export default BaseArrowKeyFocusManager;
