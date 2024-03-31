@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as PolicyAction from '@userActions/Policy';
@@ -30,7 +29,7 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
     const inviterEmail = route?.params?.email;
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const isUnmounted = useRef(false);
 
     useEffect(() => {
