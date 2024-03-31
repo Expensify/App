@@ -7,6 +7,7 @@ import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {SelectedTagOption} from '@components/TagPicker';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +20,7 @@ import type {
     PolicyCategories,
     PolicyTag,
     PolicyTagList,
+    PolicyTags,
     Report,
     ReportAction,
     ReportActions,
@@ -31,6 +33,7 @@ import type {
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
@@ -52,12 +55,6 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-
-type Tag = {
-    enabled: boolean;
-    name: string;
-    accountID: number | null;
-};
 
 type Option = Partial<ReportUtils.OptionData>;
 
@@ -86,7 +83,6 @@ type PayeePersonalDetails = {
 type CategorySectionBase = {
     title: string | undefined;
     shouldShow: boolean;
-    indexOffset: number;
 };
 
 type CategorySection = CategorySectionBase & {
@@ -130,7 +126,7 @@ type GetOptionsConfig = {
     categories?: PolicyCategories;
     recentlyUsedCategories?: string[];
     includeTags?: boolean;
-    tags?: Record<string, Tag>;
+    tags?: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
@@ -154,7 +150,6 @@ type MemberForList = {
 
 type SectionForSearchTerm = {
     section: CategorySection;
-    newIndexOffset: number;
 };
 type GetOptions = {
     recentReports: ReportUtils.OptionData[];
@@ -244,17 +239,6 @@ Onyx.connect({
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
-    },
-});
-
-const policyExpenseReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!ReportUtils.isPolicyExpenseChat(report)) {
-            return;
-        }
-        policyExpenseReports[key] = report;
     },
 });
 
@@ -480,7 +464,7 @@ function getSearchText(
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, transactions: OnyxCollection<Transaction> = allTransactions): OnyxCommon.Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
     const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce(
@@ -492,7 +476,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 
     if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
-        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
@@ -520,7 +504,8 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
  */
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
     return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
-        ? lastActorDetails.firstName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+        ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+          lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
         : '';
 }
 
@@ -568,6 +553,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             ReportUtils.isChatReport(report),
             null,
             true,
+            lastReportAction,
         );
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
@@ -733,15 +719,44 @@ function createOption(
 }
 
 /**
+ * Get the option for a given report.
+ */
+function getReportOption(participant: Participant): ReportUtils.OptionData {
+    const report = ReportUtils.getReport(participant.reportID);
+
+    const option = createOption(
+        report?.visibleChatMemberAccountIDs ?? [],
+        allPersonalDetails ?? {},
+        !isEmptyObject(report) ? report : null,
+        {},
+        {
+            showChatPreviewLine: false,
+            forcePolicyNamePreview: false,
+        },
+    );
+
+    // Update text & alternateText because createOption returns workspace name only if report is owned by the user
+    if (option.isSelfDM) {
+        option.alternateText = Localize.translateLocal('reportActionsView.yourSpace');
+    } else {
+        option.text = ReportUtils.getPolicyName(report);
+        option.alternateText = Localize.translateLocal('workspace.common.workspace');
+    }
+    option.selected = participant.selected;
+    option.isSelected = participant.selected;
+    return option;
+}
+
+/**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
-    const expenseReport = policyExpenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
+    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
 
     const option = createOption(
         expenseReport?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
-        expenseReport ?? null,
+        !isEmptyObject(expenseReport) ? expenseReport : null,
         {},
         {
             showChatPreviewLine: false,
@@ -752,8 +767,8 @@ function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = ReportUtils.getPolicyName(expenseReport);
     option.alternateText = Localize.translateLocal('workspace.common.workspace');
-    option.selected = report.selected;
-    option.isSelected = report.selected;
+    option.selected = participant.selected;
+    option.isSelected = participant.selected;
     return option;
 }
 
@@ -861,7 +876,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
             if (name) {
                 const categoryObject: Category = {
                     name,
-                    enabled: categories[name].enabled ?? false,
+                    enabled: categories[name]?.enabled ?? false,
                 };
 
                 acc.push(categoryObject);
@@ -882,16 +897,11 @@ function sortCategories(categories: Record<string, Category>): Category[] {
 /**
  * Sorts tags alphabetically by name.
  */
-function sortTags(tags: Record<string, Tag> | Tag[]) {
-    let sortedTags;
+function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
+    const sortedTags = Array.isArray(tags) ? tags : Object.values(tags);
 
-    if (Array.isArray(tags)) {
-        sortedTags = tags.sort((a, b) => localeCompare(a.name, b.name));
-    } else {
-        sortedTags = Object.values(tags).sort((a, b) => localeCompare(a.name, b.name));
-    }
-
-    return sortedTags;
+    // Use lodash's sortBy to ensure consistency with oldDot.
+    return lodashSortBy(sortedTags, 'name', localeCompare);
 }
 
 /**
@@ -902,7 +912,7 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
  * @param options[].name - a name of an option
  * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): OptionTree[] {
+function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false, selectedOptionsName: string[] = []): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
     Object.values(options).forEach((option) => {
         if (isOneLine) {
@@ -937,7 +947,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 searchText,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled : true,
-                isSelected: !!option.isSelected,
+                isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
             });
         });
     });
@@ -956,49 +966,40 @@ function getCategoryListSections(
     maxRecentReportsToShow: number,
 ): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
-    const enabledCategoriesLength = Object.values(sortedCategories).filter((category) => category.enabled).length;
-
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledAndSelectedCategories = [...selectedOptions, ...Object.values(sortedCategories).filter((category) => category.enabled && !selectedOptionNames.includes(category.name))];
-    const enabledAndSelectedCategoriesLength = enabledAndSelectedCategories.length;
+    const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
 
     const categorySections: CategoryTreeSection[] = [];
+    const numberOfEnabledCategories = enabledCategories.length;
 
-    let indexOffset = 0;
-
-    if (enabledCategoriesLength === 0 && selectedOptions.length > 0) {
+    if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(enabledAndSelectedCategories, true),
+            data: getCategoryOptionTree(selectedOptions, true),
         });
 
         return categorySections;
     }
 
     if (searchInputValue) {
-        const searchCategories = enabledAndSelectedCategories.filter((category) => category.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchCategories: Category[] = [];
+
+        enabledCategories.forEach((category) => {
+            if (!category.name.toLowerCase().includes(searchInputValue.toLowerCase())) {
+                return;
+            }
+            searchCategories.push({
+                ...category,
+                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+            });
+        });
 
         categorySections.push({
             // "Search" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getCategoryOptionTree(searchCategories, true),
-        });
-
-        return categorySections;
-    }
-
-    if (enabledAndSelectedCategoriesLength < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(enabledAndSelectedCategories),
         });
 
         return categorySections;
@@ -1009,11 +1010,22 @@ function getCategoryListSections(
             // "Selected" section
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
+    }
 
-        indexOffset += selectedOptions.length;
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
+
+    if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            data: getCategoryOptionTree(filteredCategories, false, selectedOptionNames),
+        });
+
+        return categorySections;
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
@@ -1030,21 +1042,15 @@ function getCategoryListSections(
             // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
-            indexOffset,
             data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
         });
-
-        indexOffset += filteredRecentlyUsedCategories.length;
     }
-
-    const filteredCategories = enabledAndSelectedCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        indexOffset,
-        data: getCategoryOptionTree(filteredCategories),
+        data: getCategoryOptionTree(filteredCategories, false, selectedOptionNames),
     });
 
     return categorySections;
@@ -1055,7 +1061,7 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Category[]): Option[] {
+function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
@@ -1072,13 +1078,18 @@ function getTagsOptions(tags: Category[]): Option[] {
 /**
  * Build the section list for tags
  */
-function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOptions: Category[], searchInputValue: string, maxRecentReportsToShow: number) {
+function getTagListSections(
+    tags: Array<PolicyTag | SelectedTagOption>,
+    recentlyUsedTags: string[],
+    selectedOptions: SelectedTagOption[],
+    searchInputValue: string,
+    maxRecentReportsToShow: number,
+) {
     const tagSections = [];
-    const sortedTags = sortTags(tags);
+    const sortedTags = sortTags(tags) as PolicyTag[];
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
     const numberOfTags = enabledTags.length;
-    let indexOffset = 0;
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTags === 0 && selectedOptions.length > 0) {
@@ -1091,7 +1102,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             // "Selected" section
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTagsOptions(selectedTagOptions),
         });
 
@@ -1105,7 +1115,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             // "Search" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTagsOptions(searchTags),
         });
 
@@ -1117,7 +1126,6 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTagsOptions(enabledTags),
         });
 
@@ -1143,11 +1151,8 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             // "Selected" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTagsOptions(selectedTagOptions),
         });
-
-        indexOffset += selectedOptions.length;
     }
 
     if (filteredRecentlyUsedTags.length > 0) {
@@ -1157,18 +1162,14 @@ function getTagListSections(tags: Tag[], recentlyUsedTags: string[], selectedOpt
             // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
-            indexOffset,
             data: getTagsOptions(cutRecentlyUsedTags),
         });
-
-        indexOffset += filteredRecentlyUsedTags.length;
     }
 
     tagSections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        indexOffset,
         data: getTagsOptions(filteredTags),
     });
 
@@ -1190,8 +1191,8 @@ function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>
  * @param  taxRates - The original tax rates object.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined): Record<string, TaxRate> {
-    const defaultTaxKey = taxRates?.defaultExternalID;
+function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined, defaultKey?: string): Record<string, TaxRate> {
+    const defaultTaxKey = defaultKey ?? taxRates?.defaultExternalID;
     const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
@@ -1222,16 +1223,14 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string, defaultTaxKey?: string): CategorySection[] {
     const policyRatesSections = [];
 
-    const taxes = transformedTaxRates(taxRates);
+    const taxes = transformedTaxRates(taxRates, defaultTaxKey);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
     const numberOfTaxRates = enabledTaxRates.length;
-
-    let indexOffset = 0;
 
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
@@ -1244,7 +1243,6 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
             // "Selected" sectiong
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTaxRatesOptions(selectedTaxRateOptions),
         });
 
@@ -1252,13 +1250,12 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
     }
 
     if (searchInputValue) {
-        const searchTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         policyRatesSections.push({
             // "Search" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTaxRatesOptions(searchTaxRates),
         });
 
@@ -1270,7 +1267,6 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTaxRatesOptions(enabledTaxRates),
         });
 
@@ -1278,7 +1274,7 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const filteredTaxRates = enabledTaxRates.filter((taxRate) => !selectedOptionNames.includes(taxRate.modifiedName));
+    const filteredTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName && !selectedOptionNames.includes(taxRate.modifiedName));
 
     if (selectedOptions.length > 0) {
         const selectedTaxRatesOptions = selectedOptions.map((option) => {
@@ -1294,18 +1290,14 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
             // "Selected" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTaxRatesOptions(selectedTaxRatesOptions),
         });
-
-        indexOffset += selectedOptions.length;
     }
 
     policyRatesSections.push({
         // "All" section when number of items are more than the threshold
         title: '',
         shouldShow: true,
-        indexOffset,
         data: getTaxRatesOptions(filteredTaxRates),
     });
 
@@ -1384,7 +1376,7 @@ function getOptions(
     }
 
     if (includeTags) {
-        const tagOptions = getTagListSections(Object.values(tags), recentlyUsedTags, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
+        const tagOptions = getTagListSections(Object.values(tags), recentlyUsedTags, selectedOptions as SelectedTagOption[], searchInputValue, maxRecentReportsToShow);
 
         return {
             recentReports: [],
@@ -1722,7 +1714,7 @@ function getOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(reports: Record<string, Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
+function getSearchOptions(reports: OnyxCollection<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const options = getOptions(reports, personalDetails, {
@@ -1757,13 +1749,15 @@ function getShareLogOptions(reports: OnyxCollection<Report>, personalDetails: On
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
+        includeSelfDM: true,
+        includeThreads: true,
     });
 }
 
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  */
-function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails, amountText: string): PayeePersonalDetails {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails | EmptyObject, amountText?: string): PayeePersonalDetails {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
     return {
         text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
@@ -1776,7 +1770,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
                 id: personalDetail.accountID,
             },
         ],
-        descriptiveText: amountText,
+        descriptiveText: amountText ?? '',
         login: personalDetail.login ?? '',
         accountID: personalDetail.accountID,
         keyForList: String(personalDetail.accountID),
@@ -1786,7 +1780,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
 /**
  * Build the IOUConfirmationOptions for showing participants
  */
-function getIOUConfirmationOptionsFromParticipants(participants: Participant[], amountText: string): Participant[] {
+function getIOUConfirmationOptionsFromParticipants(participants: Array<Participant | ReportUtils.OptionData>, amountText: string): Array<Participant | ReportUtils.OptionData> {
     return participants.map((participant) => ({
         ...participant,
         descriptiveText: amountText,
@@ -1809,7 +1803,7 @@ function getFilteredOptions(
     categories: PolicyCategories = {},
     recentlyUsedCategories: string[] = [],
     includeTags = false,
-    tags: Record<string, Tag> = {},
+    tags: PolicyTags | Array<PolicyTag | SelectedTagOption> = {},
     recentlyUsedTags: string[] = [],
     canInviteUser = true,
     includeSelectedOptions = false,
@@ -1981,7 +1975,6 @@ function formatSectionsFromSearchTerm(
     filteredRecentReports: ReportUtils.OptionData[],
     filteredPersonalDetails: ReportUtils.OptionData[],
     maxOptionsSelected: boolean,
-    indexOffset = 0,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
 ): SectionForSearchTerm {
@@ -1999,9 +1992,7 @@ function formatSectionsFromSearchTerm(
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
-                indexOffset,
             },
-            newIndexOffset: indexOffset + selectedOptions.length,
         };
     }
 
@@ -2025,9 +2016,7 @@ function formatSectionsFromSearchTerm(
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
-            indexOffset,
         },
-        newIndexOffset: indexOffset + selectedParticipantsWithoutDetails.length,
     };
 }
 
@@ -2056,12 +2045,15 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
+    sortTags,
     getCategoryOptionTree,
     hasEnabledTags,
     formatMemberForList,
     formatSectionsFromSearchTerm,
     transformedTaxRates,
     getShareLogOptions,
+    getReportOption,
+    getTaxRatesSection,
 };
 
-export type {MemberForList, CategorySection, GetOptions};
+export type {MemberForList, CategorySection, GetOptions, PayeePersonalDetails, Category};
