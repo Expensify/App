@@ -4,10 +4,11 @@ import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'reac
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import type {Camera, Point} from 'react-native-vision-camera';
+import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
+import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -30,8 +31,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import type IOURequestStepProps from './types';
-import { FileObject } from '@components/AttachmentModal';
+import type IOURequestStepOnyxProps from './types';
 
 function IOURequestStepScan({
     report,
@@ -39,7 +39,7 @@ function IOURequestStepScan({
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction: {isFromGlobalCreate},
-}: IOURequestStepProps) {
+}: IOURequestStepOnyxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const device = useCameraDevice('back', {
@@ -194,6 +194,7 @@ function IOURequestStepScan({
         // Store the receipt on the transaction object in Onyx
         // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
         // So, let us also save the file type in receipt for later use during blob fetch
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name || '', action !== CONST.IOU.ACTION.EDIT, file.type);
 
         if (action === CONST.IOU.ACTION.EDIT) {
@@ -218,11 +219,11 @@ function IOURequestStepScan({
             showCameraAlert();
         }
 
-        return camera?.current?
-            .takePhoto({
+        camera?.current
+            ?.takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
             })
-            .then((photo) => {
+            .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
                 const source = `file://${photo.path}`;
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
@@ -236,7 +237,7 @@ function IOURequestStepScan({
 
                 navigateToConfirmationStep();
             })
-            .catch((error) => {
+            .catch((error: string) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });

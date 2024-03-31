@@ -33,7 +33,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import type IOURequestStepProps from './types';
+import type IOURequestStepOnyxProps from './types';
 
 function IOURequestStepScan({
     report,
@@ -41,7 +41,7 @@ function IOURequestStepScan({
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction: {isFromGlobalCreate},
-}: IOURequestStepProps) {
+}: IOURequestStepOnyxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
