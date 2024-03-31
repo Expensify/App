@@ -95,7 +95,7 @@ function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStat
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     textInputLabel={label || translate('common.state')}
                     textInputValue={searchValue}
-                    sections={[{data: searchResults, indexOffset: 0}]}
+                    sections={[{data: searchResults}]}
                     onSelectRow={onStateSelected}
                     onChangeText={setSearchValue}
                     initiallyFocusedOptionKey={currentState}

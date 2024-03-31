@@ -112,7 +112,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         if (!didScreenTransitionEnd) {
             return [newSections, {}];
         }
-        let indexOffset = 0;
         const chatOptions = OptionsListUtils.getFilteredOptions(
             reports,
             personalDetails,
@@ -142,13 +141,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             chatOptions.recentReports,
             chatOptions.personalDetails,
             maxParticipantsReached,
-            indexOffset,
             personalDetails,
             true,
         );
 
         newSections.push(formatResults.section);
-        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return [newSections, {}];
@@ -158,17 +155,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             title: translate('common.recents'),
             data: chatOptions.recentReports,
             shouldShow: !_.isEmpty(chatOptions.recentReports),
-            indexOffset,
         });
-        indexOffset += chatOptions.recentReports.length;
 
         newSections.push({
             title: translate('common.contacts'),
             data: chatOptions.personalDetails,
             shouldShow: !_.isEmpty(chatOptions.personalDetails),
-            indexOffset,
         });
-        indexOffset += chatOptions.personalDetails.length;
 
         if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({
@@ -178,7 +171,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
-                indexOffset,
             });
         }
 
