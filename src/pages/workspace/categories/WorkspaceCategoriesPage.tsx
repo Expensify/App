@@ -23,6 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -316,6 +317,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                                 sections={[{data: categoryList, isDisabled: false}]}
                                 onCheckboxPress={toggleCategory}
                                 onSelectRow={navigateToCategorySettings}
+                                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                                 onSelectAll={toggleAllCategories}
                                 showScrollIndicator
                                 ListItem={TableListItem}
