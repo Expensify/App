@@ -97,12 +97,14 @@ type Category = {
     name: string;
     enabled: boolean;
     isSelected?: boolean;
+    applyDisabledStyle?: boolean;
 };
 
 type Tag = {
     name: string;
     enabled: boolean;
     isSelected?: boolean;
+    applyDisabledStyle?: boolean;
 };
 
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
@@ -933,6 +935,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 tooltipText: option.name,
                 isDisabled: !option.enabled,
                 isSelected: !!option.isSelected,
+                applyDisabledStyle: option.applyDisabledStyle,
             });
 
             return;
@@ -972,8 +975,25 @@ function getCategoryListSections(
     maxRecentReportsToShow: number,
 ): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
-    const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
-    const enabledAndSelectedCategories = [...selectedOptions, ...enabledCategories];
+    const selectedOptionsWithDisabledStyle: Category[] = [];
+    const enabledCategoriesName: string[] = [];
+    const selectedOptionNames: string[] = [];
+
+    const enabledCategories = Object.values(sortedCategories).filter((category) => {
+        if (category.enabled) {
+            enabledCategoriesName.push(category.name);
+        }
+        return category.enabled;
+    });
+    selectedOptions.forEach((option) => {
+        selectedOptionNames.push(option.name);
+        selectedOptionsWithDisabledStyle.push({
+            ...option,
+            applyDisabledStyle: !enabledCategoriesName.includes(option.name),
+        });
+    });
+
+    const enabledAndSelectedCategories = [...selectedOptionsWithDisabledStyle, ...enabledCategories];
     const categorySections: CategoryTreeSection[] = [];
     const numberOfEnabledCategories = enabledCategories.length;
 
@@ -982,7 +1002,7 @@ function getCategoryListSections(
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getCategoryOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptionsWithDisabledStyle, true),
         });
 
         return categorySections;
@@ -1016,11 +1036,10 @@ function getCategoryListSections(
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getCategoryOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptionsWithDisabledStyle, true),
         });
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
@@ -1067,7 +1086,7 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<Tag, 'name' | 'enabled' | 'isSelected'>>): Option[] {
+function getTagsOptions(tags: Tag[]): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
@@ -1078,6 +1097,7 @@ function getTagsOptions(tags: Array<Pick<Tag, 'name' | 'enabled' | 'isSelected'>
             tooltipText: cleanedName,
             isDisabled: !tag.enabled,
             isSelected: tag.isSelected,
+            applyDisabledStyle: tag.applyDisabledStyle,
         };
     });
 }
@@ -1094,9 +1114,23 @@ function getTagListSections(
 ) {
     const tagSections = [];
     const sortedTags = sortTags(tags) as PolicyTag[];
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledTags = sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name));
-    const enabledAndSelectedTags = [...selectedOptions, ...enabledTags];
+    const selectedOptionNames: string[] = [];
+    const enabledTagsName: string[] = [];
+    const selectedOptionsWithDisabledStyle: Category[] = [];
+    const enabledTags = sortedTags.filter((tag) => {
+        if (tag.enabled) {
+            enabledTagsName.push(tag.name);
+        }
+        return tag.enabled && !selectedOptionNames.includes(tag.name);
+    });
+    selectedOptions.forEach((option) => {
+        selectedOptionNames.push(option.name);
+        selectedOptionsWithDisabledStyle.push({
+            ...option,
+            applyDisabledStyle: !enabledTagsName.includes(option.name),
+        });
+    });
+    const enabledAndSelectedTags = [...selectedOptionsWithDisabledStyle, ...enabledTags];
     const numberEnabledOfTags = enabledTags.length;
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
@@ -1105,7 +1139,7 @@ function getTagListSections(
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getTagsOptions(selectedOptions),
+            data: getTagsOptions(selectedOptionsWithDisabledStyle),
         });
 
         return tagSections;
@@ -1159,7 +1193,7 @@ function getTagListSections(
             // "Selected" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(selectedOptions),
+            data: getTagsOptions(selectedOptionsWithDisabledStyle),
         });
     }
 
