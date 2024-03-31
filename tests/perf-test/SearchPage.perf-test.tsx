@@ -42,8 +42,10 @@ jest.mock('@src/libs/API', () => ({
 }));
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
-    isNavigationReady: jest.fn<Promise<void>, []>(() => Promise.resolve()),
-    isDisplayedInModal: jest.fn(),
+    dismissModalWithReport: jest.fn(),
+    getTopmostReportId: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    isDisplayedInModal: jest.fn(() => false),
 }));
 
 const mockedNavigate = jest.fn();
@@ -60,7 +62,13 @@ jest.mock('@react-navigation/native', () => {
             navigate: jest.fn(),
             addListener: () => jest.fn(),
         }),
-        createNavigationContainerRef: jest.fn(),
+        createNavigationContainerRef: () => ({
+            addListener: () => jest.fn(),
+            removeListener: () => jest.fn(),
+            isReady: () => jest.fn(),
+            getCurrentRoute: () => jest.fn(),
+            getState: () => jest.fn(),
+        }),
     } as typeof NativeNavigation;
 });
 

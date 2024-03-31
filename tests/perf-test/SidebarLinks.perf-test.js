@@ -11,15 +11,17 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('../../src/libs/Permissions');
 jest.mock('../../src/hooks/usePermissions.ts');
-jest.mock('../../src/libs/Navigation/Navigation');
+jest.mock('../../src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    isActiveRoute: jest.fn(),
+    getTopmostReportId: jest.fn(),
+    getTopmostReportActionId: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    isDisplayedInModal: jest.fn(() => false),
+}));
 jest.mock('../../src/components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
-
-jest.mock('@src/libs/Navigation/Navigation', () => ({
-    isNavigationReady: jest.fn(() => Promise.resolve()),
-    isDisplayedInModal: jest.fn(),
-}));
 
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Array.from({length}, (__, i) => {
