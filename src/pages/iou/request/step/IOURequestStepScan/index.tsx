@@ -133,10 +133,11 @@ function IOURequestStepScan({
         if (!Browser.isMobile() || !isTabActive) {
             return;
         }
-        navigator.permissions.query({
-            // @ts-expect-error camera does exist in PermissionName
-            name: 'camera'
-        })
+        navigator.permissions
+            .query({
+                // @ts-expect-error camera does exist in PermissionName
+                name: 'camera',
+            })
             .then((permissionState) => {
                 setCameraPermissionState(permissionState.state);
                 if (permissionState.state === 'granted') {

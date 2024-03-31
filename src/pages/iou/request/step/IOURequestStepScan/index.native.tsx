@@ -50,7 +50,7 @@ function IOURequestStepScan({
 
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
-    const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null); 
+    const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasFlash = device?.hasFlash || false;
 
