@@ -5,6 +5,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, Point} from 'react-native-vision-camera';
+import {useCameraDevice} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -30,6 +31,7 @@ import ROUTES from '@src/ROUTES';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepProps from './types';
+import { FileObject } from '@components/AttachmentModal';
 
 function IOURequestStepScan({
     report,
@@ -47,8 +49,7 @@ function IOURequestStepScan({
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
-    const askedForPermission = useRef(false);
-    const hasFlash = device != null && device.hasFlash;
+    const hasFlash = device?.hasFlash || false;
 
     const {translate} = useLocalize();
 
@@ -106,7 +107,7 @@ function IOURequestStepScan({
     useFocusEffect(
         useCallback(() => {
             const refreshCameraPermissionStatus = () => {
-                CameraPermission.getCameraPermissionStatus()
+                CameraPermission?.getCameraPermissionStatus?.()
                     .then(setCameraPermissionStatus)
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
@@ -131,7 +132,7 @@ function IOURequestStepScan({
         }, []),
     );
 
-    const validateReceipt = (file: File) => {
+    const validateReceipt = (file: FileObject) => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
         if (
             !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number])
@@ -175,9 +176,9 @@ function IOURequestStepScan({
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
-        (file: File, source: string) => {
+        (file: FileObject, source: string) => {
             Navigation.dismissModal();
-            IOU.replaceReceipt(transactionID, file, source);
+            IOU.replaceReceipt(transactionID, file as File, source);
         },
         [transactionID],
     );
@@ -185,7 +186,7 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: File) => {
+    const setReceiptAndNavigate = (file: FileObject) => {
         if (!validateReceipt(file)) {
             return;
         }
@@ -193,7 +194,7 @@ function IOURequestStepScan({
         // Store the receipt on the transaction object in Onyx
         // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
         // So, let us also save the file type in receipt for later use during blob fetch
-        IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name, action !== CONST.IOU.ACTION.EDIT, file.type);
+        IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name || '', action !== CONST.IOU.ACTION.EDIT, file.type);
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, file?.uri ?? '');
@@ -217,7 +218,7 @@ function IOURequestStepScan({
             showCameraAlert();
         }
 
-        return camera.current
+        return camera?.current?
             .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
             })
@@ -305,8 +306,7 @@ function IOURequestStepScan({
                 </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker shouldHideCameraOption>
-                    {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
+                <AttachmentPicker>
                     {({openPicker}) => (
                         <PressableWithFeedback
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}

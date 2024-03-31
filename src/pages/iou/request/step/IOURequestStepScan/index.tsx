@@ -4,6 +4,7 @@ import type Webcam from 'react-webcam';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
+import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -30,6 +31,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepProps from './types';
 
@@ -71,7 +73,7 @@ function IOURequestStepScan({
      * The last deviceId is of regular len camera.
      */
     const requestCameraPermission = useCallback(() => {
-        if (!_.isEmpty(videoConstraints) || !Browser.isMobile()) {
+        if (!isEmptyObject(videoConstraints) || !Browser.isMobile()) {
             return;
         }
 
@@ -81,7 +83,7 @@ function IOURequestStepScan({
             .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
             .then((stream) => {
                 setCameraPermissionState('granted');
-                _.forEach(stream.getTracks(), (track) => track.stop());
+                stream.getTracks().forEach((track) => track.stop());
                 // Only Safari 17+ supports zoom constraint
                 if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
                     let deviceId;
@@ -160,7 +162,7 @@ function IOURequestStepScan({
         setAttachmentValidReason(reason);
     };
 
-    function validateReceipt(file: File) {
+    function validateReceipt(file: FileObject) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
         if (
             !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number])
@@ -205,8 +207,8 @@ function IOURequestStepScan({
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
-        (file: File, source: string) => {
-            IOU.replaceReceipt(transactionID, file, source);
+        (file: FileObject, source: string) => {
+            IOU.replaceReceipt(transactionID, file as File, source);
             Navigation.dismissModal();
         },
         [transactionID],
@@ -215,14 +217,15 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: File) => {
+    const setReceiptAndNavigate = (file: FileObject) => {
         if (!validateReceipt(file)) {
             return;
         }
 
         // Store the receipt on the transaction object in Onyx
-        const source = URL.createObjectURL(file);
-        IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
+        const source = URL.createObjectURL(file as Blob);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, source);
@@ -313,7 +316,7 @@ function IOURequestStepScan({
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
-                {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && _.isEmpty(videoConstraints))) && (
+                {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
@@ -340,7 +343,7 @@ function IOURequestStepScan({
                         />
                     </View>
                 )}
-                {cameraPermissionState === 'granted' && !_.isEmpty(videoConstraints) && (
+                {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
                     <NavigationAwareCamera
                         onUserMedia={setupCameraPermissionsAndCapabilities}
                         onUserMediaError={() => setCameraPermissionState('denied')}
@@ -361,7 +364,6 @@ function IOURequestStepScan({
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker>
-                    {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
                     {({openPicker}) => (
                         <PressableWithFeedback
                             accessibilityLabel={translate('receipt.chooseFile')}
@@ -436,7 +438,6 @@ function IOURequestStepScan({
             </View>
 
             <AttachmentPicker>
-                {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
                 {({openPicker}) => (
                     <Button
                         medium
