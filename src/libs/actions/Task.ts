@@ -24,6 +24,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Report from './Report';
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'participantAccountIDs' | 'notificationPreference' | 'pendingFields' | 'visibleChatMemberAccountIDs'>;
@@ -58,6 +59,14 @@ Onyx.connect({
     callback: (value) => (allPersonalDetails = value),
 });
 
+let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+    callback: (value) => {
+        quickAction = value;
+    },
+});
+
 const allReportActions: OnyxCollection<ReportActions> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -69,6 +78,13 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
     },
+});
+
+let allReports: OnyxCollection<OnyxTypes.Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 /**
@@ -100,7 +116,7 @@ function createTaskAndNavigate(
     assigneeEmail: string,
     assigneeAccountID = 0,
     assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null,
-    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
 
@@ -219,11 +235,26 @@ function createTaskAndNavigate(
         },
     );
 
+    // FOR QUICK ACTION NVP
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: {
+            action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
+            chatReportID: parentReportID,
+            isFirstQuickAction: isEmptyObject(quickAction),
+            targetAccountID: assigneeAccountID,
+        },
+    });
+
     // If needed, update optimistic data for parent report action of the parent report.
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-    if (!isEmptyObject(optimisticParentReportData)) {
-        optimisticData.push(optimisticParentReportData);
-    }
+    optimisticParentReportData.forEach((parentReportData) => {
+        if (isEmptyObject(parentReportData)) {
+            return;
+        }
+        optimisticData.push(parentReportData);
+    });
 
     // FOR PARENT REPORT (SHARE DESTINATION)
     successData.push({
@@ -262,6 +293,7 @@ function createTaskAndNavigate(
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(parentReportID);
+    Report.notifyNewAction(parentReportID, currentUserAccountID);
 }
 
 /**
@@ -620,23 +652,32 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  */
-function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shareDestination: string, isCurrentUser = false): OnyxEntry<OnyxTypes.Report> {
-    let chatReport: OnyxEntry<OnyxTypes.Report> = null;
-
+function setAssigneeValue(
+    assigneeEmail: string,
+    assigneeAccountID: number,
+    shareToReportID: string,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    isCurrentUser = false,
+): OnyxEntry<OnyxTypes.Report> {
+    let report = chatReport;
     if (!isCurrentUser) {
-        chatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
-        if (!chatReport) {
-            chatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
-            chatReport.isOptimisticReport = true;
+        // Check for the chatReport by participants IDs
+        if (!report) {
+            report = ReportUtils.getChatByParticipants([assigneeAccountID]);
+        }
+        // If chat report is still not found we need to build new optimistic chat report
+        if (!report) {
+            report = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
+            report.isOptimisticReport = true;
 
             // When assigning a task to a new user, by default we share the task in their DM
             // However, the DM doesn't exist yet - and will be created optimistically once the task is created
             // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
             // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
-            if (chatReport) {
-                chatReport.isHidden = true;
+            if (report) {
+                report.isHidden = true;
             }
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
             const optimisticPersonalDetailsListAction = {
@@ -648,12 +689,19 @@ function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shar
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
         }
 
-        setAssigneeChatReport(chatReport);
+        // The optimistic field may not exist in the existing report and it can be overridden by the optimistic field of previous report data when merging the assignee chat report
+        // Therefore, we should add these optimistic fields here to prevent incorrect merging, which could lead to the creation of duplicate actions for an existing report
+        setAssigneeChatReport({
+            ...report,
+            isOptimisticReport: report?.isOptimisticReport ?? false,
+            pendingFields: report?.pendingFields,
+            pendingAction: report?.pendingAction,
+        });
 
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
-        if (!shareDestination) {
-            setShareDestinationValue(chatReport?.reportID ?? '');
+        if (!shareToReportID) {
+            setShareDestinationValue(report?.reportID ?? '');
         }
     }
 
@@ -663,7 +711,7 @@ function setAssigneeValue(assigneeEmail: string, assigneeAccountID: number, shar
     // When we're editing the assignee, we immediately call editTaskAssignee. Since setting the assignee is async,
     // the chatReport is not yet set when editTaskAssignee is called. So we return the chatReport here so that
     // editTaskAssignee can use it.
-    return chatReport;
+    return report;
 }
 
 /**
@@ -677,10 +725,14 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID: string) {
+function clearOutTaskInfoAndNavigate(reportID: string, chatReport: OnyxEntry<OnyxTypes.Report>, accountID = 0) {
     clearOutTaskInfo();
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
+    }
+    if (accountID > 0) {
+        const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
+        setAssigneeValue(accountLogin, accountID, reportID, chatReport);
     }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
@@ -688,8 +740,8 @@ function clearOutTaskInfoAndNavigate(reportID: string) {
 /**
  * Get the assignee data
  */
-function getAssignee(assigneeAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList): Assignee {
-    const details = personalDetails[assigneeAccountID];
+function getAssignee(assigneeAccountID: number, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee {
+    const details = personalDetails?.[assigneeAccountID];
 
     if (!details) {
         return {
@@ -709,7 +761,7 @@ function getAssignee(assigneeAccountID: number, personalDetails: OnyxTypes.Perso
 /**
  * Get the share destination data
  * */
-function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxTypes.PersonalDetailsList): ShareDestination {
+function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): ShareDestination {
     const report = reports?.[`report_${reportID}`] ?? null;
 
     const participantAccountIDs = report?.participantAccountIDs ?? [];
@@ -720,8 +772,8 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
         const participantAccountID = report?.participantAccountIDs?.[0] ?? -1;
 
-        const displayName = personalDetails[participantAccountID]?.displayName ?? '';
-        const login = personalDetails[participantAccountID]?.login ?? '';
+        const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
+        const login = personalDetails?.[participantAccountID]?.login ?? '';
         subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
@@ -747,6 +799,16 @@ function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): ReportActio
 }
 
 /**
+ * Returns the parentReport if the given report is a thread
+ */
+function getParentReport(report: OnyxEntry<OnyxTypes.Report> | EmptyObject): OnyxEntry<OnyxTypes.Report> | EmptyObject {
+    if (!report?.parentReportID) {
+        return {};
+    }
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? {};
+}
+
+/**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  */
 function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
@@ -757,7 +819,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID ?? '', CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const parentReportAction = getParentReportAction(report);
-    const parentReport = ReportUtils.getParentReport(report);
+    const parentReport = getParentReport(report);
 
     // If the task report is the last visible action in the parent report, we should navigate back to the parent report
     const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '');
@@ -822,9 +884,12 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             parentReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
-        if (!isEmptyObject(optimisticParentReportData)) {
-            optimisticData.push(optimisticParentReportData);
-        }
+        optimisticParentReportData.forEach((parentReportData) => {
+            if (isEmptyObject(parentReportData)) {
+                return;
+            }
+            optimisticData.push(parentReportData);
+        });
     }
 
     const successData: OnyxUpdate[] = [
@@ -926,7 +991,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return false;
     }
 
-    const parentReport = ReportUtils.getParentReport(taskReport);
+    const parentReport = getParentReport(taskReport);
     if (ReportUtils.isArchivedRoom(parentReport)) {
         return false;
     }
@@ -980,4 +1045,4 @@ export {
     canModifyTask,
 };
 
-export type {PolicyValue};
+export type {PolicyValue, Assignee, ShareDestination};

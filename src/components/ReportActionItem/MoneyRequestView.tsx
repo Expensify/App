@@ -70,6 +70,9 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
+
+    /** Whether we should display the animated banner above the component */
+    shouldShowAnimatedBackground: boolean;
 };
 
 type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
@@ -84,6 +87,7 @@ function MoneyRequestView({
     policyTagList,
     policy,
     transactionViolations,
+    shouldShowAnimatedBackground,
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -237,9 +241,9 @@ function MoneyRequestView({
     );
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
-            <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
+            {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
+            <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {(showMapAsImage || hasReceipt) && (
                     <OfflineWithFeedback
@@ -259,6 +263,8 @@ function MoneyRequestView({
                             ) : (
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
+                                    fileExtension={receiptURIs?.fileExtension}
+                                    isThumbnail={receiptURIs?.isThumbnail}
                                     image={receiptURIs?.image}
                                     isLocalFile={receiptURIs?.isLocalFile}
                                     filename={receiptURIs?.filename}
@@ -327,7 +333,11 @@ function MoneyRequestView({
                             interactive={canEditDistance}
                             shouldShowRightIcon={canEditDistance}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+                                )
+                            }
                         />
                     </OfflineWithFeedback>
                 ) : (

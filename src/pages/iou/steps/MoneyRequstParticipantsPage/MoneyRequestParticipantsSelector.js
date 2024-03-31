@@ -141,7 +141,6 @@ function MoneyRequestParticipantsSelector({
      */
     const sections = useMemo(() => {
         const newSections = [];
-        let indexOffset = 0;
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             searchTerm,
@@ -149,12 +148,10 @@ function MoneyRequestParticipantsSelector({
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
             maxParticipantsReached,
-            indexOffset,
             personalDetails,
             true,
         );
         newSections.push(formatResults.section);
-        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return newSections;
@@ -164,17 +161,13 @@ function MoneyRequestParticipantsSelector({
             title: translate('common.recents'),
             data: newChatOptions.recentReports,
             shouldShow: !_.isEmpty(newChatOptions.recentReports),
-            indexOffset,
         });
-        indexOffset += newChatOptions.recentReports.length;
 
         newSections.push({
             title: translate('common.contacts'),
             data: newChatOptions.personalDetails,
             shouldShow: !_.isEmpty(newChatOptions.personalDetails),
-            indexOffset,
         });
-        indexOffset += newChatOptions.personalDetails.length;
 
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
@@ -184,7 +177,6 @@ function MoneyRequestParticipantsSelector({
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
-                indexOffset,
             });
         }
 
@@ -196,25 +188,28 @@ function MoneyRequestParticipantsSelector({
      *
      * @param {Object} option
      */
-    const addSingleParticipant = (option) => {
-        if (participants.length) {
-            return;
-        }
-        onAddParticipants(
-            [
-                {
-                    accountID: option.accountID,
-                    login: option.login,
-                    isPolicyExpenseChat: option.isPolicyExpenseChat,
-                    reportID: option.reportID,
-                    selected: true,
-                    searchText: option.searchText,
-                },
-            ],
-            false,
-        );
-        navigateToRequest();
-    };
+    const addSingleParticipant = useCallback(
+        (option) => {
+            if (participants.length) {
+                return;
+            }
+            onAddParticipants(
+                [
+                    {
+                        accountID: option.accountID,
+                        login: option.login,
+                        isPolicyExpenseChat: option.isPolicyExpenseChat,
+                        reportID: option.reportID,
+                        selected: true,
+                        searchText: option.searchText,
+                    },
+                ],
+                false,
+            );
+            navigateToRequest();
+        },
+        [navigateToRequest, onAddParticipants, participants.length],
+    );
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -275,13 +270,23 @@ function MoneyRequestParticipantsSelector({
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
     const isAllowedToSplit = (canUseP2PDistanceRequests || !isDistanceRequest) && iouType !== CONST.IOU.TYPE.SEND;
 
-    const handleConfirmSelection = useCallback(() => {
-        if (shouldShowSplitBillErrorMessage) {
-            return;
-        }
+    const handleConfirmSelection = useCallback(
+        (keyEvent, option) => {
+            const shouldAddSingleParticipant = option && !participants.length;
 
-        navigateToSplit();
-    }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
+            if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
+                return;
+            }
+
+            if (shouldAddSingleParticipant) {
+                addSingleParticipant(option);
+                return;
+            }
+
+            navigateToSplit();
+        },
+        [shouldShowSplitBillErrorMessage, navigateToSplit, addSingleParticipant, participants.length],
+    );
 
     const footerContent = useMemo(
         () => (
@@ -306,6 +311,7 @@ function MoneyRequestParticipantsSelector({
                         text={translate('iou.addToSplit')}
                         onPress={handleConfirmSelection}
                         pressOnEnter
+                        large
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
@@ -372,8 +378,7 @@ MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default withOnyx({
     dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data.dismissedReferralBanners || {},
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,

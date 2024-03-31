@@ -18,7 +18,6 @@ import * as Localize from '@libs/Localize';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -74,9 +73,10 @@ type ContextMenuActionPayload = {
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;
     checkIfContextMenuActive?: () => void;
-    openOverflowMenu: (event: GestureResponderEvent | MouseEvent) => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
+    anchorRef?: MutableRefObject<View | null>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -101,6 +101,7 @@ type ContextMenuActionWithIcon = {
 type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIcon) & {
     isAnonymousAction: boolean;
     shouldShow: ShouldShow;
+    shouldPreventDefaultFocusOnPress?: boolean;
 };
 
 // A list of all the context actions in this menu.
@@ -219,20 +220,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
                 const childReportID = reportAction?.childReportID ?? '0';
-                if (!childReportID) {
-                    const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
-                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
-                    Report.openReport(thread.reportID, userLogins, thread, reportAction?.reportActionID);
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
-                    return;
-                }
                 Report.openReport(childReportID);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
             const editAction = () => {
                 if (!draftMessage) {
-                    Report.saveReportActionDraft(reportID, reportAction, getActionHtml(reportAction));
+                    const parser = new ExpensiMark();
+                    Report.saveReportActionDraft(reportID, reportAction, parser.htmlToMarkdown(getActionHtml(reportAction)));
                 } else {
                     Report.deleteReportActionDraft(reportID, reportAction);
                 }
@@ -384,7 +379,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-                    Clipboard.setString(Localize.translateLocal('iou.heldRequest', {comment: reportAction.message?.[1]?.text ?? ''}));
+                    Clipboard.setString(Localize.translateLocal('iou.heldRequest'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.unheldRequest'));
                 } else if (content) {
@@ -496,11 +491,12 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.menu',
         icon: Expensicons.ThreeDots,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline, isMini) => isMini,
-        onPress: (closePopover, {openOverflowMenu, event, openContextMenu}) => {
-            openOverflowMenu(event as GestureResponderEvent | MouseEvent);
+        onPress: (closePopover, {openOverflowMenu, event, openContextMenu, anchorRef}) => {
+            openOverflowMenu(event as GestureResponderEvent | MouseEvent, anchorRef ?? {current: null});
             openContextMenu();
         },
         getDescription: () => {},
+        shouldPreventDefaultFocusOnPress: false,
     },
 ];
 

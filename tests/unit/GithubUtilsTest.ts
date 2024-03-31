@@ -5,7 +5,8 @@
  */
 import * as core from '@actions/core';
 import type {Writable} from 'type-fest';
-import GithubUtils from '../../.github/libs/GithubUtils';
+import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
@@ -81,9 +82,8 @@ beforeAll(() => {
             },
         },
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
-    };
+    } as unknown as InternalOctokit;
 
-    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
     GithubUtils.internalOctokit = moctokit;
 });
 
@@ -186,17 +186,17 @@ describe('GithubUtils', () => {
                 PRList: [],
             };
 
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(bareExpectedResponse));
         });
 
         test('Test finding an open issue successfully', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(baseExpectedResponse));
         });
 
         test('Test finding an open issue successfully and parsing with deploy blockers', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
@@ -206,7 +206,7 @@ describe('GithubUtils', () => {
 
             GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({
                 data: [modifiedIssueWithDeployBlockers],
-            });
+            }) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
@@ -214,17 +214,17 @@ describe('GithubUtils', () => {
             const noBodyIssue = baseIssue;
             noBodyIssue.body = '';
 
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().catch((e) => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue with correct data.')));
         });
 
         test('Test finding more than one issue', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{a: 1}, {b: 2}]});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{a: 1}, {b: 2}]}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().catch((e) => expect(e).toEqual(new Error('Found more than one StagingDeployCash issue.')));
         });
 
         test('Test finding no issues', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []});
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []}) as unknown as ListForRepoMethod;
             return GithubUtils.getStagingDeployCash().catch((e) => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue.')));
         });
     });
@@ -355,7 +355,7 @@ describe('GithubUtils', () => {
             },
             {
                 number: 6,
-                title: '[Internal QA] Test Internal QA PR',
+                title: '[Internal QA] Another Test Internal QA PR',
                 html_url: 'https://github.com/Expensify/App/pull/6',
                 user: {login: 'testUser'},
                 labels: [
@@ -368,15 +368,7 @@ describe('GithubUtils', () => {
                         color: 'f29513',
                     },
                 ],
-                assignees: [
-                    {
-                        login: 'octocat',
-                    },
-                    {
-                        login: 'hubot',
-                    },
-                ],
-                merged_by: {login: 'octocat'},
+                assignees: [],
             },
             {
                 number: 7,
@@ -394,9 +386,11 @@ describe('GithubUtils', () => {
                     },
                 ],
                 assignees: [],
-                merged_by: {login: 'hubot'},
             },
         ];
+        const mockInternalQaPR = {
+            merged_by: {login: 'octocat'},
+        };
         const mockGithub = jest.fn(() => ({
             getOctokit: () => ({
                 rest: {
@@ -405,6 +399,7 @@ describe('GithubUtils', () => {
                     },
                     pulls: {
                         list: jest.fn().mockResolvedValue({data: mockPRs}),
+                        get: jest.fn().mockResolvedValue({data: mockInternalQaPR}),
                     },
                 },
                 paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
@@ -413,8 +408,7 @@ describe('GithubUtils', () => {
 
         const octokit = mockGithub().getOctokit();
         const githubUtils = class extends GithubUtils {};
-        // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
-        githubUtils.internalOctokit = octokit;
+        githubUtils.internalOctokit = octokit as unknown as InternalOctokit;
         const tag = '1.0.2-12';
         const basePRList = [
             'https://github.com/Expensify/App/pull/2',
@@ -442,7 +436,6 @@ describe('GithubUtils', () => {
         const lineBreak = '\r\n';
         const lineBreakDouble = '\r\n\r\n';
         const assignOctocat = ' - @octocat';
-        const assignHubot = ' - @hubot';
         const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
         // eslint-disable-next-line max-len
         const timingDashboardVerification =
@@ -464,7 +457,10 @@ describe('GithubUtils', () => {
             `${lineBreak}`;
 
         test('Test no verified PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
                 expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -483,7 +479,11 @@ describe('GithubUtils', () => {
         });
 
         test('Test some verified PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]]).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [basePRList[0]]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
                 expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -502,7 +502,11 @@ describe('GithubUtils', () => {
         });
 
         test('Test all verified PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
                 expect(issue.issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployerVerificationsHeader}` +
@@ -516,7 +520,11 @@ describe('GithubUtils', () => {
         });
 
         test('Test no resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
                 expect(issue.issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployBlockerHeader}` +
@@ -533,7 +541,11 @@ describe('GithubUtils', () => {
         });
 
         test('Test some resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]]).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
                 expect(issue.issueBody).toBe(
                     `${allVerifiedExpectedOutput}` +
                         `${lineBreak}${deployBlockerHeader}` +
@@ -550,7 +562,10 @@ describe('GithubUtils', () => {
         });
 
         test('Test all resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
                 expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${closedCheckbox}${basePRList[2]}` +
@@ -572,7 +587,11 @@ describe('GithubUtils', () => {
         });
 
         test('Test internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList]).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
                 expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -582,19 +601,23 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
                         `${lineBreak}${internalQAHeader}` +
                         `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocat}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignHubot}` +
+                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocat}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-                expect(issue.issueAssignees).toEqual(['octocat', 'hubot']);
+                expect(issue.issueAssignees).toEqual(['octocat']);
             });
         });
 
         test('Test some verified internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBody(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList[0]]).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList[0]]).then((issue) => {
+                if (typeof issue !== 'object') {
+                    return;
+                }
+
                 expect(issue.issueBody).toBe(
                     `${baseExpectedOutput}` +
                         `${openCheckbox}${basePRList[2]}` +
@@ -604,14 +627,14 @@ describe('GithubUtils', () => {
                         `${lineBreak}${closedCheckbox}${basePRList[5]}` +
                         `${lineBreak}${internalQAHeader}` +
                         `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocat}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignHubot}` +
+                        `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocat}` +
                         `${lineBreakDouble}${deployerVerificationsHeader}` +
                         `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
                         `${lineBreak}${openCheckbox}${firebaseVerification}` +
                         `${lineBreak}${openCheckbox}${ghVerification}` +
                         `${lineBreakDouble}${ccApplauseLeads}`,
                 );
-                expect(issue.issueAssignees).toEqual(['octocat', 'hubot']);
+                expect(issue.issueAssignees).toEqual(['octocat']);
             });
         });
     });
