@@ -45,6 +45,7 @@ const imagePickerOptions = {
     saveToPhotos: false,
     selectionLimit: 1,
     includeExtra: false,
+    assetRepresentationMode: 'current',
 };
 
 /**
