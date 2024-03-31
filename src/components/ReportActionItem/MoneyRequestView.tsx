@@ -68,6 +68,9 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
+
+    /** Whether we should display the animated banner above the component */
+    shouldShowAnimatedBackground: boolean;
 };
 
 type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
@@ -82,6 +85,7 @@ function MoneyRequestView({
     policyTagList,
     policy,
     transactionViolations,
+    shouldShowAnimatedBackground,
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -234,7 +238,7 @@ function MoneyRequestView({
 
     return (
         <View style={styles.pRelative}>
-            <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+            {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {(showMapAsImage || hasReceipt) && (
@@ -255,6 +259,8 @@ function MoneyRequestView({
                             ) : (
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
+                                    fileExtension={receiptURIs?.fileExtension}
+                                    isThumbnail={receiptURIs?.isThumbnail}
                                     image={receiptURIs?.image}
                                     isLocalFile={receiptURIs?.isLocalFile}
                                     filename={receiptURIs?.filename}
