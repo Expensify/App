@@ -985,6 +985,7 @@ function getCategoryListSections(
         }
         return category.enabled;
     });
+
     selectedOptions.forEach((option) => {
         selectedOptionNames.push(option.name);
         selectedOptionsWithDisabledStyle.push({
@@ -997,7 +998,7 @@ function getCategoryListSections(
     const categorySections: CategoryTreeSection[] = [];
     const numberOfEnabledCategories = enabledCategories.length;
 
-    if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
+    if (numberOfEnabledCategories === 0 && selectedOptionsWithDisabledStyle.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
@@ -1017,7 +1018,7 @@ function getCategoryListSections(
             }
             searchCategories.push({
                 ...category,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+                isSelected: selectedOptionNames.includes(category.name),
             });
         });
 
@@ -1031,7 +1032,7 @@ function getCategoryListSections(
         return categorySections;
     }
 
-    if (selectedOptions.length > 0) {
+    if (selectedOptionsWithDisabledStyle.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
@@ -1134,7 +1135,7 @@ function getTagListSections(
     const numberEnabledOfTags = enabledTags.length;
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
-    if (numberEnabledOfTags === 0 && selectedOptions.length > 0) {
+    if (numberEnabledOfTags === 0 && selectedOptionsWithDisabledStyle.length > 0) {
         tagSections.push({
             // "Selected" section
             title: '',
@@ -1155,7 +1156,7 @@ function getTagListSections(
 
             searchTags.push({
                 ...tag,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === tag.name),
+                isSelected: selectedOptionNames.includes(tag.name),
             });
         });
 
@@ -1188,7 +1189,7 @@ function getTagListSections(
         .map((tag) => ({name: tag, enabled: true}));
     const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
-    if (selectedOptions.length) {
+    if (selectedOptionsWithDisabledStyle.length) {
         tagSections.push({
             // "Selected" section
             title: '',

@@ -55,6 +55,7 @@ function RadioListItem({
                             styles.sidebarLinkTextBold,
                             isMultilineSupported ? styles.preWrap : styles.pre,
                             item.alternateText ? styles.mb1 : null,
+                            /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
                             (isDisabled || item.applyDisabledStyle) && styles.colorMuted,
                             isMultilineSupported ? {paddingLeft} : null,
                         ]}
