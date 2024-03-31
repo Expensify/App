@@ -967,7 +967,7 @@ function getCategoryListSections(
 ): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
-
+    const enabledAndSelectedCategories = [...selectedOptions, ...enabledCategories];
     const categorySections: CategoryTreeSection[] = [];
     const numberOfEnabledCategories = enabledCategories.length;
 
@@ -985,7 +985,7 @@ function getCategoryListSections(
     if (searchInputValue) {
         const searchCategories: Category[] = [];
 
-        enabledCategories.forEach((category) => {
+        enabledAndSelectedCategories.forEach((category) => {
             if (!category.name.toLowerCase().includes(searchInputValue.toLowerCase())) {
                 return;
             }
@@ -1088,11 +1088,12 @@ function getTagListSections(
     const tagSections = [];
     const sortedTags = sortTags(tags) as PolicyTag[];
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
-    const numberOfTags = enabledTags.length;
+    const enabledTags = sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name));
+    const enabledAndSelectedTags = [...selectedOptions, ...enabledTags];
+    const numberEnabledOfTags = enabledTags.length;
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
-    if (numberOfTags === 0 && selectedOptions.length > 0) {
+    if (numberEnabledOfTags === 0 && selectedOptions.length > 0) {
         const selectedTagOptions = selectedOptions.map((option) => ({
             name: option.name,
             // Should be marked as enabled to be able to be de-selected
@@ -1109,7 +1110,7 @@ function getTagListSections(
     }
 
     if (searchInputValue) {
-        const searchTags = enabledTags.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
+        const searchTags = enabledAndSelectedTags.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
 
         tagSections.push({
             // "Search" section
@@ -1121,7 +1122,7 @@ function getTagListSections(
         return tagSections;
     }
 
-    if (numberOfTags < CONST.TAG_LIST_THRESHOLD) {
+    if (numberEnabledOfTags < CONST.TAG_LIST_THRESHOLD) {
         tagSections.push({
             // "All" section when items amount less than the threshold
             title: '',
