@@ -1175,7 +1175,7 @@ function getTagListSections(
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            data: getTagsOptions(enabledTags),
+            data: getTagsOptions(enabledAndSelectedTags),
         });
 
         return tagSections;
