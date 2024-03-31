@@ -3,6 +3,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import OptionsSelector from '@components/OptionsSelector';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -77,6 +79,7 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
                 name: selectedTag,
                 enabled: true,
                 accountID: null,
+                isSelected: true,
             },
         ];
     }, [selectedTag]);
@@ -100,25 +103,37 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
     const selectedOptionKey = sections[0]?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
 
     return (
-        <OptionsSelector
-            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
-            contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
-            optionHoveredStyle={styles.hoveredComponentBG}
-            sectionHeaderStyle={styles.mt5}
+        // <OptionsSelector
+        //     // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
+        //     contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
+        //     optionHoveredStyle={styles.hoveredComponentBG}
+        //     sectionHeaderStyle={styles.mt5}
+        //     sections={sections}
+        //     selectedOptions={selectedOptions}
+        //     headerMessage={headerMessage}
+        //     textInputLabel={translate('common.search')}
+        //     boldStyle
+        //     highlightSelectedOptions
+        //     isRowMultilineSupported
+        //     shouldShowTextInput={shouldShowTextInput}
+        //     // Focus the first option when searching
+        //     focusedIndex={0}
+        //     // Focus the selected option on first load
+        //     initiallyFocusedOptionKey={selectedOptionKey}
+        //     onChangeText={setSearchValue}
+        //     onSelectRow={onSubmit}
+        // />
+
+        <SelectionList
             sections={sections}
-            selectedOptions={selectedOptions}
             headerMessage={headerMessage}
-            textInputLabel={translate('common.search')}
-            boldStyle
-            highlightSelectedOptions
-            isRowMultilineSupported
-            shouldShowTextInput={shouldShowTextInput}
-            // Focus the first option when searching
-            focusedIndex={0}
-            // Focus the selected option on first load
-            initiallyFocusedOptionKey={selectedOptionKey}
+            textInputValue={searchValue}
+            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
+            ListItem={RadioListItem}
+            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            isRowMultilineSupported
         />
     );
 }

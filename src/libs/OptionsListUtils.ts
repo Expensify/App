@@ -99,6 +99,12 @@ type Category = {
     isSelected?: boolean;
 };
 
+type Tag = {
+    name: string;
+    enabled: boolean;
+    isSelected?: boolean;
+};
+
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
 
 type GetOptionsConfig = {
@@ -1061,7 +1067,7 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Option[] {
+function getTagsOptions(tags: Array<Pick<Tag, 'name' | 'enabled' | 'isSelected'>>): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
@@ -1071,6 +1077,7 @@ function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Optio
             searchText: tag.name,
             tooltipText: cleanedName,
             isDisabled: !tag.enabled,
+            isSelected: tag.isSelected,
         };
     });
 }
@@ -1094,23 +1101,29 @@ function getTagListSections(
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
     if (numberEnabledOfTags === 0 && selectedOptions.length > 0) {
-        const selectedTagOptions = selectedOptions.map((option) => ({
-            name: option.name,
-            // Should be marked as enabled to be able to be de-selected
-            enabled: true,
-        }));
         tagSections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getTagsOptions(selectedTagOptions),
+            data: getTagsOptions(selectedOptions),
         });
 
         return tagSections;
     }
 
     if (searchInputValue) {
-        const searchTags = enabledAndSelectedTags.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
+        const searchTags: Tag[] = [];
+
+        enabledAndSelectedTags.forEach((tag) => {
+            if (!PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase())) {
+                return;
+            }
+
+            searchTags.push({
+                ...tag,
+                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === tag.name),
+            });
+        });
 
         tagSections.push({
             // "Search" section
@@ -1142,17 +1155,11 @@ function getTagListSections(
     const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
     if (selectedOptions.length) {
-        const selectedTagOptions = selectedOptions.map((option) => ({
-            name: option.name,
-            // Should be marked as enabled to be able to unselect even though the selected category is disabled
-            enabled: true,
-        }));
-
         tagSections.push({
             // "Selected" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(selectedTagOptions),
+            data: getTagsOptions(selectedOptions),
         });
     }
 
