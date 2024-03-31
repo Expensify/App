@@ -248,13 +248,10 @@ function MoneyRequestView({
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
-                {hasReceipt && (
-                    <ReceiptAuditHeader
-                        notes={noteTypeViolations}
-                        showAuditMessage={shouldShowNotesViolations}
-                    />
-                )}
-              
+                <ReceiptAuditHeader
+                    notes={noteTypeViolations}
+                    showAuditMessage={shouldShowNotesViolations}
+                />
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {(showMapAsImage || hasReceipt) && (
                     <OfflineWithFeedback
