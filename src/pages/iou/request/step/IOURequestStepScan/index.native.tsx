@@ -19,12 +19,12 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -33,13 +33,15 @@ import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
 
+type IOURequestStepScanProps = IOURequestStepOnyxProps & WithWritableReportOrNotFoundProps;
+
 function IOURequestStepScan({
     report,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction: {isFromGlobalCreate},
-}: IOURequestStepOnyxProps) {
+}: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const device = useCameraDevice('back', {
@@ -364,4 +366,9 @@ function IOURequestStepScan({
 
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScan);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
+
+export default IOURequestStepScanWithFullTransactionOrNotFound;

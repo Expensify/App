@@ -20,12 +20,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -35,13 +35,15 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
 
+type IOURequestStepScanProps = IOURequestStepOnyxProps & WithWritableReportOrNotFoundProps;
+
 function IOURequestStepScan({
     report,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction: {isFromGlobalCreate},
-}: IOURequestStepOnyxProps) {
+}: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -490,4 +492,9 @@ function IOURequestStepScan({
 
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScan);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
+
+export default IOURequestStepScanWithFullTransactionOrNotFound;
