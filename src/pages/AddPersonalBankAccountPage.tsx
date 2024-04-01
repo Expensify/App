@@ -51,7 +51,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {
-                Navigation.goBack(ROUTES.SETTINGS_WALLET);
+                Navigation.goBack();
             }
         },
         [personalBankAccount],
