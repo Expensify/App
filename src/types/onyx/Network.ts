@@ -2,6 +2,7 @@ type Network = {
     /** Is the network currently offline or not */
     isOffline: boolean;
 
+    /** Is the backend reachable when online */
     isBackendReachable: boolean;
 
     /** Should the network be forced offline */
