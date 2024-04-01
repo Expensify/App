@@ -25,7 +25,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportID 
 
     const {translate} = useLocalize();
 
-    if (!reportName){
+    if (!reportName) {
         return;
     }
 

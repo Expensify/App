@@ -1462,7 +1462,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
                   theme.transparent,
             opacity: 1,
-            ...(isDisabled ? styles.cursorDisabled : (isClickable ? styles.cursorPointer : styles.cursorInitial)),
+            ...(isDisabled ? styles.cursorDisabled : isClickable ? styles.cursorPointer : styles.cursorInitial),
         }),
 
     /**
