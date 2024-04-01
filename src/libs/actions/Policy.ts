@@ -825,9 +825,10 @@ function removeMembers(accountIDs: number[], policyID: string) {
         return;
     }
 
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const policy = ReportUtils.getPolicy(policyID);
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
+    const emailList = accountIDs.map((accountID) => allPersonalDetails?.[accountID]?.login).filter(login => !!login) as string[];
     const optimisticClosedReportActions = workspaceChats.map(() => ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
 
     const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
@@ -835,17 +836,17 @@ function removeMembers(accountIDs: number[], policyID: string) {
     const optimisticMembersState: OnyxCollection<PolicyMember> = {};
     const successMembersState: OnyxCollection<PolicyMember> = {};
     const failureMembersState: OnyxCollection<PolicyMember> = {};
-    accountIDs.forEach((accountID) => {
-        optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
-        successMembersState[accountID] = null;
-        failureMembersState[accountID] = {errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')};
+    emailList.forEach((email) => {
+        optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        successMembersState[email] = null;
+        failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')};
     });
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: optimisticMembersState,
+            key: policyKey,
+            value: {employeeList: optimisticMembersState},
         },
         ...announceRoomMembers.onyxOptimisticData,
     ];
@@ -853,8 +854,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: successMembersState,
+            key: policyKey,
+            value: {employeeList: successMembersState},
         },
         ...announceRoomMembers.onyxSuccessData,
     ];
@@ -862,8 +863,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: failureMembersState,
+            key: policyKey,
+            value: {employeeList: failureMembersState},
         },
         ...announceRoomMembers.onyxFailureData,
     ];
@@ -910,9 +911,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
     // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
     if (!isEmptyObject(policy?.primaryLoginsInvited ?? {})) {
         // Take the current policy members and remove them optimistically
-        const policyMemberAccountIDs = Object.keys(allPolicyMembers?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {}).map((accountID) => Number(accountID));
-        const remainingMemberAccountIDs = policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID));
-        const remainingLogins: string[] = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
+        const employeeListEmails = Object.keys(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList ?? {});
+        const remainingLogins = employeeListEmails.filter((email) => !emailList.includes(email));
         const invitedPrimaryToSecondaryLogins: Record<string, string> = {};
 
         if (policy.primaryLoginsInvited) {
@@ -923,7 +923,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         if (!remainingLogins.some((remainingLogin) => !!invitedPrimaryToSecondaryLogins[remainingLogin])) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: membersListKey,
+                key: policyKey,
                 value: {
                     primaryLoginsInvited: null,
                 },
@@ -954,7 +954,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     });
 
     const params: DeleteMembersFromWorkspaceParams = {
-        emailList: accountIDs.map((accountID) => allPersonalDetails?.[accountID]?.login).join(','),
+        emailList: emailList.join(','),
         policyID,
     };
 
