@@ -44,7 +44,7 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const devices: CameraDevice[] | undefined = useCameraDevices();
+    const devices = useCameraDevices();
     const device: CameraDevice | undefined = devices?.find((devicePosition) => devicePosition.position === 'back');
 
     const camera = useRef<Camera>(null);
@@ -223,7 +223,6 @@ function IOURequestStepScan({
 
         camera?.current
             ?.takePhoto({
-                // @ts-expect-error qualityPrioritization doesn't exist in TakePhotoOptions
                 qualityPrioritization: 'speed',
                 flash: flash && hasFlash ? 'on' : 'off',
             })
