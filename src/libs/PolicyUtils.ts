@@ -25,11 +25,10 @@ function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefin
 }
 
 /**
- * Checks if we have any errors stored within the POLICY_MEMBERS. Determines whether we should show a red brick road error or not.
- * Data structure: {accountID: {role:'user', errors: []}, accountID2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
+ * Check if the policy has any errors within the employeeList key.
  */
-function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean {
-    return Object.values(policyMembers ?? {}).some((member) => Object.keys(member?.errors ?? {}).length > 0);
+function hasEmployeeListError(policy: OnyxEntry<Policy>): boolean {
+    return Object.values(policy?.employeeList ?? {}).some((employee) => Object.keys(employee?.errors ?? {}).length > 0);
 }
 
 /**
@@ -92,7 +91,7 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, policyMembersCollection: OnyxCollection<PolicyMembers>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
     const policyMembers = policyMembersCollection?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy?.id}`] ?? {};
-    if (hasPolicyMemberError(policyMembers) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
+    if (hasEmployeeListError(policyMembers) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;
@@ -316,7 +315,7 @@ function getPolicyIDFromNavigationState() {
 export {
     getActivePolicies,
     hasAccountingConnections,
-    hasPolicyMemberError,
+    hasEmployeeListError,
     hasPolicyError,
     hasPolicyErrorFields,
     hasCustomUnitsError,
