@@ -304,6 +304,12 @@ export default {
         member: 'Miembro',
         role: 'Role',
         currency: 'Divisa',
+        emptyLHN: {
+            title: 'Woohoo! Todo al día.',
+            subtitleText1: 'Encuentra un chat usando el botón',
+            subtitleText2: 'o crea algo usando el botón',
+            subtitleText3: '.',
+        },
     },
     location: {
         useCurrent: 'Usar ubicación actual',

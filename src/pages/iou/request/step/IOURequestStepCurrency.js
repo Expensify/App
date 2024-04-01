@@ -12,6 +12,7 @@ import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
@@ -66,7 +67,10 @@ function IOURequestStepCurrency({
         // are only able to handle one backTo param at a time and the user needs to go back to the amount page before going back
         // to the confirmation page
         if (pageIndex === 'confirm') {
-            const routeToAmountPageWithConfirmationAsBackTo = getUrlWithBackToParam(backTo, `/${ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID)}`);
+            const routeToAmountPageWithConfirmationAsBackTo = getUrlWithBackToParam(
+                backTo,
+                `/${ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)}`,
+            );
             Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo);
             return;
         }
