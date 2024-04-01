@@ -4806,7 +4806,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
                 value: {
                     [optimisticSubmittedReportAction.reportActionID]: {
-                        pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                     },
                 },
             },
