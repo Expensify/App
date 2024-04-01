@@ -1,12 +1,12 @@
 import {useFocusEffect} from '@react-navigation/core';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 // @ts-expect-error getCameraDevice exits in the native module
-import {getCameraDevice, useCameraDevices} from 'react-native-vision-camera';
+import {useCameraDevice} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
@@ -45,12 +45,7 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const devices = useCameraDevices();
-    const device = useMemo(
-        () => getCameraDevice(devices, 'back', {physicalDevices: ['wide-angle-camera']}),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [devices, 'back', JSON.stringify({physicalDevices: ['wide-angle-camera']})],
-    );
+    const device = useCameraDevice('back', {physicalDevices: ['wide-angle-camera']});
 
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
