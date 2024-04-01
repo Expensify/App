@@ -289,6 +289,20 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
 }
 
 /**
+ * Helper method to return eReceipt color code for Receipt Thumbnails
+ */
+function getFileExtensionColorCode(fileExtension?: string): EReceiptColorName {
+    switch (fileExtension) {
+        case CONST.IOU.FILE_TYPES.DOC:
+            return CONST.ERECEIPT_COLORS.PINK;
+        case CONST.IOU.FILE_TYPES.HTML:
+            return CONST.ERECEIPT_COLORS.TANGERINE;
+        default:
+            return CONST.ERECEIPT_COLORS.GREEN;
+    }
+}
+
+/**
  * Helper method to return eReceipt color styles
  */
 function getEReceiptColorStyles(colorCode: EReceiptColorName): EreceiptColorStyle | undefined {
@@ -755,7 +769,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMon
     if (isSmallScreenWidth) {
         return {
             height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '200%',
+            width: '100%',
             position: 'absolute',
         };
     }
@@ -804,21 +818,18 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
+function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false, shouldShowAnimatedBackground = true): ViewStyle {
     const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-    if (isSmallScreenWidth) {
-        return {
-            minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
-            display: 'flex',
-            justifyContent: 'space-between',
-        };
-    }
-
-    return {
-        minHeight: emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+    const baseStyles: ViewStyle = {
         display: 'flex',
         justifyContent: 'space-between',
     };
+
+    if (shouldShowAnimatedBackground) {
+        baseStyles.minHeight = isSmallScreenWidth ? emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT : emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT;
+    }
+
+    return baseStyles;
 }
 
 type GetBaseAutoCompleteSuggestionContainerStyleParams = {
@@ -1139,6 +1150,7 @@ const staticStyleUtils = {
     parseStyleFromFunction,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
     getOpacityStyle,
@@ -1439,7 +1451,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Generate the styles for the ReportActionItem wrapper view.
      */
-    getReportActionItemStyle: (isHovered = false): ViewStyle =>
+    getReportActionItemStyle: (isHovered = false, isClickable = false): ViewStyle =>
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ({
@@ -1450,7 +1462,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
                   theme.transparent,
             opacity: 1,
-            ...styles.cursorInitial,
+            ...(isClickable ? styles.cursorPointer : styles.cursorInitial),
         }),
 
     /**
@@ -1541,7 +1553,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
 
     getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
-        ...styles.mr3,
         ...(isSelected && styles.checkedContainer),
         ...(isSelected && styles.borderColorFocus),
         ...(isDisabled && styles.cursorDisabled),

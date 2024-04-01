@@ -46,6 +46,7 @@ const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 const chatTypes = {
     POLICY_ANNOUNCE: 'policyAnnounce',
     POLICY_ADMINS: 'policyAdmins',
+    GROUP: 'group',
     DOMAIN_ALL: 'domainAll',
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
@@ -117,6 +118,7 @@ const CONST = {
         NORMAL: 'normal',
     },
 
+    DEFAULT_GROUP_AVATAR_COUNT: 18,
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
@@ -332,8 +334,10 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
+        TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -358,6 +362,7 @@ const CONST = {
         NOT_INSTALLED: 'not-installed',
     },
     TAX_RATES: {
+        CUSTOM_NAME_MAX_LENGTH: 8,
         NAME_MAX_LENGTH: 50,
     },
     PLATFORM: {
@@ -513,7 +518,7 @@ const CONST = {
         EUR: 'EUR',
     },
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
-        return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.NZD, this.CURRENCY.EUR];
+        return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
     },
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
@@ -603,6 +608,10 @@ const CONST = {
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
+        ROLE: {
+            ADMIN: 'admin',
+            MEMBER: 'member',
+        },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
@@ -628,6 +637,7 @@ const CONST = {
                 EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
+                HOLDCOMMENT: 'HOLDCOMMENT',
                 IOU: 'IOU',
                 INTEGRATIONSMESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGERATTACHRECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
@@ -1344,6 +1354,7 @@ const CONST = {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
+            TRACK_EXPENSE: 'track-expense',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',
@@ -1358,6 +1369,7 @@ const CONST = {
             CANCEL: 'cancel',
             DELETE: 'delete',
             APPROVE: 'approve',
+            TRACK: 'track',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
@@ -1472,6 +1484,15 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
         },
+        MORE_FEATURES: {
+            ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',
+            ARE_TAGS_ENABLED: 'areTagsEnabled',
+            ARE_DISTANCE_RATES_ENABLED: 'areDistanceRatesEnabled',
+            ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
+            ARE_REPORTFIELDS_ENABLED: 'areReportFieldsEnabled',
+            ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
+            ARE_TAXES_ENABLED: 'tax',
+        },
         CATEGORIES_BULK_ACTION_TYPES: {
             DELETE: 'delete',
             DISABLE: 'disable',
@@ -1486,6 +1507,30 @@ const CONST = {
             DELETE: 'delete',
             DISABLE: 'disable',
             ENABLE: 'enable',
+        },
+        OWNERSHIP_ERRORS: {
+            NO_BILLING_CARD: 'noBillingCard',
+            AMOUNT_OWED: 'amountOwed',
+            HAS_FAILED_SETTLEMENTS: 'hasFailedSettlements',
+            OWNER_OWES_AMOUNT: 'ownerOwesAmount',
+            SUBSCRIPTION: 'subscription',
+            DUPLICATE_SUBSCRIPTION: 'duplicateSubscription',
+            FAILED_TO_CLEAR_BALANCE: 'failedToClearBalance',
+        },
+        TAX_RATES_BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
+        COLLECTION_KEYS: {
+            DESCRIPTION: 'description',
+            REIMBURSER_EMAIL: 'reimburserEmail',
+            REIMBURSEMENT_CHOICE: 'reimbursementChoice',
+            APPROVAL_MODE: 'approvalMode',
+            AUTOREPORTING: 'autoReporting',
+            AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
+            AUTOREPORTING_OFFSET: 'autoReportingOffset',
+            GENERAL_SETTINGS: 'generalSettings',
         },
     },
 
@@ -1650,7 +1695,7 @@ const CONST = {
 
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
-        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
     },
 
     PRONOUNS: {
@@ -1821,13 +1866,6 @@ const CONST = {
     MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
     IOS_KEYBOARD_SPACE_OFFSET: -30,
 
-    PDF_PASSWORD_FORM: {
-        // Constants for password-related error responses received from react-pdf.
-        REACT_PDF_PASSWORD_RESPONSES: {
-            NEED_PASSWORD: 1,
-            INCORRECT_PASSWORD: 2,
-        },
-    },
     API_REQUEST_TYPE: {
         READ: 'read',
         WRITE: 'write',
@@ -2951,7 +2989,7 @@ const CONST = {
         CURRENCY: 'XAF',
         FORMAT: 'symbol',
         SAMPLE_INPUT: '123456.789',
-        EXPECTED_OUTPUT: 'FCFA 123,457',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
     PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],
@@ -3389,6 +3427,9 @@ const CONST = {
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
+
+    MOBILE_PAGINATION_SIZE: 15,
+    WEB_PAGINATION_SIZE: 50,
 
     /** Dimensions for illustration shown in Confirmation Modal */
     CONFIRM_CONTENT_SVG_SIZE: {
@@ -4101,6 +4142,25 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
+    DEFAULT_TAX: {
+        defaultExternalID: 'id_TAX_EXEMPT',
+        defaultValue: '0%',
+        foreignTaxDefault: 'id_TAX_EXEMPT',
+        name: 'Tax',
+        taxes: {
+            id_TAX_EXEMPT: {
+                name: 'Tax exempt',
+                value: '0%',
+            },
+            id_TAX_RATE_1: {
+                name: 'Tax Rate 1',
+                value: '5%',
+            },
+        },
+    },
+
+    MAX_TAX_RATE_INTEGER_PLACES: 4,
+    MAX_TAX_RATE_DECIMAL_PLACES: 4,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

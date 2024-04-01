@@ -1,11 +1,11 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/core';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import {useCameraDevices} from 'react-native-vision-camera';
+import {useCameraDevice} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -60,25 +60,26 @@ function IOURequestStepScan({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const devices = useCameraDevices('wide-angle-camera');
-    const device = devices.back;
+    const device = useCameraDevice('back', {
+        physicalDevices: ['wide-angle-camera'],
+    });
 
+    const hasFlash = device != null && device.hasFlash;
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
-    const askedForPermission = useRef(false);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
 
     const {translate} = useLocalize();
 
-    const askForPermissions = (showPermissionsAlert = true) => {
+    const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
         CameraPermission.requestCameraPermission()
             .then((status) => {
                 setCameraPermissionStatus(status);
 
-                if (status === RESULTS.BLOCKED && showPermissionsAlert) {
+                if (status === RESULTS.BLOCKED) {
                     FileUtils.showCameraPermissionsAlert();
                 }
             })
@@ -125,24 +126,16 @@ function IOURequestStepScan({
     useFocusEffect(
         useCallback(() => {
             setDidCapturePhoto(false);
-
+            const refreshCameraPermissionStatus = () => {
             const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
                 CameraPermission.getCameraPermissionStatus()
-                    .then((res) => {
-                        // In android device app data, the status is not set to blocked until denied twice,
-                        // due to that the app will ask for permission twice whenever users opens uses the scan tab
-                        setCameraPermissionStatus(res);
-                        if (shouldAskForPermission && !askedForPermission.current) {
-                            askedForPermission.current = true;
-                            askForPermissions(false);
-                        }
-                    })
+                    .then(setCameraPermissionStatus)
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
 
             InteractionManager.runAfterInteractions(() => {
                 // Check initial camera permission status
-                refreshCameraPermissionStatus(true);
+                refreshCameraPermissionStatus();
             });
 
             // Refresh permission status when app gain focus
@@ -190,7 +183,7 @@ function IOURequestStepScan({
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
-        if (isFromGlobalCreate) {
+        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -233,7 +226,7 @@ function IOURequestStepScan({
 
     const capturePhoto = useCallback(() => {
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
-            askForPermissions(cameraPermissionStatus !== RESULTS.DENIED);
+            askForPermissions();
             return;
         }
 
@@ -252,8 +245,7 @@ function IOURequestStepScan({
 
         return camera.current
             .takePhoto({
-                qualityPrioritization: 'speed',
-                flash: flash ? 'on' : 'off',
+                flash: flash && hasFlash ? 'on' : 'off',
             })
             .then((photo) => {
                 // Store the receipt on the transaction object in Onyx
@@ -275,7 +267,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus, didCapturePhoto]);
+    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus, didCapturePhoto]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -374,20 +366,22 @@ function IOURequestStepScan({
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
-                <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    accessibilityLabel={translate('receipt.flash')}
-                    style={[styles.alignItemsEnd]}
-                    disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                    onPress={() => setFlash((prevFlash) => !prevFlash)}
-                >
-                    <Icon
-                        height={32}
-                        width={32}
-                        src={Expensicons.Bolt}
-                        fill={flash ? theme.iconHovered : theme.textSupporting}
-                    />
-                </PressableWithFeedback>
+                {hasFlash && (
+                    <PressableWithFeedback
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flash')}
+                        style={[styles.alignItemsEnd]}
+                        disabled={cameraPermissionStatus !== RESULTS.GRANTED}
+                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={Expensicons.Bolt}
+                            fill={flash ? theme.iconHovered : theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
+                )}
             </View>
         </StepScreenWrapper>
     );
