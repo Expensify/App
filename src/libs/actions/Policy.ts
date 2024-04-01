@@ -962,7 +962,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
 }
 
 function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
-    const previousPolicyMembers = {...allPolicyMembers};
+    const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
     const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
         if (!allPersonalDetails?.[accountID]?.login) {
             return result;
@@ -980,13 +980,15 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                ...memberRoles.reduce((member: Record<number, {role: string; pendingAction: PendingAction}>, current) => {
-                    // eslint-disable-next-line no-param-reassign
-                    member[current.accountID] = {role: current?.role, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
-                    return member;
-                }, {}),
+                employeeList: {
+                    ...memberRoles.reduce((member: Record<string, {role: string; pendingAction: PendingAction}>, current) => {
+                        // eslint-disable-next-line no-param-reassign
+                        member[current.email] = {role: current?.role, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                        return member;
+                    }, {}),
+                },
                 errors: null,
             },
         },
@@ -995,13 +997,15 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                ...memberRoles.reduce((member: Record<number, {role: string; pendingAction: PendingAction}>, current) => {
-                    // eslint-disable-next-line no-param-reassign
-                    member[current.accountID] = {role: current?.role, pendingAction: null};
-                    return member;
-                }, {}),
+                employeeList: {
+                    ...memberRoles.reduce((member: Record<string, {role: string; pendingAction: PendingAction}>, current) => {
+                        // eslint-disable-next-line no-param-reassign
+                        member[current.email] = {role: current?.role, pendingAction: null};
+                        return member;
+                    }, {}),
+                },
                 errors: null,
             },
         },
@@ -1010,9 +1014,9 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                ...(previousPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] as Record<string, PolicyMember | null>),
+                employeeList: previousEmployeeList,
                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
             },
         },
