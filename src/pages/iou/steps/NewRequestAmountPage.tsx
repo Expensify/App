@@ -77,7 +77,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
                 if (!iou?.id) {
                     return;
                 }
-                Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, '1', reportID), true);
                 return;
             }
             const moneyRequestID = `${iouType}${reportID}`;
@@ -87,7 +87,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
             }
 
             if (!isDistanceRequestTab && (!iou?.participants?.length || iou?.amount === 0 || shouldReset)) {
-                Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, '1', reportID), true);
             }
         }
 
@@ -97,7 +97,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
     }, [isEditing, iouType, reportID, isDistanceRequestTab, report?.reportID, iou?.id, iou?.participants?.length, iou?.amount]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
+        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, '1', reportID) : ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
@@ -118,7 +118,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
         IOU.setMoneyRequestCurrency(currency);
 
         if (isEditing) {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, '1', reportID));
             return;
         }
 

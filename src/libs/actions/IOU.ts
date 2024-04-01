@@ -1,5 +1,4 @@
 import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import fastMerge from 'expensify-common/lib/fastMerge';
 import Str from 'expensify-common/lib/str';
@@ -45,11 +44,10 @@ import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUR
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {MoneyRequestNavigatorParamList, NavigationPartialRoute} from '@navigation/types';
+import type {NavigationPartialRoute} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
@@ -62,8 +60,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Policy from './Policy';
 import * as Report from './Report';
-
-type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -2248,6 +2244,50 @@ function trackExpense(
     Report.notifyNewAction(activeReportID, payeeAccountID);
 }
 
+function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
+    // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
+    const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
+
+    // Check if the report is available locally if we do have one
+    let existingSplitChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
+
+    // If we do not have one locally then we will search for a chat with the same participants (only for 1:1 chats).
+    const shouldGetOrCreateOneOneDM = participants.length < 2;
+    if (!existingSplitChatReport && shouldGetOrCreateOneOneDM) {
+        existingSplitChatReport = ReportUtils.getChatByParticipants(participantAccountIDs);
+    }
+
+    // We found an existing chat report we are done...
+    if (existingSplitChatReport) {
+        // Yes, these are the same, but give the caller a way to identify if we created a new report or not
+        return {existingSplitChatReport, splitChatReport: existingSplitChatReport};
+    }
+
+    // No existing chat by this point we need to create it
+    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
+
+    // Create a Group Chat if we have multiple participants
+    if (participants.length > 1) {
+        const splitChatReport = ReportUtils.buildOptimisticChatReport(
+            allParticipantsAccountIDs,
+            '',
+            CONST.REPORT.CHAT_TYPE.GROUP,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        );
+        return {existingSplitChatReport: null, splitChatReport};
+    }
+
+    // Otherwise, create a new 1:1 chat report
+    const splitChatReport = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
+    return {existingSplitChatReport: null, splitChatReport};
+}
+
 /**
  * Build the Onyx data and IOU split necessary for splitting a bill with 3+ users.
  * 1. Build the optimistic Onyx data for the group chat, i.e. chatReport and iouReportAction creating the former if it doesn't yet exist.
@@ -2280,31 +2320,7 @@ function createSplitsAndOnyxData(
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
-    const existingChatReportID = existingSplitChatReportID || participants[0].reportID;
-    let existingSplitChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
-    if (!existingSplitChatReport) {
-        existingSplitChatReport = participants.length < 2 ? ReportUtils.getChatByParticipants(participantAccountIDs) : null;
-    }
-    let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
-    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
-    if (!existingSplitChatReport && participants.length > 1) {
-        newChat = ReportUtils.buildOptimisticChatReport(
-            allParticipantsAccountIDs,
-            '',
-            CONST.REPORT.CHAT_TYPE.GROUP,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-        );
-    }
-    if (isEmptyObject(newChat)) {
-        newChat = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
-    }
-    const splitChatReport = existingSplitChatReport ?? newChat;
+    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -2785,11 +2801,7 @@ function startSplitBill(
 ) {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
-    const existingSplitChatReport =
-        existingSplitChatReportID || participants[0].reportID
-            ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
-            : ReportUtils.getChatByParticipants(participantAccountIDs);
-    const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
@@ -3047,6 +3059,7 @@ function startSplitBill(
         isFromGroupDM: !existingSplitChatReport,
         billable,
         ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
+        chatType: splitChatReport?.chatType,
     };
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
@@ -5063,7 +5076,9 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
 
     // If we're adding a receipt, that means the user came from the confirmation page and we need to navigate back to it.
     if (path.slice(1) === ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, report?.reportID)) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType as ValueOf<typeof CONST.IOU.TYPE>, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report?.reportID ?? '1'),
+        );
         return;
     }
 
@@ -5079,21 +5094,12 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
                 : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
             setMoneyRequestParticipants(participants);
         }
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType as ValueOf<typeof CONST.IOU.TYPE>, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID),
+        );
         return;
     }
     Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
-}
-
-/**
- *  When the money request or split bill creation flow is initialized via FAB, the reportID is not passed as a navigation
- * parameter.
- * Gets a report id from the first participant of the IOU object stored in Onyx.
- */
-function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string {
-    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return route?.params.reportID || iou?.participants?.[0]?.reportID || '';
 }
 
 /**
@@ -5300,7 +5306,6 @@ export {
     updateMoneyRequestDescription,
     replaceReceipt,
     detachReceipt,
-    getIOUReportID,
     editMoneyRequest,
     putOnHold,
     unholdRequest,
