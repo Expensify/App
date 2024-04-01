@@ -301,7 +301,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         {Object.values(customUnitRates).length > 0 && (
                             <SelectionList
                                 canSelectMultiple
-                                sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
+                                sections={[{data: distanceRatesList, isDisabled: false}]}
                                 onCheckboxPress={toggleRate}
                                 onSelectRow={openRateDetails}
                                 onSelectAll={toggleAllRates}
