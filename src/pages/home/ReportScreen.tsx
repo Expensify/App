@@ -102,7 +102,7 @@ type ReportScreenProps = OnyxHOCProps & CurrentReportIDContextValue & ReportScre
 function getReportID(route: ReportScreenNavigationProps['route']): string {
     // The report ID is used in an onyx key. If it's an empty string, onyx will return
     // a collection instead of an individual report.
-    return String(route.params?.reportID || '');
+    return String(route.params?.reportID || 0);
 }
 
 /**
@@ -143,7 +143,7 @@ function ReportScreen({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const reportIDFromRoute = getReportID(route);
+    const reportIDFromRoute = route?.params?.reportID ?? '';
     const reportActionIDFromRoute = route?.params?.reportActionID ?? '';
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
