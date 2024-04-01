@@ -134,6 +134,7 @@ export default {
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
         chats: 'Chats',
+        group: 'Grupo',
         profile: 'Perfil',
         referral: 'Remisión',
         payments: 'Pagos',
@@ -597,6 +598,9 @@ export default {
         sendMoney: 'Enviar Dinero',
         assignTask: 'Assignar Tarea',
         shortcut: 'Acceso Directo',
+        trackManual: 'Seguimiento de Gastos',
+        trackScan: 'Seguimiento de Recibo',
+        trackDistance: 'Seguimiento de Distancia',
     },
     iou: {
         amount: 'Importe',
@@ -1209,6 +1213,9 @@ export default {
         roomDescriptionOptional: 'Descripción de la sala de chat (opcional)',
         explainerText: 'Establece una descripción personalizada para la sala de chat.',
     },
+    groupConfirmPage: {
+        groupName: 'Nombre del grupo',
+    },
     languagePage: {
         language: 'Idioma',
         languages: {
@@ -1349,7 +1356,7 @@ export default {
     },
     newChatPage: {
         createChat: 'Crear chat',
-        createGroup: 'Crear grupo',
+        startGroup: 'Grupo de inicio',
         addToGroup: 'Añadir al grupo',
     },
     yearPickerPage: {
@@ -2906,6 +2913,7 @@ export default {
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
+        thread: 'Hilo',
         replies: 'Respuestas',
         reply: 'Respuesta',
         from: 'De',
