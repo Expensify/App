@@ -25,6 +25,10 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportID 
 
     const {translate} = useLocalize();
 
+    if (!reportName){
+        return;
+    }
+
     return (
         <PressableWithoutFeedback
             onPress={() => {

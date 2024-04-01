@@ -16,9 +16,11 @@ import ROUTES from '@src/ROUTES';
 type ThreadDividerProps = {
     /** Thread ancestor */
     ancestor: Ancestor;
+    /** Whether the link is disbled */
+    isDisabled: boolean;
 };
 
-function ThreadDivider({ancestor}: ThreadDividerProps) {
+function ThreadDivider({ancestor, isDisabled}: ThreadDividerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -30,6 +32,7 @@ function ThreadDivider({ancestor}: ThreadDividerProps) {
                 accessibilityLabel={translate('threads.thread')}
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
+                disabled={isDisabled}
             >
                 <Icon
                     src={Expensicons.Thread}
