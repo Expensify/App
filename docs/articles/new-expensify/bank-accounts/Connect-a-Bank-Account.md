@@ -94,6 +94,14 @@ If you need to enable direct debits from your verified bank account, your bank w
 - The ACH CompanyIDs (1270239450, 4270239450 and 2270239450) 
 - The ACH Originator Name (Expensify)
 
+If using Expensify to process Bill payments, you'll also need to whitelist the ACH IDs from our partner [Stripe](https://support.stripe.com/questions/ach-direct-debit-company-ids-for-stripe?):
+- The ACH CompanyIDs (1800948598 and 4270465600)
+- The ACH Originator Name (Stripe Payments company)
+
+If using Expensify to process international reimbursements from your USD bank account, you'll also need to whitelist the ACH IDs from our partner CorPay:
+- The ACH CompanyIDs (1522304924 and 2522304924)
+- The ACH Originator Name (Cambridge Global Payments)
+
 To request to unlock the bank account, go to **Settings > Workspaces > _Workspace Name_ > Bank account** and click **Fix.** This sends a request to our support team to review why the bank account was locked, who will send you a message to confirm that.
 
 Unlocking a bank account can take 4-5 business days to process, to allow for ACH processing time and clawback periods.

@@ -5,7 +5,7 @@ import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'reac
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import {useCameraDevices} from 'react-native-vision-camera';
+import {useCameraDevice} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -60,9 +60,11 @@ function IOURequestStepScan({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const devices = useCameraDevices('wide-angle-camera');
-    const device = devices.back;
+    const device = useCameraDevice('back', {
+        physicalDevices: ['wide-angle-camera'],
+    });
 
+    const hasFlash = device != null && device.hasFlash;
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
@@ -236,8 +238,7 @@ function IOURequestStepScan({
 
         return camera.current
             .takePhoto({
-                qualityPrioritization: 'speed',
-                flash: flash ? 'on' : 'off',
+                flash: flash && hasFlash ? 'on' : 'off',
             })
             .then((photo) => {
                 // Store the receipt on the transaction object in Onyx
@@ -257,7 +258,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
+    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -356,20 +357,22 @@ function IOURequestStepScan({
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
-                <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    accessibilityLabel={translate('receipt.flash')}
-                    style={[styles.alignItemsEnd]}
-                    disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                    onPress={() => setFlash((prevFlash) => !prevFlash)}
-                >
-                    <Icon
-                        height={32}
-                        width={32}
-                        src={Expensicons.Bolt}
-                        fill={flash ? theme.iconHovered : theme.textSupporting}
-                    />
-                </PressableWithFeedback>
+                {hasFlash && (
+                    <PressableWithFeedback
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flash')}
+                        style={[styles.alignItemsEnd]}
+                        disabled={cameraPermissionStatus !== RESULTS.GRANTED}
+                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={Expensicons.Bolt}
+                            fill={flash ? theme.iconHovered : theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
+                )}
             </View>
         </StepScreenWrapper>
     );
