@@ -1,29 +1,48 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+
 /**
  * @jest-environment node
  */
 import * as core from '@actions/core';
-import _ from 'underscore';
+import asMutable from '@src/types/utils/asMutable';
 import run from '../../.github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
+import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
+
+type Workflow = {
+    workflow_id: string;
+    branch: string;
+    owner: string;
+};
+
+type WorkflowStatus = {status: string};
 
 // Lower poll rate to speed up tests
 const TEST_POLL_RATE = 1;
-const COMPLETED_WORKFLOW = {status: 'completed'};
-const INCOMPLETE_WORKFLOW = {status: 'in_progress'};
+const COMPLETED_WORKFLOW: WorkflowStatus = {status: 'completed'};
+const INCOMPLETE_WORKFLOW: WorkflowStatus = {status: 'in_progress'};
+
+type MockListResponse = {
+    data: {
+        workflow_runs: WorkflowStatus[];
+    };
+};
+
+type MockedFunctionListResponse = jest.MockedFunction<() => Promise<MockListResponse>>;
 
 const consoleSpy = jest.spyOn(console, 'log');
 const mockGetInput = jest.fn();
-const mockListPlatformDeploysForTag = jest.fn();
-const mockListPlatformDeploys = jest.fn();
-const mockListPreDeploys = jest.fn();
-const mockListWorkflowRuns = jest.fn().mockImplementation((args) => {
+const mockListPlatformDeploysForTag: MockedFunctionListResponse = jest.fn();
+const mockListPlatformDeploys: MockedFunctionListResponse = jest.fn();
+const mockListPreDeploys: MockedFunctionListResponse = jest.fn();
+const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
     const defaultReturn = Promise.resolve({data: {workflow_runs: []}});
 
-    if (!_.has(args, 'workflow_id')) {
+    if (!args.workflow_id) {
         return defaultReturn;
     }
 
-    if (!_.isUndefined(args.branch)) {
+    if (args.branch !== undefined) {
         return mockListPlatformDeploysForTag();
     }
 
@@ -40,16 +59,18 @@ const mockListWorkflowRuns = jest.fn().mockImplementation((args) => {
 
 beforeAll(() => {
     // Mock core module
-    core.getInput = mockGetInput;
+    asMutable(core).getInput = mockGetInput;
 
     // Mock octokit module
-    const moctokit = {
+    const moctokit: InternalOctokit = {
         rest: {
+            // @ts-expect-error This error was removed because getting the rest of the data from internalOctokit makes the test to break
             actions: {
-                listWorkflowRuns: mockListWorkflowRuns,
+                listWorkflowRuns: mockListWorkflowRuns as unknown as typeof GithubUtils.octokit.actions.listWorkflowRuns,
             },
         },
     };
+
     GithubUtils.internalOctokit = moctokit;
     GithubUtils.POLL_RATE = TEST_POLL_RATE;
 });

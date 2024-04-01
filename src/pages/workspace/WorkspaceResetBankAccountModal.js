@@ -20,9 +20,15 @@ const propTypes = {
         /** Currently logged in user email */
         email: PropTypes.string,
     }).isRequired,
+
+    /** Information about the logged in user's account */
+    user: PropTypes.shape({
+        /** Whether or not the user is on a public domain email account or not */
+        isFromPublicDomain: PropTypes.bool,
+    }).isRequired,
 };
 
-function WorkspaceResetBankAccountModal({reimbursementAccount, session}) {
+function WorkspaceResetBankAccountModal({reimbursementAccount, session, user}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const achData = lodashGet(reimbursementAccount, 'achData') || {};
@@ -48,7 +54,7 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}) {
             }
             danger
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session, achData.policyID)}
+            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session, achData.policyID, user)}
             shouldShowCancelButton
             isVisible
         />
@@ -61,5 +67,8 @@ WorkspaceResetBankAccountModal.propTypes = propTypes;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    user: {
+        key: ONYXKEYS.USER,
     },
 })(WorkspaceResetBankAccountModal);

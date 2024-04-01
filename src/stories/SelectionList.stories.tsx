@@ -40,7 +40,6 @@ const SECTIONS = [
                 isSelected: false,
             },
         ],
-        indexOffset: 0,
         isDisabled: false,
     },
     {
@@ -61,7 +60,6 @@ const SECTIONS = [
                 isSelected: false,
             },
         ],
-        indexOffset: 3,
         isDisabled: false,
     },
 ];
@@ -71,7 +69,7 @@ function Default(props: BaseSelectionListProps<ListItem>) {
 
     const sections = props.sections.map((section) => {
         const data = section.data.map((item, index) => {
-            const isSelected = selectedIndex === index + (section?.indexOffset ?? 0);
+            const isSelected = selectedIndex === index;
             return {...item, isSelected};
         });
 
@@ -83,7 +81,7 @@ function Default(props: BaseSelectionListProps<ListItem>) {
             const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
-                setSelectedIndex(newSelectedIndex + (section?.indexOffset ?? 0));
+                setSelectedIndex(newSelectedIndex);
             }
         });
     };
@@ -115,7 +113,7 @@ function WithTextInput(props: BaseSelectionListProps<ListItem>) {
                 return memo;
             }
 
-            const isSelected = selectedIndex === index + (section?.indexOffset ?? 0);
+            const isSelected = selectedIndex === index;
             memo.push({...item, isSelected});
             return memo;
         }, []);
@@ -128,7 +126,7 @@ function WithTextInput(props: BaseSelectionListProps<ListItem>) {
             const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
-                setSelectedIndex(newSelectedIndex + (section?.indexOffset ?? 0));
+                setSelectedIndex(newSelectedIndex);
             }
         });
     };
@@ -177,7 +175,7 @@ function WithAlternateText(props: BaseSelectionListProps<ListItem>) {
 
     const sections = props.sections.map((section) => {
         const data = section.data.map((item, index) => {
-            const isSelected = selectedIndex === index + (section?.indexOffset ?? 0);
+            const isSelected = selectedIndex === index;
 
             return {
                 ...item,
@@ -194,7 +192,7 @@ function WithAlternateText(props: BaseSelectionListProps<ListItem>) {
             const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
-                setSelectedIndex(newSelectedIndex + (section?.indexOffset ?? 0));
+                setSelectedIndex(newSelectedIndex);
             }
         });
     };
@@ -225,7 +223,7 @@ function MultipleSelection(props: BaseSelectionListProps<ListItem>) {
                     allIds.push(item.keyForList);
                 }
                 const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
-                const isAdmin = index + (section?.indexOffset ?? 0) === 0;
+                const isAdmin = index === 0;
 
                 return {
                     ...item,
@@ -295,7 +293,7 @@ function WithSectionHeader(props: BaseSelectionListProps<ListItem>) {
                     allIds.push(item.keyForList);
                 }
                 const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
-                const isAdmin = itemIndex + (section?.indexOffset ?? 0) === 0;
+                const isAdmin = itemIndex === 0;
 
                 return {
                     ...item,
@@ -363,7 +361,7 @@ function WithConfirmButton(props: BaseSelectionListProps<ListItem>) {
                     allIds.push(item.keyForList);
                 }
                 const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
-                const isAdmin = itemIndex + (section.indexOffset ?? 0) === 0;
+                const isAdmin = itemIndex === 0;
 
                 return {
                     ...item,
