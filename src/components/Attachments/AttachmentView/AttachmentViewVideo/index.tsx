@@ -12,13 +12,13 @@ type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovere
 };
 
 function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0}: AttachmentViewVideoProps) {
-    const {isSmallScreen} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
 
     return (
         <VideoPlayer
             url={source}
-            shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreen}
+            shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreenWidth}
             isVideoHovered={isHovered}
             videoDuration={duration}
             style={[styles.w100, styles.h100]}

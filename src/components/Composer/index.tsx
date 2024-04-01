@@ -1,14 +1,16 @@
+import lodashDebounce from 'lodash/debounce';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
-import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData} from 'react-native';
+import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import RNTextInput from '@components/RNTextInput';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import Text from '@components/Text';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
+import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -79,10 +81,11 @@ function Composer(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const markdownStyle = useMarkdownStyle();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const textRef = useRef<HTMLElement & RNText>(null);
-    const textInput = useRef<AnimatedTextInputRef | null>(null);
+    const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState<
         | {
@@ -97,7 +100,9 @@ function Composer(
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
     const [textInputWidth, setTextInputWidth] = useState('');
+    const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
+    const [prevScroll, setPrevScroll] = useState<number | undefined>();
 
     useEffect(() => {
         if (!shouldClear) {
@@ -123,7 +128,7 @@ function Composer(
     const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
         const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
 
-        if (shouldCalculateCaretPosition) {
+        if (shouldCalculateCaretPosition && isRendered) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
                 setValueBeforeCaret(webEvent.target.value.slice(0, webEvent.nativeEvent.selection.start));
@@ -158,18 +163,19 @@ function Composer(
         (event: ClipboardEvent) => {
             const isVisible = checkComposerVisibility();
             const isFocused = textInput.current?.isFocused();
+            const isContenteditableDivFocused = document.activeElement?.nodeName === 'DIV' && document.activeElement?.hasAttribute('contenteditable');
 
             if (!(isVisible || isFocused)) {
                 return true;
             }
 
-            if (textInput.current !== event.target) {
+            if (textInput.current !== event.target && !(isContenteditableDivFocused && !event.clipboardData?.files.length)) {
                 const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
 
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
                 const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
-                if (isTargetInput) {
+                if (isTargetInput || (!isFocused && isContenteditableDivFocused && event.clipboardData?.files.length)) {
                     return true;
                 }
 
@@ -256,12 +262,44 @@ function Composer(
         updateNumberOfLines();
     }, [updateNumberOfLines]);
 
+    const currentNumberOfLines = useMemo(
+        () => (isComposerFullSize ? undefined : numberOfLines),
+
+        [isComposerFullSize, numberOfLines],
+    );
+
+    useEffect(() => {
+        if (!textInput.current) {
+            return;
+        }
+        const debouncedSetPrevScroll = lodashDebounce(() => {
+            if (!textInput.current) {
+                return;
+            }
+            setPrevScroll(textInput.current.scrollTop);
+        }, 100);
+
+        textInput.current.addEventListener('scroll', debouncedSetPrevScroll);
+        return () => {
+            textInput.current?.removeEventListener('scroll', debouncedSetPrevScroll);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!textInput.current || prevScroll === undefined) {
+            return;
+        }
+        textInput.current.scrollTop = prevScroll;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isComposerFullSize]);
+
     useHtmlPaste(textInput, handlePaste, true);
 
     useEffect(() => {
         if (typeof ref === 'function') {
             ref(textInput.current);
         }
+        setIsRendered(true);
 
         return () => {
             if (isReportActionCompose) {
@@ -321,6 +359,7 @@ function Composer(
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
+            isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
         ],
 
         [numberOfLines, scrollStyleMemo, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
@@ -328,20 +367,21 @@ function Composer(
 
     return (
         <>
-            <RNTextInput
+            <RNMarkdownTextInput
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={theme.placeholderText}
                 ref={(el) => (textInput.current = el)}
                 selection={selection}
                 style={inputStyleMemo}
+                markdownStyle={markdownStyle}
                 value={value}
                 defaultValue={defaultValue}
                 autoFocus={autoFocus}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
-                numberOfLines={numberOfLines}
+                numberOfLines={currentNumberOfLines}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
