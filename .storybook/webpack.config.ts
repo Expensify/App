@@ -56,7 +56,7 @@ const webpackConfig = ({config}: {config: Configuration}) => {
 
     // We can ignore the "module not installed" warning from lottie-react-native
     // because we are not using the library for JSON format of Lottie animations.
-    config.ignoreWarnings = [{module: new RegExp('node_modules/lottie-react-native/lib/module/LottieView/index.web.js')}];
+    // config.ignoreWarnings = [{module: new RegExp('node_modules/lottie-react-native/lib/module/LottieView/index.web.js')}];
 
     // Necessary to overwrite the values in the existing DefinePlugin hardcoded to the Config staging values
     const definePluginIndex = config.plugins.findIndex((plugin) => plugin instanceof DefinePlugin);
