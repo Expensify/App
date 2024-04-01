@@ -4,7 +4,7 @@ import {Alert, Image as RNImage, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
-import {launchImageLibrary} from 'react-native-image-picker';
+import {ImageLibraryOptions, launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -40,7 +40,7 @@ type Item = {
  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
  * for ImagePicker configuration options
  */
-const imagePickerOptions = {
+const imagePickerOptions: Partial<CameraOptions | ImageLibraryOptions> = {
     includeBase64: false,
     saveToPhotos: false,
     selectionLimit: 1,
