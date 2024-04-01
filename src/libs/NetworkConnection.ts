@@ -94,7 +94,7 @@ function subscribeToBackendReachability(): () => void {
             })
             .then(NetworkActions.setIsBackendReachable)
             .catch(() => NetworkActions.setIsBackendReachable(false));
-    }, CONST.NETWORK.REACHABILITY_TIMEOUT_MS);
+    }, CONST.NETWORK.BACKEND_CHECK_INTERVAL_MS);
 
     return () => {
         clearInterval(intervalID);
