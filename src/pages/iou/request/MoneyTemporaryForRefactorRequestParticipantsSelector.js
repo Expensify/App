@@ -182,13 +182,14 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      *
      * @param {Object} option
      */
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
     const addSingleParticipant = useCallback(
         (option) => {
             onParticipantsAdded([
                 {
                     ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
                     selected: true,
-                    iouType: iouType,
+                    iouType,
                 },
             ]);
             onFinish();
@@ -200,6 +201,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
     const addParticipantToSelection = useCallback(
         (option) => {
             const isOptionSelected = (selectedOption) => {
