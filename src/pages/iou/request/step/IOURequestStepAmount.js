@@ -23,7 +23,7 @@ import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import {
+import withCurrentUserPersonalDetails, {
     withCurrentUserPersonalDetailsDefaultProps,
     withCurrentUserPersonalDetailsPropTypes
 } from "@components/withCurrentUserPersonalDetails";
@@ -247,6 +247,7 @@ IOURequestStepAmount.defaultProps = defaultProps;
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
 export default compose(
+    withCurrentUserPersonalDetails,
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({

@@ -33,6 +33,7 @@ import * as ReportUtils from "@libs/ReportUtils";
 import DistanceRequestUtils from "@libs/DistanceRequestUtils";
 import * as OptionsListUtils from "@libs/OptionsListUtils";
 import personalDetailsPropType from "@pages/personalDetailsPropType";
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from "@components/withCurrentUserPersonalDetails";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -50,6 +51,8 @@ const propTypes = {
 
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
+
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 const defaultProps = {
@@ -57,6 +60,7 @@ const defaultProps = {
     transaction: {},
     transactionBackup: {},
     personalDetails: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function IOURequestStepDistance({
@@ -67,6 +71,7 @@ function IOURequestStepDistance({
     transaction,
     transactionBackup,
     personalDetails,
+    currentUserPersonalDetails,
 }) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -154,6 +159,20 @@ function IOURequestStepDistance({
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
             if (skipConfirmation) {
+                if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    IOU.splitBillAndOpenReport(
+                        participants,
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
+                        0,
+                        '',
+                        transaction.currency,
+                        translate('iou.routePending'),
+                        transaction.created,
+                        '',
+                    );
+                    return;
+                }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
                 IOU.setMoneyRequestMerchant(transactionID, translate('iou.routePending'), false);
                 IOU.createDistanceRequest(
@@ -324,6 +343,7 @@ IOURequestStepDistance.propTypes = propTypes;
 IOURequestStepDistance.defaultProps = defaultProps;
 
 export default compose(
+    withCurrentUserPersonalDetails,
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({

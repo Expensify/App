@@ -309,6 +309,7 @@ function IOURequestStepConfirmation({
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
+                console.log('there');
                 IOU.startSplitBill(
                     selectedParticipants,
                     currentUserPersonalDetails.login,
@@ -430,6 +431,7 @@ function IOURequestStepConfirmation({
             }
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+                console.log('here');
                 createDistanceRequest(selectedParticipants, trimmedComment);
                 return;
             }
