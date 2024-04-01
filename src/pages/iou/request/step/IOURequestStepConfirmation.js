@@ -9,6 +9,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -26,7 +27,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
@@ -45,9 +45,6 @@ const propTypes = {
     /* Onyx Props */
     /** The personal details of the current user */
     ...withCurrentUserPersonalDetailsPropTypes,
-
-    /** Personal details of all users */
-    personalDetails: personalDetailsPropType,
 
     /** The policy of the report */
     ...policyPropTypes,
@@ -75,7 +72,6 @@ const defaultProps = {
 };
 function IOURequestStepConfirmation({
     currentUserPersonalDetails,
-    personalDetails,
     policy,
     policyTags,
     policyCategories,
@@ -89,6 +85,7 @@ function IOURequestStepConfirmation({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [receiptFile, setReceiptFile] = useState();
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
@@ -100,6 +97,9 @@ function IOURequestStepConfirmation({
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             return translate('iou.split');
         }
+        if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+            return translate('iou.trackExpense');
+        }
         if (iouType === CONST.IOU.TYPE.SEND) {
             return translate('common.send');
         }
@@ -109,8 +109,8 @@ function IOURequestStepConfirmation({
     const participants = useMemo(
         () =>
             _.map(transaction.participants, (participant) => {
-                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                const participantAccountID = lodashGet(participant, 'accountID', 0);
+                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }),
         [transaction.participants, personalDetails],
     );
@@ -131,7 +131,7 @@ function IOURequestStepConfirmation({
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-    }, [participants, transaction.billable, policy, transactionID]);
+    }, [isOffline, participants, transaction.billable, policy, transactionID]);
 
     const defaultBillable = lodashGet(policy, 'defaultBillable', false);
     useEffect(() => {
@@ -187,13 +187,6 @@ function IOURequestStepConfirmation({
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
     }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
 
-    useEffect(() => {
-        const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
-        if (policyExpenseChat) {
-            Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
-        }
-    }, [isOffline, participants, transaction.billable, policy]);
-
     /**
      * @param {Array} selectedParticipants
      * @param {String} trimmedComment
@@ -224,6 +217,54 @@ function IOURequestStepConfirmation({
             );
         },
         [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
+    );
+
+    /**
+     * @param {Array} selectedParticipants
+     * @param {String} trimmedComment
+     * @param {File} [receiptObj]
+     */
+    const trackExpense = useCallback(
+        (selectedParticipants, trimmedComment, receiptObj, gpsPoints) => {
+            IOU.trackExpense(
+                report,
+                transaction.amount,
+                transaction.currency,
+                transaction.created,
+                transaction.merchant,
+                currentUserPersonalDetails.login,
+                currentUserPersonalDetails.accountID,
+                selectedParticipants[0],
+                trimmedComment,
+                receiptObj,
+                transaction.category,
+                transaction.tag,
+                transactionTaxCode,
+                transactionTaxAmount,
+                transaction.billable,
+                policy,
+                policyTags,
+                policyCategories,
+                gpsPoints,
+            );
+        },
+        [
+            report,
+            transaction.amount,
+            transaction.currency,
+            transaction.created,
+            transaction.merchant,
+            transaction.category,
+            transaction.tag,
+            transaction.billable,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            transactionTaxCode,
+            transactionTaxAmount,
+            policy,
+            policyTags,
+            policyCategories,
+        ],
     );
 
     /**
@@ -295,6 +336,7 @@ function IOURequestStepConfirmation({
                     transaction.tag,
                     report.reportID,
                     transaction.billable,
+                    transaction.iouRequestType,
                 );
                 return;
             }
@@ -313,7 +355,43 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     transaction.billable,
+                    transaction.iouRequestType,
                 );
+                return;
+            }
+
+            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                if (receiptFile) {
+                    // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
+                    if (transaction.amount === 0) {
+                        getCurrentPosition(
+                            (successData) => {
+                                trackExpense(selectedParticipants, trimmedComment, receiptFile, {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                });
+                            },
+                            (errorData) => {
+                                Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
+                                // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                                trackExpense(selectedParticipants, trimmedComment, receiptFile);
+                            },
+                            {
+                                // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+                                maximumAge: 1000 * 60 * 60,
+
+                                // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+                                timeout: 15000,
+                            },
+                        );
+                        return;
+                    }
+
+                    // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
+                    trackExpense(selectedParticipants, trimmedComment, receiptFile);
+                    return;
+                }
+                trackExpense(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }
 
@@ -355,7 +433,18 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, requestType, createDistanceRequest, requestMoney, receiptFile],
+        [
+            transaction,
+            iouType,
+            receiptFile,
+            requestType,
+            requestMoney,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            report.reportID,
+            trackExpense,
+            createDistanceRequest,
+        ],
     );
 
     /**
@@ -415,7 +504,7 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && iouType === CONST.IOU.TYPE.REQUEST}
+                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.TRACK_EXPENSE)}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {
@@ -473,12 +562,6 @@ export default compose(
     withCurrentUserPersonalDetails,
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,

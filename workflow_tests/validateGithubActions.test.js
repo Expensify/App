@@ -2,8 +2,8 @@ const path = require('path');
 const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/validateGithubActionsAssertions');
-const mocks = require('./mocks/validateGithubActionsMocks');
-const eAct = require('./utils/ExtendedAct');
+const mocks = require('./mocks/validateGithubActionsMocks').default;
+const ExtendedAct = require('./utils/ExtendedAct').default;
 
 jest.setTimeout(90 * 1000);
 let mockGithub;
@@ -49,7 +49,7 @@ describe('test workflow validateGithubActions', () => {
         it('executes verification', async () => {
             const repoPath = mockGithub.repo.getPath('testValidateGithubActionsWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'validateGithubActions.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 verify: mocks.VALIDATEGITHUBACTIONS__VERIFY__STEP_MOCKS,
@@ -72,7 +72,7 @@ describe('test workflow validateGithubActions', () => {
         it('executes verification', async () => {
             const repoPath = mockGithub.repo.getPath('testValidateGithubActionsWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'validateGithubActions.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
+            let act = new ExtendedAct(repoPath, workflowPath);
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 verify: mocks.VALIDATEGITHUBACTIONS__VERIFY__STEP_MOCKS,
