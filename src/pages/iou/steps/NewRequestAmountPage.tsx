@@ -77,7 +77,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
                 if (!iou?.id) {
                     return;
                 }
-                Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, '1', reportID), true);
                 return;
             }
             const moneyRequestID = `${iouType}${reportID}`;
@@ -87,7 +87,7 @@ function NewRequestAmountPage({route, iou, report, selectedTab}: NewRequestAmoun
             }
 
             if (!isDistanceRequestTab && (!iou?.participants?.length || iou?.amount === 0 || shouldReset)) {
-                Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID), true);
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, '1', reportID), true);
             }
         }
 
