@@ -1457,7 +1457,7 @@ function getTrackExpenseInformation(
         false,
         receiptObject,
         false,
-        true,
+        !shouldUseMoneyReport,
     );
 
     let reportPreviewAction: OnyxEntry<OnyxTypes.ReportAction> = null;
@@ -2360,6 +2360,7 @@ function trackExpense(
     gpsPoints = undefined,
 ) {
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
 
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
@@ -2375,7 +2376,7 @@ function trackExpense(
         createdReportActionIDForThread,
         onyxData,
     } = getTrackExpenseInformation(
-        report,
+        currentChatReport,
         participant,
         comment,
         amount,
@@ -2393,7 +2394,7 @@ function trackExpense(
         payeeAccountID,
         moneyRequestReportID,
     );
-    const activeReportID = report.reportID;
+    const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
     const parameters: TrackExpenseParams = {
         amount,
