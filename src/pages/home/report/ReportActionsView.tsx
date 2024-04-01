@@ -12,6 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
@@ -324,21 +325,34 @@ function ReportActionsView({
         if (route?.params?.reportID !== reportID) {
             return;
         }
-        // Ensures subscription event succeeds when the report/workspace room is created optimistically.
-        // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
-        // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
-        // Existing reports created will have empty fields for `pendingFields`.
-        const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
-        if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-            const interactionTask = InteractionManager.runAfterInteractions(() => {
-                Report.subscribeToReportTypingEvents(reportID);
-                didSubscribeToReportTypingEvents.current = true;
-            });
-            return () => {
-                interactionTask.cancel();
-            };
+
+        if (isFocused) {
+            // Ensures subscription event succeeds when the report/workspace room is created optimistically.
+            // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
+            // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
+            // Existing reports created will have empty fields for `pendingFields`.
+            const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
+
+            if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
+                const interactionTask = InteractionManager.runAfterInteractions(() => {
+                    Report.subscribeToReportTypingEvents(reportID);
+                    didSubscribeToReportTypingEvents.current = true;
+                });
+                return () => {
+                    interactionTask.cancel();
+                };
+            }
+        } else {
+            const topmostReportId = Navigation.getTopmostReportId();
+
+            if (topmostReportId !== report.reportID && didSubscribeToReportTypingEvents.current) {
+                didSubscribeToReportTypingEvents.current = false;
+                InteractionManager.runAfterInteractions(() => {
+                    Report.unsubscribeFromReportChannel(report.reportID);
+                });
+            }
         }
-    }, [report.pendingFields, didSubscribeToReportTypingEvents, route, reportID]);
+    }, [isFocused, report.reportID, report.pendingFields, didSubscribeToReportTypingEvents, route, reportID]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;

@@ -351,9 +351,6 @@ function ReportActionsList({
             if (unsubscribe) {
                 unsubscribe();
             }
-            InteractionManager.runAfterInteractions(() => {
-                Report.unsubscribeFromReportChannel(report.reportID);
-            });
         };
 
         newActionUnsubscribeMap[report.reportID] = cleanup;
