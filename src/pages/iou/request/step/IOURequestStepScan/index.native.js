@@ -127,7 +127,6 @@ function IOURequestStepScan({
         useCallback(() => {
             setDidCapturePhoto(false);
             const refreshCameraPermissionStatus = () => {
-            const refreshCameraPermissionStatus = (shouldAskForPermission = false) => {
                 CameraPermission.getCameraPermissionStatus()
                     .then(setCameraPermissionStatus)
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
