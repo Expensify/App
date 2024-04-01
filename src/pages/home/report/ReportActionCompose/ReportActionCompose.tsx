@@ -61,6 +61,7 @@ type SuggestionsRef = {
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
     getSuggestions: () => Mention[] | Emoji[];
+    updateShouldShowSuggestionMenuAfterScrolling: () => void;
 };
 
 type ReportActionComposeOnyxProps = {

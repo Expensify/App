@@ -31,7 +31,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
-import {useSuggestionsContext} from './ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import ReportActionsList from './ReportActionsList';
 
 type ReportActionsViewOnyxProps = {
@@ -91,7 +90,6 @@ function ReportActionsView({
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
-    const {currentActiveSuggestionsRef} = useSuggestionsContext();
     const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionID = route?.params?.reportActionID;
     const didLayout = useRef(false);
@@ -547,12 +545,6 @@ function ReportActionsView({
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
-                onScroll={() => {
-                    if (!currentActiveSuggestionsRef.current) {
-                        return;
-                    }
-                    currentActiveSuggestionsRef.current.updateShouldShowSuggestionMenuToFalse();
-                }}
                 sortedReportActions={reportActionsToDisplay}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}

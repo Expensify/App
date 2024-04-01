@@ -3,7 +3,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {findNodeHandle, Keyboard, NativeModules, View} from 'react-native';
+import {DeviceEventEmitter, findNodeHandle, Keyboard, NativeModules, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
@@ -416,6 +416,27 @@ function ReportActionItemMessageEdit(
     useEffect(() => {
         validateCommentMaxLength(draft);
     }, [draft, validateCommentMaxLength]);
+
+    /**
+     * Listen scrolling event
+     */
+    useEffect(() => {
+        if (!isFocused || !suggestionsRef.current) {
+            return () => {};
+        }
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
+            if (scrolling) {
+                suggestionsRef?.current?.updateShouldShowSuggestionMenuToFalse();
+                return;
+            }
+            // Reopen the suggestion after scroll has end
+            suggestionsRef?.current?.updateShouldShowSuggestionMenuAfterScrolling();
+        });
+
+        return () => {
+            scrollingListener.remove();
+        };
+    }, [isFocused]);
 
     return (
         <>

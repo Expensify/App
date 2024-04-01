@@ -118,6 +118,10 @@ function SuggestionEmoji(
         });
     }, []);
 
+    const updateShouldShowSuggestionMenuAfterScrolling = useCallback(() => {
+        setSuggestionValues((prevState) => ({...prevState, shouldShowSuggestionMenu: !!prevState.suggestedEmojis.length}));
+    }, []);
+
     /**
      * Listens for keyboard shortcuts and applies the action
      */
@@ -215,8 +219,17 @@ function SuggestionEmoji(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
+            updateShouldShowSuggestionMenuAfterScrolling,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [
+            onSelectionChange,
+            resetSuggestions,
+            setShouldBlockSuggestionCalc,
+            triggerHotkeyActions,
+            updateShouldShowSuggestionMenuToFalse,
+            getSuggestions,
+            updateShouldShowSuggestionMenuAfterScrolling,
+        ],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
