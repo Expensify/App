@@ -55,15 +55,15 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
     let firstUpdateAfterGaps: number | undefined;
 
     for (const [index, update] of updateValues.entries()) {
-        // If it's the first update, we need to check that the previousUpdateID of the fetched update is the same as the lastUpdateIDAppliedToClient
-        // If any update's previousUpdateID doesn't match the lastUpdateID from the previous update, there's a gap in the deferred updates
         const isFirst = index === 0;
-        if (isFirst && update.previousUpdateID !== lastUpdateIDAppliedToClient) {
-            break;
-        }
 
-        if (updates[Number(update.previousUpdateID)]) {
-            // If a gap exists, we will not add any more updates to the applicable updates
+        // If any update's previousUpdateID doesn't match the lastUpdateID from the previous update, the deferred updates aren't chained and there's a gap.
+        // For the first update, we need to check that the previousUpdateID of the fetched update is the same as the lastUpdateIDAppliedToClient.
+        // For any other updates, we need to check if the previousUpdateID of the current update is found in the deferred updates.
+        // If an update is chained, we can add it to the applicable updates.
+        const isChained = isFirst ? update.previousUpdateID === lastUpdateIDAppliedToClient : updates[Number(update.previousUpdateID)];
+        if (isChained) {
+            // If a gap exists already, we will not add any more updates to the applicable updates
             // Instead, we we have to keep track of the first update after all detected gaps
             if (gapExists) {
                 // If "firstUpdateAfterGaps" hasn't been set yet and there was a gap,
@@ -76,7 +76,8 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
                 applicableUpdates[Number(update.lastUpdateID)] = update;
             }
         } else {
-            // When we find a(nother) gap, we need to set the flag to true and reset the "firstUpdateAfterGaps" variable, so that we can continue searching for the next update after all gaps
+            // When we find a (new) gap, we need to set "gapExists" to true and reset the "firstUpdateAfterGaps" variable,
+            // so that we can continue searching for the next update after all gaps
             gapExists = true;
             firstUpdateAfterGaps = undefined;
         }
