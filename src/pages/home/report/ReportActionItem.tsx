@@ -197,7 +197,7 @@ function ReportActionItem({
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
+        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlight) : {}),
         [StyleUtils, isReportActionLinked, theme.hoverComponentBG],
     );
 
