@@ -348,9 +348,10 @@ function ReportActionsList({
         const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
 
         const cleanup = () => {
-            if (unsubscribe) {
-                unsubscribe();
+            if (!unsubscribe) {
+                return;
             }
+            unsubscribe();
         };
 
         newActionUnsubscribeMap[report.reportID] = cleanup;
