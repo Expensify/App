@@ -1,59 +1,58 @@
-import _ from 'lodash';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '@components/withCurrentUserPersonalDetails';
-import withLocalize from '@components/withLocalize';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@libs/actions/User';
-import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
 
-const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
+type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
+
+type StatusType = {
+    value: CustomStatusTypes;
+    text: string;
+    keyForList: string;
+    isSelected: boolean;
 };
 
-const propTypes = {
-    currentUserPersonalDetails: personalDetailsPropType,
-    customStatus: PropTypes.shape({
-        clearAfter: PropTypes.string,
-    }),
+type StatusClearAfterPageOnyxProps = {
+    /** User's custom status */
+    customStatus: OnyxEntry<OnyxTypes.CustomStatusDraft>;
 };
+
+type StatusClearAfterPageProps = StatusClearAfterPageOnyxProps;
 
 /**
- * @param {string} data -  either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
- * @returns {string}
+ * @param data - either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
  */
-function getSelectedStatusType(data) {
+function getSelectedStatusType(data: string): CustomStatusTypes {
     switch (data) {
         case DateUtils.getEndOfToday():
             return CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY;
         case CONST.CUSTOM_STATUS_TYPES.NEVER:
         case '':
             return CONST.CUSTOM_STATUS_TYPES.NEVER;
-        case false:
-            return CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY;
         default:
             return CONST.CUSTOM_STATUS_TYPES.CUSTOM;
     }
 }
 
-const useValidateCustomDate = (data) => {
+const useValidateCustomDate = (data: string) => {
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
     const validate = () => {
@@ -63,8 +62,8 @@ const useValidateCustomDate = (data) => {
         setCustomTimeError(timeValidationErrorKey);
 
         return {
-            dateValidationErrorKey,
-            timeValidationErrorKey,
+            dateError: dateValidationErrorKey,
+            timeError: timeValidationErrorKey,
         };
     };
 
@@ -81,15 +80,17 @@ const useValidateCustomDate = (data) => {
     return {customDateError, customTimeError, validateCustomDate};
 };
 
-function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
+function StatusClearAfterPage({customStatus}: StatusClearAfterPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const clearAfter = lodashGet(currentUserPersonalDetails, 'status.clearAfter', '');
-    const draftClearAfter = lodashGet(customStatus, 'clearAfter', '');
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
+
+    const draftClearAfter = customStatus?.clearAfter ?? '';
     const [draftPeriod, setDraftPeriod] = useState(getSelectedStatusType(draftClearAfter || clearAfter));
-    const statusType = useMemo(
+    const statusType = useMemo<StatusType[]>(
         () =>
-            _.map(CONST.CUSTOM_STATUS_TYPES, (value, key) => ({
+            Object.entries(CONST.CUSTOM_STATUS_TYPES).map(([key, value]) => ({
                 value,
                 text: translate(`statusPage.timePeriods.${value}`),
                 keyForList: key,
@@ -102,8 +103,8 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     const {redBrickDateIndicator, redBrickTimeIndicator} = useMemo(
         () => ({
-            redBrickDateIndicator: customDateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null,
-            redBrickTimeIndicator: customTimeError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null,
+            redBrickDateIndicator: customDateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            redBrickTimeIndicator: customTimeError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         }),
         [customTimeError, customDateError],
     );
@@ -113,19 +114,19 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
         if (dateError || timeError) {
             return;
         }
-        let calculatedDraftDate = '';
+        let calculatedDraftDate: string;
         if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
             calculatedDraftDate = draftClearAfter;
         } else {
-            const selectedRange = _.find(statusType, (item) => item.isSelected);
-            calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange.value);
+            const selectedRange = statusType.find((item) => item.isSelected);
+            calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
         }
         User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
     };
 
     const updateMode = useCallback(
-        (mode) => {
+        (mode: StatusType) => {
             if (mode.value === draftPeriod) {
                 return;
             }
@@ -134,8 +135,8 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
             if (mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
                 User.updateDraftCustomStatus({clearAfter: DateUtils.getOneHourFromNow()});
             } else {
-                const selectedRange = _.find(statusType, (item) => item.value === mode.value);
-                const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange.value);
+                const selectedRange = statusType.find((item) => item.value === mode.value);
+                const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
                 User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
             }
@@ -156,7 +157,7 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 
     const timePeriodOptions = useCallback(
         () =>
-            _.map(statusType, (item) => (
+            statusType.map((item) => (
                 <RadioListItem
                     item={item}
                     onSelectRow={() => updateMode(item)}
@@ -220,24 +221,9 @@ function StatusClearAfterPage({currentUserPersonalDetails, customStatus}) {
 }
 
 StatusClearAfterPage.displayName = 'StatusClearAfterPage';
-StatusClearAfterPage.propTypes = propTypes;
-StatusClearAfterPage.defaultProps = defaultProps;
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withLocalize,
-    withOnyx({
-        timePeriodType: {
-            key: `${ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM}Draft`,
-        },
-        clearDateForm: {
-            key: `${ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM}Draft`,
-        },
-        customStatus: {
-            key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
-        },
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-    }),
-)(StatusClearAfterPage);
+export default withOnyx<StatusClearAfterPageProps, StatusClearAfterPageOnyxProps>({
+    customStatus: {
+        key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
+    },
+})(StatusClearAfterPage);
