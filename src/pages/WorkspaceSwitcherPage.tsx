@@ -138,7 +138,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
-                boldStyle: hasUnreadData(policy?.id),
+                isBold: hasUnreadData(policy?.id),
                 keyForList: policy?.id,
                 isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
                 isSelected: selectedOption?.policyID === policy?.id,

@@ -2,6 +2,7 @@ import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {MaybePhraseKey} from '@libs/Localize';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -114,6 +115,8 @@ type ListItem = {
 
     /** The search value from the selection list */
     searchText?: string | null;
+
+    brickRoadIndicator?: BrickRoad | '' | null;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {
