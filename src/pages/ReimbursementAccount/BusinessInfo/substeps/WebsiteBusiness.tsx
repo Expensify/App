@@ -1,4 +1,3 @@
-import Str from 'expensify-common/lib/str';
 import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -11,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -48,10 +48,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultWebsiteExample = useMemo(
-        () => (user?.isFromPublicDomain ? 'https://' : `https://www.${Str.extractEmailDomain(session?.email ?? '')}`),
-        [session?.email, user?.isFromPublicDomain],
-    );
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
