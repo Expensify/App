@@ -30,6 +30,8 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import * as ReportUtils from "@libs/ReportUtils";
+import DistanceRequestUtils from "@libs/DistanceRequestUtils";
+import * as OptionsListUtils from "@libs/OptionsListUtils";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -87,6 +89,10 @@ function IOURequestStepDistance({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
     const skipConfirmation = transaction.skipConfirmation && !ReportUtils.isArchivedRoom(report);
+    let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
+    if (skipConfirmation) {
+        buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.request');
+    }
 
     useEffect(() => {
         MapboxToken.init();
@@ -136,7 +142,28 @@ function IOURequestStepDistance({
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         if (report.reportID) {
-            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const participants = _.map(selectedParticipants, (participant) => {
+                const participantAccountID = lodashGet(participant, 'accountID', 0);
+                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+            });
+            if (skipConfirmation) {
+                IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+                IOU.setMoneyRequestMerchant(transactionID, translate('iou.routePending'), false);
+                IOU.createDistanceRequest(
+                    report,
+                    participants[0],
+                    '',
+                    transaction.created,
+                    '',
+                    '',
+                    0,
+                    transaction.currency || 'USD',
+                    '',
+                    false,
+                    TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true),
+                );
+            }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -276,7 +303,7 @@ function IOURequestStepDistance({
                         large
                         style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                         onPress={submitWaypoints}
-                        text={translate(!isCreatingNewRequest ? 'common.save' : 'common.next')}
+                        text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                     />
                 </View>
