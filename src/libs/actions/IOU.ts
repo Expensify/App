@@ -3070,9 +3070,9 @@ function startSplitBill(
  * @param sessionAccountID - accountID of the current user
  * @param sessionEmail - email of the current user
  */
-function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportAction, updatedTransaction: OnyxTypes.Transaction, sessionAccountID: number, sessionEmail: string) {
+function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportAction, updatedTransaction: OnyxEntry<OnyxTypes.Transaction>, sessionAccountID: number, sessionEmail: string) {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(sessionEmail);
-    const {transactionID} = updatedTransaction;
+    const transactionID = updatedTransaction?.transactionID ?? '';
     const unmodifiedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     // Save optimistic updated transaction and action
@@ -3133,8 +3133,9 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         },
     ];
 
-    const splitParticipants: Split[] = updatedTransaction.comment.splits ?? [];
-    const {modifiedAmount: amount, modifiedCurrency: currency} = updatedTransaction;
+    const splitParticipants: Split[] = updatedTransaction?.comment.splits ?? [];
+    const amount = updatedTransaction?.modifiedAmount;
+    const currency = updatedTransaction?.modifiedCurrency;
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
     const splitAmount = IOUUtils.calculateAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
@@ -3191,17 +3192,17 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             isPolicyExpenseChat ? -splitAmount : splitAmount,
             currency ?? '',
             oneOnOneIOUReport?.reportID ?? '',
-            updatedTransaction.comment.comment,
-            updatedTransaction.modifiedCreated,
+            updatedTransaction?.comment.comment,
+            updatedTransaction?.modifiedCreated,
             CONST.IOU.TYPE.SPLIT,
             transactionID,
-            updatedTransaction.modifiedMerchant,
-            {...updatedTransaction.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
-            updatedTransaction.filename,
+            updatedTransaction?.modifiedMerchant,
+            {...updatedTransaction?.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
+            updatedTransaction?.filename,
             undefined,
-            updatedTransaction.category,
-            updatedTransaction.tag,
-            updatedTransaction.billable,
+            updatedTransaction?.category,
+            updatedTransaction?.tag,
+            updatedTransaction?.billable,
         );
 
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
@@ -3210,7 +3211,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
                 CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 splitAmount,
                 currency ?? '',
-                updatedTransaction.comment.comment ?? '',
+                updatedTransaction?.comment.comment ?? '',
                 currentUserEmailForIOUSplit,
                 [participant],
                 oneOnOneTransaction.transactionID,
@@ -5058,7 +5059,7 @@ function setShownHoldUseExplanation() {
 }
 
 /** Navigates to the next IOU page based on where the IOU request was started */
-function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, report?: OnyxTypes.Report, path = '') {
+function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, report?: OnyxEntry<OnyxTypes.Report>, path = '') {
     const moneyRequestID = `${iouType}${report?.reportID ?? ''}`;
     const shouldReset = iou?.id !== moneyRequestID && !!report?.reportID;
 

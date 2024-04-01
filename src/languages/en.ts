@@ -596,6 +596,9 @@ export default {
         sendMoney: 'Send Money',
         assignTask: 'Assign Task',
         shortcut: 'Shortcut',
+        trackManual: 'Track Manual',
+        trackScan: 'Track Scan',
+        trackDistance: 'Track Distance',
     },
     iou: {
         amount: 'Amount',
