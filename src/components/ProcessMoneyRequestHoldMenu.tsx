@@ -53,6 +53,7 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
                     style={[styles.mt5]}
                     text={translate('common.buttonConfirm')}
                     onPress={onConfirm}
+                    large
                 />
             </View>
         </Popover>

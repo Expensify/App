@@ -18,6 +18,14 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
+jest.mock('../../src/libs/Log');
+
+jest.mock('../../src/libs/API', () => ({
+    write: jest.fn(),
+    makeRequestWithSideEffects: jest.fn(),
+    read: jest.fn(),
+}));
+
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');

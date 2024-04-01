@@ -31,15 +31,15 @@ The New Expensify desktop app is built using [Electron.js](https://www.electronj
 The desktop app is organized in three pieces:
 
 1. The Electron main process 
-   - Implemented in https://github.com/Expensify/App/blob/main/desktop/main.js.
+   - Implemented in https://github.com/Expensify/App/blob/main/desktop/main.ts.
    - This file has access to the full set of Electron and Node.JS APIs. 
 2. The Electron renderer process
    - This is the webpack-bundled version of our react-native-web app (except using `index.desktop.js` files instead of `index.website.js`, where applicable)
    - This is _very_ similar to our web app, and code in this process should assume it will be run in the context of a browser (no access to `require`, Electron, or Node.js APis)
 3. The context bridge
-   - Implemented in https://github.com/Expensify/App/blob/main/desktop/contextBridge.js
+   - Implemented in https://github.com/Expensify/App/blob/main/desktop/contextBridge.ts
    - The context bridge enables communication between the main and renderer processes. For example, if the renderer process needs to make use of a Node.js or Electron API it must:
-     1. Define an event in https://github.com/Expensify/App/blob/main/desktop/ELECTRON_EVENTS.js
+     1. Define an event in https://github.com/Expensify/App/blob/main/desktop/ELECTRON_EVENTS.ts
      2. Add that event to the whitelist defined in the context bridge
      3. Set up a handler for the event in the main process that can respond to the renderer process back through the bridge, if necessary.
 
@@ -129,9 +129,9 @@ Once the command finishes, revert the version update in `package.json`, remove `
 To avoid bundling unnecessary `node_modules` we use a [2 package structure](https://www.electron.build/tutorials/two-package-structure)
 The root [package.json](../package.json) serves for `devDependencies` and shared (renderer) `dependencies`
 The [desktop/package.json](./package.json) serves for desktop (electron-main) specific dependencies
-We use Webpack with a [desktop specific config](../config/webpack/webpack.desktop.js) to bundle our js code
+We use Webpack with a [desktop specific config](../config/webpack/webpack.desktop.ts) to bundle our js code
 Half of the config takes care of packaging root package dependencies - everything related to rendering App in the Electron window. Packaged under `dist/www`
-The other half is about bundling the `main.js` script which initializes Electron and renders `www`
+The other half is about bundling the `main.ts` script which initializes Electron and renders `www`
 
 ## See what is getting packaged in the app
 If you suspect unnecessary items might be getting packaged you can inspect the package content in `desktop-build/`

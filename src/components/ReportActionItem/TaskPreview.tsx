@@ -88,6 +88,7 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                shouldUseHapticsOnLongPress
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
@@ -107,7 +108,7 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                         })}
                         accessibilityLabel={translate('task.task')}
                     />
-                    <RenderHTML html={htmlForTaskPreview} />
+                    <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
                 </View>
                 <Icon
                     src={Expensicons.ArrowRight}

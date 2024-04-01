@@ -1,7 +1,7 @@
 import {format} from 'date-fns';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -9,6 +9,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import InvertedFlatList from '@components/InvertedFlatList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -69,7 +70,13 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const logsList = useMemo(() => (logs ? Object.values(logs).reverse() : []), [logs]);
+    const logsList = useMemo(
+        () =>
+            Object.entries(logs ?? {})
+                .map(([key, value]) => ({key, ...value}))
+                .reverse(),
+        [logs],
+    );
 
     useEffect(() => {
         if (!shouldStoreLogs) {
@@ -136,11 +143,10 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TROUBLESHOOT)}
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>
-                <FlatList
+                <InvertedFlatList
                     data={logsList}
                     renderItem={renderItem}
                     contentContainerStyle={styles.p5}
-                    inverted
                     ListEmptyComponent={<Text>{translate('initialSettingsPage.debugConsole.noLogsAvailable')}</Text>}
                 />
             </View>
@@ -148,12 +154,14 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                 <Button
                     text={translate('initialSettingsPage.debugConsole.saveLog')}
                     onPress={saveLogs}
+                    large
                     icon={Expensicons.Download}
                     style={[styles.flex1, styles.mr1]}
                 />
                 <Button
                     text={translate('initialSettingsPage.debugConsole.shareLog')}
                     onPress={shareLogs}
+                    large
                     icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
                     style={[styles.flex1, styles.ml1]}
                     isLoading={isGeneratingLogsFile}
@@ -173,6 +181,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                     text={translate('initialSettingsPage.debugConsole.execute')}
                     onPress={executeArbitraryCode}
                     style={[styles.mt5]}
+                    large
                 />
             </View>
             <ConfirmModal
