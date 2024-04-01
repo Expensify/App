@@ -92,7 +92,7 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
 }
 
 function hasWorkspaceSettingsRBR(policy: Policy) {
-    const policyMemberError = allPolicyMembers ? hasEmployeeListError(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]) : false;
+    const policyMemberError = allPolicyMembers ? hasEmployeeListError(policy) : false;
     const taxRateError = hasTaxRateError(policy);
 
     return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
