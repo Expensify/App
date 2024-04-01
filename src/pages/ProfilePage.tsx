@@ -91,7 +91,8 @@ function ProfilePage({personalDetails, personalDetailsMetadata, route, session, 
     const login = details?.login ?? '';
     const timezone = details?.timezone;
     const reportRecipient = personalDetails?.[accountID];
-    const isParticipantValidated = reportRecipient?.validated ?? false;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isParticipantValidated = reportRecipient?.validated || false;
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
