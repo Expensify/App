@@ -4,8 +4,8 @@ import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'reac
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import type {Camera, CameraDevice, PhotoFile, Point} from 'react-native-vision-camera';
-import {useCameraDevices} from 'react-native-vision-camera';
+import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
+import {useCameraDevice} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
@@ -44,8 +44,7 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const devices = useCameraDevices();
-    const device = devices.find((deviceType) => deviceType.position === 'back');
+    const device = useCameraDevice('back');
 
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
