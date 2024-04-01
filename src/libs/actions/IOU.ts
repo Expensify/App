@@ -1,5 +1,4 @@
 import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import fastMerge from 'expensify-common/lib/fastMerge';
 import Str from 'expensify-common/lib/str';
@@ -45,11 +44,10 @@ import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUR
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {MoneyRequestNavigatorParamList, NavigationPartialRoute} from '@navigation/types';
+import type {NavigationPartialRoute} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
@@ -62,8 +60,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Policy from './Policy';
 import * as Report from './Report';
-
-type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -5080,7 +5076,9 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
 
     // If we're adding a receipt, that means the user came from the confirmation page and we need to navigate back to it.
     if (path.slice(1) === ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, report?.reportID)) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType as ValueOf<typeof CONST.IOU.TYPE>, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report?.reportID ?? '1'),
+        );
         return;
     }
 
@@ -5096,21 +5094,12 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
                 : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
             setMoneyRequestParticipants(participants);
         }
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType as ValueOf<typeof CONST.IOU.TYPE>, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID),
+        );
         return;
     }
     Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
-}
-
-/**
- *  When the money request or split bill creation flow is initialized via FAB, the reportID is not passed as a navigation
- * parameter.
- * Gets a report id from the first participant of the IOU object stored in Onyx.
- */
-function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string {
-    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return route?.params.reportID || iou?.participants?.[0]?.reportID || '';
 }
 
 /**
@@ -5317,7 +5306,6 @@ export {
     updateMoneyRequestDescription,
     replaceReceipt,
     detachReceipt,
-    getIOUReportID,
     editMoneyRequest,
     putOnHold,
     unholdRequest,
