@@ -45,12 +45,19 @@ const story: Meta<typeof FormProvider> = {
     title: 'Components/Form',
     component: FormProvider,
     subcomponents: {
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         InputWrapper,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         TextInput,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         AddressSearch,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         CheckboxWithLabel,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         Picker,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         StatePicker,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         DatePicker,
     },
 };
