@@ -2,6 +2,8 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
+import {getSortedTagKeys} from '@libs/PolicyUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,7 +57,7 @@ function getTagViolationsForMultiLevelTags(
     policyRequiresTags: boolean,
     policyTagList: PolicyTagList,
 ): TransactionViolation[] {
-    const policyTagKeys = Object.keys(policyTagList);
+    const policyTagKeys = getSortedTagKeys(policyTagList);
     const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
     let newTransactionViolations = [...transactionViolations];
     newTransactionViolations = newTransactionViolations.filter(
@@ -120,6 +122,15 @@ const ViolationsUtils = {
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
     ): OnyxUpdate {
+        const isPartialTransaction = TransactionUtils.isPartialMerchant(TransactionUtils.getMerchant(updatedTransaction)) && TransactionUtils.isAmountMissing(updatedTransaction);
+        if (isPartialTransaction) {
+            return {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
+                value: transactionViolations,
+            };
+        }
+
         let newTransactionViolations = [...transactionViolations];
 
         // Calculate client-side category violations
