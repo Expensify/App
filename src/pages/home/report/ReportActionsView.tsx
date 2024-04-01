@@ -154,10 +154,11 @@ function ReportActionsView({
         // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-        // Filter out "created" IOU report actions because we don't want to show any preview actions for one transaction reports
-        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter(
-            (action) => ((action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '') !== CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        );
+        // Filter out the "created" and "track" IOU report actions because we don't want to show any preview actions for one-transaction reports
+        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+            const actionIouType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
+            return actionIouType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionIouType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+        });
         return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
     }, [allReportActions, transactionThreadReportActions]);
 
