@@ -29,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {OnyxUpdatesType} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy';
@@ -278,9 +279,10 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0): Promise<void | OnyxTypes.Response> {
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0, updateType: OnyxUpdatesType = 'pusher'): Promise<void | OnyxTypes.Response> {
     console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
 
+    const command = updateType === 'airship' ? SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES_FOR_PUSH_NOTIFICATION : SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES;
     const parameters: GetMissingOnyxMessagesParams = {
         updateIDFrom,
         updateIDTo,
@@ -290,7 +292,7 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0
     // DO NOT FOLLOW THIS PATTERN!!!!!
     // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the udpates aren't applied in the proper order.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, parameters, getOnyxDataForOpenOrReconnect());
+    return API.makeRequestWithSideEffects(command, parameters, getOnyxDataForOpenOrReconnect());
 }
 
 /**
