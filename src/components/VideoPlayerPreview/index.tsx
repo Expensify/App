@@ -7,8 +7,6 @@ import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -41,8 +39,6 @@ type VideoPlayerPreviewProps = {
 
 function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, videoDuration, onShowModalPress}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -92,7 +88,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                         <IconButton
                             src={Expensicons.Expand}
                             style={[styles.videoExpandButton]}
-                            hoverStyle={StyleUtils.getBackgroundColorStyle(theme.videoPlayerBG)}
                             tooltipText={translate('videoPlayer.expand')}
                             onPress={onShowModalPress}
                             small

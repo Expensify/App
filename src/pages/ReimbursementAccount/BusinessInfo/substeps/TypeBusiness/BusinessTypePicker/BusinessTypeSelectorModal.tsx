@@ -62,7 +62,7 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    sections={[{data: incorporationTypes, indexOffset: 0}]}
+                    sections={[{data: incorporationTypes}]}
                     initiallyFocusedOptionKey={currentBusinessType}
                     onSelectRow={onBusinessTypeSelected}
                     shouldStopPropagation
