@@ -336,10 +336,12 @@ type RoomInviteNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
-    [SCREENS.MONEY_REQUEST.AMOUNT]: {
+    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
-        currency: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
