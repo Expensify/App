@@ -48,7 +48,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
                     })();
                 },
                 focused: !isSmallScreenWidth,
-                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             ...(shouldShowSubscriptionsMenu
                 ? [

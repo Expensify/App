@@ -9,7 +9,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
+import {hasCustomUnitsError, hasPolicyError, hasEmployeeListError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -75,17 +75,16 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 };
 
-function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
+function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
     // When attempting to open a policy with an invalid policyID, the policy collection is updated to include policy objects with error information.
     // Only policies displayed on the policy list page should be verified. Otherwise, the user will encounter an RBR unrelated to any policies on the list.
     const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
 
-    const cleanAllPolicyMembers = Object.fromEntries(Object.entries(policyMembers ?? {}).filter(([, policyMemberValues]) => !!policyMemberValues));
     const errorCheckingMethods: CheckingMethod[] = [
         () => Object.values(cleanPolicies).some(hasPolicyError),
         () => Object.values(cleanPolicies).some(hasCustomUnitsError),
         () => Object.values(cleanPolicies).some(hasTaxRateError),
-        () => Object.values(cleanAllPolicyMembers).some(hasPolicyMemberError),
+        () => Object.values(cleanPolicies).some(hasEmployeeListError),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
     ];
 
@@ -93,7 +92,7 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyM
 }
 
 function hasWorkspaceSettingsRBR(policy: Policy) {
-    const policyMemberError = allPolicyMembers ? hasPolicyMemberError(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]) : false;
+    const policyMemberError = allPolicyMembers ? hasEmployeeListError(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]) : false;
     const taxRateError = hasTaxRateError(policy);
 
     return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
@@ -130,7 +129,7 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
 
 function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
     if (!policyID) {
-        return hasGlobalWorkspaceSettingsRBR(allPolicies, allPolicyMembers);
+        return hasGlobalWorkspaceSettingsRBR(allPolicies);
     }
     const policy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : null;
 

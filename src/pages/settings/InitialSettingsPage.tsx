@@ -189,7 +189,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Building,
                 routeName: ROUTES.SETTINGS_WORKSPACES,
-                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
                 translationKey: 'allSettingsScreen.cardsAndDomains',
