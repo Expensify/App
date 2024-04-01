@@ -250,6 +250,9 @@ function MoneyRequestConfirmPage(props) {
                         props.currentUserPersonalDetails.login,
                         props.currentUserPersonalDetails.accountID,
                         trimmedComment,
+                        '',
+                        '',
+                        props.iou.currency,
                         receipt,
                         existingSplitChatReportID,
                     );
