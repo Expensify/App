@@ -11,6 +11,9 @@ type ReportActionsListItemRendererProps = {
     /** All the data of the action item */
     reportAction: ReportAction;
 
+    /** Array of report actions for the report */
+    reportActions: ReportAction[];
+
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
 
@@ -19,6 +22,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Report for this action */
     report: Report;
+
+    /** The transaction thread report associated with the report for this action, if any */
+    transactionThreadReport: OnyxEntry<Report>;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
@@ -41,9 +47,11 @@ type ReportActionsListItemRendererProps = {
 
 function ReportActionsListItemRenderer({
     reportAction,
+    reportActions = [],
     parentReportAction,
     index,
     report,
+    transactionThreadReport,
     displayAsGroup,
     mostRecentIOUReportActionID = '',
     shouldHideThreadDividerLine,
@@ -127,6 +135,8 @@ function ReportActionsListItemRenderer({
             parentReportAction={parentReportAction}
             reportID={report.reportID}
             report={report}
+            reportActions={reportActions}
+            transactionThreadReport={transactionThreadReport}
             index={index}
         />
     ) : (
@@ -134,7 +144,9 @@ function ReportActionsListItemRenderer({
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}
+            transactionThreadReport={transactionThreadReport}
             action={action}
+            reportActions={reportActions}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}

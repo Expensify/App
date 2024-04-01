@@ -116,40 +116,32 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
     const sections = useMemo(() => {
         const sectionsList = [];
-        let indexOffset = 0;
 
         if (currentUserOption) {
             sectionsList.push({
                 title: translate('newTaskPage.assignMe'),
                 data: [currentUserOption],
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += 1;
         }
 
         sectionsList.push({
             title: translate('common.recents'),
             data: recentReports,
             shouldShow: recentReports?.length > 0,
-            indexOffset,
         });
-        indexOffset += recentReports?.length || 0;
 
         sectionsList.push({
             title: translate('common.contacts'),
             data: personalDetails,
             shouldShow: personalDetails?.length > 0,
-            indexOffset,
         });
-        indexOffset += personalDetails?.length || 0;
 
         if (userToInvite) {
             sectionsList.push({
                 title: '',
                 data: [userToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 
