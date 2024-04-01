@@ -432,6 +432,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 },
                             },
                         },
+                        [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: {
+                            path: ROUTES.NEW_CHAT_CONFIRM,
+                            exact: true,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
