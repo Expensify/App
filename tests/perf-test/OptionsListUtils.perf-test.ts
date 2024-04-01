@@ -83,8 +83,6 @@ describe('OptionsListUtils', () => {
         await measureFunction(() => OptionsListUtils.getMemberInviteOptions(personalDetails, mockedBetas, SEARCH_VALUE));
     });
 
-
-    /* formatSectionsFromSearchTerm performance tests */
     test('[OptionsListUtils] formatSectionsFromSearchTerm with an empty search term and a large number of selectedOptions', async () => {
         const selectedOptions = createCollection<OptionData>(
             (item) => item.reportID,
