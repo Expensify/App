@@ -45,7 +45,7 @@ function IOURequestStepScan({
     const theme = useTheme();
     const styles = useThemeStyles();
     const devices = useCameraDevices();
-    const device: CameraDevice | undefined = devices?.find((devicePosition) => devicePosition.position === 'back');
+    const device = devices.find((deviceType) => deviceType.position === 'back');
 
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
