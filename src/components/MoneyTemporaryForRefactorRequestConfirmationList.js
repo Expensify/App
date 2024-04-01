@@ -514,7 +514,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transaction.transactionID, updatedTagsString);
         }
-    }, [policyTagLists, transaction, policyTags, isTagRequired, canUseViolations]);
+    }, [policyTagLists, transaction, policyTags, canUseViolations]);
 
     /**
      * @param {Object} option
