@@ -49,23 +49,20 @@ function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
                 height={variables.iconSizeSmall}
             />
             <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>
-                {
-                    // If we reversed the ternary, unreachability message would always show even when offline
-                    isOffline ? (
-                        translate('common.youAppearToBeOffline')
-                    ) : (
-                        <>
-                            {translate('common.weMightHaveProblem')}
-                            <TextLink
-                                href={CONST.STATUS_EXPENSIFY_URL}
-                                style={[styles.chatItemComposeSecondaryRowSubText, styles.link]}
-                            >
-                                {new URL(CONST.STATUS_EXPENSIFY_URL).host}
-                            </TextLink>
-                            .
-                        </>
-                    )
-                }
+                {isOffline ? (
+                    translate('common.youAppearToBeOffline')
+                ) : (
+                    <>
+                        {translate('common.weMightHaveProblem')}
+                        <TextLink
+                            href={CONST.STATUS_EXPENSIFY_URL}
+                            style={[styles.chatItemComposeSecondaryRowSubText, styles.link]}
+                        >
+                            {new URL(CONST.STATUS_EXPENSIFY_URL).host}
+                        </TextLink>
+                        .
+                    </>
+                )}
             </Text>
         </View>
     );
