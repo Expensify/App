@@ -1,4 +1,4 @@
-import type {ComponentMeta, Story} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import {defaultStyles} from '@src/styles';
 
-type FormStory = Story<FormProviderProps>;
+type FormStory = StoryFn<FormProviderProps>;
 
 type StorybookFormValues = {
     routingNumber?: string;
@@ -41,7 +41,7 @@ const STORYBOOK_FORM_ID = 'TestForm' as keyof OnyxFormValuesMapping;
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof FormProvider> = {
+const story: Meta<typeof FormProvider> = {
     title: 'Components/Form',
     component: FormProvider,
     subcomponents: {
