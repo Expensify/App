@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -12,15 +12,16 @@ import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
-import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -87,7 +88,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -96,7 +97,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
+
+    useEffect(() => {
+        Report.searchInServer(debouncedSearchTerm.trim());
+    }, [debouncedSearchTerm]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -108,13 +112,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         if (!didScreenTransitionEnd) {
             return [newSections, {}];
         }
-        let indexOffset = 0;
-
         const chatOptions = OptionsListUtils.getFilteredOptions(
             reports,
             personalDetails,
             betas,
-            searchTerm,
+            debouncedSearchTerm,
             participants,
             CONST.EXPENSIFY_EMAILS,
 
@@ -134,18 +136,16 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            searchTerm,
+            debouncedSearchTerm,
             participants,
             chatOptions.recentReports,
             chatOptions.personalDetails,
             maxParticipantsReached,
-            indexOffset,
             personalDetails,
             true,
         );
 
         newSections.push(formatResults.section);
-        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return [newSections, {}];
@@ -155,17 +155,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             title: translate('common.recents'),
             data: chatOptions.recentReports,
             shouldShow: !_.isEmpty(chatOptions.recentReports),
-            indexOffset,
         });
-        indexOffset += chatOptions.recentReports.length;
 
         newSections.push({
             title: translate('common.contacts'),
             data: chatOptions.personalDetails,
             shouldShow: !_.isEmpty(chatOptions.personalDetails),
-            indexOffset,
         });
-        indexOffset += chatOptions.personalDetails.length;
 
         if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({
@@ -175,12 +171,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
-                indexOffset,
             });
         }
 
         return [newSections, chatOptions];
-    }, [didScreenTransitionEnd, reports, personalDetails, betas, searchTerm, participants, iouType, iouRequestType, maxParticipantsReached, canUseP2PDistanceRequests, translate]);
+    }, [didScreenTransitionEnd, reports, personalDetails, betas, debouncedSearchTerm, participants, iouType, canUseP2PDistanceRequests, iouRequestType, maxParticipantsReached, translate]);
 
     /**
      * Adds a single participant to the request
@@ -246,11 +241,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             OptionsListUtils.getHeaderMessage(
                 _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
-                searchTerm.trim(),
+                debouncedSearchTerm.trim(),
                 maxParticipantsReached,
-                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions, participants, searchTerm],
+        [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
 
     // Right now you can't split a request with a workspace and other additional participants
@@ -354,7 +349,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
-                onChangeText={setSearchTermAndSearchInServer}
+                onChangeText={setSearchTerm}
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
@@ -380,4 +375,15 @@ export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
     },
-})(MoneyTemporaryForRefactorRequestParticipantsSelector);
+})(
+    memo(
+        MoneyTemporaryForRefactorRequestParticipantsSelector,
+        (prevProps, nextProps) =>
+            _.isEqual(prevProps.participants, nextProps.participants) &&
+            prevProps.didScreenTransitionEnd === nextProps.didScreenTransitionEnd &&
+            _.isEqual(prevProps.dismissedReferralBanners, nextProps.dismissedReferralBanners) &&
+            prevProps.iouRequestType === nextProps.iouRequestType &&
+            prevProps.iouType === nextProps.iouType &&
+            _.isEqual(prevProps.betas, nextProps.betas),
+    ),
+);
