@@ -33,6 +33,98 @@ type DeferredUpdatesDictionary = Record<number, OnyxUpdatesFromServer>;
 let deferredUpdateBeforeReconnect: OnyxUpdatesFromServer | undefined;
 let deferredUpdates: DeferredUpdatesDictionary = {};
 
+function unpauseQueueAndReset() {
+    console.debug('[OnyxUpdateManager] Done applying all updates');
+    deferredUpdates = {};
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
+    SequentialQueue.unpause();
+}
+const applyUpdates = (updates: DeferredUpdatesDictionary) => Promise.all(Object.values(updates).map((update) => OnyxUpdates.apply(update)));
+
+type DetectGapAndSplitResult = {beforeGap: DeferredUpdatesDictionary; afterGap: DeferredUpdatesDictionary; latestMissingUpdateID: number | undefined};
+// In order for the deferred updates to be applied correctly in order,
+// we need to check if there are any gaps deferred updates.
+function detectGapAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSplitResult {
+    let isFirst = true;
+    const beforeGap: DeferredUpdatesDictionary = {};
+    let afterGap: DeferredUpdatesDictionary = updates;
+
+    for (const update of Object.values(updates)) {
+        // If it's the first update, we need to check that the previousUpdateID of the fetched update is the same as the lastUpdateIDAppliedToClient
+        // If any update's previousUpdateID doesn't match the lastUpdateID from the previous update, there's a gap in the deferred updates
+        if (isFirst && update.previousUpdateID !== lastUpdateIDAppliedToClient) {
+            break;
+        }
+
+        if (updates[Number(update.previousUpdateID)]) {
+            beforeGap[Number(update.lastUpdateID)] = update;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            afterGap = Object.fromEntries(Object.entries(afterGap).filter(([_key, u]) => u.lastUpdateID === update.lastUpdateID));
+        } else {
+            break;
+        }
+
+        isFirst = false;
+    }
+
+    let latestMissingUpdateID: number | undefined;
+    const afterGapValues = Object.values(afterGap);
+    if (afterGapValues.length > 0 && afterGapValues[0]) {
+        latestMissingUpdateID = Number(afterGapValues[0].previousUpdateID) || 0;
+    }
+
+    return {beforeGap, afterGap, latestMissingUpdateID};
+}
+
+// This function will check for gaps in the deferred updates and
+// apply the updates in order after the missing updates are fetched and applied
+function validateAndApplyDeferredUpdates(): Promise<void> {
+    // We only want to apply deferred updates that are newer than the last update that was applied to the client.
+    // At this point, the missing updates from "GetMissingOnyxUpdates" have been applied already, so we can safely filter out.
+    const pendingDeferredUpdates = Object.fromEntries(
+        Object.entries(deferredUpdates).filter(([lastUpdateID]) => {
+            // It should not be possible for lastUpdateIDAppliedToClient to be null,
+            // after the missing updates have been applied.
+            // Still, if so we want to keep the deferred update in the list
+            if (!lastUpdateIDAppliedToClient) {
+                return true;
+            }
+            return (Number(lastUpdateID) ?? 0) > lastUpdateIDAppliedToClient;
+        }),
+    );
+    const pendingDeferredUpdateValues = Object.values(pendingDeferredUpdates);
+
+    // If there are no remaining deferred updates after filtering out outdated ones,
+    //  we can just unpause the queue and return
+    if (pendingDeferredUpdateValues.length === 0) {
+        return Promise.resolve();
+    }
+
+    const {beforeGap, afterGap, latestMissingUpdateID} = detectGapAndSplit(pendingDeferredUpdates);
+
+    //  If we detect a gap in the deferred updates, only apply the deferred updates before the gap,
+    // re-fetch the missing updates and then apply the deferred updates again.
+    if (latestMissingUpdateID) {
+        return new Promise((resolve, reject) => {
+            applyUpdates(beforeGap).then(() => {
+                // Same as above, we can ignore this case because
+                // it should not be possible for lastUpdateIDAppliedToClient to be null.
+                if (!lastUpdateIDAppliedToClient) {
+                    return;
+                }
+
+                deferredUpdates = afterGap;
+                App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, latestMissingUpdateID)
+                    .then(() => applyUpdates(afterGap))
+                    .then(() => resolve())
+                    .catch(reject);
+            });
+        });
+    }
+
+    return applyUpdates(pendingDeferredUpdates).then(() => undefined);
+}
+
 export default () => {
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     Onyx.connect({
@@ -72,7 +164,7 @@ export default () => {
             // applied in their correct and specific order. If this queue was not paused, then there would be a lot of
             // onyx data being applied while we are fetching the missing updates and that would put them all out of order.
             SequentialQueue.pause();
-            let canUnpauseQueuePromise: Promise<Response | void>;
+            let queryPromise: Promise<Response | void>;
 
             // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
             if (!lastUpdateIDAppliedToClient) {
@@ -81,7 +173,15 @@ export default () => {
                 deferredUpdateBeforeReconnect = updateParams;
 
                 // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
-                canUnpauseQueuePromise = App.finalReconnectAppAfterActivatingReliableUpdates();
+                queryPromise = App.finalReconnectAppAfterActivatingReliableUpdates().then(() => {
+                    // If "updateAfterReconnectApp" is set, it means that case (1) was triggered and we need to apply the update that was queued before the reconnectApp
+                    if (!deferredUpdateBeforeReconnect) {
+                        return;
+                    }
+
+                    OnyxUpdates.apply(deferredUpdateBeforeReconnect);
+                    deferredUpdateBeforeReconnect = undefined;
+                });
             } else {
                 // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
 
@@ -103,111 +203,10 @@ export default () => {
                 });
 
                 // Get the missing Onyx updates from the server
-                canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer);
+                queryPromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer).then(validateAndApplyDeferredUpdates);
             }
 
-            // This function will check for gaps in the deferred updates and apply the updates in order after the missing updates are fetched and applied
-            function validateAndApplyDeferredUpdates() {
-                // It should not be possible for lastUpdateIDAppliedToClient to be null, after the missing updates have been applied, therefore we don't need to handle this case
-                if (!lastUpdateIDAppliedToClient) {
-                    return;
-                }
-
-                // If "updateAfterReconnectApp" is set, it means that case (1) was triggered and we need to apply the update that was queued before the reconnectApp
-                if (deferredUpdateBeforeReconnect) {
-                    OnyxUpdates.apply(deferredUpdateBeforeReconnect);
-                    deferredUpdateBeforeReconnect = undefined;
-                }
-
-                // We only want to apply deferred updates that are newer than the last update that was applied to the client.
-                // At this point, the missing updates from "GetMissingOnyxUpdates" have been applied already, so we can safely filter out.
-                const pendingDeferredUpdates = Object.fromEntries(
-                    Object.entries(deferredUpdates).filter(([lastUpdateID]) => {
-                        // Same as above, it should not be possible for lastUpdateIDAppliedToClient to be null.
-                        // Still, if so we want to keep the deferred update in the list
-                        if (!lastUpdateIDAppliedToClient) {
-                            return true;
-                        }
-                        return (Number(lastUpdateID) ?? 0) > lastUpdateIDAppliedToClient;
-                    }),
-                );
-                const pendingDeferredUpdateValues = Object.values(pendingDeferredUpdates);
-
-                function unpauseQueueAndReset() {
-                    console.debug('[OnyxUpdateManager] Done applying all updates');
-                    deferredUpdates = {};
-                    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
-                    SequentialQueue.unpause();
-                }
-
-                // If there are no remaining deferred updates after filtering out outdated ones,
-                //  we can just unpause the queue and return
-                if (pendingDeferredUpdateValues.length === 0) {
-                    unpauseQueueAndReset();
-                    return;
-                }
-
-                type DetectGapAndSplitResult = {beforeGap: DeferredUpdatesDictionary; afterGap: DeferredUpdatesDictionary; latestMissingUpdateID: number | undefined};
-                // In order for the deferred updates to be applied correctly in order,
-                // we need to check if there are any gaps deferred updates.
-                function detectGapAndSplit(): DetectGapAndSplitResult {
-                    let isFirst = true;
-                    const beforeGap: DeferredUpdatesDictionary = {};
-                    let afterGap: DeferredUpdatesDictionary = pendingDeferredUpdates;
-
-                    for (const update of pendingDeferredUpdateValues) {
-                        // If it's the first update, we need to check that the previousUpdateID of the fetched update is the same as the lastUpdateIDAppliedToClient
-                        // If any update's previousUpdateID doesn't match the lastUpdateID from the previous update, there's a gap in the deferred updates
-                        if (isFirst && update.previousUpdateID !== lastUpdateIDAppliedToClient) {
-                            break;
-                        }
-
-                        if (pendingDeferredUpdates[Number(update.previousUpdateID)]) {
-                            beforeGap[Number(update.lastUpdateID)] = update;
-                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                            afterGap = Object.fromEntries(Object.entries(afterGap).filter(([_key, u]) => u.lastUpdateID === update.lastUpdateID));
-                        } else {
-                            break;
-                        }
-
-                        isFirst = false;
-                    }
-
-                    let latestMissingUpdateID: number | undefined;
-                    const afterGapValues = Object.values(afterGap);
-                    if (afterGapValues.length > 0 && afterGapValues[0]) {
-                        latestMissingUpdateID = Number(afterGapValues[0].previousUpdateID) || 0;
-                    }
-
-                    return {beforeGap, afterGap, latestMissingUpdateID};
-                }
-
-                const {beforeGap, afterGap, latestMissingUpdateID} = detectGapAndSplit();
-
-                const applyUpdates = (updates: DeferredUpdatesDictionary) => Promise.all(Object.values(updates).map((update) => OnyxUpdates.apply(update)));
-
-                //  If we detect a gap in the deferred updates, only apply the deferred updates before the gap,
-                // re-fetch the missing updates and then apply the deferred updates again.
-                if (latestMissingUpdateID) {
-                    applyUpdates(beforeGap).finally(() => {
-                        // Same as above, we can ignore this case because
-                        // it should not be possible for lastUpdateIDAppliedToClient to be null.
-                        if (!lastUpdateIDAppliedToClient) {
-                            return;
-                        }
-
-                        deferredUpdates = afterGap;
-                        App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, latestMissingUpdateID)
-                            .then(() => applyUpdates(afterGap))
-                            .then(unpauseQueueAndReset);
-                    });
-                    return;
-                }
-
-                applyUpdates(pendingDeferredUpdates).finally(unpauseQueueAndReset);
-            }
-
-            canUnpauseQueuePromise.finally(validateAndApplyDeferredUpdates);
+            queryPromise.finally(unpauseQueueAndReset);
         },
     });
 };
