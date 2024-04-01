@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
@@ -31,16 +31,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
-});
-
-let allPolicyMembers: OnyxCollection<PolicyMembers>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        allPolicyMembers = val;
-    },
 });
 
 let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
@@ -92,7 +82,7 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
 }
 
 function hasWorkspaceSettingsRBR(policy: Policy) {
-    const policyMemberError = allPolicyMembers ? hasEmployeeListError(policy) : false;
+    const policyMemberError = hasEmployeeListError(policy);
     const taxRateError = hasTaxRateError(policy);
 
     return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
