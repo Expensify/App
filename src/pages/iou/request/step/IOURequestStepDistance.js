@@ -32,6 +32,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import * as ReportUtils from "@libs/ReportUtils";
 import DistanceRequestUtils from "@libs/DistanceRequestUtils";
 import * as OptionsListUtils from "@libs/OptionsListUtils";
+import personalDetailsPropType from "@pages/personalDetailsPropType";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -46,12 +47,16 @@ const propTypes = {
 
     /** backup version of the original transaction  */
     transactionBackup: transactionPropTypes,
+
+    /** Personal details of all users */
+    personalDetails: personalDetailsPropType,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
     transactionBackup: {},
+    personalDetails: {},
 };
 
 function IOURequestStepDistance({
@@ -61,6 +66,7 @@ function IOURequestStepDistance({
     },
     transaction,
     transactionBackup,
+    personalDetails,
 }) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -158,11 +164,12 @@ function IOURequestStepDistance({
                     '',
                     '',
                     0,
-                    transaction.currency || 'USD',
-                    '',
+                    transaction.currency,
+                    translate('iou.routePending'),
                     false,
-                    TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true),
+                    TransactionUtils.getValidWaypoints(waypoints, true),
                 );
+                return;
             }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
             return;
@@ -171,7 +178,7 @@ function IOURequestStepDistance({
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [report, iouType, reportID, transactionID, backTo]);
+    }, [report, iouType, reportID, transactionID, backTo, waypoints]);
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
@@ -320,6 +327,9 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
         transactionBackup: {
             key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${props.transactionID}`,
         },
