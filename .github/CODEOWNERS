@@ -2,4 +2,4 @@
 * @Expensify/pullerbear
 
 # Assign the Design team to review changes to our styles
-src/styles/ @Expensify/design
+src/styles/ @Expensify/design @Expensify/pullerbear
