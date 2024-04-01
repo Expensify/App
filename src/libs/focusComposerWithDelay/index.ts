@@ -27,17 +27,15 @@ function focusComposerWithDelay(textInput: InputType | null): FocusComposerWithD
             }
             return;
         }
-        ComposerFocusManager.isReadyToFocus()
-            .then(isWindowReadyToFocus)
-            .then(() => {
-                if (!textInput) {
-                    return;
-                }
-                textInput.focus();
-                if (forcedSelectionRange) {
-                    setTextInputSelection(textInput, forcedSelectionRange);
-                }
-            });
+        Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]).then(() => {
+            if (!textInput) {
+                return;
+            }
+            textInput.focus();
+            if (forcedSelectionRange) {
+                setTextInputSelection(textInput, forcedSelectionRange);
+            }
+        });
     };
 }
 
