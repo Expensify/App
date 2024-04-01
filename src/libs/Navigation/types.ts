@@ -469,6 +469,7 @@ type EnablePaymentsNavigatorParamList = {
 
 type SplitDetailsNavigatorParamList = {
     [SCREENS.SPLIT_DETAILS.ROOT]: {
+        reportID: string;
         reportActionID: string;
     };
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: {
