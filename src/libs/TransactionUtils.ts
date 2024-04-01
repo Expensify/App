@@ -133,7 +133,7 @@ function hasEReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.hasEReceipt;
 }
 
-function hasReceipt(transaction: Transaction | undefined | null): boolean {
+function hasReceipt(transaction: OnyxEntry<Transaction> | undefined): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 

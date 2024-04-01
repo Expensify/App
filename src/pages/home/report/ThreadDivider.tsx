@@ -26,7 +26,7 @@ function ThreadDivider({ancestor}: ThreadDividerProps) {
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mt3, styles.mb1]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor?.report?.parentReportID ?? '', ancestor.reportAction.reportActionID))}
+                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor?.report?.parentReportID ?? ''))}
                 accessibilityLabel={translate('threads.thread')}
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
