@@ -14,7 +14,6 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -30,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Beta, ReimbursementAccount, Session} from '@src/types/onyx';
+import type {Beta, Session} from '@src/types/onyx';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -39,14 +38,12 @@ import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyP
 type WorkspaceWorkflowsPageOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
-    /** Reimbursement account details */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
     /** Policy details */
     session: OnyxEntry<Session>;
 };
 type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, session}: WorkspaceWorkflowsPageProps) {
+function WorkspaceWorkflowsPage({policy, betas, route, session}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -78,7 +75,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
     }, [policy, route.params.policyID]);
 
-    useNetwork({onReconnect: fetchData});
+    const {isOffline} = useNetwork({onReconnect: fetchData});
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
     useEffect(() => {
         fetchData();
@@ -86,9 +84,12 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
     }, []);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
-        const hasVBA = state === BankAccount.STATE.OPEN;
-        const bankDisplayName = bankName ? `${bankName} ${accountNumber ? `${accountNumber.slice(-5)}` : ''}` : '';
+        const {accountNumber, addressName, bankName} = policy?.achAccount ?? {};
+        const hasVBA = !!policy?.achAccount;
+        let bankDisplayName = bankName ?? addressName;
+        if (accountNumber && bankDisplayName !== accountNumber) {
+            bankDisplayName += ` ${accountNumber.slice(-5)}`;
+        }
         const hasReimburserEmailError = !!policy?.errorFields?.reimburserEmail;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!policy?.errorFields?.autoReporting;
@@ -187,7 +188,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                                     ? translate('common.bankAccount')
                                     : translate('workflowsPage.connectBankAccount')
                             }
-                            description={state === BankAccount.STATE.OPEN ? bankDisplayName : undefined}
+                            description={bankDisplayName}
+                            disabled={isOffline || !isPolicyAdmin}
                             onPress={() => {
                                 if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                                     setIsCurrencyModalOpen(true);
@@ -195,7 +197,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                                 }
                                 navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                             }}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={!isOffline && isPolicyAdmin}
                             wrapperStyle={containerStyle}
                             hoverAndPressStyle={[styles.mr0, styles.br2]}
                         />
@@ -238,9 +240,10 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
         onPressAutoReportingFrequency,
         preferredLocale,
         canUseDelayedSubmission,
-        reimbursementAccount?.achData,
         displayNameForAuthorizedPayer,
         session?.accountID,
+        isOffline,
+        isPolicyAdmin,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
@@ -263,8 +266,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const isLoading = reimbursementAccount?.isLoading && policy?.reimbursementChoice === undefined;
+    const isLoading = Boolean(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
         <FeatureEnabledAccessOrNotFoundWrapper
@@ -316,10 +318,6 @@ export default withPolicy(
     withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        reimbursementAccount: {
-            // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-            key: ({route}) => `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,

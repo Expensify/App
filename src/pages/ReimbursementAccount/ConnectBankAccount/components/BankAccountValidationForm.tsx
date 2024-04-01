@@ -43,9 +43,10 @@ function getAmountValues(values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEM
     };
 }
 
-const filterInput = (amount: string, amountRegex?: RegExp) => {
+const filterInput = (amount: string, amountRegex?: RegExp, permittedDecimalSeparator?: string) => {
     let value = amount ? amount.toString().trim() : '';
-    value = value.replace(/^0+|0+$/g, '');
+    const regex = new RegExp(`^0+|([${permittedDecimalSeparator}]\\d*?)0+$`, 'g');
+    value = value.replace(regex, '$1');
     if (value === '' || Number.isNaN(Number(value)) || !Math.abs(Str.fromUSDToNumber(value, false)) || (amountRegex && !amountRegex.test(value))) {
         return '';
     }
@@ -58,17 +59,17 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
     const styles = useThemeStyles();
 
     const policyID = reimbursementAccount?.achData?.policyID ?? '';
-
+    const decimalSeparator = toLocaleDigit('.');
+    const permittedDecimalSeparator = getPermittedDecimalSeparator(decimalSeparator);
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
         const amountValues = getAmountValues(values);
-        const decimalSeparator = toLocaleDigit('.');
         const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-        const amountRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CurrencyUtils.getCurrencyDecimals(outputCurrency)}})?$`, 'i');
+        const amountRegex = RegExp(String.raw`^-?\d{0,8}([${permittedDecimalSeparator}]\d{0,${CurrencyUtils.getCurrencyDecimals(outputCurrency)}})?$`, 'i');
 
         Object.keys(amountValues).forEach((key) => {
             const value = amountValues[key as keyof AmountValues];
-            const filteredValue = filterInput(value, amountRegex);
+            const filteredValue = filterInput(value, amountRegex, permittedDecimalSeparator);
             if (ValidationUtils.isRequiredFulfilled(filteredValue.toString())) {
                 return;
             }
@@ -80,9 +81,9 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => {
-            const amount1 = filterInput(values.amount1 ?? '');
-            const amount2 = filterInput(values.amount2 ?? '');
-            const amount3 = filterInput(values.amount3 ?? '');
+            const amount1 = filterInput(values.amount1 ?? '', undefined, permittedDecimalSeparator);
+            const amount2 = filterInput(values.amount2 ?? '', undefined, permittedDecimalSeparator);
+            const amount3 = filterInput(values.amount3 ?? '', undefined, permittedDecimalSeparator);
 
             const validateCode = [amount1, amount2, amount3].join(',');
 
@@ -92,7 +93,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
                 BankAccounts.validateBankAccount(bankAccountID, validateCode, policyID);
             }
         },
-        [reimbursementAccount, policyID],
+        [reimbursementAccount, policyID, permittedDecimalSeparator],
     );
     return (
         <FormProvider
