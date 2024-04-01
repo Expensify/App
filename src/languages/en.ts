@@ -314,6 +314,12 @@ export default {
         member: 'Member',
         role: 'Role',
         currency: 'Currency',
+        emptyLHN: {
+            title: 'Woohoo! All caught up.',
+            subtitleText1: 'Find a chat using the',
+            subtitleText2: 'button above, or create something using the',
+            subtitleText3: 'button below.',
+        },
     },
     location: {
         useCurrent: 'Use current location',
