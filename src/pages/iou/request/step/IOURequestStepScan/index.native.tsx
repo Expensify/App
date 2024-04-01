@@ -44,9 +44,8 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const device = useCameraDevice('back', {
-        physicalDevices: ['wide-angle-camera'],
-    });
+    const devices = useCameraDevices('wide-angle-camera');
+    const device = devices.back;
 
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
@@ -175,7 +174,7 @@ function IOURequestStepScan({
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
         IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
@@ -224,6 +223,8 @@ function IOURequestStepScan({
 
         camera?.current
             ?.takePhoto({
+                // @ts-expect-error qualityPrioritization doesn't exist in TakePhotoOptions
+                qualityPrioritization: 'speed',
                 flash: flash && hasFlash ? 'on' : 'off',
             })
             .then((photo: PhotoFile) => {
@@ -244,7 +245,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
+    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -344,22 +345,20 @@ function IOURequestStepScan({
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
-                {hasFlash && (
-                    <PressableWithFeedback
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.flash')}
-                        style={[styles.alignItemsEnd]}
-                        disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                        onPress={() => setFlash((prevFlash) => !prevFlash)}
-                    >
-                        <Icon
-                            height={32}
-                            width={32}
-                            src={Expensicons.Bolt}
-                            fill={flash ? theme.iconHovered : theme.textSupporting}
-                        />
-                    </PressableWithFeedback>
-                )}
+                <PressableWithFeedback
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    accessibilityLabel={translate('receipt.flash')}
+                    style={[styles.alignItemsEnd]}
+                    disabled={cameraPermissionStatus !== RESULTS.GRANTED}
+                    onPress={() => setFlash((prevFlash) => !prevFlash)}
+                >
+                    <Icon
+                        height={32}
+                        width={32}
+                        src={Expensicons.Bolt}
+                        fill={flash ? theme.iconHovered : theme.textSupporting}
+                    />
+                </PressableWithFeedback>
             </View>
         </StepScreenWrapper>
     );
