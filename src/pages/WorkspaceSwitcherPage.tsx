@@ -173,7 +173,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 },
             ],
             brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
-            boldStyle: hasUnreadData(undefined),
+            isBold: hasUnreadData(undefined),
         };
 
         return (
