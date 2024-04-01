@@ -73,4 +73,7 @@ export default PropTypes.shape({
 
     /** Custom fields attached to the report */
     reportFields: PropTypes.objectOf(PropTypes.string),
+
+    /** ID of the transaction thread associated with the report, if any */
+    transactionThreadReportID: PropTypes.string,
 });
