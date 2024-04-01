@@ -281,10 +281,6 @@ const ROUTES = {
         route: ':iouType/new/amount/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/amount/${reportID}` as const,
     },
-    MONEY_REQUEST_PARTICIPANTS: {
-        route: ':iouType/new/participants/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
-    },
     MONEY_REQUEST_CONFIRMATION: {
         route: ':iouType/new/confirmation/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/confirmation/${reportID}` as const,

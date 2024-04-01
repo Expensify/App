@@ -5080,9 +5080,9 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
             setMoneyRequestParticipants(participants);
         }
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
-        return;
+        // return;
     }
-    Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
+    // Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
 }
 
 /**
