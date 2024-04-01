@@ -188,6 +188,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 {
                     ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
                     selected: true,
+                    iouType: iouType,
                 },
             ]);
             onFinish();
@@ -227,6 +228,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                         reportID: option.reportID,
                         selected: true,
                         searchText: option.searchText,
+                        iouType: iouType === CONST.IOU.TYPE.REQUEST ? CONST.IOU.TYPE.SPLIT : iouType,
                     },
                 ];
             }
