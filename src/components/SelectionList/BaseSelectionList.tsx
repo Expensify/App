@@ -20,11 +20,12 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType, SelectionListHandle} from './types';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
 function BaseSelectionList<TItem extends ListItem>(
     {
@@ -74,7 +75,7 @@ function BaseSelectionList<TItem extends ListItem>(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
+    const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowTextInput = !!textInputLabel;
@@ -166,15 +167,17 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
-        const processedSections = sections.map((section) => {
-            const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
-            remainingOptionsLimit -= data.length;
+        const processedSections = getSectionsWithIndexOffset(
+            sections.map((section) => {
+                const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
+                remainingOptionsLimit -= data.length;
 
-            return {
-                ...section,
-                data,
-            };
-        });
+                return {
+                    ...section,
+                    data,
+                };
+            }),
+        );
 
         const shouldShowMoreButton = flattenedSections.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
         const showMoreButton = shouldShowMoreButton ? (
@@ -312,9 +315,8 @@ function BaseSelectionList<TItem extends ListItem>(
         );
     };
 
-    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, Section<TItem>>) => {
-        const indexOffset = section.indexOffset ? section.indexOffset : 0;
-        const normalizedIndex = index + indexOffset;
+    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
+        const normalizedIndex = index + section.indexOffset;
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
