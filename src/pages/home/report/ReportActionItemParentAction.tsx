@@ -31,6 +31,12 @@ type ReportActionItemParentActionProps = {
     /** The current report is displayed */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The transaction thread report associated with the current report, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** Array of report actions for this report */
+    reportActions: OnyxTypes.ReportAction[];
+
     /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -38,7 +44,15 @@ type ReportActionItemParentActionProps = {
     shouldDisplayReplyDivider: boolean;
 };
 
-function ReportActionItemParentAction({report, parentReportAction, index = 0, shouldHideThreadDividerLine = false, shouldDisplayReplyDivider}: ReportActionItemParentActionProps) {
+function ReportActionItemParentAction({
+    report,
+    transactionThreadReport,
+    reportActions,
+    parentReportAction,
+    index = 0,
+    shouldHideThreadDividerLine = false,
+    shouldDisplayReplyDivider,
+}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -89,9 +103,11 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                 >
                     <ThreadDivider ancestor={ancestor} />
                     <ReportActionItem
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', ancestor.reportAction.reportActionID))}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))}
                         parentReportAction={parentReportAction}
                         report={ancestor.report}
+                        reportActions={reportActions}
+                        transactionThreadReport={transactionThreadReport}
                         action={ancestor.reportAction}
                         displayAsGroup={false}
                         isMostRecentIOUReportAction={false}

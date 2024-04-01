@@ -586,7 +586,7 @@ function WorkspaceMembersPage({
                     <SelectionList
                         ref={selectionListRef}
                         canSelectMultiple={isPolicyAdmin}
-                        sections={[{data, indexOffset: 0, isDisabled: false}]}
+                        sections={[{data, isDisabled: false}]}
                         ListItem={TableListItem}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
