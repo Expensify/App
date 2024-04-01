@@ -12,6 +12,7 @@ type StartSplitBillParams = {
     isFromGroupDM: boolean;
     createdReportActionID?: string;
     billable: boolean;
+    chatType?: string;
 };
 
 export default StartSplitBillParams;
