@@ -37,6 +37,8 @@ const policySelector = (policy) =>
         role: policy.role,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
+        avatar: policy.avatar,
+        name: policy.name,
     };
 
 const getQuickActionIcon = (action) => {
@@ -153,13 +155,16 @@ function FloatingActionButtonAndPopover(props) {
 
     const quickActionReport = useMemo(() => (props.quickAction ? ReportUtils.getReport(props.quickAction.chatReportID) : 0), [props.quickAction]);
 
+    const policy = props.allPolicies ? props.allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport.policyID}`] : undefined;
+
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
             const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
             return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
         }
         return [];
-    }, [props.personalDetails, props.session.accountID, quickActionReport]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.personalDetails, props.session.accountID, quickActionReport, policy]);
 
     const quickActionTitle = useMemo(() => {
         const titleKey = getQuickActionTitle(props.quickAction && props.quickAction.action);
