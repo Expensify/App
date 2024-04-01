@@ -80,11 +80,8 @@ function App({url}: AppProps) {
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
                         PlaybackContextProvider,
-<<<<<<< HEAD
                         SuggestionsContextProvider,
-=======
                         FullScreenContextProvider,
->>>>>>> main
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
                     ]}
