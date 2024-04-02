@@ -4,11 +4,12 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
+import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
 
@@ -207,6 +208,16 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         shouldStopSmartscan = true;
     }
 
+    if (Object.hasOwn(transactionChanges, 'taxAmount') && typeof transactionChanges.taxAmount === 'number') {
+        updatedTransaction.taxAmount = isFromExpenseReport ? -transactionChanges.taxAmount : transactionChanges.taxAmount;
+        shouldStopSmartscan = true;
+    }
+
+    if (Object.hasOwn(transactionChanges, 'taxCode') && typeof transactionChanges.taxCode === 'string') {
+        updatedTransaction.taxCode = transactionChanges.taxCode;
+        shouldStopSmartscan = true;
+    }
+
     if (Object.hasOwn(transactionChanges, 'billable') && typeof transactionChanges.billable === 'boolean') {
         updatedTransaction.billable = transactionChanges.billable;
     }
@@ -240,6 +251,8 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         ...(Object.hasOwn(transactionChanges, 'billable') && {billable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
@@ -278,6 +291,27 @@ function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = fa
     // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     amount = transaction?.amount ?? 0;
     return amount ? -amount : 0;
+}
+
+/**
+ * Return the tax amount field from the transaction.
+ */
+function getTaxAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boolean): number {
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport) {
+        return Math.abs(transaction?.taxAmount ?? 0);
+    }
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    const amount = transaction?.taxAmount ?? 0;
+    return amount ? -amount : 0;
+}
+
+/**
+ * Return the tax code from the transaction.
+ */
+function getTaxCode(transaction: OnyxEntry<Transaction>): string {
+    return transaction?.taxCode ?? '';
 }
 
 /**
@@ -594,9 +628,29 @@ function isCustomUnitRateIDForP2P(transaction: Transaction): boolean {
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
+/**
+ * Gets the default tax name
+ */
+function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction: Transaction) {
+    const defaultTaxKey = taxRates.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${Localize.translateLocal('common.default')}`) || '';
+    return transaction?.taxRate?.text ?? defaultTaxName;
+}
+
+/**
+ * Gets the tax name
+ */
+function getTaxName(taxes: TaxRates, transactionTaxCode: string) {
+    const taxName = `${taxes[transactionTaxCode].name}`;
+    const taxValue = `${taxes[transactionTaxCode].value}`;
+    return transactionTaxCode ? `${taxName} (${taxValue})` : '';
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
+    getTaxName,
+    getDefaultTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
     getDescription,
@@ -605,6 +659,8 @@ export {
     isManualRequest,
     isScanRequest,
     getAmount,
+    getTaxAmount,
+    getTaxCode,
     getCurrency,
     getDistance,
     getCardID,
