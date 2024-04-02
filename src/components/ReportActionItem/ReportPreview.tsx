@@ -8,6 +8,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RenderHTML from '@components/RenderHTML';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -32,6 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 
 type ReportPreviewOnyxProps = {
     /** The policy tied to the money request report */
@@ -234,6 +236,15 @@ function ReportPreview({
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
 
+    const subtitle = previewSubtitle || moneyRequestComment;
+    const htmlSubtitle = useMemo(() => {
+        if (!subtitle || !shouldShowSubtitle) {
+            return '';
+        }
+        const parsedSubtitle = new ExpensiMark().replace(subtitle);
+        return parsedSubtitle ? `<supporting-text>${parsedSubtitle}</supporting-text>` : '';
+    }, [subtitle, shouldShowSubtitle]);
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -296,10 +307,10 @@ function ReportPreview({
                                                 )}
                                             </View>
                                         </View>
-                                        {shouldShowSubtitle && (
+                                        {shouldShowSubtitle && htmlSubtitle && (
                                             <View style={styles.flexRow}>
-                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.textLabelSupporting, styles.textNormal, styles.lh20]}>
+                                                    <RenderHTML html={htmlSubtitle} />
                                                 </View>
                                             </View>
                                         )}
