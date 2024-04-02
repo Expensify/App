@@ -25,6 +25,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportID 
 
     const {translate} = useLocalize();
 
+    // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
         return;
     }

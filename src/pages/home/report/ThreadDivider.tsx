@@ -16,7 +16,8 @@ import ROUTES from '@src/ROUTES';
 type ThreadDividerProps = {
     /** Thread ancestor */
     ancestor: Ancestor;
-    /** Whether the link is disbled */
+
+    /** Whether the link is disabled */
     isDisabled: boolean;
 };
 
