@@ -482,12 +482,12 @@ function ReportActionsView({
     // and we also generate a money request action if the number of money requests in reportActions is less than the total number of money requests
     // to display at least one money request action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
-        if (!ReportUtils.isMoneyRequestReport(report) || !combinedReportActions.length) {
-            return combinedReportActions;
+        if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {
+            return reportActions;
         }
 
-        const actions = [...combinedReportActions];
-        const lastAction = combinedReportActions[combinedReportActions.length - 1];
+        const actions = [...reportActions];
+        const lastAction = reportActions[reportActions.length - 1];
 
         if (!ReportActionsUtils.isCreatedAction(lastAction)) {
             const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
@@ -528,7 +528,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [combinedReportActions, report, transactionThreadReport]);
+    }, [reportActions, report, transactionThreadReport]);
 
     // Comments have not loaded at all yet do nothing
     if (!reportActions.length) {
