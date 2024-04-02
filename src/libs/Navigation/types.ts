@@ -354,13 +354,21 @@ type RoomInviteNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
-    [SCREENS.MONEY_REQUEST.AMOUNT]: undefined;
+    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        backTo: string;
+    };
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.CONFIRMATION]: {
+    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: string;
+        transactionID: string;
         reportID: string;
     };
     [SCREENS.MONEY_REQUEST.CURRENCY]: {
@@ -481,6 +489,7 @@ type EnablePaymentsNavigatorParamList = {
 
 type SplitDetailsNavigatorParamList = {
     [SCREENS.SPLIT_DETAILS.ROOT]: {
+        reportID: string;
         reportActionID: string;
     };
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: {
