@@ -29,7 +29,6 @@ Onyx.connect({
 });
 
 type DeferredUpdatesDictionary = Record<number, OnyxUpdatesFromServer>;
-let deferredUpdateBeforeReconnect: OnyxUpdatesFromServer | undefined;
 let deferredUpdates: DeferredUpdatesDictionary = {};
 
 // This function will unpause the SequentialQueue, log an info and reset the deferred updates
@@ -103,7 +102,7 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
 
 // This function will check for gaps in the deferred updates and
 // apply the updates in order after the missing updates are fetched and applied
-function validateAndApplyDeferredUpdates(): Promise<void> {
+function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
     // We only want to apply deferred updates that are newer than the last update that was applied to the client.
     // At this point, the missing updates from "GetMissingOnyxUpdates" have been applied already, so we can safely filter out.
     const pendingDeferredUpdates = Object.fromEntries(
@@ -152,7 +151,7 @@ function validateAndApplyDeferredUpdates(): Promise<void> {
     }
 
     // If there are no gaps in the deferred updates, we can apply all deferred updates in order
-    return applyUpdates(applicableUpdates).then(() => undefined);
+    return applyUpdates(applicableUpdates);
 }
 
 export default () => {
@@ -194,24 +193,14 @@ export default () => {
             // applied in their correct and specific order. If this queue was not paused, then there would be a lot of
             // onyx data being applied while we are fetching the missing updates and that would put them all out of order.
             SequentialQueue.pause();
-            let queryPromise: Promise<Response | void>;
+            let queryPromise: Promise<Response | Response[] | void>;
 
             // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
             if (!lastUpdateIDAppliedToClient) {
                 Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
 
-                deferredUpdateBeforeReconnect = updateParams;
-
                 // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
-                queryPromise = App.finalReconnectAppAfterActivatingReliableUpdates().then(() => {
-                    // If "updateAfterReconnectApp" is set, it means that case (1) was triggered and we need to apply the update that was queued before the reconnectApp
-                    if (!deferredUpdateBeforeReconnect) {
-                        return;
-                    }
-
-                    OnyxUpdates.apply(deferredUpdateBeforeReconnect);
-                    deferredUpdateBeforeReconnect = undefined;
-                });
+                queryPromise = App.finalReconnectAppAfterActivatingReliableUpdates();
             } else {
                 // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
 
