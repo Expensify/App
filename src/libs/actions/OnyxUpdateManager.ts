@@ -45,10 +45,9 @@ function finalizeUpdatesAndResumeQueue() {
 // This function applies a list of updates to Onyx in order and resolves when all updates have been applied
 const applyUpdates = (updates: DeferredUpdatesDictionary) => Promise.all(Object.values(updates).map((update) => OnyxUpdates.apply(update)));
 
-type DetectGapAndSplitResult = {applicableUpdates: DeferredUpdatesDictionary; updatesAfterGaps: DeferredUpdatesDictionary; latestMissingUpdateID: number | undefined};
-
 // In order for the deferred updates to be applied correctly in order,
 // we need to check if there are any gaps deferred updates.
+type DetectGapAndSplitResult = {applicableUpdates: DeferredUpdatesDictionary; updatesAfterGaps: DeferredUpdatesDictionary; latestMissingUpdateID: number | undefined};
 function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSplitResult {
     const updateValues = Object.values(updates);
     const applicableUpdates: DeferredUpdatesDictionary = {};
