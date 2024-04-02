@@ -43,7 +43,7 @@ function WorkspaceAccountingPage() {
     const connectionsMenuItems: MenuItemProps[] = useMemo(
         () => [
             {
-                icon: Expensicons.QBORound,
+                icon: Expensicons.QBOSquare,
                 iconType: 'avatar',
                 interactive: false,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -81,7 +81,7 @@ function WorkspaceAccountingPage() {
     const qboConnectionMenuItems: MenuItemProps[] = useMemo(
         () => [
             {
-                icon: Expensicons.QBORound,
+                icon: Expensicons.QBOSquare,
                 iconType: 'avatar',
                 interactive: false,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
