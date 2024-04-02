@@ -175,7 +175,12 @@ export default compose(
             },
         },
         reportActions: {
-            key: ({params: {action, iouType}, report}) => {
+            key: ({
+                route: {
+                    params: {action, iouType},
+                },
+                report,
+            }) => {
                 let reportID = '0';
                 if (action === CONST.IOU.ACTION.EDIT) {
                     reportID = iouType === CONST.IOU.TYPE.SPLIT ? report.reportID : report.parentReportID;
