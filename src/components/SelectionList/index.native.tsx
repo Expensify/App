@@ -6,7 +6,7 @@ import type {BaseSelectionListProps, ListItem, SelectionListHandle} from './type
 
 function SelectionList<TItem extends ListItem>(props: BaseSelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
     return (
-        <BaseSelectionList<TItem>
+        <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
