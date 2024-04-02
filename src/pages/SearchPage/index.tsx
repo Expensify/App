@@ -39,7 +39,6 @@ type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList
 type SearchPageSectionItem = {
     data: OptionData[];
     shouldShow: boolean;
-    indexOffset: number;
 };
 
 type SearchPageSectionList = SearchPageSectionItem[];
@@ -94,31 +93,25 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
 
     const sections = useMemo((): SearchPageSectionList => {
         const newSections: SearchPageSectionList = [];
-        let indexOffset = 0;
 
         if (recentReports?.length > 0) {
             newSections.push({
                 data: recentReports.map((report) => ({...report, isBold: report.isUnread})),
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += recentReports.length;
         }
 
         if (localPersonalDetails.length > 0) {
             newSections.push({
                 data: localPersonalDetails,
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += recentReports.length;
         }
 
         if (userToInvite) {
             newSections.push({
                 data: [userToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 

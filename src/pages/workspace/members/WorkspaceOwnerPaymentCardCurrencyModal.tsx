@@ -38,7 +38,6 @@ function WorkspaceOwnerPaymentCardCurrencyModal({isVisible, currencies, currentC
                         keyForList: currency,
                         isSelected: currency === currentCurrency,
                     })),
-                    indexOffset: 0,
                 },
             ],
         }),

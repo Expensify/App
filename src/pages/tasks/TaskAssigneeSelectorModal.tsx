@@ -15,6 +15,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
+import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -38,7 +40,7 @@ type TaskAssigneeSelectorModalOnyxProps = {
     task: OnyxEntry<Task>;
 };
 
-type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps;
+type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithNavigationTransitionEndProps;
 
 function useOptions() {
     const betas = useBetas();
@@ -113,40 +115,32 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
     const sections = useMemo(() => {
         const sectionsList = [];
-        let indexOffset = 0;
 
         if (currentUserOption) {
             sectionsList.push({
                 title: translate('newTaskPage.assignMe'),
                 data: [currentUserOption],
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += 1;
         }
 
         sectionsList.push({
             title: translate('common.recents'),
             data: recentReports,
             shouldShow: recentReports?.length > 0,
-            indexOffset,
         });
-        indexOffset += recentReports?.length || 0;
 
         sectionsList.push({
             title: translate('common.contacts'),
             data: personalDetails,
             shouldShow: personalDetails?.length > 0,
-            indexOffset,
         });
-        indexOffset += personalDetails?.length || 0;
 
         if (userToInvite) {
             sectionsList.push({
                 title: '',
                 data: [userToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 
@@ -244,4 +238,4 @@ const TaskAssigneeSelectorModalWithOnyx = withOnyx<TaskAssigneeSelectorModalProp
     },
 })(TaskAssigneeSelectorModal);
 
-export default withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx);
+export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx));
