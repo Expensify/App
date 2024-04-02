@@ -12,6 +12,7 @@ import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -91,7 +92,10 @@ function getOrderedReportIDs(
         const isFocused = report.reportID === currentReportId;
         const hasErrors = Object.keys(OptionsListUtils.getAllReportErrors(report, reportActions) ?? {}).length !== 0;
         const hasBrickError = hasErrors || doesReportHaveViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        const shouldOverrideHidden = hasBrickError || isFocused || report.isPinned;
+        const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
+        const hasBrickErrorOfNonFailedReceipt =
+            hasBrickError && (isEmptyObject(allReportErrors) || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage'));
+        const shouldOverrideHidden = hasBrickErrorOfNonFailedReceipt || isFocused || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
             return false;
         }
