@@ -280,6 +280,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
                             path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
                         },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,
+                        },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.route,
+                        },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
+                        },
                         [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
                         },
@@ -423,6 +432,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 },
                             },
                         },
+                        [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: {
+                            path: ROUTES.NEW_CHAT_CONFIRM,
+                            exact: true,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
@@ -509,11 +522,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
-                        [SCREENS.MONEY_REQUEST.AMOUNT]: ROUTES.MONEY_REQUEST_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
                         [SCREENS.MONEY_REQUEST.PARTICIPANTS]: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
-                        [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,

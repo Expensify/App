@@ -102,6 +102,7 @@ import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
@@ -142,6 +143,7 @@ import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
 import Tax from '@assets/images/tax.svg';
+import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
@@ -231,6 +233,7 @@ export {
     Folder,
     Tag,
     Tax,
+    Thread,
     Gallery,
     Gear,
     Globe,
@@ -259,6 +262,7 @@ export {
     Megaphone,
     MoneyBag,
     MoneyCircle,
+    MoneyWaving,
     Monitor,
     Mute,
     ExpensifyLogoNew,
