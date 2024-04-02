@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import CONST from '@src/CONST';
@@ -12,7 +13,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 /**
  * Reset user's reimbursement account. This will delete the bank account.
  */
-function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<OnyxTypes.Session>, policyID: string) {
+function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<OnyxTypes.Session>, policyID: string, user: OnyxEntry<OnyxTypes.User>) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -84,7 +85,7 @@ function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<Onyx
                         [INPUT_IDS.BUSINESS_INFO_STEP.STATE]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.ZIP_CODE]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE]: '',
-                        [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE]: '',
+                        [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE]: getDefaultCompanyWebsite(session, user),
                         [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE]: '',

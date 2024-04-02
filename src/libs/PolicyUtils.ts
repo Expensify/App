@@ -8,7 +8,9 @@ import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, Polic
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Navigation from './Navigation/Navigation';
+import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
+import Navigation, {navigationRef} from './Navigation/Navigation';
+import type {RootStackParamList, State} from './Navigation/types';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -175,6 +177,14 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
     return memberEmailsToExclude;
 }
 
+function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof PolicyTagList> {
+    if (isEmptyObject(policyTagList)) {
+        return [];
+    }
+
+    return Object.keys(policyTagList).sort((key1, key2) => policyTagList[key1].orderWeight - policyTagList[key2].orderWeight);
+}
+
 /**
  * Gets a tag name of policy tags based on a tag index.
  */
@@ -183,7 +193,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: numbe
         return '';
     }
 
-    const policyTagKeys = Object.keys(policyTagList ?? {});
+    const policyTagKeys = getSortedTagKeys(policyTagList ?? {});
     const policyTagKey = policyTagKeys[tagIndex] ?? '';
 
     return policyTagList?.[policyTagKey]?.name ?? '';
@@ -301,6 +311,13 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, feature
     return Boolean(policy?.[featureName]);
 }
 
+/**
+ *  Get the currently selected policy ID stored in the navigation state.
+ */
+function getPolicyIDFromNavigationState() {
+    return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -321,6 +338,7 @@ export {
     getIneligibleInvitees,
     getTagLists,
     getTagListName,
+    getSortedTagKeys,
     canEditTaxRate,
     getTagList,
     getCleanedTagName,
@@ -337,6 +355,7 @@ export {
     hasTaxRateError,
     getTaxByID,
     hasPolicyCategoriesError,
+    getPolicyIDFromNavigationState,
 };
 
 export type {MemberEmailsToAccountIDs};

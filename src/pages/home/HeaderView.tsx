@@ -275,7 +275,6 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
                                                 parentReportID={report.parentReportID}
-                                                parentReportActionID={report.parentReportActionID}
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
@@ -338,7 +337,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {isTaskReport && !isSmallScreenWidth && ReportUtils.isOpenTaskReport(report) && <TaskHeaderActionButton report={report} />}
+                                    {isTaskReport && !isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {canJoin && !isSmallScreenWidth && joinButton}
                                     {shouldShowThreeDotsButton && (
                                         <ThreeDotsMenu
