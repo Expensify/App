@@ -314,6 +314,12 @@ export default {
         member: 'Member',
         role: 'Role',
         currency: 'Currency',
+        emptyLHN: {
+            title: 'Woohoo! All caught up.',
+            subtitleText1: 'Find a chat using the',
+            subtitleText2: 'button above, or create something using the',
+            subtitleText3: 'button below.',
+        },
     },
     location: {
         useCurrent: 'Use current location',
@@ -518,7 +524,7 @@ export default {
         asCopilot: 'as copilot for',
     },
     mentionSuggestions: {
-        hereAlternateText: 'Notify everyone online in this room',
+        hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -596,6 +602,9 @@ export default {
         sendMoney: 'Send Money',
         assignTask: 'Assign Task',
         shortcut: 'Shortcut',
+        trackManual: 'Track Manual',
+        trackScan: 'Track Scan',
+        trackDistance: 'Track Distance',
     },
     iou: {
         amount: 'Amount',

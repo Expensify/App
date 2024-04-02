@@ -108,6 +108,12 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.sendMoney';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+            return 'quickAction.trackManual';
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
+            return 'quickAction.trackScan';
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+            return 'quickAction.trackDistance';
         default:
             return '' as TranslationPaths;
     }
@@ -139,6 +145,11 @@ function FloatingActionButtonAndPopover(
         }
         return [];
     }, [personalDetails, session?.accountID, quickActionReport]);
+
+    const quickActionTitle = useMemo(() => {
+        const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
+        return titleKey ? translate(titleKey) : '';
+    }, [quickAction, translate]);
 
     const navigateToQuickAction = () => {
         switch (quickAction?.action) {
@@ -321,7 +332,7 @@ function FloatingActionButtonAndPopover(
                         ? [
                               {
                                   icon: getQuickActionIcon(quickAction?.action),
-                                  text: translate(getQuickActionTitle(quickAction?.action)),
+                                  text: quickActionTitle,
                                   label: translate('quickAction.shortcut'),
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
