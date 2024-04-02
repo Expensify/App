@@ -1413,7 +1413,7 @@ function getTrackExpenseInformation(
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
         ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
         currency,
-        shouldUseMoneyReport && iouReport ? iouReport.reportID : chatReport.reportID,
+        shouldUseMoneyReport && iouReport ? iouReport.reportID : '0',
         comment,
         created,
         '',
