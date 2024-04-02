@@ -47,7 +47,7 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
         }
 
         if (!capturedLogs) {
-            Alert.alert('No logs to share', 'There are no logs to share');
+            Alert.alert(translate('initialSettingsPage.troubleshoot.noLogsToShare'));
             Console.disableLoggingAndFlushLogs();
             return;
         }

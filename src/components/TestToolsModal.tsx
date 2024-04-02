@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -27,6 +28,7 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
     const {windowWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     return (
         <Modal
@@ -40,7 +42,7 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
                     style={[styles.textLabelSupporting, styles.mt4, styles.mb3]}
                     numberOfLines={1}
                 >
-                    Release options
+                    {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                 </Text>
                 <ProfilingToolMenu />
                 <ClientSideLoggingToolMenu />

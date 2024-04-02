@@ -144,9 +144,9 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
 
     return (
         <>
-            <TestToolRow title="Use Profiling">
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.useProfiling')}>
                 <Switch
-                    accessibilityLabel="Use Profiling"
+                    accessibilityLabel={translate('initialSettingsPage.troubleshoot.useProfiling')}
                     isOn={!!isProfilingInProgress}
                     onToggle={onToggleProfiling}
                 />
@@ -154,7 +154,7 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
             {!!pathIOS && (
                 <>
                     <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${pathIOS}`}</Text>
-                    <TestToolRow title="Profile trace">
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
                         <Button
                             small
                             text={translate('common.share')}
