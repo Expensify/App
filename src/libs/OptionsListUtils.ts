@@ -83,7 +83,6 @@ type PayeePersonalDetails = {
 type CategorySectionBase = {
     title: string | undefined;
     shouldShow: boolean;
-    indexOffset: number;
 };
 
 type CategorySection = CategorySectionBase & {
@@ -151,7 +150,6 @@ type MemberForList = {
 
 type SectionForSearchTerm = {
     section: CategorySection;
-    newIndexOffset: number;
 };
 type GetOptions = {
     recentReports: ReportUtils.OptionData[];
@@ -241,17 +239,6 @@ Onyx.connect({
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
-    },
-});
-
-const policyExpenseReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!ReportUtils.isPolicyExpenseChat(report)) {
-            return;
-        }
-        policyExpenseReports[key] = report;
     },
 });
 
@@ -763,13 +750,13 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
 /**
  * Get the option for a policy expense report.
  */
-function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
-    const expenseReport = policyExpenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
+    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
 
     const option = createOption(
         expenseReport?.visibleChatMemberAccountIDs ?? [],
         allPersonalDetails ?? {},
-        expenseReport ?? null,
+        !isEmptyObject(expenseReport) ? expenseReport : null,
         {},
         {
             showChatPreviewLine: false,
@@ -780,8 +767,8 @@ function getPolicyExpenseReportOption(report: Report): ReportUtils.OptionData {
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     option.text = ReportUtils.getPolicyName(expenseReport);
     option.alternateText = Localize.translateLocal('workspace.common.workspace');
-    option.selected = report.selected;
-    option.isSelected = report.selected;
+    option.selected = participant.selected;
+    option.isSelected = participant.selected;
     return option;
 }
 
@@ -889,7 +876,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
             if (name) {
                 const categoryObject: Category = {
                     name,
-                    enabled: categories[name].enabled ?? false,
+                    enabled: categories[name]?.enabled ?? false,
                 };
 
                 acc.push(categoryObject);
@@ -911,15 +898,10 @@ function sortCategories(categories: Record<string, Category>): Category[] {
  * Sorts tags alphabetically by name.
  */
 function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>) {
-    let sortedTags;
+    const sortedTags = Array.isArray(tags) ? tags : Object.values(tags);
 
-    if (Array.isArray(tags)) {
-        sortedTags = tags.sort((a, b) => localeCompare(a.name, b.name));
-    } else {
-        sortedTags = Object.values(tags).sort((a, b) => localeCompare(a.name, b.name));
-    }
-
-    return sortedTags;
+    // Use lodash's sortBy to ensure consistency with oldDot.
+    return lodashSortBy(sortedTags, 'name', localeCompare);
 }
 
 /**
@@ -989,14 +971,11 @@ function getCategoryListSections(
     const categorySections: CategoryTreeSection[] = [];
     const numberOfEnabledCategories = enabledCategories.length;
 
-    let indexOffset = 0;
-
     if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
 
@@ -1020,7 +999,6 @@ function getCategoryListSections(
             // "Search" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getCategoryOptionTree(searchCategories, true),
         });
 
@@ -1032,11 +1010,8 @@ function getCategoryListSections(
             // "Selected" section
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
-
-        indexOffset += selectedOptions.length;
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
@@ -1047,7 +1022,6 @@ function getCategoryListSections(
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getCategoryOptionTree(filteredCategories, false, selectedOptionNames),
         });
 
@@ -1068,18 +1042,14 @@ function getCategoryListSections(
             // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
-            indexOffset,
             data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
         });
-
-        indexOffset += filteredRecentlyUsedCategories.length;
     }
 
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        indexOffset,
         data: getCategoryOptionTree(filteredCategories, false, selectedOptionNames),
     });
 
@@ -1116,11 +1086,10 @@ function getTagListSections(
     maxRecentReportsToShow: number,
 ) {
     const tagSections = [];
-    const sortedTags = sortTags(tags);
+    const sortedTags = sortTags(tags) as PolicyTag[];
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
     const numberOfTags = enabledTags.length;
-    let indexOffset = 0;
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTags === 0 && selectedOptions.length > 0) {
@@ -1133,7 +1102,6 @@ function getTagListSections(
             // "Selected" section
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTagsOptions(selectedTagOptions),
         });
 
@@ -1147,7 +1115,6 @@ function getTagListSections(
             // "Search" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTagsOptions(searchTags),
         });
 
@@ -1159,7 +1126,6 @@ function getTagListSections(
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTagsOptions(enabledTags),
         });
 
@@ -1185,11 +1151,8 @@ function getTagListSections(
             // "Selected" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTagsOptions(selectedTagOptions),
         });
-
-        indexOffset += selectedOptions.length;
     }
 
     if (filteredRecentlyUsedTags.length > 0) {
@@ -1199,18 +1162,14 @@ function getTagListSections(
             // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
-            indexOffset,
             data: getTagsOptions(cutRecentlyUsedTags),
         });
-
-        indexOffset += filteredRecentlyUsedTags.length;
     }
 
     tagSections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        indexOffset,
         data: getTagsOptions(filteredTags),
     });
 
@@ -1273,8 +1232,6 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
     const numberOfTaxRates = enabledTaxRates.length;
 
-    let indexOffset = 0;
-
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
         const selectedTaxRateOptions = selectedOptions.map((option) => ({
@@ -1286,7 +1243,6 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
             // "Selected" sectiong
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTaxRatesOptions(selectedTaxRateOptions),
         });
 
@@ -1300,7 +1256,6 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
             // "Search" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTaxRatesOptions(searchTaxRates),
         });
 
@@ -1312,7 +1267,6 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            indexOffset,
             data: getTaxRatesOptions(enabledTaxRates),
         });
 
@@ -1336,18 +1290,14 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
             // "Selected" section
             title: '',
             shouldShow: true,
-            indexOffset,
             data: getTaxRatesOptions(selectedTaxRatesOptions),
         });
-
-        indexOffset += selectedOptions.length;
     }
 
     policyRatesSections.push({
         // "All" section when number of items are more than the threshold
         title: '',
         shouldShow: true,
-        indexOffset,
         data: getTaxRatesOptions(filteredTaxRates),
     });
 
@@ -1830,7 +1780,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
 /**
  * Build the IOUConfirmationOptions for showing participants
  */
-function getIOUConfirmationOptionsFromParticipants(participants: Participant[], amountText: string): Participant[] {
+function getIOUConfirmationOptionsFromParticipants(participants: Array<Participant | ReportUtils.OptionData>, amountText: string): Array<Participant | ReportUtils.OptionData> {
     return participants.map((participant) => ({
         ...participant,
         descriptiveText: amountText,
@@ -2025,7 +1975,6 @@ function formatSectionsFromSearchTerm(
     filteredRecentReports: ReportUtils.OptionData[],
     filteredPersonalDetails: ReportUtils.OptionData[],
     maxOptionsSelected: boolean,
-    indexOffset = 0,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
 ): SectionForSearchTerm {
@@ -2043,9 +1992,7 @@ function formatSectionsFromSearchTerm(
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
-                indexOffset,
             },
-            newIndexOffset: indexOffset + selectedOptions.length,
         };
     }
 
@@ -2069,9 +2016,7 @@ function formatSectionsFromSearchTerm(
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
-            indexOffset,
         },
-        newIndexOffset: indexOffset + selectedParticipantsWithoutDetails.length,
     };
 }
 
@@ -2100,6 +2045,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
+    sortTags,
     getCategoryOptionTree,
     hasEnabledTags,
     formatMemberForList,
