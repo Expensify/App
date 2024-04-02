@@ -46,7 +46,7 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The policy tied to the money request report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Array of report actions for the report*/
+    /** Array of report actions for the report */
     reportActions: OnyxTypes.ReportAction[];
 
     /** The reportID of the transaction thread report associated with this current report, if any */
