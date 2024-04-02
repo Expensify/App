@@ -77,11 +77,25 @@ function getOrderedReportIDs(
 
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay = allReportsDictValues.filter((report) => {
-        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
+        if (!report) {
+            return false;
+        }
+
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
         const parentReportActions = allReportActions?.[parentReportActionsKey];
-        const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
+        const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+        const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
         const doesReportHaveViolations =
             betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        const isFocused = report.reportID === currentReportId;
+        const hasErrors = Object.keys(OptionsListUtils.getAllReportErrors(report, reportActions) ?? {}).length !== 0;
+        const hasBrickError = hasErrors || doesReportHaveViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        const shouldOverrideHidden = hasBrickError || isFocused || report.isPinned;
+        if (isHidden && !shouldOverrideHidden) {
+            return false;
+        }
+
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
@@ -93,14 +107,6 @@ function getOrderedReportIDs(
             includeSelfDM: true,
         });
     });
-
-    if (reportsToDisplay.length === 0) {
-        // Display Concierge chat report when there is no report to be displayed
-        const conciergeChatReport = allReportsDictValues.find(ReportUtils.isConciergeChatReport);
-        if (conciergeChatReport) {
-            reportsToDisplay.push(conciergeChatReport);
-        }
-    }
 
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
@@ -352,28 +358,32 @@ function getOptionData({
         if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
             // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
-            lastMessageText =
-                Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory') +
-                displayNamesWithTooltips
-                    .map(({displayName, pronouns}, index) => {
-                        const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
+            lastMessageText = ReportUtils.isSelfDM(report)
+                ? Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistorySelfDM')
+                : Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory') +
+                  displayNamesWithTooltips
+                      .map(({displayName, pronouns}, index) => {
+                          const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
 
-                        if (index === displayNamesWithTooltips.length - 1) {
-                            return `${formattedText}.`;
-                        }
-                        if (index === displayNamesWithTooltips.length - 2) {
-                            return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`;
-                        }
-                        if (index < displayNamesWithTooltips.length - 2) {
-                            return `${formattedText},`;
-                        }
+                          if (index === displayNamesWithTooltips.length - 1) {
+                              return `${formattedText}.`;
+                          }
+                          if (index === displayNamesWithTooltips.length - 2) {
+                              return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`;
+                          }
+                          if (index < displayNamesWithTooltips.length - 2) {
+                              return `${formattedText},`;
+                          }
 
-                        return '';
-                    })
-                    .join(' ');
+                          return '';
+                      })
+                      .join(' ');
         }
 
-        result.alternateText = ReportUtils.isGroupChat(report) && lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageText}` : lastMessageText || formattedLogin;
+        result.alternateText =
+            (ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report)) && lastActorDisplayName
+                ? `${lastActorDisplayName}: ${lastMessageText}`
+                : lastMessageText || formattedLogin;
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);

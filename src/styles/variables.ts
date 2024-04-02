@@ -83,6 +83,7 @@ export default {
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 120,
     iconBottomBar: 24,
+    sidebarAvatarSize: 28,
     iconHeader: 48,
     emojiSize: 20,
     emojiLineHeight: 28,
@@ -124,6 +125,8 @@ export default {
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
+    emptyLHNIconHeight: 16,
     emptyWorkspaceIconWidth: 84,
     emptyWorkspaceIconHeight: 84,
     modalTopIconWidth: 200,
@@ -168,7 +171,7 @@ export default {
     addBankAccountLeftSpacing: 3,
     eReceiptThumbnailSmallBreakpoint: 110,
     eReceiptThumbnailMediumBreakpoint: 335,
-    eReceiptThumnailCenterReceiptBreakpoint: 200,
+    eReceiptThumbnailCenterReceiptBreakpoint: 200,
     eReceiptIconHeight: 100,
     eReceiptIconWidth: 72,
     eReceiptEmptyIconWidth: 76,

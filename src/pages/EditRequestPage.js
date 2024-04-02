@@ -8,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import compose from '@libs/compose';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -18,9 +17,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import EditRequestAmountPage from './EditRequestAmountPage';
-import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
@@ -38,7 +34,7 @@ const propTypes = {
             /** reportID for the "transaction thread" */
             threadReportID: PropTypes.string,
 
-            /** The index of a tag list */
+            /** Indicates which tag list index was selected */
             tagIndex: PropTypes.string,
         }),
     }).isRequired,
@@ -75,14 +71,13 @@ const defaultProps = {
 function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
-    const {amount: transactionAmount, currency: transactionCurrency, tag: transactionTag} = ReportUtils.getTransactionDetails(transaction);
+    const {tag: transactionTag} = ReportUtils.getTransactionDetails(transaction);
 
-    const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
-    const tagIndex = Number(lodashGet(route, ['params', 'tagIndex'], undefined));
+    const tagListIndex = Number(lodashGet(route, ['params', 'tagIndex'], undefined));
 
-    const tag = TransactionUtils.getTag(transaction, tagIndex);
-    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagIndex);
+    const tag = TransactionUtils.getTag(transaction, tagListIndex);
+    const policyTagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
@@ -104,22 +99,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         });
     }, [parentReportAction, fieldToEdit]);
 
-    const saveAmountAndCurrency = useCallback(
-        ({amount, currency: newCurrency}) => {
-            const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
-
-            // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newAmount === TransactionUtils.getAmount(transaction) && newCurrency === TransactionUtils.getCurrency(transaction)) {
-                Navigation.dismissModal();
-                return;
-            }
-
-            IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount, policy, policyTags, policyCategories);
-            Navigation.dismissModal();
-        },
-        [transaction, report, policy, policyTags, policyCategories],
-    );
-
     const saveTag = useCallback(
         ({tag: newTag}) => {
             let updatedTag = newTag;
@@ -130,37 +109,22 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             IOU.updateMoneyRequestTag(
                 transaction.transactionID,
                 report.reportID,
-                IOUUtils.insertTagIntoTransactionTagsString(transactionTag, updatedTag, tagIndex),
+                IOUUtils.insertTagIntoTransactionTagsString(transactionTag, updatedTag, tagListIndex),
                 policy,
                 policyTags,
                 policyCategories,
             );
             Navigation.dismissModal();
         },
-        [tag, transaction.transactionID, report.reportID, transactionTag, tagIndex, policy, policyTags, policyCategories],
+        [tag, transaction.transactionID, report.reportID, transactionTag, tagListIndex, policy, policyTags, policyCategories],
     );
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
-        return (
-            <EditRequestAmountPage
-                defaultAmount={transactionAmount}
-                defaultCurrency={defaultCurrency}
-                reportID={report.reportID}
-                onSubmit={saveAmountAndCurrency}
-                onNavigateToCurrency={() => {
-                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
-                }}
-            />
-        );
-    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG && shouldShowTags) {
         return (
             <EditRequestTagPage
                 defaultTag={tag}
                 tagName={policyTagListName}
-                tagIndex={tagIndex}
+                tagListIndex={tagListIndex}
                 policyID={lodashGet(report, 'policyID', '')}
                 onSubmit={saveTag}
             />
@@ -172,16 +136,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
             <EditRequestReceiptPage
                 route={route}
                 transactionID={transaction.transactionID}
-            />
-        );
-    }
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE) {
-        return (
-            <EditRequestDistancePage
-                report={report}
-                transactionID={transaction.transactionID}
-                route={route}
             />
         );
     }
