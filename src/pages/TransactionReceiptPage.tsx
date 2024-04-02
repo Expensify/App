@@ -45,6 +45,8 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const moneyRequestReportID = ReportUtils.isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
+
     return (
         <AttachmentModal
             source={imageSource}
@@ -59,7 +61,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
             }}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
-            shouldShowNotFoundPage={(report?.parentReportID ?? '') !== transaction?.reportID}
+            shouldShowNotFoundPage={(moneyRequestReportID ?? '') !== transaction?.reportID}
         />
     );
 }
