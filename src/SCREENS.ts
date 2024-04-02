@@ -149,9 +149,7 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
-        AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
-        CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
@@ -264,6 +262,7 @@ const SCREENS = {
     NEW_CHAT: {
         ROOT: 'NewChat_Root',
         NEW_CHAT: 'chat',
+        NEW_CHAT_CONFIRM: 'NewChat_Confirm',
         NEW_ROOM: 'room',
     },
 
