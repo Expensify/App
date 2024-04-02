@@ -84,12 +84,6 @@ const getQuickActionTitle = (action) => {
             return 'quickAction.sendMoney';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
-        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            return 'quickAction.trackManual';
-        case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return 'quickAction.trackScan';
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            return 'quickAction.trackDistance';
         default:
             return '';
     }
