@@ -8,7 +8,9 @@ import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, Polic
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Navigation from './Navigation/Navigation';
+import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
+import Navigation, {navigationRef} from './Navigation/Navigation';
+import type {RootStackParamList, State} from './Navigation/types';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -304,6 +306,13 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, feature
     return Boolean(policy?.[featureName]);
 }
 
+/**
+ *  Get the currently selected policy ID stored in the navigation state.
+ */
+function getPolicyIDFromNavigationState() {
+    return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -340,6 +349,7 @@ export {
     hasTaxRateError,
     getTaxByID,
     hasPolicyCategoriesError,
+    getPolicyIDFromNavigationState,
 };
 
 export type {MemberEmailsToAccountIDs};
