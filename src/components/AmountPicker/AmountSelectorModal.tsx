@@ -52,7 +52,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                             pressOnEnter
                             text={translate('common.save')}
                             onPress={() => onValueSelected?.(currentValue ?? '')}
-                            style={styles.m5}
+                            style={styles.mh5}
                         />
                     </View>
                 </ScrollView>
