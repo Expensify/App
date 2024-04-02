@@ -2,7 +2,8 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
-    OpenPublicProfilePageParams,
+    CompleteEngagementModalParams,
+    CompleteGuidedSetupParams,
     UpdateAutomaticTimezoneParams,
     UpdateDateOfBirthParams,
     UpdateDisplayNameParams,
@@ -26,6 +27,9 @@ import type {DateOfBirthForm} from '@src/types/form';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as Session from './Session';
+import * as ReportUtils from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
+import * as NumberUtils from '@libs/NumberUtils';
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -319,9 +323,133 @@ function openPublicProfilePage(accountID: number) {
         },
     ];
 
-    const parameters: OpenPublicProfilePageParams = {accountID};
+    /** ****************************************************************************************************************
+     * POC for generating optimistic data and passing it to `CompleteGuidedSetup`, for testing only.
+     * Here we create, in order:
+     * - Two messages in the Concierge chat
+     * - One task in the Concierge chat
+     * - One message inside the task
+     * - A second task in the Concierge chat
+     * - One message inside the second task
+     * ****************************************************************************************************************/
 
-    API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {optimisticData, successData, failureData});
+    // -- Message 1
+    const reportComment = ReportUtils.buildOptimisticAddCommentReportAction('Hello world', undefined);
+    const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
+    const reportCommentText = reportComment.commentText;
+
+    // -- Message 2
+    const reportComment2 = ReportUtils.buildOptimisticAddCommentReportAction('Second 👍 message', undefined);
+    const reportCommentAction2: OptimisticAddCommentReportAction = reportComment2.reportAction;
+    const reportCommentText2 = reportComment2.commentText;
+
+    // -- Task 1
+    const title = `Task 1 Hello World - #${Math.round(Math.random() * 100000)}`;
+    const parentReportID = ReportUtils.getChatByParticipants(PersonalDetailsUtils.getAccountIDsByLogins(['concierge@expensify.com']))?.reportID ?? '';
+
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, 0, parentReportID, title);
+
+    const assigneeChatReportID = ''; // Tasks should not be assigned to anyone
+    const taskReportID = optimisticTaskReport.reportID;
+
+    // Parent ReportAction indicating that a task has been created
+    const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, 0, `task for ${title}`, parentReportID);
+    optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
+
+    // -- Message inside task 1
+    const reportComment3 = ReportUtils.buildOptimisticAddCommentReportAction('Message inside the task', undefined);
+    const reportCommentAction3: OptimisticAddCommentReportAction = reportComment3.reportAction;
+    const reportCommentText3 = reportComment3.commentText;
+
+    // --- Task 2
+    const title2 = `This CreateWorkspace task should auto-complete – #${Math.round(Math.random() * 100000)}`;
+    const optimisticTaskReport2 = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, 0, parentReportID, title2);
+
+    const taskReportID2 = optimisticTaskReport2.reportID;
+
+    const optimisticTaskCreatedAction2 = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const optimisticAddCommentReport2 = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID2, title2, 0, `task for ${title2}`, parentReportID);
+    optimisticTaskReport2.parentReportActionID = optimisticAddCommentReport2.reportAction.reportActionID;
+
+    // -- Message inside task 2
+    const reportComment4 = ReportUtils.buildOptimisticAddCommentReportAction('Message inside the second task', undefined);
+    const reportCommentAction4: OptimisticAddCommentReportAction = reportComment4.reportAction;
+    const reportCommentText4 = reportComment4.commentText;
+
+    /*
+     * Each element in the `data` array represents either a message or a task, with a `type` that is either `message` or `task`.
+     * The other attributes are based on `AddCommentOrAttachementParams` and `CreateTaskParams` respectively.
+     *
+     * Each task must also have a `task` attribute, whose value can be one of:
+     *  'addExpenseApprovals'
+     *  'createWorkspace'
+     *  'enableWallet'
+     *  'inviteTeam'
+     *  'meetGuide'
+     *  'requestMoney'
+     *  'setupCategories'
+     *  'startChat'
+     *  'submitExpense'
+     *  'trackExpense'
+     *
+     * The `createWorkspace` task also needs the optimistic ID of a report action to complete the task, because that task
+     * gets immediately completed in the backend after we create it.
+     */
+    const parameters2: CompleteGuidedSetupParams = {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        data: JSON.stringify([{
+            reportID: parentReportID,
+            reportActionID: reportCommentAction.reportActionID,
+            reportComment: reportCommentText,
+            type: 'message',
+        }, {
+            reportID: parentReportID,
+            reportActionID: reportCommentAction2.reportActionID,
+            reportComment: reportCommentText2,
+            type: 'message',
+        }, {
+            parentReportActionID: optimisticAddCommentReport.reportAction.reportActionID,
+            parentReportID,
+            taskReportID: optimisticTaskReport.reportID,
+            createdTaskReportActionID: optimisticTaskCreatedAction.reportActionID,
+            title: optimisticTaskReport.reportName,
+            description: optimisticTaskReport.description,
+            assigneeChatReportID,
+            type: 'task',
+            task: 'trackExpense',
+        }, {
+            reportID: optimisticTaskReport.reportID,
+            reportActionID: reportCommentAction3.reportActionID,
+            reportComment: reportCommentText3,
+            type: 'message',
+        }, {
+            parentReportActionID: optimisticAddCommentReport2.reportAction.reportActionID,
+            parentReportID,
+            taskReportID: optimisticTaskReport2.reportID,
+            createdTaskReportActionID: optimisticTaskCreatedAction2.reportActionID,
+            title: optimisticTaskReport2.reportName,
+            description: optimisticTaskReport2.description,
+            assigneeChatReportID,
+            // The `createWorkspace` tasks needs an action ID because we'll immediately complete it in the backend.
+            completedTaskReportActionID: NumberUtils.rand64(), // TODO: Use the ID of a proper optimistic action ID instead, see `Task.completeTask`
+            type: 'task',
+            task: 'createWorkspace',
+        }, {
+            reportID: optimisticTaskReport2.reportID,
+            reportActionID: reportCommentAction4.reportActionID,
+            reportComment: reportCommentText4,
+            type: 'message',
+        }]),
+        engagementChoice: 'newDotValue',
+    };
+    API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters2, {
+        // TODO: Fill out the optimistic data like we do for other tasks and messages, so that the UI immediately displays
+        // the new messages and tasks.
+    });
+
+    // API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
