@@ -88,7 +88,6 @@ function ReportActionsView({
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const contentListHeight = useRef(0);
     const isFocused = useIsFocused();
-    const prevNetworkRef = useRef(network);
     const prevAuthTokenType = usePrevious(session?.authTokenType);
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
     const prevIsSmallScreenWidthRef = useRef(isSmallScreenWidth);
