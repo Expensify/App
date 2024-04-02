@@ -65,7 +65,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
         }
-        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID ?? '0');
+        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID ?? '0') as OnyxTypes.ReportAction;
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
 
