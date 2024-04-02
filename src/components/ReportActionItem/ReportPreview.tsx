@@ -242,7 +242,7 @@ function ReportPreview({
             return '';
         }
         const parsedSubtitle = new ExpensiMark().replace(subtitle);
-        return parsedSubtitle ? `<supporting-text>${parsedSubtitle}</supporting-text>` : '';
+        return parsedSubtitle ? `<muted-text>${parsedSubtitle}</muted-text>` : '';
     }, [subtitle, shouldShowSubtitle]);
 
     return (
