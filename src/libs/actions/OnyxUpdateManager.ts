@@ -165,11 +165,6 @@ export default () => {
                 return;
             }
 
-            // If there is a query of either ReconnectApp or GetMissingOnyxUpdates in progress, we should not start another one.
-            if (queryPromise) {
-                return;
-            }
-
             // Since we used the same key that used to store another object, let's confirm that the current object is
             // following the new format before we proceed. If it isn't, then let's clear the object in Onyx.
             if (
@@ -203,6 +198,11 @@ export default () => {
 
             // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
             if (!lastUpdateIDAppliedToClient) {
+                // If there is a ReconnectApp query in progress, we should not start another one.
+                if (queryPromise) {
+                    return;
+                }
+
                 Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
 
                 // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
