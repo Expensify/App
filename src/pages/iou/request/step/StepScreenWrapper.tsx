@@ -1,3 +1,4 @@
+import React, {forwardRef} from 'react';
 import type {PropsWithChildren} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -27,7 +28,7 @@ type StepScreenWrapperProps = {
     testID: string;
 
     /** Whether or not to include safe area padding */
-    includeSafeAreaPaddingBottom: boolean;
+    includeSafeAreaPaddingBottom?: boolean;
 };
 
 function StepScreenWrapper({
@@ -62,7 +63,7 @@ function StepScreenWrapper({
                         />
                         {
                             // If props.children is a function, call it to provide the insets to the children
-                            callOrReturn(children, {insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd})
+                            callOrReturn(children, [insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd])
                         }
                     </View>
                 </FullPageNotFoundView>
@@ -71,6 +72,4 @@ function StepScreenWrapper({
     );
 }
 
-StepScreenWrapper.displayName = 'StepScreenWrapper';
-
-export default StepScreenWrapper;
+export default forwardRef(StepScreenWrapper);
