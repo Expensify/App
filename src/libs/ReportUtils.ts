@@ -5220,7 +5220,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     // This log to server is temporary and needed to determine if there is a case we need the transaction param
     // when we call getIOUReportActionDisplayMessage from ReportActionItemMessage
     if (shouldLog) {
-        Log.alert('Transaction Param Used when getIOUReportActionDisplayMessage was called from ReportActionItemMessage', {reportAction});
+        Log.alert('Transaction Param Used when getIOUReportActionDisplayMessage was called from ReportActionItemMessage', {originalMessage});
     }
 
     const transactionDetails = getTransactionDetails(!isEmptyObject(transaction) ? transaction : null);
