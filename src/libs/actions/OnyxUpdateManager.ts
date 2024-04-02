@@ -88,8 +88,8 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
         }
     }
 
-    // When there was no "firstUpdateAfterGaps" set yet, we need to set it to the last update in the list,
-    // because we will fetch all missing updates up to the previous one and can then always apply the lst update.
+    // When "firstUpdateAfterGaps" is not set yet, we need to set it to the last update in the list,
+    // because we will fetch all missing updates up to the previous one and can then always apply the last update in the deferred updates.
     if (!firstUpdateAfterGaps) {
         firstUpdateAfterGaps = Number(updateValues[updateValues.length - 1].lastUpdateID);
     }
