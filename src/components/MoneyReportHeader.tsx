@@ -65,9 +65,9 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
         }
-        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID ?? '0') as OnyxTypes.ReportAction;
+        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction as OnyxTypes.ReportAction);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner = typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
