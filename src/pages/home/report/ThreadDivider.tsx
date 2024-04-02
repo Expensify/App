@@ -18,10 +18,10 @@ type ThreadDividerProps = {
     ancestor: Ancestor;
 
     /** Whether the link is disabled */
-    isDisabled: boolean;
+    isDisabled?: boolean;
 };
 
-function ThreadDivider({ancestor, isDisabled}: ThreadDividerProps) {
+function ThreadDivider({ancestor, isDisabled = false}: ThreadDividerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
