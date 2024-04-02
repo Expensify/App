@@ -126,9 +126,9 @@ function IOURequestStepCategory({
 IOURequestStepCategory.displayName = 'IOURequestStepCategory';
 
 /* eslint-disable rulesdir/no-negated-variables */
-const ComponentWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepCategory);
+const IOURequestStepCategoryWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepCategory);
 /* eslint-disable rulesdir/no-negated-variables */
-const ComponentWithFullTransactionOrNotFound = withFullTransactionOrNotFound(ComponentWithWritableReportOrNotFound);
+const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategoryWithWritableReportOrNotFound);
 export default withOnyx<IOURequestStepCategoryProps, IOURequestStepCategoryOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
@@ -168,4 +168,4 @@ export default withOnyx<IOURequestStepCategoryProps, IOURequestStepCategoryOnyxP
         key: ONYXKEYS.SESSION,
     },
     // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
-})(ComponentWithFullTransactionOrNotFound);
+})(IOURequestStepCategoryWithFullTransactionOrNotFound);

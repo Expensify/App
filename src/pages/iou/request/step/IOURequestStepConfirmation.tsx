@@ -533,9 +533,9 @@ function IOURequestStepConfirmation({
 IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
 /* eslint-disable rulesdir/no-negated-variables */
-const ComponentWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmation);
+const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmation);
 /* eslint-disable rulesdir/no-negated-variables */
-const ComponentWithFullTransactionOrNotFound = withFullTransactionOrNotFound(ComponentWithWritableReportOrNotFound);
+const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmationWithWritableReportOrNotFound);
 export default withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmationOnyxProps>({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -550,4 +550,4 @@ export default withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmat
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
     },
     // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
-})(ComponentWithFullTransactionOrNotFound);
+})(IOURequestStepConfirmationWithFullTransactionOrNotFound);
