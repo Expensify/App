@@ -150,7 +150,7 @@ function WorkspaceAccountingPage() {
                 iconRight: Expensicons.DownArrow,
                 shouldShowRightIcon: true,
                 description: translate('workspace.accounting.other'),
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                wrapperStyle: [styles.sectionMenuItemTopDescription, styles.mt3],
                 onPress: () => {},
             },
         ],
