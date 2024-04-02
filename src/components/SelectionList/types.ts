@@ -231,6 +231,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Message to display at the top of the list */
     headerMessage?: string;
 
+    /** Styles to apply to the header message */
+    headerMessageStyle?: StyleProp<ViewStyle>;
+
     /** Text to display on the confirm button */
     confirmButtonText?: string;
 
