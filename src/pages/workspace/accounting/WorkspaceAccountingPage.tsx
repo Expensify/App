@@ -58,23 +58,6 @@ function WorkspaceAccountingPage() {
                     />
                 ),
             },
-            {
-                icon: Expensicons.XeroRound,
-                iconType: 'avatar',
-                interactive: false,
-                disabled: true,
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-                shouldShowRightComponent: true,
-                title: translate('workspace.accounting.xero'),
-                rightComponent: (
-                    <Button
-                        style={[styles.pl2, styles.justifyContentCenter]}
-                        text={translate('workspace.accounting.setup')}
-                        small
-                        isDisabled
-                    />
-                ),
-            },
         ],
         [openQBOsync, styles.pl2, styles.justifyContentCenter, styles.sectionMenuItemTopDescription, translate],
     );
