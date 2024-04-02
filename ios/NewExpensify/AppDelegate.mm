@@ -22,7 +22,7 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
-  
+
   // Configure firebase
   [FIRApp configure];
 
@@ -34,7 +34,7 @@
 
   [RCTBootSplash initWithStoryboard:@"BootSplash"
                            rootView:(RCTRootView *)self.window.rootViewController.view]; // <- initialization using the storyboard file name
-  
+
   // Define UNUserNotificationCenter
   UNUserNotificationCenter *center =
       [UNUserNotificationCenter currentNotificationCenter];
@@ -44,7 +44,12 @@
   // stopped by a native module in the JS so we can measure total time starting
   // in the native layer and ending in the JS layer.
   [RCTStartupTimer start];
-  
+
+  if (![[NSUserDefaults standardUserDefaults] boolForKey:@"isFirstRunComplete"]) {
+      [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
+      [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"isFirstRunComplete"];
+  }
+
   return YES;
 }
 
