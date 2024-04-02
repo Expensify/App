@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -29,7 +29,8 @@ function WorkspaceJoinUserPage({route, policies}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
     const inviterEmail = route?.params?.email;
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy), [policies, policyID]);
+
     const isUnmounted = useRef(false);
 
     useEffect(() => {

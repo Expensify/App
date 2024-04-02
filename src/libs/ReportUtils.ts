@@ -570,6 +570,9 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
     return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : null);
 }
 
+/**
+ * Returns the policy of the report
+ */
 function getPolicy(policyID: string | undefined): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
         return {};
