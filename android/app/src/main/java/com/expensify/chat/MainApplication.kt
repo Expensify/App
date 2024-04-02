@@ -15,6 +15,7 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.soloader.SoLoader
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.oblador.performance.RNPerformance
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
@@ -41,6 +42,8 @@ class MainApplication : MultiDexApplication(), ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+
+        RNPerformance.getInstance().mark("appCreationStart", false);
 
         if (isOnfidoProcess()) {
             return
