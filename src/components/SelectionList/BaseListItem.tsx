@@ -132,7 +132,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {!item.isSelected && item.brickRoadIndicator && [CONST.BRICK_ROAD_INDICATOR_STATUS.INFO, CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR].includes(item.brickRoadIndicator) && (
+                    {!item.isSelected && item.brickRoadIndicator && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}

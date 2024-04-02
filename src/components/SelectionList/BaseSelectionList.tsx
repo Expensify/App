@@ -71,7 +71,6 @@ function BaseSelectionList<TItem extends ListItem>(
         textInputRef,
         textInputIconLeft,
         sectionTitleStyles,
-        turnOffEnterDisabling,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -195,7 +194,7 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = !turnOffEnterDisabling && activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
 
     /**
      * Scrolls to the desired item index in the section list

@@ -144,7 +144,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
     children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
-    brickRoadIndicator?: BrickRoad | '' | null;
 };
 
 type UserListItemProps = ListItemProps & {
@@ -217,7 +216,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     textInputMaxLength?: number;
 
     /** Icon to display on the left side of TextInput */
-    textInputIconLeft?: IconAsset | null;
+    textInputIconLeft?: IconAsset;
 
     /** Callback to fire when the text input changes */
     onChangeText?: (text: string) => void;
@@ -314,9 +313,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
-
-    /** Decides if selecting with Enter should be disabled */
-    turnOffEnterDisabling?: boolean;
 };
 
 type SelectionListHandle = {

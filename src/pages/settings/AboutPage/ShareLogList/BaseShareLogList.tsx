@@ -118,30 +118,24 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
             testID={BaseShareLogList.displayName}
             includeSafeAreaPaddingBottom={false}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('initialSettingsPage.debugConsole.shareLog')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
-                    />
-                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <SelectionList
-                            ListItem={UserListItem}
-                            sections={sections}
-                            onSelectRow={attachLogToReport}
-                            onChangeText={onChangeText}
-                            textInputValue={searchValue}
-                            headerMessage={headerMessage}
-                            shouldShowTooltips
-                            isLoadingNewOptions={!isOptionsDataReady}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                            containerStyle={safeAreaPaddingBottomStyle}
-                            autoFocus
-                        />
-                    </View>
-                </>
-            )}
+            <HeaderWithBackButton
+                title={translate('initialSettingsPage.debugConsole.shareLog')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
+            />
+            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                <SelectionList
+                    ListItem={UserListItem}
+                    sections={sections}
+                    onSelectRow={attachLogToReport}
+                    onChangeText={onChangeText}
+                    textInputValue={searchValue}
+                    headerMessage={headerMessage}
+                    isLoadingNewOptions={!isOptionsDataReady}
+                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                    autoFocus
+                />
+            </View>
         </ScreenWrapper>
     );
 }
