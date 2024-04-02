@@ -45,11 +45,11 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.workspaces')}
                 accessible
-                onPress={() =>{
+                onPress={() => {
                     pressableRef?.current?.blur();
                     interceptAnonymousUser(() => {
-                        Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);                        
-                    })
+                        Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
+                    });
                 }}
             >
                 {({hovered}) => (
