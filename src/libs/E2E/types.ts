@@ -43,7 +43,7 @@ type TestResult = {
      * Whether error is critical. If `true`, then server will be stopped and `e2e` tests will fail. Otherwise will simply log a warning.
      * Default value is `true`
      */
-    critical?: boolean;
+    isCritical?: boolean;
 
     /** Render count */
     renderCount?: number;
