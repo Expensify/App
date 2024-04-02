@@ -42,6 +42,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            'supporting-text': HTMLElementModel.fromCustomModel({
+                tagName: 'supporting-text',
+                mixedUAStyles: {...styles.textLabelSupporting, ...styles.textNormal, ...styles.lh20},
+                contentModel: HTMLContentModel.block,
+            }),
             comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
                 mixedUAStyles: {whiteSpace: 'pre'},
