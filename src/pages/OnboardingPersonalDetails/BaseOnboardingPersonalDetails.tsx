@@ -50,7 +50,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
         } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
             ErrorUtils.addErrorMessage(errors, 'firstName', ['common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}]);
-        } 
+        }
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
         }
