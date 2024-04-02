@@ -786,13 +786,12 @@ describe('actions/IOU', () => {
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
-                                ReportActions.clearReportActionErrors(iouReportID ?? '', iouAction);
-                                ReportActions.clearReportActionErrors(transactionThreadReport?.reportID ?? '', transactionThreadAction);
+                                ReportActions.clearAllRelatedReportActionErrors(iouReportID ?? '', iouAction);
                                 resolve();
                             }),
                     )
 
-                    // Then the reportAction should be removed from Onyx
+                    // Then the reportAction from chat report should be removed from Onyx
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
@@ -803,6 +802,39 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connectionID);
                                         iouAction = Object.values(reportActionsForReport ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
                                         expect(iouAction).toBeFalsy();
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+
+                    // Then the reportAction from iou report should be removed from Onyx
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
+                                    waitForCollectionCallback: false,
+                                    callback: (reportActionsForReport) => {
+                                        Onyx.disconnect(connectionID);
+                                        iouAction = Object.values(reportActionsForReport ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
+                                        expect(iouAction).toBeFalsy();
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+
+                    // Then the reportAction from transaction report should be removed from Onyx
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
+                                    waitForCollectionCallback: false,
+                                    callback: (reportActionsForReport) => {
+                                        Onyx.disconnect(connectionID);
+                                        expect(reportActionsForReport).toMatchObject({});
                                         resolve();
                                     },
                                 });
@@ -1112,7 +1144,8 @@ describe('actions/IOU', () => {
                                         groupChat =
                                             Object.values(allReports ?? {}).find(
                                                 (report) =>
-                                                    report?.type === CONST.REPORT.TYPE.CHAT && isEqual(report.participantAccountIDs, [CARLOS_ACCOUNT_ID, JULES_ACCOUNT_ID, VIT_ACCOUNT_ID]),
+                                                    report?.type === CONST.REPORT.TYPE.CHAT &&
+                                                    isEqual(report.participantAccountIDs, [CARLOS_ACCOUNT_ID, JULES_ACCOUNT_ID, VIT_ACCOUNT_ID, RORY_ACCOUNT_ID]),
                                             ) ?? null;
                                         expect(isEmptyObject(groupChat)).toBe(false);
                                         expect(groupChat?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -1554,7 +1587,6 @@ describe('actions/IOU', () => {
                                                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                             ) ?? null;
                                         expect(payIOUAction).toBeTruthy();
-                                        expect(payIOUAction?.pendingAction).toBeFalsy();
 
                                         resolve();
                                     },

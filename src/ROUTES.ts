@@ -174,12 +174,13 @@ const ROUTES = {
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
+    NEW_CHAT_CONFIRM: 'new/chat/confirm',
     NEW_ROOM: 'new/room',
 
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string) => `r/${reportID}` as const,
+        getRoute: (reportID: string, reportActionID?: string) => (reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const)),
     },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
@@ -276,17 +277,9 @@ const ROUTES = {
         route: 'r/:reportID/invite',
         getRoute: (reportID: string) => `r/${reportID}/invite` as const,
     },
-    MONEY_REQUEST_AMOUNT: {
-        route: ':iouType/new/amount/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/amount/${reportID}` as const,
-    },
     MONEY_REQUEST_PARTICIPANTS: {
         route: ':iouType/new/participants/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
-    },
-    MONEY_REQUEST_CONFIRMATION: {
-        route: ':iouType/new/confirmation/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/confirmation/${reportID}` as const,
     },
     MONEY_REQUEST_CURRENCY: {
         route: ':iouType/new/currency/:reportID?',
@@ -307,16 +300,17 @@ const ROUTES = {
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID',
         getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
-            `create/${iouType}/start/${transactionID}/${reportID}` as const,
+            `${action}/${iouType}/start/${transactionID}/${reportID}` as const,
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
-        route: 'create/:iouType/confirmation/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/confirmation/${transactionID}/${reportID}` as const,
+        route: ':action/:iouType/confirmation/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
+            `${action}/${iouType}/confirmation/${transactionID}/${reportID}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
-        route: 'create/:iouType/amount/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/amount/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/amount/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/amount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAX_RATE: {
         route: 'create/:iouType/taxRate/:transactionID/:reportID?',
@@ -334,9 +328,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
-        route: 'create/:iouType/currency/:transactionID/:reportID/:pageIndex?',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
         route: ':action/:iouType/date/:transactionID/:reportID',
@@ -399,7 +393,7 @@ const ROUTES = {
     MONEY_REQUEST_CREATE_TAB_MANUAL: {
         route: ':action/:iouType/start/:transactionID/:reportID/manual',
         getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
-            `create/${iouType}/start/${transactionID}/${reportID}/manual` as const,
+            `${action}/${iouType}/start/${transactionID}/${reportID}/manual` as const,
     },
     MONEY_REQUEST_CREATE_TAB_SCAN: {
         route: ':action/:iouType/start/:transactionID/:reportID/scan',
@@ -611,6 +605,19 @@ const ROUTES = {
     WORKSPACE_MEMBER_ROLE_SELECTION: {
         route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
+    },
+    WORKSPACE_OWNER_CHANGE_SUCCESS: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/success',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/success` as const,
+    },
+    WORKSPACE_OWNER_CHANGE_ERROR: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/failure',
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/failure` as const,
+    },
+    WORKSPACE_OWNER_CHANGE_CHECK: {
+        route: 'settings/workspaces/:policyID/change-owner/:accountID/:error',
+        getRoute: (policyID: string, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) =>
+            `settings/workspaces/${policyID}/change-owner/${accountID}/${error}` as const,
     },
     WORKSPACE_TAX_CREATE: {
         route: 'settings/workspaces/:policyID/taxes/new',

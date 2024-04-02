@@ -127,6 +127,7 @@ function ReportPreview({
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
@@ -138,14 +139,16 @@ function ReportPreview({
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
 
-    let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
+    const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
+
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
     }
     const previewSubtitle =
         // Formatted merchant can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        formattedMerchant ||
+        (formattedMerchant ?? formattedDescription) ||
         translate('iou.requestCount', {
             count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
             scanningReceipts: numberOfScanningReceipts,
@@ -192,16 +195,18 @@ function ReportPreview({
         if (isScanning) {
             return translate('common.receipt');
         }
-        const payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+        let payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         if (isApproved) {
             return translate('iou.managerApproved', {manager: payerOrApproverName});
         }
-        const managerName = isPolicyExpenseChat && !hasNonReimbursableTransactions ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-        let paymentVerb: TranslationPaths = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
+        let paymentVerb: TranslationPaths = 'iou.payerOwes';
         if (iouSettled || iouReport?.isWaitingOnBankAccount) {
             paymentVerb = 'iou.payerPaid';
+        } else if (hasNonReimbursableTransactions) {
+            paymentVerb = 'iou.payerSpent';
+            payerOrApproverName = ReportUtils.getDisplayNameForParticipant(chatReport?.ownerAccountID, true);
         }
-        return translate(paymentVerb, {payer: managerName});
+        return translate(paymentVerb, {payer: payerOrApproverName});
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
@@ -220,13 +225,14 @@ function ReportPreview({
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
      - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
-     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant is shown;
+     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant or description is shown;
 
      * There is an edge case when there is only one distance request with a pending route and amount = 0.
-       In this case, we don't want to show the merchant because it says: "Pending route...", which is already displayed in the amount field.
+       In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
-    const shouldShowSingleRequestMerchant = numberOfRequests === 1 && !!formattedMerchant && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
-    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchant || numberOfRequests > 1);
+    const shouldShowSingleRequestMerchantOrDescription =
+        numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
+    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
 
     return (
         <OfflineWithFeedback
