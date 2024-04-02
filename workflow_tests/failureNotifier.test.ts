@@ -1,6 +1,6 @@
 import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
-import type {CreateRepositoryFile} from '@kie/mock-github';
 import {MockGithub} from '@kie/mock-github';
+import type {CreateRepositoryFile} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/failureNotifierAssertions';
 import mocks from './mocks/failureNotifierMocks';
