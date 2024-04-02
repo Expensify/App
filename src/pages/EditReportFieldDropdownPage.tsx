@@ -73,6 +73,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
                     keyForList: option,
                     searchText: option,
                     tooltipText: option,
+                    isSelected: option === fieldValue,
                 })),
             });
         } else {
