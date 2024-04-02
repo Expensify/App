@@ -4338,6 +4338,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        selectionListStickyHeader: {
+            backgroundColor: theme.dropUIBG,
+        },
+
         draggableTopBar: {
             height: 30,
             width: '100%',

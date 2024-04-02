@@ -301,7 +301,7 @@ function BaseSelectionList<TItem extends ListItem>(
     };
 
     const renderSectionHeader = ({section}: {section: SectionListDataType<TItem>}) => {
-        if (!section.title || isEmptyObject(section.data)) {
+        if (!section.title || isEmptyObject(section.data) || ListHeaderComponent) {
             return null;
         }
 
@@ -345,7 +345,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const header = () => (
         <>
             {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle]}>
+                <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle, styles.selectionListStickyHeader]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
@@ -563,8 +563,12 @@ function BaseSelectionList<TItem extends ListItem>(
                                 <SectionList
                                     ref={listRef}
                                     sections={slicedSections}
-                                    stickySectionHeadersEnabled={false}
-                                    renderSectionHeader={renderSectionHeader}
+                                    renderSectionHeader={(arg) => (
+                                        <>
+                                            {renderSectionHeader(arg)}
+                                            {ListHeaderComponent && header()}
+                                        </>
+                                    )}
                                     renderItem={renderItem}
                                     getItemLayout={getItemLayout}
                                     onScroll={onScroll}
@@ -582,14 +586,8 @@ function BaseSelectionList<TItem extends ListItem>(
                                     onLayout={onSectionListLayout}
                                     style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
                                     ListFooterComponent={ShowMoreButtonInstance}
-                                    ListHeaderComponent={
-                                        ListHeaderComponent && (
-                                            <>
-                                                {ListHeaderComponent}
-                                                {header()}
-                                            </>
-                                        )
-                                    }
+                                    ListHeaderComponent={ListHeaderComponent && ListHeaderComponent}
+                                    stickySectionHeadersEnabled={!!ListHeaderComponent && true}
                                 />
                                 {children}
                             </>
