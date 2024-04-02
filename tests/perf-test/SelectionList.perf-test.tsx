@@ -82,7 +82,6 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
                 keyForList: `item-${index}`,
                 isSelected: selectedIds.includes(`item-${index}`),
             })),
-            indexOffset: 0,
             isDisabled: false,
         },
     ];
