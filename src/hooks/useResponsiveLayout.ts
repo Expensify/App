@@ -25,10 +25,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
-            const madalState = Navigation.isDisplayedInModal();
-            if (madalState !== isInModal) {
-                setIsInModal(madalState);
-            }
+            setIsInModal(Navigation.isDisplayedInModal());
         });
     }, []);
 
