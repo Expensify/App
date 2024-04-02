@@ -33,13 +33,13 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
 
-    const saveAndNavigate = useCallback((values: FormOnyxValues<'displayNameForm'>) => {
+    const saveAndNavigate = useCallback((values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
         PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
     }, []);
 
-    const validate = (values: FormOnyxValues<'displayNameForm'>) => {
+    const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
         const errors = {};
 
         // First we validate the first name field
@@ -48,7 +48,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         }
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
-        }
+        } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'firstName', ['common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}]);
+        } 
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
         }
@@ -59,6 +61,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         }
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
+        } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'lastName', ['common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}]);
         }
         if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.containsReservedWord');
@@ -80,7 +84,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             >
                 <FormProvider
                     style={[styles.flexGrow1, styles.mt5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
-                    formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
+                    formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
                     validate={validate}
                     onSubmit={saveAndNavigate}
                     submitButtonText={translate('common.continue')}
