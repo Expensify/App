@@ -136,8 +136,7 @@ function IOURequestStepParticipants({
 
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
-
-            const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID, iouAction);
+            const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouAction, nextStepIOUType, transactionID, selectedReportID.current || reportID);
             if (isCategorizing) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouAction, nextStepIOUType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
             } else {
