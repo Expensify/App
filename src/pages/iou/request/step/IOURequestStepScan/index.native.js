@@ -7,7 +7,6 @@ import {PdfManager} from 'react-native-pdf';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevices} from 'react-native-vision-camera';
-import {pdfjs} from 'react-pdf';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -36,7 +35,6 @@ import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
-console.log('pdfjs', pdfjs);
 console.log('PdfManager', PdfManager);
 
 const propTypes = {
@@ -155,8 +153,10 @@ function IOURequestStepScan({
 
     const validateReceipt = (file) => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-
-        if (!pdfjs.isPdfFile(file.name)) {
+        console.log('file', file);
+        const isCorrectPDF = PdfManager.loadFile(file.uri);
+        console.log('isCorrectPDF', isCorrectPDF);
+        if (!isCorrectPDF) {
             Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
             return false;
         }
