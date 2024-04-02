@@ -88,7 +88,7 @@ describe('OptionsListUtils', () => {
             (item) => item.reportID,
             (index) => ({
                 ...createRandomOptionData(index),
-                searchText: index % 2 === 0 ? 'John Smith' : `Option ${index}`,
+                searchText: index % 2 === 0 ? SEARCH_VALUE : `Option ${index}`,
             }),
             SELECTED_OPTIONS_COUNT,
         );
@@ -96,7 +96,7 @@ describe('OptionsListUtils', () => {
             (item) => item.reportID,
             (index) => ({
                 ...createRandomOptionData(index + SELECTED_OPTIONS_COUNT),
-                searchText: index % 3 === 0 ? 'John Smith' : `Recent Report ${index}`,
+                searchText: index % 3 === 0 ? SEARCH_VALUE : `Recent Report ${index}`,
             }),
             RECENT_REPORTS_COUNT,
         );
@@ -104,14 +104,14 @@ describe('OptionsListUtils', () => {
             (item) => item.reportID,
             (index) => ({
                 ...createRandomOptionData(index + SELECTED_OPTIONS_COUNT + RECENT_REPORTS_COUNT),
-                searchText: index % 5 === 0 ? 'John Smith' : `Personal Detail ${index}`,
+                searchText: index % 5 === 0 ? SEARCH_VALUE : `Personal Detail ${index}`,
             }),
             PERSONAL_DETAILS_COUNT,
         );
-
+    
         await measureFunction(() => 
             formatSectionsFromSearchTerm(
-                'john',
+                SEARCH_VALUE,
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
