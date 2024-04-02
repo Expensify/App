@@ -56,12 +56,12 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
 
 function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport, transactionThreadReport, reportActions}: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const parentReportAction = useMemo(() => {
+    const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
         }
@@ -69,7 +69,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
 
-    // Only the requestor can take delete the request, admins can only edit it.
+    // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const canDeleteRequest =
         isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
