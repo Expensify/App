@@ -4,20 +4,11 @@ import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
+import getPromiseWithResolve from '@libs/E2E/utils/getPromiseWithResolve';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-function getPromiseWithResolve<T>(): [Promise<T | undefined>, (value?: T) => void] {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let resolveFn = (_value?: T) => {};
-    const promise = new Promise<T | undefined>((resolve) => {
-        resolveFn = resolve;
-    });
-
-    return [promise, resolveFn];
-}
 
 const test = (config: NativeConfig) => {
     // check for login (if already logged in the action will simply resolve)
