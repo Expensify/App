@@ -154,7 +154,7 @@ function WorkspaceAccountingPage() {
                 onPress: () => {},
             },
         ],
-        [styles.sectionMenuItemTopDescription, translate],
+        [styles.sectionMenuItemTopDescription, styles.mt3, translate],
     );
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
