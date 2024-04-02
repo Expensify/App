@@ -147,7 +147,7 @@ function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
                 }
 
                 // Then we can fetch the missing updates and apply them
-                return App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, latestMissingUpdateID).then(validateAndApplyDeferredUpdates).then(resolve).catch(reject);
+                App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, latestMissingUpdateID).then(validateAndApplyDeferredUpdates).then(resolve).catch(reject);
             });
         });
     }
