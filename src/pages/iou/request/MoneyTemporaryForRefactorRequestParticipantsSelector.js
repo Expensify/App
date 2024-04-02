@@ -188,10 +188,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 {
                     ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
                     selected: true,
+                    iouType,
                 },
             ]);
             onFinish();
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded],
     );
 
@@ -227,12 +229,14 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                         reportID: option.reportID,
                         selected: true,
                         searchText: option.searchText,
+                        iouType: iouType === CONST.IOU.TYPE.REQUEST ? CONST.IOU.TYPE.SPLIT : iouType,
                     },
                 ];
             }
 
             onParticipantsAdded(newSelectedOptions, newSelectedOptions.length !== 0 ? CONST.IOU.TYPE.SPLIT : undefined);
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [participants, onParticipantsAdded],
     );
 
