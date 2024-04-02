@@ -142,7 +142,7 @@ function ReportActionsView({
         listOldID = newID;
         return newID;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, isLoadingInitialReportActions]);
+    }, [route, isLoadingInitialReportActions, reportActionID]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -162,18 +162,16 @@ function ReportActionsView({
     }, [allReportActions, transactionThreadReportActions]);
 
     const indexOfLinkedAction = useMemo(() => {
-        if (!reportActionID || isLoading) {
+        if (!reportActionID) {
             return -1;
         }
-
         return combinedReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
-    }, [combinedReportActions, currentReportActionID, reportActionID, isLoading]);
+    }, [combinedReportActions, currentReportActionID, reportActionID]);
 
     const reportActions = useMemo(() => {
         if (!reportActionID) {
             return combinedReportActions;
         }
-
         if (isLoading || indexOfLinkedAction === -1) {
             return [];
         }
@@ -264,7 +262,7 @@ function ReportActionsView({
     }, []);
 
     useEffect(() => {
-        if (!reportActionID) {
+        if (!reportActionID || indexOfLinkedAction > -1) {
             return;
         }
 
@@ -273,7 +271,7 @@ function ReportActionsView({
         // There should be only one openReport execution per page start or navigating
         Report.openReport(reportID, reportActionID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route]);
+    }, [route, indexOfLinkedAction]);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;

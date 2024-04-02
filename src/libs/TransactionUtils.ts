@@ -562,7 +562,9 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+    return Boolean(
+        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION),
+    );
 }
 
 function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {

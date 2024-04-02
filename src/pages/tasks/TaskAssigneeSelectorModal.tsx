@@ -14,6 +14,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
+import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -41,7 +43,7 @@ type UseOptions = {
     reports: OnyxCollection<Report>;
 };
 
-type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps;
+type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithNavigationTransitionEndProps;
 
 function useOptions({reports}: UseOptions) {
     const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -90,7 +92,7 @@ function useOptions({reports}: UseOptions) {
     return {...options, isLoading, searchValue, debouncedSearchValue, setSearchValue};
 }
 
-function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalProps) {
+function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: TaskAssigneeSelectorModalProps) {
     const styles = useThemeStyles();
     const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
@@ -116,40 +118,32 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
     const sections = useMemo(() => {
         const sectionsList = [];
-        let indexOffset = 0;
 
         if (currentUserOption) {
             sectionsList.push({
                 title: translate('newTaskPage.assignMe'),
                 data: [currentUserOption],
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += 1;
         }
 
         sectionsList.push({
             title: translate('common.recents'),
             data: recentReports,
             shouldShow: recentReports?.length > 0,
-            indexOffset,
         });
-        indexOffset += recentReports?.length || 0;
 
         sectionsList.push({
             title: translate('common.contacts'),
             data: personalDetails,
             shouldShow: personalDetails?.length > 0,
-            indexOffset,
         });
-        indexOffset += personalDetails?.length || 0;
 
         if (userToInvite) {
             sectionsList.push({
                 title: '',
                 data: [userToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 
@@ -214,26 +208,24 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
             includeSafeAreaPaddingBottom={false}
             testID={TaskAssigneeSelectorModal.displayName}
         >
-            {({didScreenTransitionEnd}) => (
-                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                    <HeaderWithBackButton
-                        title={translate('task.assignee')}
-                        onBackButtonPress={handleBackButtonPress}
+            <FullPageNotFoundView shouldShow={isTaskNonEditable}>
+                <HeaderWithBackButton
+                    title={translate('task.assignee')}
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <SelectionList
+                        sections={didScreenTransitionEnd && !isLoading ? sections : []}
+                        ListItem={UserListItem}
+                        onSelectRow={selectReport}
+                        onChangeText={onChangeText}
+                        textInputValue={searchValue}
+                        headerMessage={headerMessage}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        showLoadingPlaceholder={isLoading || !didScreenTransitionEnd}
                     />
-                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <SelectionList
-                            sections={didScreenTransitionEnd && !isLoading ? sections : []}
-                            ListItem={UserListItem}
-                            onSelectRow={selectReport}
-                            onChangeText={onChangeText}
-                            textInputValue={searchValue}
-                            headerMessage={headerMessage}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            showLoadingPlaceholder={isLoading || !didScreenTransitionEnd}
-                        />
-                    </View>
-                </FullPageNotFoundView>
-            )}
+                </View>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
@@ -249,4 +241,4 @@ const TaskAssigneeSelectorModalWithOnyx = withOnyx<TaskAssigneeSelectorModalProp
     },
 })(TaskAssigneeSelectorModal);
 
-export default withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx);
+export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModalWithOnyx));
