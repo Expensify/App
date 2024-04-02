@@ -67,10 +67,10 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         }
         return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID ?? '0') as OnyxTypes.ReportAction;
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction);
 
     // Only the requestor can delete the request, admins can only edit it.
-    const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
+    const isActionOwner = typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
     const canDeleteRequest =
         isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
@@ -132,17 +132,17 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     };
 
     const deleteTransaction = useCallback(() => {
-        if (parentReportAction) {
-            const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
-            if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
-                IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+        if (requestParentReportAction) {
+            const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
+                IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
                 return;
             }
-            IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
+            IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
         }
 
-        setIsDeleteModalVisible(false);
-    }, [moneyRequestReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
+        setIsDeleteRequestModalVisible(false);
+    }, [moneyRequestReport?.reportID, requestParentReportAction, setIsDeleteRequestModalVisible]);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -163,8 +163,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     if (canDeleteRequest && !isEmptyObject(transactionThreadReport)) {
         threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
-            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-            onSelected: () => setIsDeleteModalVisible(true),
+            text: translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction}),
+            onSelected: () => setIsDeleteRequestModalVisible(true),
         });
     }
 
@@ -173,7 +173,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
             return;
         }
 
-        setIsDeleteModalVisible(false);
+        setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
 
     return (
@@ -288,9 +288,9 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
             />
             <ConfirmModal
                 title={translate('iou.deleteRequest')}
-                isVisible={isDeleteModalVisible}
+                isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
-                onCancel={() => setIsDeleteModalVisible(false)}
+                onCancel={() => setIsDeleteRequestModalVisible(false)}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
