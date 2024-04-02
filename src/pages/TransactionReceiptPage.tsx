@@ -48,7 +48,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
     const moneyRequestReportID = ReportUtils.isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
 
-    const shouldShowNotFoundPage = !isTrackExpenseReport && (moneyRequestReportID ?? '') !== transaction?.reportID;
+    const shouldShowNotFoundPage = isTrackExpenseReport ? !transaction : (moneyRequestReportID ?? '') !== transaction?.reportID;
 
     return (
         <AttachmentModal
