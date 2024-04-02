@@ -6,29 +6,25 @@ type ResponsiveLayoutResult = {
     shouldUseNarrowLayout: boolean;
     isSmallScreenWidth: boolean;
     isInModal: boolean;
-    isExtraSmallScreenHeight: boolean;
-    isMediumScreenWidth: boolean;
-    isLargeScreenWidth: boolean;
-    isExtraSmallScreenWidth: boolean;
-    isSmallScreen: boolean;
 };
 
 /**
- * Hook to determine if we are on mobile devices or in the Modal Navigator.
- * Use "shouldUseNarrowLayout" for "on mobile or in RHP/LHP", "isSmallScreenWidth" for "on mobile", "isInModal" for "in RHP/LHP".
- * Note: Don't use "shouldUseNarrowLayout" in popovers and "alert-style" modals.
+ * Hook to determine if we are on mobile devices or in the Modal Navigator
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
-    const {isSmallScreenWidth, isExtraSmallScreenHeight, isExtraSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, isSmallScreen} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const [isInModal, setIsInModal] = useState(Navigation.isDisplayedInModal());
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
-            setIsInModal(Navigation.isDisplayedInModal());
+            const modalStatus = Navigation.isDisplayedInModal();
+            if (modalStatus !== isInModal) {
+                setIsInModal(modalStatus);
+            }
         });
     }, []);
 
     const shouldUseNarrowLayout = isSmallScreenWidth || isInModal;
-    return {shouldUseNarrowLayout, isSmallScreenWidth, isInModal, isExtraSmallScreenHeight, isExtraSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, isSmallScreen};
+    return {shouldUseNarrowLayout, isSmallScreenWidth, isInModal};
 }
