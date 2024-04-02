@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -11,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,25 +43,26 @@ const propTypes = {
     ),
 
     /* Onyx Props */
-    /** The transaction being modified */
-    transaction: transactionPropTypes,
+    /** The draft transaction object being modified in Onyx */
+    draftTransaction: transactionPropTypes,
 };
 
 const defaultProps = {
     currencyList: {},
-    transaction: {},
+    draftTransaction: {},
 };
 
 function IOURequestStepCurrency({
     currencyList,
     route: {
-        params: {backTo, iouType, pageIndex, reportID, transactionID},
+        params: {backTo, iouType, pageIndex, reportID, transactionID, action},
     },
-    transaction: {currency},
+    draftTransaction,
 }) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const optionsSelectorRef = useRef();
+    const {currency} = ReportUtils.getTransactionDetails(draftTransaction);
 
     const navigateBack = () => {
         // If the currency selection was done from the confirmation step (eg. + > request money > manual > confirm > amount > currency)
@@ -83,7 +86,7 @@ function IOURequestStepCurrency({
      */
     const confirmCurrencySelection = (option) => {
         Keyboard.dismiss();
-        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
+        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode, false, action === CONST.IOU.ACTION.EDIT);
         navigateBack();
     };
 
@@ -157,5 +160,11 @@ export default compose(
     withFullTransactionOrNotFound,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+        draftTransaction: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+            },
+        },
     }),
 )(IOURequestStepCurrency);
