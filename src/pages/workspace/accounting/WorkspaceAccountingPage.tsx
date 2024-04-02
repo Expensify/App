@@ -62,7 +62,7 @@ function WorkspaceAccountingPage() {
         [openQBOsync, styles.pl2, styles.justifyContentCenter, styles.sectionMenuItemTopDescription, translate],
     );
 
-    const threeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = useMemo(
+    const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             {
                 icon: Expensicons.Sync,
@@ -104,7 +104,7 @@ function WorkspaceAccountingPage() {
                                     });
                                 });
                             }}
-                            menuItems={threeDotsMenuItems}
+                            menuItems={overflowMenu}
                             anchorPosition={threeDotsMenuPosition}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                         />
@@ -140,7 +140,7 @@ function WorkspaceAccountingPage() {
                       },
                   ]),
         ],
-        [translate, theme.spinner, isSyncInProgress, threeDotsMenuItems, threeDotsMenuPosition, styles.popoverMenuIcon, threeDotsMenuContainerRef, styles.sectionMenuItemTopDescription],
+        [translate, theme.spinner, isSyncInProgress, overflowMenu, threeDotsMenuPosition, styles.popoverMenuIcon, threeDotsMenuContainerRef, styles.sectionMenuItemTopDescription],
     );
 
     const otherConnectionMenuItems: MenuItemProps[] = useMemo(
