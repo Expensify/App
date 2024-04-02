@@ -133,7 +133,6 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
                     isLoadingNewOptions={!isOptionsDataReady}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                    autoFocus
                 />
             </View>
         </ScreenWrapper>
