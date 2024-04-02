@@ -1,6 +1,6 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {ImageContentFit} from 'expo-image';
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ReactNode} from 'react';
 import React, {forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -32,6 +32,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
+import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
@@ -322,7 +323,7 @@ function MenuItem(
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
     }: MenuItemProps,
-    ref: ForwardedRef<View>,
+    ref: PressableRef,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -681,5 +682,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {IconProps, AvatarProps, NoIcon, MenuItemBaseProps, MenuItemProps};
+export type {AvatarProps, IconProps, MenuItemBaseProps, MenuItemProps, NoIcon};
 export default forwardRef(MenuItem);

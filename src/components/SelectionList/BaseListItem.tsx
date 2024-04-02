@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -7,6 +7,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SelectCircle from '@components/SelectCircle';
 import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -61,13 +62,7 @@ function BaseListItem<TItem extends ListItem>({
         }
     };
 
-    // Sync focus on an item
-    useLayoutEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-        pressableRef?.current?.focus();
-    }, [isFocused]);
+    useSyncFocus(pressableRef, Boolean(isFocused));
 
     return (
         <OfflineWithFeedback
