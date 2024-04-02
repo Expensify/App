@@ -78,6 +78,12 @@ const getQuickActionTitle = (action) => {
             return 'quickAction.sendMoney';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+            return 'quickAction.trackManual';
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
+            return 'quickAction.trackScan';
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+            return 'quickAction.trackDistance';
         default:
             return '';
     }
@@ -155,6 +161,11 @@ function FloatingActionButtonAndPopover(props) {
         return [];
     }, [props.personalDetails, props.session.accountID, quickActionReport]);
 
+    const quickActionTitle = useMemo(() => {
+        const titleKey = getQuickActionTitle(props.quickAction && props.quickAction.action);
+        return titleKey ? translate(titleKey) : '';
+    }, [props.quickAction, translate]);
+
     const navigateToQuickAction = () => {
         switch (props.quickAction.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
@@ -179,7 +190,7 @@ function FloatingActionButtonAndPopover(props) {
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, props.quickAction.chatReportID);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, _.get(props.quickAction, 'targetAccountID', 0));
+                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, quickActionReport, _.get(props.quickAction, 'targetAccountID', 0));
                 return;
             default:
                 return '';
@@ -269,6 +280,23 @@ function FloatingActionButtonAndPopover(props) {
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
+                    ...(canUseTrackExpense
+                        ? [
+                              {
+                                  icon: Expensicons.DocumentPlus,
+                                  text: translate('iou.trackExpense'),
+                                  onSelected: () =>
+                                      interceptAnonymousUser(() =>
+                                          IOU.startMoneyRequest(
+                                              CONST.IOU.TYPE.TRACK_EXPENSE,
+                                              // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
+                                              // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
+                                              ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                                          ),
+                                      ),
+                              },
+                          ]
+                        : []),
                     {
                         icon: Expensicons.MoneyCircle,
                         text: translate('iou.requestMoney'),
@@ -295,23 +323,6 @@ function FloatingActionButtonAndPopover(props) {
                                 ),
                             ),
                     },
-                    ...(canUseTrackExpense
-                        ? [
-                              {
-                                  icon: Expensicons.DocumentPlus,
-                                  text: translate('iou.trackExpense'),
-                                  onSelected: () =>
-                                      interceptAnonymousUser(() =>
-                                          IOU.startMoneyRequest(
-                                              CONST.IOU.TYPE.TRACK_EXPENSE,
-                                              // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
-                                              // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
-                                              ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
-                                          ),
-                                      ),
-                              },
-                          ]
-                        : []),
                     {
                         icon: Expensicons.Task,
                         text: translate('newTaskPage.assignTask'),
@@ -340,7 +351,7 @@ function FloatingActionButtonAndPopover(props) {
                         ? [
                               {
                                   icon: getQuickActionIcon(props.quickAction.action),
-                                  text: translate(getQuickActionTitle(props.quickAction.action)),
+                                  text: quickActionTitle,
                                   label: translate('quickAction.shortcut'),
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
