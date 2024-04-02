@@ -103,7 +103,7 @@ function ReportActionItemParentAction({
                 >
                     <ThreadDivider ancestor={ancestor} />
                     <ReportActionItem
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', ancestor.reportAction.reportActionID))}
                         parentReportAction={parentReportAction}
                         report={ancestor.report}
                         reportActions={reportActions}
