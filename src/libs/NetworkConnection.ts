@@ -106,7 +106,7 @@ function subscribeToBackendReachability(): () => void {
  * @returns unsubscribe method
  */
 function subscribeToNetworkStatus(): () => void {
-    // Note: We are disabling the reachability check when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for "offline".
+    // Note: We are disabling the reachability check when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for reachability.
     // If you need to test the "recheck" feature then switch to the production API proxy server.
     const unsubscribeFromBackendReachability = !CONFIG.IS_USING_LOCAL_WEB ? subscribeToBackendReachability() : undefined;
 
