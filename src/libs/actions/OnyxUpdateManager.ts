@@ -28,12 +28,15 @@ Onyx.connect({
     callback: (value) => (lastUpdateIDAppliedToClient = value),
 });
 
+let queryPromise: Promise<Response | Response[] | void> | undefined;
+
 type DeferredUpdatesDictionary = Record<number, OnyxUpdatesFromServer>;
 let deferredUpdates: DeferredUpdatesDictionary = {};
 
-// This function will unpause the SequentialQueue, log an info and reset the deferred updates
-function unpauseQueueAndReset() {
+// This function will reset the query variables, unpause the SequentialQueue and log an info to the user.
+function finalizeUpdatesAndResumeQueue() {
     console.debug('[OnyxUpdateManager] Done applying all updates');
+    queryPromise = undefined;
     deferredUpdates = {};
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
     SequentialQueue.unpause();
@@ -163,6 +166,11 @@ export default () => {
                 return;
             }
 
+            // If there is a query of either ReconnectApp or GetMissingOnyxUpdates in progress, we should not start another one.
+            if (queryPromise) {
+                return;
+            }
+
             // Since we used the same key that used to store another object, let's confirm that the current object is
             // following the new format before we proceed. If it isn't, then let's clear the object in Onyx.
             if (
@@ -193,7 +201,6 @@ export default () => {
             // applied in their correct and specific order. If this queue was not paused, then there would be a lot of
             // onyx data being applied while we are fetching the missing updates and that would put them all out of order.
             SequentialQueue.pause();
-            let queryPromise: Promise<Response | Response[] | void>;
 
             // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
             if (!lastUpdateIDAppliedToClient) {
@@ -226,7 +233,7 @@ export default () => {
                 queryPromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer).then(validateAndApplyDeferredUpdates);
             }
 
-            queryPromise.finally(unpauseQueueAndReset);
+            queryPromise.finally(finalizeUpdatesAndResumeQueue);
         },
     });
 };
