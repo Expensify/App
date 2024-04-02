@@ -152,7 +152,6 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
         () => ({
             data: filteredAndSortedUserWorkspaces,
             shouldShow: true,
-            indexOffset: 0,
         }),
         [filteredAndSortedUserWorkspaces],
     );

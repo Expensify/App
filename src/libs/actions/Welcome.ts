@@ -82,16 +82,13 @@ Onyx.connect({
     },
 });
 
-const allReports: OnyxCollection<Report> = {};
+let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     initWithStoredValues: false,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-
-        allReports[key] = {...allReports[key], ...val};
+    waitForCollectionCallback: true,
+    callback: (reports) => {
+        allReports = reports;
     },
 });
 
