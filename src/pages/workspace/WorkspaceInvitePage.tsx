@@ -1,5 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
-import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
