@@ -182,7 +182,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      *
      * @param {Object} option
      */
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
     const addSingleParticipant = useCallback(
         (option) => {
             onParticipantsAdded([
@@ -194,6 +193,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             ]);
             onFinish();
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded],
     );
 
@@ -201,7 +201,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
     const addParticipantToSelection = useCallback(
         (option) => {
             const isOptionSelected = (selectedOption) => {
@@ -237,6 +236,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
             onParticipantsAdded(newSelectedOptions, newSelectedOptions.length !== 0 ? CONST.IOU.TYPE.SPLIT : undefined);
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [participants, onParticipantsAdded],
     );
 
