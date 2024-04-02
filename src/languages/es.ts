@@ -1856,6 +1856,9 @@ export default {
             lastExpense: {label: 'Fecha del último gasto', description: 'La fecha del gasto más reciente en el informe.'},
             exportedDate: {label: 'Fecha de exportación', description: 'La fecha en que se exportó el informe a QuickBooks Online'},
             submittedData: {label: 'Datos enviados', description: 'La fecha en que se presentó el informe para su aprobación.'},
+            receivable: 'Cuentas por cobrar',
+            archive: 'Archivo de cuentas por cobrar',
+            exportInvoicesDescription: 'Las facturas se exportarán a esta cuenta en QuickBooks Online.'
         },
         type: {
             free: 'Gratis',

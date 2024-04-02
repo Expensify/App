@@ -458,6 +458,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const,
     },
+    WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_INVOICES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoices',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/invoices` as const,
+    },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/name` as const,

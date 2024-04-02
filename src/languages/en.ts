@@ -1834,6 +1834,9 @@ export default {
             lastExpense: {label: 'Date of last expense', description: 'The date of the most recent expense on the report'},
             exportedDate: {label: 'Export date', description: 'The date the report was exported to QuickBooksOnline'},
             submittedData: {label: 'Submitted data', description: 'The date the report was submitted for approval'},
+            receivable: 'Accounts receivable',
+            archive: 'Accounts receivable archive',
+            exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.'
         },
         categories: {
             deleteCategories: 'Delete categories',

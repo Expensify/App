@@ -41,7 +41,7 @@ function QuickbooksExportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_INVOICES.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncLocations),
             title: 'Accounts Receivable (A/R)',
         },

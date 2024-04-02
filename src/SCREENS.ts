@@ -250,6 +250,7 @@ const SCREENS = {
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         QUICKBOOKSONLINE_EXPORT: 'Workspace_Accounting_QuickbooksOnline_Export',
         QUICKBOOKSONLINE_EXPORT_DATE: 'Workspace_Accounting_QuickbooksOnline_Export_Date',
+        QUICKBOOKSONLINE_EXPORT_INVOICES: 'Workspace_Accounting_QuickbooksOnline_Export_Invoices',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
     },
 
