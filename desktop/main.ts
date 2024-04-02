@@ -14,6 +14,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+
 const createDownloadQueue = require('./createDownloadQueue').default;
 
 const port = process.env.PORT ?? 8082;
