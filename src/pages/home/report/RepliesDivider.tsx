@@ -19,7 +19,7 @@ function RepliesDivider({shouldHideThreadDividerLine}: RepliesDividerProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mt3, styles.mb1]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mt3, styles.mb1, styles.userSelectNone]}>
             <Icon
                 src={Expensicons.Thread}
                 fill={theme.icon}
