@@ -482,12 +482,12 @@ function ReportActionsView({
     // and we also generate a money request action if the number of money requests in reportActions is less than the total number of money requests
     // to display at least one money request action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
-        if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {
-            return reportActions;
+        if (!ReportUtils.isMoneyRequestReport(report) || !combinedReportActions.length) {
+            return combinedReportActions;
         }
 
-        const actions = [...reportActions];
-        const lastAction = reportActions[reportActions.length - 1];
+        const actions = [...combinedReportActions];
+        const lastAction = combinedReportActions[combinedReportActions.length - 1];
 
         if (!ReportActionsUtils.isCreatedAction(lastAction)) {
             const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
@@ -500,7 +500,7 @@ function ReportActionsView({
             (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         );
 
-        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0)) {
+        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
             const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
                 CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 0,
@@ -528,7 +528,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [reportActions, report]);
+    }, [combinedReportActions, report, transactionThreadReport]);
 
     // Comments have not loaded at all yet do nothing
     if (!reportActions.length) {
