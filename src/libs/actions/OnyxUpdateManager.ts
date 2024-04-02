@@ -63,7 +63,7 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
         // For the first update, we need to check that the previousUpdateID of the fetched update is the same as the lastUpdateIDAppliedToClient.
         // For any other updates, we need to check if the previousUpdateID of the current update is found in the deferred updates.
         // If an update is chained, we can add it to the applicable updates.
-        const isChained = isFirst ? update.previousUpdateID === lastUpdateIDAppliedToClient : updates[Number(update.previousUpdateID)];
+        const isChained = isFirst ? update.previousUpdateID === lastUpdateIDAppliedToClient : !!updates[Number(update.previousUpdateID)];
         if (isChained) {
             // If a gap exists already, we will not add any more updates to the applicable updates.
             // Instead, once there are two chained updates again, we can set "firstUpdateAfterGaps" to the first update after the current gap.
