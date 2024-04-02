@@ -3275,6 +3275,41 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     return expenseReport;
 }
 
+function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
+    const policy = getPolicy(report?.policyID);
+    const ownerPersonalDetails = getPersonalDetailsForAccountID(policy?.submitsTo ?? 0);
+    let submittedToDisplayName: string;
+    if (ownerPersonalDetails?.accountID === currentUserAccountID) {
+        submittedToDisplayName = 'yourself';
+    } else {
+        submittedToDisplayName = ownerPersonalDetails?.displayName
+            ? `${ownerPersonalDetails.displayName}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`
+            : '';
+    }
+    return [
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            style: 'strong',
+            text: 'You',
+        },
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            style: 'normal',
+            text: ' submitted this report',
+        },
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            style: 'normal',
+            text: ' to ',
+        },
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            style: 'strong',
+            text: submittedToDisplayName,
+        },
+    ];
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -3288,38 +3323,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     const report = getReport(iouReportID);
 
     if (type === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-        const policy = getPolicy(report?.policyID);
-        const ownerPersonalDetails = getPersonalDetailsForAccountID(policy?.submitsTo ?? 0);
-        let submittedToDisplayName: string;
-        if (ownerPersonalDetails?.accountID === currentUserAccountID) {
-            submittedToDisplayName = 'yourself';
-        } else {
-            submittedToDisplayName = ownerPersonalDetails?.displayName
-                ? `${ownerPersonalDetails.displayName}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`
-                : 'Hidden';
-        }
-        return [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'strong',
-                text: 'You',
-            },
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: ' submitted this report',
-            },
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: ' to ',
-            },
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'strong',
-                text: submittedToDisplayName,
-            },
-        ];
+        return getIOUSubmittedMessage(!isEmptyObject(report) ? report : null);
     }
 
     const amount =
