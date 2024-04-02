@@ -3281,11 +3281,12 @@ function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
     let submittedToDisplayName: string;
     if (ownerPersonalDetails?.accountID === currentUserAccountID) {
         submittedToDisplayName = 'yourself';
+    } else if (ownerPersonalDetails?.displayName) {
+        submittedToDisplayName = `${ownerPersonalDetails.displayName}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`;
     } else {
-        submittedToDisplayName = ownerPersonalDetails?.displayName
-            ? `${ownerPersonalDetails.displayName}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`
-            : '';
+        submittedToDisplayName = '';
     }
+
     return [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
