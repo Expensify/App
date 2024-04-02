@@ -14,7 +14,8 @@ const [withBetas, BetasProvider, BetasContext, useBetas] = createOnyxContext(ONY
 const [withReportCommentDrafts, ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
 const [withPreferredTheme, PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
 const [withFrequentlyUsedEmojis, FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxContext(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
-const [withPreferredEmojiSkinTone, PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+const [withPreferredEmojiSkinTone, PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext, usePreferredEmojiSkinTone] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+const [, UserWalletProvider, , useUserWallet] = createOnyxContext(ONYXKEYS.USER_WALLET);
 const [, SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
 
 type OnyxProviderProps = {
@@ -37,6 +38,7 @@ function OnyxProvider(props: OnyxProviderProps) {
                 FrequentlyUsedEmojisProvider,
                 PreferredEmojiSkinToneProvider,
                 SessionProvider,
+                UserWalletProvider,
             ]}
         >
             {props.children}
@@ -69,4 +71,6 @@ export {
     useBlockedFromConcierge,
     useReportActionsDrafts,
     useSession,
+    usePreferredEmojiSkinTone,
+    useUserWallet,
 };

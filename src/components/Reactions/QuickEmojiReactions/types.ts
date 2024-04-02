@@ -43,9 +43,6 @@ type BaseQuickEmojiReactionsOnyxProps = {
 
     /** The user's preferred locale. */
     preferredLocale: OnyxEntry<Locale>;
-
-    /** The user's preferred skin tone. */
-    preferredSkinTone: OnyxEntry<string | number>;
 };
 
 type BaseQuickEmojiReactionsProps = BaseReactionsProps & BaseQuickEmojiReactionsOnyxProps;
