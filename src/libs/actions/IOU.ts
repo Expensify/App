@@ -134,7 +134,7 @@ type OutstandingChildRequest = {
     hasOutstandingChildRequest?: boolean;
 };
 
-type GpsPoint = {
+type GPSPoint = {
     lat: number;
     long: number;
 };
@@ -2075,7 +2075,7 @@ function requestMoney(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    gpsPoints?: GpsPoint,
+    gpsPoints?: GPSPoint,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -2173,7 +2173,7 @@ function trackExpense(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    gpsPoints?: GpsPoint,
+    gpsPoints?: GPSPoint,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {
@@ -3036,7 +3036,7 @@ function startSplitBill({
         splits: JSON.stringify(splits),
         receipt,
         comment,
-        category: category ?? '',
+        category,
         tag,
         isFromGroupDM: !existingSplitChatReport,
         billable,
@@ -5186,7 +5186,7 @@ function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMeth
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
 }
 
-export type {GpsPoint};
+export type {GPSPoint as GpsPoint};
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
