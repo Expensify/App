@@ -42,10 +42,10 @@ type IOURequestStepWaypointOnyxProps = {
     userLocation: OnyxEntry<OnyxTypes.UserLocation>;
 };
 
-type IOURequestStepWaypointProps = {
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-} & IOURequestStepWaypointOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT>;
+type IOURequestStepWaypointProps = IOURequestStepWaypointOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
+        transaction: OnyxEntry<OnyxTypes.Transaction>;
+    };
 
 function IOURequestStepWaypoint({
     route: {
