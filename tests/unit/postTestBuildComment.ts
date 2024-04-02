@@ -1,8 +1,10 @@
 import * as core from '@actions/core';
+import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import {when} from 'jest-when';
+import ghAction from '@github/actions/javascript/postTestBuildComment/postTestBuildComment';
+import type {CreateCommentResponse} from '@github/libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
 import asMutable from '@src/types/utils/asMutable';
-import ghAction from '../../.github/actions/javascript/postTestBuildComment/postTestBuildComment';
-import GithubUtils from '../../.github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const createCommentMock = jest.spyOn(GithubUtils, 'createComment');
@@ -10,14 +12,16 @@ const mockListComments = jest.fn();
 const mockGraphql = jest.fn();
 jest.spyOn(GithubUtils, 'octokit', 'get').mockReturnValue({
     issues: {
-        listComments: mockListComments,
+        listComments: mockListComments as unknown as typeof GithubUtils.octokit.issues.listComments,
     },
-});
+} as RestEndpointMethods);
 
+// @ts-expect-error -- it's a static getter
 jest.spyOn(GithubUtils, 'paginate', 'get').mockReturnValue(<T, TData>(endpoint: (params: Record<string, T>) => Promise<{data: TData}>, params: Record<string, T>) =>
     endpoint(params).then((response) => response.data),
 );
 
+// @ts-expect-error -- it's a static getter
 jest.spyOn(GithubUtils, 'graphql', 'get').mockReturnValue(mockGraphql);
 
 jest.mock('@actions/github', () => ({
@@ -70,7 +74,7 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('IOS_LINK').mockReturnValue('https://expensify.app/IOS_LINK');
         when(core.getInput).calledWith('WEB_LINK').mockReturnValue('https://expensify.app/WEB_LINK');
         when(core.getInput).calledWith('DESKTOP_LINK').mockReturnValue('https://expensify.app/DESKTOP_LINK');
-        createCommentMock.mockResolvedValue(true);
+        createCommentMock.mockResolvedValue({} as CreateCommentResponse);
         mockListComments.mockResolvedValue({
             data: [
                 {
@@ -92,6 +96,6 @@ describe('Post test build comments action tests', () => {
             }
         `);
         expect(createCommentMock).toBeCalledTimes(1);
-        expect(createCommentMock).toBeCalledWith('App', '12', message);
+        expect(createCommentMock).toBeCalledWith('App', 12, message);
     });
 });

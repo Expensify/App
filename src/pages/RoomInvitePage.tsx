@@ -1,5 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
-import type {StackNavigationProp} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -13,12 +11,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
+import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -39,19 +38,17 @@ type RoomInvitePageOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type RoomInvitePageProps = RoomInvitePageOnyxProps & WithReportOrNotFoundProps;
+type RoomInvitePageProps = RoomInvitePageOnyxProps & WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 
-function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePageProps) {
+function RoomInvitePage({betas, personalDetails, report, policies, didScreenTransitionEnd}: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [invitePersonalDetails, setInvitePersonalDetails] = useState<ReportUtils.OptionData[]>([]);
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const navigation: StackNavigationProp<RootStackParamList> = useNavigation();
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
@@ -88,21 +85,8 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [personalDetails, betas, searchTerm, excludedUsers]);
 
-    useEffect(() => {
-        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
-            setDidScreenTransitionEnd(true);
-        });
-
-        return () => {
-            unsubscribeTransitionEnd();
-        };
-        // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
-        let indexOffset = 0;
 
         if (!didScreenTransitionEnd) {
             return [];
@@ -125,9 +109,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         sectionsArr.push({
             title: undefined,
             data: filterSelectedOptionsFormatted,
-            indexOffset,
         });
-        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
@@ -138,15 +120,12 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         sectionsArr.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
-            indexOffset,
         });
-        indexOffset += personalDetailsFormatted.length;
 
         if (hasUnselectedUserToInvite) {
             sectionsArr.push({
                 title: undefined,
                 data: [OptionsListUtils.formatMemberForList(userToInvite)],
-                indexOffset,
             });
         }
 
@@ -266,10 +245,12 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
 
 RoomInvitePage.displayName = 'RoomInvitePage';
 
-export default withReportOrNotFound()(
-    withOnyx<RoomInvitePageProps, RoomInvitePageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    })(RoomInvitePage),
+export default withNavigationTransitionEnd(
+    withReportOrNotFound()(
+        withOnyx<RoomInvitePageProps, RoomInvitePageOnyxProps>({
+            personalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+        })(RoomInvitePage),
+    ),
 );
