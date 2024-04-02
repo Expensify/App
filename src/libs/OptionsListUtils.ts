@@ -101,7 +101,6 @@ type TaxRatesOption = {
 type TaxSection = {
     title: string | undefined;
     shouldShow: boolean;
-    indexOffset: number;
     data: TaxRatesOption[];
 };
 
