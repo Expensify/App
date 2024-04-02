@@ -78,6 +78,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WorkspaceIntegrationImportStatus from './WorkspaceIntegrationImportStatus';
 import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
 
 export type {
@@ -107,6 +108,7 @@ export type {
     Modal,
     Network,
     OnyxUpdateEvent,
+    WorkspaceIntegrationImportStatus,
     OnyxUpdatesFromServer,
     PersonalBankAccount,
     PersonalDetails,
