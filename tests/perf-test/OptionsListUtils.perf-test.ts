@@ -84,11 +84,19 @@ describe('OptionsListUtils', () => {
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {
+        const SELECTED_OPTION_TEXT = 'Selected Option';
+        const RECENT_REPORT_TEXT = 'Recent Report';
+        const PERSONAL_DETAIL_TEXT = 'Personal Detail';
+       
+        const SELECTED_OPTIONS_MATCH_FREQUENCY = 2;
+        const RECENT_REPORTS_MATCH_FREQUENCY = 3;
+        const PERSONAL_DETAILS_MATCH_FREQUENCY = 5;
+
         const selectedOptions = createCollection<OptionData>(
             (item) => item.reportID,
             (index) => ({
                 ...createRandomOptionData(index),
-                searchText: index % 2 === 0 ? SEARCH_VALUE : `Option ${index}`,
+                searchText: index % SELECTED_OPTIONS_MATCH_FREQUENCY === 0 ? SEARCH_VALUE : `${SELECTED_OPTION_TEXT} ${index}`,
             }),
             SELECTED_OPTIONS_COUNT,
         );
@@ -96,7 +104,7 @@ describe('OptionsListUtils', () => {
             (item) => item.reportID,
             (index) => ({
                 ...createRandomOptionData(index + SELECTED_OPTIONS_COUNT),
-                searchText: index % 3 === 0 ? SEARCH_VALUE : `Recent Report ${index}`,
+                searchText: index % RECENT_REPORTS_MATCH_FREQUENCY === 0 ? SEARCH_VALUE : `${RECENT_REPORT_TEXT} ${index}`,
             }),
             RECENT_REPORTS_COUNT,
         );
@@ -104,7 +112,7 @@ describe('OptionsListUtils', () => {
             (item) => item.reportID,
             (index) => ({
                 ...createRandomOptionData(index + SELECTED_OPTIONS_COUNT + RECENT_REPORTS_COUNT),
-                searchText: index % 5 === 0 ? SEARCH_VALUE : `Personal Detail ${index}`,
+                searchText: index % PERSONAL_DETAILS_MATCH_FREQUENCY === 0 ? SEARCH_VALUE : `${PERSONAL_DETAIL_TEXT} ${index}`,
             }),
             PERSONAL_DETAILS_COUNT,
         );
