@@ -11570,6 +11570,7 @@ const POLL_RATE = 10000;
 exports.POLL_RATE = POLL_RATE;
 class GithubUtils {
     static internalOctokit;
+    static POLL_RATE;
     /**
      * Initialize internal octokit
      *
