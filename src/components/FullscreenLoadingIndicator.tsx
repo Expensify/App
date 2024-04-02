@@ -6,14 +6,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 type FullScreenLoadingIndicatorProps = {
     style?: StyleProp<ViewStyle>;
-    isFullScreen?: boolean;
 };
 
-function FullScreenLoadingIndicator({style, isFullScreen = true}: FullScreenLoadingIndicatorProps) {
+function FullScreenLoadingIndicator({style}: FullScreenLoadingIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     return (
-        <View style={[isFullScreen && [StyleSheet.absoluteFillObject, styles.fullScreenLoading], style]}>
+        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, style]}>
             <ActivityIndicator
                 color={theme.spinner}
                 size="large"

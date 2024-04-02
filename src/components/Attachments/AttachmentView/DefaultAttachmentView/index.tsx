@@ -10,9 +10,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type DefaultAttachmentViewProps = {
+    /** The name of the file */
     fileName?: string;
+    /** Should show the download icon */
     shouldShowDownloadIcon?: boolean;
+    /** Should show the loading spinner icon */
     shouldShowLoadingSpinnerIcon?: boolean;
+    /** Additional styles for the container */
     containerStyles?: StyleProp<ViewStyle>;
 };
 
@@ -54,5 +58,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
         </View>
     );
 }
+
+DefaultAttachmentView.displayName = 'DefaultAttachmentView';
 
 export default DefaultAttachmentView;

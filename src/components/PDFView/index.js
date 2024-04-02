@@ -1,14 +1,14 @@
 import 'core-js/features/array/at';
 import React, {Component} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import DefaultAttachmentView from '@components/Attachments/AttachmentView/DefaultAttachmentView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize from '@components/withLocalize';
 import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
 import withThemeStyles from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
@@ -23,8 +23,12 @@ const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
 
 const PDFViewPropTypes = {
+    /* Common props for all pdf view across platforms */
     ...pdfViewPropTypes,
+    /** StyleUtils passed from HOC */
     ...withStyleUtilsPropTypes,
+    /** Theme props passed from HOC */
+    ...withThemePropTypes,
 };
 
 class PDFView extends Component {
@@ -85,17 +89,24 @@ class PDFView extends Component {
         }
     }
 
+    renderLoadingIndicator() {
+        if (this.props.isUsedAsChatAttachment) {
+            return (
+                <View style={[this.props.themeStyles.chatItemPDFAttachmentLoading, this.props.StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT), this.props.themeStyles.alignItemsCenter, this.props.themeStyles.justifyContentCenter]}>
+                    <ActivityIndicator
+                        color={this.props.theme.spinner}
+                        size="large"
+                    />
+                </View>
+            );
+        }
+
+        return <FullScreenLoadingIndicator />;
+    }
+
     renderPDFView() {
         const styles = this.props.themeStyles;
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
-        const loadingIndicatorStyles = this.props.isUsedAsChatAttachment
-            ? [
-                  this.props.themeStyles.chatItemPDFAttachmentLoading,
-                  this.props.StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
-                  styles.justifyContentCenter,
-                  styles.alignItemsCenter,
-              ]
-            : [];
 
         return (
             <View
@@ -110,19 +121,9 @@ class PDFView extends Component {
                     maxCanvasWidth={this.props.maxCanvasWidth}
                     maxCanvasHeight={this.props.maxCanvasHeight}
                     maxCanvasArea={this.props.maxCanvasArea}
-                    LoadingComponent={
-                        <FullScreenLoadingIndicator
-                            style={loadingIndicatorStyles}
-                            isFullScreen={!this.props.isUsedAsChatAttachment}
-                        />
-                    }
-                    ErrorComponent={
-                        <DefaultAttachmentView
-                            fileName={this.props.fileName}
-                            shouldShowDownloadIcon={this.props.isUsedAsChatAttachment}
-                            containerStyles={this.props.containerStyles}
-                        />
-                    }
+                    LoadingComponent={this.renderLoadingIndicator()}
+                    shouldShowErrorComponent={false}
+                    onLoadError={this.props.onLoadError}
                     renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
                         <PDFPasswordForm
                             isFocused={this.props.isFocused}
@@ -162,6 +163,7 @@ export default compose(
     withWindowDimensions,
     withThemeStyles,
     withStyleUtils,
+    withTheme,
     withOnyx({
         maxCanvasArea: {
             key: ONYXKEYS.MAX_CANVAS_AREA,
