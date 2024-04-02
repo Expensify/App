@@ -9,13 +9,13 @@ type Card = {
     availableSpend: number;
     domainName: string;
     lastFourPAN?: string;
-    isVirtual: boolean;
+    isVirtual: boolean; // Deprecating, use nameValuePairs.isVirtual
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
     errors?: OnyxCommon.Errors;
     isLoading?: boolean;
     nameValuePairs?: {
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
-        cardTitle?: string; // used only for virtual limit cards
+        cardTitle?: string; // Used only for admin-issued virtual cards
         issuedBy?: number;
         hasCustomUnapprovedExpenseLimit?: boolean;
         unapprovedExpenseLimit?: number;
