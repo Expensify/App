@@ -335,11 +335,14 @@ function ReportScreen({
         );
     }
 
+    const transactionThreadReportID = useMemo(() => ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? []), [reportActions]);
     if (ReportUtils.isMoneyRequestReport(report)) {
         headerView = (
             <MoneyReportHeader
                 report={report}
                 policy={policy}
+                transactionThreadReportID={transactionThreadReportID}
+                reportActions={reportActions}
             />
         );
     }
@@ -659,7 +662,7 @@ function ReportScreen({
                                         isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
                                         isReadyForCommentLinking={!shouldShowSkeleton}
-                                        transactionThreadReportID={ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? [])}
+                                        transactionThreadReportID={transactionThreadReportID}
                                     />
                                 )}
 
