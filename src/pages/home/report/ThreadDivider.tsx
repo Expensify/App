@@ -37,11 +37,11 @@ function ThreadDivider({ancestor, isDisabled}: ThreadDividerProps) {
             >
                 <Icon
                     src={Expensicons.Thread}
-                    fill={theme.link}
+                    fill={isDisabled ? theme.icon : theme.link}
                     width={variables.iconSizeExtraSmall}
                     height={variables.iconSizeExtraSmall}
                 />
-                <Text style={[styles.threadDividerText, styles.link]}>{translate('threads.thread')}</Text>
+                <Text style={[styles.threadDividerText, isDisabled ? styles.textSupporting : styles.link]}>{translate('threads.thread')}</Text>
             </PressableWithoutFeedback>
             {!ancestor.shouldDisplayNewMarker && <View style={[styles.threadDividerLine]} />}
         </View>
