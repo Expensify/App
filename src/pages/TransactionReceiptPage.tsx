@@ -48,6 +48,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
     const moneyRequestReportID = ReportUtils.isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isTrackExpenseReport ? !transaction : (moneyRequestReportID ?? '') !== transaction?.reportID;
 
     return (
