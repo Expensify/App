@@ -4339,7 +4339,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         selectionListStickyHeader: {
-            backgroundColor: theme.dropUIBG,
+            backgroundColor: theme.appBG,
         },
 
         draggableTopBar: {
