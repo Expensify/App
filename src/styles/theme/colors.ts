@@ -28,7 +28,7 @@ const colors: Record<string, Color> = {
     productDark700: '#8B9C8F',
     productDark800: '#AFBBB0',
     productDark900: '#E7ECE9',
-    messageHightlightDark: '#402B02',
+    messageHighlightDark: '#402B02',
 
     // Light Mode Theme Colors
     productLight100: '#FCFBF9',
