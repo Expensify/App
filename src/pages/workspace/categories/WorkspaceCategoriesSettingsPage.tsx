@@ -36,7 +36,7 @@ function WorkspaceCategoriesSettingsPage({route, policyCategories}: WorkspaceCat
         setWorkspaceRequiresCategory(route.params.policyID, value);
     };
 
-    const policyCategoriesCount = OptionsListUtils.getEnabledCategoriesCount(policyCategories ?? {});
+    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(policyCategories ?? {});
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
@@ -64,7 +64,7 @@ function WorkspaceCategoriesSettingsPage({route, policyCategories}: WorkspaceCat
                                                 isOn={policy?.requiresCategory ?? false}
                                                 accessibilityLabel={translate('workspace.categories.requiresCategory')}
                                                 onToggle={updateWorkspaceRequiresCategory}
-                                                disabled={!policy?.areCategoriesEnabled || policyCategoriesCount === 0}
+                                                disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions}
                                             />
                                         </View>
                                     </View>
