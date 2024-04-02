@@ -5663,10 +5663,11 @@ function hasActionsWithErrors(reportID: string): boolean {
 
 function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>, reportActionID: string): void {
     const transaction = getTransaction(transactionID);
-    if (isEmpty(transaction)) {
+    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+
+    if (!transaction || !reportActions) {
         return;
     }
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
 
     const linkedTrackedExpenseReportAction = Object.values(reportActions).find((action) => (action.originalMessage as IOUMessage)?.IOUTransactionID === transactionID);
 
