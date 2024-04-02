@@ -5,6 +5,7 @@ import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {usePreferredEmojiSkinTone} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -36,7 +37,6 @@ function MiniQuickEmojiReactions({
     reportAction,
     onEmojiSelected,
     preferredLocale = CONST.LOCALES.DEFAULT,
-    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
     emojiReactions = {},
     onPressOpenPicker = () => {},
     onEmojiPickerClosed = () => {},
@@ -45,6 +45,8 @@ function MiniQuickEmojiReactions({
     const StyleUtils = useStyleUtils();
     const ref = useRef<View>(null);
     const {translate} = useLocalize();
+
+    const preferredSkinTone = usePreferredEmojiSkinTone() ?? CONST.EMOJI_DEFAULT_SKIN_TONE;
 
     const openEmojiPicker = () => {
         onPressOpenPicker();
@@ -105,9 +107,6 @@ function MiniQuickEmojiReactions({
 MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 
 export default withOnyx<MiniQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    },
     emojiReactions: {
         key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
     },
