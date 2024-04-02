@@ -52,14 +52,14 @@ function WorkspaceAccountingPage() {
                 rightComponent: (
                     <Button
                         onPress={openQBOsync}
-                        style={[styles.pl2, styles.justifyContentCenter]}
+                        style={styles.justifyContentCenter}
                         text={translate('workspace.accounting.setup')}
                         small
                     />
                 ),
             },
         ],
-        [openQBOsync, styles.pl2, styles.justifyContentCenter, styles.sectionMenuItemTopDescription, translate],
+        [openQBOsync, styles.justifyContentCenter, styles.sectionMenuItemTopDescription, translate],
     );
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
