@@ -498,7 +498,7 @@ function ReportActionsView({
             (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         );
 
-        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0)) {
+        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
             const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
                 CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 0,
@@ -526,7 +526,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [reportActions, report]);
+    }, [reportActions, report, transactionThreadReport]);
 
     // Comments have not loaded at all yet do nothing
     if (!reportActions.length) {
