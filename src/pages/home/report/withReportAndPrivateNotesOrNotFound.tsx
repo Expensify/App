@@ -56,8 +56,8 @@ export default function (pageTitle: TranslationPaths) {
 
             // eslint-disable-next-line rulesdir/no-negated-variables
             const shouldShowNotFoundPage = useMemo(() => {
-                // Show not found view if the report is archived, or if the note is not of current user.
-                if (ReportUtils.isArchivedRoom(report) || isOtherUserNote) {
+                // Show not found view if the report is archived, or if the note is not of current user or if report is a self DM.
+                if (ReportUtils.isArchivedRoom(report) || isOtherUserNote || ReportUtils.isSelfDM(report)) {
                     return true;
                 }
 

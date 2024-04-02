@@ -3,7 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {RootStackParamList} from '@navigation/types';
+import type {RootStackParamList, State} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -12,6 +12,7 @@ import type OnyxPolicy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
+import * as Session from './Session';
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isReadyPromise = new Promise<void>((resolve) => {
@@ -81,16 +82,13 @@ Onyx.connect({
     },
 });
 
-const allReports: OnyxCollection<Report> = {};
+let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     initWithStoredValues: false,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-
-        allReports[key] = {...allReports[key], ...val};
+    waitForCollectionCallback: true,
+    callback: (reports) => {
+        allReports = reports;
     },
 });
 
@@ -125,7 +123,7 @@ Onyx.connect({
 /**
  * Shows a welcome action on first login
  */
-function show(routes: NavigationState<RootStackParamList>['routes'], showEngagementModal = () => {}) {
+function show(routes: State<RootStackParamList>['routes'] | undefined, showEngagementModal = () => {}) {
     isReadyPromise.then(() => {
         if (!isFirstTimeNewExpensifyUser) {
             return;
@@ -133,7 +131,7 @@ function show(routes: NavigationState<RootStackParamList>['routes'], showEngagem
 
         // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
         // create menu right now. We should also stay on the workspace page if that is our destination.
-        const transitionRoute = routes.find(
+        const transitionRoute = routes?.find(
             (route): route is NavigationState<Pick<RootStackParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>>['routes'][number] => route.name === SCREENS.TRANSITION_BETWEEN_APPS,
         );
         const isExitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
@@ -168,7 +166,14 @@ function show(routes: NavigationState<RootStackParamList>['routes'], showEngagem
 
         // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
         // we will show the engagement modal.
-        if (!Policy.isAdminOfFreePolicy(allPolicies ?? undefined) && !isExitingToWorkspaceRoute && !hasSelectedChoice && !hasDismissedModal && Object.keys(allPolicies ?? {}).length === 1) {
+        if (
+            !Session.isAnonymousUser() &&
+            !Policy.isAdminOfFreePolicy(allPolicies ?? undefined) &&
+            !isExitingToWorkspaceRoute &&
+            !hasSelectedChoice &&
+            !hasDismissedModal &&
+            Object.keys(allPolicies ?? {}).length === 1
+        ) {
             showEngagementModal();
         }
 

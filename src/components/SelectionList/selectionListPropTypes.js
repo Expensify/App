@@ -107,9 +107,6 @@ const propTypes = {
             /** Title of the section */
             title: PropTypes.string,
 
-            /** The initial index of this section given the total number of options in each section's data array */
-            indexOffset: PropTypes.number,
-
             /** Array of options */
             data: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.shape(userListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)])),
 
@@ -193,7 +190,7 @@ const propTypes = {
     /** Custom content to display in the footer */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltips: PropTypes.bool,
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */

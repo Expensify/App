@@ -7,6 +7,10 @@ on:
     branches-ignore: [staging, production]
     paths: ['**.js', '**.ts', '**.tsx', '**.sh', 'package.json', 'package-lock.json']
 
+concurrency:
+  group: "${{ github.ref }}-jest"
+  cancel-in-progress: true
+
 jobs:
   jest:
     if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
@@ -31,7 +35,7 @@ jobs:
 
       - name: Cache Jest cache
         id: cache-jest-cache
-        uses: actions/cache@ac25611caef967612169ab7e95533cf932c32270
+        uses: actions/cache@v4
         with:
           path: .jest-cache
           key: ${{ runner.os }}-jest

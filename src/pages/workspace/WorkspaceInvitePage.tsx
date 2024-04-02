@@ -1,6 +1,4 @@
-import {useNavigation} from '@react-navigation/native';
-import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
@@ -13,6 +11,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
+import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,7 +50,10 @@ type WorkspaceInvitePageOnyxProps = {
     invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
 };
 
-type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInvitePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
+type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
+    WithNavigationTransitionEndProps &
+    WorkspaceInvitePageOnyxProps &
+    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
 
 function WorkspaceInvitePage({
     route,
@@ -60,6 +63,7 @@ function WorkspaceInvitePage({
     invitedEmailsToAccountIDsDraft,
     policy,
     isLoadingReportData = true,
+    didScreenTransitionEnd,
 }: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,8 +71,6 @@ function WorkspaceInvitePage({
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const navigation = useNavigation<StackNavigationProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>>();
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetailsProp);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -85,18 +87,6 @@ function WorkspaceInvitePage({
         Policy.clearErrors(route.params.policyID);
         openWorkspaceInvitePage();
         // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
-    }, []);
-
-    useEffect(() => {
-        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
-            setDidScreenTransitionEnd(true);
-        });
-
-        return () => {
-            unsubscribeTransitionEnd();
-        };
-        // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
@@ -164,7 +154,6 @@ function WorkspaceInvitePage({
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
-        let indexOffset = 0;
 
         if (!didScreenTransitionEnd) {
             return [];
@@ -176,8 +165,8 @@ function WorkspaceInvitePage({
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
-                const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchTerm)));
-                const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchTerm.toLowerCase();
+
+                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -188,9 +177,7 @@ function WorkspaceInvitePage({
             title: undefined,
             data: filterSelectedOptions,
             shouldShow: true,
-            indexOffset,
         });
-        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
@@ -201,9 +188,7 @@ function WorkspaceInvitePage({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
             shouldShow: !isEmptyObject(personalDetailsFormatted),
-            indexOffset,
         });
-        indexOffset += personalDetailsFormatted.length;
 
         Object.values(usersToInvite).forEach((userToInvite) => {
             const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === userToInvite.login);
@@ -213,7 +198,6 @@ function WorkspaceInvitePage({
                     title: undefined,
                     data: [OptionsListUtils.formatMemberForList(userToInvite)],
                     shouldShow: true,
-                    indexOffset: indexOffset++,
                 });
             }
         });
@@ -322,6 +306,7 @@ function WorkspaceInvitePage({
                     showScrollIndicator
                     showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetailsProp)}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    checkmarkPosition={CONST.DIRECTION.RIGHT}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton
@@ -342,16 +327,18 @@ function WorkspaceInvitePage({
 
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceInvitePageProps, WorkspaceInvitePageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        invitedEmailsToAccountIDsDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-        },
-    })(WorkspaceInvitePage),
+export default withNavigationTransitionEnd(
+    withPolicyAndFullscreenLoading(
+        withOnyx<WorkspaceInvitePageProps, WorkspaceInvitePageOnyxProps>({
+            personalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+            betas: {
+                key: ONYXKEYS.BETAS,
+            },
+            invitedEmailsToAccountIDsDraft: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
+            },
+        })(WorkspaceInvitePage),
+    ),
 );
