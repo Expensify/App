@@ -14,7 +14,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +36,21 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: transactionPropTypes,
 
+    /** The actions from the parent report */
+    reportActions: PropTypes.shape(reportActionPropTypes),
+
+    /** The report linked to the transaction */
+    report: reportPropTypes,
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
+
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }).isRequired,
+
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: transactionPropTypes,
 
@@ -48,6 +66,8 @@ const propTypes = {
 
 const defaultProps = {
     transaction: {},
+    reportActions: {},
+    report: {},
     splitDraftTransaction: {},
     policy: null,
     policyTags: null,
@@ -63,6 +83,9 @@ function IOURequestStepDate({
     policy,
     policyTags,
     policyCategories,
+    reportActions,
+    report,
+    session,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -70,7 +93,12 @@ function IOURequestStepDate({
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const currentCreated = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? TransactionUtils.getCreated(splitDraftTransaction) : TransactionUtils.getCreated(transaction);
-
+    const parentReportAction = reportActions[report.parentReportActionID];
+    const canEditingSplitBill =
+        isEditingSplitBill && session && parentReportAction && session.accountID === parentReportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
+    const canEditMoneyRequest = isEditing && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFound = !IOUUtils.isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill);
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
@@ -108,7 +136,7 @@ function IOURequestStepDate({
         <StepScreenWrapper
             headerTitle={translate('common.date')}
             onBackButtonPress={navigateBack}
-            shouldShowNotFound={!IOUUtils.isValidMoneyRequestType(iouType)}
+            shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
             testID={IOURequestStepDate.displayName}
         >
@@ -146,6 +174,15 @@ export default compose(
                 return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
             },
         },
+        reportActions: {
+            key: ({params: {action, iouType}, report}) => {
+                let reportID = '0';
+                if (action === CONST.IOU.ACTION.EDIT) {
+                    reportID = iouType === CONST.IOU.TYPE.SPLIT ? report.reportID : report.parentReportID;
+                }
+                return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+            },
+        },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
@@ -154,6 +191,9 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(IOURequestStepDate);
