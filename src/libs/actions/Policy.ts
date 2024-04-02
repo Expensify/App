@@ -780,15 +780,12 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
     }
 
     if (announceReport?.participantAccountIDs) {
-        const remainUsers = announceReport.participantAccountIDs.filter((e) => !accountIDs.includes(e));
         const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, announceReport?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
         announceRoomMembers.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
             value: {
-                participantAccountIDs: [...remainUsers],
-                visibleChatMemberAccountIDs: [...remainUsers],
                 pendingChatMembers,
             },
         });
@@ -797,8 +794,6 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
             value: {
-                participantAccountIDs: announceReport.participantAccountIDs,
-                visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
                 pendingChatMembers: announceReport?.pendingChatMembers ?? null,
             },
         });
@@ -2416,7 +2411,7 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTag
     }
 
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const policyTagKeys = Object.keys(policyTags);
+    const policyTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
     const policyRecentlyUsedTags = allRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] ?? {};
     const newOptimisticPolicyRecentlyUsedTags: RecentlyUsedTags = {};
 
@@ -2426,7 +2421,7 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTag
         }
 
         const tagListKey = policyTagKeys[index];
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([...tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
     });
 
     return newOptimisticPolicyRecentlyUsedTags;

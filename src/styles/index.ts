@@ -3222,6 +3222,15 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        emptyLHNWrapper: {
+            marginBottom: variables.bottomTabHeight,
+        },
+
+        emptyLHNAnimation: {
+            width: 180,
+            height: 180,
+        },
+
         locationErrorLinkText: {
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
