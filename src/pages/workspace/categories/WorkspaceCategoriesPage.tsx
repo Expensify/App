@@ -324,7 +324,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         {!shouldShowEmptyState && !isLoading && (
                             <SelectionList
                                 canSelectMultiple
-                                sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
+                                sections={[{data: categoryList, isDisabled: false}]}
                                 onCheckboxPress={toggleCategory}
                                 onSelectRow={navigateToCategorySettings}
                                 onSelectAll={toggleAllCategories}
