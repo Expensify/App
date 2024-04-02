@@ -26,6 +26,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -51,6 +52,25 @@ type ExpensifyCardPageOnyxProps = {
 
 type ExpensifyCardPageProps = ExpensifyCardPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>;
 
+type PossibleTitles = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
+
+type LimitTypeTranslationKeys = {
+    limitNameKey: TranslationPaths;
+    limitTitleKey: PossibleTitles;
+};
+
+function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>): LimitTypeTranslationKeys {
+    // eslint-disable-next-line default-case
+    switch (limitType) {
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
+            return {limitNameKey: 'cardPage.smartLimit.name', limitTitleKey: 'cardPage.smartLimit.title'};
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
+            return {limitNameKey: 'cardPage.monthlyLimit.name', limitTitleKey: 'cardPage.monthlyLimit.title'};
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
+            return {limitNameKey: 'cardPage.fixedLimit.name', limitTitleKey: 'cardPage.fixedLimit.title'};
+    }
+}
+
 function ExpensifyCardPage({
     cardList,
     draftValues,
@@ -63,13 +83,15 @@ function ExpensifyCardPage({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const isCardDomain = !cardList?.[cardId].isAdminIssuedVirtualCard;
+    const shouldDisplayCardDomain = !cardList?.[cardId].isAdminIssuedVirtualCard;
 
     const [isNotFound, setIsNotFound] = useState(false);
-    const cardsToShow = useMemo(
-        () => (isCardDomain ? CardUtils.getDomainCards(cardList)[domain].filter((card) => !card.isAdminIssuedVirtualCard) : [cardList?.[cardId]]),
-        [isCardDomain, cardList, cardId, domain],
-    );
+    const cardsToShow = useMemo(() => {
+        if (shouldDisplayCardDomain) {
+            return CardUtils.getDomainCards(cardList)[domain].filter((card) => !card.isAdminIssuedVirtualCard);
+        }
+        return [cardList?.[cardId]];
+    }, [shouldDisplayCardDomain, cardList, cardId, domain]);
     useEffect(() => {
         setIsNotFound(!cardsToShow);
     }, [cardList, cardsToShow]);
@@ -81,61 +103,36 @@ function ExpensifyCardPage({
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
 
     const handleRevealDetails = (revealedCardId: number) => {
-        setIsCardDetailsLoading((prevState: Record<number, boolean>) => {
-            const newLoadingStates = {...prevState};
-            newLoadingStates[revealedCardId] = true;
-            return newLoadingStates;
-        });
+        setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({
+            ...prevState,
+            [revealedCardId]: true,
+        }));
         // We can't store the response in Onyx for security reasons.
         // That is why this action is handled manually and the response is stored in a local state
         // Hence eslint disable here.
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         Card.revealVirtualCardDetails(revealedCardId)
             .then((value) => {
-                setCardsDetails((prevState: Record<number, TCardDetails | null>) => {
-                    const newCardsDetails = {...prevState};
-                    newCardsDetails[revealedCardId] = value as TCardDetails;
-                    return newCardsDetails;
-                });
-                setCardsDetailsErrors((prevState) => {
-                    const newCardsDetailsErrors = {...prevState};
-                    newCardsDetailsErrors[revealedCardId] = '';
-                    return newCardsDetailsErrors;
-                });
+                setCardsDetails((prevState: Record<number, TCardDetails | null>) => ({...prevState, [revealedCardId]: value as TCardDetails}));
+                setCardsDetailsErrors((prevState) => ({
+                    ...prevState,
+                    [revealedCardId]: '',
+                }));
             })
             .catch((error) => {
-                setCardsDetailsErrors((prevState) => {
-                    const newCardsDetailsErrors = {...prevState};
-                    newCardsDetailsErrors[revealedCardId] = error;
-                    return newCardsDetailsErrors;
-                });
+                setCardsDetailsErrors((prevState) => ({
+                    ...prevState,
+                    [revealedCardId]: error,
+                }));
             })
-            .finally(() =>
-                setIsCardDetailsLoading((prevState: Record<number, boolean>) => {
-                    const newLoadingStates = {...prevState};
-                    newLoadingStates[revealedCardId] = false;
-                    return newLoadingStates;
-                }),
-            );
+            .finally(() => setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [revealedCardId]: false})));
     };
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
 
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(cardsToShow?.[0]?.availableSpend);
-    const getLimitStrings = (limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>) => {
-        switch (limitType) {
-            case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
-                return {limitName: translate('cardPage.smartLimit.name'), limitTitle: translate('cardPage.smartLimit.title', formattedAvailableSpendAmount)};
-            case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
-                return {limitName: translate('cardPage.monthlyLimit.name'), limitTitle: translate('cardPage.monthlyLimit.title', formattedAvailableSpendAmount)};
-            case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
-                return {limitName: translate('cardPage.fixedLimit.name'), limitTitle: translate('cardPage.fixedLimit.title', formattedAvailableSpendAmount)};
-            default:
-                return {limitName: '', limitTitle: ''};
-        }
-    };
-    const {limitName, limitTitle} = getLimitStrings(cardsToShow?.[0]?.limitType);
+    const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.[0]?.limitType);
 
     const goToGetPhysicalCardFlow = () => {
         let updatedDraftValues = draftValues;
@@ -203,8 +200,8 @@ function ExpensifyCardPage({
                                     titleStyle={styles.newKansasLarge}
                                 />
                                 <MenuItemWithTopDescription
-                                    description={limitName}
-                                    title={limitTitle}
+                                    description={translate(limitNameKey)}
+                                    title={translate(limitTitleKey, formattedAvailableSpendAmount)}
                                     interactive={false}
                                     titleStyle={styles.walletCardLimit}
                                     numberOfLinesTitle={3}
@@ -253,25 +250,27 @@ function ExpensifyCardPage({
                                         />
                                     </>
                                 ))}
-                                {physicalCards.map(
-                                    (card) =>
-                                        card.state === CONST.EXPENSIFY_CARD.STATE.OPEN && (
-                                            <>
-                                                <MenuItemWithTopDescription
-                                                    description={translate('cardPage.physicalCardNumber')}
-                                                    title={CardUtils.maskCard(card?.lastFourPAN)}
-                                                    interactive={false}
-                                                    titleStyle={styles.walletCardNumber}
-                                                />
-                                                <MenuItem
-                                                    title={translate('reportCardLostOrDamaged.report')}
-                                                    icon={Expensicons.Flag}
-                                                    shouldShowRightIcon
-                                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain, cardId))}
-                                                />
-                                            </>
-                                        ),
-                                )}
+                                {physicalCards.map((card) => {
+                                    if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
+                                        return null;
+                                    }
+                                    return (
+                                        <>
+                                            <MenuItemWithTopDescription
+                                                description={translate('cardPage.physicalCardNumber')}
+                                                title={CardUtils.maskCard(card?.lastFourPAN)}
+                                                interactive={false}
+                                                titleStyle={styles.walletCardNumber}
+                                            />
+                                            <MenuItem
+                                                title={translate('reportCardLostOrDamaged.report')}
+                                                icon={Expensicons.Flag}
+                                                shouldShowRightIcon
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain, cardId))}
+                                            />
+                                        </>
+                                    );
+                                })}
                             </>
                         )}
                     </ScrollView>

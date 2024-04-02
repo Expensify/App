@@ -112,41 +112,41 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
-        /** domain passed via route /settings/wallet/card/:domain/:card */
+        /** domain of selected card */
         domain: string;
-        /** cardId passed via route /settings/wallet/card/:domain/:card */
+        /** cardId of selected card */
         cardId: string;
     };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
-        /** domain passed via route /settings/wallet/card/:domain/:card */
+        /** domain of selected card */
         domain: string;
-        /** cardId passed via route /settings/wallet/card/:domain/:card */
+        /** cardId of selected card */
         cardId: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
-        /** domain passed via route /settings/wallet/card/:domain/:card */
+        /** domain of selected card */
         domain: string;
-        /** cardId passed via route /settings/wallet/card/:domain/:card */
+        /** cardId of selected card */
         cardId: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
-        /** domain passed via route /settings/wallet/card/:domain/:card */
+        /** domain of selected card */
         domain: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
-        /** domain passed via route /settings/wallet/card/:domain */
+        /** domain of selected card */
         domain: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: {
         /** Currently selected country */
         country: string;
-        /** domain passed via route /settings/wallet/card/:domain */
+        /** domain of selected card */
         domain: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: {
         /** Currently selected country */
         country: string;
-        /** domain passed via route /settings/wallet/card/:domain */
+        /** domain of selected card */
         domain: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
@@ -266,9 +266,9 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
-        /** domain passed via route /settings/wallet/card/:domain/:card */
+        /** domain of selected card */
         domain: string;
-        /** cardId passed via route /settings/wallet/card/:domain/:card */
+        /** cardId of selected card */
         cardId: string;
     };
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
