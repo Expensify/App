@@ -1,7 +1,7 @@
 import type Queue from './QueueType';
 
 // Function to create a new queue
-function createQueue<T>(): Queue<T> {
+function createQueue<T>(processItem: (item: T) => void): Queue<T> {
     // Array to hold the elements of the queue
     const elements: T[] = [];
 
@@ -30,6 +30,23 @@ function createQueue<T>(): Queue<T> {
         return elements.length;
     }
 
+    /**
+     * Processes the next item in the queue.
+     * If the queue is not empty, it dequeues the next item and processes it.
+     * If the queue is empty, it does nothing.
+     */
+    function processNextItem(): void {
+        dequeue();
+        if (isEmpty()) {
+            return;
+        }
+
+        const nextItem = peek();
+        if (nextItem !== undefined) {
+            processItem(nextItem);
+        }
+    }
+
     // Return an object with the queue operations
     return {
         enqueue,
@@ -37,6 +54,7 @@ function createQueue<T>(): Queue<T> {
         isEmpty,
         peek,
         size,
+        processNextItem,
     };
 }
 

@@ -20,12 +20,8 @@ type DownloadItem = {
  * @returns An object with methods to enqueue and dequeue download items from the queue.
  */
 const createDownloadQueue = () => {
-    const queue = createQueue<DownloadItem>();
+    let queue: ReturnType<typeof createQueue<DownloadItem>>;
 
-    /**
-     * Downloads the specified item.
-     * @param item - The item to be downloaded.
-     */
     const downloadItem = (item: DownloadItem): void => {
         const newItem = {
             ...item,
@@ -34,33 +30,15 @@ const createDownloadQueue = () => {
                 onStarted: () => {
                     item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_STARTED, {url: item.url});
                 },
-                onCompleted: () => {
-                    queue.dequeue();
-                    if (queue.isEmpty()) {
-                        return;
-                    }
-
-                    const nextItem = queue.peek();
-                    if (nextItem !== undefined) {
-                        downloadItem(nextItem);
-                    }
-                },
-                onCancel: () => {
-                    queue.dequeue();
-                    if (queue.isEmpty()) {
-                        return;
-                    }
-
-                    const nextItem = queue.peek();
-                    if (nextItem !== undefined) {
-                        downloadItem(nextItem);
-                    }
-                },
+                onCompleted: queue.processNextItem,
+                onCancel: queue.processNextItem,
             },
         };
 
         electronDownload(newItem.win, newItem.url, newItem.options);
     };
+
+    queue = createQueue<DownloadItem>(downloadItem);
 
     /**
      * Enqueues a download item to the queue and returns the new length of the queue.
@@ -71,14 +49,10 @@ const createDownloadQueue = () => {
     const enqueueDownloadItem = (item: DownloadItem): number => {
         queue.enqueue(item);
         if (queue.size() === 1) {
-            const peekItem = queue.peek();
-            if (peekItem !== undefined) {
-                downloadItem(peekItem);
-            }
+            downloadItem(item);
         }
         return queue.size();
     };
-
     return {enqueueDownloadItem, dequeueDownloadItem: queue.dequeue};
 };
 

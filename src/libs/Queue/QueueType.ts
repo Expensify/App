@@ -4,6 +4,7 @@ type Queue<T> = {
     isEmpty: () => boolean;
     peek: () => T | undefined;
     size: () => number;
+    processNextItem: () => void;
 };
 
 export default Queue;
