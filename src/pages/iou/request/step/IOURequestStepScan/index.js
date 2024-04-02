@@ -41,6 +41,7 @@ import withCurrentUserPersonalDetails, {
 import personalDetailsPropType from "@pages/personalDetailsPropType";
 import {withOnyx} from "react-native-onyx";
 import ONYXKEYS from "@src/ONYXKEYS";
+import * as OptionsListUtils from "@libs/OptionsListUtils";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -218,21 +219,58 @@ function IOURequestStepScan({
         Navigation.goBack(backTo);
     };
 
-    const navigateToConfirmationStep = useCallback(() => {
+    const navigateToConfirmationStep = useCallback((file, source) => {
         if (backTo) {
             Navigation.goBack(backTo);
             return;
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
-        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE && !report.reportID) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
 
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-        IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+        const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+        const participants = _.map(selectedParticipants, (participant) => {
+            const participantAccountID = lodashGet(participant, 'accountID', 0);
+            return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+        });
+
+        if (skipConfirmation) {
+            const receipt = file;
+            receipt.source = source;
+            receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+            if (iouType === CONST.IOU.TYPE.SPLIT) {
+                IOU.startSplitBill(
+                    participants,
+                    currentUserPersonalDetails.login,
+                    currentUserPersonalDetails.accountID,
+                    '',
+                    '',
+                    '',
+                    receipt,
+                    reportID,
+                );
+                return;
+            }
+            IOU.requestMoney(
+                report,
+                0,
+                transaction.currency,
+                transaction.created,
+                '',
+                currentUserPersonalDetails.login,
+                currentUserPersonalDetails.accountID,
+                participants[0],
+                '',
+                receipt,
+            );
+            return;
+        }
+
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
@@ -257,42 +295,12 @@ function IOURequestStepScan({
         const source = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
 
-        if (skipConfirmation) {
-            if (iouType === CONST.IOU.TYPE.SPLIT) {
-                IOU.splitBillAndOpenReport(
-                    participants,
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    backendAmount,
-                    '',
-                    transaction.currency,
-                    '',
-                    '',
-                    '',
-                );
-                return;
-            }
-            IOU.requestMoney(
-                report,
-                0,
-                transaction.currency,
-                transaction.created,
-                '',
-                currentUserPersonalDetails.login,
-                currentUserPersonalDetails.accountID,
-                participants[0],
-                '',
-                null,
-            );
-            return;
-        }
-
         if (action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, source);
             return;
         }
 
-        navigateToConfirmationStep();
+        navigateToConfirmationStep(file, source);
     };
 
     const setupCameraPermissionsAndCapabilities = (stream) => {
