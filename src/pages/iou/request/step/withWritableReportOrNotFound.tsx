@@ -53,7 +53,10 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
     return withOnyx<TProps & RefAttributes<TRef>, WithWritableReportOrNotFoundOnyxProps>({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID ?? '0'}`,
+            key: ({route}) => {
+                const reportId = 'reportID' in route.params ? route.params.reportID : '0';
+                return `${ONYXKEYS.COLLECTION.REPORT}${reportId}`;
+            },
         },
     })(forwardRef(WithWritableReportOrNotFound));
 }
