@@ -214,6 +214,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                             headerMessage={headerMessage}
                             ListItem={UserListItem}
                             onSelectRow={setPolicyAuthorizedPayer}
+                            shouldDebounceRowSelect
                             showScrollIndicator
                         />
                     </ScreenWrapper>
