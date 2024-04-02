@@ -209,7 +209,7 @@ export default () => {
                 // Add the new update to the deferred updates
                 deferredUpdates[Number(updateParams.lastUpdateID)] = updateParams;
 
-                // If there are already deferred updates, then we don't need to fetch the missing updates again
+                // If there are deferred updates already, we don't need to fetch the missing updates again.
                 if (existingDeferredUpdatesCount > 0) {
                     return;
                 }
