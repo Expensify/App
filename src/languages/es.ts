@@ -598,9 +598,9 @@ export default {
         sendMoney: 'Enviar Dinero',
         assignTask: 'Assignar Tarea',
         shortcut: 'Acceso Directo',
-        trackManual: 'Seguimiento del Gasto',
-        trackScan: 'Seguimiento del Recibo',
-        trackDistance: 'Seguimiento del Distancia',
+        trackManual: 'Seguimiento de Gastos',
+        trackScan: 'Seguimiento de Recibos',
+        trackDistance: 'Seguimiento de Distancia',
     },
     iou: {
         amount: 'Importe',
