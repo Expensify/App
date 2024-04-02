@@ -46,6 +46,9 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
     }, []);
 
     const moneyRequestReportID = ReportUtils.isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
+    const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
+
+    const shouldShowNotFoundPage = !isTrackExpenseReport && (moneyRequestReportID ?? '') !== transaction?.reportID;
 
     return (
         <AttachmentModal
@@ -61,7 +64,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
             }}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
-            shouldShowNotFoundPage={(moneyRequestReportID ?? '') !== transaction?.reportID}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         />
     );
 }
