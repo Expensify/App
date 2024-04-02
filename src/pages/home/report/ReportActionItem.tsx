@@ -198,7 +198,7 @@ function ReportActionItem({
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlight) : {}),
-        [StyleUtils, isReportActionLinked, theme.hoverComponentBG],
+        [StyleUtils, isReportActionLinked, theme.messageHighlight],
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
