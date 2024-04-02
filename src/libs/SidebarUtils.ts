@@ -108,14 +108,6 @@ function getOrderedReportIDs(
         });
     });
 
-    if (reportsToDisplay.length === 0) {
-        // Display Concierge chat report when there is no report to be displayed
-        const conciergeChatReport = allReportsDictValues.find(ReportUtils.isConciergeChatReport);
-        if (conciergeChatReport) {
-            reportsToDisplay.push(conciergeChatReport);
-        }
-    }
-
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
     // 2. Drafts - Always sorted by reportDisplayName
@@ -388,7 +380,10 @@ function getOptionData({
                       .join(' ');
         }
 
-        result.alternateText = ReportUtils.isGroupChat(report) && lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageText}` : lastMessageText || formattedLogin;
+        result.alternateText =
+            (ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report)) && lastActorDisplayName
+                ? `${lastActorDisplayName}: ${lastMessageText}`
+                : lastMessageText || formattedLogin;
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
