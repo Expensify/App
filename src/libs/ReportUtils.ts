@@ -3281,10 +3281,8 @@ function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
     let submittedToDisplayName: string;
     if (ownerPersonalDetails?.accountID === currentUserAccountID) {
         submittedToDisplayName = 'yourself';
-    } else if (ownerPersonalDetails?.displayName) {
-        submittedToDisplayName = `${ownerPersonalDetails.displayName}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`;
     } else {
-        submittedToDisplayName = '';
+        submittedToDisplayName = `${ownerPersonalDetails.displayName ?? ''}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`;
     }
 
     return [
