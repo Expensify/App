@@ -31,6 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
+import LocationPermissionModal from './LocationPermissionModal';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
@@ -978,6 +979,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 </View>
             )}
             {shouldShowAllFields && supplementaryFields}
+            <LocationPermissionModal onConfirm={() => {}} isVisible />
             <ConfirmModal
                 title={translate('attachmentPicker.wrongFileType')}
                 onConfirm={navigateBack}
