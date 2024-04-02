@@ -185,7 +185,7 @@ type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
-type WelcomeNoteParams = {workspaceName: string; senderDisplayName?: string; senderLogin?: string; inviteMessage?: string};
+type WelcomeNoteParams = {workspaceName: string};
 
 type RoomNameReservedErrorParams = {reservedName: string};
 

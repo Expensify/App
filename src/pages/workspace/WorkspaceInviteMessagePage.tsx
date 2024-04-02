@@ -17,8 +17,6 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,20 +51,13 @@ type WorkspaceInviteMessagePageOnyxProps = {
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInviteMessagePageOnyxProps &
-    WithCurrentUserPersonalDetailsProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
-function WorkspaceInviteMessagePage({
-    workspaceInviteMessageDraft,
-    invitedEmailsToAccountIDsDraft,
-    policy,
-    route,
-    allPersonalDetails,
-    currentUserPersonalDetails,
-}: WorkspaceInviteMessagePageProps) {
+const parser = new ExpensiMark();
+
+function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsToAccountIDsDraft, policy, route, allPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const parser = new ExpensiMark();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -76,6 +67,9 @@ function WorkspaceInviteMessagePage({
         // workspaceInviteMessageDraft can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         workspaceInviteMessageDraft ||
+        // policy?.welcomeNote?.user can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        policy?.welcomeNote?.user ||
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         policy?.description ||
@@ -101,16 +95,7 @@ function WorkspaceInviteMessagePage({
     const sendInvitation = () => {
         Keyboard.dismiss();
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        Policy.addMembersToWorkspace(
-            invitedEmailsToAccountIDsDraft ?? {},
-            translate('workspace.inviteMessage.welcomeNote', {
-                workspaceName: policy?.name ?? '',
-                senderDisplayName: currentUserPersonalDetails?.displayName ?? '',
-                senderLogin: currentUserPersonalDetails?.login ?? '',
-                inviteMessage: welcomeNote,
-            }),
-            route.params.policyID,
-        );
+        Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
         debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
@@ -226,17 +211,15 @@ function WorkspaceInviteMessagePage({
 WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
 export default withPolicyAndFullscreenLoading(
-    withCurrentUserPersonalDetails(
-        withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
-            allPersonalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
-            invitedEmailsToAccountIDsDraft: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-            },
-            workspaceInviteMessageDraft: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
-            },
-        })(WorkspaceInviteMessagePage),
-    ),
+    withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
+        allPersonalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        invitedEmailsToAccountIDsDraft: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
+        },
+        workspaceInviteMessageDraft: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
+        },
+    })(WorkspaceInviteMessagePage),
 );

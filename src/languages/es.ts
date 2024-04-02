@@ -2082,8 +2082,6 @@ export default {
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
-            welcomeNote: ({workspaceName, senderDisplayName, senderLogin, inviteMessage}: WelcomeNoteParams) =>
-                `${`${senderDisplayName !== senderLogin ? `${senderDisplayName} (${senderLogin})` : senderLogin} te invitó a ${workspaceName}`}\n\n${inviteMessage}`,
         },
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
