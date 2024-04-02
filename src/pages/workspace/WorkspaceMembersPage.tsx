@@ -563,7 +563,6 @@ function WorkspaceMembersPage({
                 >
                     {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ConfirmModal
                     danger
                     title={translate('workspace.people.removeMembersTitle')}
@@ -590,7 +589,7 @@ function WorkspaceMembersPage({
                         ListItem={TableListItem}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
-                        headerContent={getHeaderContent()}
+                        headerContent={!isSmallScreenWidth && getHeaderContent()}
                         onSelectRow={openMemberDetails}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
@@ -600,6 +599,14 @@ function WorkspaceMembersPage({
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         textInputRef={textInputRef}
                         customListHeader={getCustomListHeader()}
+                        ListHeaderComponent={
+                            isSmallScreenWidth ? (
+                                <View style={[styles.pl5, styles.pr5]}>
+                                    {getHeaderContent()}
+                                    {getHeaderButtons()}
+                                </View>
+                            ) : null
+                        }
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     />
                 </View>
