@@ -112,7 +112,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         if (!didScreenTransitionEnd) {
             return [newSections, {}];
         }
-        let indexOffset = 0;
         const chatOptions = OptionsListUtils.getFilteredOptions(
             reports,
             personalDetails,
@@ -142,13 +141,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             chatOptions.recentReports,
             chatOptions.personalDetails,
             maxParticipantsReached,
-            indexOffset,
             personalDetails,
             true,
         );
 
         newSections.push(formatResults.section);
-        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return [newSections, {}];
@@ -158,17 +155,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             title: translate('common.recents'),
             data: chatOptions.recentReports,
             shouldShow: !_.isEmpty(chatOptions.recentReports),
-            indexOffset,
         });
-        indexOffset += chatOptions.recentReports.length;
 
         newSections.push({
             title: translate('common.contacts'),
             data: chatOptions.personalDetails,
             shouldShow: !_.isEmpty(chatOptions.personalDetails),
-            indexOffset,
         });
-        indexOffset += chatOptions.personalDetails.length;
 
         if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({
@@ -178,7 +171,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
-                indexOffset,
             });
         }
 
@@ -196,10 +188,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 {
                     ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
                     selected: true,
+                    iouType,
                 },
             ]);
             onFinish();
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded],
     );
 
@@ -235,12 +229,14 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                         reportID: option.reportID,
                         selected: true,
                         searchText: option.searchText,
+                        iouType: iouType === CONST.IOU.TYPE.REQUEST ? CONST.IOU.TYPE.SPLIT : iouType,
                     },
                 ];
             }
 
             onParticipantsAdded(newSelectedOptions, newSelectedOptions.length !== 0 ? CONST.IOU.TYPE.SPLIT : undefined);
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [participants, onParticipantsAdded],
     );
 

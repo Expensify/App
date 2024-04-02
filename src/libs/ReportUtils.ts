@@ -1193,7 +1193,8 @@ function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): 
  * If the report is a thread and has a chat type set, it is a workspace chat.
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
-    return isThread(report) && isChatReport(report) && !!getChatType(report);
+    const chatType = getChatType(report);
+    return isThread(report) && isChatReport(report) && CONST.WORKSPACE_ROOM_TYPES.some((type) => chatType === type);
 }
 
 /**
@@ -2704,7 +2705,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant(report.ownerAccountID) ?? '', amount: formattedAmount});
     }
 
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
 }
 
 /**

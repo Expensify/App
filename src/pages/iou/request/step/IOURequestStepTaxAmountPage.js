@@ -112,7 +112,9 @@ function IOURequestStepTaxAmountPage({
         // If the money request being created is a distance request, don't allow the user to choose the currency.
         // Only USD is allowed for distance requests.
         // Remove query from the route and encode it.
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()),
+        );
     };
 
     const updateTaxAmount = (currentAmount) => {
@@ -133,7 +135,7 @@ function IOURequestStepTaxAmountPage({
         if (report.reportID) {
             // TODO: Is this really needed at all?
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
         }
 

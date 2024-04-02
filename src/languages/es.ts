@@ -306,6 +306,12 @@ export default {
         role: 'Role',
         currency: 'Divisa',
         rate: 'Tarifa',
+        emptyLHN: {
+            title: 'Woohoo! Todo al día.',
+            subtitleText1: 'Encuentra un chat usando el botón',
+            subtitleText2: 'o crea algo usando el botón',
+            subtitleText3: '.',
+        },
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -516,7 +522,7 @@ export default {
         asCopilot: 'como copiloto de',
     },
     mentionSuggestions: {
-        hereAlternateText: 'Notificar a todos los que estén en linea de esta sala',
+        hereAlternateText: 'Notificar a todos en esta conversación',
     },
     newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
@@ -594,6 +600,9 @@ export default {
         sendMoney: 'Enviar Dinero',
         assignTask: 'Assignar Tarea',
         shortcut: 'Acceso Directo',
+        trackManual: 'Seguimiento de Gastos',
+        trackScan: 'Seguimiento de Recibo',
+        trackDistance: 'Seguimiento de Distancia',
     },
     iou: {
         amount: 'Importe',
