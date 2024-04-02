@@ -34,6 +34,13 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import NavigationAwareCamera from './NavigationAwareCamera';
+import * as ReportUtils from "@libs/ReportUtils";
+import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes
+} from "@components/withCurrentUserPersonalDetails";
+import personalDetailsPropType from "@pages/personalDetailsPropType";
+import {withOnyx} from "react-native-onyx";
+import ONYXKEYS from "@src/ONYXKEYS";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -45,11 +52,19 @@ const propTypes = {
 
     /** The transaction (or draft transaction) being changed */
     transaction: transactionPropTypes,
+
+    /** Personal details of all users */
+    personalDetails: personalDetailsPropType,
+
+    /** The personal details of the current user */
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
+    personalDetails: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function IOURequestStepScan({
@@ -57,7 +72,10 @@ function IOURequestStepScan({
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
+    transaction,
     transaction: {isFromGlobalCreate},
+    personalDetails,
+    currentUserPersonalDetails,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -84,6 +102,7 @@ function IOURequestStepScan({
     const [videoConstraints, setVideoConstraints] = useState(null);
     const tabIndex = 1;
     const isTabActive = useTabNavigatorFocus({tabIndex});
+    const skipConfirmation = transaction.skipConfirmation && !ReportUtils.isArchivedRoom(report);
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
@@ -237,6 +256,36 @@ function IOURequestStepScan({
         // Store the receipt on the transaction object in Onyx
         const source = URL.createObjectURL(file);
         IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
+
+        if (skipConfirmation) {
+            if (iouType === CONST.IOU.TYPE.SPLIT) {
+                IOU.splitBillAndOpenReport(
+                    participants,
+                    currentUserPersonalDetails.login,
+                    currentUserPersonalDetails.accountID,
+                    backendAmount,
+                    '',
+                    transaction.currency,
+                    '',
+                    '',
+                    '',
+                );
+                return;
+            }
+            IOU.requestMoney(
+                report,
+                0,
+                transaction.currency,
+                transaction.created,
+                '',
+                currentUserPersonalDetails.login,
+                currentUserPersonalDetails.accountID,
+                participants[0],
+                '',
+                null,
+            );
+            return;
+        }
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, source);
@@ -493,4 +542,13 @@ IOURequestStepScan.defaultProps = defaultProps;
 IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+    }),
+)(IOURequestStepScan);
