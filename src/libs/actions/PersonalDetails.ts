@@ -24,12 +24,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
-import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as Session from './Session';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import type * as OnyxTypes from '@src/types/onyx';
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -333,8 +334,8 @@ function openPublicProfilePage(accountID: number) {
      * - One message inside the second task
      * ****************************************************************************************************************/
 
-    // -- Message 1
-    const reportComment = ReportUtils.buildOptimisticAddCommentReportAction('Hello world', undefined);
+    // -- Message 1 (video)
+    const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined);
     const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
     const reportCommentText = reportComment.commentText;
 
@@ -378,7 +379,7 @@ function openPublicProfilePage(accountID: number) {
     const reportCommentText4 = reportComment4.commentText;
 
     /*
-     * Each element in the `data` array represents either a message or a task, with a `type` that is either `message` or `task`.
+     * Each element in the `data` array represents either a message or a task, with a `type` that is either `message`, `task` or `video`.
      * The other attributes are based on `AddCommentOrAttachementParams` and `CreateTaskParams` respectively.
      *
      * Each task must also have a `task` attribute, whose value can be one of:
@@ -403,7 +404,12 @@ function openPublicProfilePage(accountID: number) {
             reportID: parentReportID,
             reportActionID: reportCommentAction.reportActionID,
             reportComment: reportCommentText,
-            type: 'message',
+            url: `${CONST.CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+            duration: 55,
+            width: 1280,
+            height: 960,
+            thumbnailUrl: `${CONST.CLOUDFRONT_URL}/images/expensify__favicon.png`,
+            type: 'video',
         }, {
             reportID: parentReportID,
             reportActionID: reportCommentAction2.reportActionID,
@@ -444,9 +450,36 @@ function openPublicProfilePage(accountID: number) {
         }]),
         engagementChoice: 'newDotValue',
     };
+
+    const optimisticData2: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {
+                // Message 1 (video)
+                [reportCommentAction.reportActionID ?? '']: reportCommentAction as ReportAction,
+                // Message 2 (plain text)
+                [reportCommentAction2.reportActionID ?? '']: reportCommentAction2 as ReportAction,
+            },
+        }, {
+            // This doesn't seem to work, not sure why
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
+            value: {
+                ...optimisticTaskReport,
+                isOptimisticReport: true,
+            },
+        }, {
+            // This doesn't seem to work either, not sure why
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
+            value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction as OnyxTypes.ReportAction},
+        }
+    ];
+
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters2, {
-        // TODO: Fill out the optimistic data like we do for other tasks and messages, so that the UI immediately displays
-        // the new messages and tasks.
+        // TODO: fill out other optimistic values (tasks and messages inside tasks)
+        optimisticData: optimisticData2
     });
 
     // API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {optimisticData, successData, failureData});
