@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/core';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
@@ -31,6 +31,8 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import Onyx, {useOnyx} from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
@@ -63,6 +65,7 @@ function IOURequestStepScan({
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera'],
     });
+    const [user] = useOnyx(ONYXKEYS.USER)
 
     const hasFlash = device != null && device.hasFlash;
     const camera = useRef(null);
@@ -239,6 +242,7 @@ function IOURequestStepScan({
         return camera.current
             .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
+                enableShutterSound: !user.isMutedAllSounds
             })
             .then((photo) => {
                 // Store the receipt on the transaction object in Onyx
@@ -258,7 +262,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
+    }, [cameraPermissionStatus, flash, hasFlash, user.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
