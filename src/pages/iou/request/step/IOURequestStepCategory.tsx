@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -9,7 +8,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -23,36 +21,36 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepCategoryStackProps = {stackProps: StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY>};
-
 type IOURequestStepCategoryOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<Transaction>;
+
     /** The policy of the report */
     policy: OnyxEntry<Policy>;
+
     /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<PolicyCategories>;
+
     /** Collection of tags attached to a policy */
     policyTags: OnyxEntry<PolicyTagList>;
+
     /** The actions from the parent report */
     reportActions: OnyxEntry<ReportActions>;
+
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
 };
 
-type IOURequestStepCategoryProps = IOURequestStepCategoryStackProps &
-    IOURequestStepCategoryOnyxProps &
-    WithWritableReportOrNotFoundProps & {
+type IOURequestStepCategoryProps = IOURequestStepCategoryOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<Transaction>;
     };
 
 function IOURequestStepCategory({
     report,
-    stackProps: {
-        route: {
-            params: {transactionID, backTo, action, iouType, reportActionID},
-        },
+    route: {
+        params: {transactionID, backTo, action, iouType, reportActionID},
     },
     transaction,
     splitDraftTransaction,
@@ -125,11 +123,7 @@ function IOURequestStepCategory({
 
 IOURequestStepCategory.displayName = 'IOURequestStepCategory';
 
-/* eslint-disable rulesdir/no-negated-variables */
-const IOURequestStepCategoryWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepCategory);
-/* eslint-disable rulesdir/no-negated-variables */
-const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategoryWithWritableReportOrNotFound);
-export default withOnyx<IOURequestStepCategoryProps, IOURequestStepCategoryOnyxProps>({
+const IOURequestStepCategoryWithOnyx = withOnyx<IOURequestStepCategoryProps, IOURequestStepCategoryOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
             const transactionID = route?.params.transactionID ?? 0;
@@ -167,5 +161,10 @@ export default withOnyx<IOURequestStepCategoryProps, IOURequestStepCategoryOnyxP
     session: {
         key: ONYXKEYS.SESSION,
     },
-    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
-})(IOURequestStepCategoryWithFullTransactionOrNotFound);
+})(IOURequestStepCategory);
+/* eslint-disable rulesdir/no-negated-variables */
+const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategoryWithOnyx);
+/* eslint-disable rulesdir/no-negated-variables */
+// @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
+const IOURequestStepCategoryWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepCategoryWithFullTransactionOrNotFound);
+export default IOURequestStepCategoryWithWritableReportOrNotFound;

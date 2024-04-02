@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -8,7 +7,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -21,7 +19,6 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -37,8 +34,6 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type IOURequestStepConfirmationStackProps = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
-
 type IOURequestStepConfirmationOnyxProps = {
     policy: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -47,8 +42,7 @@ type IOURequestStepConfirmationOnyxProps = {
 };
 
 type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &
-    IOURequestStepConfirmationStackProps &
-    WithWritableReportOrNotFoundProps & {
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> & {
         transaction: OnyxEntry<Transaction>;
     };
 
@@ -533,11 +527,7 @@ function IOURequestStepConfirmation({
 
 IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
-/* eslint-disable rulesdir/no-negated-variables */
-const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmation);
-/* eslint-disable rulesdir/no-negated-variables */
-const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmationWithWritableReportOrNotFound);
-export default withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmationOnyxProps>({
+const IOURequestStepConfirmationWithOnyx = withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmationOnyxProps>({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
@@ -550,5 +540,10 @@ export default withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmat
     policyTags: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
     },
-    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
-})(IOURequestStepConfirmationWithFullTransactionOrNotFound);
+})(IOURequestStepConfirmation);
+/* eslint-disable rulesdir/no-negated-variables */
+const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmationWithOnyx);
+/* eslint-disable rulesdir/no-negated-variables */
+// @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
+const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
+export default IOURequestStepConfirmationWithWritableReportOrNotFound;
