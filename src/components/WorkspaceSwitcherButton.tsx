@@ -8,6 +8,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import type { View } from 'react-native';
 import * as Expensicons from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
 import SubscriptAvatar from './SubscriptAvatar';
@@ -23,7 +24,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const pressableRef = useRef<HTMLDivElement | null>(null);
+    const pressableRef = useRef<HTMLDivElement | View | null>(null);
 
     const {source, name, type} = useMemo(() => {
         if (!policy) {
