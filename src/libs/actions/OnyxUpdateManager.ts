@@ -46,7 +46,7 @@ function finalizeUpdatesAndResumeQueue() {
 const applyUpdates = (updates: DeferredUpdatesDictionary) => Promise.all(Object.values(updates).map((update) => OnyxUpdates.apply(update)));
 
 // In order for the deferred updates to be applied correctly in order,
-// we need to check if there are any gaps deferred updates.
+// we need to check if there are any gaps between deferred updates.
 type DetectGapAndSplitResult = {applicableUpdates: DeferredUpdatesDictionary; updatesAfterGaps: DeferredUpdatesDictionary; latestMissingUpdateID: number | undefined};
 function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSplitResult {
     const updateValues = Object.values(updates);
@@ -120,7 +120,7 @@ function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
     );
 
     // If there are no remaining deferred updates after filtering out outdated ones,
-    //  we can just unpause the queue and return
+    // we can just unpause the queue and return
     if (Object.values(pendingDeferredUpdates).length === 0) {
         return Promise.resolve();
     }
@@ -212,6 +212,7 @@ export default () => {
 
                 // Get the number of deferred updates before adding the new one
                 const existingDeferredUpdatesCount = Object.keys(deferredUpdates).length;
+
                 // Add the new update to the deferred updates
                 deferredUpdates[Number(updateParams.lastUpdateID)] = updateParams;
 
