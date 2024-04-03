@@ -29,7 +29,6 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
             policy = policyDefaultProps.policy,
             policyDraft = policyDefaultProps.policyDraft,
             policyMembers = policyDefaultProps.policyMembers,
-            policyMembersDraft = policyDefaultProps.policyMembersDraft,
             ...rest
         }: TProps,
         ref: ForwardedRef<TRef>,
@@ -46,7 +45,6 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
                 policy={policy}
                 policyDraft={policyDraft}
                 policyMembers={policyMembers}
-                policyMembersDraft={policyMembersDraft}
                 ref={ref}
             />
         );
