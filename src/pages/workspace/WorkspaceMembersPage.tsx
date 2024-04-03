@@ -533,11 +533,11 @@ function WorkspaceMembersPage({policyMembers, personalDetails, invitedEmailsToAc
             headerText={translate('workspace.common.members')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-            shouldShowOfflineIndicatorInWideScreen
             headerContent={!isSmallScreenWidth && getHeaderButtons()}
             icon={Illustrations.ReceiptWrangler}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
+            shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
         >
             {() => (
