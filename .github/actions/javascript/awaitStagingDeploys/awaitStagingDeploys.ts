@@ -8,8 +8,6 @@ import {promiseDoWhile} from '@github/libs/promiseWhile';
 
 type CurrentStagingDeploys = Awaited<ReturnType<typeof GitHubUtils.octokit.actions.listWorkflowRuns>>['data']['workflow_runs'];
 
-console.log('** POLL RATE ***', POLL_RATE);
-
 function run() {
     console.info('[awaitStagingDeploys] run()');
     console.info('[awaitStagingDeploys] ActionUtils', ActionUtils);

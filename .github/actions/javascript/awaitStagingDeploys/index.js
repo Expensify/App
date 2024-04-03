@@ -12233,7 +12233,6 @@ const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const constants_1 = __nccwpck_require__(96);
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const promiseWhile_1 = __nccwpck_require__(4502);
-console.log('** POLL RATE ***', constants_1.POLL_RATE);
 function run() {
     console.info('[awaitStagingDeploys] run()');
     console.info('[awaitStagingDeploys] ActionUtils', ActionUtils_1.default);
@@ -12363,7 +12362,6 @@ class GithubUtils {
     static initOctokit() {
         const Octokit = utils_1.GitHub.plugin(plugin_throttling_1.throttling, plugin_paginate_rest_1.paginateRest);
         const token = core.getInput('GITHUB_TOKEN', { required: true });
-        console.log('*** TOKEN ***', token);
         // Save a copy of octokit used in this class
         this.internalOctokit = new Octokit((0, utils_1.getOctokitOptions)(token, {
             throttle: {

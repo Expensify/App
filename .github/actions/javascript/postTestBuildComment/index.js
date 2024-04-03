@@ -11659,7 +11659,6 @@ class GithubUtils {
     static initOctokit() {
         const Octokit = utils_1.GitHub.plugin(plugin_throttling_1.throttling, plugin_paginate_rest_1.paginateRest);
         const token = core.getInput('GITHUB_TOKEN', { required: true });
-        console.log('*** TOKEN ***', token);
         // Save a copy of octokit used in this class
         this.internalOctokit = new Octokit((0, utils_1.getOctokitOptions)(token, {
             throttle: {

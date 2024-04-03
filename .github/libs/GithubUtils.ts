@@ -74,8 +74,6 @@ class GithubUtils {
         const Octokit = GitHub.plugin(throttling, paginateRest);
         const token = core.getInput('GITHUB_TOKEN', {required: true});
 
-        console.log('*** TOKEN ***', token);
-
         // Save a copy of octokit used in this class
         this.internalOctokit = new Octokit(
             getOctokitOptions(token, {
