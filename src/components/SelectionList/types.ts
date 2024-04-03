@@ -298,7 +298,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null>;
 
-    /** Whether to hide the list on initial render */
+    /** Whether to hide the list on the initial render. This would prevent the list from "blinking" when you have a long list and it auto scrolls to the bottom on mount but will delay the showing of the list */
     shouldHideListOnInitialRender?: boolean;
 };
 
