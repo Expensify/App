@@ -4260,6 +4260,7 @@ const styles = (theme: ThemeColors) =>
 
         onboardingVideoPlayer: {
             borderRadius: 12,
+            backgroundColor: theme.highlightBG,
         },
 
         sidebarStatusAvatarContainer: {
