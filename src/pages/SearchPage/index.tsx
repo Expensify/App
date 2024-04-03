@@ -2,10 +2,10 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import * as ReportUtils from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -31,9 +31,6 @@ type SearchPageOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
-    /** All reports shared with the user */
-    reports: OnyxCollection<OnyxTypes.Report>;
-
     /** Whether or not we are searching for reports on the server */
     isSearchingForReports: OnyxEntry<boolean>;
 };
@@ -43,7 +40,7 @@ type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList
 type Options = OptionsListUtils.GetOptions & {headerMessage: string};
 
 type SearchPageSectionItem = {
-    data: ReportUtils.OptionData[];
+    data: OptionData[];
     shouldShow: boolean;
 };
 
@@ -56,12 +53,14 @@ const setPerformanceTimersEnd = () => {
 
 const SearchPageFooterInstance = <SearchPageFooter />;
 
-function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchPageProps) {
+function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
-    const personalDetails = usePersonalDetails();
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: isScreenTransitionEnd,
+    });
 
     const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
@@ -77,7 +76,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
     }, [debouncedSearchValue]);
 
     const searchOptions: Options = useMemo(() => {
-        if (!isScreenTransitionEnd) {
+        if (!areOptionsInitialized) {
             return {
                 recentReports: [],
                 personalDetails: [],
@@ -89,10 +88,10 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
                 headerMessage: '',
             };
         }
-        const options = OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas ?? []);
-        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length + options.personalDetails.length !== 0, Boolean(options.userToInvite), '');
-        return {...options, headerMessage: header};
-    }, [betas, isScreenTransitionEnd, personalDetails, reports]);
+        const optionList = OptionsListUtils.getSearchOptions(options, debouncedSearchValue.trim(), betas ?? []);
+        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), debouncedSearchValue);
+        return {...optionList, headerMessage: header};
+    }, [areOptionsInitialized, betas, debouncedSearchValue, options]);
 
     const filteredOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
@@ -104,15 +103,15 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
             };
         }
 
-        const options = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
-        const header = OptionsListUtils.getHeaderMessage(options.recentReports.length > 0, false, debouncedSearchValue);
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, false, debouncedSearchValue);
         return {
-            recentReports: options.recentReports,
-            personalDetails: options.personalDetails,
+            recentReports: newOptions.recentReports,
+            personalDetails: newOptions.personalDetails,
             userToInvite: null,
             headerMessage: header,
         };
-    }, [searchOptions, debouncedSearchValue]);
+    }, [debouncedSearchValue, searchOptions]);
 
     const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
@@ -143,7 +142,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
         return newSections;
     }, [localPersonalDetails, recentReports, userToInvite]);
 
-    const selectReport = (option: ReportUtils.OptionData) => {
+    const selectReport = (option: OptionData) => {
         if (!option) {
             return;
         }
@@ -160,8 +159,6 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
         setIsScreenTransitionEnd(true);
     };
 
-    const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -170,15 +167,15 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
             shouldEnableMaxHeight
             navigation={navigation}
         >
-            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+            {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
                         title={translate('common.search')}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
-                        <SelectionList<ReportUtils.OptionData>
-                            sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+                        <SelectionList<OptionData>
+                            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                             ListItem={UserListItem}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -188,7 +185,7 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
                             headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
                             onLayout={setPerformanceTimersEnd}
                             onSelectRow={selectReport}
-                            showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
+                            showLoadingPlaceholder={!areOptionsInitialized}
                             footerContent={SearchPageFooterInstance}
                             isLoadingNewOptions={isSearchingForReports ?? undefined}
                         />
@@ -202,9 +199,6 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
 SearchPage.displayName = 'SearchPage';
 
 export default withOnyx<SearchPageProps, SearchPageOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
     betas: {
         key: ONYXKEYS.BETAS,
     },
