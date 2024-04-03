@@ -198,7 +198,7 @@ function BaseVideoPlayer({
 
         if (!shouldUseSharedVideoElement) {
             if (newParentRef && 'childNodes' in newParentRef && newParentRef.childNodes[0]) {
-                newParentRef.childNodes[0].remove();
+                newParentRef.childNodes[0]?.remove();
             }
             return;
         }
@@ -217,7 +217,7 @@ function BaseVideoPlayer({
             if (!newParentRef || !('childNodes' in newParentRef)) {
                 return;
             }
-            newParentRef.childNodes[0].remove();
+            newParentRef.childNodes[0]?.remove();
         };
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
