@@ -3,7 +3,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import Button from './Button';
@@ -19,7 +18,6 @@ type ConnectBankAccountButtonProps = {
 };
 
 function ConnectBankAccountButton({style, policyID}: ConnectBankAccountButtonProps) {
-    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const activeRoute = Navigation.getActiveRouteWithoutParams();
@@ -34,7 +32,6 @@ function ConnectBankAccountButton({style, policyID}: ConnectBankAccountButtonPro
             onPress={() => ReimbursementAccount.navigateToBankAccountRoute(policyID, activeRoute)}
             icon={Expensicons.Bank}
             style={style}
-            iconStyles={styles.buttonCTAIcon}
             shouldShowRightIcon
             large
             success

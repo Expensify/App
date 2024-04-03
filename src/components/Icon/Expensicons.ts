@@ -42,6 +42,8 @@ import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import DocumentPlus from '@assets/images/document-plus.svg';
+import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -98,6 +100,7 @@ import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
@@ -137,6 +140,8 @@ import Stopwatch from '@assets/images/stopwatch.svg';
 import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
+import Tax from '@assets/images/tax.svg';
+import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
@@ -194,6 +199,7 @@ export {
     CreditCard,
     DeletedRoomAvatar,
     Document,
+    DocumentSlash,
     DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
@@ -224,6 +230,8 @@ export {
     Fullscreen,
     Folder,
     Tag,
+    Tax,
+    Thread,
     Gallery,
     Gear,
     Globe,
@@ -252,6 +260,7 @@ export {
     Megaphone,
     MoneyBag,
     MoneyCircle,
+    MoneyWaving,
     Monitor,
     Mute,
     ExpensifyLogoNew,
@@ -310,4 +319,5 @@ export {
     ChatBubbleUnread,
     ChatBubbleReply,
     Lightbulb,
+    DocumentPlus,
 };

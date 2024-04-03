@@ -75,7 +75,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
     });
 
     const addPaymentMethodAnchorRef = useRef(null);
-    const paymentMethodButtonRef = useRef<HTMLElement | null>(null);
+    const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
         anchorPositionVertical: 0,
@@ -164,7 +164,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLElement;
+        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
 
         // The delete/default menu
         if (accountType) {
@@ -396,7 +396,6 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                             )}
 
                                             <KYCWall
-                                                // eslint-disable-next-line @typescript-eslint/naming-convention
                                                 onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
                                                 onSelectPaymentMethod={(selectedPaymentMethod: string) => {
                                                     if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {

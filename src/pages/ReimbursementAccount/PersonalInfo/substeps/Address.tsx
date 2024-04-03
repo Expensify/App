@@ -62,7 +62,7 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
-        isEditing,
+        shouldSaveDraft: isEditing,
     });
 
     return (

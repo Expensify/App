@@ -51,6 +51,10 @@ const restrictedImportPaths = [
         name: '@styles/theme/illustrations',
         message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
     },
+    {
+        name: 'date-fns/locale',
+        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'.",
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -115,6 +119,7 @@ module.exports = {
                             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                             '@src': './src',
                             '@desktop': './desktop',
+                            '@github': './.github',
                         },
                     },
                 ],
@@ -194,6 +199,7 @@ module.exports = {
                     {
                         selector: ['parameter', 'method'],
                         format: ['camelCase', 'PascalCase'],
+                        leadingUnderscore: 'allow',
                     },
                 ],
                 '@typescript-eslint/ban-types': [
@@ -242,6 +248,14 @@ module.exports = {
                     {
                         selector: 'TSEnumDeclaration',
                         message: "Please don't declare enums, use union types instead.",
+                    },
+                ],
+                'no-restricted-properties': [
+                    'error',
+                    {
+                        object: 'Image',
+                        property: 'getSize',
+                        message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
                     },
                 ],
                 'no-restricted-imports': [
