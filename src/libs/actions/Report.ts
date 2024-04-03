@@ -90,6 +90,7 @@ import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
+import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -1116,6 +1117,8 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     // In this case, the API will let us know by returning a preexistingReportID.
     // We should clear out the optimistically created report and re-route the user to the preexisting report.
     if (report?.reportID && report.preexistingReportID) {
+        const draftComment = getDraftComment(report.reportID);
+        saveReportComment(report.preexistingReportID, draftComment ?? '');
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
 
         // Only re-route them if they are still looking at the optimistically created report
