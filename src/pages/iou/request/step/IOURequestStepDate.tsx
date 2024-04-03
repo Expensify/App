@@ -31,7 +31,7 @@ type IOURequestStepDateOnyxProps = {
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
     /** Session info for the currently logged in user. */
-    session: OnyxTypes.Session;
+    session: OnyxEntry<OnyxTypes.Session>;
 
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
