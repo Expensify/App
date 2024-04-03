@@ -96,13 +96,13 @@ function IOURequestStepConfirmation({
     const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = useMemo(() => {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
-            return translate('iou.split');
+            return translate('iou.splitExpense');
         }
         if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
             return translate('iou.trackExpense');
         }
         if (iouType === CONST.IOU.TYPE.SEND) {
-            return translate('common.send');
+            return translate('iou.paySomeone');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate]);

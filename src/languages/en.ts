@@ -470,14 +470,9 @@ export default {
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
-        editAction: ({action}: EditActionParams) =>
-            `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}`,
-        deleteAction: ({action}: DeleteActionParams) =>
-            `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Are you sure you want to delete this ${
-                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'
-            }?`,
+        editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}`,
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
@@ -616,7 +611,6 @@ export default {
         card: 'Card',
         original: 'Original',
         split: 'Split',
-        addToSplit: 'Add to split',
         splitExpense: 'Split expense',
         payName: ({name}: {name: string}) => `Pay ${name}`,
         paySomeone: 'Pay someone',

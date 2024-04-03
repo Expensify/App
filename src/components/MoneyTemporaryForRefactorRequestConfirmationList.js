@@ -404,9 +404,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (isTypeTrackExpense) {
             text = translate('iou.trackExpense');
         } else if (isTypeSplit && iouAmount === 0) {
-            text = translate('iou.split');
+            text = translate('iou.splitExpense');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
-            text = translate('iou.expense');
+            text = translate('iou.submitExpense');
             if (iouAmount !== 0) {
                 text = translate('iou.requestAmount', {amount: formattedAmount});
             }
@@ -592,7 +592,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney(paymentMethod);
             } else {
-                // validate the amount for distance requests
+                // validate the amount for distance expenses
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
                     setFormError('common.error.invalidAmount');

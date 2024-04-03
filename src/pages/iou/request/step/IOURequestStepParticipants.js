@@ -45,10 +45,10 @@ function IOURequestStepParticipants({
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const headerTitle = useMemo(() => {
         if (isSplitRequest) {
-            return translate('iou.split');
+            return translate('iou.splitExpense');
         }
         if (iouType === CONST.IOU.TYPE.SEND) {
-            return translate('common.send');
+            return translate('iou.paySomeone');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate, isSplitRequest]);

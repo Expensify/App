@@ -612,7 +612,6 @@ export default {
         card: 'Tarjeta',
         original: 'Original',
         split: 'Dividir',
-        addToSplit: 'Añadir para dividir',
         splitExpense: 'Dividir factura',
         expense: 'Solicitar',
         participants: 'Participantes',

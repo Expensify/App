@@ -299,7 +299,7 @@ function MoneyRequestParticipantsSelector({
                 {!!participants.length && (
                     <Button
                         success
-                        text={translate('iou.addToSplit')}
+                        text={translate('common.next')}
                         onPress={handleConfirmSelection}
                         pressOnEnter
                         large
