@@ -31,7 +31,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
@@ -55,6 +55,7 @@ const defaultProps = {
 
 function IOURequestStepScan({
     report,
+    user,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
@@ -65,7 +66,6 @@ function IOURequestStepScan({
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera'],
     });
-    const [user] = useOnyx(ONYXKEYS.USER)
 
     const hasFlash = device != null && device.hasFlash;
     const camera = useRef(null);
@@ -386,4 +386,8 @@ IOURequestStepScan.defaultProps = defaultProps;
 IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);
+export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound, withOnyx({
+    user: {
+        key: ONYXKEYS.USER
+    }
+}))(IOURequestStepScan);
