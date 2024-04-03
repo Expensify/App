@@ -1,6 +1,7 @@
 import {
     addDays,
     addHours,
+    addMilliseconds,
     addMinutes,
     eachDayOfInterval,
     eachMonthOfInterval,
@@ -388,6 +389,13 @@ function getDBTimeWithSkew(): string {
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
     const date = zonedTimeToUtc(dateTime, 'UTC');
     const newTimestamp = subMilliseconds(date, milliseconds).valueOf();
+
+    return getDBTime(newTimestamp);
+}
+
+function addMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
+    const date = zonedTimeToUtc(dateTime, 'UTC');
+    const newTimestamp = addMilliseconds(date, milliseconds).valueOf();
 
     return getDBTime(newTimestamp);
 }
@@ -784,6 +792,7 @@ const DateUtils = {
     getDBTimeWithSkew,
     setLocale,
     subtractMillisecondsFromDateTime,
+    addMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getThirtyMinutesFromNow,
     getEndOfToday,

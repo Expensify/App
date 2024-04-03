@@ -5121,8 +5121,8 @@ function setShownHoldUseExplanation() {
  */
 function putOnHold(transactionID: string, comment: string, reportID: string) {
     const currentTime = DateUtils.getDBTime();
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(DateUtils.subtractMillisecondsFromDateTime(currentTime, 1));
-    const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment, currentTime);
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(currentTime);
+    const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
 
     const optimisticData: OnyxUpdate[] = [
         {
