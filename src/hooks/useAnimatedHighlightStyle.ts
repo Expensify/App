@@ -14,7 +14,7 @@ type Props = {
 /**
  * Returns a highlight style that interpolates the colour, height and opacity giving a fading effect.
  */
-export default function useAnimatedHighlightStyle({shouldHighlight, highlightDuration = CONST.ANIMATED_TRANSITION, delay = CONST.ANIMATION_IN_TIMING, height}: Props) {
+export default function useAnimatedHighlightStyle({shouldHighlight, highlightDuration = CONST.ANIMATED_TRANSITION, delay = CONST.ANIMATED_HIGHLIGHT_DELAY, height}: Props) {
     const repeatableProgress = useSharedValue(0);
     const nonRepeatableProgress = useSharedValue(0);
     const theme = useTheme();
