@@ -145,6 +145,7 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
                         onChangeText={setSearchValue}
                         isRowMultilineSupported
                         headerMessage={headerMessage}
+                        initiallyFocusedOptionKey={fieldValue}
                     />
                 </>
             )}
