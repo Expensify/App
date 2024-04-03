@@ -44,7 +44,7 @@ type IOURequestStepDateOnyxProps = {
 };
 
 type IOURequestStepDateProps = IOURequestStepDateOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DATE> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -54,7 +54,7 @@ type IOURequestStepDateProps = IOURequestStepDateOnyxProps &
 
 function IOURequestStepDate({
     route: {
-        params: {action, iouType, reportID, backTo},
+        params: {action, iouType, reportID, backTo, reportActionID},
     },
     transaction,
     splitDraftTransaction,
@@ -71,7 +71,7 @@ function IOURequestStepDate({
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const currentCreated = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? TransactionUtils.getCreated(splitDraftTransaction) : TransactionUtils.getCreated(transaction);
-    const parentReportAction = reportActions?.[(isEditingSplitBill ? report?.reportActionID : report?.parentReportActionID) ?? 0];
+    const parentReportAction = reportActions?.[(isEditingSplitBill ? reportActionID : report?.parentReportActionID) ?? 0];
     const canEditingSplitBill =
         isEditingSplitBill && session && parentReportAction && session.accountID === parentReportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const canEditMoneyRequest = isEditing && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction ?? null, CONST.EDIT_REQUEST_FIELD.DATE);

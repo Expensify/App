@@ -365,6 +365,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;

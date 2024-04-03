@@ -708,6 +708,7 @@ function MoneyRequestConfirmationList({
                                         transaction?.transactionID ?? '',
                                         reportID,
                                         Navigation.getActiveRouteWithoutParams(),
+                                        reportActionID,
                                     ),
                                 );
                             }}
