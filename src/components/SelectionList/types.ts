@@ -297,6 +297,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null>;
+
+    /** Whether to hide the list on initial render */
+    shouldHideListOnInitialRender?: boolean,
 };
 
 type SelectionListHandle = {
