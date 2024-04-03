@@ -5,9 +5,13 @@ import CONST from '@src/CONST';
 import useTheme from './useTheme';
 
 type Props = {
+    /** Height of the item that is to be faded */
     height: number;
+    /** Whether the item should be highlighted */
     shouldHighlight: boolean;
+    /** Duration of the highlight animation */
     highlightDuration?: number;
+    /** Delay before the highlight animation starts */
     delay?: number;
 };
 
