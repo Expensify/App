@@ -312,7 +312,7 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
-        it('returns true when the report has oustanding child request', () => {
+        it('returns true when the report has oustanding child expense', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 99,
@@ -486,7 +486,7 @@ describe('ReportUtils', () => {
             });
         });
 
-        describe('return only money request option if', () => {
+        describe('return only submit expense option if', () => {
             it("it is an expense report tied to user's own policy expense chat", () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}102`, {
                     reportID: '102',
@@ -578,7 +578,7 @@ describe('ReportUtils', () => {
             });
         });
 
-        describe('return multiple money request option if', () => {
+        describe('return multiple expense options if', () => {
             it("it is user's own policy expense chat", () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),

@@ -78,14 +78,14 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
 }
 
 /**
- * Check if distance request or not
+ * Check if distance expense or not
  */
 function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, selectedTab: OnyxEntry<SelectedTabRequest>): boolean {
     return iouType === CONST.IOU.TYPE.REQUEST && selectedTab === CONST.TAB_REQUEST.DISTANCE;
 }
 
 /**
- * Check if scan request or not
+ * Check if scan expense or not
  */
 function isScanRequest(selectedTab: SelectedTabRequest): boolean {
     return selectedTab === CONST.TAB_REQUEST.SCAN;

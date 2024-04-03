@@ -20,7 +20,7 @@ import ScrollView from './ScrollView';
 import Text from './Text';
 
 type DistanceEReceiptProps = {
-    /** The transaction for the distance request */
+    /** The transaction for the distance expense */
     transaction: Transaction;
 };
 

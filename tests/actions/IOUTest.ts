@@ -190,7 +190,7 @@ describe('actions/IOU', () => {
                                         // The transaction should be attached to the IOU report
                                         expect(transaction?.reportID).toBe(iouReportID);
 
-                                        // Its amount should match the amount of the request
+                                        // Its amount should match the amount of the expense
                                         expect(transaction?.amount).toBe(amount);
 
                                         // The comment should be correct
@@ -355,7 +355,7 @@ describe('actions/IOU', () => {
                                         // The transaction should be attached to the IOU report
                                         expect(transaction?.reportID).toBe(iouReportID);
 
-                                        // Its amount should match the amount of the request
+                                        // Its amount should match the amount of the expense
                                         expect(transaction?.amount).toBe(amount);
 
                                         // The comment should be correct
@@ -1595,7 +1595,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('edit money request', () => {
+    describe('edit expense', () => {
         const amount = 10000;
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
@@ -2148,7 +2148,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
-            // When an IOU request for money is made
+            // When a submit IOU expense is made
             IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment, {});
             await waitForBatchedUpdates();
 
@@ -2231,13 +2231,13 @@ describe('actions/IOU', () => {
 
         afterEach(PusherHelper.teardown);
 
-        it('delete a money request (IOU Action and transaction) successfully', async () => {
-            // Given the fetch operations are paused and a money request is initiated
+        it('delete an expense (IOU Action and transaction) successfully', async () => {
+            // Given the fetch operations are paused and an expense is initiated
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
 
             if (transaction && createIOUAction) {
-                // When the money request is deleted
+                // When the expense is deleted
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, true);
             }
             await waitForBatchedUpdates();
@@ -2313,7 +2313,7 @@ describe('actions/IOU', () => {
             fetch.pause();
 
             if (transaction && createIOUAction) {
-                // When the IOU money request is deleted
+                // When the IOU expense is deleted
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, true);
             }
             await waitForBatchedUpdates();
@@ -2348,7 +2348,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            // Then the report should be falsy so that there is no trace of the money request.
+            // Then the report should be falsy so that there is no trace of the expense.
             expect(report).toBeFalsy();
         });
 
@@ -2385,7 +2385,7 @@ describe('actions/IOU', () => {
             const resultActionAfterUpdate = reportActions?.[reportActionID];
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
 
-            // When we attempt to delete a money request from the IOU report
+            // When we attempt to delete an expense from the IOU report
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
             if (transaction && createIOUAction) {
@@ -2482,7 +2482,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             if (transaction && createIOUAction) {
-                // When Deleting a money request
+                // When Deleting an expense
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
             }
             await waitForBatchedUpdates();
@@ -2597,7 +2597,7 @@ describe('actions/IOU', () => {
             });
 
             if (transaction && createIOUAction) {
-                // When Deleting a money request
+                // When Deleting an expense
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
             }
             await waitForBatchedUpdates();
@@ -2672,7 +2672,7 @@ describe('actions/IOU', () => {
             fetch.pause();
 
             if (transaction && createIOUAction) {
-                // When deleting money request
+                // When deleting expense
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
             }
             await waitForBatchedUpdates();
@@ -2707,7 +2707,7 @@ describe('actions/IOU', () => {
             });
         });
 
-        it('update the moneyRequestPreview to show [Deleted request] when appropriate', async () => {
+        it('update the moneyRequestPreview to show [Deleted expense] when appropriate', async () => {
             await waitForBatchedUpdates();
 
             // Given a thread report
@@ -2819,12 +2819,12 @@ describe('actions/IOU', () => {
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
             if (transaction && createIOUAction) {
-                // When we delete the money request
+                // When we delete the expense
                 IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             }
             await waitForBatchedUpdates();
 
-            // Then we expect the moneyRequestPreview to show [Deleted request]
+            // Then we expect the moneyRequestPreview to show [Deleted expense]
 
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -2843,7 +2843,7 @@ describe('actions/IOU', () => {
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.resume();
 
-            // Then we expect the moneyRequestPreview to show [Deleted request]
+            // Then we expect the moneyRequestPreview to show [Deleted expense]
 
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -2867,7 +2867,7 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            // Given a second money request in addition to the first one
+            // Given a second expense in addition to the first one
 
             jest.advanceTimersByTime(10);
             const amount2 = 20000;
@@ -2889,7 +2889,7 @@ describe('actions/IOU', () => {
             expect(ioupreview).toBeTruthy();
             expect(ioupreview?.message?.[0].text).toBe('rory@expensifail.com owes $300.00');
 
-            // When we delete the first money request
+            // When we delete the first expense
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
             jest.advanceTimersByTime(10);
@@ -2980,7 +2980,7 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            // When we delete the money request in SingleTransactionView and we should not delete the IOU report
+            // When we delete the expense in SingleTransactionView and we should not delete the IOU report
 
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
@@ -3034,7 +3034,7 @@ describe('actions/IOU', () => {
 
         it('navigate the user correctly to the chat Report when appropriate', () => {
             if (transaction && createIOUAction) {
-                // When we delete the money request and we should delete the IOU report
+                // When we delete the expense and we should delete the IOU report
                 IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             }
             // Then we expect to navigate to the chat report

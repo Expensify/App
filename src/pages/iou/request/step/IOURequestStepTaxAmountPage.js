@@ -109,8 +109,8 @@ function IOURequestStepTaxAmountPage({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        // If the money request being created is a distance request, don't allow the user to choose the currency.
-        // Only USD is allowed for distance requests.
+        // If the expense being created is a distance expense, don't allow the user to choose the currency.
+        // Only USD is allowed for distance expenses.
         // Remove query from the route and encode it.
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
     };
@@ -138,7 +138,7 @@ function IOURequestStepTaxAmountPage({
         }
 
         // If there was no reportID, then that means the user started this flow from the global + menu
-        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
+        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 

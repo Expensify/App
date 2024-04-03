@@ -734,7 +734,7 @@ function hasParticipantInArray(report: Report, policyMemberAccountIDs: number[])
 }
 
 /**
- * Whether the Money Request report is settled
+ * Whether the Expense report is settled
  */
 function isSettled(reportID: string | undefined): boolean {
     if (!allReports || !reportID) {
@@ -1300,7 +1300,7 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks if the current user is a payer of the request
+ * Checks if the current user is a payer of the expense
  */
 
 function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
@@ -2017,7 +2017,7 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
  * Determines if the option requires action from the current user. This can happen when it:
  *  - is unread and the user was mentioned in one of the unread comments
  *  - is for an outstanding task waiting on the user
- *  - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
+ *  - has an outstanding child expense that is waiting for an action from the current user (e.g. pay, approve, add bank account)
  *
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
@@ -2277,7 +2277,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
 }
 
 /**
- * Gets transaction created, amount, currency, comment, and waypoints (for distance request)
+ * Gets transaction created, amount, currency, comment, and waypoints (for distance expense)
  * into a flat object. Used for displaying transactions and sending them in API commands
  */
 
@@ -2363,11 +2363,11 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 /**
- * Checks if the current user can edit the provided property of a money request
+ * Checks if the current user can edit the provided property of an expense
  *
  */
 function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
-    // A list of fields that cannot be edited by anyone, once a money request has been settled
+    // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
         CONST.EDIT_REQUEST_FIELD.CURRENCY,
@@ -2421,7 +2421,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
  *
  * - It was written by the current user
  * - It's an ADDCOMMENT that is not an attachment
- * - It's money request where conditions for editability are defined in canEditMoneyRequest method
+ * - It's an expense where conditions for editability are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
 function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -2451,7 +2451,7 @@ function getTransactionsWithReceipts(iouReportID: string | undefined): Transacti
  * instead of the report total only when we have no report total ready to show. This is the case when
  * all requests are receipts that are being SmartScanned. As soon as we have a non-receipt request,
  * or as soon as one receipt request is done scanning, we have at least one
- * "ready" money request, and we remove this indicator to show the partial report total.
+ * "ready" expense, and we remove this indicator to show the partial report total.
  */
 function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewAction: OnyxEntry<ReportAction>): boolean {
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
@@ -2504,10 +2504,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     }
 
     if (ReportActionsUtils.isDeletedAction(reportAction)) {
-        if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-            return Localize.translateLocal('parentReportAction.deletedExpense');
-        }
-        return Localize.translateLocal('parentReportAction.deletedRequest');
+        return Localize.translateLocal('parentReportAction.deletedExpense');
     }
 
     const transaction = getLinkedTransaction(reportAction);
@@ -2524,8 +2521,8 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     }
 
     if (isEmptyObject(transaction)) {
-        // Transaction data might be empty on app's first load, if so we fallback to Request
-        return Localize.translateLocal('iou.request');
+        // Transaction data might be empty on app's first load, if so we fallback to Expense
+        return Localize.translateLocal('iou.expense');
     }
 
     if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
@@ -2542,14 +2539,14 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
 
     const transactionDetails = getTransactionDetails(transaction);
 
-    return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
+    return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadExpenseReportName', {
         formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
         comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
     });
 }
 
 /**
- * Get money request message for an IOU report
+ * Get expense message for an IOU report
  *
  * @param [iouReportAction] This is always an IOU action. When necessary, report preview actions will be unwrapped and the child iou report action is passed here (the original report preview
  *     action will be passed as `originalReportAction` in this case).
@@ -2691,7 +2688,7 @@ function getReportPreviewMessage(
         comment = undefined;
     }
 
-    // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest request
+    // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest expense
     if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
         const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency);
 
@@ -2708,7 +2705,7 @@ function getReportPreviewMessage(
 }
 
 /**
- * Given the updates user made to the request, compose the originalMessage
+ * Given the updates user made to the expense, compose the originalMessage
  * object of the modified expense action.
  *
  * At the moment, we only allow changing one transaction field at a time.
@@ -3310,7 +3307,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             iouMessage = `submitted ${amount}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
+            iouMessage = `requested ${amount}${comment && ` for ${comment}`}`; // TODO: Recheck this
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.TRACK:
             iouMessage = `tracking ${amount}${comment && ` for ${comment}`}`;
@@ -3319,7 +3316,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             iouMessage = `split ${amount}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.DELETE:
-            iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
+            iouMessage = `deleted the ${amount} expense${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
@@ -3390,7 +3387,7 @@ function buildOptimisticIOUReportAction(
             originalMessage.IOUDetails = {amount, comment, currency};
             originalMessage.paymentType = paymentType;
         } else {
-            // In case of pay money request action, we dont store the comment
+            // In case of pay someone action, we dont store the comment
             // and there is no single transctionID to link the action to.
             delete originalMessage.IOUTransactionID;
             delete originalMessage.comment;
@@ -3858,7 +3855,7 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): Optim
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: Localize.translateLocal('iou.heldRequest'),
+                text: Localize.translateLocal('iou.heldExpense'),
             },
         ],
         person: [
@@ -3920,7 +3917,7 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: Localize.translateLocal('iou.unheldRequest'),
+                text: Localize.translateLocal('iou.unheldExpense'),
             },
         ],
         person: [
@@ -4177,7 +4174,7 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction | Optimisti
 }
 
 /**
- * Build optimistic money request entities:
+ * Build optimistic expense entities:
  *
  * 1. CREATED action for the chatReport
  * 2. CREATED action for the iouReport
@@ -4321,7 +4318,7 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 }
 
 /**
- * Checks to see if a report's parentAction is a money request that contains a violation
+ * Checks to see if a report's parentAction is an expense that contains a violation
  */
 function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>, parentReportAction: OnyxEntry<ReportAction>): boolean {
     if (parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
@@ -4341,7 +4338,7 @@ function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transact
 }
 
 /**
- * Checks if we should display violation - we display violations when the money request has violation and it is not settled
+ * Checks if we should display violation - we display violations when the expense has violation and it is not settled
  */
 function shouldDisplayTransactionThreadViolations(
     report: OnyxEntry<Report>,
@@ -4486,7 +4483,7 @@ function shouldReportBeInOptionList({
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, money request, room, and policy expense chat.
+ * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
 function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
     const sortedNewParticipantList = newParticipantList.sort();
@@ -4707,20 +4704,20 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
 }
 
 /**
- * Users can request money:
+ * Users can submit expense:
  * - in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
  * - in an open or submitted expense report tied to a policy expense chat the user owns
- *     - employee can request money in submitted expense report only if the policy has Instant Submit settings turned on
+ *     - employee can submit expense in submitted expense report only if the policy has Instant Submit settings turned on
  * - in an IOU report, which is not settled yet
  * - in a 1:1 DM chat
  */
 function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[]): boolean {
-    // User cannot request money in chat thread or in task report or in chat room
+    // User cannot submit expense in chat thread or in task report or in chat room
     if (isChatThread(report) || isTaskReport(report) || isChatRoom(report) || isSelfDM(report) || isGroupChat(report)) {
         return false;
     }
 
-    // Users can only request money in DMs if they are a 1:1 DM
+    // Users can only submit expense in DMs if they are a 1:1 DM
     if (isDM(report)) {
         return otherParticipants.length === 1;
     }
@@ -4735,31 +4732,31 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         isOwnPolicyExpenseChat = Boolean(getParentReport(report)?.isOwnPolicyExpenseChat);
     }
 
-    // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't request money from such report
+    // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't submit expense from such report
     if (otherParticipants.length === 0 && !isOwnPolicyExpenseChat) {
         return false;
     }
 
-    // User can request money in any IOU report, unless paid, but user can only request money in an expense report
+    // User can submit expense in any IOU report, unless paid, but user can only submit expense in an expense report
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
         const canAddTransactions = canAddOrDeleteTransactions(report);
         return isGroupPolicy(report) ? isOwnPolicyExpenseChat && canAddTransactions : canAddTransactions;
     }
 
-    // In case of policy expense chat, users can only request money from their own policy expense chat
+    // In case of policy expense chat, users can only submit expense from their own policy expense chat
     return !isPolicyExpenseChat(report) || isOwnPolicyExpenseChat;
 }
 
 /**
- * Helper method to define what money request options we want to show for particular method.
- * There are 4 money request options: Request, Split, Send and Track expense:
- * - Request option should show for:
+ * Helper method to define what expense options we want to show for particular method.
+ * There are 4 expense options: Submit, Split, Pay and Track expense:
+ * - Submit option should show for:
  *     - DMs
  *     - own policy expense chats
  *     - open and processing expense reports tied to own policy expense chat
  *     - unsettled IOU reports
- * - Send option should show for:
+ * - Pay option should show for:
  *     - DMs
  * - Split options should show for:
  *     - chat/ policy rooms with more than 1 participants
@@ -4773,7 +4770,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
  * as a participant of the report.
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true): Array<ValueOf<typeof CONST.IOU.TYPE>> {
-    // In any thread or task report, we do not allow any new money requests yet
+    // In any thread or task report, we do not allow any new expenses yet
     if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report))) {
         return [];
     }
@@ -4794,10 +4791,10 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         options = [CONST.IOU.TYPE.TRACK_EXPENSE];
     }
 
-    // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
+    // User created policy rooms and default rooms like #admins or #announce will always have the Split Expense option
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
-    // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
-    // Your own workspace chats will have the split bill option.
+    // DM chats will have the Split Expense option only when there are at least 2 other people in the chat.
+    // Your own workspace chats will have the split expense option.
     if (
         (isChatRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && hasMultipleOtherParticipants) ||
@@ -4933,7 +4930,7 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Error
 }
 
 /**
- * Return true if the Money Request report is marked for deletion.
+ * Return true if the Submit expense report is marked for deletion.
  */
 function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyObject): boolean {
     if (!isMoneyRequestReport(report)) {
@@ -4947,7 +4944,7 @@ function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyOb
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
 
-    // If the Money Request report is marked for deletion, let us prevent any further write action.
+    // If the Submit Expense report is marked for deletion, let us prevent any further write action.
     if (isMoneyRequestReportPendingDeletion(report)) {
         return false;
     }
@@ -4970,7 +4967,7 @@ function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAct
  *
  * - creating a workspace room
  * - starting a chat
- * - paying the money request
+ * - paying expense
  *
  * while being offline
  */
@@ -4983,7 +4980,7 @@ function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): Repo
 }
 
 /**
- * Check if the report can create the request with type is iouType
+ * Check if the report can create the expense with type is iouType
  */
 function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
@@ -5258,7 +5255,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
  * A report is a group chat if it meets the following conditions:
  * - Not a chat thread.
  * - Not a task report.
- * - Not a money request / IOU report.
+ * - Not a expense / IOU report.
  * - Not an archived room.
  * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
  * - More than 2 participants.
@@ -5641,7 +5638,7 @@ function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID:
 }
 
 /**
- * Used from money request actions to decide if we need to build an optimistic money request report.
+ * Used from submit expense actions to decide if we need to build an optimistic submit expense report.
    Create a new report if:
    - we don't have an iouReport set in the chatReport
    - we have one, but it's waiting on the payee adding a bank account

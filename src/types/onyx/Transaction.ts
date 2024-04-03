@@ -102,7 +102,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
-        /** Whether the request is billable */
+        /** Whether the expense is billable */
         billable?: boolean;
 
         /** The category name */
@@ -111,7 +111,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The comment object on the transaction */
         comment: Comment;
 
-        /** Date that the request was created */
+        /** Date that the expense was created */
         created: string;
 
         /** The original currency of the transaction */
@@ -144,7 +144,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The edited merchant name */
         modifiedMerchant?: string;
 
-        /** The edited waypoints for the distance request */
+        /** The edited waypoints for the distance expense */
         modifiedWaypoints?: WaypointCollection;
 
         /**

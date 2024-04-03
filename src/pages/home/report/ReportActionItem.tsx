@@ -419,7 +419,7 @@ function ReportActionItem({
     const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false): React.JSX.Element => {
         let children;
 
-        // Show the MoneyRequestPreview for when request was created, bill was split or money was sent
+        // Show the MoneyRequestPreview for when expense is present
         if (
             isIOUReport(action) &&
             action.originalMessage &&
@@ -433,7 +433,7 @@ function ReportActionItem({
             const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
             children = (
                 <MoneyRequestAction
-                    // If originalMessage.iouReportID is set, this is a 1:1 money request in a DM chat whose reportID is report.chatReportID
+                    // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
                     chatReportID={action.originalMessage.IOUReportID ? report.chatReportID ?? '' : report.reportID}
                     requestReportID={iouReportID}
                     reportID={report.reportID}
@@ -530,11 +530,11 @@ function ReportActionItem({
             // This handles all historical actions from OldDot that we just want to display the message text
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMessageOfOldDotReportAction(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest')} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT) {
             children = <ReportActionItemBasicMessage message={action.message?.[0].text ?? ''} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
-            children = <ReportActionItemBasicMessage message={translate('iou.unheldRequest')} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
@@ -685,10 +685,8 @@ function ReportActionItem({
                 let message: TranslationPaths;
                 if (isReversedTransaction) {
                     message = 'parentReportAction.reversedTransaction';
-                } else if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
-                    message = 'parentReportAction.deletedExpense';
                 } else {
-                    message = 'parentReportAction.deletedRequest';
+                    message = 'parentReportAction.deletedExpense';
                 }
                 return (
                     <View>

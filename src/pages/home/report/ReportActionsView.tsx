@@ -476,11 +476,11 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    // When we are offline before opening a money request report,
-    // the total of the report and sometimes the money request aren't displayed because these actions aren't returned until `OpenReport` API is complete.
+    // When we are offline before opening an IOU/Expense report,
+    // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
-    // and we also generate a money request action if the number of money requests in reportActions is less than the total number of money requests
-    // to display at least one money request action to match the total data.
+    // and we also generate an expense action if the number of expenses in reportActions is less than the total number of money requests
+    // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {
             return reportActions;

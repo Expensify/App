@@ -34,7 +34,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
 type ReportPreviewOnyxProps = {
-    /** The policy tied to the money request report */
+    /** The policy tied to the expense report */
     policy: OnyxEntry<Policy>;
 
     /** ChatReport associated with iouReport */
@@ -146,7 +146,7 @@ function ReportPreview({
         // Formatted merchant can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         formattedMerchant ||
-        translate('iou.requestCount', {
+        translate('iou.expenseCount', {
             count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
             scanningReceipts: numberOfScanningReceipts,
             pendingReceipts: numberOfPendingRequests,
@@ -221,10 +221,10 @@ function ReportPreview({
 
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
-     - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
-     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant is shown;
+     - There is more than one expense – in this case, the "X expenses, Y scanning" subtitle is shown;
+     - There is only one expense, it has a receipt and is not being smart scanned – in this case, the expense merchant is shown;
 
-     * There is an edge case when there is only one distance request with a pending route and amount = 0.
+     * There is an edge case when there is only one distance expense with a pending route and amount = 0.
        In this case, we don't want to show the merchant because it says: "Pending route...", which is already displayed in the amount field.
      */
     const shouldShowSingleRequestMerchant = numberOfRequests === 1 && !!formattedMerchant && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);

@@ -32,7 +32,7 @@ const propTypes = {
     route: IOURequestStepRoutePropTypes.isRequired,
 
     /* Onyx Props */
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    /** Holds data related to Expense view state, rather than the underlying Expense data. */
     transaction: transactionPropTypes,
 
     /** The draft transaction that holds data to be persisted on the current transaction */

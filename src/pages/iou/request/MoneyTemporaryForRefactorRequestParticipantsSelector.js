@@ -55,10 +55,10 @@ const propTypes = {
     /** Padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    /** The type of IOU report, i.e. bill, request, send */
+    /** The type of IOU report, i.e. split, request, send, track */
     iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
-    /** The request type, ie. manual, scan, distance */
+    /** The expense type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
 
     /** Whether the parent screen transition has ended */
@@ -120,8 +120,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             participants,
             CONST.EXPENSIFY_EMAILS,
 
-            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to request money from their admin on their own Workspace Chat.
+            // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // sees the option to submit expense from their admin on their own Workspace Chat.
             iouType === CONST.IOU.TYPE.REQUEST,
 
             canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
@@ -178,7 +178,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     }, [didScreenTransitionEnd, reports, personalDetails, betas, debouncedSearchTerm, participants, iouType, canUseP2PDistanceRequests, iouRequestType, maxParticipantsReached, translate]);
 
     /**
-     * Adds a single participant to the request
+     * Adds a single participant to the expense
      *
      * @param {Object} option
      */
@@ -248,7 +248,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
 
-    // Right now you can't split a request with a workspace and other additional participants
+    // Right now you can't split an expense with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);

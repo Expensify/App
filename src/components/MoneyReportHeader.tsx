@@ -38,7 +38,7 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
-    /** The policy tied to the money request report */
+    /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 

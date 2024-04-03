@@ -1336,7 +1336,7 @@ const CONST = {
     },
 
     IOU: {
-        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.

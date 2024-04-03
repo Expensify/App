@@ -13,10 +13,10 @@ const propTypes = {
     route: PropTypes.shape({
         /** Route specific parameters used on this screen */
         params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
+            /** The type of IOU report, i.e. split, request, send, track */
             iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
-            /** The type of IOU Request, i.e. manual, scan, distance */
+            /** The type of IOU Expense, i.e. manual, scan, distance */
             iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
         }),
     }).isRequired,

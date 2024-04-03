@@ -344,7 +344,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            // If the request is created from the global create menu, we also navigate the user to the group report
+            // If the split expense is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 IOU.splitBillAndOpenReport(
                     selectedParticipants,

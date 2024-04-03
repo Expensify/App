@@ -3,16 +3,16 @@ import participantPropTypes from '@components/participantPropTypes';
 import CONST from '@src/CONST';
 
 const iouPropTypes = PropTypes.shape({
-    /** ID (iouType + reportID) of the request */
+    /** ID (iouType + reportID) of the expense */
     id: PropTypes.string,
 
-    /** Amount of the request */
+    /** Amount of the expense */
     amount: PropTypes.number,
 
-    /** Currency of the request */
+    /** Currency of the expense */
     currency: PropTypes.string,
 
-    /** Description of the request */
+    /** Description of the expense */
     comment: PropTypes.string,
 
     /** The merchant name */
@@ -21,16 +21,16 @@ const iouPropTypes = PropTypes.shape({
     /** The category name */
     category: PropTypes.string,
 
-    /** Whether the request is billable */
+    /** Whether the expense is billable */
     billable: PropTypes.bool,
 
     /** The tag */
     tag: PropTypes.string,
 
-    /** Date that the request was created */
+    /** Date that the expense was created */
     created: PropTypes.string,
 
-    /** The path to an image of the receipt attached to the request */
+    /** The path to an image of the receipt attached to the expense */
     receiptPath: PropTypes.string,
 
     /** List of the participants */

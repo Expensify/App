@@ -28,7 +28,7 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the route */
         params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
+            /** The type of IOU report, i.e. split, request, send, track */
             iouType: PropTypes.string,
 
             /** The report ID of the IOU */
@@ -56,7 +56,7 @@ const propTypes = {
         }),
     ),
 
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    /** Holds data related to Expense view state, rather than the underlying Expense data. */
     iou: iouPropTypes,
 
     ...withLocalizePropTypes,
@@ -74,7 +74,7 @@ function IOUCurrencySelection(props) {
     const threadReportID = lodashGet(props.route, 'params.threadReportID', '');
     const backTo = lodashGet(props.route, 'params.backTo', '');
 
-    // Decides whether to allow or disallow editing a money request
+    // Decides whether to allow or disallow editing an expense
     useEffect(() => {
         // Do not dismiss the modal, when it is not the edit flow.
         if (!threadReportID) {
@@ -84,12 +84,12 @@ function IOUCurrencySelection(props) {
         const report = ReportUtils.getReport(threadReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
 
-        // Do not dismiss the modal, when a current user can edit this currency of this money request.
+        // Do not dismiss the modal, when a current user can edit this currency of this expense.
         if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
             return;
         }
 
-        // Dismiss the modal when a current user cannot edit a money request.
+        // Dismiss the modal when a current user cannot edit an expense.
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
@@ -99,7 +99,7 @@ function IOUCurrencySelection(props) {
         (option) => {
             Keyboard.dismiss();
 
-            // When we refresh the web, the money request route gets cleared from the navigation stack.
+            // When we refresh the web, the expense route gets cleared from the navigation stack.
             // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
             // To prevent any negative experience, we have made the decision to simply close the currency selection page.
             if (_.isEmpty(backTo) || props.navigation.getState().routes.length === 1) {

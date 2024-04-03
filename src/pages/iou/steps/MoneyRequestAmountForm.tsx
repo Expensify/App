@@ -40,7 +40,7 @@ type MoneyRequestAmountFormProps = {
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: ({amount, currency}: {amount: string; currency: string}) => void;
 
-    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    /** The current tab we have navigated to in the expense modal. String that corresponds to the expense type. */
     selectedTab?: SelectedTabRequest;
 };
 

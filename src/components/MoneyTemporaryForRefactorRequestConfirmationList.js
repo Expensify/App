@@ -93,7 +93,7 @@ const propTypes = {
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
-    /** Payee of the money request with login */
+    /** Payee of the expense with login */
     payeePersonalDetails: optionPropTypes,
 
     /** Can the participants be modified or not */
@@ -102,7 +102,7 @@ const propTypes = {
     /** Should the list be read only, and not editable? */
     isReadOnly: PropTypes.bool,
 
-    /** Whether the money request is a scan request */
+    /** Whether the expense is a scan expense */
     isScanRequest: PropTypes.bool,
 
     /** Depending on expense report or personal IOU report, respective bank account route */
@@ -115,10 +115,10 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
-    /** The policyID of the request */
+    /** The policyID of the expense */
     policyID: PropTypes.string,
 
-    /** The reportID of the request */
+    /** The reportID of the expense */
     reportID: PropTypes.string,
 
     /** File path of the receipt */
@@ -130,25 +130,25 @@ const propTypes = {
     /** List styles for OptionsSelector */
     listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    /** ID of the transaction that represents the money request */
+    /** ID of the transaction that represents the expense */
     transactionID: PropTypes.string,
 
-    /** Unit and rate used for if the money request is a distance request */
+    /** Unit and rate used for if the expense is a distance expense */
     mileageRate: PropTypes.shape({
         /** Unit used to represent distance */
         unit: PropTypes.oneOf([CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]),
 
-        /** Rate used to calculate the distance request amount */
+        /** Rate used to calculate the distance expense amount */
         rate: PropTypes.number,
 
         /** The currency of the rate */
         currency: PropTypes.string,
     }),
 
-    /** Whether the money request is a distance request */
+    /** Whether the expense is a distance expense */
     isDistanceRequest: PropTypes.bool,
 
-    /** Whether we're editing a split bill */
+    /** Whether we're editing a split expense */
     isEditingSplitBill: PropTypes.bool,
 
     /** Whether we should show the amount, date, and merchant fields. */
@@ -168,7 +168,7 @@ const propTypes = {
     /** The policy of the report */
     policy: policyPropTypes.policy,
 
-    /** Transaction that represents the money request */
+    /** Transaction that represents the expense */
     transaction: transactionPropTypes,
 };
 
@@ -265,7 +265,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
-    // Do not hide fields in case of send money request
+    // Do not hide fields in case of paying someone
     const shouldShowAllFields = isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || isEditingSplitBill;
 
     const shouldShowDate = (shouldShowSmartScanFields || isDistanceRequest) && !isTypeSend;
@@ -387,7 +387,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.split');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
-            text = translate('iou.request');
+            text = translate('iou.expense');
             if (iouAmount !== 0) {
                 text = translate('iou.requestAmount', {amount: formattedAmount});
             }
@@ -914,7 +914,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     isThumbnail={isThumbnail}
                     source={receiptThumbnail || receiptImage}
                     // AuthToken is required when retrieving the image from the server
-                    // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
+                    // but we don't need it to load the blob:// or file:// image when starting a submit / split expense
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
                     fileExtension={fileExtension}
