@@ -63,7 +63,7 @@ function StepScreenWrapper({
                         />
                         {
                             // If props.children is a function, call it to provide the insets to the children
-                            callOrReturn(children, [insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd])
+                            callOrReturn(children, {insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd})
                         }
                     </View>
                 </FullPageNotFoundView>
