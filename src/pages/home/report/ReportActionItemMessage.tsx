@@ -2,18 +2,26 @@ import type {ReactElement} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction, Transaction} from '@src/types/onyx';
 import type {OriginalMessageAddComment} from '@src/types/onyx/OriginalMessage';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
-type ReportActionItemMessageProps = {
+type ReportActionItemMessageOnyxProps = {
+    /** The transaction linked to the report action. */
+    transaction: OnyxEntry<Transaction>;
+};
+
+type ReportActionItemMessageProps = ReportActionItemMessageOnyxProps & {
     /** The report action */
     action: ReportAction;
 
@@ -30,7 +38,7 @@ type ReportActionItemMessageProps = {
     reportID: string;
 };
 
-function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
+function ReportActionItemMessage({action, transaction, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -58,7 +66,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action);
+            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action, transaction, true);
         }
     }
 
@@ -115,4 +123,8 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
 
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default ReportActionItemMessage;
+export default withOnyx<ReportActionItemMessageProps, ReportActionItemMessageOnyxProps>({
+    transaction: {
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? 0}`,
+    },
+})(ReportActionItemMessage);
