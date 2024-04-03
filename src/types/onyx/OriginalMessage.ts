@@ -268,6 +268,10 @@ type OriginalMessageModifiedExpense = {
         category?: string;
         oldTag?: string;
         tag?: string;
+        oldTaxAmount?: number;
+        taxAmount?: number;
+        oldTaxRate?: string;
+        taxRate?: string;
         oldBillable?: string;
         billable?: string;
     };
