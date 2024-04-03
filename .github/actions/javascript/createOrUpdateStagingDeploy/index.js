@@ -14402,9 +14402,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
 const VERSION_UPDATER = __importStar(__nccwpck_require__(8982));
-const CONST = __nccwpck_require__(9873);
 /**
  * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
@@ -14489,7 +14489,7 @@ function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
     commits.forEach((commit) => {
         const author = commit.authorName;
-        if (author === CONST.OS_BOTIFY) {
+        if (author === CONST_1.default.OS_BOTIFY) {
             return;
         }
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
