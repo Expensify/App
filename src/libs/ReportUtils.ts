@@ -438,6 +438,10 @@ type AncestorIDs = {
 
 type MissingPaymentMethod = 'bankAccount' | 'wallet';
 
+type OutstandingChildRequest = {
+    hasOutstandingChildRequest?: boolean;
+};
+
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -5685,25 +5689,29 @@ function hasActionsWithErrors(reportID: string): boolean {
 }
 
 /**
- * @returns the optimistically calculated `hasOutstandingChildRequest` for the report (`null` if the value cannot be calculated).
+ * @returns the object to update `report.hasOutstandingChildRequest`
  */
-function getOptimisticOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject): boolean | null {
+function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject): OutstandingChildRequest {
     if (!iouReport || isEmptyObject(iouReport)) {
-        return null;
+        return {};
     }
 
     if (!isExpenseReport(iouReport)) {
-        return iouReport.managerID === currentUserAccountID && iouReport.total !== 0;
+        return {
+            hasOutstandingChildRequest: iouReport.managerID === currentUserAccountID && iouReport.total !== 0,
+        };
     }
 
     const policy = getPolicy(iouReport.policyID);
     const shouldBeManuallySubmitted = PolicyUtils.isPaidGroupPolicy(policy) && !policy?.harvesting?.enabled;
     if (shouldBeManuallySubmitted || PolicyUtils.isPolicyAdmin(policy)) {
-        return true;
+        return {
+            hasOutstandingChildRequest: true,
+        };
     }
 
     // We don't need to update hasOutstandingChildRequest in this case
-    return null;
+    return {};
 }
 
 export {
@@ -5931,7 +5939,7 @@ export {
     isTrackExpenseReport,
     hasActionsWithErrors,
     getGroupChatName,
-    getOptimisticOutstandingChildRequest,
+    getOutstandingChildRequest,
 };
 
 export type {
