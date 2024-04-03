@@ -1,5 +1,6 @@
 import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
@@ -7,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type {OptionData} from '@libs/ReportUtils';
-import createRandomOptionData from 'tests/utils/collections/optionData';
+import createRandomOptionData from '../utils/collections/optionData';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
@@ -39,6 +40,28 @@ const personalDetails = createCollection<PersonalDetails>(
     PERSONAL_DETAILS_LIST_COUNT,
 );
 
+const getMockedReports = (length = 500) =>
+    createCollection<Report>(
+        (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
+        (index) => ({
+            ...createRandomReport(index),
+            type: rand(Object.values(CONST.REPORT.TYPE)),
+            lastVisibleActionCreated: getRandomDate(),
+        }),
+        length,
+    );
+
+const getMockedPersonalDetails = (length = 500) =>
+    createCollection<PersonalDetails>(
+        (item) => item.accountID,
+        (index) => createPersonalDetails(index),
+        length,
+    );
+
+const mockedReportsMap = getMockedReports(REPORTS_COUNT) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
+const mockedPersonalDetailsMap = getMockedPersonalDetails(PERSONAL_DETAILS_LIST_COUNT);
+
+
 const mockedBetas = Object.values(CONST.BETAS);
 
 jest.mock('@react-navigation/native', () => {
@@ -53,6 +76,21 @@ jest.mock('@react-navigation/native', () => {
 
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
 describe('OptionsListUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+
+        Onyx.multiSet({
+            ...mockedReportsMap,
+            ...mockedPersonalDetailsMap,
+        });
+    });
+
+    afterAll(() => {
+        Onyx.clear();
+    });
+
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions with search value', async () => {
         await waitForBatchedUpdates();
@@ -116,6 +154,8 @@ describe('OptionsListUtils', () => {
             }),
             PERSONAL_DETAILS_COUNT,
         );
+
+        const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
     
         await measureFunction(() => 
             formatSectionsFromSearchTerm(
@@ -124,7 +164,29 @@ describe('OptionsListUtils', () => {
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
                 false,
-                personalDetails,
+                mockedPersonalDetails,
+            )
+        );
+    });
+
+    test('[OptionsListUtils] empty search term with selected options and mocked personal details', async () => {
+        const selectedOptions = createCollection<OptionData>(
+            (item) => item.reportID,
+            createRandomOptionData,
+            SELECTED_OPTIONS_COUNT,
+        );
+
+        const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
+
+        await waitForBatchedUpdates();
+        await measureFunction(() =>
+            formatSectionsFromSearchTerm(
+                '',
+                Object.values(selectedOptions),
+                [],
+                [],
+                true,
+                mockedPersonalDetails,
             )
         );
     });
