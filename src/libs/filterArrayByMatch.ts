@@ -286,7 +286,7 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undef
 function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string, options: Options<T> = {}): T[] {
     const {keys, threshold = MATCH_RANK.MATCHES} = options;
 
-    function reduceItemsToRanked(matches: Array<RankedItem<T>>, item: T, index: number): Array<RankedItem<T>> {
+    let matchedItems = items.reduce((matches: Array<RankedItem<T>>, item: T, index: number): Array<RankedItem<T>> => {
         const rankingInfo = getHighestRanking(item, keys, searchValue, options);
         const {rank, keyThreshold = threshold} = rankingInfo;
 
@@ -294,9 +294,7 @@ function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string
             matches.push({...rankingInfo, item, index});
         }
         return matches;
-    }
-
-    let matchedItems = items.reduce(reduceItemsToRanked, []);
+    }, []);
 
     matchedItems = matchedItems.filter((item) => item.rank >= threshold + 1);
 
