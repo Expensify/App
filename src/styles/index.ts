@@ -4553,7 +4553,7 @@ const styles = (theme: ThemeColors) =>
         headerProgressBarFill: {
             borderRadius: variables.componentBorderRadiusRounded,
             height: '100%',
-            backgroundColor: theme.progressBarFill,
+            backgroundColor: theme.success,
         },
 
         interactiveStepHeaderContainer: {

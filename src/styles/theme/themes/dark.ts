@@ -89,7 +89,6 @@ const darkTheme = {
     mapAttributionText: colors.black,
     white: colors.white,
     progressBarBackground: colors.productDark400,
-    progressBarFill: colors.green400,
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
 

@@ -91,7 +91,6 @@ type ThemeColors = {
     mapAttributionText: Color;
     white: Color;
     progressBarBackground: Color;
-    progressBarFill: Color;
     videoPlayerBG: Color;
     transparentWhite: Color;
 
