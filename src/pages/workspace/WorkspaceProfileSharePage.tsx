@@ -1,8 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
-// import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -45,14 +43,12 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const hasAvatar = Boolean(policy?.avatarURL);
     const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
 
-    const defaultWsAvatar = ReportUtils.getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
-    const defaultWsAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyName);
+    const defaultWorkspaceAvatar = ReportUtils.getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
+    const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyName);
 
-    const logoSVG = !hasAvatar ? defaultWsAvatar : undefined;
-    const logoBackground = !hasAvatar ? defaultWsAvatarColors.backgroundColor?.toString() : undefined;
-    const logoColor = !hasAvatar ? defaultWsAvatarColors.fill : undefined;
-
-    console.log('WS Share', {policy, logo, logoSVG, logoBackground, logoColor});
+    const logoSVG = !hasAvatar ? defaultWorkspaceAvatar : undefined;
+    const logoBackground = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
+    const logoColor = !hasAvatar ? defaultWorkspaceAvatarColors.fill : undefined;
 
     return (
         <AccessOrNotFoundWrapper

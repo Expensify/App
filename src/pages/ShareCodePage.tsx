@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
+import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -35,13 +36,21 @@ type ShareCodePageOnyxProps = {
 
 type ShareCodePageProps = ShareCodePageOnyxProps;
 
-// In case of sharing a policy (workspace) only return user defined avatar. Default ws avatars have separate logic
-function getLogoForWorkspace(policy?: OnyxEntry<Policy>) {
-    if (policy && policy.avatar) {
-        return policy.avatar as ImageSourcePropType;
+/**
+ * When sharing a policy (workspace) only return user avatar that is user defined. Default ws avatars have separate logic.
+ * In any other case default to expensify logo
+ */
+
+function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): ImageSourcePropType | undefined {
+    if (!policy || report?.type !== 'chat') {
+        return expensifyLogo;
     }
 
-    return undefined;
+    if (!policy.avatar) {
+        return undefined;
+    }
+
+    return policy.avatar as ImageSourcePropType;
 }
 
 function ShareCodePage({report, policy}: ShareCodePageProps) {
@@ -78,19 +87,19 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
         : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? '')}`;
 
-    const logo = isReport ? getLogoForWorkspace(policy) : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
+    const logo = isReport ? getLogoForWorkspace(report, policy) : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
 
     // default logos (avatars) are SVG and because of that require some special logic
     let logoSVG: React.FC<SvgProps> | undefined;
-    let logoBackground;
-    let logoColor;
+    let logoBackground: string | undefined;
+    let logoColor: string | undefined;
 
-    if (policy && !policy.avatar) {
+    if (!logo && policy && !policy.avatar) {
         logoSVG = ReportUtils.getDefaultWorkspaceAvatar(policy?.name) || Expensicons.FallbackAvatar;
 
-        const defaultWsAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy?.name);
-        logoBackground = defaultWsAvatarColors.backgroundColor?.toString();
-        logoColor = defaultWsAvatarColors.fill;
+        const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy?.name);
+        logoBackground = defaultWorkspaceAvatarColors.backgroundColor?.toString();
+        logoColor = defaultWorkspaceAvatarColors.fill;
     }
 
     return (
