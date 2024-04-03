@@ -231,7 +231,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             );
         }
 
-        // Separate ifs are necessary for typescript to see that we are not pushing unedinfed to the array.
+        // Separate ifs are necessary for typescript to see that we are not pushing undefined to the array.
         if (lhpNavigator) {
             routes.push(lhpNavigator);
         }
