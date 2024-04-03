@@ -64,29 +64,23 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
 
     const sections = useMemo(() => {
         const sectionsList = [];
-        let indexOffset = 0;
 
         sectionsList.push({
             title: translate('common.recents'),
             data: searchOptions.recentReports,
             shouldShow: searchOptions.recentReports?.length > 0,
-            indexOffset,
         });
-        indexOffset += searchOptions.recentReports.length;
 
         sectionsList.push({
             title: translate('common.contacts'),
             data: searchOptions.personalDetails,
             shouldShow: searchOptions.personalDetails?.length > 0,
-            indexOffset,
         });
-        indexOffset += searchOptions.personalDetails.length;
 
         if (searchOptions.userToInvite) {
             sectionsList.push({
                 data: [searchOptions.userToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 
