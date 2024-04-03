@@ -9,6 +9,7 @@ function PopoverMenuItem(props: MenuItemProps) {
 
     // Sync focus on an item
     useSyncFocus(ref, Boolean(props.focused));
+
     return (
         <MenuItem
             // eslint-disable-next-line react/jsx-props-no-spreading

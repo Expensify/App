@@ -36,6 +36,9 @@ function BaseListItem<TItem extends ListItem>({
 
     const pressableRef = useRef<View | HTMLDivElement>(null);
 
+    // Sync focus on an item
+    useSyncFocus(pressableRef, Boolean(isFocused));
+
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
             return null;
@@ -47,8 +50,6 @@ function BaseListItem<TItem extends ListItem>({
 
         return rightHandSideComponent;
     };
-
-    useSyncFocus(pressableRef, Boolean(isFocused));
 
     return (
         <OfflineWithFeedback
