@@ -22,6 +22,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
@@ -42,6 +43,9 @@ const propTypes = {
     /** The report that the transaction belongs to */
     report: reportPropTypes,
 
+    /** The policy of the report */
+    ...policyPropTypes,
+
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 
@@ -56,6 +60,7 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
+    policy: null,
     transaction: {},
     transactionBackup: {},
     personalDetails: {},
@@ -64,6 +69,7 @@ const defaultProps = {
 
 function IOURequestStepDistance({
     report,
+    policy,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
@@ -98,7 +104,13 @@ function IOURequestStepDistance({
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
-    const skipConfirmation = transaction.skipConfirmation && !ReportUtils.isArchivedRoom(report);
+
+    // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
+    // request and the workspace requires a category or a tag
+    const skipConfirmation =
+        transaction.skipConfirmation &&
+        !ReportUtils.isArchivedRoom(report) &&
+        !(ReportUtils.isPolicyExpenseChat(reportID) && (lodashGet(policy, 'requiresCategory', false) || lodashGet(policy, 'requiresTag', false)));
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (skipConfirmation) {
         buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.request');
@@ -347,6 +359,9 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },

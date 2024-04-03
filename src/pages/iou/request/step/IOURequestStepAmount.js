@@ -83,6 +83,9 @@ function IOURequestStepAmount({
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
     const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction);
+
+    // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
+    // the user will have to add a merchant.
     const skipConfirmation = draftTransaction.skipConfirmation && !ReportUtils.isArchivedRoom(report) && !ReportUtils.isPolicyExpenseChat(report);
 
     useFocusEffect(

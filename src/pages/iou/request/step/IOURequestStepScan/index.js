@@ -35,6 +35,7 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,6 +50,9 @@ const propTypes = {
     /** The report that the transaction belongs to */
     report: reportPropTypes,
 
+    /** The policy of the report */
+    ...policyPropTypes,
+
     /** The transaction (or draft transaction) being changed */
     transaction: transactionPropTypes,
 
@@ -61,6 +65,7 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
+    policy: null,
     transaction: {},
     personalDetails: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -68,6 +73,7 @@ const defaultProps = {
 
 function IOURequestStepScan({
     report,
+    policy,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
@@ -101,7 +107,13 @@ function IOURequestStepScan({
     const [videoConstraints, setVideoConstraints] = useState(null);
     const tabIndex = 1;
     const isTabActive = useTabNavigatorFocus({tabIndex});
-    const skipConfirmation = transaction.skipConfirmation && !ReportUtils.isArchivedRoom(report);
+
+    // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
+    // request and the workspace requires a category or a tag
+    const skipConfirmation =
+        transaction.skipConfirmation &&
+        !ReportUtils.isArchivedRoom(report) &&
+        !(ReportUtils.isPolicyExpenseChat(reportID) && (lodashGet(policy, 'requiresCategory', false) || lodashGet(policy, 'requiresTag', false)));
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
@@ -546,6 +558,9 @@ export default compose(
     withFullTransactionOrNotFound,
     withCurrentUserPersonalDetails,
     withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
