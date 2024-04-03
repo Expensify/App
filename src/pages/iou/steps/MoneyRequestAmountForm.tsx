@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -22,7 +23,7 @@ import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/typ
 import CONST from '@src/CONST';
 import ROUTES, {AllRoutes} from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
-import paymentMethod from '@src/types/onyx/PaymentMethod';
+import {PaymentMethodType} from "@src/types/onyx/OriginalMessage";
 
 type MoneyRequestAmountFormProps = {
     /** IOU amount saved in Onyx */
@@ -56,7 +57,7 @@ type MoneyRequestAmountFormProps = {
     onCurrencyButtonPress?: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-    onSubmitButtonPress: ({amount, currency, paymentMethod}: {amount: string; currency: string; paymentMethod: string}) => void;
+    onSubmitButtonPress: ({amount, currency, paymentMethod}: {amount: string; currency?: string; paymentMethod: PaymentMethodType}) => void;
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab?: SelectedTabRequest;
@@ -248,7 +249,7 @@ function MoneyRequestAmountForm(
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(
-        (iouPaymentType) => {
+        (iouPaymentType: PaymentMethodType) => {
             if (isAmountInvalid(currentAmount)) {
                 setFormError('iou.error.invalidAmount');
                 return;

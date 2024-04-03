@@ -214,6 +214,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates transaction loading */
         isLoading?: boolean;
+
+        /** If set, skip confirmation when creating the transaction */
+        skipConfirmation?: boolean;
     },
     keyof Comment
 >;
