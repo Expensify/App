@@ -113,7 +113,6 @@ function BaseVideoPlayer({
                 setIsBuffering(false);
                 setDuration(videoDuration * 1000);
                 setPosition(0);
-
                 onPlaybackStatusUpdate?.(status);
                 return;
             }
@@ -136,6 +135,7 @@ function BaseVideoPlayer({
             videoStateRef.current = status;
             onPlaybackStatusUpdate?.(status);
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this when isPlaying changes because isPlaying is only used inside shouldReplayVideo
         [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
     );
 

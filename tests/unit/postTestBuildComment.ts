@@ -96,6 +96,6 @@ describe('Post test build comments action tests', () => {
             }
         `);
         expect(createCommentMock).toBeCalledTimes(1);
-        expect(createCommentMock).toBeCalledWith('App', '12', message);
+        expect(createCommentMock).toBeCalledWith('App', 12, message);
     });
 });
