@@ -16,6 +16,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import ROUTES from "@src/ROUTES";
 
 type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION>;
 
@@ -55,7 +56,7 @@ function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: Workspa
         }
 
         Policy.updateWorkspaceMembersRole(route.params.policyID, [accountID], value);
-        Navigation.goBack();
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     };
 
     return (
@@ -64,6 +65,7 @@ function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: Workspa
                 <ScreenWrapper testID={WorkspaceMemberDetailsRoleSelectionPage.displayName}>
                     <HeaderWithBackButton
                         title={translate('common.role')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID))}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                         <SelectionList

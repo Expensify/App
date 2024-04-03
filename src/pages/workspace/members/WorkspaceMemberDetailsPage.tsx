@@ -29,7 +29,6 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -82,15 +81,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const removeUser = useCallback(() => {
         Policy.removeMembers([accountID], policyID);
         setIsRemoveMemberConfirmModalVisible(false);
-        Navigation.goBack(backTo);
-    }, [accountID, backTo, policyID]);
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+    }, [accountID, policyID]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(policyID, accountID, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(policyID, accountID));
     }, [accountID, policyID]);
 
     const startChangeOwnershipFlow = useCallback(() => {
@@ -106,6 +105,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                     <HeaderWithBackButton
                         title={displayName}
                         subtitle={policy?.name}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
