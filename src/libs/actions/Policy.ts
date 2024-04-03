@@ -1781,10 +1781,13 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
  * Removes an error after trying to delete a member
  */
 function clearDeleteMemberError(policyID: string, accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
-        [accountID]: {
-            pendingAction: null,
-            errors: null,
+    const email = allPersonalDetails?.[accountID]?.login ?? '';
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [email]: {
+                pendingAction: null,
+                errors: null,
+            },
         },
     });
 }
@@ -1793,8 +1796,11 @@ function clearDeleteMemberError(policyID: string, accountID: number) {
  * Removes an error after trying to add a member
  */
 function clearAddMemberError(policyID: string, accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
-        [accountID]: null,
+    const email = allPersonalDetails?.[accountID]?.login ?? '';
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [email]: null,
+        },
     });
     Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
         [accountID]: null,
