@@ -3,7 +3,7 @@ import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -250,9 +250,6 @@ type MenuItemBaseProps = {
 
     /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
-
-    /** Expected height of the menu item. This is needed for the animated highlight. */
-    height?: number;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -325,7 +322,6 @@ function MenuItem(
         contentFit = 'cover',
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
-        height,
     }: MenuItemProps,
     ref: ForwardedRef<View>,
 ) {
@@ -334,7 +330,12 @@ function MenuItem(
     const StyleUtils = useStyleUtils();
     const combinedStyle = [style, styles.popoverMenuItem];
     const {isSmallScreenWidth} = useWindowDimensions();
-    const animatedHighlightStyle = useAnimatedHighlightStyle({shouldHighlight: highlighted, height: height ?? styles.sectionMenuItem.height});
+    const flattenedWrapperStyles = StyleSheet.flatten(wrapperStyle);
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        shouldHighlight: highlighted,
+        height: flattenedWrapperStyles?.height ? Number(flattenedWrapperStyles.height) : styles.sectionMenuItem.height,
+        borderRadius: flattenedWrapperStyles?.borderRadius ? Number(flattenedWrapperStyles.borderRadius) : styles.sectionMenuItem.borderRadius,
+    });
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;

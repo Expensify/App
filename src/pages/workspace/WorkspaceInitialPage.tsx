@@ -291,7 +291,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
-                                    height={styles.sectionMenuItem.height}
                                 />
                             ))}
                         </View>
