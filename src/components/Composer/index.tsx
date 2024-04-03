@@ -388,9 +388,9 @@ function Composer(
                     if (isReportActionCompose) {
                         ReportActionComposeFocusManager.onComposerFocus(null);
                     } else {
-                        // While a user was editing a comment and if they open on LHN menu we want the focus to return
-                        // to the ReportActionItemMessageEdit compose after they click on the menu (for e.g. mark as read)
-                        // so we assign the focus callback here.
+                        // While a user edits a comment, if they open the LHN menu, we want to ensure that
+                        // the focus returns to the message edit composer after they click on a menu item (e.g. mark as read).
+                        // To achieve this, we re-assign the focus callback here.
                         ReportActionComposeFocusManager.onComposerFocus(() => {
                             if (!textInput.current) {
                                 return;
