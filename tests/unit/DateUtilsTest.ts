@@ -15,8 +15,20 @@ describe('DateUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: 999},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {'999': {accountID: 999, timezone: {selected: 'Europe/London'}}},
+                [ONYXKEYS.SESSION]: {
+                    accountID: 999,
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    '999': {
+                        accountID: 999,
+                        timezone: {
+                            // UTC is not recognized as a valid timezone but
+                            // in these tests we want to use it to avoid issues
+                            // because of daylight saving time
+                            selected: UTC as SelectedTimezone,
+                        },
+                    },
+                },
             },
         });
         return waitForBatchedUpdates();
