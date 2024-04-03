@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useImperativeHandle} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
@@ -44,6 +44,11 @@ type ContextMenuItemProps = {
 
     /** Styles to apply to ManuItem wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    shouldPreventDefaultFocusOnPress?: boolean;
+
+    /** The ref of mini context menu item */
+    buttonRef?: React.RefObject<View>;
 };
 
 type ContextMenuItemHandle = {
@@ -63,6 +68,8 @@ function ContextMenuItem(
         isFocused = false,
         shouldLimitWidth = true,
         wrapperStyle,
+        shouldPreventDefaultFocusOnPress = true,
+        buttonRef = {current: null},
     }: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
@@ -91,9 +98,11 @@ function ContextMenuItem(
 
     return isMini ? (
         <BaseMiniContextMenuItem
+            ref={buttonRef}
             tooltipText={itemText}
             onPress={triggerPressAndUpdateSuccess}
             isDelayButtonStateComplete={!isThrottledButtonActive}
+            shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPress}
         >
             {({hovered, pressed}) => (
                 <Icon

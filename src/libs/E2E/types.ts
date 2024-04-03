@@ -26,4 +26,27 @@ type TestConfig = {
     [key: string]: string | {autoFocus: boolean};
 };
 
-export type {SigninParams, IsE2ETestSession, NetworkCacheMap, NetworkCacheEntry, TestConfig};
+type TestResult = {
+    /** Name of the test */
+    name: string;
+
+    /** The branch where test were running */
+    branch?: string;
+
+    /** Duration in milliseconds */
+    duration?: number;
+
+    /** Optional, if set indicates that the test run failed and has no valid results. */
+    error?: string;
+
+    /**
+     * Whether error is critical. If `true`, then server will be stopped and `e2e` tests will fail. Otherwise will simply log a warning.
+     * Default value is `true`
+     */
+    isCritical?: boolean;
+
+    /** Render count */
+    renderCount?: number;
+};
+
+export type {SigninParams, IsE2ETestSession, NetworkCacheMap, NetworkCacheEntry, TestConfig, TestResult};

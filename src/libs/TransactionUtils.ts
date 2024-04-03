@@ -4,16 +4,14 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, ReportAction, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
+import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
+import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
-import type {OptimisticIOUReportAction} from './ReportUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -136,15 +134,15 @@ function hasEReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.hasEReceipt;
 }
 
-function hasReceipt(transaction: Transaction | undefined | null): boolean {
+function hasReceipt(transaction: OnyxEntry<Transaction> | undefined): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
-function isMerchantMissing(transaction: Transaction) {
-    if (transaction.modifiedMerchant && transaction.modifiedMerchant !== '') {
+function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
+    if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     }
-    const isMerchantEmpty = transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+    const isMerchantEmpty = transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === '';
 
     return isMerchantEmpty;
 }
@@ -156,18 +154,18 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: Transaction) {
-    return transaction.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+function isAmountMissing(transaction: OnyxEntry<Transaction>) {
+    return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
 
-function isCreatedMissing(transaction: Transaction) {
-    return transaction.created === '' && (!transaction.created || transaction.modifiedCreated === '');
+function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
+    return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
-function areRequiredFieldsEmpty(transaction: Transaction): boolean {
+function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    const isSplitPolicyExpenseChat = !!transaction.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
+    const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
     const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
     return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
@@ -210,6 +208,16 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         shouldStopSmartscan = true;
     }
 
+    if (Object.hasOwn(transactionChanges, 'taxAmount') && typeof transactionChanges.taxAmount === 'number') {
+        updatedTransaction.taxAmount = isFromExpenseReport ? -transactionChanges.taxAmount : transactionChanges.taxAmount;
+        shouldStopSmartscan = true;
+    }
+
+    if (Object.hasOwn(transactionChanges, 'taxCode') && typeof transactionChanges.taxCode === 'string') {
+        updatedTransaction.taxCode = transactionChanges.taxCode;
+        shouldStopSmartscan = true;
+    }
+
     if (Object.hasOwn(transactionChanges, 'billable') && typeof transactionChanges.billable === 'boolean') {
         updatedTransaction.billable = transactionChanges.billable;
     }
@@ -243,18 +251,11 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         ...(Object.hasOwn(transactionChanges, 'billable') && {billable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'category') && {category: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'tag') && {tag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
 
     return updatedTransaction;
-}
-
-/**
- * Retrieve the particular transaction object given its ID.
- *
- * @deprecated Use withOnyx() or Onyx.connect() instead
- */
-function getTransaction(transactionID: string): OnyxEntry<Transaction> | EmptyObject {
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
 /**
@@ -290,6 +291,27 @@ function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = fa
     // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     amount = transaction?.amount ?? 0;
     return amount ? -amount : 0;
+}
+
+/**
+ * Return the tax amount field from the transaction.
+ */
+function getTaxAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boolean): number {
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport) {
+        return Math.abs(transaction?.taxAmount ?? 0);
+    }
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    const amount = transaction?.taxAmount ?? 0;
+    return amount ? -amount : 0;
+}
+
+/**
+ * Return the tax code from the transaction.
+ */
+function getTaxCode(transaction: OnyxEntry<Transaction>): string {
+    return transaction?.taxCode ?? '';
 }
 
 /**
@@ -489,24 +511,8 @@ function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean
 /**
  * Check if the transaction has a defined route
  */
-function hasRoute(transaction: Transaction): boolean {
+function hasRoute(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates;
-}
-
-/**
- * Get the transactions related to a report preview with receipts
- * Get the details linked to the IOU reportAction
- *
- * @deprecated Use Onyx.connect() or withOnyx() instead
- */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): Transaction | EmptyObject {
-    let transactionID = '';
-
-    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-        transactionID = (reportAction?.originalMessage as IOUMessage)?.IOUTransactionID ?? '';
-    }
-
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
 function getAllReportTransactions(reportID?: string): Transaction[] {
@@ -590,7 +596,9 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+    return Boolean(
+        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION),
+    );
 }
 
 function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
@@ -612,18 +620,39 @@ function getEnabledTaxRateCount(options: TaxRates) {
     return Object.values(options).filter((option: TaxRate) => !option.isDisabled).length;
 }
 
+/**
+ * Gets the default tax name
+ */
+function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction: Transaction) {
+    const defaultTaxKey = taxRates.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${Localize.translateLocal('common.default')}`) || '';
+    return transaction?.taxRate?.text ?? defaultTaxName;
+}
+
+/**
+ * Gets the tax name
+ */
+function getTaxName(taxes: TaxRates, transactionTaxCode: string) {
+    const taxName = `${taxes[transactionTaxCode].name}`;
+    const taxValue = `${taxes[transactionTaxCode].value}`;
+    return transactionTaxCode ? `${taxName} (${taxValue})` : '';
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
+    getTaxName,
+    getDefaultTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
-    getTransaction,
     getDescription,
     getHeaderTitleTranslationKey,
     getRequestType,
     isManualRequest,
     isScanRequest,
     getAmount,
+    getTaxAmount,
+    getTaxCode,
     getCurrency,
     getDistance,
     getCardID,
@@ -638,7 +667,6 @@ export {
     getTagArrayFromName,
     getTagForDisplay,
     getTransactionViolations,
-    getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
     hasEReceipt,

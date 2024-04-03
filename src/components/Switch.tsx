@@ -17,6 +17,9 @@ type SwitchProps = {
 
     /** Whether the menu item should be interactive at all */
     interactive?: boolean;
+
+    /** Whether the switch is disabled */
+    disabled?: boolean;
 };
 
 const OFFSET_X = {
@@ -24,7 +27,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, interactive = true}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, interactive = true, disabled}: SwitchProps) {
     const styles = useThemeStyles();
     const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
 
@@ -46,7 +49,8 @@ function Switch({isOn, onToggle, accessibilityLabel, interactive = true}: Switch
 
     return (
         <PressableWithFeedback
-            style={[styles.switchTrack, !isOn && styles.switchInactive && styles.cursorDefault, !interactive && styles.cursorDefault]}
+            disabled={disabled}
+            style={[styles.switchTrack, !isOn && styles.switchInactive, !interactive && styles.cursorDefault]}
             onPress={onPressOrLongPressAction}
             onLongPress={onPressOrLongPressAction}
             role={CONST.ROLE.SWITCH}
