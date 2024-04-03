@@ -43,7 +43,7 @@ type WorkspaceMenuItem = {
     icon: IconAsset;
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    name?: ValueOf<typeof SCREENS.WORKSPACE>;
+    routeName?: ValueOf<typeof SCREENS.WORKSPACE>;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -112,31 +112,31 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policyID)))),
-            name: SCREENS.WORKSPACE.CARD,
+            routeName: SCREENS.WORKSPACE.CARD,
         },
         {
             translationKey: 'workspace.common.reimburse',
             icon: Expensicons.Receipt,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policyID)))),
-            name: SCREENS.WORKSPACE.REIMBURSE,
+            routeName: SCREENS.WORKSPACE.REIMBURSE,
         },
         {
             translationKey: 'workspace.common.bills',
             icon: Expensicons.Bill,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policyID)))),
-            name: SCREENS.WORKSPACE.BILLS,
+            routeName: SCREENS.WORKSPACE.BILLS,
         },
         {
             translationKey: 'workspace.common.invoices',
             icon: Expensicons.Invoice,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
-            name: SCREENS.WORKSPACE.INVOICES,
+            routeName: SCREENS.WORKSPACE.INVOICES,
         },
         {
             translationKey: 'workspace.common.travel',
             icon: Expensicons.Luggage,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)))),
-            name: SCREENS.WORKSPACE.TRAVEL,
+            routeName: SCREENS.WORKSPACE.TRAVEL,
         },
         {
             translationKey: 'workspace.common.bankAccount',
@@ -156,7 +156,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             translationKey: 'workspace.common.distanceRates',
             icon: Expensicons.Car,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
-            name: SCREENS.WORKSPACE.DISTANCE_RATES,
+            routeName: SCREENS.WORKSPACE.DISTANCE_RATES,
         });
     }
 
@@ -165,7 +165,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
-            name: SCREENS.WORKSPACE.WORKFLOWS,
+            routeName: SCREENS.WORKSPACE.WORKFLOWS,
             brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburserEmail ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
@@ -176,7 +176,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             icon: Expensicons.Folder,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
             brickRoadIndicator: hasPolicyCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            name: SCREENS.WORKSPACE.CATEGORIES,
+            routeName: SCREENS.WORKSPACE.CATEGORIES,
         });
     }
 
@@ -185,7 +185,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             translationKey: 'workspace.common.tags',
             icon: Expensicons.Tag,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
-            name: SCREENS.WORKSPACE.TAGS,
+            routeName: SCREENS.WORKSPACE.TAGS,
         });
     }
 
@@ -194,7 +194,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             translationKey: 'workspace.common.taxes',
             icon: Expensicons.Tax,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
-            name: SCREENS.WORKSPACE.TAXES,
+            routeName: SCREENS.WORKSPACE.TAXES,
             brickRoadIndicator: PolicyUtils.hasTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
@@ -203,7 +203,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         translationKey: 'workspace.common.moreFeatures',
         icon: Expensicons.Gear,
         action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
-        name: SCREENS.WORKSPACE.MORE_FEATURES,
+        routeName: SCREENS.WORKSPACE.MORE_FEATURES,
     });
 
     const menuItems: WorkspaceMenuItem[] = [
@@ -212,24 +212,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             icon: Expensicons.Home,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            name: SCREENS.WORKSPACE.PROFILE,
+            routeName: SCREENS.WORKSPACE.PROFILE,
         },
         {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            name: SCREENS.WORKSPACE.MEMBERS,
+            routeName: SCREENS.WORKSPACE.MEMBERS,
         },
         ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
         ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);
-    const route = useRoute<RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>>();
-    const enabledFeatureRouteName = route.params?.enabledFeatureRouteName ?? '';
-
-    const enabledItem = menuItems.find((item) => item.name === enabledFeatureRouteName);
+    const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
+    const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
@@ -290,8 +288,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
-                                    highlighted={enabledItem?.name === item.name}
-                                    focused={!!(item.translationKey && activeRoute?.startsWith(item.translationKey))}
+                                    highlighted={enabledItem?.routeName === item.routeName}
+                                    focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
                                 />
