@@ -4,186 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 3926:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const fs = __nccwpck_require__(7147);
-const format = __nccwpck_require__(2168);
-const _ = __nccwpck_require__(5067);
-const core = __nccwpck_require__(2186);
-const CONST = __nccwpck_require__(4097);
-const GithubUtils = __nccwpck_require__(9296);
-const GitUtils = (__nccwpck_require__(1547)["default"]);
-
-async function run() {
-    // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
-    const newVersionTag = JSON.parse(fs.readFileSync('package.json')).version;
-
-    try {
-        // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
-        const {data: recentDeployChecklists} = await GithubUtils.octokit.issues.listForRepo({
-            log: console,
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            labels: CONST.LABELS.STAGING_DEPLOY,
-            state: 'all',
-        });
-
-        // Look at the state of the most recent StagingDeployCash,
-        // if it is open then we'll update the existing one, otherwise, we'll create a new one.
-        const mostRecentChecklist = recentDeployChecklists[0];
-        const shouldCreateNewDeployChecklist = mostRecentChecklist.state !== 'open';
-        const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists[1];
-        if (shouldCreateNewDeployChecklist) {
-            console.log('Latest StagingDeployCash is closed, creating a new one.', mostRecentChecklist);
-        } else {
-            console.log('Latest StagingDeployCash is open, updating it instead of creating a new one.', 'Current:', mostRecentChecklist, 'Previous:', previousChecklist);
-        }
-
-        // Parse the data from the previous and current checklists into the format used to generate the checklist
-        const previousChecklistData = GithubUtils.getStagingDeployCashData(previousChecklist);
-        const currentChecklistData = shouldCreateNewDeployChecklist ? {} : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
-
-        // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newVersionTag);
-
-        // Next, we generate the checklist body
-        let checklistBody = '';
-        let checklistAssignees = [];
-        if (shouldCreateNewDeployChecklist) {
-            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
-            checklistBody = issueBody;
-            checklistAssignees = issueAssignees;
-        } else {
-            // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
-            const PRList = _.reduce(
-                mergedPRs,
-                (memo, prNum) => {
-                    const indexOfPRInCurrentChecklist = _.findIndex(currentChecklistData.PRList, (pr) => pr.number === prNum);
-                    const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData.PRList[indexOfPRInCurrentChecklist].isVerified : false;
-                    memo.push({
-                        number: prNum,
-                        url: GithubUtils.getPullRequestURLFromNumber(prNum),
-                        isVerified,
-                    });
-                    return memo;
-                },
-                [],
-            );
-
-            // Generate the deploy blocker list, preserving the previous state of `isResolved`
-            const {data: openDeployBlockers} = await GithubUtils.octokit.issues.listForRepo({
-                log: console,
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                labels: CONST.LABELS.DEPLOY_BLOCKER,
-            });
-
-            // First, make sure we include all current deploy blockers
-            const deployBlockers = _.reduce(
-                openDeployBlockers,
-                (memo, deployBlocker) => {
-                    const {html_url, number} = deployBlocker;
-                    const indexInCurrentChecklist = _.findIndex(currentChecklistData.deployBlockers, (item) => item.number === number);
-                    const isResolved = indexInCurrentChecklist >= 0 ? currentChecklistData.deployBlockers[indexInCurrentChecklist].isResolved : false;
-                    memo.push({
-                        number,
-                        url: html_url,
-                        isResolved,
-                    });
-                    return memo;
-                },
-                [],
-            );
-
-            // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
-            for (const deployBlocker of currentChecklistData.deployBlockers) {
-                const isResolved = _.findIndex(deployBlockers, (openBlocker) => openBlocker.number === deployBlocker.number) < 0;
-                deployBlockers.push({
-                    ...deployBlocker,
-                    isResolved,
-                });
-            }
-
-            const didVersionChange = newVersionTag !== currentChecklistData.tag;
-            const {issueBody, issueAssignees} = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
-                newVersionTag,
-                _.pluck(PRList, 'url'),
-                _.pluck(_.where(PRList, {isVerified: true}), 'url'),
-                _.pluck(deployBlockers, 'url'),
-                _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
-                _.pluck(_.where(currentChecklistData.internalQAPRList, {isResolved: true}), 'url'),
-                didVersionChange ? false : currentChecklistData.isTimingDashboardChecked,
-                didVersionChange ? false : currentChecklistData.isFirebaseChecked,
-                didVersionChange ? false : currentChecklistData.isGHStatusChecked,
-            );
-            checklistBody = issueBody;
-            checklistAssignees = issueAssignees;
-        }
-
-        // Finally, create or update the checklist
-        const defaultPayload = {
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            body: checklistBody,
-        };
-
-        if (shouldCreateNewDeployChecklist) {
-            const {data: newChecklist} = await GithubUtils.octokit.issues.create({
-                ...defaultPayload,
-                title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
-                labels: [CONST.LABELS.STAGING_DEPLOY],
-                assignees: [CONST.APPLAUSE_BOT].concat(checklistAssignees),
-            });
-            console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
-            return newChecklist;
-        }
-
-        const {data: updatedChecklist} = await GithubUtils.octokit.issues.update({
-            ...defaultPayload,
-            issue_number: currentChecklistData.number,
-        });
-        console.log(`Successfully updated StagingDeployCash! 🎉 ${updatedChecklist.html_url}`);
-        return updatedChecklist;
-    } catch (err) {
-        console.error('An unknown error occurred!', err);
-        core.setFailed(err);
-    }
-}
-
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-
-module.exports = run;
-
-
-/***/ }),
-
-/***/ 4097:
-/***/ ((module) => {
-
-const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        INTERNAL_QA: 'InternalQA',
-    },
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-};
-
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-
-module.exports = CONST;
-
-
-/***/ }),
-
 /***/ 9338:
 /***/ ((module) => {
 
@@ -14539,6 +14359,167 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 566:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core_1 = __importDefault(__nccwpck_require__(2186));
+const format_1 = __importDefault(__nccwpck_require__(2168));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
+async function run() {
+    // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
+    const packageJson = JSON.parse(fs_1.default.readFileSync('package.json', 'utf8'));
+    const newVersionTag = packageJson.version;
+    try {
+        // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
+        const { data: recentDeployChecklists } = await GithubUtils_1.default.octokit.issues.listForRepo({
+            log: console,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            labels: CONST_1.default.LABELS.STAGING_DEPLOY,
+            state: 'all',
+        });
+        // Look at the state of the most recent StagingDeployCash,
+        // if it is open then we'll update the existing one, otherwise, we'll create a new one.
+        const mostRecentChecklist = recentDeployChecklists[0];
+        const shouldCreateNewDeployChecklist = mostRecentChecklist.state !== 'open';
+        const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists[1];
+        if (shouldCreateNewDeployChecklist) {
+            console.log('Latest StagingDeployCash is closed, creating a new one.', mostRecentChecklist);
+        }
+        else {
+            console.log('Latest StagingDeployCash is open, updating it instead of creating a new one.', 'Current:', mostRecentChecklist, 'Previous:', previousChecklist);
+        }
+        // Parse the data from the previous and current checklists into the format used to generate the checklist
+        const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
+        const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
+        // Find the list of PRs merged between the current checklist and the previous checklist
+        const mergedPRs = await GitUtils_1.default.getPullRequestsMergedBetween(previousChecklistData.tag ?? '', newVersionTag);
+        // Next, we generate the checklist body
+        let checklistBody = '';
+        let checklistAssignees = [];
+        if (shouldCreateNewDeployChecklist) {
+            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersionTag, mergedPRs.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value)));
+            if (stagingDeployCashBodyAndAssignees) {
+                checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
+                checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
+            }
+        }
+        else {
+            // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
+            const PRList = mergedPRs.map((prNum) => {
+                const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
+                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
+                return {
+                    number: prNum,
+                    url: GithubUtils_1.default.getPullRequestURLFromNumber(prNum),
+                    isVerified,
+                };
+            });
+            // Generate the deploy blocker list, preserving the previous state of `isResolved`
+            const { data: openDeployBlockers } = await GithubUtils_1.default.octokit.issues.listForRepo({
+                log: console,
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
+                labels: CONST_1.default.LABELS.DEPLOY_BLOCKER,
+            });
+            // First, make sure we include all current deploy blockers
+            const deployBlockers = openDeployBlockers.map((deployBlocker) => {
+                const indexInCurrentChecklist = currentChecklistData?.deployBlockers.findIndex((item) => item.number === deployBlocker.number) ?? -1;
+                const isResolved = indexInCurrentChecklist >= 0 ? currentChecklistData?.deployBlockers[indexInCurrentChecklist].isResolved : false;
+                return {
+                    number: deployBlocker.number,
+                    url: deployBlocker.html_url,
+                    isResolved,
+                };
+            });
+            // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
+            currentChecklistData?.deployBlockers.forEach((deployBlocker) => {
+                const isResolved = deployBlockers.findIndex((openBlocker) => openBlocker.number === deployBlocker.number) < 0;
+                deployBlockers.push({
+                    ...deployBlocker,
+                    isResolved,
+                });
+            });
+            const didVersionChange = newVersionTag !== currentChecklistData?.tag;
+            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersionTag, PRList.map((pr) => pr.url), PRList.filter((pr) => pr.isVerified).map((pr) => pr.url), deployBlockers.map((blocker) => blocker.url), deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url), currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url), didVersionChange ? false : currentChecklistData.isTimingDashboardChecked, didVersionChange ? false : currentChecklistData.isFirebaseChecked, didVersionChange ? false : currentChecklistData.isGHStatusChecked);
+            if (stagingDeployCashBodyAndAssignees) {
+                checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
+                checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
+            }
+        }
+        // Finally, create or update the checklist
+        const defaultPayload = {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            body: checklistBody,
+        };
+        if (shouldCreateNewDeployChecklist) {
+            const { data: newChecklist } = await GithubUtils_1.default.octokit.issues.create({
+                ...defaultPayload,
+                title: `Deploy Checklist: New Expensify ${(0, format_1.default)(new Date(), CONST_1.default.DATE_FORMAT_STRING)}`,
+                labels: [CONST_1.default.LABELS.STAGING_DEPLOY],
+                assignees: [CONST_1.default.APPLAUSE_BOT].concat(checklistAssignees),
+            });
+            console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
+            return newChecklist;
+        }
+        const { data: updatedChecklist } = await GithubUtils_1.default.octokit.issues.update({
+            ...defaultPayload,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            issue_number: currentChecklistData?.number ?? 0,
+        });
+        console.log(`Successfully updated StagingDeployCash! 🎉 ${updatedChecklist.html_url}`);
+        return updatedChecklist;
+    }
+    catch (err) {
+        console.error('An unknown error occurred!', err);
+        core_1.default.setFailed(err);
+    }
+}
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
+/***/ 9873:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    APP_REPO_URL: '',
+    APP_REPO_GIT_URL: '',
+};
+CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
+CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
+exports["default"] = CONST;
+
+
+/***/ }),
+
 /***/ 1547:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -14572,7 +14553,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
-const CONST = __importStar(__nccwpck_require__(4097));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(9338));
 const VERSION_UPDATER = __importStar(__nccwpck_require__(8007));
 /**
@@ -14659,7 +14640,7 @@ function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
     commits.forEach((commit) => {
         const author = commit.authorName;
-        if (author === CONST.OS_BOTIFY) {
+        if (author === CONST_1.default.OS_BOTIFY) {
             return;
         }
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
@@ -14737,7 +14718,7 @@ const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
 const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
@@ -15083,7 +15064,6 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
-        // @ts-expect-error TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated to TypeScript
         return `${CONST_1.default.APP_REPO_URL}/pull/${value}`;
     }
     /**
@@ -17609,7 +17589,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(3926);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(566);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
