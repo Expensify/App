@@ -1898,7 +1898,6 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
             maxWidth: '100%',
-            ...cursor.cursorAuto,
             ...whiteSpace.preWrap,
             ...wordBreak.breakWord,
         },
@@ -2746,7 +2745,8 @@ const styles = (theme: ThemeColors) =>
             height: 1,
             backgroundColor: theme.border,
             flexGrow: 1,
-            marginHorizontal: 20,
+            marginLeft: 8,
+            marginRight: 20,
         },
 
         unreadIndicatorText: {
@@ -2754,6 +2754,12 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
             fontWeight: FontUtils.fontWeight.bold,
+            textTransform: 'capitalize',
+        },
+
+        threadDividerText: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeSmall,
             textTransform: 'capitalize',
         },
 
@@ -3207,6 +3213,15 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
+        },
+
+        emptyLHNWrapper: {
+            marginBottom: variables.bottomTabHeight,
+        },
+
+        emptyLHNAnimation: {
+            width: 180,
+            height: 180,
         },
 
         locationErrorLinkText: {
@@ -4026,9 +4041,14 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
-        dropDownButtonArrowContain: {
+        dropDownMediumButtonArrowContain: {
             marginLeft: 12,
-            marginRight: 14,
+            marginRight: 16,
+        },
+
+        dropDownLargeButtonArrowContain: {
+            marginLeft: 16,
+            marginRight: 20,
         },
 
         dropDownButtonCartIconView: {
@@ -4595,6 +4615,8 @@ const styles = (theme: ThemeColors) =>
             fontWeight: '700',
             lineHeight: 16,
             color: theme.white,
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
         },
 
         volumeSliderContainer: {
@@ -4696,6 +4718,10 @@ const styles = (theme: ThemeColors) =>
         workspaceTitleStyle: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+        },
+
+        textLineThrough: {
+            textDecorationLine: 'line-through',
         },
     } satisfies Styles);
 

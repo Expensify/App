@@ -50,30 +50,6 @@ module.exports = {
 
 /***/ }),
 
-/***/ 4097:
-/***/ ((module) => {
-
-const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        INTERNAL_QA: 'InternalQA',
-    },
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-};
-
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-
-module.exports = CONST;
-
-
-/***/ }),
-
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -11568,10 +11544,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-const core_1 = __importDefault(__nccwpck_require__(2186));
+const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const ActionUtils = __importStar(__nccwpck_require__(970));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
@@ -11600,7 +11576,7 @@ async function commentPR(PR, message) {
     catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
         if (err instanceof Error) {
-            core_1.default.setFailed(err.message);
+            core.setFailed(err.message);
         }
     }
 }
@@ -11608,11 +11584,11 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
 async function run() {
     const prList = ActionUtils.getJSONInput('PR_LIST', { required: true }).map((num) => Number.parseInt(num, 10));
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', { required: true });
-    const version = core_1.default.getInput('DEPLOY_VERSION', { required: true });
-    const androidResult = getDeployTableMessage(core_1.default.getInput('ANDROID', { required: true }));
-    const desktopResult = getDeployTableMessage(core_1.default.getInput('DESKTOP', { required: true }));
-    const iOSResult = getDeployTableMessage(core_1.default.getInput('IOS', { required: true }));
-    const webResult = getDeployTableMessage(core_1.default.getInput('WEB', { required: true }));
+    const version = core.getInput('DEPLOY_VERSION', { required: true });
+    const androidResult = getDeployTableMessage(core.getInput('ANDROID', { required: true }));
+    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', { required: true }));
+    const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: true }));
+    const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     function getDeployMessage(deployer, deployVerb, prTitle) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
@@ -11653,7 +11629,7 @@ async function run() {
     if (!currentTag) {
         const err = `Could not find tag matching ${version}`;
         console.error(err);
-        core_1.default.setFailed(err);
+        core.setFailed(err);
         return;
     }
     const { data: commit } = await GithubUtils_1.default.octokit.git.getCommit({
@@ -11683,6 +11659,33 @@ if (require.main === require.cache[eval('__filename')]) {
     run();
 }
 module.exports = run;
+
+
+/***/ }),
+
+/***/ 9873:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    APP_REPO_URL: '',
+    APP_REPO_GIT_URL: '',
+};
+CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
+CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
+exports["default"] = CONST;
 
 
 /***/ }),
@@ -11727,7 +11730,7 @@ const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
 const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
@@ -11741,6 +11744,7 @@ const POLL_RATE = 10000;
 exports.POLL_RATE = POLL_RATE;
 class GithubUtils {
     static internalOctokit;
+    static POLL_RATE;
     /**
      * Initialize internal octokit
      *
@@ -12072,7 +12076,6 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
-        // @ts-expect-error TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated to TypeScript
         return `${CONST_1.default.APP_REPO_URL}/pull/${value}`;
     }
     /**
