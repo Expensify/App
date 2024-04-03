@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import validateRateValue from '@libs/PolicyDistanceRatesUtils';
+import {validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';

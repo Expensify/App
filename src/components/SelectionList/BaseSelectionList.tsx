@@ -20,11 +20,12 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType, SelectionListHandle} from './types';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
 function BaseSelectionList<TItem extends ListItem>(
     {
@@ -62,19 +63,19 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
-        checkmarkPosition,
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
+        headerMessageStyle,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
+    const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowTextInput = !!textInputLabel;
@@ -164,32 +165,34 @@ function BaseSelectionList<TItem extends ListItem>(
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey));
 
-    const [slicedSections, ShowMoreButtonInstance] = useMemo(
-        () => [
+    const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
+        let remainingOptionsLimit = CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
+        const processedSections = getSectionsWithIndexOffset(
             sections.map((section) => {
-                if (isEmpty(section.data)) {
-                    return section;
-                }
+                const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
+                remainingOptionsLimit -= data.length;
 
                 return {
                     ...section,
-                    data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage),
+                    data,
                 };
             }),
-            flattenedSections.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage ? (
-                <ShowMoreButton
-                    containerStyle={[styles.mt2, styles.mb5]}
-                    currentCount={CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage}
-                    totalCount={flattenedSections.allOptions.length}
-                    onPress={incrementPage}
-                />
-            ) : null,
-        ],
+        );
+
+        const shouldShowMoreButton = flattenedSections.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
+        const showMoreButton = shouldShowMoreButton ? (
+            <ShowMoreButton
+                containerStyle={[styles.mt2, styles.mb5]}
+                currentCount={CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage}
+                totalCount={flattenedSections.allOptions.length}
+                onPress={incrementPage}
+            />
+        ) : null;
+        return [processedSections, showMoreButton];
         // we don't need to add styles here as they change
         // we don't need to add flattendedSections here as they will change along with sections
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [sections, currentPage],
-    );
+    }, [sections, currentPage]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
@@ -312,9 +315,8 @@ function BaseSelectionList<TItem extends ListItem>(
         );
     };
 
-    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, Section<TItem>>) => {
-        const indexOffset = section.indexOffset ? section.indexOffset : 0;
-        const normalizedIndex = index + indexOffset;
+    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
+        const normalizedIndex = index + section.indexOffset;
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
@@ -332,7 +334,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                checkmarkPosition={checkmarkPosition}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
             />
@@ -476,7 +477,7 @@ function BaseSelectionList<TItem extends ListItem>(
         <ArrowKeyFocusManager
             disabledIndexes={flattenedSections.disabledOptionsIndexes}
             focusedIndex={focusedIndex}
-            maxIndex={flattenedSections.allOptions.length - 1}
+            maxIndex={slicedSections.flatMap((section) => section.data).length - 1}
             onFocusedIndexChanged={updateAndScrollToFocusedIndex}
         >
             <SafeAreaConsumer>
@@ -514,7 +515,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             </View>
                         )}
                         {!!headerMessage && (
-                            <View style={[styles.ph5, styles.pb5]}>
+                            <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}

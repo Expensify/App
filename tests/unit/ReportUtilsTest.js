@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../src/CONST';
+import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -552,6 +553,7 @@ describe('ReportUtils', () => {
                 const paidPolicy = {
                     id: 'ef72dfeb',
                     type: CONST.POLICY.TYPE.TEAM,
+                    autoReporting: true,
                     autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 };
                 Promise.all([
@@ -638,6 +640,78 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('shouldDisableThread', () => {
+        const reportID = '1';
+
+        it('should disable on thread-disabled actions', () => {
+            const reportAction = ReportUtils.buildOptimisticCreatedReportAction('email1@test.com');
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable thread on split bill actions', () => {
+            const reportAction = ReportUtils.buildOptimisticIOUReportAction(
+                CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                50000,
+                CONST.CURRENCY.USD,
+                '',
+                [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
+                NumberUtils.rand64(),
+            );
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable on deleted and not-thread actions', () => {
+            const reportAction = {
+                message: [
+                    {
+                        translationKey: '',
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isEdited: true,
+                    },
+                ],
+                childVisibleActionCount: 1,
+            };
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
+
+            reportAction.childVisibleActionCount = 0;
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable on archived reports and not-thread actions', () => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            })
+                .then(() => waitForBatchedUpdates())
+                .then(() => {
+                    const reportAction = {
+                        childVisibleActionCount: 1,
+                    };
+                    expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeFalsy();
+
+                    reportAction.childVisibleActionCount = 0;
+                    expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+                });
+        });
+
+        it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                whisperedToAccountIDs: [123456],
+            };
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+
+        it('should disable on thread first chat', () => {
+            const reportAction = {
+                childReportID: reportID,
+            };
+            expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
+        });
+    });
+
     describe('getAllAncestorReportActions', () => {
         const reports = [
             {reportID: '1', lastReadTime: '2024-02-01 04:56:47.233', reportName: 'Report'},
@@ -673,34 +747,13 @@ describe('ReportUtils', () => {
 
         it('should return correctly all ancestors of a thread report', () => {
             const resultAncestors = [
-                {report: reports[1], reportAction: reportActions[0], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
-                {report: reports[2], reportAction: reportActions[1], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
-                {report: reports[3], reportAction: reportActions[2], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
-                {report: reports[4], reportAction: reportActions[3], shouldDisplayNewMarker: false, shouldHideThreadDividerLine: false},
+                {report: reports[1], reportAction: reportActions[0], shouldDisplayNewMarker: false},
+                {report: reports[2], reportAction: reportActions[1], shouldDisplayNewMarker: false},
+                {report: reports[3], reportAction: reportActions[2], shouldDisplayNewMarker: false},
+                {report: reports[4], reportAction: reportActions[3], shouldDisplayNewMarker: false},
             ];
 
-            expect(ReportUtils.getAllAncestorReportActions(reports[4], false)).toEqual(resultAncestors);
-        });
-
-        it('should hide thread divider line of the nearest ancestor if the first action of thread report is unread', () => {
-            const allAncestors = ReportUtils.getAllAncestorReportActions(reports[4], true);
-            expect(allAncestors.reverse()[0].shouldHideThreadDividerLine).toBe(true);
-        });
-
-        it('should hide thread divider line of the previous ancestor and display unread marker of the current ancestor if the current ancestor action is unread', () => {
-            let allAncestors = ReportUtils.getAllAncestorReportActions(reports[4], false);
-            expect(allAncestors[0].shouldHideThreadDividerLine).toBe(false);
-            expect(allAncestors[1].shouldDisplayNewMarker).toBe(false);
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
-                lastReadTime: '2024-02-01 04:42:28.001',
-            })
-                .then(() => waitForBatchedUpdates())
-                .then(() => {
-                    allAncestors = ReportUtils.getAllAncestorReportActions(reports[4], false);
-                    expect(allAncestors[0].shouldHideThreadDividerLine).toBe(true);
-                    expect(allAncestors[1].shouldDisplayNewMarker).toBe(true);
-                });
+            expect(ReportUtils.getAllAncestorReportActions(reports[4])).toEqual(resultAncestors);
         });
     });
 });

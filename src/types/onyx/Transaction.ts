@@ -1,5 +1,7 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
@@ -57,7 +59,7 @@ type Geometry = {
     type?: GeometryType;
 };
 
-type ReceiptSource = string | number;
+type ReceiptSource = string;
 
 type Receipt = {
     receiptID?: number;
@@ -99,6 +101,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
         amount: number;
+
+        /** The transaction tax amount */
+        taxAmount?: number;
+
+        /** The transaction tax code */
+        taxCode?: string;
 
         /** Whether the request is billable */
         billable?: boolean;
@@ -175,9 +183,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax rate */
         taxRate?: TaxRate;
 
-        /** Tax amount */
-        taxAmount?: number;
-
         /** Card Transactions */
 
         /** The parent transaction id */
@@ -224,7 +229,21 @@ type AdditionalTransactionChanges = {
 
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
+type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 type IOUActionType = ValueOf<typeof CONST.IOU.REQUEST_TYPE> | ValueOf<Pick<typeof CONST.IOU.TYPE, 'SPLIT'>>;
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, ReceiptError, ReceiptErrors, TransactionPendingFieldsKey, TransactionChanges, TaxRate, ReceiptSource, IOUActionType};
+export type {
+    WaypointCollection,
+    Comment,
+    Receipt,
+    Waypoint,
+    ReceiptError,
+    ReceiptErrors,
+    TransactionPendingFieldsKey,
+    TransactionChanges,
+    TaxRate,
+    ReceiptSource,
+    TransactionCollectionDataSet,
+    IOUActionType,
+};
