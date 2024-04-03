@@ -1,20 +1,23 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashIsEmpty from 'lodash/isEmpty';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import transactionPropTypes from '@components/transactionPropTypes';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -24,9 +27,6 @@ import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -49,7 +49,6 @@ const propTypes = {
     personalDetails: personalDetailsPropType,
 
     ...withCurrentUserPersonalDetailsPropTypes,
-
 };
 
 const defaultProps = {
@@ -162,17 +161,7 @@ function IOURequestStepAmount({
 
             if (skipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBillAndOpenReport(
-                        participants,
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        backendAmount,
-                        '',
-                        currency,
-                        '',
-                        '',
-                        '',
-                    );
+                    IOU.splitBillAndOpenReport(participants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backendAmount, '', currency, '', '', '');
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SEND) {

@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +23,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 import type {Task} from '@src/types/onyx';
-import * as ReportUtils from "@libs/ReportUtils";
 
 type NewTaskTitlePageOnyxProps = {
     /** Task Creation Data */

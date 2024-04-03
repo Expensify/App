@@ -9,6 +9,7 @@ import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceReque
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import transactionPropTypes from '@components/transactionPropTypes';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -16,7 +17,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
@@ -29,13 +33,6 @@ import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
-    withCurrentUserPersonalDetailsPropTypes
-} from "@components/withCurrentUserPersonalDetails";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */

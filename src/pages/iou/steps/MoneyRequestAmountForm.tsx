@@ -6,6 +6,7 @@ import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import ScrollView from '@components/ScrollView';
+import SettlementButton from '@components/SettlementButton';
 import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,10 +20,9 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
-import SettlementButton from "@components/SettlementButton";
-import ROUTES, {AllRoutes} from "@src/ROUTES";
-import paymentMethod from "@src/types/onyx/PaymentMethod";
+import ROUTES, {AllRoutes} from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
+import paymentMethod from '@src/types/onyx/PaymentMethod';
 
 type MoneyRequestAmountFormProps = {
     /** IOU amount saved in Onyx */
@@ -247,24 +247,27 @@ function MoneyRequestAmountForm(
     /**
      * Submit amount and navigate to a proper page
      */
-    const submitAndNavigateToNextPage = useCallback((iouPaymentType) => {
-        if (isAmountInvalid(currentAmount)) {
-            setFormError('iou.error.invalidAmount');
-            return;
-        }
+    const submitAndNavigateToNextPage = useCallback(
+        (iouPaymentType) => {
+            if (isAmountInvalid(currentAmount)) {
+                setFormError('iou.error.invalidAmount');
+                return;
+            }
 
-        if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
-            setFormError(['iou.error.invalidTaxAmount', {amount: formattedTaxAmount}]);
-            return;
-        }
+            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
+                setFormError(['iou.error.invalidTaxAmount', {amount: formattedTaxAmount}]);
+                return;
+            }
 
-        // Update display amount string post-edit to ensure consistency with backend amount
-        // Reference: https://github.com/Expensify/App/issues/30505
-        const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
-        initializeAmount(backendAmount);
+            // Update display amount string post-edit to ensure consistency with backend amount
+            // Reference: https://github.com/Expensify/App/issues/30505
+            const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
+            initializeAmount(backendAmount);
 
-        onSubmitButtonPress({amount: currentAmount, paymentMethod: iouPaymentType});
-    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
+            onSubmitButtonPress({amount: currentAmount, paymentMethod: iouPaymentType});
+        },
+        [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount],
+    );
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -350,38 +353,38 @@ function MoneyRequestAmountForm(
                     />
                 ) : null}
                 {iouType === CONST.IOU.TYPE.SEND && skipConfirmation ? (
-                <SettlementButton
-                    pressOnEnter
-                    onPress={submitAndNavigateToNextPage}
-                    enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                    addBankAccountRoute={bankAccountRoute}
-                    addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                    currency = {currency ?? CONST.CURRENCY.USD}
-                    policyID = {policyID ?? ''}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                    kycWallAnchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    }}
-                    paymentMethodDropdownAnchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    }}
-                    shouldShowPersonalBankAccountOption
-                    enterKeyEventListenerPriority={1}
-                />
+                    <SettlementButton
+                        pressOnEnter
+                        onPress={submitAndNavigateToNextPage}
+                        enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                        addBankAccountRoute={bankAccountRoute}
+                        addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                        currency={currency ?? CONST.CURRENCY.USD}
+                        policyID={policyID ?? ''}
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                        kycWallAnchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        }}
+                        paymentMethodDropdownAnchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        }}
+                        shouldShowPersonalBankAccountOption
+                        enterKeyEventListenerPriority={1}
+                    />
                 ) : (
-                <Button
-                    success
-                    // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
-                    allowBubble={!isEditing}
-                    pressOnEnter
-                    medium={isExtraSmallScreenHeight}
-                    large={!isExtraSmallScreenHeight}
-                    style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                    onPress={submitAndNavigateToNextPage}
-                    text={buttonText}
-                />
+                    <Button
+                        success
+                        // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
+                        allowBubble={!isEditing}
+                        pressOnEnter
+                        medium={isExtraSmallScreenHeight}
+                        large={!isExtraSmallScreenHeight}
+                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                        onPress={submitAndNavigateToNextPage}
+                        text={buttonText}
+                    />
                 )}
             </View>
         </ScrollView>

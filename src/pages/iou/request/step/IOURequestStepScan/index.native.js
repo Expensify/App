@@ -1,8 +1,10 @@
 import {useFocusEffect} from '@react-navigation/core';
+import _ from '@types/underscore';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevice} from 'react-native-vision-camera';
@@ -16,6 +18,7 @@ import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,23 +26,20 @@ import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import IOURequestStepRoutePropTypes from '@pages/iou/request/step/IOURequestStepRoutePropTypes';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import _ from '@types/underscore';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -194,59 +194,53 @@ function IOURequestStepScan({
         Navigation.goBack();
     };
 
-    const navigateToConfirmationStep = useCallback((file, source) => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
+    const navigateToConfirmationStep = useCallback(
+        (file, source) => {
+            if (backTo) {
+                Navigation.goBack(backTo);
+                return;
+            }
 
-        // If the transaction was created from the global create, the person needs to select participants, so take them there.
-        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE && !report.reportID) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-            return;
-        }
+            // If the transaction was created from the global create, the person needs to select participants, so take them there.
+            if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE && !report.reportID) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+                return;
+            }
 
-        // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
-        // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-        const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-        const participants = _.map(selectedParticipants, (participant) => {
-            const participantAccountID = lodashGet(participant, 'accountID', 0);
-            return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
-        });
+            // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
+            // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
+            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const participants = _.map(selectedParticipants, (participant) => {
+                const participantAccountID = lodashGet(participant, 'accountID', 0);
+                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+            });
 
-        if (skipConfirmation) {
-            const receipt = file;
-            receipt.source = source;
-            receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
-            if (iouType === CONST.IOU.TYPE.SPLIT) {
-                IOU.startSplitBill(
-                    participants,
+            if (skipConfirmation) {
+                const receipt = file;
+                receipt.source = source;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+                if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    IOU.startSplitBill(participants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, '', '', '', receipt, reportID);
+                    return;
+                }
+                IOU.requestMoney(
+                    report,
+                    0,
+                    transaction.currency,
+                    transaction.created,
+                    '',
                     currentUserPersonalDetails.login,
                     currentUserPersonalDetails.accountID,
-                    '',
-                    '',
+                    participants[0],
                     '',
                     receipt,
-                    reportID,
                 );
                 return;
             }
-            IOU.requestMoney(
-                report,
-                0,
-                transaction.currency,
-                transaction.created,
-                '',
-                currentUserPersonalDetails.login,
-                currentUserPersonalDetails.accountID,
-                participants[0],
-                '',
-                receipt,
-            );
-            return;
-        }
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-    }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        },
+        [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo],
+    );
 
     const updateScanAndNavigate = useCallback(
         (file, source) => {
@@ -314,7 +308,6 @@ function IOURequestStepScan({
                     setDidCapturePhoto(true);
                     navigateToConfirmationStep(file, source);
                 });
-
             })
             .catch((error) => {
                 setDidCapturePhoto(false);
