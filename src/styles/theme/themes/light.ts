@@ -76,7 +76,6 @@ const lightTheme = {
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
     mentionText: colors.blue600,
-    onboardingVideoBG: colors.green200,
     mentionBG: colors.blue100,
     ourMentionText: colors.green600,
     ourMentionBG: colors.green100,
@@ -89,7 +88,6 @@ const lightTheme = {
     mapAttributionText: colors.black,
     white: colors.white,
     progressBarBackground: colors.productLight400,
-    progressBarFill: colors.green400,
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
 

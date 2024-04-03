@@ -1,8 +1,8 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {SelectedPurposeType} from '@pages/OnboardingPurpose/BaseOnboardingPurpose';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxPolicy from '@src/types/onyx/Policy';
-import type Report from '@src/types/onyx/Report';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let hasSelectedPurpose: boolean | undefined;
@@ -109,6 +109,10 @@ function getPersonalDetails(accountID: number | undefined) {
     });
 }
 
+function setOnboardingPurposeSelected(value: SelectedPurposeType) {
+    Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
+}
+
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     initWithStoredValues: false,
@@ -150,19 +154,6 @@ Onyx.connect({
     },
 });
 
-const allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    initWithStoredValues: false,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-
-        allReports[key] = {...allReports[key], ...val};
-    },
-});
-
 const allPolicies: OnyxCollection<OnyxPolicy> | EmptyObject = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -191,4 +182,4 @@ Onyx.connect({
     },
 });
 
-export {onServerDataReady, isOnboardingFlowCompleted};
+export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected};

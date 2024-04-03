@@ -56,6 +56,7 @@ export default {
     fontSizeNormal: getValueUsingPixelRatio(15, 21),
     fontSizeMedium: getValueUsingPixelRatio(16, 22),
     fontSizeLarge: getValueUsingPixelRatio(17, 19),
+    fontSizeHeroSmall: 28,
     fontSizeHero: 36,
     fontSizeHeroXL: 72,
     fontSizeh1: 19,
@@ -69,9 +70,8 @@ export default {
     fontSizeSignInHeroMedium: 38,
     fontSizeSignInHeroXSmall: 26,
     fontSizeSignInHeroSmall: 28,
-    fontSizeSignInHeroSmallLineHeight: 30.8,
     fontSizeSignInHeroBody: 20,
-    lineHeightMultiplier: 1.1,
+    lineHeightHeroSmall: 35,
     lineHeightHero: 45,
     iconSizeXXXSmall: 4,
     iconSizeXXSmall: 8,
@@ -127,6 +127,8 @@ export default {
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
+    emptyLHNIconHeight: 16,
     emptyWorkspaceIconWidth: 84,
     emptyWorkspaceIconHeight: 84,
     modalTopIconWidth: 200,
@@ -171,7 +173,7 @@ export default {
     addBankAccountLeftSpacing: 3,
     eReceiptThumbnailSmallBreakpoint: 110,
     eReceiptThumbnailMediumBreakpoint: 335,
-    eReceiptThumnailCenterReceiptBreakpoint: 200,
+    eReceiptThumbnailCenterReceiptBreakpoint: 200,
     eReceiptIconHeight: 100,
     eReceiptIconWidth: 72,
     eReceiptEmptyIconWidth: 76,
@@ -211,7 +213,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
-    purposeMenuIconSize: 52,
+    purposeMenuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
 

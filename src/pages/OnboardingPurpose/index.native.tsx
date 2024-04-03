@@ -1,11 +1,12 @@
 import React from 'react';
-import type {BaseOnboardingPurposeProps} from './BaseOnboardingPurpose';
 import BaseOnboardingPurpose from './BaseOnboardingPurpose';
+import type {OnboardingPurposeProps} from './types';
 
-function OnboardingPurpose({...rest}: Omit<BaseOnboardingPurposeProps, 'shouldUseNativeStyles'>) {
+function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
     return (
         <BaseOnboardingPurpose
             shouldUseNativeStyles
+            shouldEnableMaxHeight={false}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />

@@ -1,7 +1,8 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import Button from '@components/Button';
+import {withOnyx} from 'react-native-onyx';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,8 +19,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps} from './types';
 
 type ValuesType<T> = T[keyof T];
 type SelectedPurposeType = ValuesType<typeof CONST.ONBOARDING_CHOICES> | undefined;
@@ -33,18 +37,22 @@ const menuIcons = {
     [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
 };
 
-type BaseOnboardingPurposeProps = {
-    /* Whether to use native styles tailored for native devices */
-    shouldUseNativeStyles: boolean;
-};
-
-function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [selectedPurpose, setSelectedPurpose] = useState<SelectedPurposeType>(undefined);
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const [error, setError] = useState(false);
     const theme = useTheme();
+
+    useEffect(() => {
+        setSelectedPurpose(onboardingPurposeSelected ?? undefined);
+    }, [onboardingPurposeSelected]);
+
+    const errorMessage = error ? 'onboarding.purpose.error' : '';
+
+    const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
 
     const paddingHorizontal = shouldUseNarrowLayout ? styles.ph8 : styles.ph5;
 
@@ -74,7 +82,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
         // Only navigate to concierge chat when central pane is visible
         // Otherwise stay on the chats screen.
         if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.ROOT);
+            Navigation.navigate(ROUTES.HOME);
         } else {
             Report.navigateToConciergeChat();
         }
@@ -102,7 +110,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
             rightComponent: selectedCheckboxIcon,
             shouldShowRightComponent: isSelected,
             onPress: () => {
-                setSelectedPurpose(choice);
+                Welcome.setOnboardingPurposeSelected(choice);
+                setError(false);
             },
         };
     });
@@ -110,7 +119,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[{maxHeight: windowHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
+                <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
                     <View style={shouldUseNarrowLayout && styles.mh3}>
                         <HeaderWithBackButton
                             shouldShowBackButton
@@ -118,7 +127,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
                             progressBarPercentage={66.6}
                         />
                     </View>
-                    <ScrollView style={[styles.flex1, styles.flexGrow1, styles.mt5, !shouldUseNarrowLayout && styles.mb5, paddingHorizontal]}>
+                    <ScrollView style={[styles.flex1, styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, paddingHorizontal]}>
                         <View style={styles.flex1}>
                             <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                                 <Text style={styles.textHeroSmall}>{translate('onboarding.purpose.title')} </Text>
@@ -129,13 +138,22 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
                             />
                         </View>
                     </ScrollView>
-                    <Button
-                        large
-                        success
-                        onPress={completeEngagement}
-                        isDisabled={!selectedPurpose}
-                        text={translate('common.continue')}
-                        style={[styles.mb5, paddingHorizontal]}
+                    <FormAlertWithSubmitButton
+                        enabledWhenOffline
+                        buttonText={translate('common.continue')}
+                        onSubmit={() => {
+                            if (!selectedPurpose) {
+                                setError(true);
+                                return;
+                            }
+
+                            // API call for AcceptSpontanaTerms when backend gets implemented
+                            setError(false);
+                            completeEngagement();
+                        }}
+                        message={errorMessage}
+                        isAlertVisible={error || Boolean(errorMessage)}
+                        containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
                     />
                 </View>
             )}
@@ -144,6 +162,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles}: BaseOnboardingPurposePro
 }
 
 BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
-export default BaseOnboardingPurpose;
+export default withOnyx<BaseOnboardingPurposeProps, BaseOnboardingPurposeOnyxProps>({
+    onboardingPurposeSelected: {
+        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+    },
+})(BaseOnboardingPurpose);
 
-export type {BaseOnboardingPurposeProps};
+export type {BaseOnboardingPurposeProps, SelectedPurposeType};
