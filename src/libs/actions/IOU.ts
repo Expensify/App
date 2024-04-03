@@ -467,6 +467,9 @@ function hasOutstandingChildRequest(report: OnyxTypes.Report, policy: OnyxEntry<
         return true;
     }
 
+    // If the user is a policy admin, they can approve and pay the report themselves.
+    // So even if the report will be automatically submitted, the next step would need to be done by them anyway.
+    // In this case, we show a green dot because they don't need to wait for harvesting to submit.
     if (ReportUtils.isExpenseReport(report) && PolicyUtils.isPolicyAdmin(policy)) {
         return true;
     }
@@ -5335,4 +5338,5 @@ export {
     canIOUBePaid,
     canApproveIOU,
     needsToBeManuallySubmitted,
+    hasOutstandingChildRequest,
 };
