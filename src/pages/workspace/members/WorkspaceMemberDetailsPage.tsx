@@ -85,7 +85,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     }, [accountID, policyID]);
 
     const navigateToProfile = useCallback(() => {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
