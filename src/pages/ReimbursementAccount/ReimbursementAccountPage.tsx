@@ -431,7 +431,7 @@ function ReimbursementAccountPage({
         return (
             <ContinueBankAccountSetup
                 reimbursementAccount={reimbursementAccount}
-                onContinue={setManualStep}
+                onContinuePress={setManualStep}
                 policyName={policyName}
                 onBackButtonPress={Navigation.goBack}
             />

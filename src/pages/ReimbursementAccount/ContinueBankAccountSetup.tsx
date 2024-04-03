@@ -23,7 +23,7 @@ type ContinueBankAccountStepProps = {
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 
     /** Callback to continue to the next step of the setup */
-    onContinue: () => void;
+    onContinuePress: () => void;
 
     /* The workspace name */
     policyName?: string;
@@ -32,7 +32,7 @@ type ContinueBankAccountStepProps = {
     onBackButtonPress: () => void;
 };
 
-function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimbursementAccount, onContinue}: ContinueBankAccountStepProps) {
+function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimbursementAccount, onContinuePress}: ContinueBankAccountStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const errors = reimbursementAccount?.errors ?? {};
@@ -64,7 +64,7 @@ function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimburse
                         <Button
                             iconStyles={[styles.customMarginButtonWithMenuItem]}
                             text={translate('workspace.bankAccount.continueWithSetup')}
-                            onPress={onContinue}
+                            onPress={onContinuePress}
                             icon={Expensicons.Bank}
                             style={[styles.mv4]}
                             shouldShowRightIcon

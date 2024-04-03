@@ -39,8 +39,10 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Weather Onfido setup is complete */
     isOnfidoSetupComplete?: boolean;
 
+    /** Last 4 digits of the account number */
     mask?: string;
 
+    /** Unique identifier for this account in Plaid */
     plaidAccountID?: string;
 };
 
