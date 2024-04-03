@@ -1,32 +1,32 @@
 import {useFocusEffect} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
 
-const propTypes = {
+type EditRequestTaxAmountPageProps = {
     /** Transaction default amount value */
-    defaultAmount: PropTypes.number.isRequired,
+    defaultAmount: number;
+
+    /** Transaction default tax amount value */
+    defaultTaxAmount: number;
 
     /** Transaction default currency value */
-    defaultCurrency: PropTypes.string.isRequired,
+    defaultCurrency: string;
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: PropTypes.func.isRequired,
-
-    /** Callback to fire when we press on the currency  */
-    onNavigateToCurrency: PropTypes.func.isRequired,
+    onSubmit: () => void;
 };
 
-function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurrency, onSubmit}) {
+function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurrency, onSubmit}: EditRequestTaxAmountPageProps) {
     const {translate} = useLocalize();
+    const textInput = useRef<BaseTextInputRef>(null);
 
-    const textInput = useRef(null);
-    const focusTimeoutRef = useRef(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -45,14 +45,15 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
-            testID={EditRequestAmountPage.displayName}
+            testID={EditRequestTaxAmountPage.displayName}
         >
-            <HeaderWithBackButton title={translate('iou.amount')} />
+            <HeaderWithBackButton title={translate('iou.taxAmount')} />
             <MoneyRequestAmountForm
                 currency={defaultCurrency}
                 amount={defaultAmount}
-                ref={(e) => (textInput.current = e)}
-                onCurrencyButtonPress={onNavigateToCurrency}
+                taxAmount={defaultTaxAmount}
+                ref={textInput}
+                isCurrencyPressable={false}
                 onSubmitButtonPress={onSubmit}
                 isEditing
             />
@@ -60,7 +61,6 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
     );
 }
 
-EditRequestAmountPage.propTypes = propTypes;
-EditRequestAmountPage.displayName = 'EditRequestAmountPage';
+EditRequestTaxAmountPage.displayName = 'EditRequestTaxAmountPage';
 
-export default EditRequestAmountPage;
+export default EditRequestTaxAmountPage;
