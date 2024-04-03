@@ -23,6 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 import type {Task} from '@src/types/onyx';
+import playSound, {SOUNDS} from '@libs/Sound';
 
 type NewTaskDetailsPageOnyxProps = {
     /** Task Creation Data */
@@ -40,6 +41,8 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
     const [taskDescription, setTaskDescription] = useState(task?.description ?? '');
 
     const {inputCallbackRef} = useAutoFocusInput();
+
+    const skipConfirmation = task?.skipConfirmation && task?.assigneeAccountID && task?.parentReportID;
 
     useEffect(() => {
         setTaskTitle(task?.title ?? '');
@@ -66,7 +69,22 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
     // the response
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
         TaskActions.setDetailsValue(values.taskTitle, values.taskDescription);
-        Navigation.navigate(ROUTES.NEW_TASK);
+
+        if (skipConfirmation) {
+            TaskActions.setShareDestinationValue(task?.parentReportID ?? '');
+            playSound(SOUNDS.DONE);
+            TaskActions.createTaskAndNavigate(
+                task?.parentReportID ?? '',
+                values.taskTitle,
+                values.taskDescription ?? '',
+                task?.assignee ?? '',
+                task.assigneeAccountID,
+                task.assigneeChatReport,
+            );
+
+        } else {
+            Navigation.navigate(ROUTES.NEW_TASK);
+        }
     };
 
     return (

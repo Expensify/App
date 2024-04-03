@@ -190,7 +190,7 @@ function FloatingActionButtonAndPopover(props) {
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, quickActionReport, _.get(props.quickAction, 'targetAccountID', 0));
+                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, quickActionReport, _.get(props.quickAction, 'targetAccountID', 0), true);
                 return;
             default:
                 return '';

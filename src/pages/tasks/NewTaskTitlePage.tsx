@@ -36,8 +36,6 @@ function NewTaskTitlePage({task}: NewTaskTitlePageProps) {
 
     const {translate} = useLocalize();
 
-    const skipConfirmation = task.skipConfirmation;
-
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
 
