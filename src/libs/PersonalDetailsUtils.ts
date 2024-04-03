@@ -289,7 +289,7 @@ function isPersonalDetailsEmpty() {
  * @returns - whether the pronouns is deprecated
  */
 function isDeprecatedPronouns(personalDetail?: Partial<PersonalDetails>): boolean {
-    return !personalDetail?.pronouns?.startsWith(CONST.PRONOUNS.PREFIX);
+    return !!personalDetail?.pronouns && !personalDetail?.pronouns?.startsWith(CONST.PRONOUNS.PREFIX);
 }
 
 /**
