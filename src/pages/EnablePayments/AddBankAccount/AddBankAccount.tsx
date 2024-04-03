@@ -18,8 +18,8 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 import SetupMethod from './SetupMethod';
-import Confirmation from './substeps/Confirmation';
-import Plaid from './substeps/Plaid';
+import Confirmation from './substeps/ConfirmationStep';
+import Plaid from './substeps/PlaidStep';
 
 type AddPersonalBankAccountPageWithOnyxProps = {
     /** Contains plaid data */

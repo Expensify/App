@@ -29,12 +29,12 @@ type ConfirmationOnyxProps = {
     userWallet: OnyxEntry<UserWallet>;
 };
 
-type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
+type ConfirmationStepProps = ConfirmationOnyxProps & SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const BANK_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.BANK_ACCOUNT;
 
-function Confirmation({personalBankAccountDraft, plaidData, onNext, onMove, userWallet}: ConfirmationProps) {
+function ConfirmationStep({personalBankAccountDraft, plaidData, onNext, onMove, userWallet}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -81,9 +81,9 @@ function Confirmation({personalBankAccountDraft, plaidData, onNext, onMove, user
     );
 }
 
-Confirmation.displayName = 'Confirmation';
+ConfirmationStep.displayName = 'ConfirmationStep';
 
-export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
+export default withOnyx<ConfirmationStepProps, ConfirmationOnyxProps>({
     plaidData: {
         key: ONYXKEYS.PLAID_DATA,
     },
@@ -93,4 +93,4 @@ export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
     },
-})(Confirmation);
+})(ConfirmationStep);

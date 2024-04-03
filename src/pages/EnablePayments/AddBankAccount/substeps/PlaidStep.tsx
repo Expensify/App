@@ -22,11 +22,11 @@ type PlaidOnyxProps = {
     plaidData: OnyxEntry<PlaidData>;
 };
 
-type PlaidProps = PlaidOnyxProps & SubStepProps;
+type PlaidStepProps = PlaidOnyxProps & SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-function Plaid({personalBankAccountDraft, onNext, plaidData}: PlaidProps) {
+function PlaidStep({personalBankAccountDraft, onNext, plaidData}: PlaidStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -89,13 +89,13 @@ function Plaid({personalBankAccountDraft, onNext, plaidData}: PlaidProps) {
     );
 }
 
-Plaid.displayName = 'Plaid';
+PlaidStep.displayName = 'PlaidStep';
 
-export default withOnyx<PlaidProps, PlaidOnyxProps>({
+export default withOnyx<PlaidStepProps, PlaidOnyxProps>({
     personalBankAccountDraft: {
         key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
     },
     plaidData: {
         key: ONYXKEYS.PLAID_DATA,
     },
-})(Plaid);
+})(PlaidStep);
