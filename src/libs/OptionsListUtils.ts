@@ -40,7 +40,6 @@ import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
 import filterArrayByMatch from './filterArrayByMatch';
-import type {KeyOption} from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -2039,11 +2038,6 @@ function filterOptions(options: GetOptions, searchInputValue: string): GetOption
     const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
-    const createFilter = (items: ReportUtils.OptionData[], keys: ReadonlyArray<KeyOption<ReportUtils.OptionData>>, term: string) =>
-        filterArrayByMatch(items, term, {
-            keys,
-        });
-
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
     const emailRegex = /\.(?=[^\s@]*@)/g;
@@ -2070,9 +2064,8 @@ function filterOptions(options: GetOptions, searchInputValue: string): GetOption
     };
 
     const matchResults = searchTerms.reduceRight((items, term) => {
-        const recentReports = createFilter(
-            items.recentReports ?? [],
-            [
+        const recentReports = filterArrayByMatch(items.recentReports, term, {
+            keys: [
                 (item) => {
                     let keys: string[] = [];
 
@@ -2099,13 +2092,14 @@ function filterOptions(options: GetOptions, searchInputValue: string): GetOption
                     return uniqFast(keys);
                 },
             ],
-            term,
-        );
-        const personalDetails = createFilter(items.personalDetails ?? [], ['participantsList.0.displayName', 'login', (item) => item.login?.replace(emailRegex, '') ?? ''], term);
+        });
+        const personalDetails = filterArrayByMatch(items.personalDetails, term, {
+            keys: ['participantsList.0.displayName', 'login', (item) => item.login?.replace(emailRegex, '') ?? ''],
+        });
 
         return {
-            recentReports: recentReports ?? ([] as ReportUtils.OptionData[]),
-            personalDetails: personalDetails ?? ([] as ReportUtils.OptionData[]),
+            recentReports: recentReports ?? [],
+            personalDetails: personalDetails ?? [],
             userToInvite: null,
             currentUserOption: null,
             categoryOptions: [],
