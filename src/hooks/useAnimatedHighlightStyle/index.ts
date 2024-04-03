@@ -1,8 +1,8 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
 import {Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
-import CONST from '@src/CONST';
 import useTheme from '@hooks/useTheme';
+import CONST from '@src/CONST';
 import {DELAY_FACTOR} from './config';
 
 type Props = {
