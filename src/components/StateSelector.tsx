@@ -35,7 +35,7 @@ type StateSelectorProps = {
     onBlur?: () => void;
 
     /** object to get route details from */
-    stateSelectorRoute?: typeof ROUTES.SETTINGS_ADDRESS_STATE;
+    stateSelectorRoute?: typeof ROUTES.SETTINGS_ADDRESS_STATE | typeof ROUTES.MONEY_REQUEST_STATE_SELECTOR;
 };
 
 function StateSelector(
