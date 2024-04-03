@@ -28,7 +28,7 @@ function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefin
  * Checks if we have any errors stored within the POLICY_MEMBERS. Determines whether we should show a red brick road error or not.
  */
 function hasEmployeeListError(policy: OnyxEntry<Policy>): boolean {
-	return Object.values(policy?.employeeList ?? {}).some((employee) => Object.keys(employee?.errors ?? {}).length > 0);
+    return Object.values(policy?.employeeList ?? {}).some((employee) => Object.keys(employee?.errors ?? {}).length > 0);
 }
 
 /**
@@ -90,10 +90,10 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-	if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
-					return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-	}
-	return undefined;
+    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    }
+    return undefined;
 }
 
 /**
@@ -133,18 +133,19 @@ const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boo
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(policyMembers: OnyxEntry<PolicyMembers>, personalDetails: OnyxEntry<PersonalDetailsList>): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(policy: OnyxEntry<Policy>, personalDetails: OnyxEntry<PersonalDetailsList>): MemberEmailsToAccountIDs {
+    const members = policy?.employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
-    Object.keys(policyMembers ?? {}).forEach((accountID) => {
-        const member = policyMembers?.[accountID];
+    Object.keys(members).forEach((email) => {
+        const member = members?.[email];
         if (Object.keys(member?.errors ?? {})?.length > 0) {
             return;
         }
-        const personalDetail = personalDetails?.[accountID];
+        const personalDetail = Object.values(personalDetails ?? {})?.find((details) => details?.login === email);
         if (!personalDetail?.login) {
             return;
         }
-        memberEmailsToAccountIDs[personalDetail.login] = Number(accountID);
+        memberEmailsToAccountIDs[email] = Number(personalDetail.accountID);
     });
     return memberEmailsToAccountIDs;
 }
@@ -152,19 +153,19 @@ function getMemberAccountIDsForWorkspace(policyMembers: OnyxEntry<PolicyMembers>
 /**
  * Get login list that we should not show in the workspace invite options
  */
-function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personalDetails: OnyxEntry<PersonalDetailsList>): string[] {
+function getIneligibleInvitees(policy: OnyxEntry<Policy>): string[] {
+    const members = policy?.employeeList ?? {};
     const memberEmailsToExclude: string[] = [...CONST.EXPENSIFY_EMAILS];
-    Object.keys(policyMembers ?? {}).forEach((accountID) => {
-        const policyMember = policyMembers?.[accountID];
+    Object.keys(members).forEach((email) => {
+        const policyMember = members?.[email];
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
         if (policyMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyMember?.errors ?? {}).length > 0) {
             return;
         }
-        const memberEmail = personalDetails?.[accountID]?.login;
-        if (!memberEmail) {
+        if (!email) {
             return;
         }
-        memberEmailsToExclude.push(memberEmail);
+        memberEmailsToExclude.push(email);
     });
 
     return memberEmailsToExclude;

@@ -27,14 +27,15 @@ type ListItemType = {
     keyForList: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
 };
 
-function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: WorkspaceMemberDetailsPageProps) {
+function WorkspaceMemberDetailsRoleSelectionPage({route, personalDetails, policy}: WorkspaceMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const accountID = Number(route.params.accountID) ?? 0;
     const policyID = route.params.policyID;
     const backTo = route.params.backTo ?? ('' as Route);
-    const member = policyMembers?.[accountID];
+    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const member = policy?.employeeList?.[memberLogin];
 
     const items: ListItemType[] = [
         {

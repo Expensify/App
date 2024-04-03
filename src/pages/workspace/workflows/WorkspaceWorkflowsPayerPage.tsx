@@ -2,7 +2,6 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,7 +27,6 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -45,7 +42,7 @@ type WorkspaceWorkflowsPayerPageProps = WorkspaceWorkflowsPayerPageOnyxProps &
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
-function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
+function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -63,8 +60,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         const policyAdminDetails: MemberOption[] = [];
         const authorizedPayerDetails: MemberOption[] = [];
 
-        Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
-            const accountID = Number(accountIDKey);
+        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyMember]) => {
+            const accountID = Object.values(personalDetails ?? {}).find((details) => details?.login === email)?.accountID ?? 0;
             const details = personalDetails?.[accountID];
             if (!details) {
                 Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
@@ -90,7 +87,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             const isAuthorizedPayer = policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID;
 
             const formattedMember = {
-                keyForList: accountIDKey,
+                keyForList: String(accountID),
                 accountID,
                 isSelected: isAuthorizedPayer,
                 isDisabled: policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors),
@@ -118,7 +115,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         return [policyAdminDetails, authorizedPayerDetails];
     }, [
         personalDetails,
-        policyMembers,
+        policy?.employeeList,
         translate,
         policy?.reimburserEmail,
         isDeletedPolicyMember,
@@ -225,11 +222,4 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
 
 WorkspaceWorkflowsPayerPage.displayName = 'WorkspaceWorkflowsPayerPage';
 
-export default compose(
-    withOnyx<WorkspaceWorkflowsPayerPageProps, WorkspaceWorkflowsPayerPageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    }),
-    withPolicyAndFullscreenLoading,
-)(WorkspaceWorkflowsPayerPage);
+export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsPayerPage);

@@ -30,7 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Beta, InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
+import type {Beta, InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchInputManager from './SearchInputManager';
@@ -40,9 +40,6 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
 
 type WorkspaceInvitePageOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
 
@@ -57,7 +54,6 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
 
 function WorkspaceInvitePage({
     route,
-    policyMembers,
     personalDetails: personalDetailsProp,
     betas,
     invitedEmailsToAccountIDsDraft,
@@ -72,7 +68,7 @@ function WorkspaceInvitePage({
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const openWorkspaceInvitePage = () => {
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetailsProp);
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy, personalDetailsProp);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
     };
 
@@ -91,7 +87,7 @@ function WorkspaceInvitePage({
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
 
-    const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policyMembers, personalDetailsProp), [policyMembers, personalDetailsProp]);
+    const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policy), [policy]);
 
     useEffect(() => {
         const newUsersToInviteDict: Record<number, OptionData> = {};
@@ -100,7 +96,7 @@ function WorkspaceInvitePage({
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetailsProp, betas ?? [], searchTerm, excludedUsers, true);
 
-        // Update selectedOptions with the latest personalDetails and policyMembers information
+        // Update selectedOptions with the latest personalDetails and employeeList information
         const detailsMap: Record<string, MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
             if (!detail.login) {
@@ -150,7 +146,7 @@ function WorkspaceInvitePage({
         setSelectedOptions(Object.values(newSelectedOptionsDict));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [personalDetailsProp, policyMembers, betas, searchTerm, excludedUsers]);
+    }, [personalDetailsProp, policy?.employeeList, betas, searchTerm, excludedUsers]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
@@ -330,9 +326,6 @@ WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 export default withNavigationTransitionEnd(
     withPolicyAndFullscreenLoading(
         withOnyx<WorkspaceInvitePageProps, WorkspaceInvitePageOnyxProps>({
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
             betas: {
                 key: ONYXKEYS.BETAS,
             },
