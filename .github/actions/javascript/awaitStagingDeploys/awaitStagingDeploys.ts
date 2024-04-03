@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import lodashThrotle from 'lodash/throttle';
+import lodashThrottle from 'lodash/throttle';
 import ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GitHubUtils, {POLL_RATE} from '@github/libs/GithubUtils';
@@ -18,7 +18,7 @@ function run() {
 
     let currentStagingDeploys: CurrentStagingDeploys = [];
 
-    console.info('[awaitStagingDeploys] run()  _.throttle', lodashThrotle);
+    console.info('[awaitStagingDeploys] run()  _.throttle', lodashThrottle);
 
     const throttleFunc = () =>
         Promise.all([
@@ -59,7 +59,7 @@ function run() {
 
     return promiseDoWhile(
         () => !!currentStagingDeploys.length,
-        lodashThrotle(
+        lodashThrottle(
             throttleFunc,
 
             // Poll every 60 seconds instead of every 10 seconds
