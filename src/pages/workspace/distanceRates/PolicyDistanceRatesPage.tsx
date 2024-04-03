@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -67,9 +68,9 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         [allSelectableRates, selectedDistanceRates],
     );
 
-    function fetchDistanceRates() {
+    const fetchDistanceRates = useCallback(() => {
         Policy.openPolicyDistanceRatesPage(policyID);
-    }
+    }, [policyID]);
 
     const dismissError = useCallback(
         (item: RateForList) => {
@@ -85,10 +86,11 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
     const {isOffline} = useNetwork({onReconnect: fetchDistanceRates});
 
-    useEffect(() => {
-        fetchDistanceRates();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchDistanceRates();
+        }, [fetchDistanceRates]),
+    );
 
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
@@ -100,7 +102,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 keyForList: value.customUnitRateID ?? '',
                 isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                pendingAction: value.pendingAction ?? value.pendingFields?.rate ?? value.pendingFields?.enabled,
+                pendingAction: value.pendingAction ?? value.pendingFields?.rate ?? value.pendingFields?.enabled ?? value.pendingFields?.currency,
                 errors: value.errors ?? undefined,
                 rightElement: (
                     <View style={styles.flexRow}>
@@ -220,7 +222,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
             options.push({
                 text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
                 value: CONST.POLICY.DISTANCE_RATES_BULK_ACTION_TYPES.ENABLE,
-                icon: Expensicons.DocumentSlash,
+                icon: Expensicons.Document,
                 onSelected: enableRates,
             });
         }
@@ -301,7 +303,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         {Object.values(customUnitRates).length > 0 && (
                             <SelectionList
                                 canSelectMultiple
-                                sections={[{data: distanceRatesList, indexOffset: 0, isDisabled: false}]}
+                                sections={[{data: distanceRatesList, isDisabled: false}]}
                                 onCheckboxPress={toggleRate}
                                 onSelectRow={openRateDetails}
                                 onSelectAll={toggleAllRates}

@@ -10,17 +10,20 @@ import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {DefaultMileageRate} from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
+import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {isTaxPolicyEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -160,6 +163,12 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     reportActionID?: string;
 };
 
+const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) || '';
+    return TransactionUtils.calculateTaxAmount(percentage, transaction?.amount ?? 0);
+};
+
 function MoneyTemporaryForRefactorRequestConfirmationList({
     transaction = null,
     onSendMoney,
@@ -236,7 +245,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled);
+    const shouldShowTax = isTaxPolicyEnabled(isPolicyExpenseChat, policy);
 
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
@@ -250,11 +259,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
-
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey].name} (${taxRates?.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing is not working when a left hand side value is ''
-    const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const defaultTaxName = (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey].name} (${taxRates?.taxes[defaultTaxKey].value}) • ${Localize.translateLocal('common.default')}`) || '';
+    const taxRateTitle = transaction?.taxRate?.text ?? defaultTaxName;
+
+    const previousTransactionAmount = usePrevious(transaction?.amount);
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
@@ -321,6 +331,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
         IOU.setMoneyRequestAmount_temporaryForRefactor(transaction?.transactionID ?? '', amount, currency ?? '');
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
+
+    // Calculate and set tax amount in transaction draft
+    useEffect(() => {
+        const taxAmount = getTaxAmount(transaction, taxRates?.defaultValue ?? '').toString();
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
+
+        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount) {
+            return IOU.setMoneyRequestTaxAmount(transaction?.transactionID, transaction?.taxAmount, true);
+        }
+
+        IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', amountInSmallestCurrencyUnits, true);
+    }, [taxRates?.defaultValue, transaction, previousTransactionAmount]);
 
     /**
      * Returns the participants with amount
@@ -394,14 +416,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     title: translate('moneyRequestConfirmationList.paidBy'),
                     data: [formattedPayeeOption],
                     shouldShow: true,
-                    indexOffset: 0,
                     isDisabled: shouldDisablePaidBySection,
                 },
                 {
                     title: translate('moneyRequestConfirmationList.splitWith'),
                     data: formattedParticipantsList,
                     shouldShow: true,
-                    indexOffset: 1,
                 },
             );
         } else {
@@ -413,7 +433,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
                 shouldShow: true,
-                indexOffset: 0,
             });
         }
         return sections;
@@ -582,7 +601,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
-                addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                 currency={iouCurrencyCode}
                 policyID={policyID}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
@@ -642,7 +660,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -848,7 +868,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     key={`${taxRates?.name}${formattedTaxAmount}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={formattedTaxAmount}
-                    description={taxRates?.name}
+                    description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() =>

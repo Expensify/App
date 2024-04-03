@@ -24,4 +24,4 @@ C+ are contributors who are experienced at working with Expensify and have gaine
 
 ## How to join?
 
-Email contributors@expensify.com and include "C+ Team Application" in the subject line if you’re interested in joining.
+Email contributors@expensify.com and include "C+ Team Application" in the subject line if you’re interested in joining. Please include your GitHub username and a link to the PRs you've authored that have been merged. ie. `https://github.com/Expensify/App/pulls?q=is%3Apr+author%3Aparasharrajat+is%3Amerged`

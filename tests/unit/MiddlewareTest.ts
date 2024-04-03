@@ -39,7 +39,7 @@ describe('Middleware', () => {
                 },
                 {
                     command: 'AddComment',
-                    data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678', reportComment: 'foo'},
+                    data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
                 },
             ];
             for (const request of requests) {
@@ -50,7 +50,7 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[1][1].body, {reportID: '1234', reportActionID: '5678', reportComment: 'foo'});
+            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[1][1].body, {reportID: '1234', reportActionID: '5678'});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
             TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[0][1].body, {reportID: '1234'});
         });
@@ -64,7 +64,7 @@ describe('Middleware', () => {
                 },
                 {
                     command: 'AddComment',
-                    data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678', reportComment: 'foo'},
+                    data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
                 },
             ];
             for (const request of requests) {
@@ -94,7 +94,7 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[1][1].body, {reportID: '5555', reportActionID: '5678', reportComment: 'foo'});
+            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[1][1].body, {reportID: '5555', reportActionID: '5678'});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
             TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[0][1].body, {reportID: '1234'});
         });
