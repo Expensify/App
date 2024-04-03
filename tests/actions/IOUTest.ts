@@ -3310,24 +3310,10 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             expect(IOU.hasOutstandingChildRequest(report, policy)).toBe(true);
         });
-        it('should return true if an expense report does not need to be manually submitted, but the user is a policy admin', async () => {
+        it('should return false if an expense report does not need to be manually submitted', async () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 type: CONST.POLICY.TYPE.TEAM,
-            };
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: policy.id,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            expect(IOU.hasOutstandingChildRequest(report, policy)).toBe(true);
-        });
-        it('should return false if an expense report does not need to be manually submitted, and the user is not a policy admin', async () => {
-            const policy = {
-                ...LHNTestUtils.getFakePolicy(),
-                type: CONST.POLICY.TYPE.TEAM,
-                role: CONST.POLICY.ROLE.USER,
             };
             const report = {
                 ...LHNTestUtils.getFakeReport(),
