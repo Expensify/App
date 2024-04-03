@@ -648,12 +648,6 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_IMPORT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_CHART_OF_ACCOUNTS]: {
-        policyID: string;
-    };
 };
 
 type FullScreenNavigatorParamList = {
