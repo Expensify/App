@@ -250,6 +250,9 @@ type MenuItemBaseProps = {
 
     /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
+
+    /** Expected height of the menu item. This is needed for the animated highlight. */
+    height?: number;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -322,6 +325,7 @@ function MenuItem(
         contentFit = 'cover',
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
+        height,
     }: MenuItemProps,
     ref: ForwardedRef<View>,
 ) {
@@ -330,7 +334,7 @@ function MenuItem(
     const StyleUtils = useStyleUtils();
     const combinedStyle = [style, styles.popoverMenuItem];
     const {isSmallScreenWidth} = useWindowDimensions();
-    const animatedHighlightStyle = useAnimatedHighlightStyle({shouldHighlight: highlighted, height: 56});
+    const animatedHighlightStyle = useAnimatedHighlightStyle({shouldHighlight: highlighted, height: height ?? styles.sectionMenuItem.height});
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
