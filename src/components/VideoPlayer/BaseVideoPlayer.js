@@ -139,9 +139,11 @@ function BaseVideoPlayer({
 
             if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 currentVideoPlayerRef.current.getStatusAsync().then((status) => {
-                    if (status.volume === 0 || status.isMuted === true) {
-                        updateVolume(0);
+                    if (status.volume > 0 && !status.isMuted) {
+                        return
                     }
+
+                    updateVolume(0);
                 });
             }
 
@@ -158,7 +160,7 @@ function BaseVideoPlayer({
                 }
             }
         },
-        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
+        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber, updateVolume, currentVideoPlayerRef],
     );
 
     const bindFunctions = useCallback(() => {
