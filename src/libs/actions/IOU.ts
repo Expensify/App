@@ -778,7 +778,7 @@ function buildOnyxDataForMoneyRequest(
                               errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
                           },
                           [iouAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError(null),
+                              errors: ErrorUtils.getMicroSecondOnyxError('some meaningful error string'),
                           },
                       }
                     : {
@@ -2507,7 +2507,7 @@ function createSplitsAndOnyxData(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
                 value: {
                     [splitIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError(null),
+                        errors: ErrorUtils.getMicroSecondOnyxError('some meaningful error string'),
                     },
                 },
             },
@@ -4319,7 +4319,7 @@ function getSendMoneyParams(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
                 value: {
                     [optimisticIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError(null),
+                        errors: ErrorUtils.getMicroSecondOnyxError('some meaningful error string'),
                     },
                 },
             },
