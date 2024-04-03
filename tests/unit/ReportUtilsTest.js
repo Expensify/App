@@ -363,7 +363,7 @@ describe('ReportUtils', () => {
         it('returns true for outstanding join requests in admin rooms', async () => {
             const report = LHNTestUtils.getFakeReport();
             const pendingJoinRequest = {
-                reportActionID: NumberUtils.rand64(),
+                ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST,
                 originalMessage: {
                     choice: '',

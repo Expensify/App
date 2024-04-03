@@ -447,10 +447,8 @@ function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = t
 }
 
 function needsToBeManuallySubmitted(report: OnyxTypes.Report) {
-    const isPolicyExpenseChat = ReportUtils.isExpenseReport(report);
-
     // Only expense reports need to be manually submitted
-    if (!isPolicyExpenseChat) {
+    if (!ReportUtils.isExpenseReport(report)) {
         return false;
     }
 
@@ -5336,4 +5334,5 @@ export {
     trackExpense,
     canIOUBePaid,
     canApproveIOU,
+    needsToBeManuallySubmitted,
 };

@@ -22,6 +22,7 @@ import type {IOUMessage, OriginalMessageIOU} from '@src/types/onyx/OriginalMessa
 import type {ReportActionBase} from '@src/types/onyx/ReportAction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -3252,6 +3253,42 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+    });
+
+    describe('needsToBeManuallySubmitted', () => {
+        it('should return true for any expense report on a paid policy w/o harvesting enabled', async () => {
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                type: CONST.POLICY.TYPE.TEAM,
+                harvesting: {
+                    enabled: false,
+                },
+            };
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: policy.id,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            expect(IOU.needsToBeManuallySubmitted(report)).toBe(true);
+        });
+        it('should return false for any expense report on a paid policy w/ harvesting enabled', async () => {
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                type: CONST.POLICY.TYPE.TEAM,
+            };
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: policy.id,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            expect(IOU.needsToBeManuallySubmitted(report)).toBe(false);
+        });
+        it('should return false for any non-expense report', async () => {
+            const report = LHNTestUtils.getFakeReport();
+            expect(IOU.needsToBeManuallySubmitted(report)).toBe(false);
         });
     });
 });
