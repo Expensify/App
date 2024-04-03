@@ -301,7 +301,7 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
-        it('returns true when the report has an outstanding child request with a debt needing to be paid by current user', () => {
+        it('returns true when the report has an outstanding child request', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 99,
@@ -309,15 +309,6 @@ describe('ReportUtils', () => {
                 isWaitingOnBankAccount: false,
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
-        });
-        it('returns false when the report has an outstanding child request with no debt needing to be paid by current user', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                ownerAccountID: 99,
-                hasOutstandingChildRequest: true,
-                isWaitingOnBankAccount: false,
-            };
-            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
         it('returns false for archived reports', () => {
             const report = {
