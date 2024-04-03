@@ -444,7 +444,7 @@ function needsToBeManuallySubmitted(iouReport: OnyxTypes.Report) {
         return isFromPaidPolicy && !policy.harvesting?.enabled;
     }
 
-    return true;
+    return false;
 }
 
 /**
