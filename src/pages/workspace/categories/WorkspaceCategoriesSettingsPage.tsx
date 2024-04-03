@@ -36,7 +36,7 @@ function WorkspaceCategoriesSettingsPage({route, policyCategories}: WorkspaceCat
         setWorkspaceRequiresCategory(route.params.policyID, value);
     };
 
-    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(policyCategories ?? {}, false);
+    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(policyCategories ?? {});
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
             <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
