@@ -188,6 +188,7 @@ describe('OptionsListUtils', () => {
                 [],
                 true,
                 mockedPersonalDetails,
+                true
             )
         );
     });
