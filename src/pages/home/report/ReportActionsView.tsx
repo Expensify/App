@@ -154,10 +154,11 @@ function ReportActionsView({
         // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-        // Filter out "created" IOU report actions because we don't want to show any preview actions for one transaction reports
-        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter(
-            (action) => ((action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '') !== CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        );
+        // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
+        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+            const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !ReportActionsUtils.isSentMoneyReportAction(action);
+        });
         return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
     }, [allReportActions, transactionThreadReportActions]);
 
