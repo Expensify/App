@@ -452,7 +452,7 @@ function buildOnyxDataForMoneyRequest(
     isOneOnOneSplit = false,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const outstandingChildRequest = ReportUtils.getOutstandingChildRequest(iouReport);
+    const outstandingChildRequest = ReportUtils.getOptimisticOutstandingChildRequest(iouReport);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = isScanRequest ? CONST.QUICK_ACTIONS.REQUEST_SCAN : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
@@ -470,7 +470,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
-                ...outstandingChildRequest,
+                ...(outstandingChildRequest !== null ? {hasOutstandingChildRequest: outstandingChildRequest} : {}),
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         });
@@ -1542,6 +1542,7 @@ function getUpdateMoneyRequestParams(
 
     updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
 
+    const optimisticOutstandingChildRequest = ReportUtils.getOptimisticOutstandingChildRequest(updatedMoneyRequestReport);
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1551,7 +1552,7 @@ function getUpdateMoneyRequestParams(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.parentReportID}`,
-            value: ReportUtils.getOutstandingChildRequest(updatedMoneyRequestReport),
+            value: optimisticOutstandingChildRequest !== null ? {hasOutstandingChildRequest: optimisticOutstandingChildRequest} : {},
         },
     );
     successData.push({
@@ -3714,6 +3715,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         );
     }
 
+    const optimisticOutstandingChildRequest = ReportUtils.getOptimisticOutstandingChildRequest(updatedIOUReport);
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3735,7 +3737,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: ReportUtils.getOutstandingChildRequest(updatedIOUReport),
+            value: optimisticOutstandingChildRequest !== null ? {hasOutstandingChildRequest: optimisticOutstandingChildRequest} : {},
         },
     );
 
