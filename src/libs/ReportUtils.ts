@@ -2597,7 +2597,7 @@ function getReportPreviewMessage(
     }
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && ReportActionsUtils.isSplitBillAction(iouReportAction)) {
-        // This covers group chats where the last action is a split bill action
+        // This covers group chats where the last action is a split expense action
         const linkedTransaction = getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
@@ -3439,7 +3439,7 @@ function buildOptimisticIOUReportAction(
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
-        // Split bill made from a policy expense chat only have the payee's accountID as the participant because the payer could be any policy admin
+        // Split expense made from a policy expense chat only have the payee's accountID as the participant because the payer could be any policy admin
         if (isOwnPolicyExpenseChat) {
             originalMessage.participantAccountIDs = currentUserAccountID ? [currentUserAccountID] : [];
         } else {
@@ -5492,7 +5492,7 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>): string[] {
  * Disable reply in thread action if:
  *
  * - The action is listed in the thread-disabled list
- * - The action is a split bill action
+ * - The action is a split expense action
  * - The action is deleted and is not threaded
  * - The report is archived and the action is not threaded
  * - The action is a whisper action and it's neither a report preview nor IOU action

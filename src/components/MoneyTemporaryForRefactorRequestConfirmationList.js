@@ -394,7 +394,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         [iouAmount, iouCurrencyCode],
     );
 
-    // If completing a split bill fails, set didConfirm to false to allow the user to edit the fields again
+    // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
         setDidConfirm(false);
     }

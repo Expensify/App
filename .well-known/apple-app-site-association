@@ -34,7 +34,7 @@
                     },
                     {
                         "/": "/request/*",
-                        "comment": "Money request"
+                        "comment": "Submit Expense"
                     },
                     {
                         "/": "/enable-payments/*",
@@ -54,11 +54,11 @@
                     },
                     {
                         "/": "/split/*",
-                        "comment": "Split Bill"
+                        "comment": "Split Expense"
                     },
                     {
                         "/": "/request/*",
-                        "comment": "Request Money"
+                        "comment": "Submit Expense"
                     },
                     {
                         "/": "/new/*",
@@ -82,7 +82,7 @@
                     },
                     {
                         "/": "/send/*",
-                        "comment": "Send money"
+                        "comment": "Pay Someone"
                     },
                     {
                         "/": "/money2020/*",

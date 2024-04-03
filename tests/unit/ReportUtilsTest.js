@@ -648,7 +648,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
         });
 
-        it('should disable thread on split bill actions', () => {
+        it('should disable thread on split expense actions', () => {
             const reportAction = ReportUtils.buildOptimisticIOUReportAction(
                 CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
                 50000,

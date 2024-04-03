@@ -922,7 +922,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('split bill', () => {
+    describe('split expense', () => {
         it('creates and updates new chats and IOUs as needed', () => {
             jest.setTimeout(10 * 1000);
             /*

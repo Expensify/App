@@ -2334,7 +2334,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
  *      {email: 'user3', amount: 100, iouReportID: '200', chatReportID: '210', transactionID: '220', reportActionID: '230'}
  *  ]
  * @param amount - always in the smallest unit of the currency
- * @param existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
+ * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a workspace chat
  */
 function createSplitsAndOnyxData(
     participants: Participant[],
@@ -3103,7 +3103,7 @@ function startSplitBill(
     Report.notifyNewAction(splitChatReport.chatReportID ?? '', currentUserAccountID);
 }
 
-/** Used for editing a split bill while it's still scanning or when SmartScan fails, it completes a split bill started by startSplitBill above.
+/** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
  *
  * @param chatReportID - The group chat or workspace reportID
  * @param reportAction - The split action that lives in the chatReport above
@@ -3205,7 +3205,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         let oneOnOneChatReport: OnyxTypes.Report | null;
         let isNewOneOnOneChatReport = false;
         if (isPolicyExpenseChat) {
-            // The workspace chat reportID is saved in the splits array when starting a split bill with a workspace
+            // The workspace chat reportID is saved in the splits array when starting a split expense with a workspace
             oneOnOneChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`] ?? null;
         } else {
             const existingChatReport = ReportUtils.getChatByParticipants(participant.accountID ? [participant.accountID] : []);
