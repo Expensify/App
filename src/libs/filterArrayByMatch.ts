@@ -131,55 +131,6 @@ function getAllValuesToRank<T>(item: T, keys: ReadonlyArray<KeyOption<T>>) {
 }
 
 /**
- * Returns a score based on how spread apart the characters from the stringToRank are within the testString.
- * A number close to rankings.MATCHES represents a loose match. A number close to rankings.MATCHES + 1 represents a tighter match.
- * @param testString - the string to test against
- * @param stringToRank - the string to rank
- * @returns the number between rankings.MATCHES and
- */
-function getClosenessRanking(testString: string, stringToRank: string): Ranking {
-    let matchingInOrderCharCount = 0;
-    let charNumber = 0;
-    function findMatchingCharacter(matchChar: string, string: string, index: number) {
-        for (let j = index; j < string.length; j++) {
-            if (string[j] === matchChar) {
-                matchingInOrderCharCount += 1;
-                return j + 1;
-            }
-        }
-        return -1;
-    }
-
-    function getRanking(spread: number) {
-        const spreadPercentage = 1 / spread;
-        const inOrderPercentage = matchingInOrderCharCount / stringToRank.length;
-        const ranking = MATCH_RANK.MATCHES + inOrderPercentage * spreadPercentage;
-
-        return ranking as Ranking;
-    }
-
-    const firstIndex = findMatchingCharacter(stringToRank[0], testString, 0);
-
-    if (firstIndex < 0) {
-        return MATCH_RANK.NO_MATCH;
-    }
-
-    charNumber = firstIndex;
-    for (let i = 1; i < stringToRank.length; i++) {
-        const matchChar = stringToRank[i];
-        charNumber = findMatchingCharacter(matchChar, testString, charNumber);
-        const found = charNumber > -1;
-
-        if (!found) {
-            return MATCH_RANK.NO_MATCH;
-        }
-    }
-
-    const spread = charNumber - firstIndex;
-    return getRanking(spread);
-}
-
-/**
  * Gives a rankings score based on how well the two strings match.
  * @param testString - the string to test against
  * @param stringToRank - the string to rank
@@ -229,7 +180,42 @@ function getMatchRanking(testString: string, stringToRank: string): Ranking {
     }
 
     // will return a number between rankings.MATCHES and rankings.MATCHES + 1 depending  on how close of a match it is.
-    return getClosenessRanking(lowercaseTestString, lowercaseStringToRank);
+    let matchingInOrderCharCount = 0;
+    let charNumber = 0;
+    function findMatchingCharacter(matchChar: string, string: string, index: number) {
+        for (let j = index; j < string.length; j++) {
+            if (string[j] === matchChar) {
+                matchingInOrderCharCount += 1;
+                return j + 1;
+            }
+        }
+        return -1;
+    }
+
+    const firstIndex = findMatchingCharacter(stringToRank[0], testString, 0);
+
+    if (firstIndex < 0) {
+        return MATCH_RANK.NO_MATCH;
+    }
+
+    charNumber = firstIndex;
+    for (let i = 1; i < stringToRank.length; i++) {
+        const matchChar = stringToRank[i];
+        charNumber = findMatchingCharacter(matchChar, testString, charNumber);
+        const found = charNumber > -1;
+
+        if (!found) {
+            return MATCH_RANK.NO_MATCH;
+        }
+    }
+
+    const spread = charNumber - firstIndex;
+
+    const spreadPercentage = 1 / spread;
+    const inOrderPercentage = matchingInOrderCharCount / stringToRank.length;
+    const ranking = MATCH_RANK.MATCHES + inOrderPercentage * spreadPercentage;
+
+    return ranking as Ranking;
 }
 
 /**
