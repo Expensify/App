@@ -84,9 +84,7 @@ import Hourglass from '@assets/images/hourglass.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Info from '@assets/images/info.svg';
-import QBORound from '@assets/images/integrationicons/qbo-icon-round.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
-import XeroRound from '@assets/images/integrationicons/xero-icon-round.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
@@ -284,7 +282,6 @@ export {
     Plus,
     Printer,
     Profile,
-    QBORound,
     QBOSquare,
     QrCode,
     QuestionMark,
@@ -314,7 +311,6 @@ export {
     Wallet,
     Workflows,
     Workspace,
-    XeroRound,
     XeroSquare,
     Zoom,
     Twitter,
