@@ -146,13 +146,11 @@ function ReportActionsView({
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
         // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter(
-            (action) => {
-                const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
-                const isSendMoneyAction = Boolean(actionType === CONST.IOU.REPORT_ACTION_TYPE.PAY && (action as OnyxTypes.OriginalMessageIOU).originalMessage?.IOUDetails);
-                return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSendMoneyAction;
-            }
-        );
+        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+            const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
+            const isSendMoneyAction = Boolean(actionType === CONST.IOU.REPORT_ACTION_TYPE.PAY && (action as OnyxTypes.OriginalMessageIOU).originalMessage?.IOUDetails);
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSendMoneyAction;
+        });
         return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
     }, [allReportActions, transactionThreadReportActions]);
 
