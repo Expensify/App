@@ -360,13 +360,13 @@ function ReportActionsView({
         }
 
         if (!isEmptyObject(transactionThreadReport)) {
-            // Get newer actions based on the newest reportAction for the current report
+            // Get older actions based on the oldest reportAction for the current report
             const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
-            Report.getNewerActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
+            Report.getOlderActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
 
-            // Get newer actions based on the newest reportAction for the transaction thread report
+            // Get older actions based on the oldest reportAction for the transaction thread report
             const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
-            Report.getNewerActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
+            Report.getOlderActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
         } else {
             // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
             Report.getOlderActions(reportID, oldestReportAction.reportActionID);
