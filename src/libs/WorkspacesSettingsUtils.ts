@@ -287,6 +287,10 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
+function hasAccessToAccountingFeatures(policy: Policy | null, canUseAccountingIntegrations?: boolean) {
+    return policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.areConnectionsEnabled && canUseAccountingIntegrations;
+}
+
 export {
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
@@ -297,5 +301,6 @@ export {
     getChatTabBrickRoad,
     getUnitTranslationKey,
     getOwnershipChecksDisplayText,
+    hasAccessToAccountingFeatures,
 };
 export type {BrickRoad};
