@@ -107,7 +107,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                             >
                                 <View style={[styles.mt2, styles.mh5]}>
                                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text style={[styles.flexShrink1, styles.mr2]} >{translate('workspace.categories.enableCategory')}</Text>
+                                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.enableCategory')}</Text>
                                         <Switch
                                             isOn={policyCategory.enabled}
                                             accessibilityLabel={translate('workspace.categories.enableCategory')}
