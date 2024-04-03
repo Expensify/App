@@ -20,7 +20,7 @@ export default function useThumbnailDimensions(width: number, height: number): T
         if (!width || !height) {
             return {width: fixedDimension, aspectRatio: CONST.THUMBNAIL_IMAGE.NAN_ASPECT_RATIO};
         }
-        const aspectRatio = (height && lodashClamp(width / height, 0.3, 1 / 0.3)) || 1;
+        const aspectRatio = (height && lodashClamp(width / height, 0.15, 1 / 0.15)) || 1;
         if (width > height) {
             return {width: fixedDimension, aspectRatio};
         }
