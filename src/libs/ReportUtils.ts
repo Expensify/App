@@ -2636,7 +2636,7 @@ function getReportPreviewMessage(
 
             const transactionDetails = getTransactionDetails(linkedTransaction);
             const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
-            return Localize.translateLocal('iou.trackedAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
+            return Localize.translateLocal('iou.expensedAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
         }
     }
 
@@ -5281,7 +5281,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
     if (ReportActionsUtils.isSplitBillAction(reportAction)) {
         translationKey = 'iou.didSplitAmount';
     } else if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-        translationKey = 'iou.trackedAmount';
+        translationKey = 'iou.expensedAmount';
     } else {
         translationKey = 'iou.requestedAmount';
     }

@@ -408,10 +408,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
             text = translate('iou.submitExpense');
             if (iouAmount !== 0) {
-                text = translate('iou.requestAmount', {amount: formattedAmount});
+                text = translate('iou.submitAmount', {amount: formattedAmount});
             }
         } else {
-            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.requestAmount';
+            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.submitAmount';
             text = translate(translationKey, {amount: formattedAmount});
         }
         return [

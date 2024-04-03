@@ -299,7 +299,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message="iou.error.splitBillMultipleParticipantsErrorMessage"
+                        message="iou.error.splitExpenseMultipleParticipantsErrorMessage"
                     />
                 )}
 
