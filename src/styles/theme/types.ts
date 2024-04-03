@@ -79,7 +79,6 @@ type ThemeColors = {
     badgeAdHocHover: Color;
     mentionText: Color;
     mentionBG: Color;
-    onboardingVideoBG: Color;
     ourMentionText: Color;
     ourMentionBG: Color;
     tooltipSupportingText: Color;
