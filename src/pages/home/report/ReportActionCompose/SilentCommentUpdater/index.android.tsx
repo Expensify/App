@@ -15,7 +15,11 @@ import type {SilentCommentUpdaterOnyxProps, SilentCommentUpdaterProps} from './t
  */
 function SilentCommentUpdater({comment, updateComment}: SilentCommentUpdaterProps) {
     useEffect(() => {
-        updateComment(comment ?? '');
+        // Only update the comment if it's not an empty string
+        if (!comment) {
+            return;
+        }
+        updateComment(comment);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
     }, []);
 
