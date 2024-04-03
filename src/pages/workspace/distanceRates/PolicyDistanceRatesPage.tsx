@@ -106,7 +106,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 errors: value.errors ?? undefined,
                 rightElement: (
                     <View style={styles.flexRow}>
-                        <Text style={[styles.alignSelfCenter, !value.enabled && styles.textSupporting]}>
+                        <Text style={[styles.alignSelfCenter, styles.textSupporting, styles.pl2, styles.label]}>
                             {value.enabled ? translate('workspace.distanceRates.enabled') : translate('workspace.distanceRates.disabled')}
                         </Text>
                         <View style={[styles.p1, styles.pl2]}>
