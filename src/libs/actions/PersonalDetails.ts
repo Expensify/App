@@ -49,7 +49,7 @@ Onyx.connect({
     callback: (val) => (privatePersonalDetails = val),
 });
 
-function updatePronouns(pronouns: string) {
+function updatePronouns(pronouns: string, navigate = true) {
     if (currentUserAccountID) {
         const parameters: UpdatePronounsParams = {pronouns};
 
@@ -68,7 +68,9 @@ function updatePronouns(pronouns: string) {
         });
     }
 
-    Navigation.goBack();
+    if (navigate) {
+        Navigation.goBack();
+    }
 }
 
 function updateDisplayName(firstName: string, lastName: string) {

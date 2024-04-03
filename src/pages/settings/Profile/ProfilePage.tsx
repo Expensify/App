@@ -64,7 +64,7 @@ function ProfilePage({
     const getPronouns = (): string => {
         const pronounsKey = PersonalDetailsUtils.getPronounsKey(currentUserPersonalDetails);
         if (PersonalDetailsUtils.isDeprecatedPronouns(currentUserPersonalDetails)) {
-            PersonalDetails.updatePronouns(`${CONST.PRONOUNS.PREFIX}${pronounsKey}`);
+            PersonalDetails.updatePronouns(`${CONST.PRONOUNS.PREFIX}${pronounsKey}`, false);
         }
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
