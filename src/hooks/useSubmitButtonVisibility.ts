@@ -15,6 +15,8 @@ function useSubmitButtonVisibility() {
     const initialWindowHeightRef = useRef(windowHeight);
     const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
     const {bottom} = useSafeAreaInsets();
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
     // Web: the submit button is shown when the height of the window is the same or greater,
     // otherwise it's hidden
@@ -38,8 +40,6 @@ function useSubmitButtonVisibility() {
     // Web: the submit button is only shown when the window height is the same or greater,
     // so executing this function won't do anything
     const showSubmitButton = () => {
-        const platform = getPlatform();
-        const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
         if (!isNative) {
             return;
         }
@@ -49,8 +49,6 @@ function useSubmitButtonVisibility() {
     // Web: the submit button is only hidden when the window height becomes smaller,
     // so executing this function won't do anything
     const hideSubmitButton = () => {
-        const platform = getPlatform();
-        const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
         if (!isNative) {
             return;
         }
