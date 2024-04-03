@@ -1,113 +1,8 @@
 /**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
  */
-/**
- * NOTE: This is a compiled file. DO NOT directly edit this file.
- */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
-
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- *
- * @param {String} name
- * @param {Object} options
- * @param {*} [defaultValue]
- * @returns {string|undefined}
- */
-function getStringInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
-
-module.exports = {
-    getJSONInput,
-    getStringInput,
-};
-
-
-/***/ }),
-
-/***/ 4502:
-/***/ ((module) => {
-
-/**
- * Simulates a while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
- */
-function promiseWhile(condition, action) {
-    console.info('[promiseWhile] promiseWhile()');
-
-    return new Promise((resolve, reject) => {
-        const loop = function () {
-            if (!condition()) {
-                resolve();
-            } else {
-                const actionResult = action();
-                console.info('[promiseWhile] promiseWhile() actionResult', actionResult);
-                Promise.resolve(actionResult).then(loop).catch(reject);
-            }
-        };
-        loop();
-    });
-}
-
-/**
- * Simulates a do-while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
- */
-function promiseDoWhile(condition, action) {
-    console.info('[promiseWhile] promiseDoWhile()');
-
-    return new Promise((resolve, reject) => {
-        console.info('[promiseWhile] promiseDoWhile() condition', condition);
-        const actionResult = action();
-        console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
-        actionResult
-            .then(() => promiseWhile(condition, action))
-            .then(() => resolve())
-            .catch(reject);
-    });
-}
-
-module.exports = {
-    promiseWhile,
-    promiseDoWhile,
-};
-
-
-/***/ }),
 
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
@@ -12254,10 +12149,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention */
 const throttle_1 = __importDefault(__nccwpck_require__(2891));
-const ActionUtils_1 = __importDefault(__nccwpck_require__(970));
+const ActionUtils_1 = __importDefault(__nccwpck_require__(6981));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importStar(__nccwpck_require__(9296));
-const promiseWhile_1 = __nccwpck_require__(4502);
+const promiseWhile_1 = __nccwpck_require__(9438);
 function run() {
     console.info('[awaitStagingDeploys] run()');
     console.info('[awaitStagingDeploys] ActionUtils', ActionUtils_1.default);
@@ -12309,15 +12204,80 @@ exports["default"] = run;
 
 /***/ }),
 
+/***/ 6981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getStringInput = exports.getJSONInput = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param name - The name of the input.
+ * @param options - Options to pass to core.getInput
+ * @param [defaultValue] - A default value to provide for the input.
+ *                         Not required if the {required: true} option is given in the second arg to this function.
+ */
+function getJSONInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+exports.getJSONInput = getJSONInput;
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ */
+function getStringInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+exports.getStringInput = getStringInput;
+
+
+/***/ }),
+
 /***/ 9873:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const CONST = {
+const GIT_CONST = {
     GITHUB_OWNER: 'Expensify',
     APP_REPO: 'App',
+};
+const CONST = {
+    ...GIT_CONST,
     APPLAUSE_BOT: 'applausebot',
     OS_BOTIFY: 'OSBotify',
     LABELS: {
@@ -12326,11 +12286,9 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
     },
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
-    APP_REPO_URL: '',
-    APP_REPO_GIT_URL: '',
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
 };
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
 exports["default"] = CONST;
 
 

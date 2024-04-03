@@ -1,9 +1,6 @@
 /**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
  */
-/**
- * NOTE: This is a compiled file. DO NOT directly edit this file.
- */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -22,7 +19,6 @@ __nccwpck_require__.r(__webpack_exports__);
 
 const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
-const CONST = __nccwpck_require__(9873);
 const GithubUtils = __nccwpck_require__(9296);
 
 const run = function () {
@@ -91,7 +87,7 @@ if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
     run();
 }
 
-module.exports = run;
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (run);
 
 
 /***/ }),
@@ -11519,9 +11515,12 @@ function wrappy (fn, cb) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const CONST = {
+const GIT_CONST = {
     GITHUB_OWNER: 'Expensify',
     APP_REPO: 'App',
+};
+const CONST = {
+    ...GIT_CONST,
     APPLAUSE_BOT: 'applausebot',
     OS_BOTIFY: 'OSBotify',
     LABELS: {
@@ -11530,11 +11529,9 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
     },
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
-    APP_REPO_URL: '',
-    APP_REPO_GIT_URL: '',
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
 };
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
 exports["default"] = CONST;
 
 
