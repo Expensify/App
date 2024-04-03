@@ -17,28 +17,6 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
     const prevPreferredLocale = usePrevious(preferredLocale);
 
     useEffect(() => {
-        /**
-         * Schedules the callback to run when the main thread is idle.
-         *
-         * Only update the comment if it holds some truthy value.
-         */
-        if ('requestIdleCallback' in window) {
-            const callbackID = requestIdleCallback(() => {
-                if (!comment) {
-                    return;
-                }
-                updateComment(comment);
-            });
-            return () => cancelIdleCallback(callbackID);
-        }
-        if (comment) {
-            updateComment(comment);
-        }
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
-    }, []);
-
-    useEffect(() => {
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
         // In this case, we should synchronize the value between tabs.
         const shouldSyncComment = prevCommentProp !== comment && value !== comment && !isCommentPendingSaved.current;
