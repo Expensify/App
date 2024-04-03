@@ -262,39 +262,10 @@ function ComposerWithSuggestions(
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const draftComment = getDraftComment(reportID) ?? '';
-    const insertedEmojisRef = useRef<Emoji[]>([]);
-
-    /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
-        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
-        insertedEmojisRef.current = [];
-    }, []);
-
     const [value, setValue] = useState(() => {
         if (draftComment) {
             emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
-            // Replace any emoji text with emoji code to replace any unprocessed emoji text because of the locale difference.
-            const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(draftComment, preferredSkinTone, preferredLocale);
-            if (emojis.length) {
-                // If there is a text replaced to emoji, add it to the frequently used emojis, save the new draft, and returns it.
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                if (newEmojis.length) {
-                    insertedEmojisRef.current = newEmojis;
-                    debouncedUpdateFrequentlyUsedEmojis();
-                }
-                const newCommentConverted = convertToLTRForComposer(newComment);
-
-                emojisPresentBefore.current = emojis;
-
-                Report.saveReportComment(reportID, newCommentConverted || '');
-
-                return newCommentConverted;
-            }
         }
-
         return draftComment;
     });
     const commentRef = useRef(value);
@@ -315,6 +286,7 @@ function ComposerWithSuggestions(
     const [composerHeight, setComposerHeight] = useState(0);
 
     const textInputRef = useRef<TextInput | null>(null);
+    const insertedEmojisRef = useRef<Emoji[]>([]);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
@@ -326,6 +298,15 @@ function ComposerWithSuggestions(
 
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
+
+    /**
+     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
+     * API is not called too often.
+     */
+    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
+        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
+        insertedEmojisRef.current = [];
+    }, []);
 
     /**
      * Set the TextInput Ref
