@@ -706,7 +706,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             return;
                         }
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouAction, CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(
+                                iouAction,
+                                CONST.IOU.ACTION.CREATE,
+                                iouType,
+                                transaction.transactionID,
+                                reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
                         );
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}

@@ -185,7 +185,21 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return [newSections, chatOptions];
-    }, [areOptionsInitialized, options.reports, options.personalDetails, betas, debouncedSearchTerm, participants, iouType, iouAction, canUseP2PDistanceRequests, iouRequestType, maxParticipantsReached, personalDetails, translate]);
+    }, [
+        areOptionsInitialized,
+        options.reports,
+        options.personalDetails,
+        betas,
+        debouncedSearchTerm,
+        participants,
+        iouType,
+        iouAction,
+        canUseP2PDistanceRequests,
+        iouRequestType,
+        maxParticipantsReached,
+        personalDetails,
+        translate,
+    ]);
 
     /**
      * Adds a single participant to the request

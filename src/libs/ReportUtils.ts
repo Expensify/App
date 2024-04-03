@@ -2584,7 +2584,7 @@ function getReportPreviewMessage(
     isForListPreview = false,
     originalReportAction: OnyxEntry<ReportAction> | EmptyObject = iouReportAction,
 ): string {
-    const reportActionMessage = iouReportAction?.message?.[0].html ?? '';
+    const reportActionMessage = iouReportAction?.message?.[0]?.html ?? '';
 
     if (isEmptyObject(report) || !report?.reportID) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
@@ -5703,7 +5703,7 @@ function hasActionsWithErrors(reportID: string): boolean {
 }
 
 function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>, reportActionID: string): void {
-    const transaction = getTransaction(transactionID);
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
     const reportActions = ReportActionsUtils.getAllReportActions(reportID);
 
     if (!transaction || !reportActions) {

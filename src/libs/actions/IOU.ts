@@ -2348,7 +2348,7 @@ function requestMoney(
                 createdChatReportActionID,
                 moneyRequestReportID: iouReport.reportID,
                 moneyRequestCreatedReportActionID: createdIOUReportActionID,
-                moneyRequestPreviewReportActionID: reportPreviewAction.reportActionID,
+                moneyRequestPreviewReportActionID: iouAction.reportActionID,
                 // modifiedExpenseReportActionID - not sure what need to be done here maybe `buildOptimisticModifiedExpenseReportAction` with transaction changes
             };
 
