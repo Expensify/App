@@ -56,16 +56,29 @@ const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== C
 function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners, newGroupDraft}: NewChatPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const personalData = useCurrentUserPersonalDetails();
+
+    const getGroupParticipants = () => {
+        if (!newGroupDraft?.participants) {
+            return [];
+        }
+        const selectedParticipants = newGroupDraft.participants.filter((participant) => participant.accountID !== personalData.accountID);
+        const newSelectedOptions = selectedParticipants.map((participant): OptionData => {
+            const baseOption = OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, personalDetails);
+            return {...baseOption, reportID: baseOption.reportID ?? ''};
+        });
+        return newSelectedOptions;
+    };
+
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState<ReportUtils.OptionData[]>([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<ReportUtils.OptionData[]>([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState<ReportUtils.OptionData | null>();
-    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
+    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(getGroupParticipants);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-
-    const personalData = useCurrentUserPersonalDetails();
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -188,16 +201,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     };
 
     const updateOptions = useCallback(() => {
-        let newSelectedOptions;
-        if (newGroupDraft?.participants) {
-            const selectedParticipants = newGroupDraft.participants.filter((participant) => participant.accountID !== personalData.accountID);
-            newSelectedOptions = selectedParticipants.map((participant): OptionData => {
-                const baseOption = OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, personalDetails);
-                return {...baseOption, reportID: baseOption.reportID ?? ''};
-            });
-            setSelectedOptions(newSelectedOptions);
-        }
-
         const {
             recentReports,
             personalDetails: newChatPersonalDetails,
@@ -207,7 +210,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             personalDetails,
             betas ?? [],
             searchTerm,
-            newSelectedOptions ?? selectedOptions,
+            selectedOptions,
             isGroupChat ? excludedGroupEmails : [],
             false,
             true,
@@ -225,7 +228,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         setFilteredUserToInvite(userToInvite);
         // props.betas is not added as dependency since it doesn't change during the component lifecycle
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reports, personalDetails, searchTerm, newGroupDraft]);
+    }, [reports, personalDetails, searchTerm]);
 
     useEffect(() => {
         const interactionTask = doInteractionTask(() => {
@@ -240,6 +243,11 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             interactionTask.cancel();
         };
     }, []);
+
+    useEffect(() => {
+        setSelectedOptions(getGroupParticipants());
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Overwrite participants only if the draft changes
+    }, [newGroupDraft?.participants]);
 
     useEffect(() => {
         if (!didScreenTransitionEnd) {

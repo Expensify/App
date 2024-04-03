@@ -9,8 +9,8 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {Section} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
@@ -293,7 +293,7 @@ function WorkspaceInvitePage({
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
-                    ListItem={UserListItem}
+                    ListItem={InviteMemberListItem}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
@@ -306,7 +306,6 @@ function WorkspaceInvitePage({
                     showScrollIndicator
                     showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetailsProp)}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                    checkmarkPosition={CONST.DIRECTION.RIGHT}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton
