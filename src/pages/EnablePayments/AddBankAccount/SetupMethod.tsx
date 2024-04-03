@@ -38,7 +38,7 @@ function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
         <Section
             icon={Illustrations.MoneyWings}
             title={translate('walletPage.addYourBankAccount')}
-            titleStyles={[styles.textXLarge]}
+            titleStyles={[styles.textHeadlineLineHeightXXL]}
         >
             <View style={[styles.mv3]}>
                 <Text>{translate('walletPage.addBankAccountBody')}</Text>

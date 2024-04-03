@@ -397,7 +397,13 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
 
                                             <KYCWall
                                                 onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
-                                                onSelectPaymentMethod={() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT)}
+                                                onSelectPaymentMethod={(selectedPaymentMethod: string) => {
+                                                    if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+                                                        return;
+                                                    }
+                                                    // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
+                                                    BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
+                                                }}
                                                 enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
                                                 addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
                                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}

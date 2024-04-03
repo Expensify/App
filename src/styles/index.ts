@@ -418,11 +418,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLarge,
         },
 
-        textXLarge: {
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXLarge,
-        },
-
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },

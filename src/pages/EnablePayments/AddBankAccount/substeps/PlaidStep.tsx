@@ -80,7 +80,7 @@ function PlaidStep({personalBankAccountDraft, onNext, plaidData}: PlaidStepProps
                 plaidData={plaidData}
                 onExitPlaid={BankAccounts.clearPersonalBankAccountSetupType}
                 allowDebit
-                isNewWalletFlow
+                isDisplayedInWalletFlow
                 selectedPlaidAccountID={selectedPlaidAccountID}
                 inputID={BANK_INFO_STEP_KEYS.SELECTED_PLAID_ACCOUNT_ID}
                 defaultValue={selectedPlaidAccountID}
