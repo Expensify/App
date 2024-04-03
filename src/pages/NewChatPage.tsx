@@ -27,7 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 type NewChatPageProps = {
-    isGroupChat: boolean;
+    isGroupChat?: boolean;
 };
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
