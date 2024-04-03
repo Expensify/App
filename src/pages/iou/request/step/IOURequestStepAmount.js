@@ -45,22 +45,14 @@ const propTypes = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: transactionPropTypes,
 
-        /** Whether or not the policy has tax tracking enabled */
-        tax: PropTypes.shape({
-            trackingEnabled: PropTypes.bool,
-        }),
-
-        /** Collection of tax rates attached to a policy */
-        taxRates: taxPropTypes,
-    }),
+    /** The draft transaction object being modified in Onyx */
+    draftTransaction: transactionPropTypes,
 
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 
-    /** The draft transaction object being modified in Onyx */
-    draftTransaction: transactionPropTypes,
 };
 
 const defaultProps = {
@@ -71,18 +63,12 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const getTaxAmount = (transaction, defaultTaxValue, amount) => {
-    const percentage = (transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue) || '';
-    return TransactionUtils.calculateTaxAmount(percentage, amount);
-    splitDraftTransaction: {},
-    draftTransaction: {},
-};
-
 function IOURequestStepAmount({
     report,
     route: {
         params: {iouType, reportID, transactionID, backTo, action},
     },
+    transaction,
     policy,
     personalDetails,
     currentUserPersonalDetails,
@@ -96,9 +82,6 @@ function IOURequestStepAmount({
     const originalCurrency = useRef(null);
     const iouRequestType = getRequestType(transaction);
 
-    const taxRates = lodashGet(policy, 'taxRates', {});
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
-    const isTaxTrackingEnabled = isPolicyExpenseChat && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
@@ -188,7 +171,7 @@ function IOURequestStepAmount({
                         currentUserPersonalDetails.accountID,
                         backendAmount,
                         '',
-                        transaction.currency,
+                        currency,
                         '',
                         '',
                         '',
@@ -197,18 +180,18 @@ function IOURequestStepAmount({
                 }
                 if (iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        IOU.sendMoneyWithWallet(report, backendAmount, transaction.currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
                         return;
                     }
 
-                    IOU.sendMoneyElsewhere(report, backendAmount, transaction.currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.REQUEST) {
                     IOU.requestMoney(
                         report,
                         backendAmount,
-                        transaction.currency,
+                        currency,
                         transaction.created,
                         '',
                         currentUserPersonalDetails.login,
@@ -293,6 +276,7 @@ export default compose(
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        },
         splitDraftTransaction: {
             key: ({route}) => {
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
