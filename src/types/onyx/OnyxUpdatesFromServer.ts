@@ -13,7 +13,7 @@ type OnyxUpdateEvent = {
 };
 
 type OnyxUpdatesFromServer = {
-    type: OnyxUpdatesType;
+    type: 'https' | 'pusher' | 'airship';
     lastUpdateID: number | string;
     previousUpdateID: number | string;
     request?: Request;
@@ -21,6 +21,4 @@ type OnyxUpdatesFromServer = {
     updates?: OnyxUpdateEvent[];
 };
 
-type OnyxUpdatesType = 'https' | 'pusher' | 'airship';
-
-export type {OnyxUpdatesFromServer, OnyxUpdateEvent, OnyxServerUpdate, OnyxUpdatesType};
+export type {OnyxUpdatesFromServer, OnyxUpdateEvent, OnyxServerUpdate};
