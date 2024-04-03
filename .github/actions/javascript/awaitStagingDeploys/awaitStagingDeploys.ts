@@ -2,8 +2,8 @@
 import lodashThrottle from 'lodash/throttle';
 import ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
+import {POLL_RATE} from '@github/libs/constants';
 import GitHubUtils from '@github/libs/GithubUtils';
-import {POLL_RATE} from '@github/libs/constants'
 import {promiseDoWhile} from '@github/libs/promiseWhile';
 
 type CurrentStagingDeploys = Awaited<ReturnType<typeof GitHubUtils.octokit.actions.listWorkflowRuns>>['data']['workflow_runs'];
