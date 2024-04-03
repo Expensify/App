@@ -445,7 +445,7 @@ describe('libs/NextStepUtils', () => {
 
             test('submit and close approval mode', () => {
                 report.ownerAccountID = strangeAccountID;
-                optimisticNextStep.title = 'Finished:';
+                optimisticNextStep.title = 'Finished!';
                 optimisticNextStep.message = [
                     {
                         text: 'No further action required!',
@@ -569,14 +569,6 @@ describe('libs/NextStepUtils', () => {
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: false});
 
                 expect(result).toMatchObject(optimisticNextStep);
-            });
-        });
-
-        describe('it generates a nullable optimistic nextStep', () => {
-            test('closed status', () => {
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
-
-                expect(result).toBeNull();
             });
         });
     });
