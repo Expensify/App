@@ -23,11 +23,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as App from '@userActions/App';
+import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LoginList, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import type {LoginList, PrivatePersonalDetails, PersonalDetails as TPersonalDetails} from '@src/types/onyx';
 
 type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -61,7 +62,10 @@ function ProfilePage({
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const getPronouns = (): string => {
-        const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
+        const pronounsKey = PersonalDetailsUtils.getPronounsKey(currentUserPersonalDetails);
+        if (PersonalDetailsUtils.isDeprecatedPronouns(currentUserPersonalDetails)) {
+            PersonalDetails.updatePronouns(`${CONST.PRONOUNS.PREFIX}${pronounsKey}`);
+        }
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
 
@@ -102,7 +106,7 @@ function ProfilePage({
     ];
 
     useEffect(() => {
-        App.openProfile(currentUserPersonalDetails as PersonalDetails);
+        App.openProfile(currentUserPersonalDetails as TPersonalDetails);
     }, [currentUserPersonalDetails]);
 
     const privateOptions = [

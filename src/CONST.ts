@@ -1433,6 +1433,15 @@ const CONST = {
         'callMeByMyName',
     ],
 
+    DEPRECATED_PRONOUNS_LIST: {
+        heHimHis: 'He/him',
+        sheHerHers: 'She/her',
+        theyThemTheirs: 'They/them',
+        zeHirHirs: 'Ze/hir',
+        selfSelect: 'Self-select',
+        callMeByMyName: 'Call me by my name',
+    },
+
     POLICY: {
         TYPE: {
             FREE: 'free',

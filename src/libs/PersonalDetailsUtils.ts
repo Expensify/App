@@ -283,11 +283,32 @@ function isPersonalDetailsEmpty() {
     return !personalDetails.length;
 }
 
+/**
+ * Check if the pronouns from personal details is deprecated based on prefix.
+ * @param personalDetail - details object
+ * @returns - whether the pronouns is deprecated
+ */
+function isDeprecatedPronouns(personalDetail?: Partial<PersonalDetails>): boolean {
+    return !personalDetail?.pronouns?.startsWith(CONST.PRONOUNS.PREFIX);
+}
+
+/**
+ * Gets the pronouns key from personal details, also migrates deprecated pronouns.
+ * @param personalDetail - details object
+ * @returns - pronouns key used in language file
+ */
+function getPronounsKey(personalDetail?: Partial<PersonalDetails>): string {
+    const pronouns = personalDetail?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
+    return isDeprecatedPronouns(personalDetail) ? Object.entries(CONST.DEPRECATED_PRONOUNS_LIST).find((deprecated) => deprecated[1] === pronouns)?.[0] ?? pronouns : pronouns;
+}
+
 export {
+    isDeprecatedPronouns,
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     getPersonalDetailByEmail,
+    getPronounsKey,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getNewPersonalDetailsOnyxData,
