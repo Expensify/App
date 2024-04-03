@@ -22,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 import type {Task} from '@src/types/onyx';
+import * as ReportUtils from "@libs/ReportUtils";
 
 type NewTaskTitlePageOnyxProps = {
     /** Task Creation Data */
@@ -34,6 +35,8 @@ function NewTaskTitlePage({task}: NewTaskTitlePageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const {translate} = useLocalize();
+
+    const skipConfirmation = task.skipConfirmation;
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
