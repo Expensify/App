@@ -35,6 +35,14 @@ import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import _ from "@types/underscore";
 import * as OptionsListUtils from "@libs/OptionsListUtils";
+import * as ReportUtils from "@libs/ReportUtils";
+import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsDefaultProps,
+    withCurrentUserPersonalDetailsPropTypes
+} from "@components/withCurrentUserPersonalDetails";
+import {withOnyx} from "react-native-onyx";
+import ONYXKEYS from "@src/ONYXKEYS";
+import personalDetailsPropType from "@pages/personalDetailsPropType";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -46,11 +54,19 @@ const propTypes = {
 
     /** The transaction (or draft transaction) being changed */
     transaction: transactionPropTypes,
+
+    /** Personal details of all users */
+    personalDetails: personalDetailsPropType,
+
+    /** The personal details of the current user */
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
+    personalDetails: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function IOURequestStepScan({
@@ -58,7 +74,10 @@ function IOURequestStepScan({
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
+    transaction,
     transaction: {isFromGlobalCreate},
+    personalDetails,
+    currentUserPersonalDetails,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -71,6 +90,7 @@ function IOURequestStepScan({
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+    const skipConfirmation = transaction.skipConfirmation && !ReportUtils.isArchivedRoom(report);
 
     const {translate} = useLocalize();
 
@@ -177,7 +197,7 @@ function IOURequestStepScan({
         Navigation.goBack();
     };
 
-    const navigateToConfirmationStep = useCallback(() => {
+    const navigateToConfirmationStep = useCallback((file, source) => {
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -258,7 +278,7 @@ function IOURequestStepScan({
             return;
         }
 
-        navigateToConfirmationStep();
+        navigateToConfirmationStep(file, file.uri);
     };
 
     const capturePhoto = useCallback(() => {
@@ -289,15 +309,15 @@ function IOURequestStepScan({
                 const source = `file://${photo.path}`;
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
-                if (action === CONST.IOU.ACTION.EDIT) {
-                    FileUtils.readFileAsync(source, photo.path, (file) => {
+                FileUtils.readFileAsync(source, photo.path, (file) => {
+                    if (action === CONST.IOU.ACTION.EDIT) {
                         updateScanAndNavigate(file, source);
-                    });
-                    return;
-                }
+                        return;
+                    }
+                    setDidCapturePhoto(true);
+                    navigateToConfirmationStep(file, source);
+                });
 
-                setDidCapturePhoto(true);
-                navigateToConfirmationStep();
             })
             .catch((error) => {
                 setDidCapturePhoto(false);
@@ -428,4 +448,13 @@ IOURequestStepScan.defaultProps = defaultProps;
 IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+    }),
+)(IOURequestStepScan);

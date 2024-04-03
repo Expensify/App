@@ -331,7 +331,7 @@ function IOURequestStepScan({
             return;
         }
 
-        navigateToConfirmationStep();
+        navigateToConfirmationStep(file, source);
     }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
 
     const clearTorchConstraints = useCallback(() => {
