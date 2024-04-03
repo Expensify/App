@@ -5642,6 +5642,7 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+/** Check if the current user is an owner of the report */
 function isReportOwner(report: OnyxEntry<Report>): boolean {
     return report?.ownerAccountID === currentUserPersonalDetails?.accountID;
 }
@@ -5703,6 +5704,10 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
 function hasActionsWithErrors(reportID: string): boolean {
     const reportActions = ReportActionsUtils.getAllReportActions(reportID ?? '');
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
+}
+
+function canLeavePolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    return isPolicyExpenseChat(report) && !(PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPolicyOwner(policy, currentUserAccountID ?? -1) || isReportOwner(report));
 }
 
 export {
@@ -5932,6 +5937,7 @@ export {
     isTrackExpenseReport,
     hasActionsWithErrors,
     getGroupChatName,
+    canLeavePolicyExpenseChat,
 };
 
 export type {

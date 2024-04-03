@@ -26,7 +26,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ReportWithoutHasDraft} from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Link from '@userActions/Link';
@@ -99,8 +98,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);
     const isPolicyMember = useMemo(() => !isEmptyObject(policy), [policy]);
     const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyMember);
-    const canLeavePolicyExpenseChat =
-        isPolicyExpenseChat && !(PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPolicyOwner(policy, session?.accountID ?? -1) || ReportUtils.isReportOwner(report));
+    const canLeavePolicyExpenseChat = ReportUtils.canLeavePolicyExpenseChat(report, policy);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
