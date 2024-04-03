@@ -974,9 +974,10 @@ function removeMembers(accountIDs: number[], policyID: string) {
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
+/** Leave a workspace */
 function leaveWorkspace(policyID: string) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
-    const policy = ReportUtils.getPolicy(policyID);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, [sessionAccountID]);
 
     const optimisticData: OnyxUpdate[] = [
@@ -1020,7 +1021,7 @@ function leaveWorkspace(policyID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingAction: policy.pendingAction,
+                pendingAction: policy?.pendingAction,
             },
         },
     ];
@@ -1034,7 +1035,7 @@ function leaveWorkspace(policyID: string) {
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                oldPolicyName: policy.name,
+                oldPolicyName: policy?.name ?? '',
                 hasDraft: false,
                 pendingChatMembers,
             },
