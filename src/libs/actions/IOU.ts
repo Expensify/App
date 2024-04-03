@@ -4821,6 +4821,12 @@ function submitReport(expenseReport: OnyxTypes.Report) {
               },
           ];
 
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+        value: optimisticNextStep,
+    });
+
     if (parentReport?.reportID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
