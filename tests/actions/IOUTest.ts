@@ -3053,6 +3053,8 @@ describe('actions/IOU', () => {
                 .then(() => {
                     const policyID = PolicyActions.generatePolicyID();
                     PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+
+                    // Change the approval mode for the policy since default is Submit and Close
                     PolicyActions.setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
                     return waitForBatchedUpdates();
                 })
