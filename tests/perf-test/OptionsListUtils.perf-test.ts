@@ -165,6 +165,7 @@ describe('OptionsListUtils', () => {
                 Object.values(filteredPersonalDetails),
                 false,
                 mockedPersonalDetails,
+                true
             )
         );
     });
