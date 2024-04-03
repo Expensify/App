@@ -251,6 +251,8 @@ const SCREENS = {
         QUICKBOOKSONLINE_EXPORT: 'Workspace_Accounting_QuickbooksOnline_Export',
         QUICKBOOKSONLINE_EXPORT_DATE: 'Workspace_Accounting_QuickbooksOnline_Export_Date',
         QUICKBOOKSONLINE_EXPORT_INVOICES: 'Workspace_Accounting_QuickbooksOnline_Export_Invoices',
+        QUICKBOOKSONLINE_EXPORT_COMPANY_CARDS: 'Workspace_Accounting_QuickbooksOnline_Export_Company_Cards',
+        QUICKBOOKSONLINE_EXPORT_COMPANY_CARD: 'Workspace_Accounting_QuickbooksOnline_Export_Company_Card',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
     },
 

@@ -458,6 +458,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const,
     },
+    WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_COMPANY_CARDS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/company-cards',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/company-cards` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_COMPANY_CARD: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/company-card',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/company-card` as const,
+    },
     WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_INVOICES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoices',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/invoices` as const,

@@ -1820,6 +1820,7 @@ export default {
         },
         qbo: {
             export: 'Export',
+            exportAs: 'Export as',
             exportDescription: 'Configure how data in Expensify gets exported to QuickBooks Online.',
             preferredExporter: 'Preferred exporter',
             date: 'Date',
@@ -1836,7 +1837,11 @@ export default {
             submittedData: {label: 'Submitted data', description: 'The date the report was submitted for approval'},
             receivable: 'Accounts receivable',
             archive: 'Accounts receivable archive',
-            exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.'
+            exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.',
+            exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
+            creditCard: 'Credit Card',
+            debitCard: 'Debit Card',
+            vendorBill: 'Vendor Bill',
         },
         categories: {
             deleteCategories: 'Delete categories',

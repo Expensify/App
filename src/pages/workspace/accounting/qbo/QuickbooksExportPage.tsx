@@ -47,7 +47,7 @@ function QuickbooksExportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.qbo.exportCompany'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_COMPANY_CARDS.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncTaxes),
             title: 'Debit card',
         },

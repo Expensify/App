@@ -1842,6 +1842,7 @@ export default {
         },
         qbo: {
             export: 'Exportar',
+            exportAs: 'Exportar cómo',
             exportDescription: 'Configure cómo se exportan los datos de Expensify a QuickBooks Online.',
             preferredExporter: 'Exportador preferido',
             date: 'Fecha',
@@ -1858,7 +1859,11 @@ export default {
             submittedData: {label: 'Datos enviados', description: 'La fecha en que se presentó el informe para su aprobación.'},
             receivable: 'Cuentas por cobrar',
             archive: 'Archivo de cuentas por cobrar',
-            exportInvoicesDescription: 'Las facturas se exportarán a esta cuenta en QuickBooks Online.'
+            exportInvoicesDescription: 'Las facturas se exportarán a esta cuenta en QuickBooks Online.',
+            exportCompanyCardsDescription: 'Establezca cómo se exportan las compras con tarjeta de empresa a QuickBooks Online.',
+            creditCard: 'Tarjeta de crédito',
+            debitCard: 'Tarjeta de débito',
+            vendorBill: 'Factura del proveedor',
         },
         type: {
             free: 'Gratis',

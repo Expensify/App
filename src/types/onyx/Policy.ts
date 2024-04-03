@@ -157,7 +157,7 @@ type QBOConnectionConfig = {
     syncItems: boolean;
     markChecksToBePrinted: boolean;
     reimbursableExpensesExportDestination: IntegrationEntityMap;
-    nonReimbursableExpensesExportDestination: IntegrationEntityMap;
+    nonReimbursableExpensesExportDestination: string;
 
     reimbursableExpensesAccount?: string;
     nonReimbursableExpensesAccount?: string;

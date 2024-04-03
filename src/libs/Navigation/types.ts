@@ -255,6 +255,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.QUICKBOOKSONLINE_EXPORT_INVOICES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_EXPORT_COMPANY_CARDS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKSONLINE_EXPORT_COMPANY_CARD]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
