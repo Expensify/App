@@ -3278,11 +3278,9 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
 function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
     const policy = getPolicy(report?.policyID);
     const ownerPersonalDetails = getPersonalDetailsForAccountID(policy?.submitsTo ?? 0);
-    let submittedToDisplayName: string;
+    let submittedToDisplayName = `${ownerPersonalDetails.displayName ?? ''}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`;
     if (ownerPersonalDetails?.accountID === currentUserAccountID) {
         submittedToDisplayName = 'yourself';
-    } else {
-        submittedToDisplayName = `${ownerPersonalDetails.displayName ?? ''}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`;
     }
 
     return [
