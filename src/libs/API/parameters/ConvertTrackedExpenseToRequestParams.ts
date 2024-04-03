@@ -1,10 +1,12 @@
 type ConvertTrackedExpenseToRequestParams = {
     payerAccountID: number;
+    chatReportID: string;
     transactionID: string;
-    reportActionID: string;
+    actionableWhisperReportActionID: string;
     createdChatReportActionID: string;
-    createdIOUReportActionID: string;
-    reportPreviewReportActionID: string;
+    moneyRequestReportID: string;
+    moneyRequestCreatedReportActionID: string;
+    moneyRequestPreviewReportActionID: string;
 };
 
 export default ConvertTrackedExpenseToRequestParams;

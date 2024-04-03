@@ -755,6 +755,9 @@ const CONST = {
             INVITE: 'invited',
             NOTHING: 'nothing',
         },
+        ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
+            NOTHING: 'nothing',
+        },
         ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
             ACCEPT: 'accept',
             DECLINE: 'decline',

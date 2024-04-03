@@ -2975,7 +2975,7 @@ function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: On
 
     const updatedMessage: Message = {
         ...message,
-        resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+        resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -2986,7 +2986,7 @@ function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: On
                 [reportAction.reportActionID]: {
                     message: [updatedMessage],
                     originalMessage: {
-                        resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                        resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
                     },
                 },
             },

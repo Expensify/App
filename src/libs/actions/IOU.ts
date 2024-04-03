@@ -1172,9 +1172,6 @@ function getMoneyRequestInformation(
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
-    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
-    linkedTrackedExpenseReportID?: string,
-    shouldDeleteLinkedTrackedExpense?: boolean,
 ): MoneyRequestInformation {
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -1339,17 +1336,6 @@ function getMoneyRequestInformation(
         policyCategories,
         optimisticNextStep,
     );
-
-    if (shouldDeleteLinkedTrackedExpense && linkedTrackedExpenseReportAction && linkedTrackedExpenseReportID) {
-        const {
-            optimisticData: deleteOptimisticData,
-            successData: deleteSuccessData,
-            failureData: deleteFailureData,
-        } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, optimisticTransaction.transactionID, linkedTrackedExpenseReportAction, false);
-        optimisticData.push(...deleteOptimisticData);
-        successData.push(...deleteSuccessData);
-        failureData.push(...deleteFailureData);
-    }
 
     return {
         payerAccountID,
@@ -2264,6 +2250,200 @@ function updateDistanceRequest(
     API.write(WRITE_COMMANDS.UPDATE_DISTANCE_REQUEST, params, onyxData);
 }
 
+function convertTrackedExpenseToRequest(
+    payerAccountID: number,
+    chatReportID: string,
+    transactionID: string,
+    actionableWhisperReportActionID: string,
+    createdChatReportActionID: string,
+    moneyRequestReportID: string,
+    moneyRequestCreatedReportActionID: string,
+    moneyRequestPreviewReportActionID: string,
+    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
+    linkedTrackedExpenseReportID: string,
+    transactionThreadReportID: string,
+    onyxData: OnyxData,
+) {
+    const optimisticData = onyxData.optimisticData;
+    const successData = onyxData.successData;
+    const failureData = onyxData.failureData;
+
+    // Delete the transaction from the track expense report
+    const {
+        optimisticData: deleteOptimisticData,
+        successData: deleteSuccessData,
+        failureData: deleteFailureData,
+    } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, transactionID, linkedTrackedExpenseReportAction, false);
+
+    optimisticData?.push(...deleteOptimisticData);
+    successData?.push(...deleteSuccessData);
+    failureData?.push(...deleteFailureData);
+
+    // Build modified expense report action with the transaction changes
+    const modifiedExpenseReportAction = ReportUtils.buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadReportID, moneyRequestReportID);
+
+    optimisticData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [modifiedExpenseReportAction.reportActionID]: modifiedExpenseReportAction as OnyxTypes.ReportAction,
+        },
+    });
+    successData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [modifiedExpenseReportAction.reportActionID]: {pendingAction: null},
+        },
+    });
+    failureData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [modifiedExpenseReportAction.reportActionID]: {
+                ...(modifiedExpenseReportAction as OnyxTypes.ReportAction),
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'),
+            },
+        },
+    });
+
+    // Resolve actionable whisper message
+    optimisticData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportID}`,
+        value: {
+            [actionableWhisperReportActionID]: {
+                originalMessage: {
+                    resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                },
+            },
+        },
+    });
+
+    failureData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportID}`,
+        value: {
+            [actionableWhisperReportActionID]: {
+                originalMessage: {
+                    resolution: null,
+                },
+            },
+        },
+    });
+
+    const parameters = {
+        payerAccountID,
+        chatReportID,
+        transactionID,
+        actionableWhisperReportActionID,
+        createdChatReportActionID,
+        moneyRequestReportID,
+        moneyRequestCreatedReportActionID,
+        moneyRequestPreviewReportActionID,
+        transactionThreadReportID,
+        modifiedExpenseReportActionID: modifiedExpenseReportAction.reportActionID,
+    };
+    API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
+}
+
+function categorizeTrackedExpense(
+    policyID: string,
+    transactionID: string,
+    moneyRequestPreviewReportActionID: string,
+    moneyRequestReportID: string,
+    moneyRequestCreatedReportActionID: string,
+    actionableWhisperReportActionID: string,
+    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
+    linkedTrackedExpenseReportID: string,
+    transactionThreadReportID: string,
+    onyxData: OnyxData,
+) {
+    const optimisticData = onyxData.optimisticData;
+    const successData = onyxData.successData;
+    const failureData = onyxData.failureData;
+
+    // delete the transaction from the track expense report
+    const {
+        optimisticData: deleteOptimisticData,
+        successData: deleteSuccessData,
+        failureData: deleteFailureData,
+    } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, transactionID, linkedTrackedExpenseReportAction, false);
+
+    optimisticData?.push(...deleteOptimisticData);
+    successData?.push(...deleteSuccessData);
+    failureData?.push(...deleteFailureData);
+
+    // Build modified expense report action with the transaction changes
+    const modifiedExpenseReportAction = ReportUtils.buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadReportID, moneyRequestReportID);
+
+    optimisticData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [modifiedExpenseReportAction.reportActionID]: modifiedExpenseReportAction as OnyxTypes.ReportAction,
+        },
+    });
+
+    successData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [modifiedExpenseReportAction.reportActionID]: { pendingAction: null },
+        },
+    });
+
+    failureData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [modifiedExpenseReportAction.reportActionID]: {
+                ...(modifiedExpenseReportAction as OnyxTypes.ReportAction),
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'),
+            },
+        },
+    });
+
+    // Resolve actionable whisper message
+    optimisticData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportID}`,
+        value: {
+            [actionableWhisperReportActionID]: {
+                originalMessage: {
+                    resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                },
+            },
+        },
+    });
+
+    failureData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportID}`,
+        value: {
+            [actionableWhisperReportActionID]: {
+                originalMessage: {
+                    resolution: null,
+                },
+            },
+        },
+    });
+
+    const parameters = {
+        policyID,
+        transactionID,
+        moneyRequestPreviewReportActionID,
+        moneyRequestReportID,
+        moneyRequestCreatedReportActionID,
+        actionableWhisperReportActionID,
+        modifiedExpenseReportActionID: modifiedExpenseReportAction.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, parameters, { optimisticData, successData, failureData });
+}
+
+
+
 /**
  * Request money from another user
  */
@@ -2297,7 +2477,7 @@ function requestMoney(
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
-    const isMovingTransactionFromTrackExpense = [CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action);
+    const isMovingTransactionFromTrackExpense = action === CONST.IOU.ACTION.MOVE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE;
 
     const {
         payerAccountID,
@@ -2331,42 +2511,45 @@ function requestMoney(
         payeeAccountID,
         payeeEmail,
         moneyRequestReportID,
-        linkedTrackedExpenseReportAction,
-        linkedTrackedExpenseReportID,
-        isMovingTransactionFromTrackExpense,
     );
 
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
     switch (action) {
         case CONST.IOU.ACTION.MOVE: {
-            const parameters = {
+            if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
+                return;
+            }
+
+            convertTrackedExpenseToRequest(
                 payerAccountID,
-                chatReportID: chatReport.reportID,
-                transactionID: (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID,
+                chatReport.reportID,
+                transaction.transactionID,
                 actionableWhisperReportActionID,
                 createdChatReportActionID,
-                moneyRequestReportID: iouReport.reportID,
-                moneyRequestCreatedReportActionID: createdIOUReportActionID,
-                moneyRequestPreviewReportActionID: iouAction.reportActionID,
-                // modifiedExpenseReportActionID - not sure what need to be done here maybe `buildOptimisticModifiedExpenseReportAction` with transaction changes
-            };
-
-            API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, onyxData);
+                iouReport.reportID,
+                createdIOUReportActionID,
+                iouAction.reportActionID,
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID,
+                transactionThreadReportID,
+                onyxData,
+            );
             break;
         }
         case CONST.IOU.ACTION.CATEGORIZE: {
-            const parameters = {
-                policyID: chatReport.policyID,
-                transactionID: (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID,
-                moneyRequestPreviewReportActionID: reportPreviewAction.reportActionID,
-                moneyRequestReportID: iouReport.reportID,
-                moneyRequestCreatedReportActionID: createdIOUReportActionID,
+            categorizeTrackedExpense(
+                chatReport.policyID,
+                transaction.transactionID,
+                iouAction.reportActionID,
+                iouReport.reportID,
+                createdIOUReportActionID,
                 actionableWhisperReportActionID,
-                // modifiedExpenseReportActionID - not sure what need to be done here maybe `buildOptimisticModifiedExpenseReportAction` with transaction changes
-            };
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, parameters, onyxData);
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID,
+                transactionThreadReportID,
+                onyxData,
+            );
             break;
         }
         case CONST.IOU.ACTION.SHARE: {

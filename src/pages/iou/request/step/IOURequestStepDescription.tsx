@@ -124,8 +124,9 @@ function IOURequestStepDescription({
             navigateBack();
             return;
         }
+        const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || action === CONST.IOU.ACTION.MOVE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE;
 
-        IOU.setMoneyRequestDescription(transaction?.transactionID ?? '0', newComment, action === CONST.IOU.ACTION.CREATE);
+        IOU.setMoneyRequestDescription(transaction?.transactionID ?? '0', newComment, isTransactionDraft);
 
         if (action === CONST.IOU.ACTION.EDIT) {
             IOU.updateMoneyRequestDescription(transaction?.transactionID ?? '0', reportID, newComment, policy, policyTags, policyCategories);

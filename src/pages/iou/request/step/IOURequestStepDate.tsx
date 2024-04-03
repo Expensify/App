@@ -79,7 +79,9 @@ function IOURequestStepDate({
             return;
         }
 
-        IOU.setMoneyRequestCreated(transaction?.transactionID ?? '0', newCreated, action === CONST.IOU.ACTION.CREATE);
+        const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || action === CONST.IOU.ACTION.MOVE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE;
+
+        IOU.setMoneyRequestCreated(transaction?.transactionID ?? '0', newCreated, isTransactionDraft);
 
         if (isEditing) {
             IOU.updateMoneyRequestDate(transaction?.transactionID ?? '0', reportID, newCreated, policy, policyTags, policyCategories);

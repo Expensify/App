@@ -169,7 +169,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Download,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is ReportAction => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
-            const messageHtml = reportAction?.message?.at(0)?.html;
+            const messageHtml = getActionHtml(reportAction);
             return (
                 isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && !!reportAction?.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline
             );

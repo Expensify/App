@@ -134,7 +134,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             // sees the option to request money from their admin on their own Workspace Chat.
             iouType === CONST.IOU.TYPE.REQUEST && iouAction !== CONST.IOU.ACTION.MOVE,
 
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouAction !== CONST.IOU.ACTION.CATEGORIZE && iouAction !== CONST.IOU.ACTION.SHARE,
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(iouAction),
             false,
             {},
             [],
@@ -167,11 +167,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             shouldShow: !_.isEmpty(chatOptions.recentReports),
         });
 
-        newSections.push({
-            title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: !_.isEmpty(chatOptions.personalDetails),
-        });
+        if (![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(iouAction)) {
+            newSections.push({
+                title: translate('common.contacts'),
+                data: chatOptions.personalDetails,
+                shouldShow: !_.isEmpty(chatOptions.personalDetails),
+            });
+        }
 
         if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({

@@ -3625,6 +3625,8 @@ function buildOptimisticModifiedExpenseReportAction(
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxEntry<Policy>,
+    isMovingTransactionFromTrackedExpense?: boolean,
+    movedToReportID?: string,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
     return {
@@ -3653,6 +3655,44 @@ function buildOptimisticModifiedExpenseReportAction(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         reportActionID: NumberUtils.rand64(),
         reportID: transactionThread?.reportID,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Builds an optimistic modified expense action for a tracked expense move with a randomly generated reportActionID.
+ * @param transactionThreadID - The reportID of the transaction thread
+ * @param movedToReportID - The reportID of the report the transaction is moved to
+ */
+function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string, movedToReportID: string): OptimisticModifiedExpenseReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created: DateUtils.getDBTime(),
+        isAttachment: false,
+        message: [
+            {
+                // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
+                text: 'You',
+                style: 'strong',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+        ],
+        originalMessage: {
+            movedToReportID,
+        },
+        person: [
+            {
+                style: 'strong',
+                text: currentUserPersonalDetails?.displayName ?? String(currentUserAccountID),
+                type: 'TEXT',
+            },
+        ],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: NumberUtils.rand64(),
+        reportID: transactionThreadID,
         shouldShow: true,
     };
 }
@@ -5804,6 +5844,7 @@ export {
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
     buildOptimisticModifiedExpenseReportAction,
+    buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticCancelPaymentReportAction,
     updateReportPreview,
     buildOptimisticTaskReportAction,

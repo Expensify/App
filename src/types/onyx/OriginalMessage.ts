@@ -290,8 +290,7 @@ type OriginalMessageActionableTrackedExpenseWhisper = {
     originalMessage: {
         transactionID: string;
         lastModified: string;
-        //  todo: add constants for tracking expense whisper resolution
-        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION>;
     };
 };
 
