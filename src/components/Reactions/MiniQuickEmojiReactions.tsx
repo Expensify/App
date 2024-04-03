@@ -5,6 +5,7 @@ import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {usePreferredEmojiSkinTone, usePreferredLocale} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -32,19 +33,14 @@ type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
  * context menu which we just show on web, when hovering
  * a message.
  */
-function MiniQuickEmojiReactions({
-    reportAction,
-    onEmojiSelected,
-    preferredLocale = CONST.LOCALES.DEFAULT,
-    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-    emojiReactions = {},
-    onPressOpenPicker = () => {},
-    onEmojiPickerClosed = () => {},
-}: MiniQuickEmojiReactionsProps) {
+function MiniQuickEmojiReactions({reportAction, onEmojiSelected, emojiReactions = {}, onPressOpenPicker = () => {}, onEmojiPickerClosed = () => {}}: MiniQuickEmojiReactionsProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const ref = useRef<View>(null);
     const {translate} = useLocalize();
+
+    const preferredSkinTone = usePreferredEmojiSkinTone() ?? CONST.EMOJI_DEFAULT_SKIN_TONE;
+    const preferredLocale = usePreferredLocale() ?? CONST.LOCALES.DEFAULT;
 
     const openEmojiPicker = () => {
         onPressOpenPicker();
@@ -105,13 +101,7 @@ function MiniQuickEmojiReactions({
 MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 
 export default withOnyx<MiniQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-    },
     emojiReactions: {
         key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-    },
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },
 })(MiniQuickEmojiReactions);

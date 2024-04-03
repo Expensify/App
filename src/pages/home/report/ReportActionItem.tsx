@@ -13,7 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts} from '@components/OnyxProvider';
+import {useBlockedFromConcierge, usePersonalDetails, useReportActionsDrafts, useUserWallet} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
@@ -88,16 +88,10 @@ const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, 
 };
 
 type ReportActionItemOnyxProps = {
-    /** Stores user's preferred skin tone */
-    preferredSkinTone: OnyxEntry<string | number>;
-
     /** IOU report for this action, if any */
     iouReport: OnyxEntry<OnyxTypes.Report>;
 
     emojiReactions: OnyxEntry<OnyxTypes.ReportActionReactions>;
-
-    /** The user's wallet account */
-    userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -161,9 +155,7 @@ function ReportActionItem({
     iouReport,
     isMostRecentIOUReportAction,
     parentReportAction,
-    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
     shouldDisplayNewMarker,
-    userWallet,
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
     policy,
@@ -179,6 +171,7 @@ function ReportActionItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const userWallet = useUserWallet();
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
 
@@ -578,7 +571,6 @@ function ReportActionItem({
                             index={index}
                             ref={textInputRef}
                             // Avoid defining within component due to an existing Onyx bug
-                            preferredSkinTone={preferredSkinTone}
                             shouldDisableEmojiPicker={(ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(report)}
                         />
                     )}
@@ -910,10 +902,6 @@ function ReportActionItem({
 }
 
 export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    },
     iouReport: {
         key: ({action}) => {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
@@ -928,9 +916,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     emojiReactions: {
         key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
         initialValue: {},
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
     },
     transaction: {
         key: ({transactionThreadReport, reportActions}) => {

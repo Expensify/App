@@ -4,13 +4,13 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import Composer from '@components/Composer';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {usePreferredEmojiSkinTone} from '@components/OnyxProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
@@ -59,9 +59,6 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker?: boolean;
-
-    /** Stores user's preferred skin tone */
-    preferredSkinTone?: OnyxEntry<string | number>;
 };
 
 // native ids
@@ -72,7 +69,7 @@ const isMobileSafari = Browser.isMobileSafari();
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<(TextInput & HTMLTextAreaElement) | undefined>,
 ) {
     const theme = useTheme();
@@ -83,6 +80,7 @@ function ReportActionItemMessageEdit(
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
     const prevDraftMessage = usePrevious(draftMessage);
+    const preferredSkinTone = usePreferredEmojiSkinTone();
 
     const getInitialSelection = () => {
         if (isMobileSafari) {
