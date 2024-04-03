@@ -4786,8 +4786,8 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
                       ...expenseReport,
-                      lastMessageText: optimisticSubmittedReportAction.message?.[0].text ?? '',
-                      lastMessageHtml: optimisticSubmittedReportAction.message?.[0].html ?? '',
+                      lastMessageText: optimisticSubmittedReportAction.message?.[0]?.text ?? '',
+                      lastMessageHtml: optimisticSubmittedReportAction.message?.[0]?.html ?? '',
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                   },
