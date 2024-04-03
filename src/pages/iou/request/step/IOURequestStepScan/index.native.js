@@ -33,6 +33,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
+import _ from "@types/underscore";
+import * as OptionsListUtils from "@libs/OptionsListUtils";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -182,14 +184,50 @@ function IOURequestStepScan({
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
-        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE && !report.reportID) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
 
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-        IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+        const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+        const participants = _.map(selectedParticipants, (participant) => {
+            const participantAccountID = lodashGet(participant, 'accountID', 0);
+            return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+        });
+
+        if (skipConfirmation) {
+            const receipt = file;
+            receipt.source = source;
+            receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+            if (iouType === CONST.IOU.TYPE.SPLIT) {
+                IOU.startSplitBill(
+                    participants,
+                    currentUserPersonalDetails.login,
+                    currentUserPersonalDetails.accountID,
+                    '',
+                    '',
+                    '',
+                    receipt,
+                    reportID,
+                );
+                return;
+            }
+            IOU.requestMoney(
+                report,
+                0,
+                transaction.currency,
+                transaction.created,
+                '',
+                currentUserPersonalDetails.login,
+                currentUserPersonalDetails.accountID,
+                participants[0],
+                '',
+                receipt,
+            );
+            return;
+        }
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 

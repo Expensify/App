@@ -29,11 +29,13 @@ import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import * as ReportUtils from "@libs/ReportUtils";
-import DistanceRequestUtils from "@libs/DistanceRequestUtils";
-import * as OptionsListUtils from "@libs/OptionsListUtils";
-import personalDetailsPropType from "@pages/personalDetailsPropType";
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from "@components/withCurrentUserPersonalDetails";
+import * as ReportUtils from '@libs/ReportUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsDefaultProps,
+    withCurrentUserPersonalDetailsPropTypes
+} from "@components/withCurrentUserPersonalDetails";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -52,7 +54,7 @@ const propTypes = {
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
 
-    ...withCurrentUserPersonalDetailsDefaultProps,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {

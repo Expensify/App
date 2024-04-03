@@ -34,14 +34,14 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import * as ReportUtils from "@libs/ReportUtils";
+import * as ReportUtils from '@libs/ReportUtils';
 import withCurrentUserPersonalDetails, {
     withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes
-} from "@components/withCurrentUserPersonalDetails";
-import personalDetailsPropType from "@pages/personalDetailsPropType";
-import {withOnyx} from "react-native-onyx";
-import ONYXKEYS from "@src/ONYXKEYS";
-import * as OptionsListUtils from "@libs/OptionsListUtils";
+} from '@components/withCurrentUserPersonalDetails';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -270,7 +270,6 @@ function IOURequestStepScan({
             );
             return;
         }
-        IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
