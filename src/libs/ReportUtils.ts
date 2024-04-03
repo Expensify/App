@@ -61,6 +61,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
+import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
@@ -2509,15 +2510,6 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
         transactionID = (reportAction?.originalMessage as IOUMessage)?.IOUTransactionID ?? '';
     }
 
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
-}
-
-/**
- * Retrieve the particular transaction object given its ID.
- *
- * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use withOnyx or Onyx.connect() instead.
- */
-function getTransaction(transactionID: string): OnyxEntry<Transaction> | EmptyObject {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
@@ -5236,7 +5228,7 @@ function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
 /**
  * Return iou report action display message
  */
-function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>): string {
+function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>, shouldLog = false): string {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return '';
     }
@@ -5266,7 +5258,15 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: ''});
     }
 
-    const transaction = getTransaction(originalMessage.IOUTransactionID ?? '');
+    // This log to server is temporary and needed to determine if there is a case we need the transaction param
+    // when we call getIOUReportActionDisplayMessage from ReportActionItemMessage
+    if (shouldLog) {
+        Log.alert('Transaction Param Used when getIOUReportActionDisplayMessage was called from ReportActionItemMessage', {
+            reportActionID: reportAction.reportActionID,
+            originalMessageType: originalMessage.type,
+        });
+    }
+
     const transactionDetails = getTransactionDetails(!isEmptyObject(transaction) ? transaction : null);
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
     const isRequestSettled = isSettled(originalMessage.IOUReportID);
