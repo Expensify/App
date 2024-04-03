@@ -45,7 +45,7 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
-function isScanRequest(transaction: Transaction): boolean {
+function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the request creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
@@ -55,13 +55,11 @@ function isScanRequest(transaction: Transaction): boolean {
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
-    if (transaction) {
-        if (isDistanceRequest(transaction)) {
-            return CONST.IOU.REQUEST_TYPE.DISTANCE;
-        }
-        if (isScanRequest(transaction)) {
-            return CONST.IOU.REQUEST_TYPE.SCAN;
-        }
+    if (isDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+    if (isScanRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
     return CONST.IOU.REQUEST_TYPE.MANUAL;
@@ -508,7 +506,11 @@ function getWaypointIndex(key: string): number {
 /**
  * Filters the waypoints which are valid and returns those
  */
-function getValidWaypoints(waypoints: WaypointCollection | undefined = {}, reArrangeIndexes = false): WaypointCollection {
+function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false): WaypointCollection {
+    if (!waypoints) {
+        return {};
+    }
+
     const sortedIndexes = Object.keys(waypoints)
         .map(getWaypointIndex)
         .sort((a, b) => a - b);

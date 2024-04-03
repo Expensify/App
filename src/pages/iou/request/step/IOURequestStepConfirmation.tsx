@@ -167,9 +167,10 @@ function IOURequestStepConfirmation({
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
-            if (!receiptObj || !report || !transaction) {
+            if (!report || !transaction) {
                 return;
             }
+
             IOU.requestMoney(
                 report,
                 transaction.amount,

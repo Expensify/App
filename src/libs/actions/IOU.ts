@@ -2078,7 +2078,7 @@ function requestMoney(
     payeeAccountID: number,
     participant: Participant,
     comment: string,
-    receipt: Receipt,
+    receipt: Receipt | undefined,
     category?: string,
     tag?: string,
     taxCode = '',
