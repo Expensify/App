@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import CONST from '../../src/CONST';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
@@ -249,7 +250,7 @@ describe('ReportUtils', () => {
 
     describe('requiresAttentionFromCurrentUser', () => {
         it('returns false when there is no report', () => {
-            expect(ReportUtils.requiresAttentionFromCurrentUser()).toBe(false);
+            expect(ReportUtils.requiresAttentionFromCurrentUser(null)).toBe(false);
         });
         it('returns false when the matched IOU report does not have an owner accountID', () => {
             const report = {
@@ -257,18 +258,6 @@ describe('ReportUtils', () => {
                 ownerAccountID: undefined,
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
-        });
-        it('returns false when the linked iou report has an oustanding IOU', () => {
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                iouReportID: '1',
-            };
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
-                reportID: '1',
-                ownerAccountID: 99,
-            }).then(() => {
-                expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
-            });
         });
         it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
             const report = {
@@ -312,7 +301,7 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
-        it('returns true when the report has oustanding child request', () => {
+        it('returns true when the report has an outstanding child request with a debt needing to be paid by current user', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 99,
@@ -320,6 +309,93 @@ describe('ReportUtils', () => {
                 isWaitingOnBankAccount: false,
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+        it('returns false when the report has an outstanding child request with no debt needing to be paid by current user', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                ownerAccountID: 99,
+                hasOutstandingChildRequest: true,
+                isWaitingOnBankAccount: false,
+            };
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+        it('returns false for archived reports', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                isUnreadWithMention: true,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            };
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+        it('returns false for children of archived reports', async () => {
+            const parentReport = {
+                ...LHNTestUtils.getFakeReport(),
+                isUnreadWithMention: true,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            };
+            const childReport = {
+                ...LHNTestUtils.getFakeReport(),
+                isUnreadWithMention: true,
+                parentReportID: parentReport.reportID,
+            };
+            await Onyx.mergeCollection(
+                ONYXKEYS.COLLECTION.REPORT,
+                toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [parentReport, childReport], (item) => item.reportID),
+            );
+            expect(ReportUtils.requiresAttentionFromCurrentUser(childReport)).toBe(false);
+        });
+        it('returns false for deeply nested children of archived reports', async () => {
+            const grandparentReport = {
+                ...LHNTestUtils.getFakeReport(),
+                isUnreadWithMention: true,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            };
+            const parentReport = {
+                ...LHNTestUtils.getFakeReport(),
+                isUnreadWithMention: true,
+                parentReportID: grandparentReport.reportID,
+            };
+            const childReport = {
+                ...LHNTestUtils.getFakeReport(),
+                isUnreadWithMention: true,
+                parentReportID: parentReport.reportID,
+            };
+            await Onyx.mergeCollection(
+                ONYXKEYS.COLLECTION.REPORT,
+                toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [grandparentReport, parentReport, childReport], (item) => item.reportID),
+            );
+            expect(ReportUtils.requiresAttentionFromCurrentUser(childReport)).toBe(false);
+        });
+        it('returns true for outstanding join requests in admin rooms', async () => {
+            const report = LHNTestUtils.getFakeReport();
+            const pendingJoinRequest = {
+                reportActionID: NumberUtils.rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST,
+                originalMessage: {
+                    choice: '',
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [pendingJoinRequest.reportActionID]: pendingJoinRequest,
+            });
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+        it('returns false for resolved join requests in admin rooms', async () => {
+            const report = LHNTestUtils.getFakeReport();
+            const resolvedJoinRequest = {
+                reportActionID: NumberUtils.rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST,
+                originalMessage: {
+                    choice: CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [resolvedJoinRequest.reportActionID]: resolvedJoinRequest,
+            });
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
     });
 

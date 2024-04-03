@@ -2044,7 +2044,7 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
  *  - is for an outstanding task waiting on the user
  *  - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
  *
- * @param option (report or optionItem)
+ * @param optionOrReport (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
  */
 function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction: EmptyObject | OnyxEntry<ReportAction> = {}) {
