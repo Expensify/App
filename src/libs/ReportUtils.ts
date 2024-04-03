@@ -3036,7 +3036,7 @@ function getParsedComment(text: string): string {
                 return `@${mentionWithEmailDomain}`;
             }
         }
-        if (Str.isValidPhone(mention)) {
+        if (Str.isValidE164Phone(mention)) {
             const mentionWithSmsDomain = PhoneNumber.addSMSDomainIfPhoneNumber(mention);
             if (allPersonalDetailLogins.includes(mentionWithSmsDomain)) {
                 return `@${mentionWithSmsDomain}`;
