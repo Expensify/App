@@ -10,6 +10,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -21,6 +22,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {isTaxPolicyEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -204,6 +206,11 @@ const defaultProps = {
     isPolicyExpenseChat: false,
 };
 
+const getTaxAmount = (transaction, defaultTaxValue) => {
+    const percentage = (transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue) || '';
+    return TransactionUtils.calculateTaxAmount(percentage, transaction.amount);
+};
+
 function MoneyTemporaryForRefactorRequestConfirmationList({
     bankAccountRoute,
     canModifyParticipants,
@@ -277,7 +284,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
+    const shouldShowTax = isTaxPolicyEnabled(isPolicyExpenseChat, policy);
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
@@ -292,9 +299,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
 
-    const defaultTaxKey = taxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
-    const taxRateTitle = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
+    const taxRateTitle = TransactionUtils.getDefaultTaxName(taxRates, transaction);
+
+    const previousTransactionAmount = usePrevious(transaction.amount);
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
@@ -361,6 +368,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate);
         IOU.setMoneyRequestAmount_temporaryForRefactor(transaction.transactionID, amount, currency);
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
+
+    // Calculate and set tax amount in transaction draft
+    useEffect(() => {
+        const taxAmount = getTaxAmount(transaction, taxRates.defaultValue);
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
+
+        if (transaction.taxAmount && previousTransactionAmount === transaction.amount) {
+            return IOU.setMoneyRequestTaxAmount(transaction.transactionID, transaction.taxAmount, true);
+        }
+
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
+    }, [taxRates.defaultValue, transaction, previousTransactionAmount]);
 
     /**
      * Returns the participants with amount
@@ -681,7 +700,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -853,7 +874,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     key={`${taxRates.name}${formattedTaxAmount}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={formattedTaxAmount}
-                    description={taxRates.name}
+                    description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
