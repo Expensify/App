@@ -1954,7 +1954,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 harvesting: {
                     enabled: true,
-                }
+                },
             },
         },
         {

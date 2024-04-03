@@ -4869,17 +4869,15 @@ function submitReport(expenseReport: OnyxTypes.Report) {
         },
     ];
     if (!isSubmitAndClosePolicy) {
-        failureData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-                value: {
-                    [optimisticSubmittedReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
-                    },
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticSubmittedReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
-        );
+        });
     }
 
     if (parentReport?.reportID) {
