@@ -49,6 +49,7 @@ export default {
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
     fontSizeOnlyEmojis: 30,
+    fontSizeEmojisWithinText: 19,
     fontSizeOnlyEmojisHeight: 35,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,

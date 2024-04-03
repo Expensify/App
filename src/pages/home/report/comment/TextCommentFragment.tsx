@@ -8,9 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import {containsOnlyEmojis, splitTextWithEmojis} from '@libs/EmojiUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -51,12 +50,12 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
-    const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
-    if (!shouldRenderAsText(html, text) && !(containsOnlyEmojis && styleAsDeleted)) {
+    const textContainsOnlyEmojis = containsOnlyEmojis(text);
+    if (!shouldRenderAsText(html, text) && !(textContainsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
-        const htmlContent = containsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
+        const htmlContent = textContainsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
 
         if (styleAsMuted) {
@@ -72,29 +71,37 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     }
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
+    const processedTextArray = splitTextWithEmojis(message);
 
     return (
-        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
+        <Text style={[styles.ltr, style]}>
             <ZeroWidthView
                 text={text}
                 displayAsGroup={displayAsGroup}
             />
-            <Text
-                style={[
-                    containsOnlyEmojis ? styles.onlyEmojisText : undefined,
-                    styles.ltr,
-                    style,
-                    styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
-                    styleAsMuted ? styles.colorMuted : undefined,
-                    !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
-                ]}
-            >
-                {convertToLTR(message)}
-            </Text>
+            {processedTextArray.map(({text: word, isEmoji}) =>
+                isEmoji ? (
+                    <Text style={[styles.emojisWithinText, textContainsOnlyEmojis && styles.onlyEmojisText]}>{word}</Text>
+                ) : (
+                    <Text
+                        style={[
+                            textContainsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                            styles.ltr,
+                            style,
+                            styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                            styleAsMuted ? styles.colorMuted : undefined,
+                            !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                        ]}
+                    >
+                        {word}
+                    </Text>
+                ),
+            )}
+
             {fragment.isEdited && (
                 <>
                     <Text
-                        style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
+                        style={[textContainsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         {' '}

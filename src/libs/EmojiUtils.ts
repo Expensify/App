@@ -568,6 +568,47 @@ function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     return spacersIndexes;
 }
 
+const emojiRegex = /(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])/;
+
+type TextObject = {
+    text: string;
+    isEmoji: boolean;
+};
+/**
+ * Split string into plain text and emojis array with attention to surrogate pairs
+ * @param text
+ */
+const splitTextWithEmojis = (text: string) => {
+    const ZERO_WIDTH_JOINER = '\u200D';
+    const splittedMessage = text.split('');
+    const result: TextObject[] = [];
+    let wordPlaceholder = '';
+    let emojiPlaceholder = '';
+
+    const setResult = (word: string, isEmoji = false) => {
+        result.push({text: word, isEmoji});
+    };
+
+    splittedMessage.forEach((word: string, index: number) => {
+        if (emojiRegex.test(word) || word === ZERO_WIDTH_JOINER) {
+            setResult(wordPlaceholder);
+            wordPlaceholder = '';
+            emojiPlaceholder += word;
+        } else {
+            setResult(emojiPlaceholder, true);
+            emojiPlaceholder = '';
+            wordPlaceholder += word;
+        }
+
+        if (index === splittedMessage.length - 1) {
+            setResult(emojiPlaceholder, true);
+            setResult(wordPlaceholder);
+        }
+    });
+
+    return result.filter((res) => res.text);
+};
+
 export {
     findEmojiByName,
     findEmojiByCode,
@@ -592,4 +633,5 @@ export {
     hasAccountIDEmojiReacted,
     getRemovedSkinToneEmoji,
     getSpacersIndexes,
+    splitTextWithEmojis,
 };
