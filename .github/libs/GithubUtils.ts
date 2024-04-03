@@ -15,12 +15,6 @@ import arrayDifference from '@src/utils/arrayDifference';
 import CONST from './CONST';
 import {ISSUE_OR_PULL_REQUEST_REGEX, ISSUE_REGEX, PULL_REQUEST_REGEX} from './constants';
 
-/**
- * The standard rate in ms at which we'll poll the GitHub API to check for status changes.
- * It's 10 seconds :)
- */
-// const POLL_RATE = 10000;
-
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 
 type ListForRepoResult = RestEndpointMethodTypes['issues']['listForRepo']['response'];

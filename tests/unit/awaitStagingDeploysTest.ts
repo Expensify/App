@@ -78,7 +78,6 @@ beforeAll(() => {
     };
 
     GithubUtils.internalOctokit = moctokit;
-    // POLL_RATE = TEST_POLL_RATE;
 });
 
 beforeEach(() => {
