@@ -4,54 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 5847:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const _ = __nccwpck_require__(5067);
-const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
-const ActionUtils = __nccwpck_require__(970);
-const GitUtils = (__nccwpck_require__(1547)["default"]);
-const GithubUtils = __nccwpck_require__(9296);
-
-async function run() {
-    try {
-        const inputTag = core.getInput('TAG', {required: true});
-        const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
-        const deployEnv = isProductionDeploy ? 'production' : 'staging';
-
-        console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
-
-        const completedDeploys = (
-            await GithubUtils.octokit.actions.listWorkflowRuns({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                workflow_id: 'platformDeploy.yml',
-                status: 'completed',
-                event: isProductionDeploy ? 'release' : 'push',
-            })
-        ).data.workflow_runs;
-
-        const priorTag = _.first(completedDeploys).head_branch;
-        console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
-        console.log(`Found the pull request list: ${prList}`);
-        core.setOutput('PR_LIST', prList);
-    } catch (err) {
-        console.error(err.message);
-        core.setFailed(err);
-    }
-}
-
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-
-module.exports = run;
-
-
-/***/ }),
-
 /***/ 970:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -94,30 +46,6 @@ module.exports = {
     getJSONInput,
     getStringInput,
 };
-
-
-/***/ }),
-
-/***/ 4097:
-/***/ ((module) => {
-
-const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        INTERNAL_QA: 'InternalQA',
-    },
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-};
-
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-
-module.exports = CONST;
 
 
 /***/ }),
@@ -11766,6 +11694,80 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 1935:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core_1 = __importDefault(__nccwpck_require__(2186));
+const github_1 = __importDefault(__nccwpck_require__(5438));
+const ActionUtils_1 = __importDefault(__nccwpck_require__(970));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
+async function run() {
+    try {
+        const inputTag = core_1.default.getInput('TAG', { required: true });
+        const isProductionDeploy = ActionUtils_1.default.getJSONInput('IS_PRODUCTION_DEPLOY', { required: false }, false);
+        const deployEnv = isProductionDeploy ? 'production' : 'staging';
+        console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
+        const completedDeploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({
+            owner: github_1.default.context.repo.owner,
+            repo: github_1.default.context.repo.repo,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            workflow_id: 'platformDeploy.yml',
+            status: 'completed',
+            event: isProductionDeploy ? 'release' : 'push',
+        })).data.workflow_runs;
+        const priorTag = completedDeploys[0].head_branch;
+        console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
+        const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
+        console.log('Found the pull request list: ', prList);
+        core_1.default.setOutput('PR_LIST', prList);
+    }
+    catch (error) {
+        console.error(error.message);
+        core_1.default.setFailed(error);
+    }
+}
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
+/***/ 9873:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    APP_REPO_URL: '',
+    APP_REPO_GIT_URL: '',
+};
+CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
+CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
+exports["default"] = CONST;
+
+
+/***/ }),
+
 /***/ 1547:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -11799,7 +11801,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
-const CONST = __importStar(__nccwpck_require__(4097));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(9338));
 const VERSION_UPDATER = __importStar(__nccwpck_require__(8007));
 /**
@@ -11886,7 +11888,7 @@ function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
     commits.forEach((commit) => {
         const author = commit.authorName;
-        if (author === CONST.OS_BOTIFY) {
+        if (author === CONST_1.default.OS_BOTIFY) {
             return;
         }
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
@@ -11964,7 +11966,7 @@ const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
 const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
@@ -12310,7 +12312,6 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
-        // @ts-expect-error TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated to TypeScript
         return `${CONST_1.default.APP_REPO_URL}/pull/${value}`;
     }
     /**
@@ -14808,7 +14809,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(5847);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(1935);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
