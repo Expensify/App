@@ -1,10 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
@@ -41,24 +39,6 @@ const propTypes = {
 
     /** The draft transaction object being modified in Onyx */
     draftTransaction: transactionPropTypes,
-
-    /** The policy of the report */
-    policy: PropTypes.shape({
-        /**
-         * Whether or not the policy has tax tracking enabled
-         *
-         * @deprecated - use tax.trackingEnabled instead
-         */
-        isTaxTrackingEnabled: PropTypes.bool,
-
-        /** Whether or not the policy has tax tracking enabled */
-        tax: PropTypes.shape({
-            trackingEnabled: PropTypes.bool,
-        }),
-
-        /** Collection of tax rates attached to a policy */
-        taxRates: taxPropTypes,
-    }),
 };
 
 const defaultProps = {
@@ -66,12 +46,6 @@ const defaultProps = {
     transaction: {},
     splitDraftTransaction: {},
     draftTransaction: {},
-    policy: {},
-};
-
-const getTaxAmount = (transaction, defaultTaxValue, amount) => {
-    const percentage = (transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue) || '';
-    return TransactionUtils.calculateTaxAmount(percentage, amount);
 };
 
 function IOURequestStepAmount({
@@ -82,7 +56,6 @@ function IOURequestStepAmount({
     transaction,
     splitDraftTransaction,
     draftTransaction,
-    policy,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
@@ -95,10 +68,6 @@ function IOURequestStepAmount({
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
     const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction);
-
-    const taxRates = lodashGet(policy, 'taxRates', {});
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
-    const isTaxTrackingEnabled = isPolicyExpenseChat && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
 
     useFocusEffect(
         useCallback(() => {
@@ -155,12 +124,6 @@ function IOURequestStepAmount({
     const navigateToNextPage = ({amount}) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
-
-        if ((iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) && isTaxTrackingEnabled) {
-            const taxAmount = getTaxAmount(transaction, taxRates.defaultValue, amountInSmallestCurrencyUnits);
-            const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
-            IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
-        }
 
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true);
 
@@ -241,9 +204,6 @@ export default compose(
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
                 return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
             },
-        },
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
         draftTransaction: {
             key: ({route}) => {
