@@ -257,6 +257,16 @@ Onyx.connect({
 });
 
 /**
+ * Returns the policy of the report
+ */
+function getPolicy(policyID: string | undefined): OnyxTypes.Policy | EmptyObject {
+    if (!allPolicies || !policyID) {
+        return {};
+    }
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+}
+
+/**
  * Initialize money request info
  * @param reportID to attach the transaction to
  * @param policy
@@ -444,7 +454,7 @@ function needsToBeManuallySubmitted(iouReport: OnyxTypes.Report) {
     const isPolicyExpenseChat = ReportUtils.isExpenseReport(iouReport);
 
     if (isPolicyExpenseChat) {
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`] ?? ({} as OnyxTypes.Policy);
+        const policy = getPolicy(iouReport.policyID);
         const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
 
         // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
@@ -4654,8 +4664,7 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObj
 
     return Object.values(chatReportActions).some((action) => {
         const iouReport = ReportUtils.getReport(action.childReportID ?? '');
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? ({} as OnyxTypes.Policy);
-
+        const policy = getPolicy(iouReport?.policyID);
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, chatReport, policy);
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && shouldShowSettlementButton;
     });
@@ -4771,7 +4780,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport.policyID}`] ?? ({} as OnyxTypes.Policy);
+    const policy = getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED);
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
@@ -4894,7 +4903,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
 
 function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Report) {
     const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -(expenseReport.total ?? 0), expenseReport.currency ?? '');
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport.policyID}`] ?? ({} as OnyxTypes.Policy);
+    const policy = getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
     const approvalMode = policy.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
     let stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.SUBMITTED;
