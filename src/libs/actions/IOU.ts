@@ -450,38 +450,39 @@ function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = t
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''}, errorKey);
 }
 
-function needsToBeManuallySubmitted(iouReport: OnyxTypes.Report) {
-    const isPolicyExpenseChat = ReportUtils.isExpenseReport(iouReport);
+function needsToBeManuallySubmitted(report: OnyxTypes.Report) {
+    const isPolicyExpenseChat = ReportUtils.isExpenseReport(report);
 
-    if (isPolicyExpenseChat) {
-        const policy = getPolicy(iouReport.policyID);
-        const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-
-        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
-        return isFromPaidPolicy && !policy.harvesting?.enabled;
+    // Only expense reports need to be manually submitted
+    if (!isPolicyExpenseChat) {
+        return false;
     }
 
-    return false;
+    const policy = getPolicy(report.policyID);
+    const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+
+    // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
+    return isFromPaidPolicy && !policy.harvesting?.enabled;
 }
 
 /**
  * Return the object to update hasOutstandingChildRequest
  */
-function getOutstandingChildRequest(policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject, iouReport: OnyxTypes.Report): OutstandingChildRequest {
-    if (!needsToBeManuallySubmitted(iouReport)) {
+function getOutstandingChildRequest(policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject, report: OnyxTypes.Report): OutstandingChildRequest {
+    if (needsToBeManuallySubmitted(report)) {
         return {
-            hasOutstandingChildRequest: false,
+            hasOutstandingChildRequest: true,
         };
     }
 
-    if (PolicyUtils.isPolicyAdmin(policy)) {
+    if (ReportUtils.isExpenseReport(report) && PolicyUtils.isPolicyAdmin(policy)) {
         return {
             hasOutstandingChildRequest: true,
         };
     }
 
     return {
-        hasOutstandingChildRequest: iouReport.managerID === userAccountID && iouReport.total !== 0,
+        hasOutstandingChildRequest: report.managerID === userAccountID && report.total !== 0,
     };
 }
 
