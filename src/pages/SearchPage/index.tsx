@@ -45,7 +45,6 @@ type Options = OptionsListUtils.GetOptions & {headerMessage: string};
 type SearchPageSectionItem = {
     data: ReportUtils.OptionData[];
     shouldShow: boolean;
-    indexOffset: number;
 };
 
 type SearchPageSectionList = SearchPageSectionItem[];
@@ -119,31 +118,25 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
 
     const sections = useMemo((): SearchPageSectionList => {
         const newSections: SearchPageSectionList = [];
-        let indexOffset = 0;
 
         if (recentReports?.length > 0) {
             newSections.push({
                 data: recentReports.map((report) => ({...report, isBold: report.isUnread})),
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += recentReports.length;
         }
 
         if (localPersonalDetails.length > 0) {
             newSections.push({
                 data: localPersonalDetails,
                 shouldShow: true,
-                indexOffset,
             });
-            indexOffset += recentReports.length;
         }
 
         if (!isEmpty(userToInvite)) {
             newSections.push({
                 data: [userToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 
@@ -192,8 +185,8 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
                             textInputHint={offlineMessage}
                             onChangeText={setSearchValue}
                             headerMessage={headerMessage}
+                            headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
                             onLayout={setPerformanceTimersEnd}
-                            autoFocus
                             onSelectRow={selectReport}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
                             footerContent={SearchPageFooterInstance}

@@ -728,7 +728,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
-                indexOffset: 0,
                 data: [
                     {
                         text: 'Food',
@@ -761,7 +760,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 data: [
                     {
                         text: 'Food',
@@ -786,7 +784,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 data: [],
             },
         ];
@@ -852,7 +849,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
-                indexOffset: 0,
                 data: [
                     {
                         text: 'Medical',
@@ -867,7 +863,6 @@ describe('OptionsListUtils', () => {
             {
                 title: 'Recent',
                 shouldShow: true,
-                indexOffset: 1,
                 data: [
                     {
                         text: 'Restaurant',
@@ -882,7 +877,6 @@ describe('OptionsListUtils', () => {
             {
                 title: 'All',
                 shouldShow: true,
-                indexOffset: 2,
                 data: [
                     {
                         text: 'Cars',
@@ -979,7 +973,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 data: [
                     {
                         text: 'Food',
@@ -1012,7 +1005,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 data: [],
             },
         ];
@@ -1021,7 +1013,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
-                indexOffset: 0,
                 data: [
                     {
                         text: 'Medical',
@@ -1126,7 +1117,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
-                indexOffset: 0,
                 // data sorted alphabetically by name
                 data: [
                     {
@@ -1157,7 +1147,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 data: [
                     {
                         text: 'Accounting',
@@ -1173,7 +1162,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 data: [],
             },
         ];
@@ -1227,7 +1215,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 data: [
                     {
                         text: 'Medical',
@@ -1241,7 +1228,6 @@ describe('OptionsListUtils', () => {
             {
                 title: 'Recent',
                 shouldShow: true,
-                indexOffset: 1,
                 data: [
                     {
                         text: 'HR',
@@ -1255,7 +1241,6 @@ describe('OptionsListUtils', () => {
             {
                 title: 'All',
                 shouldShow: true,
-                indexOffset: 2,
                 // data sorted alphabetically by name
                 data: [
                     {
@@ -1314,7 +1299,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 data: [
                     {
                         text: 'Accounting',
@@ -1337,7 +1321,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 data: [],
             },
         ];
@@ -2073,6 +2056,230 @@ describe('OptionsListUtils', () => {
         expect(OptionsListUtils.sortCategories(categoriesIncorrectOrdering3)).toStrictEqual(result3);
     });
 
+    it('sortTags', () => {
+        const createTagObjects = (names) => _.map(names, (name) => ({name, enabled: true}));
+
+        const unorderedTagNames = ['10bc', 'b', '0a', '1', '中国', 'b10', '!', '2', '0', '@', 'a1', 'a', '3', 'b1', '日本', '$', '20', '20a', '#', 'a20', 'c', '10'];
+        const expectedOrderNames = ['!', '#', '$', '0', '0a', '1', '10', '10bc', '2', '20', '20a', '3', '@', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c', '中国', '日本'];
+        const unorderedTags = createTagObjects(unorderedTagNames);
+        const expectedOrder = createTagObjects(expectedOrderNames);
+        expect(OptionsListUtils.sortTags(unorderedTags)).toStrictEqual(expectedOrder);
+
+        const unorderedTagNames2 = ['0', 'a1', '1', 'b1', '3', '10', 'b10', 'a', '2', 'c', '20', 'a20', 'b'];
+        const expectedOrderNames2 = ['0', '1', '10', '2', '20', '3', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c'];
+        const unorderedTags2 = createTagObjects(unorderedTagNames2);
+        const expectedOrder2 = createTagObjects(expectedOrderNames2);
+        expect(OptionsListUtils.sortTags(unorderedTags2)).toStrictEqual(expectedOrder2);
+
+        const unorderedTagNames3 = [
+            '61',
+            '39',
+            '97',
+            '93',
+            '77',
+            '71',
+            '22',
+            '27',
+            '30',
+            '64',
+            '91',
+            '24',
+            '33',
+            '60',
+            '21',
+            '85',
+            '59',
+            '76',
+            '42',
+            '67',
+            '13',
+            '96',
+            '84',
+            '44',
+            '68',
+            '31',
+            '62',
+            '87',
+            '50',
+            '4',
+            '100',
+            '12',
+            '28',
+            '49',
+            '53',
+            '5',
+            '45',
+            '14',
+            '55',
+            '78',
+            '11',
+            '35',
+            '75',
+            '18',
+            '9',
+            '80',
+            '54',
+            '2',
+            '34',
+            '48',
+            '81',
+            '6',
+            '73',
+            '15',
+            '98',
+            '25',
+            '8',
+            '99',
+            '17',
+            '90',
+            '47',
+            '1',
+            '10',
+            '38',
+            '66',
+            '57',
+            '23',
+            '86',
+            '29',
+            '3',
+            '65',
+            '74',
+            '19',
+            '56',
+            '63',
+            '20',
+            '7',
+            '32',
+            '46',
+            '70',
+            '26',
+            '16',
+            '83',
+            '37',
+            '58',
+            '43',
+            '36',
+            '69',
+            '79',
+            '72',
+            '41',
+            '94',
+            '95',
+            '82',
+            '51',
+            '52',
+            '89',
+            '88',
+            '40',
+            '92',
+        ];
+        const expectedOrderNames3 = [
+            '1',
+            '10',
+            '100',
+            '11',
+            '12',
+            '13',
+            '14',
+            '15',
+            '16',
+            '17',
+            '18',
+            '19',
+            '2',
+            '20',
+            '21',
+            '22',
+            '23',
+            '24',
+            '25',
+            '26',
+            '27',
+            '28',
+            '29',
+            '3',
+            '30',
+            '31',
+            '32',
+            '33',
+            '34',
+            '35',
+            '36',
+            '37',
+            '38',
+            '39',
+            '4',
+            '40',
+            '41',
+            '42',
+            '43',
+            '44',
+            '45',
+            '46',
+            '47',
+            '48',
+            '49',
+            '5',
+            '50',
+            '51',
+            '52',
+            '53',
+            '54',
+            '55',
+            '56',
+            '57',
+            '58',
+            '59',
+            '6',
+            '60',
+            '61',
+            '62',
+            '63',
+            '64',
+            '65',
+            '66',
+            '67',
+            '68',
+            '69',
+            '7',
+            '70',
+            '71',
+            '72',
+            '73',
+            '74',
+            '75',
+            '76',
+            '77',
+            '78',
+            '79',
+            '8',
+            '80',
+            '81',
+            '82',
+            '83',
+            '84',
+            '85',
+            '86',
+            '87',
+            '88',
+            '89',
+            '9',
+            '90',
+            '91',
+            '92',
+            '93',
+            '94',
+            '95',
+            '96',
+            '97',
+            '98',
+            '99',
+        ];
+        const unorderedTags3 = createTagObjects(unorderedTagNames3);
+        const expectedOrder3 = createTagObjects(expectedOrderNames3);
+        expect(OptionsListUtils.sortTags(unorderedTags3)).toStrictEqual(expectedOrder3);
+    });
+
     it('getFilteredOptions() for taxRate', () => {
         const search = 'rate';
         const emptySearch = '';
@@ -2103,14 +2310,13 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
-                indexOffset: 0,
                 // data sorted alphabetically by name
                 data: [
                     {
                         // Adds 'Default' title to default tax.
                         // Adds value to tax name for more description.
                         text: 'Tax exempt 1 (0%) • Default',
-                        keyForList: 'CODE1',
+                        keyForList: 'Tax exempt 1 (0%) • Default',
                         searchText: 'Tax exempt 1 (0%) • Default',
                         tooltipText: 'Tax exempt 1 (0%) • Default',
                         isDisabled: undefined,
@@ -2124,7 +2330,7 @@ describe('OptionsListUtils', () => {
                     },
                     {
                         text: 'Tax option 3 (5%)',
-                        keyForList: 'CODE3',
+                        keyForList: 'Tax option 3 (5%)',
                         searchText: 'Tax option 3 (5%)',
                         tooltipText: 'Tax option 3 (5%)',
                         isDisabled: undefined,
@@ -2137,7 +2343,7 @@ describe('OptionsListUtils', () => {
                     },
                     {
                         text: 'Tax rate 2 (3%)',
-                        keyForList: 'CODE2',
+                        keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
                         isDisabled: undefined,
@@ -2156,12 +2362,11 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 // data sorted alphabetically by name
                 data: [
                     {
                         text: 'Tax rate 2 (3%)',
-                        keyForList: 'CODE2',
+                        keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
                         isDisabled: undefined,
@@ -2180,7 +2385,6 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
-                indexOffset: 0,
                 data: [],
             },
         ];

@@ -56,6 +56,7 @@ const SCREENS = {
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
             ADDRESS: 'Settings_Address',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
+            ADDRESS_STATE: 'Settings_Address_State',
         },
 
         PREFERENCES: {
@@ -149,13 +150,12 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
-        AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
-        CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
+        STATE_SELECTOR: 'Money_Request_State_Selector',
     },
 
     IOU_SEND: {
@@ -242,6 +242,9 @@ const SCREENS = {
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
         MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
+        OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
+        OWNER_CHANGE_SUCCESS: 'Workspace_Owner_Change_Success',
+        OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
         DISTANCE_RATES: 'Distance_Rates',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
@@ -258,6 +261,7 @@ const SCREENS = {
     NEW_CHAT: {
         ROOT: 'NewChat_Root',
         NEW_CHAT: 'chat',
+        NEW_CHAT_CONFIRM: 'NewChat_Confirm',
         NEW_ROOM: 'room',
     },
 
