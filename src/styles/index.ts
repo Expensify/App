@@ -435,7 +435,7 @@ const styles = (theme: ThemeColors) =>
         textHeroSmall: {
             fontSize: variables.fontSizeHeroSmall,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
-            lineHeight: variables.lineHeightHeroSmall
+            lineHeight: variables.lineHeightHeroSmall,
         },
 
         textStrong: {
