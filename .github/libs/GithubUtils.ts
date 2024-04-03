@@ -13,7 +13,6 @@ import {throttling} from '@octokit/plugin-throttling';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arrayDifference from '@src/utils/arrayDifference';
 import CONST from './CONST';
-import {ISSUE_OR_PULL_REQUEST_REGEX, ISSUE_REGEX, PULL_REQUEST_REGEX} from './constants';
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 
@@ -205,7 +204,7 @@ class GithubUtils {
         }
 
         PRListSection = PRListSection[1];
-        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isVerified: match[1] === 'x',
@@ -226,7 +225,7 @@ class GithubUtils {
         }
 
         deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -246,7 +245,7 @@ class GithubUtils {
             return [];
         }
         internalQASection = internalQASection[1];
-        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2].split('-')[0].trim(),
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -475,7 +474,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Pull Request.
      */
     static getPullRequestNumberFromURL(URL: string): number {
-        const matches = URL.match(PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST.PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Pull Request!`);
         }
@@ -488,7 +487,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue.
      */
     static getIssueNumberFromURL(URL: string): number {
-        const matches = URL.match(ISSUE_REGEX);
+        const matches = URL.match(CONST.ISSUE_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Issue!`);
         }
@@ -501,7 +500,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
      */
     static getIssueOrPullRequestNumberFromURL(URL: string): number {
-        const matches = URL.match(ISSUE_OR_PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST.ISSUE_OR_PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
