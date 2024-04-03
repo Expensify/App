@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -59,9 +60,9 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
-    const fetchData = () => {
+    const fetchData = useCallback(() => {
         Policy.openPolicyWorkflowsPage(policy?.id ?? route.params.policyID);
-    };
+    }, [policy?.id, route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
@@ -75,10 +76,11 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
-    useEffect(() => {
-        fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchData();
+        }, [fetchData]),
+    );
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {accountNumber, addressName, bankName} = policy?.achAccount ?? {};
