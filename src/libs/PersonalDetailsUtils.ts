@@ -299,7 +299,7 @@ function isDeprecatedPronouns(personalDetail?: Partial<PersonalDetails>): boolea
  */
 function getPronounsKey(personalDetail?: Partial<PersonalDetails>): string {
     const pronouns = personalDetail?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
-    return isDeprecatedPronouns(personalDetail) ? Object.entries(CONST.DEPRECATED_PRONOUNS_LIST).find((deprecated) => deprecated[1] === pronouns)?.[0] ?? pronouns : pronouns;
+    return isDeprecatedPronouns(personalDetail) ? Object.entries(CONST.DEPRECATED_PRONOUNS_LIST).find((deprecated) => deprecated[1] === pronouns)?.[0] ?? '' : pronouns;
 }
 
 export {
