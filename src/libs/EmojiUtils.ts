@@ -568,45 +568,103 @@ function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     return spacersIndexes;
 }
 
-const emojiRegex = /(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])/;
-
-type TextObject = {
-    text: string;
-    isEmoji: boolean;
-};
 /**
- * Split string into plain text and emojis array with attention to surrogate pairs
+ * Split string into plain text and emojis array with attention to:
+ * Surrogate pairs (combined emojis including flags)
+ * Modifiers (different skin tones and emoji variations)
  * @param text
  */
-const splitTextWithEmojis = (text: string) => {
-    const ZERO_WIDTH_JOINER = '\u200D';
-    const splittedMessage = text.split('');
-    const result: TextObject[] = [];
-    let wordPlaceholder = '';
-    let emojiPlaceholder = '';
 
-    const setResult = (word: string, isEmoji = false) => {
-        result.push({text: word, isEmoji});
-    };
+// Surrogate pairs (combined emojis)
+const highSurrogateStart = 0xd800;
+const highSurrogateEnd = 0xdbff;
+const lowSurrogateStart = 0xdc00;
+const zeroWidthJoiner = 0x200d;
 
-    splittedMessage.forEach((word: string, index: number) => {
-        if (emojiRegex.test(word) || word === ZERO_WIDTH_JOINER) {
-            setResult(wordPlaceholder);
-            wordPlaceholder = '';
-            emojiPlaceholder += word;
-        } else {
-            setResult(emojiPlaceholder, true);
-            emojiPlaceholder = '';
-            wordPlaceholder += word;
+// Regional indicator symbols (flags)
+const regionalIndicatorStart = 0x1f1e6; // 1st letter of a two-letter country code
+const regionalIndicatorEnd = 0x1f1ff; // Last letter of a two-letter country code
+
+// Fitzpatrick scale modifiers (skin tone)
+const fitzpatrickScaleStart = 0x1f3fb; // Type 1 (represents light skin tone)
+const fitzpatrickScaleEnd = 0x1f3ff; // Type 6 (represents dark skin tone)
+
+// Variation selectors (specific variations in the presentation of other characters)
+const variationModifierStart = 0xfe00; // Request text presentation of emoji
+const variationModifierEnd = 0xfe0f; // Indicate that the character should be displayed as an emoji
+
+const codePointFromSurrogatePair = (pair: string) => {
+    const highOffset = pair.charCodeAt(0) - highSurrogateStart;
+    const lowOffset = pair.charCodeAt(1) - lowSurrogateStart;
+    // eslint-disable-next-line no-bitwise
+    return (highOffset << 10) + lowOffset + 0x10000;
+};
+
+const isZeroWidthJoiner = (text: string) => text?.charCodeAt(0) === zeroWidthJoiner;
+const isWithinInclusiveRange = (value: number, lower: number, upper: number) => value >= lower && value <= upper;
+const isFirstOfSurrogatePair = (text: string) => isWithinInclusiveRange(text?.[0].charCodeAt(0), highSurrogateStart, highSurrogateEnd);
+const isRegionalIndicator = (text: string) => isWithinInclusiveRange(codePointFromSurrogatePair(text), regionalIndicatorStart, regionalIndicatorEnd);
+const isFitzpatrickModifier = (text: string) => isWithinInclusiveRange(codePointFromSurrogatePair(text), fitzpatrickScaleStart, fitzpatrickScaleEnd);
+const isVariationSelector = (text: string) => isWithinInclusiveRange(text?.charCodeAt(0), variationModifierStart, variationModifierEnd);
+
+// Define how many code units make up the character
+const nextUnits = (i: number, text: string) => {
+    const current = text[i];
+    // If a value at index is not part of a surrogate pair, or it is at the end take value at i
+    if (!isFirstOfSurrogatePair(current) || i === text.length - 1) {
+        return 1;
+    }
+
+    const currentPair = current + text[i + 1];
+    const nextPair = text.substring(i + 2, i + 5);
+
+    if (isRegionalIndicator(currentPair) && isRegionalIndicator(nextPair)) {
+        return 4; // Flags (combination of 2 regional indicators)
+    }
+
+    if (isFitzpatrickModifier(nextPair)) {
+        return 4; // Skin tones
+    }
+    return 2; // Variations and non-BMP characters
+};
+
+const splitTextWithEmojis = (text: string): string[] => {
+    if (!text) {
+        return [];
+    }
+
+    let tmpString = '';
+    let i = 0;
+    let increment = 0;
+    const tmpResult: string[] = [];
+    const processedArray: string[] = [];
+    while (i < text.length) {
+        increment += nextUnits(i + increment, text);
+        if (isVariationSelector(text[i + increment])) {
+            increment++;
         }
+        if (isZeroWidthJoiner(text[i + increment])) {
+            increment++;
+            // eslint-disable-next-line no-continue -- without continue we would separate surrogate pair
+            continue;
+        }
+        tmpResult.push(text.substring(i, i + increment));
+        i += increment;
+        increment = 0;
+    }
 
-        if (index === splittedMessage.length - 1) {
-            setResult(emojiPlaceholder, true);
-            setResult(wordPlaceholder);
+    tmpResult.forEach((char: string) => {
+        // @ts-expect-error -- we are looping through previously processed array so at execution time object will not be undefined
+        if (char.codePointAt(0) <= 0xffff) {
+            // is BMP character
+            tmpString += char;
+        } else {
+            processedArray.push(tmpString);
+            processedArray.push(char);
+            tmpString = '';
         }
     });
-
-    return result.filter((res) => res.text);
+    return processedArray;
 };
 
 export {

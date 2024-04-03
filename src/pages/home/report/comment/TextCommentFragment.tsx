@@ -9,13 +9,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import {containsOnlyEmojis, splitTextWithEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
 import RenderCommentHTML from './RenderCommentHTML';
 import shouldRenderAsText from './shouldRenderAsText';
+import TextWithEmojiFragment from './TextWithEmojiFragment';
 
 type TextCommentFragmentProps = {
     /** The reportAction's source */
@@ -71,7 +72,6 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     }
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
-    const processedTextArray = splitTextWithEmojis(message);
 
     return (
         <Text style={[styles.ltr, style]}>
@@ -79,23 +79,27 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                 text={text}
                 displayAsGroup={displayAsGroup}
             />
-            {processedTextArray.map(({text: word, isEmoji}) =>
-                isEmoji ? (
-                    <Text style={[styles.emojisWithinText, textContainsOnlyEmojis && styles.onlyEmojisText]}>{word}</Text>
-                ) : (
-                    <Text
-                        style={[
-                            textContainsOnlyEmojis ? styles.onlyEmojisText : undefined,
-                            styles.ltr,
-                            style,
-                            styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
-                            styleAsMuted ? styles.colorMuted : undefined,
-                            !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
-                        ]}
-                    >
-                        {word}
-                    </Text>
-                ),
+            {CONST.REGEX.EMOJIS.test(message) ? (
+                <TextWithEmojiFragment
+                    text={message}
+                    textContainsOnlyEmojis={textContainsOnlyEmojis}
+                    passedStyles={style}
+                    styleAsDeleted={styleAsDeleted}
+                    styleAsMuted={styleAsMuted}
+                />
+            ) : (
+                <Text
+                    style={[
+                        textContainsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                        styles.ltr,
+                        style,
+                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsMuted ? styles.colorMuted : undefined,
+                        !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                    ]}
+                >
+                    {message}
+                </Text>
             )}
 
             {fragment.isEdited && (
