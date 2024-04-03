@@ -109,7 +109,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                 pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburser : null,
             };
 
-            if (policy?.achAccount?.reimburser === details?.login) {
+            if (isAuthorizedPayer) {
                 authorizedPayerDetails.push(formattedMember);
             } else {
                 policyAdminDetails.push(formattedMember);
