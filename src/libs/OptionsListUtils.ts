@@ -519,9 +519,9 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 }
 
 /**
- * Update alternate text option when applicable
+ * Update alternate text for the option when applicable
  */
-function getAlternateTextOption(
+function getAlternateText(
     option: ReportUtils.OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false, lastMessageTextFromReport = ''}: PreviewConfig & {lastMessageTextFromReport?: string},
 ) {
@@ -710,7 +710,7 @@ function createOption(
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         result.alternateText =
-            showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateTextOption(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
+            showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
 
         reportName = showPersonalDetails
             ? ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
@@ -1606,7 +1606,7 @@ function getOptions(
              * By default, generated options does not have the chat preview line enabled.
              * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
              */
-            reportOption.alternateText = getAlternateTextOption(reportOption, {showChatPreviewLine, forcePolicyNamePreview});
+            reportOption.alternateText = getAlternateText(reportOption, {showChatPreviewLine, forcePolicyNamePreview});
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
