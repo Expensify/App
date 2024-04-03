@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 
 type Unit = 'mi' | 'km';
@@ -38,7 +39,7 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the a tax rate. */
     name: string;
 
-    /** The value of the tax rate as percentage. */
+    /** The value of the tax rate. */
     value: string;
 
     /** The code associated with the tax rate. If a tax is created in old dot, code field is undefined */
@@ -328,7 +329,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         submitsTo?: number;
 
         /** The employee list of the policy */
-        employeeList?: [];
+        employeeList?: OnyxTypes.PolicyMembers | [];
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
