@@ -87,7 +87,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         if (accountNumber && bankDisplayName !== accountNumber) {
             bankDisplayName += ` ${accountNumber.slice(-5)}`;
         }
-        const hasReimburserEmailError = !!policy?.errorFields?.reimburser;
+        const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!policy?.errorFields?.autoReporting;
 
@@ -211,7 +211,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                     shouldShowRightIcon
                                     wrapperStyle={containerStyle}
                                     hoverAndPressStyle={[styles.mr0, styles.br2]}
-                                    brickRoadIndicator={hasReimburserEmailError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 />
                             </OfflineWithFeedback>
                         )}

@@ -695,7 +695,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                achAccount: policy.achAccount ?? null,
+                achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
                 errorFields: {reimburser: ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.genericErrorMessage')},
                 pendingFields: {reimburser: null},
             },
@@ -744,7 +744,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 reimbursementChoice: policy.reimbursementChoice ?? null,
-                achAccount: policy.achAccount ?? null,
+                achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
