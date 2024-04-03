@@ -286,15 +286,15 @@ function ComposerWithSuggestions(
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
                 const newCommentConverted = convertToLTRForComposer(newComment);
-    
+
                 emojisPresentBefore.current = emojis;
-        
+
                 Report.saveReportComment(reportID, newCommentConverted || '');
-        
+
                 return newCommentConverted;
             }
         }
-    
+
         return draftComment;
     });
     const commentRef = useRef(value);
