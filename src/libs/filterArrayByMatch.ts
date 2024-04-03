@@ -41,7 +41,7 @@ type KeyAttributesOptions<T> = {
 type KeyOption<T> = KeyAttributesOptions<T> | ValueGetterKey<T> | string;
 
 type Options<T = unknown> = {
-    keys?: ReadonlyArray<KeyOption<T>>;
+    keys: ReadonlyArray<KeyOption<T>>;
     threshold?: Ranking;
 };
 type IndexableByString = Record<string, unknown>;
@@ -226,18 +226,7 @@ function getMatchRanking(testString: string, stringToRank: string): Ranking {
  * @param options - options to control the ranking
  * @returns the highest ranking
  */
-function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undefined, value: string, options: Options<T>): RankingInfo {
-    if (!keys) {
-        // if keys is not specified, then we assume the item given is ready to be matched
-        const stringItem = item as unknown as string;
-        return {
-            // ends up being duplicate of 'item' in matches but consistent
-            rankedValue: stringItem,
-            rank: MATCH_RANK.NO_MATCH,
-            keyIndex: -1,
-            keyThreshold: options.threshold,
-        };
-    }
+function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>>, value: string, options: Options<T>): RankingInfo {
     const valuesToRank = getAllValuesToRank(item, keys);
     return valuesToRank.reduce(
         (acc, itemValue, index) => {
@@ -269,7 +258,7 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undef
  * @param options - options to configure
  * @returns the new filtered array
  */
-function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string, options: Options<T> = {}): T[] {
+function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string, options: Options<T>): T[] {
     const {keys, threshold = MATCH_RANK.MATCHES} = options;
 
     let matchedItems = items.reduce((matches: Array<RankedItem<T>>, item: T, index: number): Array<RankedItem<T>> => {
