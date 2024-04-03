@@ -9,6 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
@@ -189,35 +190,37 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
         >
-            <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
-                {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                {currentMenuItems.map((item, menuIndex) => (
-                    <MenuItem
-                        key={item.text}
-                        icon={item.icon}
-                        iconWidth={item.iconWidth}
-                        iconHeight={item.iconHeight}
-                        iconFill={item.iconFill}
-                        contentFit={item.contentFit}
-                        title={item.text}
-                        shouldCheckActionAllowedOnPress={false}
-                        description={item.description}
-                        numberOfLinesDescription={item.numberOfLinesDescription}
-                        onPress={() => selectItem(menuIndex)}
-                        focused={focusedIndex === menuIndex}
-                        displayInDefaultIconColor={item.displayInDefaultIconColor}
-                        shouldShowRightIcon={item.shouldShowRightIcon}
-                        shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
-                        label={item.label}
-                        isLabelHoverable={item.isLabelHoverable}
-                        floatRightAvatars={item.floatRightAvatars}
-                        floatRightAvatarSize={item.floatRightAvatarSize}
-                        shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
-                        disabled={item.disabled}
-                    />
-                ))}
-            </View>
+            <FocusTrapForModal active={isVisible}>
+                <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                    {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
+                    {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
+                    {currentMenuItems.map((item, menuIndex) => (
+                        <MenuItem
+                            key={item.text}
+                            icon={item.icon}
+                            iconWidth={item.iconWidth}
+                            iconHeight={item.iconHeight}
+                            iconFill={item.iconFill}
+                            contentFit={item.contentFit}
+                            title={item.text}
+                            shouldCheckActionAllowedOnPress={false}
+                            description={item.description}
+                            numberOfLinesDescription={item.numberOfLinesDescription}
+                            onPress={() => selectItem(menuIndex)}
+                            focused={focusedIndex === menuIndex}
+                            displayInDefaultIconColor={item.displayInDefaultIconColor}
+                            shouldShowRightIcon={item.shouldShowRightIcon}
+                            shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
+                            label={item.label}
+                            isLabelHoverable={item.isLabelHoverable}
+                            floatRightAvatars={item.floatRightAvatars}
+                            floatRightAvatarSize={item.floatRightAvatarSize}
+                            shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
+                            disabled={item.disabled}
+                        />
+                    ))}
+                </View>
+            </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
 }

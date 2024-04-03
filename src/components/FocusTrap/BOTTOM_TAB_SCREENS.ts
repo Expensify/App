@@ -1,0 +1,5 @@
+import SCREENS from '@src/SCREENS';
+
+const BOTTOM_TAB_SCREENS: string[] = [SCREENS.HOME, SCREENS.SETTINGS.ROOT];
+
+export default BOTTOM_TAB_SCREENS;

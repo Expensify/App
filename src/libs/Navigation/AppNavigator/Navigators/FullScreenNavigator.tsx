@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -19,20 +20,22 @@ function FullScreenNavigator() {
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
 
     return (
-        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-            <RootStack.Navigator>
-                <RootStack.Screen
-                    name={SCREENS.WORKSPACE.INITIAL}
-                    options={screenOptions.homeScreen}
-                    getComponent={loadWorkspaceInitialPage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.WORKSPACES_CENTRAL_PANE}
-                    options={screenOptions.centralPaneNavigator}
-                    component={ModalStackNavigators.WorkspaceSettingsModalStackNavigator}
-                />
-            </RootStack.Navigator>
-        </View>
+        <FocusTrapForScreens>
+            <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+                <RootStack.Navigator>
+                    <RootStack.Screen
+                        name={SCREENS.WORKSPACE.INITIAL}
+                        options={screenOptions.homeScreen}
+                        getComponent={loadWorkspaceInitialPage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.WORKSPACES_CENTRAL_PANE}
+                        options={screenOptions.centralPaneNavigator}
+                        component={ModalStackNavigators.WorkspaceSettingsModalStackNavigator}
+                    />
+                </RootStack.Navigator>
+            </View>
+        </FocusTrapForScreens>
     );
 }
 
