@@ -1,5 +1,6 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
+import usePermissions from '@hooks/usePermissions';
 import SCREENS from '@src/SCREENS';
 import useModalScreenOptions from './useModalScreenOptions';
 
@@ -7,6 +8,7 @@ const StackNavigator = createStackNavigator();
 
 function WorkspaceSettingsModalStackNavigator() {
     const screenOptions = useModalScreenOptions((styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}));
+    const {canUseAccountingIntegrations} = usePermissions();
 
     return (
         <StackNavigator.Navigator screenOptions={screenOptions}>
@@ -50,11 +52,13 @@ function WorkspaceSettingsModalStackNavigator() {
                 name={SCREENS.WORKSPACE.MEMBERS}
                 getComponent={() => require('@pages/workspace/WorkspaceMembersPage').default as React.ComponentType}
             />
-            <StackNavigator.Screen
-                key={SCREENS.WORKSPACE.ACCOUNTING}
-                name={SCREENS.WORKSPACE.ACCOUNTING}
-                getComponent={() => require('@pages/workspace/accounting/WorkspaceAccountingPage').default as React.ComponentType}
-            />
+            {canUseAccountingIntegrations && (
+                <StackNavigator.Screen
+                    key={SCREENS.WORKSPACE.ACCOUNTING}
+                    name={SCREENS.WORKSPACE.ACCOUNTING}
+                    getComponent={() => require('@pages/workspace/accounting/WorkspaceAccountingPage').default as React.ComponentType}
+                />
+            )}
             <StackNavigator.Screen
                 key={SCREENS.WORKSPACE.CATEGORIES}
                 name={SCREENS.WORKSPACE.CATEGORIES}
