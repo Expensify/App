@@ -445,6 +445,27 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     'generalSettings' | 'addWorkspaceRoom'
 >;
 
+type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
+type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+type PolicyConnectionSyncProgress = {
+    status: ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STATUS>;
+    stageInProgress: PolicyConnectionSyncStage;
+    connectionName: PolicyConnectionName;
+};
+
 export default Policy;
 
-export type {PolicyReportField, PolicyReportFieldType, Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};
+export type {
+    PolicyReportField,
+    PolicyReportFieldType,
+    Unit,
+    CustomUnit,
+    Attributes,
+    Rate,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
+    PolicyFeatureName,
+    PendingJoinRequestPolicy,
+    PolicyConnectionSyncProgress,
+};
