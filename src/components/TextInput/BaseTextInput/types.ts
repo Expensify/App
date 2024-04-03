@@ -104,6 +104,8 @@ type CustomBaseTextInputProps = {
 
     /** Type of autocomplete */
     autoCompleteType?: string;
+
+    liveMarkdown?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
