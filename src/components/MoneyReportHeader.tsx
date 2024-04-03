@@ -288,7 +288,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 danger
             />
             <ConfirmModal
-                title={translate('iou.deleteRequest')}
+                title={translate('iou.deleteExpense')}
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}
