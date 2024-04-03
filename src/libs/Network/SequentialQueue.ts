@@ -63,6 +63,7 @@ function process(): Promise<void> {
     if (persistedRequests.length === 0 || NetworkStore.isOffline()) {
         return Promise.resolve();
     }
+
     const requestToProcess = persistedRequests[0];
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
