@@ -4808,11 +4808,6 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                       statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                   },
               },
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-                  value: optimisticNextStep,
-              },
           ]
         : [
               {
