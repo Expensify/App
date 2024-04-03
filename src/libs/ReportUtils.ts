@@ -2060,6 +2060,14 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return false;
     }
 
+    let parentReport: OnyxEntry<Report> | EmptyObject = getReport(optionOrReport.parentReportID);
+    while (!isEmptyObject(parentReport)) {
+        if (isArchivedRoom(parentReport)) {
+            return false;
+        }
+        parentReport = getReport(parentReport.parentReportID);
+    }
+
     if (isUnreadWithMention(optionOrReport)) {
         return true;
     }
