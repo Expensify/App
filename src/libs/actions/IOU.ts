@@ -127,10 +127,6 @@ type SendMoneyParamsData = {
     failureData: OnyxUpdate[];
 };
 
-type OutstandingChildRequest = {
-    hasOutstandingChildRequest?: boolean;
-};
-
 let betas: OnyxTypes.Beta[] = [];
 Onyx.connect({
     key: ONYXKEYS.BETAS,
@@ -468,22 +464,16 @@ function needsToBeManuallySubmitted(report: OnyxTypes.Report) {
 /**
  * Return the object to update hasOutstandingChildRequest
  */
-function getOutstandingChildRequest(policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject, report: OnyxTypes.Report): OutstandingChildRequest {
+function hasOutstandingChildRequest(report: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject): boolean {
     if (needsToBeManuallySubmitted(report)) {
-        return {
-            hasOutstandingChildRequest: true,
-        };
+        return true;
     }
 
     if (ReportUtils.isExpenseReport(report) && PolicyUtils.isPolicyAdmin(policy)) {
-        return {
-            hasOutstandingChildRequest: true,
-        };
+        return true;
     }
 
-    return {
-        hasOutstandingChildRequest: report.managerID === userAccountID && report.total !== 0,
-    };
+    return report.managerID === userAccountID && report.total !== 0;
 }
 
 /** Builds the Onyx data for a money request */
@@ -509,7 +499,6 @@ function buildOnyxDataForMoneyRequest(
     isOneOnOneSplit = false,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const outstandingChildRequest = getOutstandingChildRequest(policy ?? {}, iouReport);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = isScanRequest ? CONST.QUICK_ACTIONS.REQUEST_SCAN : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
@@ -527,7 +516,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
-                ...outstandingChildRequest,
+                hasOutstandingChildRequest: hasOutstandingChildRequest(iouReport, policy ?? {}),
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         });
