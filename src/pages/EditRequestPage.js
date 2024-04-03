@@ -13,15 +13,16 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {isTaxPolicyEnabled} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
+import EditRequestTaxAmountPage from './EditRequestTaxAmountPage';
+import EditRequestTaxRatePage from './EditRequestTaxRatePage';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import reportPropTypes from './reportPropTypes';
 import {policyPropTypes} from './workspace/withPolicy';
@@ -71,12 +72,18 @@ const defaultProps = {
     transaction: {},
 };
 
+const getTaxAmount = (transactionAmount, transactionTaxCode, taxRates) => {
+    const percentage = (transactionTaxCode ? taxRates.taxes[transactionTaxCode].value : taxRates.defaultValue) || '';
+    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transactionAmount)));
+};
+
 function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
-    const {amount: transactionAmount, currency: transactionCurrency, tag: transactionTag} = ReportUtils.getTransactionDetails(transaction);
+    const {taxAmount: transactionTaxAmount, taxCode: transactionTaxCode, currency: transactionCurrency, tag: transactionTag} = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
+
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
     const tagListIndex = Number(lodashGet(route, ['params', 'tagIndex'], undefined));
 
@@ -84,11 +91,22 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     const policyTagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
+    const taxRates = lodashGet(policy, 'taxRates', {});
+
+    const taxRateTitle =
+        taxRates &&
+        (transactionTaxCode === taxRates.defaultExternalID
+            ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
+            : transactionTaxCode && TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode));
+
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
     // A flag for showing the tags page
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists)), [isPolicyExpenseChat, policyTagLists, transactionTag]);
+
+    // A flag for showing tax rate
+    const shouldShowTax = isTaxPolicyEnabled(isPolicyExpenseChat, policy);
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -103,18 +121,31 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         });
     }, [parentReportAction, fieldToEdit]);
 
-    const saveAmountAndCurrency = useCallback(
-        ({amount, currency: newCurrency}) => {
-            const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+    const updateTaxAmount = useCallback(
+        (transactionChanges) => {
+            const newTaxAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges.amount));
 
-            // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newAmount === TransactionUtils.getAmount(transaction) && newCurrency === TransactionUtils.getCurrency(transaction)) {
+            if (newTaxAmount === TransactionUtils.getTaxAmount(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+            IOU.updateMoneyRequestTaxAmount(transaction.transactionID, report.reportID, newTaxAmount, policy, policyTags, policyCategories);
+            Navigation.dismissModal(report.reportID);
+        },
+        [transaction, report, policy, policyTags, policyCategories],
+    );
+
+    const updateTaxRate = useCallback(
+        (transactionChanges) => {
+            const newTaxCode = transactionChanges.data.code;
+
+            if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
                 Navigation.dismissModal();
                 return;
             }
 
-            IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount, policy, policyTags, policyCategories);
-            Navigation.dismissModal();
+            IOU.updateMoneyRequestTaxRate(transaction.transactionID, report.reportID, newTaxCode, policy, policyTags, policyCategories);
+            Navigation.dismissModal(report.reportID);
         },
         [transaction, report, policy, policyTags, policyCategories],
     );
@@ -139,21 +170,6 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         [tag, transaction.transactionID, report.reportID, transactionTag, tagListIndex, policy, policyTags, policyCategories],
     );
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
-        return (
-            <EditRequestAmountPage
-                defaultAmount={transactionAmount}
-                defaultCurrency={defaultCurrency}
-                reportID={report.reportID}
-                onSubmit={saveAmountAndCurrency}
-                onNavigateToCurrency={() => {
-                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
-                }}
-            />
-        );
-    }
-
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG && shouldShowTags) {
         return (
             <EditRequestTagPage
@@ -162,6 +178,27 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
                 tagListIndex={tagListIndex}
                 policyID={lodashGet(report, 'policyID', '')}
                 onSubmit={saveTag}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAX_AMOUNT && shouldShowTax) {
+        return (
+            <EditRequestTaxAmountPage
+                defaultAmount={transactionTaxAmount}
+                defaultTaxAmount={getTaxAmount(TransactionUtils.getAmount(transaction), transactionTaxCode, taxRates)}
+                defaultCurrency={defaultCurrency}
+                onSubmit={updateTaxAmount}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAX_RATE && shouldShowTax) {
+        return (
+            <EditRequestTaxRatePage
+                defaultTaxRate={taxRateTitle}
+                policyID={lodashGet(report, 'policyID', '')}
+                onSubmit={updateTaxRate}
             />
         );
     }

@@ -128,7 +128,7 @@ function IOURequestStepParticipants({
 
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, nextStepIOUType, transactionID, selectedReportID.current || reportID));
         },
         [iouType, transactionID, reportID],
     );

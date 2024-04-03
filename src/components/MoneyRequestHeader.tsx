@@ -222,7 +222,7 @@ const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick
     transaction: {
         key: ({report, parentReportActions}) => {
             const parentReportAction = (report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : {}) as ReportAction & OriginalMessageIOU;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction.originalMessage.IOUTransactionID ?? 0}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction?.originalMessage?.IOUTransactionID ?? 0}`;
         },
     },
     shownHoldUseExplanation: {
