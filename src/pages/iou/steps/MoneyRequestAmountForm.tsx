@@ -21,9 +21,10 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
-import ROUTES, {AllRoutes} from '@src/ROUTES';
+import type {AllRoutes} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
-import {PaymentMethodType} from "@src/types/onyx/OriginalMessage";
+import type {PaymentMethodType} from "@src/types/onyx/OriginalMessage";
 
 type IouType = ValueOf<typeof CONST.IOU.TYPE>;
 type MoneyRequestAmountFormProps = {

@@ -274,7 +274,7 @@ function IOURequestStepScan({
             }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
         },
-        [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo],
+        [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo, currentUserPersonalDetails, personalDetails, skipConfirmation, transaction],
     );
 
     const updateScanAndNavigate = useCallback(

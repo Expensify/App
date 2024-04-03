@@ -428,7 +428,6 @@ function IOURequestStepConfirmation({
             }
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
-                console.log('here');
                 createDistanceRequest(selectedParticipants, trimmedComment);
                 return;
             }

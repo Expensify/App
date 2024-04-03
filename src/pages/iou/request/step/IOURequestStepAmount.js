@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
