@@ -83,7 +83,7 @@ function IOURequestStepAmount({
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
     const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction);
-    const skipConfirmation = draftTransaction.skipConfirmation && !ReportUtils.isArchivedRoom(report);
+    const skipConfirmation = draftTransaction.skipConfirmation && !ReportUtils.isArchivedRoom(report) && !ReportUtils.isPolicyExpenseChat(report);
 
     useFocusEffect(
         useCallback(() => {
