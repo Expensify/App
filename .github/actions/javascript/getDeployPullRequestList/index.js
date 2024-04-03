@@ -1,53 +1,237 @@
 /**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
  */
+/**
+ * NOTE: This is a compiled file. DO NOT directly edit this file.
+ */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 5847:
+/***/ 970:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const _ = __nccwpck_require__(5067);
 const core = __nccwpck_require__(2186);
-const github = __nccwpck_require__(5438);
-const ActionUtils = __nccwpck_require__(6981);
-const GitUtils = (__nccwpck_require__(1547)["default"]);
-const GithubUtils = __nccwpck_require__(9296);
 
-async function run() {
-    try {
-        const inputTag = core.getInput('TAG', {required: true});
-        const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
-        const deployEnv = isProductionDeploy ? 'production' : 'staging';
-
-        console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
-
-        const completedDeploys = (
-            await GithubUtils.octokit.actions.listWorkflowRuns({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                workflow_id: 'platformDeploy.yml',
-                status: 'completed',
-                event: isProductionDeploy ? 'release' : 'push',
-            })
-        ).data.workflow_runs;
-
-        const priorTag = _.first(completedDeploys).head_branch;
-        console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
-        console.log(`Found the pull request list: ${prList}`);
-        core.setOutput('PR_LIST', prList);
-    } catch (err) {
-        console.error(err.message);
-        core.setFailed(err);
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param {String} name - The name of the input.
+ * @param {Object} options - Options to pass to core.getInput
+ * @param {*} [defaultValue] - A default value to provide for the input.
+ *                             Not required if the {required: true} option is given in the second arg to this function.
+ * @returns {any}
+ */
+function getJSONInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
     }
+    return defaultValue;
 }
 
-if (require.main === require.cache[eval('__filename')]) {
-    run();
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ *
+ * @param {String} name
+ * @param {Object} options
+ * @param {*} [defaultValue]
+ * @returns {string|undefined}
+ */
+function getStringInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
 }
 
-module.exports = run;
+module.exports = {
+    getJSONInput,
+    getStringInput,
+};
+
+
+/***/ }),
+
+/***/ 9338:
+/***/ ((module) => {
+
+const replacer = (str) =>
+    ({
+        '\\': '\\\\',
+        '\t': '\\t',
+        '\n': '\\n',
+        '\r': '\\r',
+        '\f': '\\f',
+        '"': '\\"',
+    }[str]);
+
+/**
+ * Replace any characters in the string that will break JSON.parse for our Git Log output
+ *
+ * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
+ * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
+ *
+ * @param {String} inputString
+ * @returns {String}
+ */
+module.exports = function (inputString) {
+    if (typeof inputString !== 'string') {
+        throw new TypeError('Input must me of type String');
+    }
+
+    // Replace any newlines and escape backslashes
+    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+};
+
+
+/***/ }),
+
+/***/ 8007:
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "MAX_INCREMENTS": () => (/* binding */ MAX_INCREMENTS),
+/* harmony export */   "SEMANTIC_VERSION_LEVELS": () => (/* binding */ SEMANTIC_VERSION_LEVELS),
+/* harmony export */   "getPreviousVersion": () => (/* binding */ getPreviousVersion),
+/* harmony export */   "getVersionNumberFromString": () => (/* binding */ getVersionNumberFromString),
+/* harmony export */   "getVersionStringFromNumber": () => (/* binding */ getVersionStringFromNumber),
+/* harmony export */   "incrementMinor": () => (/* binding */ incrementMinor),
+/* harmony export */   "incrementPatch": () => (/* binding */ incrementPatch),
+/* harmony export */   "incrementVersion": () => (/* binding */ incrementVersion)
+/* harmony export */ });
+const _ = __nccwpck_require__(5067);
+
+const SEMANTIC_VERSION_LEVELS = {
+    MAJOR: 'MAJOR',
+    MINOR: 'MINOR',
+    PATCH: 'PATCH',
+    BUILD: 'BUILD',
+};
+const MAX_INCREMENTS = 99;
+
+/**
+ * Transforms a versions string into a number
+ *
+ * @param {String} versionString
+ * @returns {Array}
+ */
+const getVersionNumberFromString = (versionString) => {
+    const [version, build] = versionString.split('-');
+    const [major, minor, patch] = _.map(version.split('.'), (n) => Number(n));
+
+    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
+};
+
+/**
+ * Transforms version numbers components into a version string
+ *
+ * @param {Number} major
+ * @param {Number} minor
+ * @param {Number} patch
+ * @param {Number} [build]
+ * @returns {String}
+ */
+const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
+
+/**
+ * Increments a minor version
+ *
+ * @param {Number} major
+ * @param {Number} minor
+ * @returns {String}
+ */
+const incrementMinor = (major, minor) => {
+    if (minor < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor + 1, 0, 0);
+    }
+
+    return getVersionStringFromNumber(major + 1, 0, 0, 0);
+};
+
+/**
+ * Increments a Patch version
+ *
+ * @param {Number} major
+ * @param {Number} minor
+ * @param {Number} patch
+ * @returns {String}
+ */
+const incrementPatch = (major, minor, patch) => {
+    if (patch < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch + 1, 0);
+    }
+    return incrementMinor(major, minor);
+};
+
+/**
+ * Increments a build version
+ *
+ * @param {String} version
+ * @param {String} level
+ * @returns {String}
+ */
+const incrementVersion = (version, level) => {
+    const [major, minor, patch, build] = getVersionNumberFromString(version);
+
+    // Majors will always be incremented
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        return getVersionStringFromNumber(major + 1, 0, 0, 0);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        return incrementMinor(major, minor);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        return incrementPatch(major, minor, patch);
+    }
+
+    if (build < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch, build + 1);
+    }
+
+    return incrementPatch(major, minor, patch);
+};
+
+/**
+ * @param {String} currentVersion
+ * @param {String} level
+ * @returns {String}
+ */
+function getPreviousVersion(currentVersion, level) {
+    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
+
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        if (major === 1) {
+            return getVersionStringFromNumber(1, 0, 0, 0);
+        }
+        return getVersionStringFromNumber(major - 1, 0, 0, 0);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        if (minor === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
+        }
+        return getVersionStringFromNumber(major, minor - 1, 0, 0);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        if (patch === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
+        }
+        return getVersionStringFromNumber(major, minor, patch - 1, 0);
+    }
+
+    if (build === 0) {
+        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
+    }
+    return getVersionStringFromNumber(major, minor, patch, build - 1);
+}
+
+
 
 
 /***/ }),
@@ -11513,64 +11697,49 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 6981:
+/***/ 1935:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getStringInput = exports.getJSONInput = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param name - The name of the input.
- * @param options - Options to pass to core.getInput
- * @param [defaultValue] - A default value to provide for the input.
- *                         Not required if the {required: true} option is given in the second arg to this function.
- */
-function getJSONInput(name, options, defaultValue) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
+const core_1 = __importDefault(__nccwpck_require__(2186));
+const github_1 = __importDefault(__nccwpck_require__(5438));
+const ActionUtils_1 = __importDefault(__nccwpck_require__(970));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
+async function run() {
+    try {
+        const inputTag = core_1.default.getInput('TAG', { required: true });
+        const isProductionDeploy = ActionUtils_1.default.getJSONInput('IS_PRODUCTION_DEPLOY', { required: false }, false);
+        const deployEnv = isProductionDeploy ? 'production' : 'staging';
+        console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
+        const completedDeploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({
+            owner: github_1.default.context.repo.owner,
+            repo: github_1.default.context.repo.repo,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            workflow_id: 'platformDeploy.yml',
+            status: 'completed',
+            event: isProductionDeploy ? 'release' : 'push',
+        })).data.workflow_runs;
+        const priorTag = completedDeploys[0].head_branch;
+        console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
+        const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
+        console.log('Found the pull request list: ', prList);
+        core_1.default.setOutput('PR_LIST', prList);
     }
-    return defaultValue;
-}
-exports.getJSONInput = getJSONInput;
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- */
-function getStringInput(name, options, defaultValue) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
+    catch (error) {
+        console.error(error.message);
+        core_1.default.setFailed(error);
     }
-    return input;
 }
-exports.getStringInput = getStringInput;
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
 
 
 /***/ }),
@@ -11581,12 +11750,9 @@ exports.getStringInput = getStringInput;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const GIT_CONST = {
+const CONST = {
     GITHUB_OWNER: 'Expensify',
     APP_REPO: 'App',
-};
-const CONST = {
-    ...GIT_CONST,
     APPLAUSE_BOT: 'applausebot',
     OS_BOTIFY: 'OSBotify',
     LABELS: {
@@ -11595,9 +11761,11 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
     },
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
-    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
-    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+    APP_REPO_URL: '',
+    APP_REPO_GIT_URL: '',
 };
+CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
+CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
 exports["default"] = CONST;
 
 
@@ -11637,8 +11805,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
-const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
-const VERSION_UPDATER = __importStar(__nccwpck_require__(8982));
+const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(9338));
+const VERSION_UPDATER = __importStar(__nccwpck_require__(8007));
 /**
  * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
@@ -14750,7 +14918,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(5847);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(1935);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()

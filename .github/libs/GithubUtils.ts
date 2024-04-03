@@ -549,4 +549,4 @@ export default GithubUtils;
 module.exports = GithubUtils;
 
 export {ISSUE_OR_PULL_REQUEST_REGEX, POLL_RATE};
-export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};
