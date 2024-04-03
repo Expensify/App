@@ -6,7 +6,7 @@ import type Beta from './Beta';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
 import type {CardList} from './Card';
-import type Log from './Console';
+import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -64,6 +64,7 @@ import type Request from './Request';
 import type Response from './Response';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SecurityGroup from './SecurityGroup';
+import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type Task from './Task';
 import type Transaction from './Transaction';
@@ -142,6 +143,7 @@ export type {
     Response,
     ScreenShareRequest,
     SecurityGroup,
+    SelectedTabRequest,
     Session,
     Task,
     TaxRate,
@@ -173,4 +175,5 @@ export type {
     NewGroupChatDraft,
     Log,
     PolicyJoinMember,
+    CapturedLogs,
 };

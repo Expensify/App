@@ -99,6 +99,10 @@ type ExpenseOriginalMessage = {
     oldTag?: string;
     billable?: string;
     oldBillable?: string;
+    oldTaxAmount?: number;
+    taxAmount?: number;
+    taxRate?: string;
+    oldTaxRate?: string;
 };
 
 type SpendBreakdown = {
@@ -327,6 +331,8 @@ type OptimisticTaskReport = Pick<
 type TransactionDetails = {
     created: string;
     amount: number;
+    taxAmount?: number;
+    taxCode?: string;
     currency: string;
     merchant: string;
     waypoints?: WaypointCollection | string;
@@ -516,6 +522,23 @@ Onyx.connect({
         reportActionsByReport[reportID] = actions;
     },
 });
+
+let lastUpdatedReport: OnyxEntry<Report>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+
+        lastUpdatedReport = value;
+    },
+});
+
+function getLastUpdatedReport(): OnyxEntry<Report> {
+    return lastUpdatedReport;
+}
 
 function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
     return currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
@@ -1193,7 +1216,8 @@ function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): 
  * If the report is a thread and has a chat type set, it is a workspace chat.
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
-    return isThread(report) && isChatReport(report) && !!getChatType(report);
+    const chatType = getChatType(report);
+    return isThread(report) && isChatReport(report) && CONST.WORKSPACE_ROOM_TYPES.some((type) => chatType === type);
 }
 
 /**
@@ -1262,6 +1286,23 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
     const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
     return isIOUReport(report) || isExpenseReport(report);
+}
+
+/**
+ * Checks if a report has only one transaction associated with it
+ */
+function isOneTransactionReport(reportID: string): boolean {
+    const reportActions = reportActionsByReport?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
+    return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== null;
+}
+
+/**
+ * Checks if a report is a transaction thread associated with a report that has only one transaction
+ */
+function isOneTransactionThread(reportID: string, parentReportID: string): boolean {
+    const parentReportActions = reportActionsByReport?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? ([] as ReportAction[]);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReportActions);
+    return reportID === transactionThreadReportID;
 }
 
 /**
@@ -1794,6 +1835,11 @@ function getIcons(
         };
         const isManager = currentUserAccountID === report?.managerID;
 
+        // For one transaction IOUs, display a simplified report icon
+        if (isOneTransactionReport(report?.reportID ?? '0')) {
+            return [ownerIcon];
+        }
+
         return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
     }
 
@@ -2267,6 +2313,8 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
     return {
         created: TransactionUtils.getCreated(transaction, createdDateFormat),
         amount: TransactionUtils.getAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
+        taxAmount: TransactionUtils.getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
+        taxCode: TransactionUtils.getTaxCode(transaction),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
@@ -2682,7 +2730,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant(report.ownerAccountID) ?? '', amount: formattedAmount});
     }
 
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
 }
 
 /**
@@ -2691,7 +2739,12 @@ function getReportPreviewMessage(
  *
  * At the moment, we only allow changing one transaction field at a time.
  */
-function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction>, transactionChanges: TransactionChanges, isFromExpenseReport: boolean): ExpenseOriginalMessage {
+function getModifiedExpenseOriginalMessage(
+    oldTransaction: OnyxEntry<Transaction>,
+    transactionChanges: TransactionChanges,
+    isFromExpenseReport: boolean,
+    policy: OnyxEntry<Policy>,
+): ExpenseOriginalMessage {
     const originalMessage: ExpenseOriginalMessage = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
     // all others have old/- pattern such as oldCreated/created
@@ -2725,6 +2778,16 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
     if ('tag' in transactionChanges) {
         originalMessage.oldTag = TransactionUtils.getTag(oldTransaction);
         originalMessage.tag = transactionChanges?.tag;
+    }
+
+    if ('taxAmount' in transactionChanges) {
+        originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
+        originalMessage.taxAmount = transactionChanges?.taxAmount;
+    }
+
+    if ('taxCode' in transactionChanges) {
+        originalMessage.oldTaxRate = policy?.taxRates?.taxes[TransactionUtils.getTaxCode(oldTransaction)].value;
+        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode].value;
     }
 
     if ('billable' in transactionChanges) {
@@ -3568,8 +3631,9 @@ function buildOptimisticModifiedExpenseReportAction(
     oldTransaction: OnyxEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
+    policy: OnyxEntry<Policy>,
 ): OptimisticModifiedExpenseReportAction {
-    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport);
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,
@@ -4397,6 +4461,11 @@ function shouldReportBeInOptionList({
         return false;
     }
 
+    // If this is a transaction thread associated with a report that only has one transaction, omit it
+    if (isOneTransactionThread(report.reportID, report.parentReportID ?? '0')) {
+        return false;
+    }
+
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
@@ -4864,6 +4933,10 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
     }
 
     if (isExpenseRequest(report)) {
+        return true;
+    }
+
+    if (isExpenseReport(report) && isOneTransactionReport(report?.reportID ?? '')) {
         return true;
     }
 
@@ -5778,6 +5851,7 @@ export {
     hasSingleParticipant,
     getReportRecipientAccountIDs,
     isOneOnOneChat,
+    isOneTransactionThread,
     isPayer,
     goBackToDetailsPage,
     getTransactionReportName,
@@ -5848,6 +5922,7 @@ export {
     isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    getLastUpdatedReport,
     isGroupChat,
     isTrackExpenseReport,
     hasActionsWithErrors,

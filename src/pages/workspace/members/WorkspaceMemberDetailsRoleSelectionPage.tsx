@@ -70,7 +70,7 @@ function WorkspaceMemberDetailsRoleSelectionPage({policyMembers, route}: Workspa
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                         <SelectionList
-                            sections={[{data: items, indexOffset: 0}]}
+                            sections={[{data: items}]}
                             ListItem={RadioListItem}
                             onSelectRow={changeRole}
                             initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}

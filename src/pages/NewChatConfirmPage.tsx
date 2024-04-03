@@ -129,7 +129,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 description={translate('groupConfirmPage.groupName')}
             />
             <SelectionList
-                sections={[{data: sections, indexOffset: 0}]}
+                sections={[{data: sections}]}
                 ListItem={TableListItem}
                 onSelectRow={unselectOption}
                 showConfirmButton={selectedOptions.length > 1}
