@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -26,7 +27,10 @@ function ThreadDivider({ancestor}: ThreadDividerProps) {
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mt3, styles.mb1]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor?.report?.parentReportID ?? '', ancestor.reportAction.reportActionID))}
+                onPress={() => {
+                    const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '');
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', isVisibleAction ? ancestor.reportAction.reportActionID : undefined));
+                }}
                 accessibilityLabel={translate('threads.thread')}
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}

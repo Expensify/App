@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -31,7 +32,9 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
     return (
         <PressableWithoutFeedback
             onPress={() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
+                const parentAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '');
+                const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? '');
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, isVisibleAction ? parentReportActionID : undefined));
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
             role={CONST.ROLE.LINK}
