@@ -147,15 +147,6 @@ function ReportPreview({
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
     }
-    const previewSubtitle =
-        // Formatted merchant can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (formattedMerchant ?? formattedDescription) ||
-        translate('iou.requestCount', {
-            count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
-            scanningReceipts: numberOfScanningReceipts,
-            pendingReceipts: numberOfPendingRequests,
-        });
 
     const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
@@ -236,14 +227,23 @@ function ReportPreview({
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
 
-    const subtitle = previewSubtitle || moneyRequestComment;
-    const htmlSubtitle = useMemo(() => {
-        if (!subtitle || !shouldShowSubtitle) {
-            return '';
+    const {isSupportTextHtml, supportText} = useMemo(() => {
+        if (formattedMerchant) {
+            return {isSupportTextHtml: false, supportText: formattedMerchant};
         }
-        const parsedSubtitle = new ExpensiMark().replace(subtitle);
-        return parsedSubtitle ? `<muted-text>${parsedSubtitle}</muted-text>` : '';
-    }, [subtitle, shouldShowSubtitle]);
+        if (formattedDescription ?? moneyRequestComment) {
+            const parsedSubtitle = new ExpensiMark().replace(formattedDescription ?? moneyRequestComment);
+            return {isSupportTextHtml: !!parsedSubtitle, supportText: parsedSubtitle ? `<muted-text>${parsedSubtitle}</muted-text>` : ''};
+        }
+        return {
+            isSupportTextHtml: false,
+            supportText: translate('iou.requestCount', {
+                count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+                scanningReceipts: numberOfScanningReceipts,
+                pendingReceipts: numberOfPendingRequests,
+            }),
+        };
+    }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
     return (
         <OfflineWithFeedback
@@ -307,10 +307,14 @@ function ReportPreview({
                                                 )}
                                             </View>
                                         </View>
-                                        {shouldShowSubtitle && htmlSubtitle && (
+                                        {shouldShowSubtitle && supportText && (
                                             <View style={styles.flexRow}>
-                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.textLabelSupporting, styles.textNormal, styles.lh20]}>
-                                                    <RenderHTML html={htmlSubtitle} />
+                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                                    {isSupportTextHtml ? (
+                                                        <RenderHTML html={supportText} />
+                                                    ) : (
+                                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
+                                                    )}
                                                 </View>
                                             </View>
                                         )}

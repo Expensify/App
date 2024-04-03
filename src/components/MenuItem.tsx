@@ -1,7 +1,7 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
