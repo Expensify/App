@@ -127,6 +127,8 @@ function OnboardingWelcomeVideo() {
                     type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                     onClose={closeModal}
                     innerContainerStyle={{
+                        boxShadow: 'none',
+                        borderRadius: 16,
                         paddingBottom: 20,
                         paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING,
                         ...(shouldUseNarrowLayout
