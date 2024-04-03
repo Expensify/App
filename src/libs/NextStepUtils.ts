@@ -255,6 +255,20 @@ function buildNextStep(
             break;
         }
 
+        // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
+        case CONST.REPORT.STATUS_NUM.CLOSED:
+            optimisticNextStep = {
+                type,
+                title: 'Finished!',
+                message: [
+                    {
+                        text: 'No further action required!',
+                    },
+                ],
+            };
+
+            break;
+
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
             // Self review
