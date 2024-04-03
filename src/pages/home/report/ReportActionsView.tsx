@@ -382,12 +382,16 @@ function ReportActionsView({
         // Determines if loading older reports is necessary when the content is smaller than the list
         // and there are fewer than 23 items, indicating we've reached the oldest message.
         const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
-
+        
         if (
             (reportActionID && indexOfLinkedAction > -1 && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded) ||
             (!reportActionID && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded)
         ) {
             handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
+        }
+        if (reportActionID && indexOfLinkedAction > -1 && hasNewestReportAction && isFirstLinkedActionRender.current) {
+            isFirstLinkedActionRender.current = false;
+            setCurrentReportActionID(newestReportAction?.reportActionID);
         }
     }, [
         isLoadingInitialReportActions,
