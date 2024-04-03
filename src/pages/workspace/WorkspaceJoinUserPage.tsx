@@ -29,7 +29,6 @@ function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
     const inviterEmail = route?.params?.email;
-
     const isUnmounted = useRef(false);
 
     useEffect(() => {
