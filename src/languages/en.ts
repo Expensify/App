@@ -315,6 +315,12 @@ export default {
         member: 'Member',
         role: 'Role',
         currency: 'Currency',
+        emptyLHN: {
+            title: 'Woohoo! All caught up.',
+            subtitleText1: 'Find a chat using the',
+            subtitleText2: 'button above, or create something using the',
+            subtitleText3: 'button below.',
+        },
     },
     location: {
         useCurrent: 'Use current location',
@@ -519,7 +525,7 @@ export default {
         asCopilot: 'as copilot for',
     },
     mentionSuggestions: {
-        hereAlternateText: 'Notify everyone online in this room',
+        hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -887,6 +893,11 @@ export default {
             submitBug: 'submit a bug',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
             resetAndRefresh: 'Reset and refresh',
+            clientSideLogging: 'Client side logging',
+            noLogsToShare: 'No logs to share',
+            useProfiling: 'Use profiling',
+            profileTrace: 'Profile trace',
+            releaseOptions: 'Release options',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -895,6 +906,7 @@ export default {
             execute: 'Execute',
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
+            logs: 'Logs',
         },
         security: 'Security',
         signOut: 'Sign out',
