@@ -1,3 +1,4 @@
+import * as Policy from '@libs/actions/Policy';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Task from '@userActions/Task';
 
@@ -19,6 +20,13 @@ describe('ReportUtils', () => {
     it('does not export getPolicy', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getPolicy).toBeUndefined();
+    });
+});
+
+describe('ReportUtils', () => {
+    it('does not export getPolicy', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(Policy.getPolicy).toBeUndefined();
     });
 });
 
