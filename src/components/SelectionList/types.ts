@@ -1,11 +1,11 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
@@ -34,9 +34,6 @@ type CommonListItemProps<TItem> = {
 
     /** Component to display on the right side */
     rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
-
-    /** Direction of checkmark to show */
-    checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
 
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
@@ -153,16 +150,17 @@ type UserListItemProps = ListItemProps & {
     FooterComponent?: ReactElement;
 };
 
+type InviteMemberListItemProps = UserListItemProps;
+
 type RadioListItemProps = ListItemProps;
 
 type TableListItemProps = ListItemProps;
 
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem;
+
 type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
-
-    /** The initial index of this section given the total number of options in each section's data array */
-    indexOffset?: number;
 
     /** Array of options */
     data?: TItem[];
@@ -174,12 +172,17 @@ type Section<TItem extends ListItem> = {
     shouldShow?: boolean;
 };
 
+type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
+    /** The initial index of this section given the total number of options in each section's data array */
+    indexOffset: number;
+};
+
 type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListData<TItem, Section<TItem>>> | typeof CONST.EMPTY_ARRAY;
 
     /** Default renderer for every item in the list */
-    ListItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+    ListItem: ValidListItem;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -229,6 +232,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Message to display at the top of the list */
     headerMessage?: string;
 
+    /** Styles to apply to the header message */
+    headerMessageStyle?: StyleProp<ViewStyle>;
+
     /** Text to display on the confirm button */
     confirmButtonText?: string;
 
@@ -265,23 +271,14 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
-    /** Whether to disable initial styling for focused option */
-    disableInitialFocusOptionStyle?: boolean;
-
     /** Styles to apply to SelectionList container */
     containerStyle?: ViewStyle;
 
     /** Whether keyboard is visible on the screen */
     isKeyboardShown?: boolean;
 
-    /** Whether focus event should be delayed */
-    shouldDelayFocus?: boolean;
-
     /** Component to display on the right side of each child */
     rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
-
-    /** Direction of checkmark to show */
-    checkmarkPosition?: ValueOf<typeof CONST.DIRECTION>;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
@@ -295,14 +292,17 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
 
-    /**  Whether to auto focus the Search Input */
-    autoFocus?: boolean;
-
     /** Whether to wrap long text up to 2 lines */
     isRowMultilineSupported?: boolean;
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null>;
+
+    /**
+     * When true, the list won't be visible until the list layout is measured. This prevents the list from "blinking" as it's scrolled to the bottom which is recommended for large lists.
+     * When false, the list will render immediately and scroll to the bottom which works great for small lists.
+     */
+    shouldHideListOnInitialRender?: boolean;
 };
 
 type SelectionListHandle = {
@@ -324,16 +324,18 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type SectionListDataType<TItem extends ListItem> = SectionListData<TItem, Section<TItem>>;
+type SectionListDataType<TItem extends ListItem> = SectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
 export type {
     BaseSelectionListProps,
     CommonListItemProps,
     Section,
+    SectionWithIndexOffset,
     BaseListItemProps,
     UserListItemProps,
     RadioListItemProps,
     TableListItemProps,
+    InviteMemberListItemProps,
     ListItem,
     ListItemProps,
     FlattenedSectionsReturn,
@@ -341,4 +343,5 @@ export type {
     ButtonOrCheckBoxRoles,
     SectionListDataType,
     SelectionListHandle,
+    ValidListItem,
 };
