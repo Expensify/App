@@ -100,7 +100,7 @@ type TaxRate = {
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
-        amount: number;
+        amount?: number;
 
         /** The transaction tax amount */
         taxAmount?: number;
@@ -115,13 +115,13 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         category?: string;
 
         /** The comment object on the transaction */
-        comment: Comment;
+        comment?: Comment;
 
         /** Date that the request was created */
-        created: string;
+        created?: string;
 
         /** The original currency of the transaction */
-        currency: string;
+        currency?: string;
 
         /** Any additional error message to show */
         errors?: OnyxCommon.Errors | ReceiptErrors;
@@ -136,7 +136,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
         /** The original merchant name */
-        merchant: string;
+        merchant?: string;
 
         /** The edited transaction amount */
         modifiedAmount?: number;
@@ -166,7 +166,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         receipt?: Receipt;
 
         /** The iouReportID associated with the transaction */
-        reportID: string;
+        reportID?: string;
 
         /** Existing routes */
         routes?: Routes;

@@ -25,6 +25,7 @@ import ROUTES, {AllRoutes} from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import {PaymentMethodType} from "@src/types/onyx/OriginalMessage";
 
+type IouType = ValueOf<typeof CONST.IOU.TYPE>;
 type MoneyRequestAmountFormProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
@@ -42,7 +43,7 @@ type MoneyRequestAmountFormProps = {
     skipConfirmation?: boolean;
 
     /** Type of the IOU */
-    iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+    iouType?: IouType;
 
     /** The policyID of the request */
     policyID?: string;
@@ -249,7 +250,7 @@ function MoneyRequestAmountForm(
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(
-        (iouPaymentType: PaymentMethodType) => {
+        (iouPaymentType: IouType | PaymentMethodType | undefined) => {
             if (isAmountInvalid(currentAmount)) {
                 setFormError('iou.error.invalidAmount');
                 return;
