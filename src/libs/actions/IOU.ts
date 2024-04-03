@@ -4862,6 +4862,11 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStep,
+        },
     ];
     if (!isSubmitAndClosePolicy) {
         failureData.push(
@@ -4873,11 +4878,6 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                         errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                     },
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-                value: currentNextStep,
             },
         );
     }
