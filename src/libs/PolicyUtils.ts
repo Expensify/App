@@ -244,6 +244,10 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isTaxPolicyEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>): boolean {
+    return (isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled)) ?? false;
+}
+
 /**
  * Checks if policy's scheduled submit / auto reporting frequency is "instant".
  * Note: Free policies have "instant" submit always enabled.
@@ -328,6 +332,7 @@ export {
     isInstantSubmitEnabled,
     isFreeGroupPolicy,
     isPolicyAdmin,
+    isTaxPolicyEnabled,
     isSubmitAndClose,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,

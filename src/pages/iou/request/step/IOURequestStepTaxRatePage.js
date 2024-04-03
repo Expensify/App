@@ -3,8 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -14,9 +12,11 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
@@ -27,6 +27,9 @@ const propTypes = {
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 
+    /** The report attached to the transaction */
+    report: reportPropTypes,
+
     /* Onyx Props */
     /** The policy of the report */
     policy: PropTypes.shape({
@@ -36,6 +39,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    report: {},
     policy: {},
     transaction: {},
 };
@@ -51,46 +55,40 @@ function IOURequestStepTaxRatePage({
     },
     policy,
     transaction,
+    report,
 }) {
     const {translate} = useLocalize();
+
+    const taxRates = lodashGet(policy, 'taxRates', {});
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
-    const taxRates = lodashGet(policy, 'taxRates', {});
-    const defaultTaxKey = taxRates.defaultExternalID;
-    const selectedTaxRate = (transaction.taxRate && transaction.taxRate.keyForList) || defaultTaxKey;
+
+    const selectedTaxRate = TransactionUtils.getDefaultTaxName(taxRates, transaction);
 
     const updateTaxRates = (taxes) => {
         const taxAmount = getTaxAmount(taxRates, taxes.text, transaction.amount);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
         IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes);
-        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
 
         Navigation.goBack(backTo);
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
+        <StepScreenWrapper
+            headerTitle={translate('iou.taxRate')}
+            onBackButtonPress={navigateBack}
+            shouldShowWrapper
             testID={IOURequestStepTaxRatePage.displayName}
         >
-            {({insets}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('iou.taxRate')}
-                        onBackButtonPress={() => navigateBack()}
-                    />
-                    <TaxPicker
-                        selectedTaxRate={selectedTaxRate}
-                        taxRates={taxRates}
-                        insets={insets}
-                        onSubmit={updateTaxRates}
-                    />
-                </>
-            )}
-        </ScreenWrapper>
+            <TaxPicker
+                selectedTaxRate={selectedTaxRate}
+                policyID={report.policyID}
+                onSubmit={updateTaxRates}
+            />
+        </StepScreenWrapper>
     );
 }
 
