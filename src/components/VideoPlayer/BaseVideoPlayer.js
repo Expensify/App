@@ -140,7 +140,7 @@ function BaseVideoPlayer({
             if (e.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 currentVideoPlayerRef.current.getStatusAsync().then((status) => {
                     if (status.volume > 0 && !status.isMuted) {
-                        return
+                        return;
                     }
 
                     updateVolume(0);
