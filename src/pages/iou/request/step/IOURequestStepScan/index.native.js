@@ -33,16 +33,13 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import _ from "@types/underscore";
-import * as OptionsListUtils from "@libs/OptionsListUtils";
-import * as ReportUtils from "@libs/ReportUtils";
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
-    withCurrentUserPersonalDetailsPropTypes
-} from "@components/withCurrentUserPersonalDetails";
-import {withOnyx} from "react-native-onyx";
-import ONYXKEYS from "@src/ONYXKEYS";
-import personalDetailsPropType from "@pages/personalDetailsPropType";
+import _ from '@types/underscore';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
