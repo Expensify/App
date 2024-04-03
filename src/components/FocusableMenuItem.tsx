@@ -4,7 +4,7 @@ import useSyncFocus from '@hooks/useSyncFocus';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 
-function PopoverMenuItem(props: MenuItemProps) {
+function FocusableMenuItem(props: MenuItemProps) {
     const ref = useRef<HTMLDivElement | View>(null);
 
     // Sync focus on an item
@@ -19,6 +19,6 @@ function PopoverMenuItem(props: MenuItemProps) {
     );
 }
 
-PopoverMenuItem.displayName = 'PopoverMenuItem';
+FocusableMenuItem.displayName = 'FocusableMenuItem';
 
-export default PopoverMenuItem;
+export default FocusableMenuItem;

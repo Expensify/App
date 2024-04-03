@@ -8,8 +8,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import type IconAsset from '@src/types/utils/IconAsset';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
+import FocusableMenuItem from './FocusableMenuItem';
 import Icon from './Icon';
-import PopoverMenuItem from './PopoverMenuItem';
 
 type ContextMenuItemProps = {
     /** Icon Component */
@@ -117,7 +117,7 @@ function ContextMenuItem(
             )}
         </BaseMiniContextMenuItem>
     ) : (
-        <PopoverMenuItem
+        <FocusableMenuItem
             title={itemText}
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}

@@ -9,10 +9,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import FocusableMenuItem from './FocusableMenuItem';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
-import PopoverMenuListItem from './PopoverMenuItem';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import Text from './Text';
 
@@ -194,7 +194,7 @@ function PopoverMenu({
                 {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
                 {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                 {currentMenuItems.map((item, menuIndex) => (
-                    <PopoverMenuListItem
+                    <FocusableMenuItem
                         key={item.text}
                         icon={item.icon}
                         iconWidth={item.iconWidth}
