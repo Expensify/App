@@ -2,7 +2,7 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {SvgProps} from "react-native-svg";
+import type {SvgProps} from 'react-native-svg';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -24,7 +24,6 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
-// import IconAsset from "@src/types/utils/IconAsset";
 
 type ShareCodePageOnyxProps = {
     /** The report currently being looked at */
@@ -82,7 +81,7 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
     const logo = isReport ? getLogoForWorkspace(policy) : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
 
     // default logos (avatars) are SVG and because of that require some special logic
-    let logoSVG : React.FC<SvgProps> | undefined;
+    let logoSVG: React.FC<SvgProps> | undefined;
     let logoBackground;
     let logoColor;
 
@@ -119,8 +118,8 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
                         logoSVG={logoSVG}
                         logoBackground={logoBackground}
                         logoColor={logoColor}
-                        logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                        logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                        logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                        logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                     />
                 </View>
 
