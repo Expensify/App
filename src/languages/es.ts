@@ -2101,8 +2101,6 @@ export default {
             disableRates: ({count}: DistanceRateOperationsParams) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,
             enableRate: 'Activar tasa',
             status: 'Estado',
-            enabled: 'Activada',
-            disabled: 'Desactivada',
             unit: 'Unidad',
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',

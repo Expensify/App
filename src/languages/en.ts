@@ -2073,8 +2073,6 @@ export default {
             disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
             enableRate: 'Enable rate',
             status: 'Status',
-            enabled: 'Enabled',
-            disabled: 'Disabled',
             unit: 'Unit',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
