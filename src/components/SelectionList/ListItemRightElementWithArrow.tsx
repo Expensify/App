@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
+import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import * as Expensicons from '@components/Icon/Expensicons';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type ListItemRightElementWithArrowProps = {
     enabled?: boolean;
