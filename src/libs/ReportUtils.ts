@@ -62,6 +62,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
+import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
@@ -100,6 +101,10 @@ type ExpenseOriginalMessage = {
     oldTag?: string;
     billable?: string;
     oldBillable?: string;
+    oldTaxAmount?: number;
+    taxAmount?: number;
+    taxRate?: string;
+    oldTaxRate?: string;
 };
 
 type SpendBreakdown = {
@@ -328,6 +333,8 @@ type OptimisticTaskReport = Pick<
 type TransactionDetails = {
     created: string;
     amount: number;
+    taxAmount?: number;
+    taxCode?: string;
     currency: string;
     merchant: string;
     waypoints?: WaypointCollection | string;
@@ -517,6 +524,23 @@ Onyx.connect({
         reportActionsByReport[reportID] = actions;
     },
 });
+
+let lastUpdatedReport: OnyxEntry<Report>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+
+        lastUpdatedReport = value;
+    },
+});
+
+function getLastUpdatedReport(): OnyxEntry<Report> {
+    return lastUpdatedReport;
+}
 
 function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
     return currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
@@ -2291,6 +2315,8 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
     return {
         created: TransactionUtils.getCreated(transaction, createdDateFormat),
         amount: TransactionUtils.getAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
+        taxAmount: TransactionUtils.getTaxAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)),
+        taxCode: TransactionUtils.getTaxCode(transaction),
         currency: TransactionUtils.getCurrency(transaction),
         comment: TransactionUtils.getDescription(transaction),
         merchant: TransactionUtils.getMerchant(transaction),
@@ -2485,15 +2511,6 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
         transactionID = (reportAction?.originalMessage as IOUMessage)?.IOUTransactionID ?? '';
     }
 
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
-}
-
-/**
- * Retrieve the particular transaction object given its ID.
- *
- * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use withOnyx or Onyx.connect() instead.
- */
-function getTransaction(transactionID: string): OnyxEntry<Transaction> | EmptyObject {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
@@ -2715,7 +2732,12 @@ function getReportPreviewMessage(
  *
  * At the moment, we only allow changing one transaction field at a time.
  */
-function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction>, transactionChanges: TransactionChanges, isFromExpenseReport: boolean): ExpenseOriginalMessage {
+function getModifiedExpenseOriginalMessage(
+    oldTransaction: OnyxEntry<Transaction>,
+    transactionChanges: TransactionChanges,
+    isFromExpenseReport: boolean,
+    policy: OnyxEntry<Policy>,
+): ExpenseOriginalMessage {
     const originalMessage: ExpenseOriginalMessage = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
     // all others have old/- pattern such as oldCreated/created
@@ -2749,6 +2771,16 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
     if ('tag' in transactionChanges) {
         originalMessage.oldTag = TransactionUtils.getTag(oldTransaction);
         originalMessage.tag = transactionChanges?.tag;
+    }
+
+    if ('taxAmount' in transactionChanges) {
+        originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
+        originalMessage.taxAmount = transactionChanges?.taxAmount;
+    }
+
+    if ('taxCode' in transactionChanges) {
+        originalMessage.oldTaxRate = policy?.taxRates?.taxes[TransactionUtils.getTaxCode(oldTransaction)].value;
+        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode].value;
     }
 
     if ('billable' in transactionChanges) {
@@ -3005,7 +3037,7 @@ function getParsedComment(text: string): string {
                 return `@${mentionWithEmailDomain}`;
             }
         }
-        if (Str.isValidPhone(mention)) {
+        if (Str.isValidE164Phone(mention)) {
             const mentionWithSmsDomain = PhoneNumber.addSMSDomainIfPhoneNumber(mention);
             if (allPersonalDetailLogins.includes(mentionWithSmsDomain)) {
                 return `@${mentionWithSmsDomain}`;
@@ -3592,8 +3624,9 @@ function buildOptimisticModifiedExpenseReportAction(
     oldTransaction: OnyxEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
+    policy: OnyxEntry<Policy>,
 ): OptimisticModifiedExpenseReportAction {
-    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport);
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         actorAccountID: currentUserAccountID,
@@ -5196,7 +5229,7 @@ function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
 /**
  * Return iou report action display message
  */
-function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>): string {
+function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>, shouldLog = false): string {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return '';
     }
@@ -5226,7 +5259,15 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: ''});
     }
 
-    const transaction = getTransaction(originalMessage.IOUTransactionID ?? '');
+    // This log to server is temporary and needed to determine if there is a case we need the transaction param
+    // when we call getIOUReportActionDisplayMessage from ReportActionItemMessage
+    if (shouldLog) {
+        Log.alert('Transaction Param Used when getIOUReportActionDisplayMessage was called from ReportActionItemMessage', {
+            reportActionID: reportAction.reportActionID,
+            originalMessageType: originalMessage.type,
+        });
+    }
+
     const transactionDetails = getTransactionDetails(!isEmptyObject(transaction) ? transaction : null);
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
     const isRequestSettled = isSettled(originalMessage.IOUReportID);
@@ -5902,6 +5943,7 @@ export {
     isJoinRequestInAdminRoom,
     canAddOrDeleteTransactions,
     shouldCreateNewMoneyRequestReport,
+    getLastUpdatedReport,
     isGroupChat,
     isTrackExpenseReport,
     hasActionsWithErrors,

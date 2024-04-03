@@ -14,10 +14,6 @@ function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
-function canUseCommentLinking(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.BETA_COMMENT_LINKING) || canUseAllBetas(betas);
-}
-
 function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
 }
@@ -52,7 +48,6 @@ function canUseLinkPreviews(): boolean {
 export default {
     canUseChronos,
     canUseDefaultRooms,
-    canUseCommentLinking,
     canUseLinkPreviews,
     canUseViolations,
     canUseTrackExpense,

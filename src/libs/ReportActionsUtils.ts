@@ -675,12 +675,12 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): OnyxE
 /**
  * Find the transaction associated with this reportAction, if one exists.
  */
-function getLinkedTransactionID(reportID: string, reportActionID: string): string | null {
-    const reportAction = allReportActions?.[reportID]?.[reportActionID];
+function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction>, reportID?: string): string | null {
+    const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[reportID ?? '']?.[reportActionOrID] : reportActionOrID;
     if (!reportAction || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return null;
     }
-    return reportAction.originalMessage.IOUTransactionID ?? null;
+    return reportAction.originalMessage?.IOUTransactionID ?? null;
 }
 
 function getReportAction(reportID: string, reportActionID: string): OnyxEntry<ReportAction> {

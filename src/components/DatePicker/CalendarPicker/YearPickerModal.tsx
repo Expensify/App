@@ -65,7 +65,6 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    shouldDelayFocus
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}
                     textInputMaxLength={4}
