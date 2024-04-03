@@ -1,4 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText, View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -19,13 +21,17 @@ function EmojiPickerMenuItem({
     isHighlighted = false,
 }: EmojiPickerMenuItemProps) {
     const [isHovered, setIsHovered] = useState(false);
-    const ref = useRef<HTMLDivElement | null>(null);
+    const ref = useRef<HTMLDivElement | View | RNText | null>(null);
     const StyleUtils = useStyleUtils();
     const themeStyles = useThemeStyles();
 
     const focusAndScroll = () => {
-        ref?.current?.focus({preventScroll: true});
-        ref?.current?.scrollIntoView({block: 'nearest'});
+        if (ref.current && 'focus' in ref.current) {
+            ref.current.focus({preventScroll: true});
+        }
+        if (ref.current && 'scrollIntoView' in ref.current) {
+            ref.current.scrollIntoView({block: 'nearest'});
+        }
     };
 
     useEffect(() => {
@@ -58,7 +64,9 @@ function EmojiPickerMenuItem({
             }}
             onFocus={onFocus}
             onBlur={onBlur}
-            ref={ref}
+            ref={(el) => {
+                ref.current = el ?? null;
+            }}
             style={({pressed}) => [
                 isFocused ? themeStyles.emojiItemKeyboardHighlighted : {},
                 isHovered || isHighlighted ? themeStyles.emojiItemHighlighted : {},
@@ -75,4 +83,7 @@ function EmojiPickerMenuItem({
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
-export default React.memo(EmojiPickerMenuItem);
+export default React.memo(
+    EmojiPickerMenuItem,
+    (prevProps, nextProps) => prevProps.isFocused === nextProps.isFocused && prevProps.isHighlighted === nextProps.isHighlighted && prevProps.emoji === nextProps.emoji,
+);
