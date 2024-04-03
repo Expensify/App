@@ -39,7 +39,7 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the a tax rate. */
     name: string;
 
-    /** The value of the tax rate as percentage. */
+    /** The value of the tax rate. */
     value: string;
 
     /** The code associated with the tax rate. If a tax is created in old dot, code field is undefined */
