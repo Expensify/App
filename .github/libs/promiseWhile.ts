@@ -1,7 +1,9 @@
+import type {DebouncedFunc} from 'lodash';
+
 /**
  * Simulates a while loop where the condition is determined by the result of a Promise.
  */
-function promiseWhile(condition: () => boolean, action: () => Promise<void>): Promise<void> {
+function promiseWhile(condition: () => boolean, action: (() => Promise<void>) | DebouncedFunc<() => Promise<void>> | undefined): Promise<void> {
     console.info('[promiseWhile] promiseWhile()');
 
     return new Promise((resolve, reject) => {
@@ -9,7 +11,7 @@ function promiseWhile(condition: () => boolean, action: () => Promise<void>): Pr
             if (!condition()) {
                 resolve();
             } else {
-                const actionResult = action();
+                const actionResult = action?.();
                 console.info('[promiseWhile] promiseWhile() actionResult', actionResult);
                 Promise.resolve(actionResult).then(loop).catch(reject);
             }
@@ -21,15 +23,15 @@ function promiseWhile(condition: () => boolean, action: () => Promise<void>): Pr
 /**
  * Simulates a do-while loop where the condition is determined by the result of a Promise.
  */
-function promiseDoWhile(condition: () => boolean, action: () => Promise<void>): Promise<void> {
+function promiseDoWhile(condition: () => boolean, action: (() => Promise<void>) | DebouncedFunc<() => Promise<void>> | undefined): Promise<void> {
     console.info('[promiseWhile] promiseDoWhile()');
 
     return new Promise((resolve, reject) => {
         console.info('[promiseWhile] promiseDoWhile() condition', condition);
-        const actionResult = action();
+        const actionResult = action?.();
         console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
         actionResult
-            .then(() => promiseWhile(condition, action))
+            ?.then(() => promiseWhile(condition, action))
             .then(() => resolve())
             .catch(reject);
     });
