@@ -1,10 +1,12 @@
-const _ = require('underscore');
-const lodashThrottle = require('lodash/throttle');
-const CONST = require('../../../libs/CONST');
-const ActionUtils = require('../../../libs/ActionUtils');
-const GitHubUtils = require('../../../libs/GithubUtils').default;
-const {POLL_RATE} = require('../../../libs/constants');
-const {promiseDoWhile} = require('../../../libs/promiseWhile');
+/* eslint-disable @typescript-eslint/naming-convention */
+import lodashThrottle from 'lodash/throttle';
+import ActionUtils from '@github/libs/ActionUtils';
+import CONST from '@github/libs/CONST';
+import GitHubUtils from '@github/libs/GithubUtils';
+import {POLL_RATE} from '@github/libs/constants'
+import {promiseDoWhile} from '@github/libs/promiseWhile';
+
+type CurrentStagingDeploys = Awaited<ReturnType<typeof GitHubUtils.octokit.actions.listWorkflowRuns>>['data']['workflow_runs'];
 
 console.log('** POLL RATE ***', POLL_RATE);
 
@@ -17,9 +19,9 @@ function run() {
     const tag = ActionUtils.getStringInput('TAG', {required: false});
     console.info('[awaitStagingDeploys] run() tag', tag);
 
-    let currentStagingDeploys = [];
+    let currentStagingDeploys: CurrentStagingDeploys = [];
 
-    console.info('[awaitStagingDeploys] run()  _.throttle', _.throttle);
+    console.info('[awaitStagingDeploys] run()  _.throttle', lodashThrottle);
 
     const throttleFunc = () =>
         Promise.all([
@@ -43,15 +45,15 @@ function run() {
         ])
             .then((responses) => {
                 const workflowRuns = responses[0].data.workflow_runs;
-                if (!tag) {
+                if (!tag && typeof responses[1] === 'object') {
                     workflowRuns.push(...responses[1].data.workflow_runs);
                 }
                 return workflowRuns;
             })
-            .then((workflowRuns) => (currentStagingDeploys = _.filter(workflowRuns, (workflowRun) => workflowRun.status !== 'completed')))
+            .then((workflowRuns) => (currentStagingDeploys = workflowRuns.filter((workflowRun) => workflowRun.status !== 'completed')))
             .then(() =>
                 console.log(
-                    _.isEmpty(currentStagingDeploys)
+                    !currentStagingDeploys.length
                         ? 'No current staging deploys found'
                         : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`,
                 ),
@@ -59,7 +61,7 @@ function run() {
     console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
 
     return promiseDoWhile(
-        () => !_.isEmpty(currentStagingDeploys),
+        () => !!currentStagingDeploys.length,
         lodashThrottle(
             throttleFunc,
 
@@ -73,4 +75,4 @@ if (require.main === module) {
     run();
 }
 
-module.exports = run;
+export default run;

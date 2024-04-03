@@ -474,7 +474,6 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value: number): string {
-        // @ts-expect-error TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated to TypeScript
         return `${CONST.APP_REPO_URL}/pull/${value}`;
     }
 
@@ -544,4 +543,4 @@ export default GithubUtils;
 // This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
 // Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
 
-export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};
