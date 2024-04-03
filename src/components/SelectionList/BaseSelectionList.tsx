@@ -63,13 +63,13 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
-        checkmarkPosition,
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
+        headerMessageStyle,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -342,7 +342,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                checkmarkPosition={checkmarkPosition}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
                 onFocus={() => setFocusedIndex(index)}
@@ -452,7 +451,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 setItemsToHighlight(null);
             }, timeout);
         },
-        [flattenedSections.allOptions, updateAndScrollToFocusedIndex, setFocusedIndex],
+        [flattenedSections.allOptions, setFocusedIndex, updateAndScrollToFocusedIndex],
     );
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem}), [scrollAndHighlightItem]);
@@ -519,7 +518,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         </View>
                     )}
                     {!!headerMessage && (
-                        <View style={[styles.ph5, styles.pb5]}>
+                        <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>
                     )}

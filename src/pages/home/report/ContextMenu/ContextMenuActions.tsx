@@ -17,7 +17,6 @@ import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import * as Localize from '@libs/Localize';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -406,7 +405,7 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = menuTarget?.current && 'tagName' in menuTarget.current && menuTarget?.current.tagName === 'IMG' && isAttachment;
-            return Permissions.canUseCommentLinking(betas) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {

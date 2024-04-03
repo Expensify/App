@@ -161,8 +161,8 @@ function SearchPage({betas, reports, isSearchingForReports, navigation}: SearchP
                             textInputHint={offlineMessage}
                             onChangeText={setSearchValue}
                             headerMessage={headerMessage}
+                            headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
                             onLayout={setPerformanceTimersEnd}
-                            autoFocus
                             onSelectRow={selectReport}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
                             footerContent={SearchPageFooterInstance}

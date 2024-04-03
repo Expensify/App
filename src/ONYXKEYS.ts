@@ -632,7 +632,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
-    [ONYXKEYS.LOGS]: Record<number, OnyxTypes.Log>;
+    [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
