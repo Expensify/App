@@ -97,6 +97,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, invitedEmailsToAc
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
 
+    const policyID = route.params.policyID;
+
     /**
      * Get filtered personalDetails list with current policyMembers
      */
@@ -209,7 +211,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, invitedEmailsToAc
      * Add or remove all users passed from the selectedEmployees list
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled);
+        const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
         const everyoneSelected = enabledAccounts.every((member) => selectedEmployees.includes(member.accountID));
 
         if (everyoneSelected) {
@@ -271,9 +273,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, invitedEmailsToAc
                 return;
             }
 
+            Policy.clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, Navigation.getActiveRoute()));
         },
-        [isPolicyAdmin, policy, route.params.policyID],
+        [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
 
     /**
@@ -299,7 +302,6 @@ function WorkspaceMembersPage({policyMembers, personalDetails, invitedEmailsToAc
     );
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
-    const policyID = route.params.policyID;
 
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
 
@@ -348,12 +350,8 @@ function WorkspaceMembersPage({policyMembers, personalDetails, invitedEmailsToAc
                 keyForList: accountIDKey,
                 accountID,
                 isSelected,
-                isDisabled:
-                    isPolicyAdmin &&
-                    (accountID === session?.accountID ||
-                        accountID === policy?.ownerAccountID ||
-                        policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                        !isEmptyObject(policyMember.errors)),
+                isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
+                isDisabled: isPolicyAdmin && (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors)),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -568,7 +566,7 @@ function WorkspaceMembersPage({policyMembers, personalDetails, invitedEmailsToAc
                         <SelectionList
                             ref={selectionListRef}
                             canSelectMultiple={isPolicyAdmin}
-                            sections={[{data, indexOffset: 0, isDisabled: false}]}
+                            sections={[{data, isDisabled: false}]}
                             ListItem={TableListItem}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
