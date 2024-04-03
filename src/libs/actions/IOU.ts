@@ -462,7 +462,7 @@ function needsToBeManuallySubmitted(report: OnyxTypes.Report) {
 /**
  * Return the object to update hasOutstandingChildRequest
  */
-function hasOutstandingChildRequest(report: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject): boolean {
+function hasOutstandingChildRequest(report: OnyxTypes.Report): boolean {
     if (needsToBeManuallySubmitted(report)) {
         return true;
     }
@@ -510,7 +510,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
-                hasOutstandingChildRequest: hasOutstandingChildRequest(iouReport, policy ?? {}),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(iouReport),
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         });

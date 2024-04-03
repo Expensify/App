@@ -3308,7 +3308,7 @@ describe('actions/IOU', () => {
                 policyID: policy.id,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            expect(IOU.hasOutstandingChildRequest(report, policy)).toBe(true);
+            expect(IOU.hasOutstandingChildRequest(report)).toBe(true);
         });
         it('should return false if an expense report does not need to be manually submitted', async () => {
             const policy = {
@@ -3321,7 +3321,7 @@ describe('actions/IOU', () => {
                 policyID: policy.id,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            expect(IOU.hasOutstandingChildRequest(report, policy)).toBe(false);
+            expect(IOU.hasOutstandingChildRequest(report)).toBe(false);
         });
         it('should return false for an IOU report where no money is owed', async () => {
             const report = {
@@ -3334,7 +3334,7 @@ describe('actions/IOU', () => {
                 email: RORY_EMAIL,
                 accountID: RORY_ACCOUNT_ID,
             });
-            expect(IOU.hasOutstandingChildRequest(report, {})).toBe(false);
+            expect(IOU.hasOutstandingChildRequest(report)).toBe(false);
         });
         it('should return true for an IOU report where money is owed and the current user is the manager', async () => {
             const report = {
@@ -3347,7 +3347,7 @@ describe('actions/IOU', () => {
                 email: RORY_EMAIL,
                 accountID: RORY_ACCOUNT_ID,
             });
-            expect(IOU.hasOutstandingChildRequest(report, {})).toBe(true);
+            expect(IOU.hasOutstandingChildRequest(report)).toBe(true);
         });
         it('should return false for an IOU report where money is owed but the current user is not the manager', async () => {
             const report = {
@@ -3359,7 +3359,7 @@ describe('actions/IOU', () => {
                 email: RORY_EMAIL,
                 accountID: RORY_ACCOUNT_ID,
             });
-            expect(IOU.hasOutstandingChildRequest(report, {})).toBe(false);
+            expect(IOU.hasOutstandingChildRequest(report)).toBe(false);
         });
     });
 });
