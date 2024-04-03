@@ -11476,13 +11476,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __importDefault(__nccwpck_require__(2186));
 const github_1 = __importDefault(__nccwpck_require__(5438));
-const ActionUtils_1 = __importDefault(__nccwpck_require__(6981));
+const ActionUtils_1 = __nccwpck_require__(6981);
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
 async function run() {
     try {
         const inputTag = core_1.default.getInput('TAG', { required: true });
-        const isProductionDeploy = ActionUtils_1.default.getJSONInput('IS_PRODUCTION_DEPLOY', { required: false }, false);
+        const isProductionDeploy = (0, ActionUtils_1.getJSONInput)('IS_PRODUCTION_DEPLOY', { required: false }, false);
         const deployEnv = isProductionDeploy ? 'production' : 'staging';
         console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
         const completedDeploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({

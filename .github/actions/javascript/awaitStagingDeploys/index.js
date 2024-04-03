@@ -12149,16 +12149,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention */
 const throttle_1 = __importDefault(__nccwpck_require__(2891));
-const ActionUtils_1 = __importDefault(__nccwpck_require__(6981));
+const ActionUtils_1 = __nccwpck_require__(6981);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importStar(__nccwpck_require__(9296));
 const promiseWhile_1 = __nccwpck_require__(9438);
 function run() {
     console.info('[awaitStagingDeploys] run()');
-    console.info('[awaitStagingDeploys] ActionUtils', ActionUtils_1.default);
+    console.info('[awaitStagingDeploys] getStringInput', ActionUtils_1.getStringInput);
     console.info('[awaitStagingDeploys] GitHubUtils', GithubUtils_1.default);
     console.info('[awaitStagingDeploys] promiseDoWhile', promiseWhile_1.promiseDoWhile);
-    const tag = ActionUtils_1.default.getStringInput('TAG', { required: false });
+    const tag = (0, ActionUtils_1.getStringInput)('TAG', { required: false });
     console.info('[awaitStagingDeploys] run() tag', tag);
     let currentStagingDeploys = [];
     console.info('[awaitStagingDeploys] run()  _.throttle', throttle_1.default);
@@ -12765,7 +12765,7 @@ function promiseWhile(condition, action) {
                 resolve();
             }
             else {
-                const actionResult = action();
+                const actionResult = action?.();
                 console.info('[promiseWhile] promiseWhile() actionResult', actionResult);
                 Promise.resolve(actionResult).then(loop).catch(reject);
             }
@@ -12781,10 +12781,10 @@ function promiseDoWhile(condition, action) {
     console.info('[promiseWhile] promiseDoWhile()');
     return new Promise((resolve, reject) => {
         console.info('[promiseWhile] promiseDoWhile() condition', condition);
-        const actionResult = action();
+        const actionResult = action?.();
         console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
         actionResult
-            .then(() => promiseWhile(condition, action))
+            ?.then(() => promiseWhile(condition, action))
             .then(() => resolve())
             .catch(reject);
     });
