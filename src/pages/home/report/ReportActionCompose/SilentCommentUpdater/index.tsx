@@ -19,14 +19,21 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
     useEffect(() => {
         /**
          * Schedules the callback to run when the main thread is idle.
+         *
+         * Only update the comment if it holds some truthy value.
          */
         if ('requestIdleCallback' in window) {
             const callbackID = requestIdleCallback(() => {
-                updateComment(comment ?? '');
+                if (!comment) {
+                    return;
+                }
+                updateComment(comment);
             });
             return () => cancelIdleCallback(callbackID);
         }
-        updateComment(comment ?? '');
+        if (comment) {
+            updateComment(comment);
+        }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
     }, []);
