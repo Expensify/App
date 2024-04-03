@@ -2042,7 +2042,6 @@ function filterOptions(options: GetOptions, searchInputValue: string): GetOption
     const createFilter = (items: ReportUtils.OptionData[], keys: ReadonlyArray<KeyOption<ReportUtils.OptionData>>, term: string) =>
         filterArrayByMatch(items, term, {
             keys,
-            strict: true,
         });
 
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)

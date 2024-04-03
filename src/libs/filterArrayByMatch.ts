@@ -2,8 +2,9 @@
  * This file is a slim version of match-sorter library (https://github.com/kentcdodds/match-sorter) adjusted to the needs.
    Use `threshold` option with one of the rankings defined below to control the strictness of the match.
 */
+import type {ValueOf} from 'type-fest';
 
-const rankings = {
+const MATCH_RANK = {
     CASE_SENSITIVE_EQUAL: 7,
     EQUAL: 6,
     STARTS_WITH: 5,
@@ -14,13 +15,13 @@ const rankings = {
     NO_MATCH: 0,
 } as const;
 
-type Ranking = (typeof rankings)[keyof typeof rankings];
+type Ranking = ValueOf<typeof MATCH_RANK>;
 
 type RankingInfo = {
     rankedValue: string;
     rank: Ranking;
     keyIndex: number;
-    keyThreshold: Ranking | undefined;
+    keyThreshold?: Ranking;
 };
 
 type ValueGetterKey<T> = (item: T) => string | string[];
@@ -41,7 +42,6 @@ type KeyOption<T> = KeyAttributesOptions<T> | ValueGetterKey<T> | string;
 type Options<T = unknown> = {
     keys?: ReadonlyArray<KeyOption<T>>;
     threshold?: Ranking;
-    strict?: boolean;
 };
 type IndexableByString = Record<string, unknown>;
 
@@ -169,7 +169,7 @@ function getClosenessRanking(testString: string, stringToRank: string): Ranking 
     function getRanking(spread: number) {
         const spreadPercentage = 1 / spread;
         const inOrderPercentage = matchingInOrderCharCount / stringToRank.length;
-        const ranking = rankings.MATCHES + inOrderPercentage * spreadPercentage;
+        const ranking = MATCH_RANK.MATCHES + inOrderPercentage * spreadPercentage;
 
         return ranking as Ranking;
     }
@@ -177,7 +177,7 @@ function getClosenessRanking(testString: string, stringToRank: string): Ranking 
     const firstIndex = findMatchingCharacter(stringToRank[0], testString, 0);
 
     if (firstIndex < 0) {
-        return rankings.NO_MATCH;
+        return MATCH_RANK.NO_MATCH;
     }
 
     charNumber = firstIndex;
@@ -187,7 +187,7 @@ function getClosenessRanking(testString: string, stringToRank: string): Ranking 
         const found = charNumber > -1;
 
         if (!found) {
-            return rankings.NO_MATCH;
+            return MATCH_RANK.NO_MATCH;
         }
     }
 
@@ -204,12 +204,12 @@ function getClosenessRanking(testString: string, stringToRank: string): Ranking 
 function getMatchRanking(testString: string, stringToRank: string): Ranking {
     // too long
     if (stringToRank.length > testString.length) {
-        return rankings.NO_MATCH;
+        return MATCH_RANK.NO_MATCH;
     }
 
     // case sensitive equals
     if (testString === stringToRank) {
-        return rankings.CASE_SENSITIVE_EQUAL;
+        return MATCH_RANK.CASE_SENSITIVE_EQUAL;
     }
 
     // Lower casing before further comparison
@@ -218,30 +218,30 @@ function getMatchRanking(testString: string, stringToRank: string): Ranking {
 
     // case insensitive equals
     if (lowercaseTestString === lowercaseStringToRank) {
-        return rankings.EQUAL;
+        return MATCH_RANK.EQUAL;
     }
 
     // starts with
     if (lowercaseTestString.startsWith(lowercaseStringToRank)) {
-        return rankings.STARTS_WITH;
+        return MATCH_RANK.STARTS_WITH;
     }
 
     // word starts with
     if (lowercaseTestString.includes(` ${lowercaseStringToRank}`)) {
-        return rankings.WORD_STARTS_WITH;
+        return MATCH_RANK.WORD_STARTS_WITH;
     }
 
     // contains
     if (lowercaseTestString.includes(lowercaseStringToRank)) {
-        return rankings.CONTAINS;
+        return MATCH_RANK.CONTAINS;
     }
     if (lowercaseStringToRank.length === 1) {
-        return rankings.NO_MATCH;
+        return MATCH_RANK.NO_MATCH;
     }
 
     // acronym
     if (getAcronym(lowercaseTestString).includes(lowercaseStringToRank)) {
-        return rankings.ACRONYM;
+        return MATCH_RANK.ACRONYM;
     }
 
     // will return a number between rankings.MATCHES and rankings.MATCHES + 1 depending  on how close of a match it is.
@@ -263,7 +263,7 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undef
         return {
             // ends up being duplicate of 'item' in matches but consistent
             rankedValue: stringItem,
-            rank: rankings.NO_MATCH,
+            rank: MATCH_RANK.NO_MATCH,
             keyIndex: -1,
             keyThreshold: options.threshold,
         };
@@ -285,7 +285,7 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undef
         },
         {
             rankedValue: item as unknown as string,
-            rank: rankings.NO_MATCH as Ranking,
+            rank: MATCH_RANK.NO_MATCH as Ranking,
             keyIndex: -1,
             keyThreshold: options.threshold,
         },
@@ -300,7 +300,7 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>> | undef
  * @returns the new filtered array
  */
 function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string, options: Options<T> = {}): T[] {
-    const {keys, threshold = rankings.MATCHES, strict = false} = options;
+    const {keys, threshold = MATCH_RANK.MATCHES} = options;
 
     function reduceItemsToRanked(matches: Array<RankedItem<T>>, item: T, index: number): Array<RankedItem<T>> {
         const rankingInfo = getHighestRanking(item, keys, searchValue, options);
@@ -314,14 +314,12 @@ function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string
 
     let matchedItems = items.reduce(reduceItemsToRanked, []);
 
-    if (strict) {
-        matchedItems = matchedItems.filter((item) => item.rank >= threshold + 1);
-    }
+    matchedItems = matchedItems.filter((item) => item.rank >= threshold + 1);
 
     return matchedItems.map((item) => item.item);
 }
 
 export default filterArrayByMatch;
-export {rankings};
+export {MATCH_RANK};
 
 export type {Options, KeyAttributesOptions, KeyOption, RankingInfo, ValueGetterKey};
