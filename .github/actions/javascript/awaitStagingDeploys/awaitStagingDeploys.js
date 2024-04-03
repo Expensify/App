@@ -2,8 +2,11 @@ const _ = require('underscore');
 const lodashThrottle = require('lodash/throttle');
 const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
-const GitHubUtils = require('../../../libs/GithubUtils');
+const GitHubUtils = require('../../../libs/GithubUtils').default;
+const {POLL_RATE} = require('../../../libs/constants');
 const {promiseDoWhile} = require('../../../libs/promiseWhile');
+
+console.log('** POLL RATE ***', POLL_RATE);
 
 function run() {
     console.info('[awaitStagingDeploys] run()');
@@ -61,7 +64,7 @@ function run() {
             throttleFunc,
 
             // Poll every 60 seconds instead of every 10 seconds
-            GitHubUtils.POLL_RATE * 6,
+            POLL_RATE * 6,
         ),
     );
 }

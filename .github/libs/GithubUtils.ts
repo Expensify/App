@@ -13,17 +13,13 @@ import {throttling} from '@octokit/plugin-throttling';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arrayDifference from '@src/utils/arrayDifference';
 import CONST from './CONST';
-
-const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
-const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
-const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
-const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`);
+import {ISSUE_OR_PULL_REQUEST_REGEX, ISSUE_REGEX, PULL_REQUEST_REGEX} from './constants';
 
 /**
  * The standard rate in ms at which we'll poll the GitHub API to check for status changes.
  * It's 10 seconds :)
  */
-const POLL_RATE = 10000;
+// const POLL_RATE = 10000;
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
 
@@ -75,8 +71,6 @@ type InternalOctokit = OctokitCore & Api & {paginate: PaginateInterface};
 class GithubUtils {
     static internalOctokit: InternalOctokit | undefined;
 
-    static POLL_RATE: number;
-
     /**
      * Initialize internal octokit
      *
@@ -85,6 +79,8 @@ class GithubUtils {
     static initOctokit() {
         const Octokit = GitHub.plugin(throttling, paginateRest);
         const token = core.getInput('GITHUB_TOKEN', {required: true});
+
+        console.log('*** TOKEN ***', token);
 
         // Save a copy of octokit used in this class
         this.internalOctokit = new Octokit(
@@ -547,7 +543,5 @@ class GithubUtils {
 export default GithubUtils;
 // This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
 // Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
-module.exports = GithubUtils;
 
-export {ISSUE_OR_PULL_REQUEST_REGEX, POLL_RATE};
 export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse};

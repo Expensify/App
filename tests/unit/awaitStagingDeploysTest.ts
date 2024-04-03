@@ -57,6 +57,12 @@ const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
     return defaultReturn;
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('@github/libs/constants', () => ({
+    ...jest.requireActual('@github/libs/constants'),
+    POLL_RATE: TEST_POLL_RATE,
+}));
+
 beforeAll(() => {
     // Mock core module
     asMutable(core).getInput = mockGetInput;
@@ -72,7 +78,7 @@ beforeAll(() => {
     };
 
     GithubUtils.internalOctokit = moctokit;
-    GithubUtils.POLL_RATE = TEST_POLL_RATE;
+    // POLL_RATE = TEST_POLL_RATE;
 });
 
 beforeEach(() => {
