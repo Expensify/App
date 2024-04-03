@@ -75,7 +75,6 @@ function BaseSelectionList<TItem extends ListItem>(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const firstLayoutRef = useRef(true);
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -84,6 +83,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
+    const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -348,13 +348,13 @@ function BaseSelectionList<TItem extends ListItem>(
                 setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
             }
 
-            if (!firstLayoutRef.current) {
+            if (!isInitialSectionListRender) {
                 return;
             }
             scrollToIndex(focusedIndex, false);
-            firstLayoutRef.current = false;
+            setIsInitialSectionListRender(false);
         },
-        [focusedIndex, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+        [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
 
     const onSectionListLayout = useCallback(
@@ -572,7 +572,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
                                     onLayout={onSectionListLayout}
-                                    style={!maxToRenderPerBatch && styles.opacity0}
+                                    style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
                                     ListFooterComponent={ShowMoreButtonInstance}
                                 />
                                 {children}
