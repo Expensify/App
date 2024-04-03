@@ -1938,6 +1938,11 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
                 makeMeAdmin,
+                autoReporting: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                harvesting: {
+                    enabled: true,
+                }
             },
         },
         {
