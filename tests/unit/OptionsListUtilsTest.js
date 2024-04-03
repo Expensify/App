@@ -2455,7 +2455,7 @@ describe('OptionsListUtils', () => {
 
     describe('filterOptions', () => {
         it('should return all options when search is empty', () => {
-            const options = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
             const filteredOptions = OptionsListUtils.filterOptions(options, '');
 
             expect(options.recentReports.length + options.personalDetails.length).toBe(filteredOptions.recentReports.length);
@@ -2463,7 +2463,7 @@ describe('OptionsListUtils', () => {
 
         it('should return filtered options in correct order', () => {
             const searchText = 'man';
-            const options = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
             expect(filteredOptions.recentReports.length).toBe(4);
@@ -2475,7 +2475,7 @@ describe('OptionsListUtils', () => {
 
         it('should filter users by email', () => {
             const searchText = 'mistersinister@marauders.com';
-            const options = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
@@ -2485,7 +2485,7 @@ describe('OptionsListUtils', () => {
 
         it('should find archived chats', () => {
             const searchText = 'Archived';
-            const options = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -2494,7 +2494,8 @@ describe('OptionsListUtils', () => {
 
         it('should filter options by email if dot is skipped in the email', () => {
             const searchText = 'barryallen';
-            const options = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, '', [CONST.BETAS.ALL]);
+            const OPTIONS_WITH_PERIODS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_PERIODS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
@@ -2504,7 +2505,7 @@ describe('OptionsListUtils', () => {
 
         it('should include workspaces in the search results', () => {
             const searchText = 'avengers';
-            const options = OptionsListUtils.getSearchOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACES, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
@@ -2514,7 +2515,7 @@ describe('OptionsListUtils', () => {
 
         it('should put exact match by login on the top of the list', () => {
             const searchText = 'reedrichards@expensify.com';
-            const options = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
@@ -2524,7 +2525,8 @@ describe('OptionsListUtils', () => {
 
         it('should prioritize options with matching display name over chatrooms', () => {
             const searchText = 'spider';
-            const options = OptionsListUtils.getSearchOptions(REPORTS_WITH_CHAT_ROOM, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
+            const OPTIONS_WITH_CHATROOMS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_CHATROOMS, '', [CONST.BETAS.ALL]);
 
             const filterOptions = OptionsListUtils.filterOptions(options, searchText);
 
@@ -2535,7 +2537,7 @@ describe('OptionsListUtils', () => {
         it('should put the item with latest lastVisibleActionCreated on top when search value match multiple items', () => {
             const searchText = 'fantastic';
 
-            const options = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '');
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(2);
