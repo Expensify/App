@@ -1,3 +1,4 @@
+import lodashClamp from 'lodash/clamp';
 import {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {DimensionValue} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
@@ -19,7 +20,7 @@ export default function useThumbnailDimensions(width: number, height: number): T
         if (!width || !height) {
             return {width: fixedDimension, aspectRatio: CONST.THUMBNAIL_IMAGE.NAN_ASPECT_RATIO};
         }
-        const aspectRatio = (height && width / height) || 1;
+        const aspectRatio = (height && lodashClamp(width / height, 0.3, 1 / 0.3)) || 1;
         if (width > height) {
             return {width: fixedDimension, aspectRatio};
         }
