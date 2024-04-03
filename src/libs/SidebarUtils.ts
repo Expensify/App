@@ -90,12 +90,12 @@ function getOrderedReportIDs(
             betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
-        const hasErrors = Object.keys(OptionsListUtils.getAllReportErrors(report, reportActions) ?? {}).length !== 0;
+        const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
+        const hasErrors = Object.keys(allReportErrors).length !== 0;
         const hasBrickError = hasErrors || doesReportHaveViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
-        const hasBrickErrorOfNonFailedReceipt =
-            hasBrickError && (isEmptyObject(allReportErrors) || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage'));
-        const shouldOverrideHidden = hasBrickErrorOfNonFailedReceipt || isFocused || report.isPinned;
+
+        const hasNonFailedReceiptError = isEmptyObject(allReportErrors) || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage');
+        const shouldOverrideHidden = (hasBrickError && hasNonFailedReceiptError) || isFocused || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
             return false;
         }
