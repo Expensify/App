@@ -100,7 +100,7 @@ function openPersonalBankAccountSetupViewRefactor(exitReportID?: string) {
 }
 
 function clearPersonalBankAccountSetupType() {
-    Onyx.merge(ONYXKEYS.USER_WALLET, {setupType: null});
+    Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: null});
 }
 
 /**

@@ -175,6 +175,7 @@ function KYCWall({
                 (!isExpenseReport && bankAccountList !== null && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
             ) {
                 Log.info('[KYC Wallet] User does not have valid payment method');
+
                 if (!shouldIncludeDebitCard) {
                     selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                     return;
