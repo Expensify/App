@@ -2,8 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
-import StatePicker from '@components/StatePicker';
-import type {State} from '@components/StatePicker/StateSelectorModal';
+import type {State} from '@components/StateSelector';
+import StateSelector from '@components/StateSelector';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -74,7 +74,7 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
 
             <View style={[styles.mt3, styles.mhn5]}>
                 <InputWrapper
-                    InputComponent={StatePicker}
+                    InputComponent={StateSelector}
                     inputID={inputKeys.state ?? 'stateInput'}
                     shouldSaveDraft={shouldSaveDraft}
                     value={values?.state as State}

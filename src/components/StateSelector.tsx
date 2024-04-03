@@ -35,7 +35,7 @@ type StateSelectorProps = {
     onBlur?: () => void;
 
     /** object to get route details from */
-    stateSelectorRoute?: typeof ROUTES.SETTINGS_ADDRESS_STATE | typeof ROUTES.MONEY_REQUEST_STATE_SELECTOR;
+    stateSelectorRoute?: typeof ROUTES.SETTINGS_ADDRESS_STATE;
 };
 
 function StateSelector(
@@ -105,3 +105,5 @@ function StateSelector(
 StateSelector.displayName = 'StateSelector';
 
 export default React.forwardRef(StateSelector);
+
+export type {State};
