@@ -1,8 +1,10 @@
 import {useFocusEffect} from '@react-navigation/core';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import PropTypes from 'prop-types';
+import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevice} from 'react-native-vision-camera';
@@ -30,9 +32,8 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
@@ -43,6 +44,12 @@ const propTypes = {
     /* Onyx Props */
     /** The report that the transaction belongs to */
     report: reportPropTypes,
+
+    /** Information about the logged in user's account */
+    user: PropTypes.shape({
+        /** Whether or not the user is on a public domain email account or not */
+        isMutedAllSounds: PropTypes.bool,
+    }).isRequired,
 
     /** The transaction (or draft transaction) being changed */
     transaction: transactionPropTypes,
@@ -71,6 +78,7 @@ function IOURequestStepScan({
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
+    const [didCapturePhoto, setDidCapturePhoto] = useState(false);
 
     const {translate} = useLocalize();
 
@@ -127,6 +135,7 @@ function IOURequestStepScan({
 
     useFocusEffect(
         useCallback(() => {
+            setDidCapturePhoto(false);
             const refreshCameraPermissionStatus = () => {
                 CameraPermission.getCameraPermissionStatus()
                     .then(setCameraPermissionStatus)
@@ -239,10 +248,14 @@ function IOURequestStepScan({
             return;
         }
 
+        if (didCapturePhoto) {
+            return;
+        }
+
         return camera.current
             .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !user.isMutedAllSounds
+                enableShutterSound: !user.isMutedAllSounds,
             })
             .then((photo) => {
                 // Store the receipt on the transaction object in Onyx
@@ -256,13 +269,15 @@ function IOURequestStepScan({
                     return;
                 }
 
+                setDidCapturePhoto(true);
                 navigateToConfirmationStep();
             })
             .catch((error) => {
+                setDidCapturePhoto(false);
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [cameraPermissionStatus, flash, hasFlash, user.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
+    }, [cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -386,8 +401,12 @@ IOURequestStepScan.defaultProps = defaultProps;
 IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound, withOnyx({
-    user: {
-        key: ONYXKEYS.USER
-    }
-}))(IOURequestStepScan);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(IOURequestStepScan);
