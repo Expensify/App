@@ -125,31 +125,14 @@ function isFirstLetterEmoji(message: string): boolean {
  * Validates that this message contains only emojis
  */
 function containsOnlyEmojis(message: string): boolean {
-    const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
-    const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
+    if (!message) {
         return false;
     }
+    const splittedMessage = message.split(' ');
+    // @ts-expect-error -- comments contain only BMP characters and emojis so codePointAt will return number
+    const messageWithoutEmojis = splittedMessage.filter((char: string) => char && char.codePointAt(0) <= 0xffff);
 
-    const codes = [];
-    match.map((emoji) =>
-        getEmojiUnicode(emoji)
-            .split(' ')
-            .map((code) => {
-                if (!(CONST.INVISIBLE_CODEPOINTS as readonly string[]).includes(code)) {
-                    codes.push(code);
-                }
-                return code;
-            }),
-    );
-
-    // Emojis are stored as multiple characters, so we're using spread operator
-    // to iterate over the actual emojis, not just characters that compose them
-    const messageCodes = [...trimmedMessage]
-        .map((char) => getEmojiUnicode(char))
-        .filter((string) => string.length > 0 && !(CONST.INVISIBLE_CODEPOINTS as readonly string[]).includes(string));
-    return codes.length === messageCodes.length;
+    return messageWithoutEmojis.length === 0;
 }
 
 /**
@@ -665,7 +648,7 @@ const splitTextWithEmojis = (text: string): string[] => {
             // eslint-disable-next-line no-continue -- skip rest of the checks in current iteration
             continue;
         }
-        // @ts-expect-error -- ensured in 1st 'if' that object won't be undefined
+        // @ts-expect-error -- comments contain only BMP characters and emojis so codePointAt will return number
         if (tmpResult[j].codePointAt(0) <= 0xffff) {
             // is BMP character
             tmpString += tmpResult[j];

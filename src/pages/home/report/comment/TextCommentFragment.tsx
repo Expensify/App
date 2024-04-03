@@ -82,22 +82,23 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
             {CONST.REGEX.EMOJIS.test(message) ? (
                 <TextWithEmojiFragment
                     text={message}
-                    textContainsOnlyEmojis={textContainsOnlyEmojis}
                     passedStyles={style}
                     styleAsDeleted={styleAsDeleted}
                     styleAsMuted={styleAsMuted}
                     isEdited={fragment.isEdited}
+                    emojisOnly={textContainsOnlyEmojis}
                 />
             ) : (
                 <>
                     <Text
                         style={[
-                            textContainsOnlyEmojis ? styles.onlyEmojisText : undefined,
                             styles.ltr,
                             style,
+                            styles.enhancedLineHeight,
                             styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                             styleAsMuted ? styles.colorMuted : undefined,
                             !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                            textContainsOnlyEmojis ? styles.onlyEmojisText : styles.enhancedLineHeight,
                         ]}
                     >
                         {message}
@@ -106,7 +107,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                     {fragment.isEdited && (
                         <>
                             <Text
-                                style={[textContainsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
+                                style={[styles.userSelectNone]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {' '}

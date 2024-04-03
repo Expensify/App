@@ -1,6 +1,5 @@
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -12,24 +11,24 @@ import CONST from '@src/CONST';
 
 type ComponentProps = {
     text: string;
-    textContainsOnlyEmojis: boolean;
     passedStyles: StyleProp<TextStyle>;
     styleAsDeleted?: boolean;
     styleAsMuted?: boolean;
     isSmallScreenWidth?: boolean;
     isEdited?: boolean;
+    emojisOnly?: boolean;
 };
-function TextWithEmojiFragment({text, textContainsOnlyEmojis, passedStyles, styleAsDeleted, styleAsMuted, isSmallScreenWidth, isEdited}: ComponentProps) {
+function TextWithEmojiFragment({text, passedStyles, styleAsDeleted, styleAsMuted, isSmallScreenWidth, isEdited, emojisOnly}: ComponentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
     const processedTextArray = splitTextWithEmojis(text);
 
     return (
-        <View style={styles.emojisAndTextWrapper}>
+        <>
             {processedTextArray.map((word: string) =>
                 CONST.REGEX.EMOJIS.test(word) ? (
-                    <Text style={[styles.emojisWithinText, textContainsOnlyEmojis ? styles.onlyEmojisText : undefined]}>{word}</Text>
+                    <Text style={[emojisOnly ? styles.onlyEmojisText : styles.emojisWithinText]}>{word}</Text>
                 ) : (
                     <Text
                         style={[
@@ -38,6 +37,7 @@ function TextWithEmojiFragment({text, textContainsOnlyEmojis, passedStyles, styl
                             styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                             styleAsMuted ? styles.colorMuted : undefined,
                             !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                            emojisOnly ? styles.onlyEmojisText : styles.enhancedLineHeight,
                         ]}
                     >
                         {word}
@@ -48,7 +48,7 @@ function TextWithEmojiFragment({text, textContainsOnlyEmojis, passedStyles, styl
             {isEdited && (
                 <>
                     <Text
-                        style={[textContainsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
+                        style={[emojisOnly && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         {' '}
@@ -62,7 +62,7 @@ function TextWithEmojiFragment({text, textContainsOnlyEmojis, passedStyles, styl
                     </Text>
                 </>
             )}
-        </View>
+        </>
     );
 }
 

@@ -29,6 +29,9 @@ function useMarkdownStyle(): MarkdownStyle {
                 color: theme.text,
                 backgroundColor: 'transparent',
             },
+            emoji: {
+                fontSize: 19,
+            },
             pre: {
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
                 color: theme.text,

@@ -1574,8 +1574,6 @@ const styles = (theme: ThemeColors) =>
         emojisAndTextWrapper: {
             flexDirection: 'row',
             alignItems: 'center',
-            flexWrap: 'wrap',
-            width: '100%',
         },
 
         onlyEmojisText: {
@@ -1589,6 +1587,10 @@ const styles = (theme: ThemeColors) =>
 
         onlyEmojisTextLineHeight: {
             lineHeight: variables.fontSizeOnlyEmojisHeight,
+        },
+
+        enhancedLineHeight: {
+            lineHeight: 23,
         },
 
         createMenuPositionSidebar: (windowHeight: number) =>
