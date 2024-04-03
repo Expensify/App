@@ -2553,6 +2553,7 @@ function requestMoney(
             break;
         }
         case CONST.IOU.ACTION.SHARE: {
+            // todo need to seperate this action into a new function
             const parameters = {
                 policyID: chatReport.policyID,
                 transactionID: (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID,
