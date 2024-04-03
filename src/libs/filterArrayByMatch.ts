@@ -3,6 +3,7 @@
    Use `threshold` option with one of the rankings defined below to control the strictness of the match.
 */
 import type {ValueOf} from 'type-fest';
+import StringUtils from './StringUtils';
 
 const MATCH_RANK = {
     CASE_SENSITIVE_EQUAL: 7,
@@ -44,23 +45,6 @@ type Options<T = unknown> = {
     threshold?: Ranking;
 };
 type IndexableByString = Record<string, unknown>;
-
-/**
- * Generates an acronym for a string.
- * @param string the string for which to produce the acronym
- * @returns the acronym
- */
-function getAcronym(string: string): string {
-    let acronym = '';
-    const wordsInString = string.split(' ');
-    wordsInString.forEach((wordInString) => {
-        const splitByHyphenWords = wordInString.split('-');
-        splitByHyphenWords.forEach((splitByHyphenWord) => {
-            acronym += splitByHyphenWord.substring(0, 1);
-        });
-    });
-    return acronym;
-}
 
 /**
  * Given path: "foo.bar.baz" and item: {foo: {bar: {baz: 'buzz'}}} -> 'buzz'
@@ -240,7 +224,7 @@ function getMatchRanking(testString: string, stringToRank: string): Ranking {
     }
 
     // acronym
-    if (getAcronym(lowercaseTestString).includes(lowercaseStringToRank)) {
+    if (StringUtils.getAcronym(lowercaseTestString).includes(lowercaseStringToRank)) {
         return MATCH_RANK.ACRONYM;
     }
 
