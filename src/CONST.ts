@@ -1433,6 +1433,7 @@ const CONST = {
         'callMeByMyName',
     ],
 
+    // Map updated pronouns key to deprecated pronouns
     DEPRECATED_PRONOUNS_LIST: {
         heHimHis: 'He/him',
         sheHerHers: 'She/her',

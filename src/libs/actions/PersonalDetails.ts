@@ -49,28 +49,26 @@ Onyx.connect({
     callback: (val) => (privatePersonalDetails = val),
 });
 
-function updatePronouns(pronouns: string, navigate = true) {
-    if (currentUserAccountID) {
-        const parameters: UpdatePronounsParams = {pronouns};
+function updatePronouns(pronouns: string) {
+    if (!currentUserAccountID) {
+        return;
+    }
 
-        API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            pronouns,
-                        },
+    const parameters: UpdatePronounsParams = {pronouns};
+
+    API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        pronouns,
                     },
                 },
-            ],
-        });
-    }
-
-    if (navigate) {
-        Navigation.goBack();
-    }
+            },
+        ],
+    });
 }
 
 function updateDisplayName(firstName: string, lastName: string) {

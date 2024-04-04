@@ -41,12 +41,13 @@ export default function (): Promise<void | void[]> {
             }
 
             const pronouns = currentUserPersonalDetails.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
-            const isDeprecatedPronouns = !!pronouns && !pronouns.startsWith(CONST.PRONOUNS.PREFIX);
-            if (!isDeprecatedPronouns) {
+            if (!pronouns || (CONST.PRONOUNS_LIST as readonly string[]).includes(pronouns)) {
                 return;
             }
 
+            // Find the updated pronouns key replaceable for the deprecated value.
             const pronounsKey = Object.entries(CONST.DEPRECATED_PRONOUNS_LIST).find((deprecated) => deprecated[1] === pronouns)?.[0] ?? '';
-            PersonalDetails.updatePronouns(pronounsKey ? `${CONST.PRONOUNS.PREFIX}${pronounsKey}` : '', false);
+            // If couldn't find the updated pronouns, reset it to require user's manual update.
+            PersonalDetails.updatePronouns(pronounsKey ? `${CONST.PRONOUNS.PREFIX}${pronounsKey}` : '');
         });
 }
