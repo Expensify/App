@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -37,7 +37,8 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     const hasAccess = hasAccessToAccountingFeatures(policy, canUseAccountingIntegrations);
 
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const [policyIsConnectedToAccountingSystem, setPolicyIsConnectedToAccountingSystem] = useState(false);
+    // const [policyIsConnectedToAccountingSystem, setPolicyIsConnectedToAccountingSystem] = useState(false);
+    const [policyIsConnectedToAccountingSystem] = useState(false);
     // const [isSyncInProgress, setIsSyncInProgress] = useState(false);
     const [isSyncInProgress] = useState(false);
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -64,7 +65,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                 rightComponent: (
                     <ConnectToQuickbooksOnlineButton
                         policyID={policyID}
-                        environmentURL={''}
+                        environmentURL=""
                     />
                 ),
             },

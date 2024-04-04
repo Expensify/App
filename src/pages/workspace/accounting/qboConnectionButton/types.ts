@@ -1,4 +1,4 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Session} from '@src/types/onyx';
 
 type ConnectToQuickbooksOnlineButtonOnyxProps = {

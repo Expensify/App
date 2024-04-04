@@ -1,15 +1,15 @@
 import React, {useCallback, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import WebView from 'react-native-webview';
+import type {WebViewNavigation} from 'react-native-webview';
 import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
+import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectToQuickbooksOnlineButtonOnyxProps, ConnectToQuickbooksOnlineButtonPropsWithSession} from './types';
-import type {WebViewNavigation} from 'react-native-webview';
 
 type WebViewNavigationEvent = WebViewNavigation;
 
@@ -23,10 +23,10 @@ function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbook
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
-     /**
+    /**
      * Handles in-app navigation for webview links
      */
-     const handleNavigationStateChange = useCallback(({url}: WebViewNavigationEvent) => {},[]);
+    const handleNavigationStateChange = useCallback(({url}: WebViewNavigationEvent) => !!url, []);
 
     return (
         <>
@@ -52,7 +52,7 @@ function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbook
                             },
                         }}
                         incognito
-                        startInLoadingState={false}
+                        startInLoadingState
                         renderLoading={renderLoading}
                         onNavigationStateChange={handleNavigationStateChange}
                     />

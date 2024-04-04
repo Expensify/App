@@ -13,4 +13,4 @@ const getQuickBooksOnlineSetupLink = (policyID: string) => {
     );
 };
 
-export {getQuickBooksOnlineSetupLink};
+export default getQuickBooksOnlineSetupLink;
