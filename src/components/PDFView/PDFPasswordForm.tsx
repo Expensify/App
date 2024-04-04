@@ -1,11 +1,10 @@
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -14,35 +13,27 @@ import shouldDelayFocus from '@libs/shouldDelayFocus';
 import CONST from '@src/CONST';
 import PDFInfoMessage from './PDFInfoMessage';
 
-const propTypes = {
+type PDFPasswordFormProps = {
     /** If the submitted password is invalid (show an error message) */
-    isPasswordInvalid: PropTypes.bool,
+    isPasswordInvalid?: boolean;
 
     /** If loading indicator should be shown */
-    shouldShowLoadingIndicator: PropTypes.bool,
+    shouldShowLoadingIndicator?: boolean;
 
     /** Notify parent that the password form has been submitted */
-    onSubmit: PropTypes.func,
+    onSubmit?: (password: string) => void;
 
     /** Notify parent that the password has been updated/edited */
-    onPasswordUpdated: PropTypes.func,
+    onPasswordUpdated?: (newPassword: string) => void;
 
     /** Notify parent that a text field has been focused or blurred */
-    onPasswordFieldFocused: PropTypes.func,
+    onPasswordFieldFocused?: (isFocused: boolean) => void;
 
     /** Should focus to the password input  */
-    isFocused: PropTypes.bool.isRequired,
+    isFocused: boolean;
 };
 
-const defaultProps = {
-    isPasswordInvalid: false,
-    shouldShowLoadingIndicator: false,
-    onSubmit: () => {},
-    onPasswordUpdated: () => {},
-    onPasswordFieldFocused: () => {},
-};
-
-function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicator, onSubmit, onPasswordUpdated, onPasswordFieldFocused}) {
+function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadingIndicator = false, onSubmit, onPasswordUpdated, onPasswordFieldFocused}: PDFPasswordFormProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -50,15 +41,15 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
     const [password, setPassword] = useState('');
     const [validationErrorText, setValidationErrorText] = useState('');
     const [shouldShowForm, setShouldShowForm] = useState(false);
-    const textInputRef = useRef(null);
+    const textInputRef = useRef<BaseTextInputRef>(null);
 
-    const focusTimeoutRef = useRef(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout>();
 
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
             return 'attachmentView.passwordIncorrect';
         }
-        if (!_.isEmpty(validationErrorText)) {
+        if (validationErrorText) {
             return validationErrorText;
         }
         return '';
@@ -76,7 +67,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
          * Relevant thread: https://expensify.slack.com/archives/C01GTK53T8Q/p1694660990479979
          */
         focusTimeoutRef.current = setTimeout(() => {
-            textInputRef.current.focus();
+            textInputRef.current?.focus();
         }, CONST.ANIMATED_TRANSITION);
         return () => {
             if (!focusTimeoutRef.current) {
@@ -86,19 +77,19 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         };
     }, [isFocused]);
 
-    const updatePassword = (newPassword) => {
-        onPasswordUpdated(newPassword);
-        if (!_.isEmpty(newPassword) && validationErrorText) {
+    const updatePassword = (newPassword: string) => {
+        onPasswordUpdated?.(newPassword);
+        if (newPassword && validationErrorText) {
             setValidationErrorText('');
         }
         setPassword(newPassword);
     };
 
     const validate = () => {
-        if (!isPasswordInvalid && !_.isEmpty(password)) {
+        if (!isPasswordInvalid && password) {
             return true;
         }
-        if (_.isEmpty(password)) {
+        if (!password) {
             setValidationErrorText('attachmentView.passwordRequired');
         }
         return false;
@@ -108,7 +99,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
         if (!validate()) {
             return;
         }
-        onSubmit(password);
+        onSubmit?.(password);
     };
 
     return shouldShowForm ? (
@@ -136,8 +127,8 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 enterKeyHint="done"
                 onSubmitEditing={submitPassword}
                 errorText={errorText}
-                onFocus={() => onPasswordFieldFocused(true)}
-                onBlur={() => onPasswordFieldFocused(false)}
+                onFocus={() => onPasswordFieldFocused?.(true)}
+                onBlur={() => onPasswordFieldFocused?.(false)}
                 autoFocus
                 shouldDelayFocus={shouldDelayFocus}
                 secureTextEntry
@@ -160,8 +151,6 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
     );
 }
 
-PDFPasswordForm.propTypes = propTypes;
-PDFPasswordForm.defaultProps = defaultProps;
 PDFPasswordForm.displayName = 'PDFPasswordForm';
 
 export default PDFPasswordForm;
