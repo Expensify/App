@@ -68,6 +68,7 @@ function IOURequestStepScan({
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
+    const [didCapturePhoto, setDidCapturePhoto] = useState(false);
 
     const {translate} = useLocalize();
 
@@ -124,6 +125,7 @@ function IOURequestStepScan({
 
     useFocusEffect(
         useCallback(() => {
+            setDidCapturePhoto(false);
             const refreshCameraPermissionStatus = () => {
                 CameraPermission.getCameraPermissionStatus()
                     .then(setCameraPermissionStatus)
@@ -188,7 +190,7 @@ function IOURequestStepScan({
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
         IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
@@ -236,6 +238,10 @@ function IOURequestStepScan({
             return;
         }
 
+        if (didCapturePhoto) {
+            return;
+        }
+
         return camera.current
             .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
@@ -252,13 +258,15 @@ function IOURequestStepScan({
                     return;
                 }
 
+                setDidCapturePhoto(true);
                 navigateToConfirmationStep();
             })
             .catch((error) => {
+                setDidCapturePhoto(false);
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
+    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus, didCapturePhoto]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
