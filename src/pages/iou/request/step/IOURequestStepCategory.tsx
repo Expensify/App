@@ -66,7 +66,8 @@ function IOURequestStepCategory({
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
     const transactionCategory = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction)?.category;
 
-    const reportAction = reportActions?.[report?.parentReportActionID ?? reportActionID] ?? null;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowCategory = ReportUtils.isGroupPolicy(report) && (transactionCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));

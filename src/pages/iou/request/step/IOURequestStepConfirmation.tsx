@@ -36,13 +36,19 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationOnyxProps = {
+    /** The policy of the report */
     policy: OnyxEntry<Policy>;
+
+    /** The category configuration of the report's policy */
     policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** The tag configuration of the report's policy */
     policyTags: OnyxEntry<PolicyTagList>;
 };
 
 type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> & {
+        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 
