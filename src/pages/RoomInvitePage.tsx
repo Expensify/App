@@ -2,11 +2,10 @@ import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
@@ -25,30 +24,25 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import SearchInputManager from './workspace/SearchInputManager';
 
-type RoomInvitePageOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
-
-type RoomInvitePageProps = RoomInvitePageOnyxProps & WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
+type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 
-function RoomInvitePage({betas, personalDetails, report, policies, didScreenTransitionEnd}: RoomInvitePageProps) {
+function RoomInvitePage({betas, report, policies}: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [invitePersonalDetails, setInvitePersonalDetails] = useState<ReportUtils.OptionData[]>([]);
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
+    const {options, areOptionsInitialized} = useOptionsList();
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
@@ -64,7 +58,7 @@ function RoomInvitePage({betas, personalDetails, report, policies, didScreenTran
     );
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetails, betas ?? [], searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
@@ -83,12 +77,12 @@ function RoomInvitePage({betas, personalDetails, report, policies, didScreenTran
         setInvitePersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [personalDetails, betas, searchTerm, excludedUsers]);
+    }, [betas, searchTerm, excludedUsers, options.personalDetails]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
 
-        if (!didScreenTransitionEnd) {
+        if (!areOptionsInitialized) {
             return [];
         }
 
@@ -130,7 +124,7 @@ function RoomInvitePage({betas, personalDetails, report, policies, didScreenTran
         }
 
         return sectionsArr;
-    }, [invitePersonalDetails, searchTerm, selectedOptions, translate, userToInvite, didScreenTransitionEnd]);
+    }, [areOptionsInitialized, selectedOptions, searchTerm, invitePersonalDetails, userToInvite, translate]);
 
     const toggleOption = useCallback(
         (option: OptionsListUtils.MemberForList) => {
@@ -193,6 +187,7 @@ function RoomInvitePage({betas, personalDetails, report, policies, didScreenTran
         }
         return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
     }, [searchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -225,7 +220,7 @@ function RoomInvitePage({betas, personalDetails, report, policies, didScreenTran
                     onConfirm={inviteUsers}
                     showScrollIndicator
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                    showLoadingPlaceholder={!areOptionsInitialized}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton
@@ -245,12 +240,4 @@ function RoomInvitePage({betas, personalDetails, report, policies, didScreenTran
 
 RoomInvitePage.displayName = 'RoomInvitePage';
 
-export default withNavigationTransitionEnd(
-    withReportOrNotFound()(
-        withOnyx<RoomInvitePageProps, RoomInvitePageOnyxProps>({
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
-        })(RoomInvitePage),
-    ),
-);
+export default withNavigationTransitionEnd(withReportOrNotFound()(RoomInvitePage));
