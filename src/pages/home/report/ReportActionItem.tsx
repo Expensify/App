@@ -531,7 +531,7 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMessageOfOldDotReportAction(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldRequest')} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
             children = <ReportActionItemBasicMessage message={action.message?.[0].text ?? ''} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldRequest')} />;
