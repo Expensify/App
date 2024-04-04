@@ -1,9 +1,7 @@
 import React, {useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas, usePersonalDetails} from '@components/OnyxProvider';
+import {useBetas} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -13,20 +11,16 @@ import useNetwork from '@hooks/useNetwork';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import type {BaseShareLogListOnyxProps, BaseShareLogListProps} from './types';
+import type {BaseShareLogListProps} from './types';
 
-function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps) {
+function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const personalDetails = usePersonalDetails();
     const betas = useBetas();
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
     const {options, areOptionsInitialized} = useOptionsList();
 
     const searchOptions = useMemo(() => {
@@ -44,11 +38,7 @@ function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps)
             userToInvite: localUserToInvite,
         } = OptionsListUtils.getShareLogOptions(options, debouncedSearchValue.trim(), betas ?? []);
 
-        const header = OptionsListUtils.getHeaderMessage(
-            (searchOptions?.recentReports?.length || 0) + (searchOptions?.personalDetails?.length || 0) !== 0,
-            Boolean(searchOptions?.userToInvite),
-            debouncedSearchValue,
-        );
+        const header = OptionsListUtils.getHeaderMessage((localRecentReports?.length || 0) + (localPersonalDetails?.length || 0) !== 0, Boolean(localUserToInvite), debouncedSearchValue);
 
         return {
             recentReports: localRecentReports,
@@ -56,7 +46,7 @@ function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps)
             userToInvite: localUserToInvite,
             headerMessage: header,
         };
-    }, [isOptionsDataReady, reports, personalDetails, debouncedSearchValue, betas]);
+    }, [areOptionsInitialized, options, debouncedSearchValue, betas]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -112,7 +102,6 @@ function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps)
                         headerMessage={searchOptions.headerMessage}
                         textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                         textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                        autoFocus
                         showLoadingPlaceholder={!didScreenTransitionEnd}
                     />
                 </>
@@ -123,8 +112,4 @@ function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps)
 
 BaseShareLogList.displayName = 'ShareLogPage';
 
-export default withOnyx<BaseShareLogListProps, BaseShareLogListOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(BaseShareLogList);
+export default BaseShareLogList;
