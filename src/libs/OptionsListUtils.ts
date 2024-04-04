@@ -98,6 +98,22 @@ type CategorySection = CategorySectionBase & {
     data: Option[];
 };
 
+type TaxRatesOption = {
+    text?: string;
+    code?: string;
+    searchText?: string;
+    tooltipText?: string;
+    isDisabled?: boolean;
+    keyForList?: string;
+    data: Partial<TaxRate>;
+};
+
+type TaxSection = {
+    title: string | undefined;
+    shouldShow: boolean;
+    data: TaxRatesOption[];
+};
+
 type CategoryTreeSection = CategorySectionBase & {
     data: OptionTree[];
 };
@@ -577,7 +593,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(
+        const reportPreviewMessage = ReportUtils.getReportPreviewMessage(
             !isEmptyObject(iouReport) ? iouReport : null,
             lastIOUMoneyReportAction,
             true,
@@ -586,6 +602,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             true,
             lastReportAction,
         );
+        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(reportPreviewMessage);
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
@@ -857,7 +874,7 @@ function getSearchValueForPhoneOrEmail(searchTerm: string) {
  * Verifies that there is at least one enabled option
  */
 function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
-    return Object.values(options).some((option) => option.enabled);
+    return Object.values(options).some((option) => option.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -1239,7 +1256,7 @@ function sortTaxRates(taxRates: TaxRates): TaxRate[] {
 /**
  * Builds the options for taxRates
  */
-function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
+function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[] {
     return taxRates.map((taxRate) => ({
         text: taxRate.modifiedName,
         keyForList: taxRate.modifiedName,
@@ -1253,7 +1270,7 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): TaxSection[] {
     const policyRatesSections = [];
 
     const taxes = transformedTaxRates(taxRates);
@@ -2124,4 +2141,4 @@ export {
     getTaxRatesSection,
 };
 
-export type {MemberForList, CategorySection, GetOptions, OptionList, SearchOption, PayeePersonalDetails, Category};
+export type {MemberForList, CategorySection, GetOptions, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption};
