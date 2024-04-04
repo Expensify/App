@@ -5038,7 +5038,7 @@ function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEn
 
 /**
  * Gets all reports that relate to the policy
- * 
+ *
  * @param policyID - the workspace ID to get all associated reports
  */
 function getAllWorkspaceReports(policyID: string): Array<OnyxEntry<Report>> {
