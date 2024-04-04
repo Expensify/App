@@ -105,7 +105,7 @@ function IOURequestStartPage({
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current, lodashGet(transaction, 'skipConfirmation', false));
+        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
     }, [transaction, policy, reportID, iouType, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -127,7 +127,7 @@ function IOURequestStartPage({
             if (iouType === CONST.IOU.TYPE.SPLIT && transaction.isFromGlobalCreate) {
                 IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST, newIouType);
             }
-            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType, lodashGet(transaction, 'skipConfirmation', false));
+            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
         [policy, previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction],

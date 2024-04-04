@@ -280,7 +280,6 @@ function initMoneyRequest(
     policy: OnyxEntry<OnyxTypes.Policy>,
     isFromGlobalCreate: boolean,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
-    skipConfirmation = false,
 ) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -314,7 +313,6 @@ function initMoneyRequest(
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
-        skipConfirmation,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
     });
 }
