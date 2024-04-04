@@ -29,10 +29,6 @@ type VideoLoadedEventType = {
     };
 };
 
-type VideoPlaybackStatusEventType = {
-    isLoaded: boolean;
-};
-
 type VideoStatus = 'video' | 'animation';
 
 function OnboardingWelcomeVideo() {
@@ -42,7 +38,6 @@ function OnboardingWelcomeVideo() {
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
     const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
-    const [isVideoLoaded, setIsVideoLoaded] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
     const {isOffline} = useNetwork();
 
@@ -53,11 +48,11 @@ function OnboardingWelcomeVideo() {
 
         if (isOffline) {
             setWelcomeVideoStatus('animation');
-        } else if (!isOffline && isVideoLoaded) {
+        } else if (!isOffline) {
             setWelcomeVideoStatus('video');
             setIsWelcomeVideoStatusLocked(true);
         }
-    }, [isOffline, isVideoLoaded, isWelcomeVideoStatusLocked]);
+    }, [isOffline, isWelcomeVideoStatusLocked]);
 
     const closeModal = useCallback(() => {
         setIsModalVisible(false);
@@ -75,10 +70,6 @@ function OnboardingWelcomeVideo() {
             setVideoAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
         }
     };
-
-    const setVideoStatus = useCallback((event: VideoPlaybackStatusEventType) => {
-        setIsVideoLoaded(event.isLoaded);
-    }, []);
 
     const getWelcomeVideo = () => {
         const aspectRatio = videoAspectRatio || VIDEO_ASPECT_RATIO;
@@ -99,7 +90,6 @@ function OnboardingWelcomeVideo() {
                         url={CONST.WELCOME_VIDEO_URL}
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                         onVideoLoaded={setAspectRatio}
-                        onPlaybackStatusUpdate={setVideoStatus}
                         controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY}
                         shouldUseControlsBottomMargin={false}
                         shouldPlay
