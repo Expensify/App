@@ -652,7 +652,7 @@ export default {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         settlePersonalBank: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with personal bank account` : `Pay with personal bank account`),
         settleBusinessBank: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with business bank account` : `Pay with business bank account`),
-        settleDebitCard: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with debit card` : `Pay with debit card`),    
+        settleDebitCard: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with debit card` : `Pay with debit card`),
         nextStep: 'Next Steps',
         finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,

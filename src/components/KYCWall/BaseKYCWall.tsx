@@ -98,7 +98,6 @@ function KYCWall({
              */
             Wallet.setKYCWallSource(source, chatReportID);
 
-
             // Use event target as fallback if anchorRef is null for safety
             const targetElement = anchorRef.current ?? (event?.currentTarget as HTMLDivElement);
 
@@ -168,9 +167,7 @@ function KYCWall({
         ],
     );
 
-    return (
-        <>{children(continueAction, viewRef(anchorRef))}</>
-    );
+    return <>{children(continueAction, viewRef(anchorRef))}</>;
 }
 
 KYCWall.displayName = 'BaseKYCWall';

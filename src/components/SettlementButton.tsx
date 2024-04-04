@@ -232,10 +232,13 @@ function SettlementButton({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA 
-            || iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT 
-            || iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
-            || iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        if (
+            iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ||
+            iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA ||
+            iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
+            iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ||
+            iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD
+        ) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
