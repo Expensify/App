@@ -34,6 +34,7 @@ import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import PropTypes from "prop-types";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -52,6 +53,9 @@ const propTypes = {
     /** backup version of the original transaction  */
     transactionBackup: transactionPropTypes,
 
+    /** Whether the confirmation step should be skipped */
+    skipConfirmation: PropTypes.bool,
+
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
 
@@ -63,6 +67,7 @@ const defaultProps = {
     policy: null,
     transaction: {},
     transactionBackup: {},
+    skipConfirmation: false,
     personalDetails: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -77,6 +82,7 @@ function IOURequestStepDistance({
     transactionBackup,
     personalDetails,
     currentUserPersonalDetails,
+    skipConfirmation
 }) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -107,12 +113,12 @@ function IOURequestStepDistance({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
-    const skipConfirmation =
+    const shouldSkipConfirmation =
         transaction.skipConfirmation &&
         !ReportUtils.isArchivedRoom(report) &&
         !(ReportUtils.isPolicyExpenseChat(reportID) && (lodashGet(policy, 'requiresCategory', false) || lodashGet(policy, 'requiresTag', false)));
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
-    if (skipConfirmation) {
+    if (shouldSkipConfirmation) {
         buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.request');
     }
 
@@ -169,7 +175,7 @@ function IOURequestStepDistance({
                 const participantAccountID = lodashGet(participant, 'accountID', 0);
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
-            if (skipConfirmation) {
+            if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBillAndOpenReport(
                         participants,
@@ -209,7 +215,7 @@ function IOURequestStepDistance({
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [report, iouType, reportID, transactionID, backTo, waypoints, currentUserPersonalDetails, personalDetails, skipConfirmation, transaction, translate]);
+    }, [report, iouType, reportID, transactionID, backTo, waypoints, currentUserPersonalDetails, personalDetails, shouldSkipConfirmation, transaction, translate]);
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
@@ -367,6 +373,12 @@ export default compose(
         },
         transactionBackup: {
             key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${props.transactionID}`,
+        },
+        skipConfirmation: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
+            },
         },
     }),
 )(IOURequestStepDistance);
