@@ -47,9 +47,9 @@ const propTypes = {
 
     /** Information about the logged in user's account */
     user: PropTypes.shape({
-        /** Whether or not the user is on a public domain email account or not */
+        /** Whether user muted all sounds in application */
         isMutedAllSounds: PropTypes.bool,
-    }).isRequired,
+    }),
 
     /** The transaction (or draft transaction) being changed */
     transaction: transactionPropTypes,
@@ -57,6 +57,7 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
+    user: {},
     transaction: {},
 };
 
