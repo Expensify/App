@@ -233,7 +233,6 @@ type AdditionalTransactionChanges = {
     oldCurrency?: string;
 };
 
-
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;

@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/core';
 import _ from '@types/underscore';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -41,7 +42,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import PropTypes from "prop-types";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -86,7 +86,7 @@ function IOURequestStepScan({
     transaction: {isFromGlobalCreate},
     personalDetails,
     currentUserPersonalDetails,
-    skipConfirmation
+    skipConfirmation,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();

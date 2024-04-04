@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -41,7 +42,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import PropTypes from "prop-types";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */

@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import type {AllRoutes} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
-import type {PaymentMethodType} from "@src/types/onyx/OriginalMessage";
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type IouType = ValueOf<typeof CONST.IOU.TYPE>;
 type MoneyRequestAmountFormProps = {
@@ -265,7 +265,9 @@ function MoneyRequestAmountForm(
             }
 
             onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
-        }, [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount]);
+        },
+        [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount],
+    );
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.

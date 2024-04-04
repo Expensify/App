@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -34,7 +35,6 @@ import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import PropTypes from "prop-types";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -82,7 +82,7 @@ function IOURequestStepDistance({
     transactionBackup,
     personalDetails,
     currentUserPersonalDetails,
-    skipConfirmation
+    skipConfirmation,
 }) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
