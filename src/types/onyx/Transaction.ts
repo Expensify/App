@@ -97,7 +97,7 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
-type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
+type FullTransaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
         amount: number;
@@ -224,7 +224,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     keyof Comment
 >;
 
-type TransactionPendingFieldsKey = KeysOfUnion<Transaction['pendingFields']>;
+type TransactionPendingFieldsKey = KeysOfUnion<FullTransaction['pendingFields']>;
 
 type AdditionalTransactionChanges = {
     comment?: string;
@@ -233,7 +233,13 @@ type AdditionalTransactionChanges = {
     oldCurrency?: string;
 };
 
-type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
+type EmptyTransaction = {
+    skipConfirmation?: boolean;
+};
+
+type Transaction = FullTransaction | EmptyTransaction;
+
+type TransactionChanges = Partial<FullTransaction> & AdditionalTransactionChanges;
 
 type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
