@@ -156,7 +156,7 @@ function MultipleAvatars({
                         size={size}
                         fill={icons[0].fill}
                         name={icons[0].name}
-                        policyID={icons[0].id}
+                        iconID={icons[0].id}
                         type={icons[0].type}
                         fallbackIcon={icons[0].fallbackIcon}
                     />
@@ -206,7 +206,7 @@ function MultipleAvatars({
                                 source={icon.source ?? fallbackIcon}
                                 size={size}
                                 name={icon.name}
-                                policyID={icon.id}
+                                iconID={icon.id}
                                 type={icon.type}
                                 fallbackIcon={icon.fallbackIcon}
                             />
@@ -265,7 +265,7 @@ function MultipleAvatars({
                             imageStyles={[singleAvatarStyle]}
                             name={icons[0].name}
                             type={icons[0].type}
-                            policyID={icons[0].id}
+                            iconID={icons[0].id}
                             fallbackIcon={icons[0].fallbackIcon}
                         />
                     </View>
@@ -285,7 +285,7 @@ function MultipleAvatars({
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
                                     name={icons[1].name}
-                                    policyID={icons[1].id}
+                                    iconID={icons[1].id}
                                     type={icons[1].type}
                                     fallbackIcon={icons[1].fallbackIcon}
                                 />
