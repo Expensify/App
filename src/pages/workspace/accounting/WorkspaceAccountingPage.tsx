@@ -201,7 +201,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
             <FullPageNotFoundView
                 onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                 onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                shouldShow={hasAccess}
+                shouldShow={!hasAccess}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <HeaderWithBackButton
