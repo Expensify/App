@@ -43,6 +43,9 @@ type ReportActionsViewOnyxProps = {
 
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** Stores last visited path */
+    lastVisitedPath?: string;
 };
 
 type ReportActionsViewProps = ReportActionsViewOnyxProps & {
@@ -88,6 +91,7 @@ function ReportActionsView({
     isLoadingOlderReportActions = false,
     isLoadingNewerReportActions = false,
     isReadyForCommentLinking = false,
+    lastVisitedPath,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
@@ -352,7 +356,7 @@ function ReportActionsView({
                 });
             }
         }
-    }, [isFocused, report.reportID, report.pendingFields, didSubscribeToReportTypingEvents, route, reportID]);
+    }, [isFocused, report.reportID, report.pendingFields, didSubscribeToReportTypingEvents, route, reportID, lastVisitedPath]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
@@ -627,6 +631,9 @@ export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'}
         },
         transactionThreadReport: {
             key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+        },
+        lastVisitedPath: {
+            key: ONYXKEYS.LAST_VISITED_PATH,
         },
     })(MemoizedReportActionsView),
 );
