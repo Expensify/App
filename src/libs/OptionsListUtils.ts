@@ -1485,7 +1485,6 @@ function getOptions(
         };
     }
 
-
     if (includePolicyReportFieldOptions) {
         const transformedPolicyReportFieldOptions = getReportFieldOptionsSection(policyReportFieldOptions, recentlyUsedPolicyReportFieldOptions, selectedOptions, searchInputValue);
         return {
@@ -1907,6 +1906,9 @@ function getFilteredOptions(
     includeTaxRates = false,
     taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
     includeSelfDM = false,
+    includePolicyReportFieldOptions = false,
+    policyReportFieldOptions: string[] = [],
+    recentlyUsedPolicyReportFieldOptions: string[] = [],
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1929,6 +1931,9 @@ function getFilteredOptions(
         includeTaxRates,
         taxRates,
         includeSelfDM,
+        includePolicyReportFieldOptions,
+        policyReportFieldOptions,
+        recentlyUsedPolicyReportFieldOptions,
     });
 }
 
