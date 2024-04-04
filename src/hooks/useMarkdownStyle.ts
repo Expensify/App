@@ -18,6 +18,9 @@ function useMarkdownStyle(): MarkdownStyle {
             h1: {
                 fontSize: variables.fontSizeLarge,
             },
+            emoji: {
+                fontSize: variables.emojiSize,
+            },
             blockquote: {
                 borderColor: theme.border,
                 borderWidth: 4,
