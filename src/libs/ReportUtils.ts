@@ -595,7 +595,7 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
 }
 
 /**
- * @deprecated Use withOnyx or Onyx.connect() instead
+ * Returns the policy of the report
  */
 function getPolicy(policyID: string | undefined): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
@@ -1293,7 +1293,7 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | stri
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(reportID: string): boolean {
-    const reportActions = reportActionsByReport?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
+    const reportActions = reportActionsByReport?.[reportID] ?? ([] as ReportAction[]);
     return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== null;
 }
 
@@ -1336,8 +1336,8 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
     const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            const isReimburser = session?.email === policy?.reimburserEmail;
-            return (!policy?.reimburserEmail || isReimburser) && (isApproved || isManager);
+            const isReimburser = session?.email === policy?.achAccount?.reimburser;
+            return (!policy?.achAccount?.reimburser || isReimburser) && (isApproved || isManager);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
             return isAdmin && (isApproved || isManager);
@@ -4993,7 +4993,12 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
  * Returns ID of the original report from which the given reportAction is first created.
  */
 function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAction>): string | undefined {
-    const currentReportAction = ReportActionsUtils.getReportAction(reportID, reportAction?.reportActionID ?? '');
+    const reportActions = reportActionsByReport?.[reportID];
+    const currentReportAction = reportActions?.[reportAction?.reportActionID ?? ''] ?? null;
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? ([] as ReportAction[]));
+    if (transactionThreadReportID !== null) {
+        return Object.keys(currentReportAction ?? {}).length === 0 ? transactionThreadReportID : reportID;
+    }
     return isThreadFirstChat(reportAction, reportID) && Object.keys(currentReportAction ?? {}).length === 0
         ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID
         : reportID;
@@ -5845,7 +5850,6 @@ export {
     getReportOfflinePendingActionAndErrors,
     isDM,
     isSelfDM,
-    getPolicy,
     getWorkspaceChats,
     shouldDisableRename,
     hasSingleParticipant,

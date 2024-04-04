@@ -1260,6 +1260,24 @@ const CONST = {
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
+        STEP_REFACTOR: {
+            ADD_BANK_ACCOUNT: 'AddBankAccountStep',
+            ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            VERIFY_IDENTITY: 'VerifyIdentityStep',
+            TERMS_AND_FEES: 'TermsAndFeesStep',
+        },
+        STEP_NAMES: ['1', '2', '3', '4'],
+        SUBSTEP_INDEXES: {
+            BANK_ACCOUNT: {
+                ACCOUNT_NUMBERS: 0,
+            },
+            PERSONAL_INFO: {
+                LEGAL_NAME: 0,
+                DATE_OF_BIRTH: 1,
+                SSN: 2,
+                ADDRESS: 3,
+            },
+        },
         TIER_NAME: {
             PLATINUM: 'PLATINUM',
             GOLD: 'GOLD',
@@ -1526,7 +1544,7 @@ const CONST = {
         },
         COLLECTION_KEYS: {
             DESCRIPTION: 'description',
-            REIMBURSER_EMAIL: 'reimburserEmail',
+            REIMBURSER: 'reimburser',
             REIMBURSEMENT_CHOICE: 'reimbursementChoice',
             APPROVAL_MODE: 'approvalMode',
             AUTOREPORTING: 'autoReporting',
@@ -1648,7 +1666,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
-        LINE_BREAK: /\n/g,
+        LINE_BREAK: /\r|\n/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
