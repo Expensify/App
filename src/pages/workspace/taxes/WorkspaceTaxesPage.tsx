@@ -7,11 +7,11 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -95,20 +95,10 @@ function WorkspaceTaxesPage({
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
                 errors: value.errors ?? ErrorUtils.getLatestErrorFieldForAnyField(value),
-                rightElement: (
-                    <View style={styles.flexRow}>
-                        <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.isDisabled ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}</Text>
-                        <View style={[styles.p1, styles.pl2]}>
-                            <Icon
-                                src={Expensicons.ArrowRight}
-                                fill={theme.icon}
-                            />
-                        </View>
-                    </View>
-                ),
+                rightElement: <RightElementEnabledStatus enabled={!value.isDisabled} />,
             }))
             .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
-    }, [policy, textForDefault, selectedTaxesIDs, styles.flexRow, styles.disabledText, styles.alignSelfCenter, styles.p1, styles.pl2, translate, theme.icon]);
+    }, [policy, textForDefault, selectedTaxesIDs]);
 
     const isLoading = !isOffline && taxesList === undefined;
 

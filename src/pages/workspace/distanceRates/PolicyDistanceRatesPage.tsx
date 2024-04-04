@@ -8,11 +8,11 @@ import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -104,21 +104,9 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? value.pendingFields?.rate ?? value.pendingFields?.enabled ?? value.pendingFields?.currency,
                 errors: value.errors ?? undefined,
-                rightElement: (
-                    <View style={styles.flexRow}>
-                        <Text style={[styles.alignSelfCenter, !value.enabled && styles.textSupporting]}>
-                            {value.enabled ? translate('workspace.distanceRates.enabled') : translate('workspace.distanceRates.disabled')}
-                        </Text>
-                        <View style={[styles.p1, styles.pl2]}>
-                            <Icon
-                                src={Expensicons.ArrowRight}
-                                fill={theme.icon}
-                            />
-                        </View>
-                    </View>
-                ),
+                rightElement: <RightElementEnabledStatus enabled={value.enabled} />,
             })),
-        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, styles.alignSelfCenter, styles.flexRow, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
+        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate],
     );
 
     const addRate = () => {
