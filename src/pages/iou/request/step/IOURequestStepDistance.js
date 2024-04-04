@@ -254,7 +254,7 @@ function IOURequestStepDistance({
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
+        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
