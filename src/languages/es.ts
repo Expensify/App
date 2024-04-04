@@ -48,6 +48,7 @@ import type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    PolicyConnectionSyncStageParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -2025,8 +2026,25 @@ export default {
             disconnect: 'Desconectar',
             disconnectTitle: 'Desconectar integración',
             disconnectPrompt: '¿Estás seguro de que deseas desconectar esta intregración?',
-            importing: 'Importando clientes',
             enterCredentials: 'Ingresa tus credenciales',
+            connections: {
+                syncStageName: ({stage}: PolicyConnectionSyncStageParams) => {
+                    switch (stage) {
+                        case 'quickbooksOnlineImportCustomers':
+                            return 'Importando clientes';
+                        case 'quickbooksOnlineImportEmployees':
+                            return 'Importing employees';
+                        case 'quickbooksOnlineImportAccounts':
+                            return 'Importing accounts';
+                        case 'quickbooksOnlineImportClasses':
+                            return 'Importing classes';
+
+                        default: {
+                            return `Translation missing for stage: ${stage}`;
+                        }
+                    }
+                },
+            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',

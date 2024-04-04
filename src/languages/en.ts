@@ -49,6 +49,7 @@ import type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    PolicyConnectionSyncStageParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -2030,8 +2031,25 @@ export default {
             disconnect: 'Disconnect',
             disconnectTitle: 'Disconnect integration',
             disconnectPrompt: 'Are you sure you want to disconnect this integration?',
-            importing: 'Importing customers',
             enterCredentials: 'Enter your credentials',
+            connections: {
+                syncStageName: ({stage}: PolicyConnectionSyncStageParams) => {
+                    switch (stage) {
+                        case 'quickbooksOnlineImportCustomers':
+                            return 'Importing customers';
+                        case 'quickbooksOnlineImportEmployees':
+                            return 'Importing employees';
+                        case 'quickbooksOnlineImportAccounts':
+                            return 'Importing accounts';
+                        case 'quickbooksOnlineImportClasses':
+                            return 'Importing classes';
+
+                        default: {
+                            return `Translation missing for stage: ${stage}`;
+                        }
+                    }
+                },
+            },
         },
         bills: {
             manageYourBills: 'Manage your bills',
