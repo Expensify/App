@@ -279,6 +279,7 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {chatName: string};
 };
 
 type SearchNavigatorParamList = {
@@ -322,7 +323,18 @@ type ReportDescriptionNavigatorParamList = {
 };
 
 type ParticipantsNavigatorParamList = {
-    [SCREENS.REPORT_PARTICIPANTS_ROOT]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
+        reportID: string;
+        accountID: string;
+        backTo: Routes;
+    };
+    [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
+        reportID: string;
+        accountID: string;
+        backTo: Routes;
+    };
 };
 
 type RoomMembersNavigatorParamList = {

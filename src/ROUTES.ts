@@ -175,6 +175,10 @@ const ROUTES = {
     NEW: 'new',
     NEW_CHAT: 'new/chat',
     NEW_CHAT_CONFIRM: 'new/chat/confirm',
+    NEW_CHAT_EDIT_NAME: {
+        route: 'new/chat/confirm/:chatName/edit',
+        getRoute: (chatName: string) => `new/chat/confirm/${encodeURIComponent(chatName)}/edit` as const,
+    },
     NEW_ROOM: 'new/room',
 
     REPORT: 'r',
@@ -210,6 +214,18 @@ const ROUTES = {
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
         getRoute: (reportID: string) => `r/${reportID}/participants` as const,
+    },
+    REPORT_PARTICIPANTS_INVITE: {
+        route: 'r/:reportID/participants/invite',
+        getRoute: (reportID: string) => `r/${reportID}/participants/invite` as const,
+    },
+    REPORT_PARTICIPANTS_DETAILS: {
+        route: 'r/:reportID/participants/:accountID',
+        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}`, backTo),
+    },
+    REPORT_PARTICIPANTS_ROLE_SELECTION: {
+        route: 'r/:reportID/participants/:accountID/role',
+        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}/role`, backTo),
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',

@@ -50,7 +50,9 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
-    const groupName = ReportUtils.getGroupChatName(participantAccountIDs ?? []);
+    const isReportNameWasChanged = newGroupDraft?.reportName !== '';
+
+    const groupName = isReportNameWasChanged ? newGroupDraft?.reportName : ReportUtils.getGroupChatName(participantAccountIDs ?? []);
 
     const sections: ListItem[] = useMemo(
         () =>
@@ -101,11 +103,16 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             return;
         }
         const logins: string[] = newGroupDraft.participants.map((participant) => participant.login);
-        Report.navigateToAndOpenReport(logins, true, groupName);
+        const reportName = isReportNameWasChanged ? newGroupDraft.reportName : '';
+        Report.navigateToAndOpenReport(logins, true, reportName);
     };
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.NEW_CHAT);
+    };
+
+    const navigateToEditChatName = () => {
+        Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME.getRoute(groupName ?? ''));
     };
 
     return (
@@ -124,7 +131,8 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             </View>
             <MenuItemWithTopDescription
                 title={groupName}
-                interactive={false}
+                onPress={navigateToEditChatName}
+                shouldShowRightIcon
                 shouldCheckActionAllowedOnPress={false}
                 description={translate('groupConfirmPage.groupName')}
             />

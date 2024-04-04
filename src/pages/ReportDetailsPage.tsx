@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -198,6 +199,20 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
+    const renderAvatar = ReportUtils.isGroupChat(report) ? (
+        <AvatarWithImagePicker
+            source={icons[0].source}
+            size={CONST.AVATAR_SIZE.XLARGE}
+            avatarStyle={styles.avatarXLarge}
+            enablePreview
+            // Add interactions
+        />
+    ) : (
+        <RoomHeaderAvatars
+            icons={icons}
+            reportID={report?.reportID}
+        />
+    );
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -215,11 +230,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                     size={CONST.AVATAR_SIZE.LARGE}
                                 />
                             ) : (
-                                <RoomHeaderAvatars
-                                    icons={icons}
-                                    reportID={report?.reportID}
-                                    isGroupChat={ReportUtils.isGroupChat(report)}
-                                />
+                                renderAvatar
                             )}
                         </View>
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>

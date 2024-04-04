@@ -436,6 +436,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.NEW_CHAT_CONFIRM,
                             exact: true,
                         },
+                        [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
+                            path: ROUTES.NEW_CHAT_EDIT_NAME.route,
+                            exact: true,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
@@ -475,7 +479,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.PARTICIPANTS]: {
                     screens: {
-                        [SCREENS.REPORT_PARTICIPANTS_ROOT]: ROUTES.REPORT_PARTICIPANTS.route,
+                        [SCREENS.REPORT_PARTICIPANTS.ROOT]: ROUTES.REPORT_PARTICIPANTS.route,
+                        [SCREENS.REPORT_PARTICIPANTS.INVITE]: ROUTES.REPORT_PARTICIPANTS_INVITE.route,
+                        [SCREENS.REPORT_PARTICIPANTS.DETAILS]: ROUTES.REPORT_PARTICIPANTS_DETAILS.route,
+                        [SCREENS.REPORT_PARTICIPANTS.ROLE]: ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ROOM_INVITE]: {
