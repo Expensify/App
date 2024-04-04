@@ -986,7 +986,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
 function leaveWorkspace(policyID: string) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const workspaceChats = ReportUtils.getWorkspaceChats(policyID, [sessionAccountID]);
+    const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {

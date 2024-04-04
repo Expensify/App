@@ -5037,6 +5037,15 @@ function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEn
 }
 
 /**
+ * Gets all reports that relate to the policy
+ * 
+ * @param policyID - the workspace ID to get all associated reports
+ */
+function getAllWorkspaceReports(policyID: string): Array<OnyxEntry<Report>> {
+    return Object.values(allReports ?? {}).filter((report) => (report?.policyID ?? '') === policyID);
+}
+
+/**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
 function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
@@ -5860,6 +5869,7 @@ export {
     isDM,
     isSelfDM,
     getWorkspaceChats,
+    getAllWorkspaceReports,
     shouldDisableRename,
     hasSingleParticipant,
     getReportRecipientAccountIDs,
