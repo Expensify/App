@@ -9,36 +9,32 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
-import * as ReimbursementAccountActions from '@userActions/ReimbursementAccount';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {PlaidData, ReimbursementAccount} from '@src/types/onyx';
+import type {PersonalBankAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+import type {PlaidData} from '@src/types/onyx';
 
 type PlaidOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
+    personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
 
     /** Contains plaid data */
     plaidData: OnyxEntry<PlaidData>;
 };
 
-type PlaidProps = PlaidOnyxProps & SubStepProps;
+type PlaidStepProps = PlaidOnyxProps & SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidData}: PlaidProps) {
+function PlaidStep({personalBankAccountDraft, onNext, plaidData}: PlaidStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
+    const selectedPlaidAccountID = personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
     const handleNextPress = useCallback(() => {
         const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find(
-            (account) => account.plaidAccountID === reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? null,
+            (account) => account.plaidAccountID === personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? null,
         );
 
         const bankAccountData = {
@@ -51,23 +47,25 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: plaidData?.[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
         };
 
-        ReimbursementAccountActions.updateReimbursementAccountDraft(bankAccountData);
+        BankAccounts.updateAddPersonalBankAccountDraft(bankAccountData);
         onNext();
-    }, [plaidData, reimbursementAccountDraft, onNext]);
+    }, [onNext, personalBankAccountDraft, plaidData]);
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
+    const handleSelectPlaidAccount = (plaidAccountID: string) => {
+        BankAccounts.updateAddPersonalBankAccountDraft({plaidAccountID});
+    };
 
     useEffect(() => {
         const plaidBankAccounts = plaidData?.bankAccounts ?? [];
         if (isFocused || plaidBankAccounts.length) {
             return;
         }
-        BankAccounts.setBankAccountSubStep(null);
+        BankAccounts.clearPersonalBankAccountSetupType();
     }, [isFocused, plaidData]);
 
     return (
         <FormProvider
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
             validate={BankAccounts.validatePlaidSelection}
             onSubmit={handleNextPress}
             scrollContextEnabled
@@ -77,18 +75,13 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
         >
             <InputWrapper
                 InputComponent={AddPlaidBankAccount}
-                text={translate('bankAccount.plaidBodyCopy')}
-                onSelect={(plaidAccountID: string) => {
-                    ReimbursementAccountActions.updateReimbursementAccountDraft({plaidAccountID});
-                }}
+                text={translate('walletPage.chooseAccountBody')}
+                onSelect={handleSelectPlaidAccount}
                 plaidData={plaidData}
-                onExitPlaid={() => {
-                    BankAccounts.setBankAccountSubStep(null);
-                }}
+                onExitPlaid={BankAccounts.clearPersonalBankAccountSetupType}
                 allowDebit
-                bankAccountID={bankAccountID}
+                isDisplayedInWalletFlow
                 selectedPlaidAccountID={selectedPlaidAccountID}
-                isDisplayedInNewVBBA
                 inputID={BANK_INFO_STEP_KEYS.SELECTED_PLAID_ACCOUNT_ID}
                 defaultValue={selectedPlaidAccountID}
             />
@@ -96,17 +89,13 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     );
 }
 
-Plaid.displayName = 'Plaid';
+PlaidStep.displayName = 'PlaidStep';
 
-export default withOnyx<PlaidProps, PlaidOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
+export default withOnyx<PlaidStepProps, PlaidOnyxProps>({
+    personalBankAccountDraft: {
+        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
     },
     plaidData: {
         key: ONYXKEYS.PLAID_DATA,
     },
-})(Plaid);
+})(PlaidStep);
