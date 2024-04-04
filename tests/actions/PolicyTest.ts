@@ -44,7 +44,6 @@ describe('actions/Policy', () => {
             let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (workspace) => {
                         Onyx.disconnect(connectionID);
                         resolve(workspace);
@@ -64,7 +63,6 @@ describe('actions/Policy', () => {
             const policyMembers: OnyxEntry<PolicyMembers> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (members) => {
                         Onyx.disconnect(connectionID);
                         resolve(members);

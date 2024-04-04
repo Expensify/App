@@ -1963,7 +1963,6 @@ describe('ReportActionsUtils', () => {
                             new Promise<void>((resolve) => {
                                 const connectionID = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                                    waitForCollectionCallback: false,
                                     callback: () => {
                                         Onyx.disconnect(connectionID);
                                         const res = ReportActionsUtils.getLastVisibleAction(report.reportID);
