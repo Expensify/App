@@ -35,7 +35,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     // const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {canUseAccountingIntegrations} = usePermissions();
-    const hasAccess = PolicyUtils.isPolicyAdmin(policy) && policy?.areConnectionsEnabled && canUseAccountingIntegrations;
+    const hasAccess = PolicyUtils.isPolicyAdmin(policy) && policy?.areAccountingEnabled && policy?.areConnectionsEnabled && canUseAccountingIntegrations;
 
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
 
