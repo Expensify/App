@@ -523,6 +523,7 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 ...chatReport,
+                lastVisibleActionCreated: iouReport.lastVisibleActionCreated,
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,

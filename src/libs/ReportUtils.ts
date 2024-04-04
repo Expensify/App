@@ -3193,9 +3193,18 @@ function buildOptimisticTaskCommentReportAction(taskReportID: string, taskTitle:
  * @param chatReportID - Report ID of the chat where the IOU is.
  * @param currency - IOU currency.
  * @param isSendingMoney - If we send money the IOU should be created as settled
+ * @param created - The creation time for IOU action
  */
 
-function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number, total: number, chatReportID: string, currency: string, isSendingMoney = false): OptimisticIOUReport {
+function buildOptimisticIOUReport(
+    payeeAccountID: number,
+    payerAccountID: number,
+    total: number,
+    chatReportID: string,
+    currency: string,
+    isSendingMoney = false,
+    created: string = DateUtils.getDBTime(),
+): OptimisticIOUReport {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
@@ -3221,7 +3230,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         reportName: `${payerEmail} owes ${formattedTotal}`,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
-        lastVisibleActionCreated: DateUtils.getDBTime(),
+        lastVisibleActionCreated: created,
     };
 }
 
@@ -3586,7 +3595,7 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
-    const created = DateUtils.getDBTime();
+    const created = iouReport.lastVisibleActionCreated ?? DateUtils.getDBTime();
     return {
         reportActionID: NumberUtils.rand64(),
         reportID: chatReport?.reportID,
@@ -4234,10 +4243,10 @@ function buildOptimisticMoneyRequestEntities(
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
 ): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction] {
-    const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
+    const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail, iouReport.lastVisibleActionCreated);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
-    const iouActionCreationTime = DateUtils.getDBTime();
+    const iouActionCreationTime = iouReport.lastVisibleActionCreated ?? DateUtils.getDBTime();
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
     const iouAction = buildOptimisticIOUReportAction(
         type,
