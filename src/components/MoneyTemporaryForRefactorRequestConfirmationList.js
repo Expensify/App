@@ -790,7 +790,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 />
             ),
             shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
-            isSupplementary: true,
+            isSupplementary: false,
         },
         {
             item: (
@@ -811,7 +811,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 />
             ),
             shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
-            isSupplementary: true,
+            isSupplementary: false,
         },
         {
             item: (
