@@ -3,11 +3,12 @@ import dateAdd from 'date-fns/add';
 import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
+import type {Unit} from '@src/types/onyx/Policy';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
 type RateAndUnit = {
-    unit: string;
+    unit: Unit;
     rate: number;
 };
 type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
