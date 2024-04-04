@@ -4365,6 +4365,7 @@ function clearPolicyDistanceRateErrorFields(policyID: string, customUnitID: stri
 }
 
 function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+    console.log('over here')
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4412,7 +4413,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
 
     const params: SetPolicyDistanceRatesUnitParams = {
         policyID,
-        customUnit: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(prepareCustomUnitRatesArray(newCustomUnit)),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT, params, {optimisticData, successData, failureData});
@@ -4464,9 +4465,14 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
         },
     ];
 
+    // Remove pendingFields or errorFields from the array
+    const cleanedNewCustomUnit = {...newCustomUnit};
+    delete cleanedNewCustomUnit.pendingFields;
+    delete cleanedNewCustomUnit.errorFields;
+
     const params: SetPolicyDistanceRatesDefaultCategoryParams = {
         policyID,
-        customUnit: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(cleanedNewCustomUnit),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
