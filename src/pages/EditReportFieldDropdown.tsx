@@ -1,10 +1,14 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentlyUsedReportFields} from '@src/types/onyx';
@@ -35,8 +39,25 @@ type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProp
 
 function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions, recentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const theme = useTheme();
     const {translate} = useLocalize();
     const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey] ?? [], [recentlyUsedReportFields, fieldKey]);
+
+    const itemRightSideComponent = useCallback(
+        (item: ListItem) => {
+            if (item.text === fieldValue) {
+                return (
+                    <Icon
+                        src={Expensicons.Checkmark}
+                        fill={theme.iconSuccessFill}
+                    />
+                );
+            }
+
+            return null;
+        },
+        [theme.iconSuccessFill, fieldValue],
+    );
 
     const [sections, headerMessage] = useMemo(() => {
         const validFieldOptions = fieldOptions?.filter((option) => !!option);
@@ -90,6 +111,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             headerMessage={headerMessage}
             ListItem={RadioListItem}
             isRowMultilineSupported
+            rightHandSideComponent={itemRightSideComponent}
         />
     );
 }
