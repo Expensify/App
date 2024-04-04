@@ -7,11 +7,11 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type ListItemRightElementWithArrowProps = {
+type RightElementEnabledStatusProps = {
     enabled?: boolean;
 };
 
-function ListItemRightElementWithArrow({enabled}: ListItemRightElementWithArrowProps) {
+function RightElementEnabledStatus({enabled}: RightElementEnabledStatusProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -31,6 +31,6 @@ function ListItemRightElementWithArrow({enabled}: ListItemRightElementWithArrowP
     );
 }
 
-ListItemRightElementWithArrow.displayName = 'ListItemRightElementWithArrow';
+RightElementEnabledStatus.displayName = 'RightElementEnabledStatus';
 
-export default ListItemRightElementWithArrow;
+export default RightElementEnabledStatus;

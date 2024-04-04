@@ -14,7 +14,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import ListItemRightElementWithArrow from '@components/SelectionList/ListItemRightElementWithArrow';
+import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -98,12 +98,12 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             errors: tag.errors ?? undefined,
                             enabled: tag.enabled,
                             isDisabled,
-                            rightElement: <ListItemRightElementWithArrow enabled={tag.enabled} />,
+                            rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
                         };
                     }),
                 )
                 .flat(),
-        [policyTagLists, selectedTags, translate],
+        [policyTagLists, selectedTags],
     );
 
     const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {

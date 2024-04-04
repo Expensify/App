@@ -13,7 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import ListItemRightElementWithArrow from '@components/SelectionList/ListItemRightElementWithArrow';
+import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -88,7 +88,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         isDisabled,
                         pendingAction: value.pendingAction,
                         errors: value.errors ?? undefined,
-                        rightElement: <ListItemRightElementWithArrow enabled={value.enabled} />,
+                        rightElement: <RightElementEnabledStatus enabled={value.enabled} />,
                     };
                 }),
         [policyCategories, selectedCategories],
