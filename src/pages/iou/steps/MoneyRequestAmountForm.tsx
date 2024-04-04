@@ -26,16 +26,14 @@ import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
-type IouType = ValueOf<typeof CONST.IOU.TYPE>;
+type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
+
 type MoneyRequestAmountFormProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
 
     /** Calculated tax amount based on selected tax rate */
     taxAmount?: number;
-
-    /** Whether the user input should be kept or not */
-    shouldKeepUserInput?: boolean;
 
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
@@ -47,7 +45,7 @@ type MoneyRequestAmountFormProps = {
     skipConfirmation?: boolean;
 
     /** Type of the IOU */
-    iouType?: IouType;
+    iouType?: ValueOf<typeof CONST.IOU.TYPE>;
 
     /** The policyID of the request */
     policyID?: string;
@@ -62,7 +60,7 @@ type MoneyRequestAmountFormProps = {
     onCurrencyButtonPress?: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-    onSubmitButtonPress: ({amount, currency, paymentMethod}: {amount: string; currency: string; paymentMethod?: PaymentMethodType}) => void;
+    onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab?: SelectedTabRequest;
@@ -83,7 +81,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmountAsInteger(Math.abs(taxAmount));
+    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmount(Math.abs(taxAmount));
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -103,7 +101,6 @@ function MoneyRequestAmountForm(
         onCurrencyButtonPress,
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
-        shouldKeepUserInput = false,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -113,8 +110,10 @@ function MoneyRequestAmountForm(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
+
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
-    const selectedAmountAsString = CurrencyUtils.convertToFrontendAmountAsString(amount);
+    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
+
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [formError, setFormError] = useState<MaybePhraseKey>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -147,7 +146,7 @@ function MoneyRequestAmountForm(
     };
 
     const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = CurrencyUtils.convertToFrontendAmountAsString(newAmount);
+        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
         setCurrentAmount(frontendAmount);
         setSelection({
             start: frontendAmount.length,
@@ -156,13 +155,13 @@ function MoneyRequestAmountForm(
     }, []);
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number' || shouldKeepUserInput) {
+        if (!currency || typeof amount !== 'number') {
             return;
         }
         initializeAmount(amount);
         // we want to re-initialize the state only when the selected tab or amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab, amount, shouldKeepUserInput]);
+    }, [selectedTab, amount]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -264,10 +263,13 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
-        },
-        [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount],
-    );
+        // Update display amount string post-edit to ensure consistency with backend amount
+        // Reference: https://github.com/Expensify/App/issues/30505
+        const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
+        initializeAmount(backendAmount);
+
+        onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+    }, [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -394,3 +396,4 @@ function MoneyRequestAmountForm(
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
 export default React.forwardRef(MoneyRequestAmountForm);
+export type {CurrentMoney};

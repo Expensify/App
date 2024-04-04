@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -42,9 +41,6 @@ const propTypes = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: transactionPropTypes,
 
-    /** Whether the user input should be kept or not */
-    shouldKeepUserInput: PropTypes.bool,
-
     /** Whether the confirmation step should be skipped */
     skipConfirmation: PropTypes.bool,
 
@@ -65,7 +61,6 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     splitDraftTransaction: {},
     draftTransaction: {},
-    shouldKeepUserInput: false,
     skipConfirmation: false,
 };
 
@@ -80,7 +75,6 @@ function IOURequestStepAmount({
     currentUserPersonalDetails,
     splitDraftTransaction,
     draftTransaction,
-    shouldKeepUserInput,
     skipConfirmation,
 }) {
     const {translate} = useLocalize();
@@ -156,7 +150,7 @@ function IOURequestStepAmount({
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true, shouldKeepUserInput);
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -255,7 +249,6 @@ function IOURequestStepAmount({
                 policyID={policy.policyID}
                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                 ref={(e) => (textInput.current = e)}
-                shouldKeepUserInput={transaction.shouldShowOriginalAmount}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
