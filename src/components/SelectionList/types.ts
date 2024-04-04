@@ -310,6 +310,11 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** If false, the text input will not be shown at all. Defaults to true */
     shouldShowTextInput?: boolean;
+    /**
+     * When true, the list won't be visible until the list layout is measured. This prevents the list from "blinking" as it's scrolled to the bottom which is recommended for large lists.
+     * When false, the list will render immediately and scroll to the bottom which works great for small lists.
+     */
+    shouldHideListOnInitialRender?: boolean;
 };
 
 type SelectionListHandle = {
