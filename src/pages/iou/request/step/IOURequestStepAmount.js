@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -10,8 +11,8 @@ import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import {getRequestType} from '@libs/TransactionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {getRequestType} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
@@ -37,6 +38,9 @@ const propTypes = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: transactionPropTypes,
 
+    /** Whether the user input should be kept or not */
+    shouldKeepUserInput: PropTypes.bool,
+
     /** The draft transaction object being modified in Onyx */
     draftTransaction: transactionPropTypes,
 };
@@ -46,6 +50,7 @@ const defaultProps = {
     transaction: {},
     splitDraftTransaction: {},
     draftTransaction: {},
+    shouldKeepUserInput: false,
 };
 
 function IOURequestStepAmount({
@@ -56,6 +61,7 @@ function IOURequestStepAmount({
     transaction,
     splitDraftTransaction,
     draftTransaction,
+    shouldKeepUserInput,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
@@ -125,7 +131,7 @@ function IOURequestStepAmount({
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true);
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true, shouldKeepUserInput);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -183,6 +189,7 @@ function IOURequestStepAmount({
                 currency={currency}
                 amount={Math.abs(transactionAmount)}
                 ref={(e) => (textInput.current = e)}
+                shouldKeepUserInput={transaction.shouldShowOriginalAmount}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
