@@ -211,12 +211,6 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedReportFields = val),
 });
 
-let newGroupDraft: OnyxEntry<NewGroupChatDraft>;
-Onyx.connect({
-    key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    callback: (value) => (newGroupDraft = value),
-});
-
 function clearGroupChat() {
     Onyx.set(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, null);
 }
@@ -798,14 +792,15 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    const isGroupChat = participantAccountIDs.length > 1;
 
     // If we are not creating a new Group Chat then we are creating a 1:1 DM and will look for an existing chat
-    if (!newGroupDraft) {
+    if (!isGroupChat) {
         chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     }
 
     if (isEmptyObject(chat)) {
-        if (newGroupDraft) {
+        if (isGroupChat) {
             newChat = ReportUtils.buildOptimisticChatReport(
                 participantAccountIDs,
                 reportName,
