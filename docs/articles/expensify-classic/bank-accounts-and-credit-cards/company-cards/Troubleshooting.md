@@ -8,6 +8,12 @@ Whether you're encountering issues related to company cards, require assistance 
 ## How to add company cards to Expensify
 You can add company credit cards under the Domain settings in your Expensify account by navigating to *Settings* > *Domain* > _Domain Name_ > *Company Cards* and clicking *Import Card/Bank* and following the prompts.
 
+## Known issues importing transactions
+The first step should always be to "Update" your card, either from Settings > Your Account > Credit Card Import or Settings > Domain > [Domain Name] > Company Cards for centrally managed cards. If a "Fix" or "Fix card" option appears, follow the steps to fix the connection. If this fails to import your missing transactions, there is a known issue whereby some transactions will not import for certain API-based company card connections. So far this has been reported on American Express, Chase and Wells Fargo. This can be temporarily resolved by creating the expenses manually instead:
+
+- [Manually add the expenses](https://help.expensify.com/articles/expensify-classic/expenses/expenses/Add-an-expense)
+- [Upload the expenses via CSV](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/CSV-Import)
+
 # Errors connecting company cards
 
 ## Error: Too many attempts
