@@ -1,4 +1,4 @@
-import core from '@actions/core';
+import * as core from '@actions/core';
 import github from '@actions/github';
 import {getJSONInput} from '@github/libs/ActionUtils';
 import GithubUtils from '@github/libs/GithubUtils';
