@@ -87,8 +87,20 @@ function convertToBackendAmount(amountAsFloat: number): number {
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmount(amountAsInt: number): number {
+function convertToFrontendAmountAsInteger(amountAsInt: number): number {
     return Math.trunc(amountAsInt) / 100.0;
+}
+
+/**
+ * Takes an amount in "cents" as an integer and converts it to a string amount used in the frontend.
+ *
+ * @note we do not support any currencies with more than two decimal places.
+ */
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined): string {
+    if (amountAsInt === null || amountAsInt === undefined) {
+        return '';
+    }
+    return convertToFrontendAmountAsInteger(amountAsInt).toFixed(2);
 }
 
 /**
@@ -99,7 +111,7 @@ function convertToFrontendAmount(amountAsInt: number): number {
  * @param currency - IOU currency
  */
 function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmount(amountInCents);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
@@ -140,7 +152,8 @@ export {
     getCurrencySymbol,
     isCurrencySymbolLTR,
     convertToBackendAmount,
-    convertToFrontendAmount,
+    convertToFrontendAmountAsInteger,
+    convertToFrontendAmountAsString,
     convertToDisplayString,
     convertAmountToDisplayString,
     isValidCurrencyCode,
