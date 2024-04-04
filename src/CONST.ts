@@ -59,6 +59,9 @@ const cardActiveStates: number[] = [2, 3, 4, 7];
 const CONST = {
     MERGED_ACCOUNT_PREFIX: 'MERGED_',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
+
+    // Note: Group and Self-DM excluded as these are not tied to a Workspace
+    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
@@ -331,7 +334,6 @@ const CONST = {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
-        BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
         TRACK_EXPENSE: 'trackExpense',
@@ -1524,7 +1526,7 @@ const CONST = {
         },
         COLLECTION_KEYS: {
             DESCRIPTION: 'description',
-            REIMBURSER_EMAIL: 'reimburserEmail',
+            REIMBURSER: 'reimburser',
             REIMBURSEMENT_CHOICE: 'reimbursementChoice',
             APPROVAL_MODE: 'approvalMode',
             AUTOREPORTING: 'autoReporting',
@@ -1646,7 +1648,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
-        LINE_BREAK: /\n/g,
+        LINE_BREAK: /\r|\n/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -1824,6 +1826,8 @@ const CONST = {
         RECEIPT: 'receipt',
         DISTANCE: 'distance',
         TAG: 'tag',
+        TAX_RATE: 'taxRate',
+        TAX_AMOUNT: 'taxAmount',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -3332,7 +3336,16 @@ const CONST = {
     },
 
     /**
-     * Constants for types of violations.
+     * Constants for types of violation.
+     */
+    VIOLATION_TYPES: {
+        VIOLATION: 'violation',
+        NOTICE: 'notice',
+        WARNING: 'warning',
+    },
+
+    /**
+     * Constants for types of violation names.
      * Defined here because they need to be referenced by the type system to generate the
      * ViolationNames type.
      */

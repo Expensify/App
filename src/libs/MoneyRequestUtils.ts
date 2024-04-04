@@ -1,5 +1,7 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {SelectedTabRequest} from '@src/types/onyx';
 
 /**
  * Strip comma from the amount
@@ -78,14 +80,14 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
 /**
  * Check if distance request or not
  */
-function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, selectedTab: ValueOf<typeof CONST.TAB_REQUEST>): boolean {
+function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, selectedTab: OnyxEntry<SelectedTabRequest>): boolean {
     return iouType === CONST.IOU.TYPE.REQUEST && selectedTab === CONST.TAB_REQUEST.DISTANCE;
 }
 
 /**
  * Check if scan request or not
  */
-function isScanRequest(selectedTab: ValueOf<typeof CONST.TAB_REQUEST>): boolean {
+function isScanRequest(selectedTab: SelectedTabRequest): boolean {
     return selectedTab === CONST.TAB_REQUEST.SCAN;
 }
 
