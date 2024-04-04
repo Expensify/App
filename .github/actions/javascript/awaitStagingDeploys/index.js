@@ -12158,7 +12158,7 @@ function run() {
             }),
     ])
         .then((responses) => {
-        console.info('[awaitStagingDeploys] listWOrkflowRuns responses', responses);
+        console.info('[awaitStagingDeploys] listWorkflowRuns responses', responses);
         const workflowRuns = responses[0].data.workflow_runs;
         if (!tag && typeof responses[1] === 'object') {
             workflowRuns.push(...responses[1].data.workflow_runs);
