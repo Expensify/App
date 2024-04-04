@@ -42,8 +42,8 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
         const validFieldOptions = fieldOptions?.filter((option) => !!option);
 
         const {policyReportFieldOptions} = OptionsListUtils.getFilteredOptions(
-            {},
-            {},
+            [],
+            [],
             [],
             debouncedSearchValue,
             [
