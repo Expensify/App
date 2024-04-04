@@ -41,6 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
+import PropTypes from "prop-types";
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -56,6 +57,9 @@ const propTypes = {
     /** The transaction (or draft transaction) being changed */
     transaction: transactionPropTypes,
 
+    /** Whether the confirmation step should be skipped */
+    skipConfirmation: PropTypes.bool,
+
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
 
@@ -68,6 +72,7 @@ const defaultProps = {
     policy: null,
     transaction: {},
     personalDetails: {},
+    skipConfirmation: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -81,6 +86,7 @@ function IOURequestStepScan({
     transaction: {isFromGlobalCreate},
     personalDetails,
     currentUserPersonalDetails,
+    skipConfirmation
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -96,8 +102,8 @@ function IOURequestStepScan({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
-    const skipConfirmation =
-        transaction.skipConfirmation &&
+    const shouldSkipConfirmation =
+        skipConfirmation &&
         !ReportUtils.isArchivedRoom(report) &&
         !(ReportUtils.isPolicyExpenseChat(reportID) && (lodashGet(policy, 'requiresCategory', false) || lodashGet(policy, 'requiresTag', false)));
 
@@ -227,7 +233,7 @@ function IOURequestStepScan({
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
 
-            if (skipConfirmation) {
+            if (shouldSkipConfirmation) {
                 const receipt = file;
                 receipt.source = source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
@@ -251,7 +257,7 @@ function IOURequestStepScan({
             }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
         },
-        [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo, currentUserPersonalDetails, personalDetails, skipConfirmation, transaction],
+        [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo, currentUserPersonalDetails, personalDetails, shouldSkipConfirmation, transaction],
     );
 
     const updateScanAndNavigate = useCallback(
@@ -460,6 +466,12 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        skipConfirmation: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
+            },
         },
     }),
 )(IOURequestStepScan);
