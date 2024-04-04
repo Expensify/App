@@ -1,8 +1,6 @@
-// eslint-disable-next-line import/no-import-module-exports
-import CONST from '@github/libs/CONST';
-
 const _ = require('underscore');
 const core = require('@actions/core');
+const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 
 const run = function () {
@@ -71,4 +69,4 @@ if (require.main === module) {
     run();
 }
 
-export default run;
+module.exports = run;
