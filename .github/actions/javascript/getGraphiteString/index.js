@@ -2738,8 +2738,9 @@ const run = () => {
     // Iterate over each entry
     regressionEntries.forEach((entry) => {
         // Skip empty lines
-        if (entry.trim() === '')
+        if (entry.trim() === '') {
             return;
+        }
         try {
             const current = JSON.parse(entry);
             // Extract timestamp, Graphite accepts timestamp in seconds
@@ -2753,8 +2754,9 @@ const run = () => {
                 graphiteString += `${renderDurationString}\n${renderCountString}\n${renderPRNumberString}\n`;
             }
         }
-        catch (error) {
-            console.error('Error parsing JSON:', error);
+        catch (e) {
+            const error = new Error('Error parsing baseline.perf JSON file');
+            console.error(error.message);
             core.setFailed(error);
         }
     });
