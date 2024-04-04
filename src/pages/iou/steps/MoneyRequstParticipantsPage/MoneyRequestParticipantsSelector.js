@@ -7,7 +7,6 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
@@ -20,6 +19,7 @@ import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -50,6 +50,9 @@ const propTypes = {
         }),
     ),
 
+    /** All reports shared with the user */
+    reports: PropTypes.objectOf(reportPropTypes),
+
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -58,26 +61,33 @@ const propTypes = {
 
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
+
+    /** Whether we are searching for reports in the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     dismissedReferralBanners: {},
     participants: [],
     safeAreaPaddingBottomStyle: {},
+    reports: {},
     betas: [],
     isDistanceRequest: false,
+    isSearchingForReports: false,
 };
 
 function MoneyRequestParticipantsSelector({
     betas,
     dismissedReferralBanners,
     participants,
+    reports,
     navigateToRequest,
     navigateToSplit,
     onAddParticipants,
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
+    isSearchingForReports,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -86,7 +96,6 @@ function MoneyRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {canUseP2PDistanceRequests} = usePermissions();
-    const {options, areOptionsInitialized} = useOptionsList();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -95,8 +104,8 @@ function MoneyRequestParticipantsSelector({
 
     const newChatOptions = useMemo(() => {
         const chatOptions = OptionsListUtils.getFilteredOptions(
-            options.reports,
-            options.personalDetails,
+            reports,
+            personalDetails,
             betas,
             searchTerm,
             participants,
@@ -123,7 +132,7 @@ function MoneyRequestParticipantsSelector({
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         };
-    }, [options.reports, options.personalDetails, betas, searchTerm, participants, iouType, canUseP2PDistanceRequests, isDistanceRequest]);
+    }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest, canUseP2PDistanceRequests]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -356,7 +365,7 @@ function MoneyRequestParticipantsSelector({
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
-                showLoadingPlaceholder={!areOptionsInitialized}
+                showLoadingPlaceholder={isSearchingForReports}
                 rightHandSideComponent={itemRightSideComponent}
             />
         </View>
@@ -371,7 +380,14 @@ export default withOnyx({
     dismissedReferralBanners: {
         key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
     },
 })(MoneyRequestParticipantsSelector);

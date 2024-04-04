@@ -7,8 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas, useSession} from '@components/OnyxProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {useBetas, usePersonalDetails, useSession} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -40,18 +39,22 @@ type TaskAssigneeSelectorModalOnyxProps = {
     task: OnyxEntry<Task>;
 };
 
+type UseOptions = {
+    reports: OnyxCollection<Report>;
+};
+
 type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithNavigationTransitionEndProps;
 
-function useOptions() {
+function useOptions({reports}: UseOptions) {
+    const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const betas = useBetas();
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const options = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
-            optionsList.reports,
-            optionsList.personalDetails,
+            reports,
+            allPersonalDetails,
             betas,
             debouncedSearchValue.trim(),
             [],
@@ -84,18 +87,18 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, debouncedSearchValue, isLoading]);
+    }, [debouncedSearchValue, allPersonalDetails, isLoading, betas, reports]);
 
-    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
+    return {...options, isLoading, searchValue, debouncedSearchValue, setSearchValue};
 }
 
-function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalProps) {
+function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: TaskAssigneeSelectorModalProps) {
     const styles = useThemeStyles();
     const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
+    const {userToInvite, recentReports, personalDetails, currentUserOption, isLoading, searchValue, setSearchValue, headerMessage} = useOptions({reports});
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
@@ -212,14 +215,14 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionList
-                        sections={areOptionsInitialized ? sections : []}
+                        sections={didScreenTransitionEnd && !isLoading ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
                         onChangeText={onChangeText}
                         textInputValue={searchValue}
                         headerMessage={headerMessage}
                         textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={!areOptionsInitialized}
+                        showLoadingPlaceholder={isLoading || !didScreenTransitionEnd}
                     />
                 </View>
             </FullPageNotFoundView>
