@@ -70,7 +70,9 @@ function RoomInvitePage({betas, report, policies}: RoomInvitePageProps) {
         });
         const newSelectedOptions: ReportUtils.OptionData[] = [];
         selectedOptions.forEach((option) => {
-            newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], accountID: detailsMap[option.login] ?? undefined, isSelected: true} : option);
+            newSelectedOptions.push(
+                option.login && option.login in detailsMap ? {...detailsMap[option.login], accountID: detailsMap[option.login].accountID ?? undefined, isSelected: true} : option,
+            );
         });
 
         setUserToInvite(inviteOptions.userToInvite);
