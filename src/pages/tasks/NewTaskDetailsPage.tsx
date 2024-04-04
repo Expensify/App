@@ -43,6 +43,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const skipConfirmation = task?.skipConfirmation && task?.assigneeAccountID && task?.parentReportID;
+    const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
 
     useEffect(() => {
         setTaskTitle(task?.title ?? '');
@@ -100,7 +101,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
-                submitButtonText={translate('common.next')}
+                submitButtonText={buttonText}
                 style={[styles.mh5, styles.flexGrow1]}
                 validate={validate}
                 onSubmit={onSubmit}
