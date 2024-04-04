@@ -44,6 +44,7 @@ import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisi
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
+import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1073,19 +1074,15 @@ function togglePinnedState(reportID: string, isPinnedChat: boolean) {
 /**
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
+ * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
-function saveReportComment(reportID: string, comment: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
+function saveReportDraftComment(reportID: string, comment: string | null) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment));
 }
 
 /** Saves the number of lines for the comment */
 function saveReportCommentNumberOfLines(reportID: string, numberOfLines: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
-}
-
-/** Immediate indication whether the report has a draft comment. */
-function setReportWithDraft(reportID: string, hasDraft: boolean): Promise<void | void[]> {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
 }
 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
@@ -2908,17 +2905,6 @@ function clearNewRoomFormError() {
     });
 }
 
-function getReportDraftStatus(reportID: string) {
-    if (!allReports) {
-        return false;
-    }
-
-    if (!allReports[reportID]) {
-        return false;
-    }
-    return allReports[reportID]?.hasDraft;
-}
-
 function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
     const message = reportAction?.message?.[0];
     if (!message) {
@@ -2973,7 +2959,6 @@ function setGroupDraft(participants: Array<{login: string; accountID: number}>, 
 }
 
 export {
-    getReportDraftStatus,
     searchInServer,
     addComment,
     addAttachment,
@@ -2984,7 +2969,7 @@ export {
     subscribeToReportLeavingEvents,
     unsubscribeFromReportChannel,
     unsubscribeFromLeavingRoomReportChannel,
-    saveReportComment,
+    saveReportDraftComment,
     saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     broadcastUserIsLeavingRoom,
@@ -2996,7 +2981,6 @@ export {
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
-    setReportWithDraft,
     addPolicyReport,
     deleteReport,
     navigateToConciergeChatAndDeleteReport,
