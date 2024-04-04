@@ -75,7 +75,7 @@ function FormAlertWithSubmitButton({
     errorMessageStyle,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [!footerContent ? {} : (styles.mb3, buttonStyles)];
+    const style = [!footerContent ? {} : styles.mb3, buttonStyles];
 
     return (
         <FormAlertWrapper
