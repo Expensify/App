@@ -356,12 +356,12 @@ function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: st
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string, removeOriginalCurrency = false, shouldShowOriginalAmount = false) {
+function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string, removeOriginalCurrency = false) {
     if (removeOriginalCurrency) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, originalCurrency: null, shouldShowOriginalAmount});
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, originalCurrency: null});
         return;
     }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
