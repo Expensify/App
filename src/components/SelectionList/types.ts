@@ -33,7 +33,7 @@ type CommonListItemProps<TItem> = {
     onDismissError?: (item: TItem) => void;
 
     /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem> | null) | ReactElement | null;
 
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
