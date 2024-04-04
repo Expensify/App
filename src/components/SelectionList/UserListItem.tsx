@@ -1,7 +1,10 @@
 import Str from 'expensify-common/lib/str';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -9,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {UserListItemProps} from './types';
 
@@ -23,7 +27,6 @@ function UserListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-    checkmarkPosition,
 }: UserListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -34,21 +37,26 @@ function UserListItem({
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
+    const handleCheckboxPress = useCallback(() => {
+        if (onCheckboxPress) {
+            onCheckboxPress(item);
+        } else {
+            onSelectRow(item);
+        }
+    }, [item, onCheckboxPress, onSelectRow]);
+
     return (
         <BaseListItem
             item={item}
             wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
-            selectMultipleStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
-            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
-            checkmarkPosition={checkmarkPosition}
             errors={item.errors}
             pendingAction={item.pendingAction}
             FooterComponent={
@@ -62,6 +70,27 @@ function UserListItem({
         >
             {(hovered?: boolean) => (
                 <>
+                    {canSelectMultiple && (
+                        <PressableWithFeedback
+                            accessibilityLabel={item.text ?? ''}
+                            role={CONST.ROLE.BUTTON}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={isDisabled || item.isDisabledCheckbox}
+                            onPress={handleCheckboxPress}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
+                        >
+                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
+                                {item.isSelected && (
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={theme.textLight}
+                                        height={14}
+                                        width={14}
+                                    />
+                                )}
+                            </View>
+                        </PressableWithFeedback>
+                    )}
                     {!!item.icons &&
                         (item.shouldShowSubscript ? (
                             <SubscriptAvatar

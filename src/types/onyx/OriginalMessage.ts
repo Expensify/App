@@ -37,6 +37,11 @@ type OriginalMessageHold = {
     originalMessage: unknown;
 };
 
+type OriginalMessageHoldComment = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT;
+    originalMessage: unknown;
+};
+
 type OriginalMessageUnHold = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD;
     originalMessage: unknown;
@@ -263,6 +268,10 @@ type OriginalMessageModifiedExpense = {
         category?: string;
         oldTag?: string;
         tag?: string;
+        oldTaxAmount?: number;
+        taxAmount?: number;
+        oldTaxRate?: string;
+        taxRate?: string;
         oldBillable?: string;
         billable?: string;
     };
@@ -301,6 +310,7 @@ type OriginalMessage =
     | OriginalMessageClosed
     | OriginalMessageCreated
     | OriginalMessageHold
+    | OriginalMessageHoldComment
     | OriginalMessageUnHold
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList

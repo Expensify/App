@@ -24,6 +24,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
+
+    /** Determines whether the menu item is disabled or not */
+    disabled?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -200,11 +203,18 @@ function PopoverMenu({
                         title={item.text}
                         shouldCheckActionAllowedOnPress={false}
                         description={item.description}
+                        numberOfLinesDescription={item.numberOfLinesDescription}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
                         displayInDefaultIconColor={item.displayInDefaultIconColor}
                         shouldShowRightIcon={item.shouldShowRightIcon}
                         shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
+                        label={item.label}
+                        isLabelHoverable={item.isLabelHoverable}
+                        floatRightAvatars={item.floatRightAvatars}
+                        floatRightAvatarSize={item.floatRightAvatarSize}
+                        shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
+                        disabled={item.disabled}
                     />
                 ))}
             </View>

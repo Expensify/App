@@ -46,6 +46,7 @@ const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 const chatTypes = {
     POLICY_ANNOUNCE: 'policyAnnounce',
     POLICY_ADMINS: 'policyAdmins',
+    GROUP: 'group',
     DOMAIN_ALL: 'domainAll',
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
@@ -58,6 +59,9 @@ const cardActiveStates: number[] = [2, 3, 4, 7];
 const CONST = {
     MERGED_ACCOUNT_PREFIX: 'MERGED_',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
+
+    // Note: Group and Self-DM excluded as these are not tied to a Workspace
+    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
@@ -117,6 +121,7 @@ const CONST = {
         NORMAL: 'normal',
     },
 
+    DEFAULT_GROUP_AVATAR_COUNT: 18,
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
@@ -329,12 +334,12 @@ const CONST = {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
-        BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
         TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -605,6 +610,10 @@ const CONST = {
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
+        ROLE: {
+            ADMIN: 'admin',
+            MEMBER: 'member',
+        },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
@@ -630,6 +639,7 @@ const CONST = {
                 EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
+                HOLDCOMMENT: 'HOLDCOMMENT',
                 IOU: 'IOU',
                 INTEGRATIONSMESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGERATTACHRECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
@@ -1500,6 +1510,15 @@ const CONST = {
             DISABLE: 'disable',
             ENABLE: 'enable',
         },
+        OWNERSHIP_ERRORS: {
+            NO_BILLING_CARD: 'noBillingCard',
+            AMOUNT_OWED: 'amountOwed',
+            HAS_FAILED_SETTLEMENTS: 'hasFailedSettlements',
+            OWNER_OWES_AMOUNT: 'ownerOwesAmount',
+            SUBSCRIPTION: 'subscription',
+            DUPLICATE_SUBSCRIPTION: 'duplicateSubscription',
+            FAILED_TO_CLEAR_BALANCE: 'failedToClearBalance',
+        },
         TAX_RATES_BULK_ACTION_TYPES: {
             DELETE: 'delete',
             DISABLE: 'disable',
@@ -1507,7 +1526,7 @@ const CONST = {
         },
         COLLECTION_KEYS: {
             DESCRIPTION: 'description',
-            REIMBURSER_EMAIL: 'reimburserEmail',
+            REIMBURSER: 'reimburser',
             REIMBURSEMENT_CHOICE: 'reimbursementChoice',
             APPROVAL_MODE: 'approvalMode',
             AUTOREPORTING: 'autoReporting',
@@ -1629,7 +1648,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
-        LINE_BREAK: /\n/g,
+        LINE_BREAK: /\r|\n/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -1678,7 +1697,7 @@ const CONST = {
 
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
-        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
     },
 
     PRONOUNS: {
@@ -1807,6 +1826,8 @@ const CONST = {
         RECEIPT: 'receipt',
         DISTANCE: 'distance',
         TAG: 'tag',
+        TAX_RATE: 'taxRate',
+        TAX_AMOUNT: 'taxAmount',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -1849,13 +1870,6 @@ const CONST = {
     MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
     IOS_KEYBOARD_SPACE_OFFSET: -30,
 
-    PDF_PASSWORD_FORM: {
-        // Constants for password-related error responses received from react-pdf.
-        REACT_PDF_PASSWORD_RESPONSES: {
-            NEED_PASSWORD: 1,
-            INCORRECT_PASSWORD: 2,
-        },
-    },
     API_REQUEST_TYPE: {
         READ: 'read',
         WRITE: 'write',
@@ -2979,7 +2993,7 @@ const CONST = {
         CURRENCY: 'XAF',
         FORMAT: 'symbol',
         SAMPLE_INPUT: '123456.789',
-        EXPECTED_OUTPUT: 'FCFA 123,457',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
     PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],
@@ -3322,7 +3336,16 @@ const CONST = {
     },
 
     /**
-     * Constants for types of violations.
+     * Constants for types of violation.
+     */
+    VIOLATION_TYPES: {
+        VIOLATION: 'violation',
+        NOTICE: 'notice',
+        WARNING: 'warning',
+    },
+
+    /**
+     * Constants for types of violation names.
      * Defined here because they need to be referenced by the type system to generate the
      * ViolationNames type.
      */
@@ -4132,6 +4155,25 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
+    DEFAULT_TAX: {
+        defaultExternalID: 'id_TAX_EXEMPT',
+        defaultValue: '0%',
+        foreignTaxDefault: 'id_TAX_EXEMPT',
+        name: 'Tax',
+        taxes: {
+            id_TAX_EXEMPT: {
+                name: 'Tax exempt',
+                value: '0%',
+            },
+            id_TAX_RATE_1: {
+                name: 'Tax Rate 1',
+                value: '5%',
+            },
+        },
+    },
+
+    MAX_TAX_RATE_INTEGER_PLACES: 4,
+    MAX_TAX_RATE_DECIMAL_PLACES: 4,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
