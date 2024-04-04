@@ -207,7 +207,7 @@ function getOptionData({
         allReportErrors: OptionsListUtils.getAllReportErrors(report, reportActions),
         brickRoadIndicator: null,
         tooltipText: null,
-        subtitle: null,
+        subtitle: undefined,
         login: undefined,
         accountID: undefined,
         reportID: '',

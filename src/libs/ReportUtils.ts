@@ -383,7 +383,7 @@ type OptionData = {
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
     customIcon?: CustomIcon;
-    subtitle?: string | null;
+    subtitle?: string;
     login?: string;
     accountID?: number;
     pronouns?: string;
