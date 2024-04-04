@@ -13,7 +13,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
+import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
+import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
     /** Flag to show, hide the thread divider line */
@@ -29,11 +31,28 @@ type ReportActionItemParentActionProps = {
     /** The current report is displayed */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The transaction thread report associated with the current report, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** Array of report actions for this report */
+    reportActions: OnyxTypes.ReportAction[];
+
     /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+
+    /** Whether we should display "Replies" divider */
+    shouldDisplayReplyDivider: boolean;
 };
 
-function ReportActionItemParentAction({report, parentReportAction, index = 0, shouldHideThreadDividerLine = false}: ReportActionItemParentActionProps) {
+function ReportActionItemParentAction({
+    report,
+    transactionThreadReport,
+    reportActions,
+    parentReportAction,
+    index = 0,
+    shouldHideThreadDividerLine = false,
+    shouldDisplayReplyDivider,
+}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -48,7 +67,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                 onyxSubscribe({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${ancestorReportID}`,
                     callback: () => {
-                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report, shouldHideThreadDividerLine));
+                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report));
                     },
                 }),
             );
@@ -56,7 +75,7 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                 onyxSubscribe({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportID}`,
                     callback: () => {
-                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report, shouldHideThreadDividerLine));
+                        setAllAncestors(ReportUtils.getAllAncestorReportActions(report));
                     },
                 }),
             );
@@ -82,19 +101,22 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                     errorRowStyles={[styles.ml10, styles.mr2]}
                     onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
                 >
+                    <ThreadDivider ancestor={ancestor} />
                     <ReportActionItem
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))}
                         parentReportAction={parentReportAction}
                         report={ancestor.report}
+                        reportActions={reportActions}
+                        transactionThreadReport={transactionThreadReport}
                         action={ancestor.reportAction}
                         displayAsGroup={false}
                         isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
                         index={index}
                     />
-                    {!ancestor.shouldHideThreadDividerLine && <View style={[styles.threadDividerLine]} />}
                 </OfflineWithFeedback>
             ))}
+            {shouldDisplayReplyDivider && <RepliesDivider shouldHideThreadDividerLine={shouldHideThreadDividerLine} />}
         </View>
     );
 }

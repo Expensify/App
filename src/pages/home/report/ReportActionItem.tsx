@@ -49,6 +49,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -100,11 +101,21 @@ type ReportActionItemOnyxProps = {
 
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Transaction associated with this report, if any */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 type ReportActionItemProps = {
     /** Report for this action */
     report: OnyxTypes.Report;
+
+    /** The transaction thread report associated with the report for this action, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** Array of report actions for the report for this action */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportActions: OnyxTypes.ReportAction[];
 
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -142,6 +153,7 @@ const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is
 function ReportActionItem({
     action,
     report,
+    transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
     emojiReactions,
@@ -155,6 +167,7 @@ function ReportActionItem({
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
     policy,
+    transaction,
     onPress = undefined,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
@@ -180,12 +193,12 @@ function ReportActionItem({
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
     const originalReport = report.reportID === originalReportID ? report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
-
+    const transactionCurrency = TransactionUtils.getCurrency(transaction);
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.hoverComponentBG],
+        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
@@ -700,6 +713,7 @@ function ReportActionItem({
                     <MoneyRequestView
                         report={report}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                        shouldShowAnimatedBackground
                     />
                 </ShowContextMenuContext.Provider>
             );
@@ -739,11 +753,30 @@ function ReportActionItem({
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
-                    <MoneyReportView
-                        report={report}
-                        policy={policy}
-                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                    />
+                    {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
+                        <>
+                            {transactionCurrency !== report.currency && (
+                                <MoneyReportView
+                                    report={report}
+                                    policy={policy}
+                                    shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                                />
+                            )}
+                            <ShowContextMenuContext.Provider value={contextValue}>
+                                <MoneyRequestView
+                                    report={transactionThreadReport}
+                                    shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                                    shouldShowAnimatedBackground={transactionCurrency === report.currency}
+                                />
+                            </ShowContextMenuContext.Provider>
+                        </>
+                    ) : (
+                        <MoneyReportView
+                            report={report}
+                            policy={policy}
+                            shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                        />
+                    )}
                 </OfflineWithFeedback>
             );
         }
@@ -827,7 +860,7 @@ function ReportActionItem({
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined)}>
+                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined, !!onPress)}>
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearAllRelatedReportActionErrors(report.reportID, action)}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -899,6 +932,14 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
     },
+    transaction: {
+        key: ({transactionThreadReport, reportActions}) => {
+            const parentReportActionID = isEmptyObject(transactionThreadReport) ? '0' : transactionThreadReport.parentReportActionID;
+            const action = reportActions?.find((reportAction) => reportAction.reportActionID === parentReportActionID);
+            const transactionID = (action as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID ? (action as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID : 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+        },
+    },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
         const prevParentReportAction = prevProps.parentReportAction;
@@ -930,6 +971,9 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
             lodashIsEqual(prevProps.policy, nextProps.policy) &&
+            lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
+            lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
+            lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
     }),

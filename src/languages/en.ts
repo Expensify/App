@@ -144,6 +144,7 @@ export default {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         chats: 'Chats',
+        group: 'Group',
         profile: 'Profile',
         referral: 'Referral',
         payments: 'Payments',
@@ -313,6 +314,12 @@ export default {
         member: 'Member',
         role: 'Role',
         currency: 'Currency',
+        emptyLHN: {
+            title: 'Woohoo! All caught up.',
+            subtitleText1: 'Find a chat using the',
+            subtitleText2: 'button above, or create something using the',
+            subtitleText3: 'button below.',
+        },
     },
     location: {
         useCurrent: 'Use current location',
@@ -517,7 +524,7 @@ export default {
         asCopilot: 'as copilot for',
     },
     mentionSuggestions: {
-        hereAlternateText: 'Notify everyone online in this room',
+        hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -595,6 +602,9 @@ export default {
         sendMoney: 'Send Money',
         assignTask: 'Assign Task',
         shortcut: 'Shortcut',
+        trackManual: 'Track Manual',
+        trackScan: 'Track Scan',
+        trackDistance: 'Track Distance',
     },
     iou: {
         amount: 'Amount',
@@ -881,6 +891,11 @@ export default {
             submitBug: 'submit a bug',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
             resetAndRefresh: 'Reset and refresh',
+            clientSideLogging: 'Client side logging',
+            noLogsToShare: 'No logs to share',
+            useProfiling: 'Use profiling',
+            profileTrace: 'Profile trace',
+            releaseOptions: 'Release options',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -889,6 +904,7 @@ export default {
             execute: 'Execute',
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
+            logs: 'Logs',
         },
         security: 'Security',
         signOut: 'Sign out',
@@ -1201,6 +1217,9 @@ export default {
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom decription for the room.',
     },
+    groupConfirmPage: {
+        groupName: 'Group name',
+    },
     languagePage: {
         language: 'Language',
         languages: {
@@ -1339,7 +1358,7 @@ export default {
     },
     newChatPage: {
         createChat: 'Create chat',
-        createGroup: 'Create group',
+        startGroup: 'Start group',
         addToGroup: 'Add to group',
     },
     yearPickerPage: {
@@ -2408,6 +2427,7 @@ export default {
         hiddenMessage: '[Hidden message]',
     },
     threads: {
+        thread: 'Thread',
         replies: 'Replies',
         reply: 'Reply',
         from: 'From',
