@@ -19,14 +19,13 @@ import type {Report, ReportMetadata, Transaction} from '@src/types/onyx';
 
 type TransactionReceiptOnyxProps = {
     report: OnyxEntry<Report>;
-    parentReport: OnyxEntry<Report>;
     transaction: OnyxEntry<Transaction>;
     reportMetadata: OnyxEntry<ReportMetadata>;
 };
 
 type TransactionReceiptProps = TransactionReceiptOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
 
-function TransactionReceipt({transaction, report, parentReport, reportMetadata = {isLoadingInitialReportActions: true}, route}: TransactionReceiptProps) {
+function TransactionReceipt({transaction, report, reportMetadata = {isLoadingInitialReportActions: true}, route}: TransactionReceiptProps) {
     const receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
 
     const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
@@ -76,9 +75,6 @@ TransactionReceipt.displayName = 'TransactionReceipt';
 export default withOnyx<TransactionReceiptProps, TransactionReceiptOnyxProps>({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '0'}`,
-    },
-    parentReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
     },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? '0'}`,
