@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
@@ -30,6 +31,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     // const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {canUseAccountingIntegrations} = usePermissions();
@@ -70,7 +72,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                 rightComponent: (
                     <ConnectToQuickbooksOnlineButton
                         policyID={policyID}
-                        environmentURL=""
+                        environmentURL={environmentURL}
                     />
                 ),
             },
