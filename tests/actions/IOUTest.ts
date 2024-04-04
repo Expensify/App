@@ -402,7 +402,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connectionID = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: true,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction?.pendingAction).toBeFalsy();
@@ -2645,7 +2644,6 @@ describe('actions/IOU', () => {
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: true,
                     callback: (report) => {
                         Onyx.disconnect(connectionID);
                         expect(report).toBeTruthy();
@@ -2702,7 +2700,6 @@ describe('actions/IOU', () => {
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: true,
                     callback: (report) => {
                         Onyx.disconnect(connectionID);
                         expect(report).toBeTruthy();
