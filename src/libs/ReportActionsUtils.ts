@@ -130,7 +130,7 @@ function isReportPreviewAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
-function isReportSubmitAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isReportActionSubmitted(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
 }
 
@@ -439,13 +439,13 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
         return false;
     }
 
-    if (isReportSubmitAction(currentAction)) {
+    if (isReportActionSubmitted(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
 
         return currentActionAdminAccountID === previousAction.actorAccountID || currentActionAdminAccountID === previousAction.adminAccountID;
     }
 
-    if (isReportSubmitAction(previousAction)) {
+    if (isReportActionSubmitted(previousAction)) {
         return typeof previousAction.adminAccountID === 'number'
             ? currentAction.actorAccountID === previousAction.adminAccountID
             : currentAction.actorAccountID === previousAction.actorAccountID;
