@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
