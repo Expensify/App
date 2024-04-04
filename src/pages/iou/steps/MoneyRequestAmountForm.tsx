@@ -263,13 +263,15 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-        // Update display amount string post-edit to ensure consistency with backend amount
-        // Reference: https://github.com/Expensify/App/issues/30505
-        const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
-        initializeAmount(backendAmount);
+            // Update display amount string post-edit to ensure consistency with backend amount
+            // Reference: https://github.com/Expensify/App/issues/30505
+            const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
+            initializeAmount(backendAmount);
 
-        onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
-    }, [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount]);
+            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+        },
+        [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount],
+    );
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
