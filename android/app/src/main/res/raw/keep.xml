@@ -2,4 +2,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools"
     tools:keep="@mipmap/ic_launcher, @drawable/bootsplash*, @drawable/alert_background,
         @drawable/ic_launcher*, @drawable/ic_notification*, @drawable/picker_background,
-        @drawable/rn_edit_text_material" />
+        @drawable/rn_edit_text_material, @raw/assets_animations_*, @raw/assets_images_*"
+    tools:shrinkMode="strict" />
