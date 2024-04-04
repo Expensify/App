@@ -1,16 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {CurrentMoney} from '@pages/iou/steps/MoneyRequestAmountForm';
@@ -21,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Transaction} from '@src/types/onyx';
+import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -51,7 +46,6 @@ function IOURequestStepTaxAmountPage({
     policy,
 }: IOURequestStepTaxAmountPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const textInput = useRef<BaseTextInputRef | null>();
     const isEditing = Navigation.getActiveRoute().includes('taxAmount');
 
@@ -105,7 +99,7 @@ function IOURequestStepTaxAmountPage({
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
-        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, transaction?.currency || CONST.CURRENCY.USD, true);
@@ -130,36 +124,24 @@ function IOURequestStepTaxAmountPage({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
-    const content = (
-        <MoneyRequestAmountForm
-            isEditing={isEditing}
-            currency={transaction?.currency}
-            amount={transaction?.taxAmount}
-            taxAmount={getTaxAmount(transaction, taxRates?.defaultValue)}
-            ref={(e) => (textInput.current = e)}
-            onCurrencyButtonPress={navigateToCurrencySelectionPage}
-            onSubmitButtonPress={updateTaxAmount}
-        />
-    );
-
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
+        <StepScreenWrapper
+            headerTitle={translate('iou.taxAmount')}
+            onBackButtonPress={navigateBack}
             testID={IOURequestStepTaxAmountPage.displayName}
+            shouldShowWrapper={Boolean(backTo)}
+            includeSafeAreaPaddingBottom
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={translate('iou.taxAmount')}
-                            onBackButtonPress={navigateBack}
-                        />
-                        {content}
-                    </View>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
+            <MoneyRequestAmountForm
+                isEditing={isEditing}
+                currency={transaction?.currency}
+                amount={transaction?.taxAmount}
+                taxAmount={getTaxAmount(transaction, taxRates?.defaultValue)}
+                ref={(e) => (textInput.current = e)}
+                onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                onSubmitButtonPress={updateTaxAmount}
+            />
+        </StepScreenWrapper>
     );
 }
 

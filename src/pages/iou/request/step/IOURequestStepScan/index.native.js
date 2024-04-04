@@ -68,6 +68,7 @@ function IOURequestStepScan({
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
+    const [didCapturePhoto, setDidCapturePhoto] = useState(false);
 
     const {translate} = useLocalize();
 
@@ -124,6 +125,7 @@ function IOURequestStepScan({
 
     useFocusEffect(
         useCallback(() => {
+            setDidCapturePhoto(false);
             const refreshCameraPermissionStatus = () => {
                 CameraPermission.getCameraPermissionStatus()
                     .then(setCameraPermissionStatus)
@@ -236,6 +238,10 @@ function IOURequestStepScan({
             return;
         }
 
+        if (didCapturePhoto) {
+            return;
+        }
+
         return camera.current
             .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
@@ -252,13 +258,15 @@ function IOURequestStepScan({
                     return;
                 }
 
+                setDidCapturePhoto(true);
                 navigateToConfirmationStep();
             })
             .catch((error) => {
+                setDidCapturePhoto(false);
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
+    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus, didCapturePhoto]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {

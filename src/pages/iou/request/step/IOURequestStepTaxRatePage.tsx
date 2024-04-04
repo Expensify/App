@@ -1,8 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -13,6 +11,7 @@ import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -68,26 +67,18 @@ function IOURequestStepTaxRatePage({
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
+        <StepScreenWrapper
+            headerTitle={translate('iou.taxRate')}
+            onBackButtonPress={navigateBack}
+            shouldShowWrapper
             testID={IOURequestStepTaxRatePage.displayName}
         >
-            {({insets}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('iou.taxRate')}
-                        onBackButtonPress={() => navigateBack()}
-                    />
-                    <TaxPicker
-                        selectedTaxRate={selectedTaxRate}
-                        taxRates={taxRates}
-                        insets={insets}
-                        onSubmit={updateTaxRates}
-                    />
-                </>
-            )}
-        </ScreenWrapper>
+            <TaxPicker
+                selectedTaxRate={selectedTaxRate}
+                policyID={report.policyID}
+                onSubmit={updateTaxRates}
+            />
+        </StepScreenWrapper>
     );
 }
 
