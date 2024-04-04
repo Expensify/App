@@ -104,6 +104,7 @@ type TaxRatesOption = {
     searchText?: string;
     tooltipText?: string;
     isDisabled?: boolean;
+    keyForList?: string;
     data: Partial<TaxRate>;
 };
 
