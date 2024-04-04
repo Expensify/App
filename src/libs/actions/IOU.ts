@@ -319,11 +319,8 @@ function initMoneyRequest(
 }
 
 function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
-    if (skipConfirmation) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {skipConfirmation: true});
-    } else {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
-    }
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, skipConfirmation);
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
 /**

@@ -45,6 +45,9 @@ const propTypes = {
     /** Whether the user input should be kept or not */
     shouldKeepUserInput: PropTypes.bool,
 
+    /** Whether the confirmation step should be skipped */
+    skipConfirmation: PropTypes.bool,
+
     /** The draft transaction object being modified in Onyx */
     draftTransaction: transactionPropTypes,
 
@@ -63,6 +66,7 @@ const defaultProps = {
     splitDraftTransaction: {},
     draftTransaction: {},
     shouldKeepUserInput: false,
+    skipConfirmation: false,
 };
 
 function IOURequestStepAmount({
@@ -77,6 +81,7 @@ function IOURequestStepAmount({
     splitDraftTransaction,
     draftTransaction,
     shouldKeepUserInput,
+    skipConfirmation,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
@@ -93,7 +98,7 @@ function IOURequestStepAmount({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
-    const skipConfirmation = draftTransaction.skipConfirmation && !ReportUtils.isArchivedRoom(report) && !ReportUtils.isPolicyExpenseChat(report);
+    const shouldSkipConfirmation = skipConfirmation && !ReportUtils.isArchivedRoom(report) && !ReportUtils.isPolicyExpenseChat(report);
 
     useFocusEffect(
         useCallback(() => {
@@ -169,7 +174,7 @@ function IOURequestStepAmount({
             });
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
-            if (skipConfirmation) {
+            if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBillAndOpenReport(participants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backendAmount, '', currency, '', '', '');
                     return;
@@ -245,7 +250,7 @@ function IOURequestStepAmount({
                 isEditing={Boolean(backTo || isEditing)}
                 currency={currency}
                 amount={Math.abs(transactionAmount)}
-                skipConfirmation={skipConfirmation}
+                skipConfirmation={shouldSkipConfirmation}
                 iouType={iouType}
                 policyID={policy.policyID}
                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
@@ -284,6 +289,12 @@ export default compose(
             key: ({route}) => {
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+            },
+        },
+        skipConfirmation: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
             },
         },
     }),

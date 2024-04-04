@@ -1359,6 +1359,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
         welcomeNote: new ExpensiMark().replace(welcomeNote),
         policyID,
     };
+    console.log(params);
     if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
     }

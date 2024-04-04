@@ -337,6 +337,7 @@ const ONYXKEYS = {
 
         // Holds temporary transactions used during the creation and edit flow
         TRANSACTION_DRAFT: 'transactionsDraft_',
+        SKIP_CONFIRMATION: 'skipConfirmation_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
