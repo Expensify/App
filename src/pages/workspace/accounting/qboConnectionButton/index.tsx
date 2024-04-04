@@ -12,9 +12,7 @@ function ConnectToQuickbooksOnlineButton({policyID, environmentURL}: ConnectToQu
 
     return (
         <Button
-            onPress={() => {
-                Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL, false);
-            }}
+            onPress={() => Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL)}
             text={translate('workspace.accounting.setup')}
             style={styles.justifyContentCenter}
             small
