@@ -3,18 +3,18 @@ import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
-import type {OptionData} from '@libs/ReportUtils';
-import createRandomOptionData from '../utils/collections/optionData';
+import {formatSectionsFromSearchTerm} from '../../src/libs/OptionsListUtils';
 import createCollection from '../utils/collections/createCollection';
+import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import {formatSectionsFromSearchTerm} from '../../src/libs/OptionsListUtils';
 
 const REPORTS_COUNT = 5000;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
@@ -60,7 +60,6 @@ const getMockedPersonalDetails = (length = 500) =>
 
 const mockedReportsMap = getMockedReports(REPORTS_COUNT) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
 const mockedPersonalDetailsMap = getMockedPersonalDetails(PERSONAL_DETAILS_LIST_COUNT);
-
 
 const mockedBetas = Object.values(CONST.BETAS);
 
@@ -127,7 +126,7 @@ describe('OptionsListUtils', () => {
         const SELECTED_OPTION_TEXT = 'Selected Option';
         const RECENT_REPORT_TEXT = 'Recent Report';
         const PERSONAL_DETAIL_TEXT = 'Personal Detail';
-       
+
         const SELECTED_OPTIONS_MATCH_FREQUENCY = 2;
         const RECENT_REPORTS_MATCH_FREQUENCY = 3;
         const PERSONAL_DETAILS_MATCH_FREQUENCY = 5;
@@ -158,8 +157,8 @@ describe('OptionsListUtils', () => {
         );
 
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
-    
-        await measureFunction(() => 
+
+        await measureFunction(() =>
             formatSectionsFromSearchTerm(
                 SEARCH_VALUE,
                 Object.values(selectedOptions),
@@ -167,31 +166,17 @@ describe('OptionsListUtils', () => {
                 Object.values(filteredPersonalDetails),
                 false,
                 mockedPersonalDetails,
-                true
-            )
+                true,
+            ),
         );
     });
 
     test('[OptionsListUtils] empty search term with selected options and mocked personal details', async () => {
-        const selectedOptions = createCollection<OptionData>(
-            (item) => item.reportID,
-            createRandomOptionData,
-            SELECTED_OPTIONS_COUNT,
-        );
+        const selectedOptions = createCollection<OptionData>((item) => item.reportID, createRandomOptionData, SELECTED_OPTIONS_COUNT);
 
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() =>
-            formatSectionsFromSearchTerm(
-                '',
-                Object.values(selectedOptions),
-                [],
-                [],
-                true,
-                mockedPersonalDetails,
-                true
-            )
-        );
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], true, mockedPersonalDetails, true));
     });
 });
