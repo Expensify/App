@@ -81,13 +81,13 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
             fetchTags();
         }, [fetchTags]),
     );
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).slice(0, 1), [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
             policyTagLists
                 .map((policyTagList) =>
                     lodashSortBy(
-                        Object.values(policyTagList.tags || []).filter((value) => PolicyUtils.getCleanedTagName(value.name) === value.name),
+                        policyTagList?.tags ? Object.values(policyTagList.tags) : [],
                         'name',
                         localeCompare,
                     ).map((value) => {
