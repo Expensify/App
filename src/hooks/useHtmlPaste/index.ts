@@ -21,6 +21,8 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
         selection.removeAllRanges();
         selection.addRange(range);
 
+        // Dispatch paste event to simulate real browser behavior
+        target.dispatchEvent(new Event('paste', {bubbles: true}));
         // Dispatch input event to trigger Markdown Input to parse the new text
         target.dispatchEvent(new Event('input', {bubbles: true}));
     } else {
