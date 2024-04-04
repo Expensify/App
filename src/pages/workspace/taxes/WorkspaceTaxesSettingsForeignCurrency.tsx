@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setForeignCurrencyDefault} from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
@@ -30,6 +31,8 @@ function WorkspaceTaxesSettingsForeignCurrency({
 }: WorkspaceTaxesSettingsForeignCurrencyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const selectedTaxRate = TransactionUtils.getTaxName(policy?.taxRates?.taxes ?? {}, policy?.taxRates?.foreignTaxDefault ?? '');
 
     const submit = ({keyForList}: ListItem) => {
         setForeignCurrencyDefault(policyID, keyForList ?? '');
@@ -55,8 +58,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
 
                                 <View style={[styles.mb4, styles.flex1]}>
                                     <TaxPicker
-                                        selectedTaxRate={policy?.taxRates?.foreignTaxDefault}
-                                        taxRates={policy?.taxRates}
+                                        selectedTaxRate={selectedTaxRate}
                                         insets={insets}
                                         onSubmit={submit}
                                     />
