@@ -158,8 +158,11 @@ function IOURequestStepScan({
     // eslint-disable-next-line @lwc/lwc/no-async-await
     const validateReceipt = async (file) => {
         let isCorrectPDF;
-        console.log('CheckPDFDocument', CheckPDFDocument);
-        await CheckPDFDocument.checkPdf(file.uri, (isCorrect) => (isCorrectPDF = isCorrect));
+
+        await CheckPDFDocument.checkPdf(file.uri, (isCorrect) => {
+            console.log('isCorrect', isCorrect);
+            isCorrectPDF = isCorrect;
+        });
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
         if (!isCorrectPDF) {
             Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
