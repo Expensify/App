@@ -675,7 +675,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspacePayer(policyID: string, reimburserEmail: string, reimburserAccountID: number) {
+function setWorkspacePayer(policyID: string, reimburserEmail: string) {
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -683,10 +683,9 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, reimburser
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                reimburserEmail,
-                reimburserAccountID,
-                errorFields: {reimburserEmail: null},
-                pendingFields: {reimburserEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                achAccount: {reimburser: reimburserEmail},
+                errorFields: {reimburser: null},
+                pendingFields: {reimburser: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
     ];
@@ -696,8 +695,8 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, reimburser
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                errorFields: {reimburserEmail: null},
-                pendingFields: {reimburserEmail: null},
+                errorFields: {reimburser: null},
+                pendingFields: {reimburser: null},
             },
         },
     ];
@@ -707,10 +706,9 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, reimburser
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                reimburserEmail: policy.reimburserEmail ?? null,
-                reimburserAccountID: policy.reimburserAccountID ?? null,
-                errorFields: {reimburserEmail: ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.genericErrorMessage')},
-                pendingFields: {reimburserEmail: null},
+                achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
+                errorFields: {reimburser: ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.genericErrorMessage')},
+                pendingFields: {reimburser: null},
             },
         },
     ];
@@ -724,7 +722,7 @@ function clearPolicyErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
 }
 
-function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserAccountID: number, reimburserEmail: string) {
+function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
     const policy = getPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -733,8 +731,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 reimbursementChoice,
-                reimburserAccountID,
-                reimburserEmail,
+                achAccount: {reimburser: reimburserEmail},
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
@@ -758,8 +755,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 reimbursementChoice: policy.reimbursementChoice ?? null,
-                reimburserAccountID: policy.reimburserAccountID ?? null,
-                reimburserEmail: policy.reimburserEmail ?? null,
+                achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
@@ -3692,9 +3688,10 @@ function openPolicyDistanceRatesPage(policyID?: string) {
 
 function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
     const isNarrowLayout = getIsNarrowLayout();
-
     if (isNarrowLayout) {
-        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        setTimeout(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        }, 1000);
         return;
     }
 

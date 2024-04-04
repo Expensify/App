@@ -1340,8 +1340,8 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
     const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            const isReimburser = session?.email === policy?.reimburserEmail;
-            return (!policy?.reimburserEmail || isReimburser) && (isApproved || isManager);
+            const isReimburser = session?.email === policy?.achAccount?.reimburser;
+            return (!policy?.achAccount?.reimburser || isReimburser) && (isApproved || isManager);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
             return isAdmin && (isApproved || isManager);
