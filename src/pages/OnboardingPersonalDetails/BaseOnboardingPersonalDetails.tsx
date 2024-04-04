@@ -21,6 +21,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+import OfflineIndicator from '@components/OfflineIndicator';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 type BaseOnboardingPersonalDetailsProps = {
     /* Whether to use native styles tailored for native devices */
@@ -31,6 +33,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
 
     const saveAndNavigate = useCallback((values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -128,6 +131,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         />
                     </View>
                 </FormProvider>
+                {isSmallScreenWidth && <OfflineIndicator />}
             </KeyboardAvoidingView>
         </View>
     );

@@ -23,6 +23,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import OfflineIndicator from '@components/OfflineIndicator';
 import type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps} from './types';
 
 type ValuesType<T> = T[keyof T];
@@ -146,8 +147,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                                 setError(true);
                                 return;
                             }
-
-                            // API call for AcceptSpontanaTerms when backend gets implemented
                             setError(false);
                             completeEngagement();
                         }}
@@ -155,6 +154,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                         isAlertVisible={error || Boolean(errorMessage)}
                         containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
                     />
+                    {isSmallScreenWidth && <OfflineIndicator />}
                 </View>
             )}
         </SafeAreaConsumer>
@@ -162,6 +162,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 }
 
 BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
+
 export default withOnyx<BaseOnboardingPurposeProps, BaseOnboardingPurposeOnyxProps>({
     onboardingPurposeSelected: {
         key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
