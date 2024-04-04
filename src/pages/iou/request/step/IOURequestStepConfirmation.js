@@ -90,7 +90,8 @@ function IOURequestStepConfirmation({
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
     const receiptType = lodashGet(transaction, 'receipt.type');
-    const transactionTaxCode = transaction.taxRate && transaction.taxRate.keyForList;
+    const foreignTaxDefault = lodashGet(policy, 'taxRates.foreignTaxDefault');
+    const transactionTaxCode = transaction.taxRate ? transaction.taxRate.data.code : foreignTaxDefault;
     const transactionTaxAmount = transaction.taxAmount;
     const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = useMemo(() => {

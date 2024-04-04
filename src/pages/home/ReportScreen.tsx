@@ -105,7 +105,7 @@ type ReportScreenProps = ReportScreenPropsWithoutParentReportAction & ReportScre
 function getReportID(route: ReportScreenNavigationProps['route']): string {
     // The report ID is used in an onyx key. If it's an empty string, onyx will return
     // a collection instead of an individual report.
-    return String(route.params?.reportID || '');
+    return String(route.params?.reportID || 0);
 }
 
 /**
@@ -283,6 +283,10 @@ function ReportScreen({
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isEmptyChat = useMemo((): boolean => reportActions.length === 0, [reportActions]);
     const isOptimisticDelete = report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+    const isLinkedMessageAvailable = useMemo(
+        (): boolean => sortedAllReportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)) > -1,
+        [sortedAllReportActions, reportActionIDFromRoute],
+    );
 
     // If there's a non-404 error for the report we should show it instead of blocking the screen
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
@@ -331,11 +335,14 @@ function ReportScreen({
         );
     }
 
+    const transactionThreadReportID = useMemo(() => ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? []), [reportActions]);
     if (ReportUtils.isMoneyRequestReport(report)) {
         headerView = (
             <MoneyReportHeader
                 report={report}
                 policy={policy}
+                transactionThreadReportID={transactionThreadReportID}
+                reportActions={reportActions}
             />
         );
     }
@@ -349,21 +356,29 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = !ReportUtils.isValidReportIDFromPath(reportIDFromRoute) || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
-        isLinkingToMessage ||
-        !isCurrentReportLoadedFromOnyx ||
-        (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
-        isLoading ||
-        (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
-
+        !isLinkedMessageAvailable &&
+        (isLinkingToMessage ||
+            !isCurrentReportLoadedFromOnyx ||
+            (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
+            isLoading ||
+            (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions));
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage =
-        !firstRenderRef.current &&
-        ((!wasReportAccessibleRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
-            shouldHideReport ||
-            (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute)));
+    const shouldShowNotFoundPage = useMemo(
+        (): boolean =>
+            !shouldShowSkeleton &&
+            ((!wasReportAccessibleRef.current &&
+                !firstRenderRef.current &&
+                !report.reportID &&
+                !isOptimisticDelete &&
+                !reportMetadata?.isLoadingInitialReportActions &&
+                !userLeavingStatus) ||
+                shouldHideReport ||
+                (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute))),
+        [shouldShowSkeleton, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, reportIDFromRoute],
+    );
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -647,7 +662,7 @@ function ReportScreen({
                                         isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
                                         isReadyForCommentLinking={!shouldShowSkeleton}
-                                        transactionThreadReportID={ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? [])}
+                                        transactionThreadReportID={transactionThreadReportID}
                                     />
                                 )}
 

@@ -131,6 +131,16 @@ const ROUTES = {
         route: 'settings/profile/address/country',
         getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/address/country?country=${country}`, backTo),
     },
+    SETTINGS_ADDRESS_STATE: {
+        route: 'settings/profile/address/state',
+
+        getRoute: (state?: string, backTo?: string, label?: string) =>
+            `${getUrlWithBackToParam(`settings/profile/address/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
+                // the label param can be an empty string so we cannot use a nullish ?? operator
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
+            }` as const,
+    },
     SETTINGS_CONTACT_METHODS: {
         route: 'settings/profile/contact-methods',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
@@ -401,6 +411,16 @@ const ROUTES = {
             `create/${iouType}/start/${transactionID}/${reportID}/scan` as const,
     },
 
+    MONEY_REQUEST_STATE_SELECTOR: {
+        route: 'request/state',
+
+        getRoute: (state?: string, backTo?: string, label?: string) =>
+            `${getUrlWithBackToParam(`request/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
+                // the label param can be an empty string so we cannot use a nullish ?? operator
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
+            }` as const,
+    },
     IOU_REQUEST: 'request/new',
     IOU_SEND: 'send/new',
     IOU_SEND_ADD_BANK_ACCOUNT: 'send/new/add-bank-account',

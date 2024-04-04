@@ -46,6 +46,12 @@ function TransactionReceipt({transaction, report, parentReport, reportMetadata =
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const moneyRequestReportID = ReportUtils.isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
+    const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = isTrackExpenseReport ? !transaction : (moneyRequestReportID ?? '') !== transaction?.reportID;
+
     return (
         <AttachmentModal
             source={imageSource}
@@ -60,8 +66,7 @@ function TransactionReceipt({transaction, report, parentReport, reportMetadata =
                 Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
             }}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
-            // Transactions tracked on a self DM do not have a reportID, but the receipt should still be shown
-            shouldShowNotFoundPage={(report?.parentReportID ?? '') !== transaction?.reportID && !ReportUtils.isSelfDM(parentReport)}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         />
     );
 }

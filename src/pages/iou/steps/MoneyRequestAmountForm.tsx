@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import BigNumberPad from '@components/BigNumberPad';
@@ -28,14 +28,20 @@ type MoneyRequestAmountFormProps = {
     /** Calculated tax amount based on selected tax rate */
     taxAmount?: number;
 
+    /** Whether the user input should be kept or not */
+    shouldKeepUserInput?: boolean;
+
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
 
     /** Whether the amount is being edited or not */
     isEditing?: boolean;
 
+    /** Whether the currency symbol is pressable */
+    isCurrencyPressable?: boolean;
+
     /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress: () => void;
+    onCurrencyButtonPress?: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: ({amount, currency}: {amount: string; currency: string}) => void;
@@ -59,7 +65,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmount(taxAmount);
+    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmountAsInteger(Math.abs(taxAmount));
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -70,10 +76,12 @@ function MoneyRequestAmountForm(
         amount = 0,
         taxAmount = 0,
         currency = CONST.CURRENCY.USD,
+        isCurrencyPressable = true,
         isEditing = false,
         onCurrencyButtonPress,
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
+        shouldKeepUserInput = false,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -83,10 +91,8 @@ function MoneyRequestAmountForm(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
-
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
-
+    const selectedAmountAsString = CurrencyUtils.convertToFrontendAmountAsString(amount);
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [formError, setFormError] = useState<MaybePhraseKey>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -98,7 +104,7 @@ function MoneyRequestAmountForm(
 
     const forwardDeletePressedRef = useRef(false);
 
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, currency);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(Math.abs(taxAmount), currency);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -119,7 +125,7 @@ function MoneyRequestAmountForm(
     };
 
     const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
+        const frontendAmount = CurrencyUtils.convertToFrontendAmountAsString(newAmount);
         setCurrentAmount(frontendAmount);
         setSelection({
             start: frontendAmount.length,
@@ -128,13 +134,13 @@ function MoneyRequestAmountForm(
     }, []);
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
+        if (!currency || typeof amount !== 'number' || shouldKeepUserInput) {
             return;
         }
         initializeAmount(amount);
         // we want to re-initialize the state only when the selected tab or amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab, amount]);
+    }, [selectedTab, amount, shouldKeepUserInput]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -235,13 +241,8 @@ function MoneyRequestAmountForm(
             return;
         }
 
-        // Update display amount string post-edit to ensure consistency with backend amount
-        // Reference: https://github.com/Expensify/App/issues/30505
-        const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
-        initializeAmount(backendAmount);
-
         onSubmitButtonPress({amount: currentAmount, currency});
-    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
+    }, [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -301,7 +302,7 @@ function MoneyRequestAmountForm(
                         setSelection({start, end});
                     }}
                     onKeyPress={textInputKeyPress}
-                    isCurrencyPressable
+                    isCurrencyPressable={isCurrencyPressable}
                 />
                 {!!formError && (
                     <FormHelpMessage

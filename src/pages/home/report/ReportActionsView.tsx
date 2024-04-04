@@ -104,7 +104,6 @@ function ReportActionsView({
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const contentListHeight = useRef(0);
     const isFocused = useIsFocused();
-    const prevNetworkRef = useRef(network);
     const prevAuthTokenType = usePrevious(session?.authTokenType);
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
     const prevIsSmallScreenWidthRef = useRef(isSmallScreenWidth);
@@ -117,14 +116,6 @@ function ReportActionsView({
         }
 
         Report.openReport(reportID, reportActionID);
-    };
-
-    const reconnectReportIfNecessary = () => {
-        if (!shouldFetchReport(report)) {
-            return;
-        }
-
-        Report.reconnect(reportID);
     };
 
     useLayoutEffect(() => {
@@ -142,7 +133,7 @@ function ReportActionsView({
         listOldID = newID;
         return newID;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, isLoadingInitialReportActions]);
+    }, [route, isLoadingInitialReportActions, reportActionID]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -154,26 +145,25 @@ function ReportActionsView({
         // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-        // Filter out "created" IOU report actions because we don't want to show any preview actions for one transaction reports
-        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter(
-            (action) => ((action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '') !== CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        );
+        // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
+        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+            const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !ReportActionsUtils.isSentMoneyReportAction(action);
+        });
         return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
     }, [allReportActions, transactionThreadReportActions]);
 
     const indexOfLinkedAction = useMemo(() => {
-        if (!reportActionID || isLoading) {
+        if (!reportActionID) {
             return -1;
         }
-
         return combinedReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
-    }, [combinedReportActions, currentReportActionID, reportActionID, isLoading]);
+    }, [combinedReportActions, currentReportActionID, reportActionID]);
 
     const reportActions = useMemo(() => {
         if (!reportActionID) {
             return combinedReportActions;
         }
-
         if (isLoading || indexOfLinkedAction === -1) {
             return [];
         }
@@ -264,7 +254,7 @@ function ReportActionsView({
     }, []);
 
     useEffect(() => {
-        if (!reportActionID) {
+        if (!reportActionID || indexOfLinkedAction > -1) {
             return;
         }
 
@@ -273,37 +263,15 @@ function ReportActionsView({
         // There should be only one openReport execution per page start or navigating
         Report.openReport(reportID, reportActionID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route]);
-
-    useEffect(() => {
-        const prevNetwork = prevNetworkRef.current;
-        // When returning from offline to online state we want to trigger a request to OpenReport which
-        // will fetch the reportActions data and mark the report as read. If the report is not fully visible
-        // then we call ReconnectToReport which only loads the reportActions data without marking the report as read.
-        const wasNetworkChangeDetected = prevNetwork.isOffline && !network.isOffline;
-        if (wasNetworkChangeDetected) {
-            if (isReportFullyVisible) {
-                openReportIfNecessary();
-            } else {
-                reconnectReportIfNecessary();
-            }
-        }
-        // update ref with current network state
-        prevNetworkRef.current = network;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [network, isReportFullyVisible]);
+    }, [route, indexOfLinkedAction]);
 
     useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(report)) {
-            if (isReportFullyVisible) {
-                openReportIfNecessary();
-            } else {
-                reconnectReportIfNecessary();
-            }
+            openReportIfNecessary();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session, report, isReportFullyVisible]);
+    }, [session, report]);
 
     useEffect(() => {
         const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
@@ -497,10 +465,15 @@ function ReportActionsView({
 
         const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '', report.reportID);
         const moneyRequestActions = reportActions.filter(
-            (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            (action) =>
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+                action.originalMessage &&
+                (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                    Boolean(action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails) ||
+                    action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK),
         );
 
-        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0)) {
+        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
             const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
                 CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 0,
@@ -528,7 +501,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [reportActions, report]);
+    }, [reportActions, report, transactionThreadReport]);
 
     // Comments have not loaded at all yet do nothing
     if (!reportActions.length) {
