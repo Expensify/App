@@ -1,5 +1,4 @@
 import React from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -7,20 +6,18 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hasAccessToAccountingFeatures} from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {canUseAccountingIntegrations} = usePermissions();
     const quickbooksOnlineConfigTitles = {
         DEFAULT: translate('workspace.qbo.imported'),
         true: translate('workspace.qbo.imported'),
@@ -29,7 +26,6 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         TAG: translate('workspace.qbo.importedAsTags'),
         REPORT_FIELD: translate('workspace.qbo.importedAsReportFields'),
     };
-    const hasAccess = hasAccessToAccountingFeatures(policy, canUseAccountingIntegrations);
     const policyID = policy?.id ?? '';
     const {syncClasses, syncCustomers, syncLocations, syncTaxes, enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
@@ -72,38 +68,37 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
     ];
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={QuickbooksImportPage.displayName}
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.resetToHome}
-                shouldShow={!hasAccess}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                shouldForceFullScreen
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <FeatureEnabledAccessOrNotFoundWrapper
+                policyID={policyID}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.import')} />
-                <ScrollView contentContainerStyle={styles.pb2}>
-                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.importDescription')}</Text>
-                    {sections.map((section) => (
-                        <OfflineWithFeedback
-                            key={section.description}
-                            pendingAction={section.pendingAction}
-                        >
-                            <MenuItemWithTopDescription
-                                title={quickbooksOnlineConfigTitles[`${section.title ?? false}`]}
-                                description={section.description}
-                                shouldShowRightIcon
-                                onPress={section.action}
-                                brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
-                </ScrollView>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    shouldEnableMaxHeight
+                    testID={QuickbooksImportPage.displayName}
+                >
+                    <HeaderWithBackButton title={translate('workspace.qbo.import')} />
+                    <ScrollView contentContainerStyle={styles.pb2}>
+                        <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.importDescription')}</Text>
+                        {sections.map((section) => (
+                            <OfflineWithFeedback
+                                key={section.description}
+                                pendingAction={section.pendingAction}
+                            >
+                                <MenuItemWithTopDescription
+                                    title={quickbooksOnlineConfigTitles[`${section.title ?? false}`]}
+                                    description={section.description}
+                                    shouldShowRightIcon
+                                    onPress={section.action}
+                                    brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                />
+                            </OfflineWithFeedback>
+                        ))}
+                    </ScrollView>
+                </ScreenWrapper>
+            </FeatureEnabledAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

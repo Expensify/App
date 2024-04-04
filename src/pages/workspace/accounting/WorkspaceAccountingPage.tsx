@@ -11,7 +11,7 @@ function WorkspaceAccountingPage() {
             shouldEnableMaxHeight
             testID={WorkspaceAccountingPage.displayName}
         >
-            <View />
+            <View style={{backgroundColor: 'red', height: '100%', width: '100%'}} />
         </ScreenWrapper>
     );
 }
