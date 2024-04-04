@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Button from './Button';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
@@ -39,6 +40,7 @@ function OnboardingWelcomeVideo() {
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
     const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
     useEffect(() => {
@@ -100,6 +102,7 @@ function OnboardingWelcomeVideo() {
                         <Lottie
                             source={LottieAnimations.Hands}
                             style={styles.h100}
+                            webStyle={isSmallScreenWidth ? styles.h100 : undefined}
                             autoPlay
                             loop
                         />
