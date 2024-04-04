@@ -4541,7 +4541,7 @@ const styles = (theme: ThemeColors) =>
             width: variables.componentSizeMedium,
             height: variables.iconSizeXXXSmall,
             borderRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: theme.progressBarBackground,
+            backgroundColor: theme.border,
             alignSelf: 'center',
         },
 

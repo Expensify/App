@@ -87,7 +87,6 @@ const lightTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
     mapAttributionText: colors.black,
     white: colors.white,
-    progressBarBackground: colors.productLight400,
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
 
