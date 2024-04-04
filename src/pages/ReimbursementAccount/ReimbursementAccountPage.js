@@ -263,7 +263,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
      * Retrieve verified business bank account currently being set up.
      * @param {boolean} ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
-    function fetchData(ignoreLocalCurrentStep) {
+    function fetchData(ignoreLocalCurrentStep, ignoreLocalSubStep) {
         // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
         BankAccounts.setReimbursementAccountLoading(true);
 
@@ -272,12 +272,17 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         const stepToOpen = getStepToOpenFromRouteParams(route);
         const subStep = achData.subStep || '';
         const localCurrentStep = achData.currentStep || '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyID);
+        BankAccounts.openReimbursementAccountPage(stepToOpen, ignoreLocalSubStep ? '' : subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyID);
     }
 
     useEffect(
         () => {
-            fetchData();
+            // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
+            const isStepToOpenEmpty = getStepToOpenFromRouteParams(route) === '';
+            if (isStepToOpenEmpty) {
+                BankAccounts.setBankAccountSubStep(null);
+            }
+            fetchData(false, isStepToOpenEmpty);
             return () => {
                 BankAccounts.clearReimbursementAccount();
             };
