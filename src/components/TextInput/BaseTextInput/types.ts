@@ -105,7 +105,8 @@ type CustomBaseTextInputProps = {
     /** Type of autocomplete */
     autoCompleteType?: string;
 
-    liveMarkdown?: boolean;
+    /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
+    markdownEnabled?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

@@ -120,6 +120,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                             autoGrowHeight
                             shouldSubmitForm
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            markdownEnabled
                         />
                     </View>
                 </FormProvider>
