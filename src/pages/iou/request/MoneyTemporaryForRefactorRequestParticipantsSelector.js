@@ -59,6 +59,9 @@ const propTypes = {
 
     /** Whether the parent screen transition has ended */
     didScreenTransitionEnd: PropTypes.bool,
+
+    /** Whether or not we are searching for reports on the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -67,6 +70,7 @@ const defaultProps = {
     betas: [],
     dismissedReferralBanners: {},
     didScreenTransitionEnd: false,
+    isSearchingForReports: false,
 };
 
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
@@ -79,6 +83,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     iouRequestType,
     dismissedReferralBanners,
     didScreenTransitionEnd,
+    isSearchingForReports,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -368,6 +373,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 headerMessage={headerMessage}
                 showLoadingPlaceholder={!areOptionsInitialized}
                 rightHandSideComponent={itemRightSideComponent}
+                isLoadingNewOptions={!!isSearchingForReports}
             />
         </View>
     );
@@ -380,6 +386,10 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTempora
 export default withOnyx({
     dismissedReferralBanners: {
         key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
     },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
