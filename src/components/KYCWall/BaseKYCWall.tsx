@@ -1,15 +1,12 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Dimensions} from 'react-native';
-import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
+import React, {useCallback, useRef} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as BankAccounts from '@libs/actions/BankAccounts';
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Policy from '@userActions/Policy';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -18,10 +15,7 @@ import ROUTES from '@src/ROUTES';
 import type {BankAccountList, FundList, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import viewRef from '@src/types/utils/viewRef';
-import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
-
-// This sets the Horizontal anchor position offset for POPOVER MENU.
-const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
+import type {KYCWallProps, PaymentMethod} from './types';
 
 type BaseKYCWallOnyxProps = {
     /** The user's wallet */
@@ -48,10 +42,6 @@ type BaseKYCWallProps = KYCWallProps & BaseKYCWallOnyxProps;
 function KYCWall({
     addBankAccountRoute,
     addDebitCardRoute,
-    anchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-    },
     bankAccountList = {},
     chatReportID = '',
     children,
@@ -62,59 +52,12 @@ function KYCWall({
     onSuccessfulKYC,
     reimbursementAccount,
     shouldIncludeDebitCard = true,
-    shouldListenForResize = false,
     source,
     userWallet,
     walletTerms,
-    shouldShowPersonalBankAccountOption = false,
 }: BaseKYCWallProps) {
     const anchorRef = useRef<HTMLDivElement | View | null>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
-
-    const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
-
-    const [anchorPosition, setAnchorPosition] = useState({
-        anchorPositionVertical: 0,
-        anchorPositionHorizontal: 0,
-    });
-
-    const getAnchorPosition = useCallback(
-        (domRect: DomRect): AnchorPosition => {
-            if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
-                return {
-                    anchorPositionVertical: domRect.top + domRect.height + CONST.MODAL.POPOVER_MENU_PADDING,
-                    anchorPositionHorizontal: domRect.left + POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET,
-                };
-            }
-
-            return {
-                anchorPositionVertical: domRect.top - CONST.MODAL.POPOVER_MENU_PADDING,
-                anchorPositionHorizontal: domRect.left,
-            };
-        },
-        [anchorAlignment.vertical],
-    );
-
-    /**
-     * Set position of the transfer payment menu
-     */
-    const setPositionAddPaymentMenu = ({anchorPositionVertical, anchorPositionHorizontal}: AnchorPosition) => {
-        setAnchorPosition({
-            anchorPositionVertical,
-            anchorPositionHorizontal,
-        });
-    };
-
-    const setMenuPosition = useCallback(() => {
-        if (!transferBalanceButtonRef.current) {
-            return;
-        }
-
-        const buttonPosition = getClickedTargetLocation(transferBalanceButtonRef.current as HTMLDivElement);
-        const position = getAnchorPosition(buttonPosition);
-
-        setPositionAddPaymentMenu(position);
-    }, [getAnchorPosition]);
 
     const selectPaymentMethod = useCallback(
         (paymentMethod: PaymentMethod) => {
@@ -176,11 +119,6 @@ function KYCWall({
                     return;
                 }
 
-                const clickedElementLocation = getClickedTargetLocation(targetElement as HTMLDivElement);
-                const position = getAnchorPosition(clickedElementLocation);
-
-                setPositionAddPaymentMenu(position);
-                
                 switch (iouPaymentType) {
                     case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
                         selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
@@ -219,42 +157,19 @@ function KYCWall({
             chatReportID,
             enablePaymentsRoute,
             fundList,
-            getAnchorPosition,
             iouReport,
             onSuccessfulKYC,
             reimbursementAccount?.achData?.state,
             selectPaymentMethod,
             shouldIncludeDebitCard,
-            shouldShowAddPaymentMenu,
             source,
             userWallet?.tierName,
             walletTerms?.source,
         ],
     );
 
-    useEffect(() => {
-        let dimensionsSubscription: EmitterSubscription | null = null;
-
-        PaymentMethods.kycWallRef.current = {continueAction};
-
-        if (shouldListenForResize) {
-            dimensionsSubscription = Dimensions.addEventListener('change', setMenuPosition);
-        }
-
-        return () => {
-            if (shouldListenForResize && dimensionsSubscription) {
-                dimensionsSubscription.remove();
-            }
-
-            PaymentMethods.kycWallRef.current = null;
-        };
-    }, [chatReportID, setMenuPosition, shouldListenForResize, continueAction]);
-
     return (
-        <>
-            
-            {children(continueAction, viewRef(anchorRef))}
-        </>
+        <>{children(continueAction, viewRef(anchorRef))}</>
     );
 }
 
