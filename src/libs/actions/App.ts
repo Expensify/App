@@ -26,12 +26,12 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import * as Policy from './Policy';
 import * as Session from './Session';
 import Timing from './Timing';
@@ -93,7 +93,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.CREDENTIALS,
 ];
 
-let previousResetRequired: boolean|null = false;
+let previousResetRequired: boolean | null = false;
 Onyx.connect({
     key: ONYXKEYS.RESET_REQUIRED,
     callback: (isResetRequired) => {
