@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -52,16 +53,17 @@ function WorkspaceTaxesPage({
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const dropdownButtonRef = useRef(null);
 
-    const fetchTaxes = () => {
+    const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
-    };
+    }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchTaxes});
 
-    useEffect(() => {
-        fetchTaxes();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchTaxes();
+        }, [fetchTaxes]),
+    );
 
     const textForDefault = useCallback(
         (taxID: string): string => {

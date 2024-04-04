@@ -146,10 +146,14 @@ function WorkspaceMembersPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedEmployees, policy?.owner, session?.accountID]);
 
+    // useFocusEffect would make getWorkspaceMembers get called twice on fresh login because policyMember is a dependency of getWorkspaceMembers.
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         getWorkspaceMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isFocused]);
 
     useEffect(() => {
         validateSelection();

@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -62,16 +63,17 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     const dropdownButtonRef = useRef(null);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
 
-    function fetchCategories() {
+    const fetchCategories = useCallback(() => {
         Policy.openPolicyCategoriesPage(route.params.policyID);
-    }
+    }, [route.params.policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCategories});
 
-    useEffect(() => {
-        fetchCategories();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchCategories();
+        }, [fetchCategories]),
+    );
 
     const categoryList = useMemo<PolicyOption[]>(
         () =>
