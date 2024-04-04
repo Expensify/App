@@ -11,6 +11,7 @@ import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
@@ -27,11 +28,14 @@ import UnitSelector from './UnitSelector';
 type PolicyDistanceRatesSettingsPageOnyxProps = {
     /** Policy details */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Policy categories */
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
 type PolicyDistanceRatesSettingsPageProps = PolicyDistanceRatesSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
 
-function PolicyDistanceRatesSettingsPage({policy, route}: PolicyDistanceRatesSettingsPageProps) {
+function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: PolicyDistanceRatesSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -90,7 +94,7 @@ function PolicyDistanceRatesSettingsPage({policy, route}: PolicyDistanceRatesSet
                                     setNewUnit={setNewUnit}
                                 />
                             </OfflineWithFeedback>
-                            {policy?.areCategoriesEnabled && (
+                            {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
                                 <OfflineWithFeedback
                                     errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'defaultCategory')}
                                     pendingAction={customUnits[customUnitID].pendingFields?.defaultCategory}
@@ -119,5 +123,8 @@ PolicyDistanceRatesSettingsPage.displayName = 'PolicyDistanceRatesSettingsPage';
 export default withOnyx<PolicyDistanceRatesSettingsPageProps, PolicyDistanceRatesSettingsPageOnyxProps>({
     policy: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
+    },
+    policyCategories: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
     },
 })(PolicyDistanceRatesSettingsPage);
