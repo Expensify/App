@@ -389,7 +389,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE]: Parameters.UpdatePolicyDistanceRateValueParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED]: Parameters.SetPolicyDistanceRatesEnabledParams;
     [WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES]: Parameters.DeletePolicyDistanceRatesParams;
-    [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIGURATION]: Parameters.UpdatePolicyConnectionConfigurationParams<never, never>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIGURATION]: Parameters.UpdatePolicyConnectionConfigurationParams<any, any>;
 };
 
 const READ_COMMANDS = {
