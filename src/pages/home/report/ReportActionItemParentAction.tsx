@@ -106,8 +106,11 @@ function ReportActionItemParentAction({
                         isDisabled={!ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID) as OnyxTypes.Report)}
                     />
                     <ReportActionItem
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))}
-                        isDisabled={!ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID) as OnyxTypes.Report)}
+                        onPress={
+                            ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID) as OnyxTypes.Report)
+                                ? () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))
+                                : undefined
+                        }
                         parentReportAction={parentReportAction}
                         report={ancestor.report}
                         reportActions={reportActions}

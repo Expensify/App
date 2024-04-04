@@ -1451,7 +1451,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Generate the styles for the ReportActionItem wrapper view.
      */
-    getReportActionItemStyle: (isHovered = false, isClickable = false, isDisabled = false): ViewStyle =>
+    getReportActionItemStyle: (isHovered = false, isClickable = false): ViewStyle =>
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ({
@@ -1463,7 +1463,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                   theme.transparent,
             opacity: 1,
             // eslint-disable-next-line no-nested-ternary
-            ...(isDisabled ? styles.cursorDisabled : isClickable ? styles.cursorPointer : styles.cursorInitial),
+            ...(isClickable ? styles.cursorPointer : styles.cursorInitial),
         }),
 
     /**
