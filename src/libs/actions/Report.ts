@@ -1084,7 +1084,7 @@ function saveReportCommentNumberOfLines(reportID: string, numberOfLines: number)
 }
 
 /** Immediate indication whether the report has a draft comment. */
-function setReportWithDraft(reportID: string, hasDraft: boolean): Promise<void> {
+function setReportWithDraft(reportID: string, hasDraft: boolean): Promise<void | void[]> {
     return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
 }
 
@@ -2381,6 +2381,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                 policies: {},
                 excludeEmptyChats: true,
                 doesReportHaveViolations: false,
+                includeSelfDM: true,
             }),
     );
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;

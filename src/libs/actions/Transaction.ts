@@ -107,7 +107,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     }
 }
 
-function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void> {
+function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void | void[]> {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
@@ -234,7 +234,7 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, isDraft:
  * @param waypoints - An object containing all the waypoints
  *                             which will replace the existing ones.
  */
-function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void> {
+function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void | void[]> {
     return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,

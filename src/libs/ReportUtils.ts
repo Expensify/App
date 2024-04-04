@@ -440,6 +440,10 @@ type AncestorIDs = {
 
 type MissingPaymentMethod = 'bankAccount' | 'wallet';
 
+type OutstandingChildRequest = {
+    hasOutstandingChildRequest?: boolean;
+};
+
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -596,7 +600,7 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
 }
 
 /**
- * @deprecated Use withOnyx or Onyx.connect() instead
+ * Returns the policy of the report
  */
 function getPolicy(policyID: string | undefined): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
@@ -1294,7 +1298,7 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | stri
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(reportID: string): boolean {
-    const reportActions = reportActionsByReport?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
+    const reportActions = reportActionsByReport?.[reportID] ?? ([] as ReportAction[]);
     return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== null;
 }
 
@@ -1337,8 +1341,8 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
     const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            const isReimburser = session?.email === policy?.reimburserEmail;
-            return (!policy?.reimburserEmail || isReimburser) && (isApproved || isManager);
+            const isReimburser = session?.email === policy?.achAccount?.reimburser;
+            return (!policy?.achAccount?.reimburser || isReimburser) && (isApproved || isManager);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
             return isAdmin && (isApproved || isManager);
@@ -5034,7 +5038,12 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
  * Returns ID of the original report from which the given reportAction is first created.
  */
 function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAction>): string | undefined {
-    const currentReportAction = ReportActionsUtils.getReportAction(reportID, reportAction?.reportActionID ?? '');
+    const reportActions = reportActionsByReport?.[reportID];
+    const currentReportAction = reportActions?.[reportAction?.reportActionID ?? ''] ?? null;
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? ([] as ReportAction[]));
+    if (transactionThreadReportID !== null) {
+        return Object.keys(currentReportAction ?? {}).length === 0 ? transactionThreadReportID : reportID;
+    }
     return isThreadFirstChat(reportAction, reportID) && Object.keys(currentReportAction ?? {}).length === 0
         ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID
         : reportID;
@@ -5742,6 +5751,7 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
 
+
 function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>, reportActionID: string): void {
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
     const reportActions = ReportActionsUtils.getAllReportActions(reportID);
@@ -5760,6 +5770,32 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
     } as Transaction);
 
     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, actionName));
+}
+
+/**
+ * @returns the object to update `report.hasOutstandingChildRequest`
+ */
+function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject): OutstandingChildRequest {
+    if (!iouReport || isEmptyObject(iouReport)) {
+        return {};
+    }
+
+    if (!isExpenseReport(iouReport)) {
+        return {
+            hasOutstandingChildRequest: iouReport.managerID === currentUserAccountID && iouReport.total !== 0,
+        };
+    }
+
+    const policy = getPolicy(iouReport.policyID);
+    const shouldBeManuallySubmitted = PolicyUtils.isPaidGroupPolicy(policy) && !policy?.harvesting?.enabled;
+    if (shouldBeManuallySubmitted || PolicyUtils.isPolicyAdmin(policy)) {
+        return {
+            hasOutstandingChildRequest: true,
+        };
+    }
+
+    // We don't need to update hasOutstandingChildRequest in this case
+    return {};
 }
 
 export {
@@ -5907,7 +5943,6 @@ export {
     getReportOfflinePendingActionAndErrors,
     isDM,
     isSelfDM,
-    getPolicy,
     getWorkspaceChats,
     shouldDisableRename,
     hasSingleParticipant,
@@ -5990,6 +6025,7 @@ export {
     hasActionsWithErrors,
     createDraftTransactionAndNavigateToParticipantSelector,
     getGroupChatName,
+    getOutstandingChildRequest,
 };
 
 export type {
