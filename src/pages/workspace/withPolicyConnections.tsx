@@ -1,4 +1,4 @@
-import {createContext, useContext, useEffect, useState} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import type {ComponentType, PropsWithChildren} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import useNetwork from '@hooks/useNetwork';
