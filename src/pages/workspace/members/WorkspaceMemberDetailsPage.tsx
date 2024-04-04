@@ -102,7 +102,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const removeUser = useCallback(() => {
         Policy.removeMembers([accountID], policyID);
         setIsRemoveMemberConfirmModalVisible(false);
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        Navigation.goBack();
     }, [accountID, policyID]);
 
     const navigateToProfile = useCallback(() => {
@@ -134,7 +134,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                     <HeaderWithBackButton
                         title={displayName}
                         subtitle={policy?.name}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
