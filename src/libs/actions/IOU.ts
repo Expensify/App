@@ -485,7 +485,8 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 ...chatReport,
-                lastVisibleActionCreated: iouReport.lastVisibleActionCreated,
+                // if iouReport exist, the last visible action created time does not change.
+                lastVisibleActionCreated: isNewChatReport ? undefined : iouReport.lastVisibleActionCreated,
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
@@ -1034,7 +1035,7 @@ function getMoneyRequestInformation(
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         iouReport = isPolicyExpenseChat
             ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID ?? '', payeeAccountID, amount, currency)
-            : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+            : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, false, created);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
         if (iouReport?.currency === currency && typeof iouReport.total === 'number') {
