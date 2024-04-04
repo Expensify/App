@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/core';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, InteractionManager, NativeModules, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {PdfManager} from 'react-native-pdf';
 import {RESULTS} from 'react-native-permissions';
@@ -34,6 +34,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
+
+const {CheckPDFDocument} = NativeModules;
 
 console.log('PdfManager', PdfManager);
 
@@ -155,11 +157,11 @@ function IOURequestStepScan({
         }, []),
     );
 
-    const validateReceipt = (file) => {
+    // eslint-disable-next-line @lwc/lwc/no-async-await
+    const validateReceipt = async (file) => {
+        let isCorrectPDF;
+        await CheckPDFDocument.checkPdf(file.uri, (isCorrect) => (isCorrectPDF = isCorrect));
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        console.log('file', file);
-        const isCorrectPDF = PdfManager.loadFile(file.uri);
-        console.log('isCorrectPDF', isCorrectPDF);
         if (!isCorrectPDF) {
             Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
             return false;

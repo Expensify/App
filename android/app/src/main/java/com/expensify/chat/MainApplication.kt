@@ -30,6 +30,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             add(BootSplashPackage())
             add(ExpensifyAppPackage())
             add(RNTextInputResetPackage())
+            add(CheckPDFDocumentPackage())
         }
 
         override fun getJSMainModuleName() = ".expo/.virtual-metro-entry"
