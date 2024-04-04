@@ -221,10 +221,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         accountID: string;
     };
-    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
-        policyID: string;
-        accountID: string;
-    };
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
         policyID: string;
         accountID: number;

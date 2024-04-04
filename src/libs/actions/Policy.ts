@@ -1324,7 +1324,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
                 const value = {
                     ...allPolicyMembers?.[accountID],
                     pendingAction: null,
-                    errors: null
+                    errors: null,
                 };
 
                 return {...accountIDsWithClearedPendingAction, [accountID]: value};

@@ -241,7 +241,6 @@ const SCREENS = {
         CATEGORIES_SETTINGS: 'Categories_Settings',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
-        MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
         OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
         OWNER_CHANGE_SUCCESS: 'Workspace_Owner_Change_Success',
         OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
