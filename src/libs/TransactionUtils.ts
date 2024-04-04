@@ -454,7 +454,7 @@ function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CO
  * Returns the translation key to use for the header title
  */
 function getHeaderTitleTranslationKey(transaction: OnyxEntry<Transaction>): TranslationPaths {
-    const headerTitles: Record<string, TranslationPaths> = {
+    const headerTitles: Record<IOURequestType, TranslationPaths> = {
         [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
         [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
         [CONST.IOU.REQUEST_TYPE.SCAN]: 'tabSelector.scan',
