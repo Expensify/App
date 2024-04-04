@@ -467,5 +467,6 @@ export type {
     TaxRatesWithDefault,
     PolicyFeatureName,
     PendingJoinRequestPolicy,
+    PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
 };
