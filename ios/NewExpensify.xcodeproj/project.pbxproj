@@ -31,6 +31,7 @@
 		7041848626A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
 		716815DBCE9F49D420334791 /* libPods-NewExpensify-NewExpensifyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B68AEB9429D8BB73F25A188C /* libPods-NewExpensify-NewExpensifyTests.a */; };
+		76C3A4C12BBE9D6900BAAB9B /* RCTCheckPDFDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 76C3A4C02BBE9D6900BAAB9B /* RCTCheckPDFDocument.m */; };
 		7F5E81F06BCCF61AD02CEA06 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD444BEDDB0AF1745B39049 /* ExpoModulesProvider.swift */; };
 		7F9DD8DA2B2A445B005E3AFA /* ExpError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F9DD8D92B2A445B005E3AFA /* ExpError.swift */; };
 		7FD73C9E2B23CE9500420AF3 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */; };
@@ -112,6 +113,8 @@
 		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
 		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
 		7312B334B72E8BE41A811FAB /* Pods-NewExpensify.releaseadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releaseadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releaseadhoc.xcconfig"; sourceTree = "<group>"; };
+		76C3A4BF2BBE9B6A00BAAB9B /* RCTCheckPDFDocument.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTCheckPDFDocument.h; sourceTree = "<group>"; };
+		76C3A4C02BBE9D6900BAAB9B /* RCTCheckPDFDocument.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTCheckPDFDocument.m; sourceTree = "<group>"; };
 		7F9DD8D92B2A445B005E3AFA /* ExpError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpError.swift; sourceTree = "<group>"; };
 		7FD73C9B2B23CE9500420AF3 /* NotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
@@ -256,6 +259,8 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				76C3A4C02BBE9D6900BAAB9B /* RCTCheckPDFDocument.m */,
+				76C3A4BF2BBE9B6A00BAAB9B /* RCTCheckPDFDocument.h */,
 				374FB8D528A133A7000D84EF /* OriginImageRequestHandler.h */,
 				374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */,
 				F0C450E92705020500FD2970 /* colors.json */,
@@ -815,6 +820,7 @@
 				0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */,
 				374FB8D728A133FE000D84EF /* OriginImageRequestHandler.mm in Sources */,
 				7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */,
+				76C3A4C12BBE9D6900BAAB9B /* RCTCheckPDFDocument.m in Sources */,
 				DD79042B2792E76D004484B4 /* RCTBootSplash.m in Sources */,
 				0CDA8E34287DD650004ECBEC /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,

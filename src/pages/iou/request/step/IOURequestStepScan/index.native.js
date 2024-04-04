@@ -37,8 +37,6 @@ import NavigationAwareCamera from './NavigationAwareCamera';
 
 const {CheckPDFDocument} = NativeModules;
 
-console.log('PdfManager', PdfManager);
-
 const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: IOURequestStepRoutePropTypes.isRequired,
@@ -160,6 +158,7 @@ function IOURequestStepScan({
     // eslint-disable-next-line @lwc/lwc/no-async-await
     const validateReceipt = async (file) => {
         let isCorrectPDF;
+        console.log('CheckPDFDocument', CheckPDFDocument);
         await CheckPDFDocument.checkPdf(file.uri, (isCorrect) => (isCorrectPDF = isCorrect));
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
         if (!isCorrectPDF) {
