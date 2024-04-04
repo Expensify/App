@@ -639,7 +639,6 @@ const CONST = {
                 EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
-                HOLDCOMMENT: 'HOLDCOMMENT',
                 IOU: 'IOU',
                 INTEGRATIONSMESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGERATTACHRECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action

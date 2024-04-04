@@ -38,7 +38,7 @@ type OriginalMessageHold = {
 };
 
 type OriginalMessageHoldComment = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.COMMENT;
     originalMessage: unknown;
 };
 
