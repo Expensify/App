@@ -77,7 +77,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                 ),
             },
         ],
-        [styles.sectionMenuItemTopDescription, translate, policyID],
+        [styles.sectionMenuItemTopDescription, translate, policyID, environmentURL],
     );
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
@@ -105,7 +105,9 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: translate('workspace.accounting.qbo'),
-                description: translate(isSyncInProgress ? 'workspace.accounting.importing' : 'workspace.accounting.lastSync'),
+                description: isSyncInProgress
+                    ? translate('workspace.accounting.connections.syncStageName', {stage: 'quickbooksOnlineImportCustomers'})
+                    : translate('workspace.accounting.lastSync'),
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
