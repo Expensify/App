@@ -1,6 +1,6 @@
 import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
-import * as kieMockGithub from '@kie/mock-github';
-import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
+import {MockGithub} from '@kie/mock-github';
+import type {CreateRepositoryFile} from '@kie/mock-github';
 import path from 'path';
 import assertions from './assertions/lockDeploysAssertions';
 import mocks from './mocks/lockDeploysMocks';
@@ -28,7 +28,7 @@ describe('test workflow lockDeploys', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new kieMockGithub.MockGithub({
+        mockGithub = new MockGithub({
             repo: {
                 testLockDeploysWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,

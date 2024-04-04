@@ -75,6 +75,8 @@ type InternalOctokit = OctokitCore & Api & {paginate: PaginateInterface};
 class GithubUtils {
     static internalOctokit: InternalOctokit | undefined;
 
+    static POLL_RATE: number;
+
     /**
      * Initialize internal octokit
      *
@@ -476,7 +478,6 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value: number): string {
-        // @ts-expect-error TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated to TypeScript
         return `${CONST.APP_REPO_URL}/pull/${value}`;
     }
 
@@ -548,4 +549,4 @@ export default GithubUtils;
 module.exports = GithubUtils;
 
 export {ISSUE_OR_PULL_REQUEST_REGEX, POLL_RATE};
-export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};

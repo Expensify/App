@@ -56,6 +56,7 @@ const SCREENS = {
             DATE_OF_BIRTH: 'Settings_DateOfBirth',
             ADDRESS: 'Settings_Address',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
+            ADDRESS_STATE: 'Settings_Address_State',
         },
 
         PREFERENCES: {
@@ -149,13 +150,12 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
-        AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
-        CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
+        STATE_SELECTOR: 'Money_Request_State_Selector',
     },
 
     IOU_SEND: {
