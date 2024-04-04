@@ -370,6 +370,7 @@ export default compose(
             _.isEqual(prevProps.policyMembers, nextProps.policyMembers) &&
             _.isEqual(prevProps.transactionViolations, nextProps.transactionViolations) &&
             _.isEqual(prevProps.currentUserPersonalDetails, nextProps.currentUserPersonalDetails) &&
-            prevProps.currentReportID === nextProps.currentReportID,
+            prevProps.currentReportID === nextProps.currentReportID &&
+            _.isEqual(prevProps.reportsDrafts, nextProps.reportsDrafts),
     ),
 );
