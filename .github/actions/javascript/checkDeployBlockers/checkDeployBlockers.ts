@@ -1,11 +1,10 @@
-// eslint-disable-next-line import/no-import-module-exports
+/* eslint-disable @typescript-eslint/naming-convention */
+import * as core from '@actions/core';
 import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const _ = require('underscore');
-const core = require('@actions/core');
-const GithubUtils = require('../../../libs/GithubUtils').default;
-
-const run = function () {
+const run = function (): Promise<void> {
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
 
     console.log(`Fetching issue number ${issueNumber}`);
@@ -21,7 +20,7 @@ const run = function () {
 
             // Check the issue description to see if there are any unfinished/un-QAed items in the checklist.
             const uncheckedBoxRegex = /-\s\[\s]\s/;
-            if (uncheckedBoxRegex.test(data.body)) {
+            if (uncheckedBoxRegex.test(data.body ?? '')) {
                 console.log('An unverified PR or unresolved deploy blocker was found.');
                 core.setOutput('HAS_DEPLOY_BLOCKERS', true);
                 return;
@@ -39,12 +38,12 @@ const run = function () {
 
             // If comments is undefined that means we found an unchecked QA item in the
             // issue description, so there's nothing more to do but return early.
-            if (_.isUndefined(comments)) {
+            if (comments === undefined) {
                 return;
             }
 
             // If there are no comments, then we have not yet gotten the :shipit: seal of approval.
-            if (_.isEmpty(comments.data)) {
+            if (isEmptyObject(comments.data)) {
                 console.log('No comments found on issue');
                 core.setOutput('HAS_DEPLOY_BLOCKERS', true);
                 return;
@@ -53,7 +52,7 @@ const run = function () {
             console.log('Verifying that the last comment is the :shipit: seal of approval');
             const lastComment = comments.data.pop();
             const shipItRegex = /^:shipit:/g;
-            if (_.isNull(shipItRegex.exec(lastComment.body))) {
+            if (!shipItRegex.exec(lastComment?.body ?? '')) {
                 console.log('The last comment on the issue was not :shipit');
                 core.setOutput('HAS_DEPLOY_BLOCKERS', true);
             } else {
