@@ -56,7 +56,7 @@ type PersonalAddress = {
     requestorAddressZipCode?: string;
 };
 
-function clearPlaid(): Promise<void> {
+function clearPlaid(): Promise<void | void[]> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
     return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
