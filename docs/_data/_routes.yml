@@ -87,12 +87,17 @@ platforms:
   - href: new-expensify
     title: New Expensify
     hub-title: New Expensify - Help & Resources
-    hub-description: Questions? Find the answers by clicking a Category or using the search bar located in the left-hand menu.
+    hub-description: Questions? Find the answers by clicking a Category or using the search bar.
     url: new.expensify.com
     description: "Your account settings look like this:"
     image: /assets/images/settings-new-dot.svg
   
     hubs:
+      - href: getting-started
+        title: Getting Started
+        icon: /assets/images/accounting.svg
+        description: Set up your account to optimize Expensify's features.
+
       - href: chat
         title: Chat
         icon: /assets/images/chat-bubble.svg
