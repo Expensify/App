@@ -14,6 +14,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -58,6 +59,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [searchTerm, setSearchTerm] = useState('');
+    const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
@@ -233,6 +235,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                     <SelectionList
                         ListItem={UserListItem}
                         textInputPlaceholder={translate('workspace.switcher.placeholder')}
+                        textInputRef={inputCallbackRef}
                         sections={[usersWorkspacesSectionData]}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
@@ -249,7 +252,20 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 )}
             </>
         ),
-        [setSearchTerm, searchTerm, selectPolicy, styles, theme.textSupporting, translate, usersWorkspaces.length, usersWorkspacesSectionData, activeWorkspaceID, theme.icon, headerMessage],
+        [
+            inputCallbackRef,
+            setSearchTerm,
+            searchTerm,
+            selectPolicy,
+            styles,
+            theme.textSupporting,
+            translate,
+            usersWorkspaces.length,
+            usersWorkspacesSectionData,
+            activeWorkspaceID,
+            theme.icon,
+            headerMessage,
+        ],
     );
 
     return (
