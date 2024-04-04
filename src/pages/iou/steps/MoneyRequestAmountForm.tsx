@@ -62,7 +62,7 @@ type MoneyRequestAmountFormProps = {
     onCurrencyButtonPress?: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-    onSubmitButtonPress: ({amount, currency, paymentMethod}: {amount: string; currency: string; paymentMethod: PaymentMethodType}) => void;
+    onSubmitButtonPress: ({amount, currency, paymentMethod}: {amount: string; currency: string; paymentMethod?: PaymentMethodType}) => void;
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab?: SelectedTabRequest;
@@ -253,7 +253,7 @@ function MoneyRequestAmountForm(
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(
-        (iouPaymentType: IouType | PaymentMethodType | undefined) => {
+        (iouPaymentType?: PaymentMethodType | undefined) => {
             if (isAmountInvalid(currentAmount)) {
                 setFormError('iou.error.invalidAmount');
                 return;
@@ -264,8 +264,8 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-        onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
-    }, [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount]);
+            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+        }, [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -380,7 +380,7 @@ function MoneyRequestAmountForm(
                         medium={isExtraSmallScreenHeight}
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        onPress={submitAndNavigateToNextPage}
+                        onPress={() => submitAndNavigateToNextPage()}
                         text={buttonText}
                     />
                 )}
