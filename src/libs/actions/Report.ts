@@ -49,6 +49,7 @@ import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -151,10 +152,12 @@ Onyx.connect({
 });
 
 let isNetworkOffline = false;
+let networkStatus: NetworkStatus;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => {
         isNetworkOffline = value?.isOffline ?? false;
+        networkStatus = value?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
     },
 });
 
@@ -2245,7 +2248,7 @@ function openReportFromDeepLink(url: string) {
         openReport(reportID, '', [], {}, '0', true);
 
         // Show the sign-in page if the app is offline
-        if (isNetworkOffline) {
+        if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         }
     } else {
