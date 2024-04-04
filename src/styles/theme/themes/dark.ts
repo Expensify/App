@@ -46,6 +46,7 @@ const darkTheme = {
     shadow: colors.black,
     componentBG: colors.productDark100,
     hoverComponentBG: colors.productDark300,
+    messageHighlightBG: colors.messageHighlightDark,
     activeComponentBG: colors.productDark400,
     signInSidebar: colors.green800,
     sidebar: colors.productDark100,
