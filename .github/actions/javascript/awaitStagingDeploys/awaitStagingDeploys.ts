@@ -2,7 +2,7 @@
 import lodashThrottle from 'lodash/throttle';
 import {getStringInput} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
-import GitHubUtils, {POLL_RATE} from '@github/libs/GithubUtils';
+import GitHubUtils from '@github/libs/GithubUtils';
 import {promiseDoWhile} from '@github/libs/promiseWhile';
 
 type CurrentStagingDeploys = Awaited<ReturnType<typeof GitHubUtils.octokit.actions.listWorkflowRuns>>['data']['workflow_runs'];
@@ -63,7 +63,7 @@ function run() {
             throttleFunc,
 
             // Poll every 60 seconds instead of every 10 seconds
-            POLL_RATE * 6,
+            CONST.POLL_RATE * 6,
         ),
     );
 }
