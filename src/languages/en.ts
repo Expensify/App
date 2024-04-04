@@ -1314,6 +1314,29 @@ export default {
         loginForm: 'Login form',
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
+    onboarding: {
+        welcome: 'Welcome!',
+        welcomeVideo: {
+            title: 'Welcome to Expensify',
+            description: 'Getting paid is as easy as sending a message.',
+            button: "Let's go",
+        },
+        whatsYourName: "What's your name?",
+        purpose: {
+            title: 'What do you want to do today?',
+            error: 'Please make a selection before continuing',
+            [CONST.ONBOARDING_CHOICES.TRACK]: 'Track business spend for taxes',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget personal spend',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: "I'm just looking around",
+        },
+        error: {
+            requiredFirstName: 'Please input your first name to continue',
+            requiredLastName: 'Please input your last name to continue',
+        },
+    },
     personalDetails: {
         error: {
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge',

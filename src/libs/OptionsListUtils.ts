@@ -654,7 +654,6 @@ function createOption(
         login: null,
         reportID: '',
         phoneNumber: null,
-        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isDefaultRoom: false,
@@ -699,7 +698,6 @@ function createOption(
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
-        result.hasDraftComment = report.hasDraft;
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);

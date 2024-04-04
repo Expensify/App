@@ -30,12 +30,13 @@ function BaseVideoPlayer({
     videoPlayerStyle,
     videoStyle,
     videoControlsStyle,
-    videoDuration,
+    videoDuration = 0,
+    controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     shouldUseSharedVideoElement = false,
     shouldUseSmallVideoControls = false,
-    shouldShowVideoControls = true,
     onPlaybackStatusUpdate,
     onFullscreenUpdate,
+    shouldPlay,
     // TODO: investigate what is the root cause of the bug with unexpected video switching
     // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
@@ -221,6 +222,13 @@ function BaseVideoPlayer({
         };
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
+    useEffect(() => {
+        if (!shouldPlay) {
+            return;
+        }
+        updateCurrentlyPlayingURL(url);
+    }, [shouldPlay, updateCurrentlyPlayingURL, url]);
+
     return (
         <>
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
@@ -278,7 +286,7 @@ function BaseVideoPlayer({
                                                 // reset the video player after connection is back
                                                 uri: !isLoading || (isLoading && !isOffline) ? sourceURL : '',
                                             }}
-                                            shouldPlay={false}
+                                            shouldPlay={shouldPlay}
                                             useNativeControls={false}
                                             resizeMode={resizeMode as ResizeMode}
                                             isLooping={isLooping}
@@ -297,7 +305,7 @@ function BaseVideoPlayer({
 
                             {(isLoading || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
-                            {shouldShowVideoControls && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
+                            {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}
                                     position={position}
@@ -307,6 +315,7 @@ function BaseVideoPlayer({
                                     small={shouldUseSmallVideoControls}
                                     style={videoControlsStyle}
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
+                                    controlsStatus={controlsStatus}
                                     showPopoverMenu={showPopoverMenu}
                                 />
                             )}

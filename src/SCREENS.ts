@@ -127,6 +127,9 @@ const SCREENS = {
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
     },
+    ONBOARDING_MODAL: {
+        ONBOARDING: 'Onboarding',
+    },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
@@ -272,10 +275,19 @@ const SCREENS = {
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
     },
 
+    ONBOARDING: {
+        PERSONAL_DETAILS: 'Onboarding_Personal_Details',
+        PURPOSE: 'Onboarding_Purpose',
+    },
+
     ONBOARD_ENGAGEMENT: {
         ROOT: 'Onboard_Engagement_Root',
         MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
         EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
+    },
+
+    WELCOME_VIDEO: {
+        ROOT: 'Welcome_Video_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
