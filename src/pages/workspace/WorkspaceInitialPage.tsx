@@ -198,7 +198,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (policy?.areAccountingEnabled) {
+    if (policy?.areAccountingEnabled && policy?.areConnectionsEnabled && canUseAccountingIntegrations) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
