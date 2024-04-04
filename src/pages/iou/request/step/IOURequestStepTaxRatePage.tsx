@@ -38,6 +38,7 @@ function IOURequestStepTaxRatePage({
     },
     policy,
     transaction,
+    report,
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
 
@@ -61,7 +62,7 @@ function IOURequestStepTaxRatePage({
         }
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(taxAmount);
         IOU.setMoneyRequestTaxRate(transaction?.transactionID, taxes);
-        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
 
         Navigation.goBack(backTo);
     };
@@ -75,7 +76,7 @@ function IOURequestStepTaxRatePage({
         >
             <TaxPicker
                 selectedTaxRate={selectedTaxRate}
-                policyID={report.policyID}
+                policyID={report?.policyID}
                 onSubmit={updateTaxRates}
             />
         </StepScreenWrapper>
