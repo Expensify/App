@@ -126,9 +126,12 @@ function Composer(
      *  Adds the cursor position to the selection change event.
      */
     const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+        if (!isRendered) {
+            return;
+        }
         const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
 
-        if (shouldCalculateCaretPosition && isRendered) {
+        if (shouldCalculateCaretPosition) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
                 setValueBeforeCaret(webEvent.target.value.slice(0, webEvent.nativeEvent.selection.start));
