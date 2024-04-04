@@ -2,6 +2,8 @@ import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas, usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
+import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -25,9 +27,10 @@ function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps)
     const personalDetails = usePersonalDetails();
     const betas = useBetas();
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
+    const {options, areOptionsInitialized} = useOptionsList();
 
     const searchOptions = useMemo(() => {
-        if (!isOptionsDataReady) {
+        if (!areOptionsInitialized) {
             return {
                 recentReports: [],
                 personalDetails: [],
@@ -39,7 +42,7 @@ function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps)
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
-        } = OptionsListUtils.getShareLogOptions(reports, personalDetails, debouncedSearchValue.trim(), betas ?? []);
+        } = OptionsListUtils.getShareLogOptions(options, debouncedSearchValue.trim(), betas ?? []);
 
         const header = OptionsListUtils.getHeaderMessage(
             (searchOptions?.recentReports?.length || 0) + (searchOptions?.personalDetails?.length || 0) !== 0,
@@ -57,29 +60,23 @@ function BaseShareLogList({reports, onAttachLogToReport}: BaseShareLogListProps)
 
     const sections = useMemo(() => {
         const sectionsList = [];
-        let indexOffset = 0;
 
         sectionsList.push({
             title: translate('common.recents'),
             data: searchOptions.recentReports,
             shouldShow: searchOptions.recentReports?.length > 0,
-            indexOffset,
         });
-        indexOffset += searchOptions.recentReports.length;
 
         sectionsList.push({
             title: translate('common.contacts'),
             data: searchOptions.personalDetails,
             shouldShow: searchOptions.personalDetails?.length > 0,
-            indexOffset,
         });
-        indexOffset += searchOptions.personalDetails.length;
 
         if (searchOptions.userToInvite) {
             sectionsList.push({
                 data: [searchOptions.userToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 

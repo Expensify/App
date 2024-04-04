@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -62,23 +63,24 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     const dropdownButtonRef = useRef(null);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
 
-    function fetchCategories() {
+    const fetchCategories = useCallback(() => {
         Policy.openPolicyCategoriesPage(route.params.policyID);
-    }
+    }, [route.params.policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCategories});
 
-    useEffect(() => {
-        fetchCategories();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchCategories();
+        }, [fetchCategories]),
+    );
 
     const categoryList = useMemo<PolicyOption[]>(
         () =>
             Object.values(policyCategories ?? {})
                 .sort((a, b) => localeCompare(a.name, b.name))
                 .map((value) => {
-                    const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.values(value.pendingFields ?? {}).length > 0;
+                    const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                     return {
                         text: value.name,
                         keyForList: value.name,
@@ -273,6 +275,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         style={[styles.defaultModalContainer]}
                         testID={WorkspaceCategoriesPage.displayName}
                         shouldShowOfflineIndicatorInWideScreen
+                        offlineIndicatorStyle={styles.mtAuto}
                     >
                         <HeaderWithBackButton
                             icon={Illustrations.FolderOpen}
@@ -309,10 +312,10 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                                 subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                             />
                         )}
-                        {!shouldShowEmptyState && (
+                        {!shouldShowEmptyState && !isLoading && (
                             <SelectionList
                                 canSelectMultiple
-                                sections={[{data: categoryList, indexOffset: 0, isDisabled: false}]}
+                                sections={[{data: categoryList, isDisabled: false}]}
                                 onCheckboxPress={toggleCategory}
                                 onSelectRow={navigateToCategorySettings}
                                 onSelectAll={toggleAllCategories}

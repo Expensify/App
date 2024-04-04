@@ -5,13 +5,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Navigation from './Navigation/Navigation';
+import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
+import Navigation, {navigationRef} from './Navigation/Navigation';
+import type {RootStackParamList, State} from './Navigation/types';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
-type UnitRate = {rate: number};
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -66,7 +67,7 @@ function hasCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
-function getNumericValue(value: number, toLocaleDigit: (arg: string) => string): number | string {
+function getNumericValue(value: number | string, toLocaleDigit: (arg: string) => string): number | string {
     const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
     if (Number.isNaN(numValue)) {
         return NaN;
@@ -82,7 +83,7 @@ function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => stri
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
 }
 
-function getUnitRateValue(customUnitRate: UnitRate, toLocaleDigit: (arg: string) => string) {
+function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate?: Rate) {
     return getRateDisplayValue((customUnitRate?.rate ?? 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, toLocaleDigit);
 }
 
@@ -171,6 +172,14 @@ function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personal
     return memberEmailsToExclude;
 }
 
+function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof PolicyTagList> {
+    if (isEmptyObject(policyTagList)) {
+        return [];
+    }
+
+    return Object.keys(policyTagList).sort((key1, key2) => policyTagList[key1].orderWeight - policyTagList[key2].orderWeight);
+}
+
 /**
  * Gets a tag name of policy tags based on a tag index.
  */
@@ -179,7 +188,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: numbe
         return '';
     }
 
-    const policyTagKeys = Object.keys(policyTagList ?? {});
+    const policyTagKeys = getSortedTagKeys(policyTagList ?? {});
     const policyTagKey = policyTagKeys[tagIndex] ?? '';
 
     return policyTagList?.[policyTagKey]?.name ?? '';
@@ -235,12 +244,16 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isTaxPolicyEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>): boolean {
+    return (isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled)) ?? false;
+}
+
 /**
  * Checks if policy's scheduled submit / auto reporting frequency is "instant".
  * Note: Free policies have "instant" submit always enabled.
  */
 function isInstantSubmitEnabled(policy: OnyxEntry<Policy> | EmptyObject): boolean {
-    return policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || policy?.type === CONST.POLICY.TYPE.FREE;
+    return policy?.type === CONST.POLICY.TYPE.FREE || (policy?.autoReporting === true && policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
 }
 
 /**
@@ -297,6 +310,13 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, feature
     return Boolean(policy?.[featureName]);
 }
 
+/**
+ *  Get the currently selected policy ID stored in the navigation state.
+ */
+function getPolicyIDFromNavigationState() {
+    return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -312,11 +332,13 @@ export {
     isInstantSubmitEnabled,
     isFreeGroupPolicy,
     isPolicyAdmin,
+    isTaxPolicyEnabled,
     isSubmitAndClose,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
     getTagLists,
     getTagListName,
+    getSortedTagKeys,
     canEditTaxRate,
     getTagList,
     getCleanedTagName,
@@ -332,6 +354,7 @@ export {
     hasTaxRateError,
     getTaxByID,
     hasPolicyCategoriesError,
+    getPolicyIDFromNavigationState,
 };
 
 export type {MemberEmailsToAccountIDs};
