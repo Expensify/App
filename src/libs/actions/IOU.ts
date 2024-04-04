@@ -4780,7 +4780,6 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
                 value: {
                     comment: {
-                        ...heldTransaction.comment,
                         hold: '',
                     },
                 },
@@ -4790,7 +4789,6 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
                 value: {
                     comment: {
-                        ...heldTransaction.comment,
                         hold: heldTransaction.comment.hold,
                     },
                 },
