@@ -221,6 +221,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Icon to display on the left side of TextInput */
     textInputIconLeft?: IconAsset;
 
+    /** Whether text input should be focused */
+    textInputAutoFocus?: boolean;
+
     /** Callback to fire when the text input changes */
     onChangeText?: (text: string) => void;
 

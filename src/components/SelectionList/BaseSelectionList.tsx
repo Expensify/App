@@ -73,6 +73,7 @@ function BaseSelectionList<TItem extends ListItem>(
         sectionTitleStyles,
         headerMessageStyle,
         shouldHideListOnInitialRender = true,
+        textInputAutoFocus = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -379,6 +380,9 @@ function BaseSelectionList<TItem extends ListItem>(
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
         useCallback(() => {
+            if (!textInputAutoFocus) {
+                return;
+            }
             if (shouldShowTextInput) {
                 focusTimeoutRef.current = setTimeout(() => {
                     if (!innerTextInputRef.current) {
@@ -393,7 +397,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 }
                 clearTimeout(focusTimeoutRef.current);
             };
-        }, [shouldShowTextInput]),
+        }, [shouldShowTextInput, textInputAutoFocus]),
     );
 
     const prevTextInputValue = usePrevious(textInputValue);

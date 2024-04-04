@@ -245,6 +245,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         containerStyle={[styles.pt0, styles.mt0]}
                         textInputIconLeft={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? MagnifyingGlass : undefined}
                         initiallyFocusedOptionKey={activeWorkspaceID}
+                        textInputAutoFocus={false}
                     />
                 ) : (
                     <WorkspaceCardCreateAWorkspace />
