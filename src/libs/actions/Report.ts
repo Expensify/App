@@ -2452,6 +2452,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                 policies: {},
                 excludeEmptyChats: true,
                 doesReportHaveViolations: false,
+                includeSelfDM: true,
             }),
     );
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
