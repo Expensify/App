@@ -230,8 +230,8 @@ function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions>
             action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
             (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
             action.childReportID &&
-            // Include deleted IOU reportActions because they might have associated comments that we'd want to display
-            (action.originalMessage.deleted || action.originalMessage.IOUTransactionID),
+            // Include deleted IOU reportActions if they have childAactions because we want to display those comments
+            ((action.originalMessage.deleted && action.childVisibleActionCount) || action.originalMessage.IOUTransactionID),
     );
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
