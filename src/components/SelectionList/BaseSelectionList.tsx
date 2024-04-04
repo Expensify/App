@@ -63,13 +63,14 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
-        checkmarkPosition,
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
+        headerMessageStyle,
+        shouldHideListOnInitialRender = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -334,7 +335,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                checkmarkPosition={checkmarkPosition}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
             />
@@ -516,7 +516,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             </View>
                         )}
                         {!!headerMessage && (
-                            <View style={[styles.ph5, styles.pb5]}>
+                            <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
@@ -573,7 +573,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
                                     onLayout={onSectionListLayout}
-                                    style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
+                                    style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
                                     ListFooterComponent={ShowMoreButtonInstance}
                                 />
                                 {children}

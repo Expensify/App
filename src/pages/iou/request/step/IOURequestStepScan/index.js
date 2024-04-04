@@ -214,7 +214,7 @@ function IOURequestStepScan({
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
         IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
