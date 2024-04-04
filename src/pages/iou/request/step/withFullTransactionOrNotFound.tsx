@@ -17,11 +17,13 @@ type WithFullTransactionOrNotFoundOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-type Route = RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT>;
+type MoneyRequestRouteName = typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION;
 
-type WithFullTransactionOrNotFoundProps = WithFullTransactionOrNotFoundOnyxProps & {route: Route};
+type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
 
-export default function <TProps extends WithFullTransactionOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+type WithFullTransactionOrNotFoundProps<T extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps & {route: Route<T>};
+
+export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithFullTransactionOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const transactionID = props.transaction?.transactionID;
