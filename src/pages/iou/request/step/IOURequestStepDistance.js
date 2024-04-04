@@ -115,6 +115,7 @@ function IOURequestStepDistance({
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation =
         skipConfirmation &&
+        report.reportID &&
         !ReportUtils.isArchivedRoom(report) &&
         !(ReportUtils.isPolicyExpenseChat(reportID) && (lodashGet(policy, 'requiresCategory', false) || lodashGet(policy, 'requiresTag', false)));
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');

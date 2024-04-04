@@ -93,7 +93,7 @@ function IOURequestStepAmount({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
-    const shouldSkipConfirmation = skipConfirmation && !ReportUtils.isArchivedRoom(report) && !ReportUtils.isPolicyExpenseChat(report);
+    const shouldSkipConfirmation = skipConfirmation && report.reportID && !ReportUtils.isArchivedRoom(report) && !ReportUtils.isPolicyExpenseChat(report);
 
     useFocusEffect(
         useCallback(() => {
