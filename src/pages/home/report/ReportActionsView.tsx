@@ -1,6 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useFocusEffect} from '@react-navigation/native';
+import {useIsFocused, useRoute, useFocusEffect} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
