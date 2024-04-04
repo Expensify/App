@@ -18,10 +18,10 @@ type ThreadDividerProps = {
     ancestor: Ancestor;
 
     /** Whether the link is disabled */
-    isDisabled?: boolean;
+    isLinkDisabled?: boolean;
 };
 
-function ThreadDivider({ancestor, isDisabled = false}: ThreadDividerProps) {
+function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -31,21 +31,32 @@ function ThreadDivider({ancestor, isDisabled = false}: ThreadDividerProps) {
             style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mt3, styles.mb1, styles.userSelectNone]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
-            <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor?.report?.parentReportID ?? ''))}
-                accessibilityLabel={translate('threads.thread')}
-                role={CONST.ROLE.BUTTON}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
-                disabled={isDisabled}
-            >
-                <Icon
-                    src={Expensicons.Thread}
-                    fill={isDisabled ? theme.icon : theme.link}
-                    width={variables.iconSizeExtraSmall}
-                    height={variables.iconSizeExtraSmall}
-                />
-                <Text style={[styles.threadDividerText, isDisabled ? styles.textSupporting : styles.link]}>{translate('threads.thread')}</Text>
-            </PressableWithoutFeedback>
+            {isLinkDisabled ? (
+                <>
+                    <Icon
+                        src={Expensicons.Thread}
+                        fill={theme.icon}
+                        width={variables.iconSizeExtraSmall}
+                        height={variables.iconSizeExtraSmall}
+                    />
+                    <Text style={[styles.threadDividerText, styles.textSupporting, styles.ml1, styles.userSelectNone]}>{translate('threads.thread')}</Text>
+                </>
+            ) : (
+                <PressableWithoutFeedback
+                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor?.report?.parentReportID ?? ''))}
+                    accessibilityLabel={translate('threads.thread')}
+                    role={CONST.ROLE.BUTTON}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
+                >
+                    <Icon
+                        src={Expensicons.Thread}
+                        fill={theme.link}
+                        width={variables.iconSizeExtraSmall}
+                        height={variables.iconSizeExtraSmall}
+                    />
+                    <Text style={[styles.threadDividerText, styles.link]}>{translate('threads.thread')}</Text>
+                </PressableWithoutFeedback>
+            )}
             {!ancestor.shouldDisplayNewMarker && <View style={[styles.threadDividerLine]} />}
         </View>
     );

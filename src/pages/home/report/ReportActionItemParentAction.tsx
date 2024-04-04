@@ -103,7 +103,7 @@ function ReportActionItemParentAction({
                 >
                     <ThreadDivider
                         ancestor={ancestor}
-                        isDisabled={!ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID) as OnyxTypes.Report)}
+                        isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID) as OnyxTypes.Report)}
                     />
                     <ReportActionItem
                         onPress={
