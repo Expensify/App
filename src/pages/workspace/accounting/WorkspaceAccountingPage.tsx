@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -26,6 +25,7 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ConnectToQuickbooksOnlineButton from './qboConnectionButton';
 
 function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     const theme = useTheme();
@@ -38,16 +38,19 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
 
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [policyIsConnectedToAccountingSystem, setPolicyIsConnectedToAccountingSystem] = useState(false);
-    const [isSyncInProgress, setIsSyncInProgress] = useState(false);
+    // const [isSyncInProgress, setIsSyncInProgress] = useState(false);
+    const [isSyncInProgress] = useState(false);
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
+    const policyID = policy?.id ?? '';
+
     // fake a QBO connection sync
-    const openQBOsync = useCallback(() => {
-        setIsSyncInProgress(true);
-        setTimeout(() => setIsSyncInProgress(false), 5000);
-        setPolicyIsConnectedToAccountingSystem(true);
-    }, []);
+    // const openQBOsync = useCallback(() => {
+    //     setIsSyncInProgress(true);
+    //     setTimeout(() => setIsSyncInProgress(false), 5000);
+    //     setPolicyIsConnectedToAccountingSystem(true);
+    // }, []);
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(
         () => [
@@ -59,16 +62,14 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                 shouldShowRightComponent: true,
                 title: translate('workspace.accounting.qbo'),
                 rightComponent: (
-                    <Button
-                        onPress={openQBOsync}
-                        style={styles.justifyContentCenter}
-                        text={translate('workspace.accounting.setup')}
-                        small
+                    <ConnectToQuickbooksOnlineButton
+                        policyID={policyID}
+                        environmentURL={''}
                     />
                 ),
             },
         ],
-        [openQBOsync, styles.justifyContentCenter, styles.sectionMenuItemTopDescription, translate],
+        [styles.sectionMenuItemTopDescription, translate, policyID],
     );
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
@@ -190,7 +191,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
                 onLinkPress={Navigation.resetToHome}
-                shouldShow={!hasAccess}
+                shouldShow={hasAccess}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 shouldForceFullScreen
             >
