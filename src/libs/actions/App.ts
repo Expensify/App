@@ -101,14 +101,13 @@ Onyx.connect({
         }
 
         Onyx.clear(KEYS_TO_PRESERVE).then(() => {
-
             // Set this to false to reset the flag for this client
             Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
 
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             openApp();
         });
-     },
+    },
 });
 
 let resolveIsReadyPromise: () => void;
