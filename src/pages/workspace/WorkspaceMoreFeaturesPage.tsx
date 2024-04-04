@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -8,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
@@ -43,6 +45,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {canUseAccountingIntegrations} = usePermissions();
 
     const spendItems: Item[] = [
         {
@@ -100,6 +103,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
+    const integrateItems: Item[] = [
+        {
+            icon: Illustrations.Accounting,
+            titleTranslationKey: 'workspace.moreFeatures.connections.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
+            isActive: !!policy?.areConnectionsEnabled,
+            pendingAction: policy?.pendingFields?.areConnectionsEnabled,
+            action: (isEnabled: boolean) => {
+                Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
+            },
+        },
+    ];
+
     const sections: SectionObject[] = [
         {
             titleTranslationKey: 'workspace.moreFeatures.spendSection.title',
@@ -112,6 +128,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             items: organizeItems,
         },
     ];
+
+    if (canUseAccountingIntegrations) {
+        sections.push({
+            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
+            items: integrateItems,
+        });
+    }
 
     const renderItem = useCallback(
         (item: Item) => (
@@ -152,16 +176,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         [isSmallScreenWidth, styles, renderItem, translate],
     );
 
-    function fetchFeatures() {
+    const fetchFeatures = useCallback(() => {
         Policy.openPolicyMoreFeaturesPage(route.params.policyID);
-    }
+    }, [route.params.policyID]);
 
     useNetwork({onReconnect: fetchFeatures});
 
-    useEffect(() => {
-        fetchFeatures();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchFeatures();
+        }, [fetchFeatures]),
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
