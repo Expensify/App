@@ -163,7 +163,7 @@ function FloatingActionButtonAndPopover(props) {
             return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
         }
         return [];
-								// We added police depending on the fact that if the workspace changes, we would see these changes on Shortcut too
+        // We added police depending on the fact that if the workspace changes, we would see these changes on Shortcut too
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.personalDetails, props.session.accountID, quickActionReport, quickActionPolicy]);
 
