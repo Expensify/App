@@ -47,7 +47,7 @@ const propTypes = {
 
     /** Information about the logged in user's account */
     user: PropTypes.shape({
-        /** Whether user muted all sounds in application */
+        /** Whether user muted all sounds in the application */
         isMutedAllSounds: PropTypes.bool,
     }),
 
