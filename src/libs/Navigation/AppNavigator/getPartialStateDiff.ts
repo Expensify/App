@@ -1,5 +1,6 @@
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import getTopmostFullScreenRoute from '@libs/Navigation/getTopmostFullScreenRoute';
 import type {Metainfo} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -73,10 +74,19 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
     // This one is heuristic and may need to be improved if we will be able to navigate from modal screen with full screen in background to another modal screen with full screen in background.
     // For now this simple check is enough.
     if (metainfo.isFullScreenNavigatorMandatory) {
-        const stateTopmostFullScreen = state.routes.filter((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR).at(-1);
-        const templateStateTopmostFullScreen = templateState.routes.filter((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR).at(-1) as NavigationPartialRoute;
-        if (!stateTopmostFullScreen && templateStateTopmostFullScreen) {
-            diff[NAVIGATORS.FULL_SCREEN_NAVIGATOR] = templateStateTopmostFullScreen;
+        const stateTopmostFullScreen = getTopmostFullScreenRoute(state);
+        const templateStateTopmostFullScreen = getTopmostFullScreenRoute(templateState);
+        const fullScreenDiff = templateState.routes.filter((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR).at(-1) as NavigationPartialRoute;
+
+        if (
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            (!stateTopmostFullScreen && templateStateTopmostFullScreen) ||
+            (stateTopmostFullScreen &&
+                templateStateTopmostFullScreen &&
+                stateTopmostFullScreen.name !== templateStateTopmostFullScreen.name &&
+                !shallowCompare(stateTopmostFullScreen.params, templateStateTopmostFullScreen.params))
+        ) {
+            diff[NAVIGATORS.FULL_SCREEN_NAVIGATOR] = fullScreenDiff;
         }
     }
 
