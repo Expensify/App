@@ -206,7 +206,19 @@ type OptimisticApprovedReportAction = Pick<
 
 type OptimisticSubmittedReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'adminAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachment'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
 >;
 
 type OptimisticHoldReportAction = Pick<
@@ -3545,7 +3557,7 @@ function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: stri
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticSubmittedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticSubmittedReportAction {
+function buildOptimisticSubmittedReportAction(amount: number, currency: string, expenseReportID: string, adminAccountID: number | undefined): OptimisticSubmittedReportAction {
     const originalMessage = {
         amount,
         currency,
@@ -3555,6 +3567,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
         actorAccountID: currentUserAccountID,
+        adminAccountID,
         automatic: false,
         avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
