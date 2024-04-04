@@ -141,7 +141,7 @@ type QBOConnectionData = {
     vendors: Vendor[];
 };
 
-type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD' | false | true;
+type IntegrationEntityMap = (typeof CONST.INTEGRATION_ENTITY_MAP_TYPES)[keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES] | false | true;
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
