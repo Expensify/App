@@ -200,6 +200,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                         {({hovered}) => (
                             <WorkspacesListRow
                                 title={item.title}
+                                policyID={item.policyID}
                                 menuItems={threeDotsMenuItems}
                                 workspaceIcon={item.icon}
                                 ownerAccountID={item.ownerAccountID}

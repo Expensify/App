@@ -31,7 +31,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
         const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
         return {
             source: avatar,
-            name: policy?.name ?? '',
+            name: policy?.id ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
         };
     }, [policy]);

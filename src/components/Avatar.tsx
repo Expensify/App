@@ -49,6 +49,9 @@ type AvatarProps = {
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
+
+    /** ID of the policy */
+    policyID?: number | string;
 };
 
 function Avatar({
@@ -62,6 +65,7 @@ function Avatar({
     fallbackIconTestID = '',
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
+    policyID,
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -84,7 +88,7 @@ function Avatar({
     const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
-    const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill;
+    const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(policyID?.toString() ?? '').fill : fill;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
 
@@ -110,7 +114,7 @@ function Avatar({
                         fill={imageError ? theme.offline : iconFillColor}
                         additionalStyles={[
                             StyleUtils.getAvatarBorderStyle(size, type),
-                            isWorkspace && StyleUtils.getDefaultWorkspaceAvatarColor(name),
+                            isWorkspace && StyleUtils.getDefaultWorkspaceAvatarColor(policyID?.toString() ?? ''),
                             imageError && StyleUtils.getBackgroundColorStyle(theme.fallbackIconColor),
                             iconAdditionalStyles,
                         ]}

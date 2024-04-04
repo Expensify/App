@@ -59,6 +59,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Determines if pending column should be shown or not */
     isJoinRequestPending?: boolean;
+
+    /** ID of the policy */
+    policyID?: string;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -103,6 +106,7 @@ function WorkspacesListRow({
     brickRoadIndicator,
     shouldDisableThreeDotsMenu,
     isJoinRequestPending,
+    policyID,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -144,6 +148,7 @@ function WorkspacesListRow({
                     source={workspaceIcon}
                     fallbackIcon={fallbackWorkspaceIcon}
                     name={title}
+                    policyID={policyID}
                     type={CONST.ICON_TYPE_WORKSPACE}
                 />
                 <Text

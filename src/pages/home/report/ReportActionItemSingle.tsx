@@ -199,6 +199,7 @@ function ReportActionItemSingle({
                         source={icon.source}
                         type={icon.type}
                         name={icon.name}
+                        policyID={icon.id}
                         fallbackIcon={fallbackIcon}
                     />
                 </View>

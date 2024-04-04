@@ -242,6 +242,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
+            id: policy.id ?? '',
         };
     }, [policy]);
 

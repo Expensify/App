@@ -52,6 +52,7 @@ function RoomHeaderAvatars({icons, reportID, isGroupChat}: RoomHeaderAvatarsProp
                     imageStyles={styles.avatarLarge}
                     size={CONST.AVATAR_SIZE.LARGE}
                     name={icons[0].name}
+                    policyID={icons[0].id}
                     type={icons[0].type}
                     fallbackIcon={icons[0].fallbackIcon}
                 />
@@ -87,6 +88,7 @@ function RoomHeaderAvatars({icons, reportID, isGroupChat}: RoomHeaderAvatarsProp
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                 name={icon.name}
+                                policyID={icon.id}
                                 type={icon.type}
                                 fallbackIcon={icon.fallbackIcon}
                             />

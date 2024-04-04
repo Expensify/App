@@ -134,7 +134,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                     {
                         source: policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                        name: policy?.name,
+                        name: policy?.id,
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
