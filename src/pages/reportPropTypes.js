@@ -72,5 +72,8 @@ export default PropTypes.shape({
     pendingFields: PropTypes.objectOf(PropTypes.string),
 
     /** Custom fields attached to the report */
-    reportFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.any)),
+    reportFields: PropTypes.objectOf(PropTypes.string),
+
+    /** ID of the transaction thread associated with the report, if any */
+    transactionThreadReportID: PropTypes.string,
 });
