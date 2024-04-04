@@ -135,10 +135,12 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                             <View>
                                 <ClientSideLoggingToolMenu />
                             </View>
-                            <MenuItemList
-                                menuItems={menuItems}
-                                shouldUseSingleExecution
-                            />
+                            <View style={[styles.mhn8]}>
+                                <MenuItemList
+                                    menuItems={menuItems}
+                                    shouldUseSingleExecution
+                                />
+                            </View>
                             {!isProduction && (
                                 <View style={[styles.mt6]}>
                                     <TestToolMenu />
