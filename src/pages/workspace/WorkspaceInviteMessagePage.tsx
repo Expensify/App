@@ -107,7 +107,7 @@ function WorkspaceInviteMessagePage({
             translate('workspace.inviteMessage.welcomeNote', {
                 workspaceName: policy?.name ?? '',
                 inviterDisplayName: currentUserPersonalDetails?.displayName ?? '',
-                inviteMessage: parser.replace(welcomeNote ?? ''),
+                inviteMessage: welcomeNote ?? '',
             }),
             route.params.policyID,
         );

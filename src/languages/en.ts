@@ -2061,9 +2061,7 @@ export default {
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
             welcomeNote: ({inviterDisplayName, workspaceName, inviteMessage}: WelcomeNoteParams) =>
-                `# ${inviterDisplayName} invited you to ${workspaceName || 'a workspace'}
-
-${inviteMessage}`,
+                `# ${inviterDisplayName} invited you to ${workspaceName || 'a workspace'}\n\n${inviteMessage}`,
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',

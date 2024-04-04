@@ -1,4 +1,5 @@
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
@@ -1355,7 +1356,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
 
     const params: AddMembersToWorkspaceParams = {
         employees: JSON.stringify(logins.map((login) => ({email: login}))),
-        welcomeNote,
+        welcomeNote: new ExpensiMark().replace(welcomeNote),
         policyID,
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {
