@@ -86,11 +86,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         () =>
             policyTagLists
                 .map((policyTagList) =>
-                    lodashSortBy(
-                        policyTagList?.tags ? Object.values(policyTagList.tags) : [],
-                        'name',
-                        localeCompare,
-                    ).map((value) => {
+                    lodashSortBy(policyTagList?.tags ? Object.values(policyTagList.tags) : [], 'name', localeCompare).map((value) => {
                         const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
                         const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                         return {
