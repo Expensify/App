@@ -18,8 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 // import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {hasAccessToAccountingFeatures} from '@libs/WorkspacesSettingsUtils';
-import Navigation from '@navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import type {AnchorPosition} from '@styles/index';
@@ -34,18 +33,24 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     // const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {canUseAccountingIntegrations} = usePermissions();
-    const hasAccess = hasAccessToAccountingFeatures(policy, canUseAccountingIntegrations);
+    const hasAccess = PolicyUtils.isPolicyAdmin(policy) && policy?.areConnectionsEnabled && canUseAccountingIntegrations;
 
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
+
+    // TODO
     // const [policyIsConnectedToAccountingSystem, setPolicyIsConnectedToAccountingSystem] = useState(false);
     const [policyIsConnectedToAccountingSystem] = useState(false);
+
+    // TODO
     // const [isSyncInProgress, setIsSyncInProgress] = useState(false);
     const [isSyncInProgress] = useState(false);
+
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const policyID = policy?.id ?? '';
 
+    // TODO
     // fake a QBO connection sync
     // const openQBOsync = useCallback(() => {
     //     setIsSyncInProgress(true);
@@ -190,11 +195,10 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.resetToHome}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                 shouldShow={hasAccess}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                shouldForceFullScreen
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.accounting')}

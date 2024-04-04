@@ -2,7 +2,7 @@ import React from 'react';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
+import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
 import * as Link from '@userActions/Link';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
 
