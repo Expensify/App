@@ -633,8 +633,8 @@ function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction: Transacti
  * Gets the tax name
  */
 function getTaxName(taxes: TaxRates, transactionTaxCode: string) {
-    const taxName = `${taxes[transactionTaxCode].name}`;
-    const taxValue = `${taxes[transactionTaxCode].value}`;
+    const taxName = `${taxes[transactionTaxCode]?.name}`;
+    const taxValue = `${taxes[transactionTaxCode]?.value}`;
     return transactionTaxCode ? `${taxName} (${taxValue})` : '';
 }
 
