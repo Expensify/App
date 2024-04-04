@@ -1,5 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
@@ -239,6 +240,17 @@ function ReportActionsView({
         [fetchNewerAction, hasMoreCached, newestReportAction],
     );
 
+    useFocusEffect(
+        useCallback(() => {
+            if (isFirstLinkedActionRender.current) {
+                isFirstLinkedActionRender.current = false;
+            }
+            if (newestReportAction?.reportActionID) {
+                setCurrentReportActionID(newestReportAction.reportActionID);
+            }
+        }, [newestReportAction?.reportActionID]),
+    );
+
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
     const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
@@ -388,10 +400,6 @@ function ReportActionsView({
             (!reportActionID && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded)
         ) {
             handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
-        }
-        if (reportActionID && indexOfLinkedAction > -1 && hasNewestReportAction && isFirstLinkedActionRender.current) {
-            isFirstLinkedActionRender.current = false;
-            setCurrentReportActionID(newestReportAction?.reportActionID);
         }
     }, [
         isLoadingInitialReportActions,
