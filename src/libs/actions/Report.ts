@@ -69,16 +69,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {
-    NewGroupChatDraft,
-    PersonalDetails,
-    PersonalDetailsList,
-    PolicyReportField,
-    RecentlyUsedReportFields,
-    ReportActionReactions,
-    ReportMetadata,
-    ReportUserIsTyping,
-} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
