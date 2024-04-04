@@ -1,10 +1,10 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
-import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -103,9 +103,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
     policy?: OnyxEntry<Policy>;
 
-    /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
-    personalDetails?: OnyxCollection<PersonalDetails>;
-
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;
 
@@ -123,6 +120,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
+
+    /** 0 - 100 number indicating current progress of the progress bar */
+    progressBarPercentage?: number;
 
     /** Policy avatar to display in the header */
     policyAvatar?: Icon;

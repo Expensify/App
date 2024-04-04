@@ -39,11 +39,10 @@ import * as Device from '@userActions/Device';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
-import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
+import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
@@ -643,7 +642,6 @@ function resetHomeRouteParams() {
 function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
-    Welcome.resetReadyCheck();
     PriorityMode.resetHasReadRequiredDataFromStorage();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
@@ -915,18 +913,18 @@ function waitForUserSignIn(): Promise<boolean> {
     });
 }
 
-function handleExitToNavigation(exitTo: Routes | HybridAppRoute) {
+function handleExitToNavigation(exitTo: Route | HybridAppRoute) {
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
-                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
+                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
                 Navigation.navigate(url);
             });
         });
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, twoFactorAuthCode = '', exitTo?: Routes | HybridAppRoute) {
+function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, twoFactorAuthCode = '', exitTo?: Route | HybridAppRoute) {
     signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
     if (exitTo) {
         handleExitToNavigation(exitTo);

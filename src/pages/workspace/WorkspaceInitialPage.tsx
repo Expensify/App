@@ -8,8 +8,8 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -48,6 +48,9 @@ type WorkspaceMenuItem = {
 type WorkspaceInitialPageOnyxProps = {
     /** Bank account attached to free plan */
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
+
+    /** Collection of categories attached to a policy */
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
 type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
@@ -57,7 +60,7 @@ function dismissError(policyID: string) {
     Policy.removeWorkspace(policyID);
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, reimbursementAccount}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -97,6 +100,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     }, [policyID, policyName]);
 
     const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
+    const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
@@ -161,7 +165,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             icon: Expensicons.Workflows,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.WORKFLOWS,
-            brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburserEmail ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
@@ -170,6 +174,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             translationKey: 'workspace.common.categories',
             icon: Expensicons.Folder,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
+            brickRoadIndicator: hasPolicyCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             routeName: SCREENS.WORKSPACE.CATEGORIES,
         });
     }
@@ -180,6 +185,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             icon: Expensicons.Tag,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAGS,
+        });
+    }
+
+    if (policy?.tax?.trackingEnabled) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.taxes',
+            icon: Expensicons.Tax,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.TAXES,
+            brickRoadIndicator: PolicyUtils.hasTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
@@ -210,6 +225,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     ];
 
     const prevPolicy = usePrevious(policy);
+    const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
+    const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
@@ -234,7 +251,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             includeSafeAreaPaddingBottom={false}
-            style={[styles.pb0]}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
@@ -262,7 +278,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                             */}
                             {menuItems.map((item) => (
-                                <MenuItem
+                                <HighlightableMenuItem
                                     key={item.translationKey}
                                     disabled={hasPolicyCreationError || isExecuting}
                                     interactive={!hasPolicyCreationError}
@@ -271,6 +287,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
+                                    highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu
@@ -301,6 +318,9 @@ export default withPolicyAndFullscreenLoading(
         // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        policyCategories: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '0'}`,
         },
     })(WorkspaceInitialPage),
 );

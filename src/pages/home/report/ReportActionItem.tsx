@@ -49,6 +49,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -58,6 +59,7 @@ import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -97,16 +99,23 @@ type ReportActionItemOnyxProps = {
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
-    /** All policy report fields */
-    policyReportFields: OnyxEntry<OnyxTypes.PolicyReportFields>;
-
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Transaction associated with this report, if any */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 type ReportActionItemProps = {
     /** Report for this action */
     report: OnyxTypes.Report;
+
+    /** The transaction thread report associated with the report for this action, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** Array of report actions for the report for this action */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportActions: OnyxTypes.ReportAction[];
 
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -144,6 +153,7 @@ const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is
 function ReportActionItem({
     action,
     report,
+    transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
     emojiReactions,
@@ -156,8 +166,8 @@ function ReportActionItem({
     userWallet,
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
-    policyReportFields,
     policy,
+    transaction,
     onPress = undefined,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
@@ -183,12 +193,12 @@ function ReportActionItem({
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
     const originalReport = report.reportID === originalReportID ? report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
-
+    const transactionCurrency = TransactionUtils.getCurrency(transaction);
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.hoverComponentBG],
+        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
@@ -414,7 +424,10 @@ function ReportActionItem({
             isIOUReport(action) &&
             action.originalMessage &&
             // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
-            (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT || isSendingMoney)
+            (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
+                action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
+                isSendingMoney)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
@@ -482,6 +495,7 @@ function ReportActionItem({
                                 text={translate('bankAccount.addBankAccount')}
                                 onPress={() => BankAccounts.openPersonalBankAccountSetupView(report.reportID)}
                                 pressOnEnter
+                                large
                             />
                         )}
                         {missingPaymentMethod === 'wallet' && (
@@ -497,6 +511,7 @@ function ReportActionItem({
                                     <Button
                                         ref={buttonRef}
                                         success
+                                        large
                                         style={[styles.w100, styles.requestPreviewBox]}
                                         text={translate('iou.enableWallet')}
                                         onPress={triggerKYCFlow}
@@ -511,8 +526,13 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(action, report)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(report.reportID, action)} />;
+        } else if (ReportActionsUtils.isOldDotReportAction(action)) {
+            // This handles all historical actions from OldDot that we just want to display the message text
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMessageOfOldDotReportAction(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest', {comment: action.message?.[1].text ?? ''})} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.heldRequest')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT) {
+            children = <ReportActionItemBasicMessage message={action.message?.[0].text ?? ''} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldRequest')} />;
         } else {
@@ -662,8 +682,16 @@ function ReportActionItem({
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
             if (ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction) {
+                let message: TranslationPaths;
+                if (isReversedTransaction) {
+                    message = 'parentReportAction.reversedTransaction';
+                } else if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+                    message = 'parentReportAction.deletedExpense';
+                } else {
+                    message = 'parentReportAction.deletedRequest';
+                }
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.justifyContentEnd]}>
+                    <View>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
@@ -672,9 +700,7 @@ function ReportActionItem({
                                     showHeader
                                     report={report}
                                 >
-                                    <RenderHTML
-                                        html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`}
-                                    />
+                                    <RenderHTML html={`<comment>${translate(message)}</comment>`} />
                                 </ReportActionItemSingle>
                                 <View style={styles.threadDividerLine} />
                             </OfflineWithFeedback>
@@ -687,6 +713,7 @@ function ReportActionItem({
                     <MoneyRequestView
                         report={report}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                        shouldShowAnimatedBackground
                     />
                 </ShowContextMenuContext.Provider>
             );
@@ -694,7 +721,7 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+                    <View>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                             <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
@@ -712,7 +739,7 @@ function ReportActionItem({
                 );
             }
             return (
-                <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+                <View>
                     <AnimatedEmptyStateBackground />
                     <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
                         <TaskView
@@ -725,14 +752,37 @@ function ReportActionItem({
         }
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {
             return (
-                <OfflineWithFeedback pendingAction={action.pendingAction}>
-                    <MoneyReportView
-                        report={report}
-                        policy={policy}
-                        policyReportFields={Object.values(policyReportFields ?? {})}
-                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
+                // eslint-disable-next-line react/jsx-no-useless-fragment
+                <>
+                    {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
+                        <>
+                            {transactionCurrency !== report.currency && (
+                                <OfflineWithFeedback pendingAction={action.pendingAction}>
+                                    <MoneyReportView
+                                        report={report}
+                                        policy={policy}
+                                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
+                            <ShowContextMenuContext.Provider value={contextValue}>
+                                <MoneyRequestView
+                                    report={transactionThreadReport}
+                                    shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                                    shouldShowAnimatedBackground={transactionCurrency === report.currency}
+                                />
+                            </ShowContextMenuContext.Provider>
+                        </>
+                    ) : (
+                        <OfflineWithFeedback pendingAction={action.pendingAction}>
+                            <MoneyReportView
+                                report={report}
+                                policy={policy}
+                                shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                </>
             );
         }
 
@@ -785,7 +835,7 @@ function ReportActionItem({
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
-            onPress={onPress}
+            onPress={draftMessage === undefined ? onPress : undefined}
             style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
@@ -815,9 +865,9 @@ function ReportActionItem({
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined)}>
+                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined, !!onPress)}>
                             <OfflineWithFeedback
-                                onClose={() => ReportActions.clearReportActionErrors(report.reportID, action)}
+                                onClose={() => ReportActions.clearAllRelatedReportActionErrors(report.reportID, action)}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
@@ -876,10 +926,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         },
         initialValue: {} as OnyxTypes.Report,
     },
-    policyReportFields: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID ?? 0}`,
-        initialValue: {},
-    },
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
         initialValue: {} as OnyxTypes.Policy,
@@ -890,6 +936,14 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
+    },
+    transaction: {
+        key: ({transactionThreadReport, reportActions}) => {
+            const parentReportActionID = isEmptyObject(transactionThreadReport) ? '0' : transactionThreadReport.parentReportActionID;
+            const action = reportActions?.find((reportAction) => reportAction.reportActionID === parentReportActionID);
+            const transactionID = (action as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID ? (action as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID : 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+        },
     },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
@@ -920,9 +974,11 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.report?.total === nextProps.report?.total &&
             prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
-            lodashIsEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
-            lodashIsEqual(prevProps.report.reportFields, nextProps.report.reportFields) &&
+            lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
             lodashIsEqual(prevProps.policy, nextProps.policy) &&
+            lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
+            lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
+            lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
     }),

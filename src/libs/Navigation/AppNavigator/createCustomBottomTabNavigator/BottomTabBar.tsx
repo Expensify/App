@@ -43,11 +43,22 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
         const routes = navigationState?.routes;
         const currentRoute = routes?.[navigationState?.index ?? 0];
+
         if (Boolean(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) || Session.isAnonymousUser()) {
             return;
         }
 
-        Welcome.show(routes, () => Navigation.navigate(ROUTES.ONBOARD));
+        // Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS)});
+        Welcome.isOnboardingFlowCompleted({
+            onNotCompleted: () =>
+                Navigation.navigate(
+                    // Uncomment once Stage 1 Onboarding Flow is ready
+                    //
+                    // ROUTES.ONBOARDING_PERSONAL_DETAILS
+                    //
+                    ROUTES.ONBOARD,
+                ),
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
@@ -61,16 +72,16 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
 
     return (
         <View style={styles.bottomTabBarContainer}>
-            <PressableWithFeedback
-                onPress={() => {
-                    Navigation.navigate(ROUTES.HOME);
-                }}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('common.chats')}
-                wrapperStyle={styles.flex1}
-                style={styles.bottomTabBarItem}
-            >
-                <Tooltip text={translate('common.chats')}>
+            <Tooltip text={translate('common.chats')}>
+                <PressableWithFeedback
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.HOME);
+                    }}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.chats')}
+                    wrapperStyle={styles.flex1}
+                    style={styles.bottomTabBarItem}
+                >
                     <View>
                         <Icon
                             src={Expensicons.ChatBubble}
@@ -82,13 +93,11 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                             <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
                         )}
                     </View>
-                </Tooltip>
-            </PressableWithFeedback>
+                </PressableWithFeedback>
+            </Tooltip>
 
             <BottomTabBarFloatingActionButton />
-            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
-            </View>
+            <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
         </View>
     );
 }

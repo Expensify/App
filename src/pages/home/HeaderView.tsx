@@ -21,7 +21,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportWithoutHasDraft} from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
@@ -63,19 +62,23 @@ type HeaderViewProps = HeaderViewOnyxProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
+    /** The report action the transaction is tied to from the parent report */
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+
     /** The reportID of the request */
     reportID: string;
 };
 
-function HeaderView({report, personalDetails, parentReport, policy, session, reportID, guideCalendarLink, onNavigationMenuButtonClicked}: HeaderViewProps) {
+function HeaderView({report, personalDetails, parentReport, parentReportAction, policy, session, reportID, guideCalendarLink, onNavigationMenuButtonClicked}: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = ReportUtils.isSelfDM(report);
+    const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
     // Currently, currentUser is not included in participantAccountIDs, so for selfDM, we need to add the currentUser as participants.
-    const participants = isSelfDM ? [session?.accountID ?? -1] : report?.participantAccountIDs ?? [];
+    const participants = isSelfDM ? [session?.accountID ?? -1] : (report?.participantAccountIDs ?? []).slice(0, 5);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
@@ -86,11 +89,10 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
     const isTaskReport = ReportUtils.isTaskReport(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = ReportUtils.isGroupChat(report) ? getGroupChatName(report) : ReportUtils.getReportName(reportHeaderData);
+    const title = isGroupChat ? ReportUtils.getGroupChatName(report.participantAccountIDs ?? [], true) : ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(report) && participants.includes(CONST.ACCOUNT_ID.CONCIERGE);
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);
@@ -133,7 +135,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
-                onSelected: () => setIsDeleteTaskConfirmModalVisible(true),
+                onSelected: Session.checkIfActionIsAllowed(() => setIsDeleteTaskConfirmModalVisible(true)),
             });
         }
     }
@@ -142,7 +144,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
         Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
     );
 
-    const canJoinOrLeave = !isSelfDM && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom);
+    const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom);
     const canJoin = canJoinOrLeave && !isWhisperAction && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && !!report.notificationPreference?.length) || isUserCreatedPolicyRoom || canLeaveRoom);
     if (canJoin) {
@@ -332,7 +334,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {isTaskReport && !isSmallScreenWidth && ReportUtils.isOpenTaskReport(report) && <TaskHeaderActionButton report={report} />}
+                                    {isTaskReport && !isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {canJoin && !isSmallScreenWidth && joinButton}
                                     {shouldShowThreeDotsButton && (
                                         <ThreeDotsMenu
@@ -347,7 +349,7 @@ function HeaderView({report, personalDetails, parentReport, policy, session, rep
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    Session.checkIfActionIsAllowed(Task.deleteTask(report));
+                                    Task.deleteTask(report);
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}

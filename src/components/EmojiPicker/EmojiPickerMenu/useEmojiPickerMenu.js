@@ -24,7 +24,12 @@ const useEmojiPickerMenu = () => {
     const [preferredSkinTone] = usePreferredEmojiSkinTone();
     const {windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
-    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight);
+    /**
+     * At EmojiPicker has set innerContainerStyle with maxHeight: '95%' by styles.popoverInnerContainer
+     * to avoid the list style to be cut off due to the list height being larger than the container height
+     * so we need to calculate listStyle based on the height of the window and innerContainerStyle at the EmojiPicker
+     */
+    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight * 0.95);
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);

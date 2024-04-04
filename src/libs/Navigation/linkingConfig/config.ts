@@ -80,6 +80,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.WELCOME_VIDEO.ROOT]: {
+                    path: ROUTES.WELCOME_VIDEO_ROOT,
+                    exact: true,
+                },
+            },
+        },
+        [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
+            path: ROUTES.ONBOARDING_ROOT,
+            initialRouteName: SCREENS.ONBOARDING.PERSONAL_DETAILS,
+            screens: {
+                [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+                    path: ROUTES.ONBOARDING_PERSONAL_DETAILS,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.PURPOSE]: {
+                    path: ROUTES.ONBOARDING_PURPOSE,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
@@ -156,6 +178,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_REFACTOR]: {
+                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_REFACTOR,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
                             path: ROUTES.SETTINGS_PRONOUNS,
                             exact: true,
@@ -212,6 +238,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADDRESS_COUNTRY.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
+                            path: ROUTES.SETTINGS_ADDRESS_STATE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
                             path: ROUTES.SETTINGS_2FA.route,
                             exact: true,
@@ -265,7 +295,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
                             parse: {
-                                categoryName: (categoryName: string) => decodeURI(categoryName),
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
@@ -280,8 +310,35 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
                             path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
                         },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,
+                        },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.route,
+                        },
+                        [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
+                            path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
+                        },
                         [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
                             path: ROUTES.WORKSPACE_CATEGORY_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
+                            path: ROUTES.WORKSPACE_CATEGORY_EDIT.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
+                            path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
@@ -291,6 +348,30 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAG_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAG_EDIT.route,
+                            parse: {
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAG_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
+                            parse: {
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_TAXES_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES_SETTINGS_CUSTOM_TAX_NAME]: {
+                            path: ROUTES.WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT]: {
+                            path: ROUTES.WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT]: {
+                            path: ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.route,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
@@ -314,6 +395,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_CREATE]: {
+                            path: ROUTES.WORKSPACE_TAX_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_EDIT]: {
+                            path: ROUTES.WORKSPACE_TAX_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_NAME]: {
+                            path: ROUTES.WORKSPACE_TAX_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.TAX_VALUE]: {
+                            path: ROUTES.WORKSPACE_TAX_VALUE.route,
                         },
                     },
                 },
@@ -368,6 +461,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                     exact: true,
                                 },
                             },
+                        },
+                        [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: {
+                            path: ROUTES.NEW_CHAT_CONFIRM,
+                            exact: true,
                         },
                     },
                 },
@@ -455,32 +552,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
-                        [SCREENS.MONEY_REQUEST.ROOT]: {
-                            path: ROUTES.MONEY_REQUEST.route,
-                            exact: true,
-                            screens: {
-                                [SCREENS.MONEY_REQUEST.MANUAL_TAB]: {
-                                    path: ROUTES.MONEY_REQUEST_MANUAL_TAB,
-                                    exact: true,
-                                },
-                                [SCREENS.MONEY_REQUEST.SCAN_TAB]: {
-                                    path: ROUTES.MONEY_REQUEST_SCAN_TAB,
-                                    exact: true,
-                                },
-                                [SCREENS.MONEY_REQUEST.DISTANCE_TAB]: {
-                                    path: ROUTES.MONEY_REQUEST_DISTANCE_TAB.route,
-                                    exact: true,
-                                },
-                            },
-                        },
-                        [SCREENS.MONEY_REQUEST.AMOUNT]: ROUTES.MONEY_REQUEST_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
                         [SCREENS.MONEY_REQUEST.PARTICIPANTS]: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
-                        [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
-                        [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
+                        [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: {path: ROUTES.MONEY_REQUEST_STATE_SELECTOR.route, exact: true},
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -581,6 +658,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAGS]: {
                             path: ROUTES.WORKSPACE_TAGS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES]: {
+                            path: ROUTES.WORKSPACE_TAXES.route,
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
