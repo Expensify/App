@@ -47,6 +47,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
     const [error, setError] = useState(false);
     const theme = useTheme();
 
+    const PurposeFooterInstance = <OfflineIndicator />;
+
     useEffect(() => {
         setSelectedPurpose(onboardingPurposeSelected ?? undefined);
     }, [onboardingPurposeSelected]);
@@ -142,6 +144,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                     </ScrollView>
                     <FormAlertWithSubmitButton
                         enabledWhenOffline
+                        footerContent={isSmallScreenWidth && PurposeFooterInstance}
                         buttonText={translate('common.continue')}
                         onSubmit={() => {
                             if (!selectedPurpose) {
@@ -155,7 +158,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                         isAlertVisible={error || Boolean(errorMessage)}
                         containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
                     />
-                    {isSmallScreenWidth && <OfflineIndicator />}
                 </View>
             )}
         </SafeAreaConsumer>

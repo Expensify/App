@@ -74,6 +74,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         return errors;
     };
 
+    const PersonalDetailsFooterInstance = <OfflineIndicator />;
+
     return (
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
@@ -88,6 +90,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 <FormProvider
                     style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
+                    footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
                     validate={validate}
                     onSubmit={saveAndNavigate}
                     submitButtonText={translate('common.continue')}
@@ -131,7 +134,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         />
                     </View>
                 </FormProvider>
-                {isSmallScreenWidth && <OfflineIndicator />}
             </KeyboardAvoidingView>
         </View>
     );
