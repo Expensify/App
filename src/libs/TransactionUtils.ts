@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {IOURequestType} from './actions/IOU';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -55,7 +56,7 @@ function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
     return Boolean(transaction?.receipt?.source);
 }
 
-function getRequestType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
+function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     if (isDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;
     }

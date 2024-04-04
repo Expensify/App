@@ -166,7 +166,7 @@ type MemberForList = {
     keyForList: string;
     isSelected: boolean;
     isDisabled: boolean;
-    accountID?: number | null;
+    accountID?: number;
     login: string;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;

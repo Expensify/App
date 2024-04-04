@@ -343,7 +343,7 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) {
+function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
@@ -415,7 +415,7 @@ function setMoneyRequestBillable_temporaryForRefactor(transactionID: string, bil
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string, participants: Participant[] | undefined = []) {
+function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string, participants: Participant[] = []) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
@@ -2068,7 +2068,7 @@ function updateMoneyRequestDistance(
 function updateMoneyRequestCategory(
     transactionID: string,
     transactionThreadReportID: string,
-    category: string | undefined,
+    category: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
@@ -2227,7 +2227,7 @@ function trackExpense(
     payeeAccountID: number,
     participant: Participant,
     comment: string,
-    receipt: Receipt,
+    receipt?: Receipt,
     category?: string,
     tag?: string,
     taxCode = '',
@@ -5292,7 +5292,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     receiptFilename: string | undefined,
     receiptPath: ReceiptSource | undefined,
     onSuccess: (file: File) => void,
-    requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>,
+    requestType: IOURequestType,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     transactionID: string,
     reportID: string,
@@ -5318,7 +5318,7 @@ function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMeth
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
 }
 
-export type {GPSPoint as GpsPoint};
+export type {GPSPoint as GpsPoint, IOURequestType};
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,

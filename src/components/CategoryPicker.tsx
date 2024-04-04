@@ -21,7 +21,7 @@ type CategoryPickerProps = CategoryPickerOnyxProps & {
     /** It's used by withOnyx HOC */
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
-    selectedCategory: string | undefined;
+    selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
 };
 

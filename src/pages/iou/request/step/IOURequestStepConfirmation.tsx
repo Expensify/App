@@ -206,7 +206,7 @@ function IOURequestStepConfirmation({
 
     const trackExpense = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
-            if (!receiptObj || !report || !transaction) {
+            if (!report || !transaction) {
                 return;
             }
             IOU.trackExpense(
@@ -489,6 +489,7 @@ function IOURequestStepConfirmation({
                     />
                     {isLoading && <FullScreenLoadingIndicator />}
                     <View style={[styles.flex1, isLoading && styles.opacity0]}>
+                        {/* @ts-expect-error wait until MoneyRequestConfirmationList is migrated to typescript */}
                         <MoneyRequestConfirmationList
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
@@ -519,13 +520,6 @@ function IOURequestStepConfirmation({
                             iouCreated={transaction?.created}
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
-                            reportActionID={undefined}
-                            hasSmartScanFailed={undefined}
-                            isEditingSplitBill={undefined}
-                            isReadOnly={undefined}
-                            isScanRequest={undefined}
-                            listStyles={undefined}
-                            payeePersonalDetails={undefined}
                         />
                     </View>
                 </View>
