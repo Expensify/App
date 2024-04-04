@@ -11458,7 +11458,7 @@ const ActionUtils = __importStar(__nccwpck_require__(6981));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 // Parse the stringified JSON array of PR numbers, and cast each from String -> Number
 const PRList = ActionUtils.getJSONInput('PR_LIST', { required: true });
-console.log(`Got PR list: ${PRList}`);
+console.log('Got PR list: ', String(PRList));
 const releaseBody = GithubUtils_1.default.getReleaseBody(PRList);
 console.log(`Generated release body: ${releaseBody}`);
 core.setOutput('RELEASE_BODY', releaseBody);
