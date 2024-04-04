@@ -4,52 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- *
- * @param {String} name
- * @param {Object} options
- * @param {*} [defaultValue]
- * @returns {string|undefined}
- */
-function getStringInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
-
-module.exports = {
-    getJSONInput,
-    getStringInput,
-};
-
-
-/***/ }),
-
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -11500,7 +11454,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const ActionUtils_1 = __importDefault(__nccwpck_require__(970));
+const ActionUtils_1 = __nccwpck_require__(6981);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const EmptyObject_1 = __nccwpck_require__(8227);
@@ -11508,9 +11462,10 @@ const DEFAULT_PAYLOAD = {
     owner: CONST_1.default.GITHUB_OWNER,
     repo: CONST_1.default.APP_REPO,
 };
-const pullRequestNumber = ActionUtils_1.default.getJSONInput('PULL_REQUEST_NUMBER', { required: false }, null);
+const pullRequestNumber = (0, ActionUtils_1.getJSONInput)('PULL_REQUEST_NUMBER', { required: false }, null);
 const user = core.getInput('USER', { required: true });
 if (pullRequestNumber) {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
     console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
 }
 if (user) {
@@ -11567,6 +11522,68 @@ GithubUtils_1.default.octokit.pulls
 
 /***/ }),
 
+/***/ 6981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getStringInput = exports.getJSONInput = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param name - The name of the input.
+ * @param options - Options to pass to core.getInput
+ * @param [defaultValue] - A default value to provide for the input.
+ *                         Not required if the {required: true} option is given in the second arg to this function.
+ */
+function getJSONInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+exports.getJSONInput = getJSONInput;
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ */
+function getStringInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+exports.getStringInput = getStringInput;
+
+
+/***/ }),
+
 /***/ 9873:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -11574,9 +11591,12 @@ GithubUtils_1.default.octokit.pulls
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
-const CONST = {
+const GIT_CONST = {
     GITHUB_OWNER: 'Expensify',
     APP_REPO: 'App',
+};
+const CONST = {
+    ...GIT_CONST,
     APPLAUSE_BOT: 'applausebot',
     OS_BOTIFY: 'OSBotify',
     LABELS: {
@@ -11585,15 +11605,13 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
     },
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
-    APP_REPO_URL: '',
-    APP_REPO_GIT_URL: '',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
     ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
     POLL_RATE: 10000,
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
 };
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
 exports["default"] = CONST;
 
 

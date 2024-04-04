@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -175,16 +176,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         [isSmallScreenWidth, styles, renderItem, translate],
     );
 
-    function fetchFeatures() {
+    const fetchFeatures = useCallback(() => {
         Policy.openPolicyMoreFeaturesPage(route.params.policyID);
-    }
+    }, [route.params.policyID]);
 
     useNetwork({onReconnect: fetchFeatures});
 
-    useEffect(() => {
-        fetchFeatures();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchFeatures();
+        }, [fetchFeatures]),
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>

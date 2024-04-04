@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import lodashThrottle from 'lodash/throttle';
-import ActionUtils from '@github/libs/ActionUtils';
+import {getStringInput} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
 import {promiseDoWhile} from '@github/libs/promiseWhile';
@@ -9,11 +9,11 @@ type CurrentStagingDeploys = Awaited<ReturnType<typeof GitHubUtils.octokit.actio
 
 function run() {
     console.info('[awaitStagingDeploys] run()');
-    console.info('[awaitStagingDeploys] ActionUtils', ActionUtils);
+    console.info('[awaitStagingDeploys] getStringInput', getStringInput);
     console.info('[awaitStagingDeploys] GitHubUtils', GitHubUtils);
     console.info('[awaitStagingDeploys] promiseDoWhile', promiseDoWhile);
 
-    const tag = ActionUtils.getStringInput('TAG', {required: false});
+    const tag = getStringInput('TAG', {required: false});
     console.info('[awaitStagingDeploys] run() tag', tag);
 
     let currentStagingDeploys: CurrentStagingDeploys = [];
