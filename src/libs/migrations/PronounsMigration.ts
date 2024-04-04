@@ -30,10 +30,7 @@ function getCurrentUserPersonalDetailsFromOnyx(currentUserAccountID: number): Pr
 }
 
 /**
- * This migration updates reportActionsDrafts data to be keyed by reportActionID.
- *
- * Before: reportActionsDrafts_reportID_reportActionID: value
- * After: reportActionsDrafts_reportID: {[reportActionID]: value}
+ * This migration updates deprecated pronouns with new predefined ones.
  */
 export default function (): Promise<void | void[]> {
     return getCurrentUserAccountIDFromOnyx()
