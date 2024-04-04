@@ -48,6 +48,7 @@ import type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    PolicyConnectionSyncStageParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -1826,6 +1827,7 @@ export default {
             invoices: 'Enviar facturas',
             travel: 'Viajes',
             members: 'Miembros',
+            accounting: 'Contabilidad',
             plan: 'Plan',
             profile: 'Perfil',
             bankAccount: 'Cuenta bancaria',
@@ -2013,6 +2015,41 @@ export default {
             addedWithPrimary: 'Se agregaron algunos usuarios con sus nombres de usuario principales.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
+        },
+        accounting: {
+            title: 'Conexiones',
+            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos y mantener tus finanzas sincronizadas.',
+            qbo: 'Quickbooks Online',
+            xero: 'Xero',
+            setup: 'Configurar',
+            lastSync: 'Recién sincronizado',
+            import: 'Importar',
+            export: 'Exportar',
+            advanced: 'Avanzado',
+            other: 'Otras integraciones',
+            syncNow: 'Sincronizar ahora',
+            disconnect: 'Desconectar',
+            disconnectTitle: 'Desconectar integración',
+            disconnectPrompt: '¿Estás seguro de que deseas desconectar esta intregración?',
+            enterCredentials: 'Ingresa tus credenciales',
+            connections: {
+                syncStageName: ({stage}: PolicyConnectionSyncStageParams) => {
+                    switch (stage) {
+                        case 'quickbooksOnlineImportCustomers':
+                            return 'Importando clientes';
+                        case 'quickbooksOnlineImportEmployees':
+                            return 'Importing employees';
+                        case 'quickbooksOnlineImportAccounts':
+                            return 'Importing accounts';
+                        case 'quickbooksOnlineImportClasses':
+                            return 'Importing classes';
+
+                        default: {
+                            return `Translation missing for stage: ${stage}`;
+                        }
+                    }
+                },
+            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',

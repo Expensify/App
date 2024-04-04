@@ -49,6 +49,7 @@ import type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    PolicyConnectionSyncStageParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -1799,6 +1800,7 @@ export default {
             invoices: 'Invoices',
             travel: 'Travel',
             members: 'Members',
+            accounting: 'Accounting',
             plan: 'Plan',
             profile: 'Profile',
             bankAccount: 'Bank account',
@@ -2018,6 +2020,41 @@ export default {
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
             invalidRateError: 'Please enter a valid rate',
             lowRateError: 'Rate must be greater than 0',
+        },
+        accounting: {
+            title: 'Connections',
+            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments and keep your finances in sync.',
+            qbo: 'Quickbooks Online',
+            xero: 'Xero',
+            setup: 'Set up',
+            lastSync: 'Last synced just now',
+            import: 'Import',
+            export: 'Export',
+            advanced: 'Advanced',
+            other: 'Other integrations',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: 'Disconnect integration',
+            disconnectPrompt: 'Are you sure you want to disconnect this integration?',
+            enterCredentials: 'Enter your credentials',
+            connections: {
+                syncStageName: ({stage}: PolicyConnectionSyncStageParams) => {
+                    switch (stage) {
+                        case 'quickbooksOnlineImportCustomers':
+                            return 'Importing customers';
+                        case 'quickbooksOnlineImportEmployees':
+                            return 'Importing employees';
+                        case 'quickbooksOnlineImportAccounts':
+                            return 'Importing accounts';
+                        case 'quickbooksOnlineImportClasses':
+                            return 'Importing classes';
+
+                        default: {
+                            return `Translation missing for stage: ${stage}`;
+                        }
+                    }
+                },
+            },
         },
         bills: {
             manageYourBills: 'Manage your bills',
