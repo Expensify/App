@@ -1,4 +1,4 @@
-import core from '@actions/core';
+import * as core from '@actions/core';
 import format from 'date-fns/format';
 import fs from 'fs';
 import CONST from '@github/libs/CONST';
@@ -123,7 +123,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 ...defaultPayload,
                 title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
                 labels: [CONST.LABELS.STAGING_DEPLOY],
-                assignees: [CONST.APPLAUSE_BOT].concat(checklistAssignees),
+                assignees: [CONST.APPLAUSE_BOT as string].concat(checklistAssignees),
             });
             console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
             return newChecklist;

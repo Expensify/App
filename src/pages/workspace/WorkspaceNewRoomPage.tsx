@@ -286,6 +286,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
                                     containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                    shouldInterceptSwipe
                                 />
                             </View>
                             <View style={[styles.mhn5]}>

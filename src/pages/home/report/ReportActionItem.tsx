@@ -197,8 +197,8 @@ function ReportActionItem({
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.hoverComponentBG],
+        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
@@ -752,15 +752,18 @@ function ReportActionItem({
         }
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {
             return (
-                <OfflineWithFeedback pendingAction={action.pendingAction}>
+                // eslint-disable-next-line react/jsx-no-useless-fragment
+                <>
                     {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                         <>
                             {transactionCurrency !== report.currency && (
-                                <MoneyReportView
-                                    report={report}
-                                    policy={policy}
-                                    shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                                />
+                                <OfflineWithFeedback pendingAction={action.pendingAction}>
+                                    <MoneyReportView
+                                        report={report}
+                                        policy={policy}
+                                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                                    />
+                                </OfflineWithFeedback>
                             )}
                             <ShowContextMenuContext.Provider value={contextValue}>
                                 <MoneyRequestView
@@ -771,13 +774,15 @@ function ReportActionItem({
                             </ShowContextMenuContext.Provider>
                         </>
                     ) : (
-                        <MoneyReportView
-                            report={report}
-                            policy={policy}
-                            shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                        />
+                        <OfflineWithFeedback pendingAction={action.pendingAction}>
+                            <MoneyReportView
+                                report={report}
+                                policy={policy}
+                                shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                            />
+                        </OfflineWithFeedback>
                     )}
-                </OfflineWithFeedback>
+                </>
             );
         }
 
