@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
-import type {LastPaymentMethod, Report} from '@src/types/onyx';
+import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -33,6 +33,9 @@ type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEN
 type SettlementButtonOnyxProps = {
     /** The last payment method used per policy */
     nvpLastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+
+    /** The policy of the report */
+    policy: OnyxEntry<Policy>;
 };
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
@@ -135,6 +138,7 @@ function SettlementButton({
     shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
     confirmApproval,
+    policy,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -143,7 +147,6 @@ function SettlementButton({
         PaymentMethods.openWalletPage();
     }, []);
 
-    const policy = ReportUtils.getPolicy(policyID);
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
@@ -271,5 +274,8 @@ export default withOnyx<SettlementButtonProps, SettlementButtonOnyxProps>({
     nvpLastPaymentMethod: {
         key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
         selector: (paymentMethod) => paymentMethod ?? {},
+    },
+    policy: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
     },
 })(SettlementButton);
