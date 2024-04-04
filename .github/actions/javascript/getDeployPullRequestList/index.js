@@ -11498,7 +11498,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const github_1 = __importDefault(__nccwpck_require__(5438));
+const github = __importStar(__nccwpck_require__(5438));
 const ActionUtils_1 = __nccwpck_require__(6981);
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
@@ -11509,8 +11509,8 @@ async function run() {
         const deployEnv = isProductionDeploy ? 'production' : 'staging';
         console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
         const completedDeploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({
-            owner: github_1.default.context.repo.owner,
-            repo: github_1.default.context.repo.repo,
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
             // eslint-disable-next-line @typescript-eslint/naming-convention
             workflow_id: 'platformDeploy.yml',
             status: 'completed',
