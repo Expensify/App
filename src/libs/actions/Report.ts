@@ -27,7 +27,6 @@ import type {
     OpenReportParams,
     OpenRoomMembersPageParams,
     ReadNewestActionParams,
-    ReconnectToReportParams,
     RemoveEmojiReactionParams,
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
@@ -45,6 +44,7 @@ import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisi
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
+import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -888,54 +888,6 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
     }
 }
 
-/** Get the latest report history without marking the report as read. */
-function reconnect(reportID: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                reportName: allReports?.[reportID]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {
-                isLoadingInitialReportActions: true,
-                isLoadingNewerReportActions: false,
-                isLoadingOlderReportActions: false,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {
-                isLoadingInitialReportActions: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
-            value: {
-                isLoadingInitialReportActions: false,
-            },
-        },
-    ];
-
-    const parameters: ReconnectToReportParams = {
-        reportID,
-    };
-
-    API.write(WRITE_COMMANDS.RECONNECT_TO_REPORT, parameters, {optimisticData, successData, failureData});
-}
-
 /**
  * Gets the older actions that have not been read yet.
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
@@ -1122,19 +1074,15 @@ function togglePinnedState(reportID: string, isPinnedChat: boolean) {
 /**
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
+ * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
-function saveReportComment(reportID: string, comment: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
+function saveReportDraftComment(reportID: string, comment: string | null) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment));
 }
 
 /** Saves the number of lines for the comment */
 function saveReportCommentNumberOfLines(reportID: string, numberOfLines: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
-}
-
-/** Immediate indication whether the report has a draft comment. */
-function setReportWithDraft(reportID: string, hasDraft: boolean): Promise<void> {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {hasDraft});
 }
 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
@@ -1181,12 +1129,6 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         if (ReportUtils.isConciergeChatReport(report)) {
             conciergeChatReportID = report.reportID;
         }
-    }
-
-    // A report can be missing a name if a comment is received via pusher event and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
-    // In this case, we call reconnect so that we can fetch the report data without marking it as read
-    if (report.reportID && report.reportName === undefined) {
-        reconnect(report.reportID);
     }
 }
 
@@ -1824,7 +1766,7 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     if (!conciergeChatReportID) {
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
-        Welcome.serverDataIsReadyPromise().then(() => {
+        Welcome.onServerDataReady().then(() => {
             // If we don't have a chat with Concierge then create it
             if (!checkIfCurrentPageActive()) {
                 return;
@@ -2436,6 +2378,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                 policies: {},
                 excludeEmptyChats: true,
                 doesReportHaveViolations: false,
+                includeSelfDM: true,
             }),
     );
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
@@ -2775,7 +2718,7 @@ function getReportPrivateNote(reportID: string | undefined) {
  * - Sets the introSelected NVP to the choice the user made
  * - Creates an optimistic report comment from concierge
  */
-function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.INTRO_CHOICES>) {
+function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>) {
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
     const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
     const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
@@ -2962,17 +2905,6 @@ function clearNewRoomFormError() {
     });
 }
 
-function getReportDraftStatus(reportID: string) {
-    if (!allReports) {
-        return false;
-    }
-
-    if (!allReports[reportID]) {
-        return false;
-    }
-    return allReports[reportID]?.hasDraft;
-}
-
 function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
     const message = reportAction?.message?.[0];
     if (!message) {
@@ -3027,11 +2959,9 @@ function setGroupDraft(participants: Array<{login: string; accountID: number}>, 
 }
 
 export {
-    getReportDraftStatus,
     searchInServer,
     addComment,
     addAttachment,
-    reconnect,
     updateDescription,
     updateWriteCapabilityAndNavigate,
     updateNotificationPreference,
@@ -3039,7 +2969,7 @@ export {
     subscribeToReportLeavingEvents,
     unsubscribeFromReportChannel,
     unsubscribeFromLeavingRoomReportChannel,
-    saveReportComment,
+    saveReportDraftComment,
     saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     broadcastUserIsLeavingRoom,
@@ -3051,7 +2981,6 @@ export {
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
-    setReportWithDraft,
     addPolicyReport,
     deleteReport,
     navigateToConciergeChatAndDeleteReport,
