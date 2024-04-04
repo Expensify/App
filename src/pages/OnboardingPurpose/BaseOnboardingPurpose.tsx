@@ -80,6 +80,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
         Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
 
+        Navigation.dismissModal();
         // Only navigate to concierge chat when central pane is visible
         // Otherwise stay on the chats screen.
         if (isSmallScreenWidth) {
