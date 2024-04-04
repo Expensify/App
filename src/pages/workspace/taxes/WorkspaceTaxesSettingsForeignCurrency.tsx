@@ -32,11 +32,11 @@ function WorkspaceTaxesSettingsForeignCurrency({
     const styles = useThemeStyles();
 
     const taxRates = policy?.taxRates;
-    const taxes = taxRates?.taxes ?? {};
-    const defaultTaxKey = taxRates?.foreignTaxDefault ?? '';
+    const foreignTaxDefault = taxRates?.foreignTaxDefault ?? '';
     const defaultExternalID = taxRates?.defaultExternalID ?? '';
 
-    const selectedTaxRate = defaultTaxKey === defaultExternalID ? taxRates && TransactionUtils.getDefaultTaxName(taxRates) : TransactionUtils.getTaxName(taxes, defaultTaxKey);
+    const selectedTaxRate =
+        foreignTaxDefault === defaultExternalID ? taxRates && TransactionUtils.getDefaultTaxName(taxRates) : TransactionUtils.getTaxName(taxRates?.taxes ?? {}, foreignTaxDefault);
 
     const submit = (taxes: OptionsListUtils.TaxRatesOption) => {
         setForeignCurrencyDefault(policyID, taxes.data.code ?? '');
