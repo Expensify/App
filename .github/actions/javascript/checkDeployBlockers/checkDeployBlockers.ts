@@ -4,7 +4,7 @@ import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const run = function () {
+const run = function (): Promise<void> {
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
 
     console.log(`Fetching issue number ${issueNumber}`);
