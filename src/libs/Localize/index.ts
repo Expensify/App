@@ -133,7 +133,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
             cacheForLocale?.set(phraseKey, translatedPhrase);
             return translatedPhrase;
         }
-        
+
         if (typeof translatedPhrase === 'object') {
           const countParam = phraseParameters.find((param: unknown) => !!(param as Record<string, number>).count) as Record<string, number>;;
           const count = countParam ? countParam.count : undefined;
@@ -151,8 +151,8 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
                   return translatedPluralForm as string;
               }
 
+              Log.warn(`Pluralization form '${pluralForm}' not found for phrase '${phraseKey}'. Falling back to 'other' form.`);
               if ('other' in translatedPhrase) {
-                  Log.warn(`Pluralization form '${pluralForm}' not found for phrase '${phraseKey}'. Falling back to 'other' form.`);
                   const otherForm = translatedPhrase.other;
                   if (typeof otherForm === 'function') {
                       return otherForm(...phraseParameters);
