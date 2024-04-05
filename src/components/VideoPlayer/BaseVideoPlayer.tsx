@@ -43,7 +43,8 @@ function BaseVideoPlayer({
     // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
     // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isVideoHovered = false,
     isPreview,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
