@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -11,46 +11,45 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {BaseShareLogListOnyxProps, BaseShareLogListProps} from './types';
 
-function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogListProps) {
+function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, setSearchValue] = useState('');
     const [searchOptions, setSearchOptions] = useState<Pick<OptionsListUtils.GetOptions, 'recentReports' | 'personalDetails' | 'userToInvite'>>({
         recentReports: [],
         personalDetails: [],
         userToInvite: null,
     });
-
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isMounted = useRef(false);
-    const personalDetails = usePersonalDetails();
-
+    const {options, areOptionsInitialized} = useOptionsList();
     const updateOptions = useCallback(() => {
         const {
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
-        } = OptionsListUtils.getShareLogOptions(reports, personalDetails, searchValue.trim(), betas ?? []);
+        } = OptionsListUtils.getShareLogOptions(options, searchValue.trim(), betas ?? []);
 
         setSearchOptions({
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
         });
-    }, [betas, personalDetails, reports, searchValue]);
-
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
+    }, [betas, options, searchValue]);
 
     useEffect(() => {
+        if (!areOptionsInitialized) {
+            return;
+        }
+
         updateOptions();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [options, areOptionsInitialized]);
 
     useEffect(() => {
         if (!isMounted.current) {
@@ -64,29 +63,23 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
 
     const sections = useMemo(() => {
         const sectionsList = [];
-        let indexOffset = 0;
 
         sectionsList.push({
             title: translate('common.recents'),
             data: searchOptions.recentReports,
             shouldShow: searchOptions.recentReports?.length > 0,
-            indexOffset,
         });
-        indexOffset += searchOptions.recentReports.length;
 
         sectionsList.push({
             title: translate('common.contacts'),
             data: searchOptions.personalDetails,
             shouldShow: searchOptions.personalDetails?.length > 0,
-            indexOffset,
         });
-        indexOffset += searchOptions.personalDetails.length;
 
         if (searchOptions.userToInvite) {
             sectionsList.push({
                 data: [searchOptions.userToInvite],
                 shouldShow: true,
-                indexOffset,
             });
         }
 
@@ -132,7 +125,7 @@ function BaseShareLogList({betas, reports, onAttachLogToReport}: BaseShareLogLis
                             value={searchValue}
                             headerMessage={headerMessage}
                             showTitleTooltip
-                            shouldShowOptions={isOptionsDataReady}
+                            shouldShowOptions={areOptionsInitialized}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
