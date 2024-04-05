@@ -60,6 +60,7 @@ function IOURequestStepAmount({
     const {translate} = useLocalize();
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
+    const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -109,6 +110,7 @@ function IOURequestStepAmount({
      * @param {Number} amount
      */
     const navigateToNextPage = ({amount}) => {
+        isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
