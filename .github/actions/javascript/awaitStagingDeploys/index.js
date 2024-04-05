@@ -12158,16 +12158,21 @@ function run() {
             }),
     ])
         .then((responses) => {
+        console.info('[awaitStagingDeploys] listWorkflowRuns responses', responses);
         const workflowRuns = responses[0].data.workflow_runs;
         if (!tag && typeof responses[1] === 'object') {
             workflowRuns.push(...responses[1].data.workflow_runs);
         }
+        console.info('[awaitStagingDeploys] workflowRuns', workflowRuns);
         return workflowRuns;
     })
         .then((workflowRuns) => (currentStagingDeploys = workflowRuns.filter((workflowRun) => workflowRun.status !== 'completed')))
-        .then(() => console.log(!currentStagingDeploys.length
-        ? 'No current staging deploys found'
-        : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`));
+        .then(() => {
+        console.info('[awaitStagingDeploys] currentStagingDeploys', currentStagingDeploys);
+        console.log(!currentStagingDeploys.length
+            ? 'No current staging deploys found'
+            : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`);
+    });
     console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
     return (0, promiseWhile_1.promiseDoWhile)(() => !!currentStagingDeploys.length, (0, throttle_1.default)(throttleFunc, 
     // Poll every 60 seconds instead of every 10 seconds
