@@ -467,7 +467,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
-                            path: ROUTES.NEW_CHAT_EDIT_NAME.route,
+                            path: ROUTES.NEW_CHAT_EDIT_NAME,
                             exact: true,
                         },
                     },

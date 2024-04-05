@@ -19,21 +19,22 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
+import { withOnyx } from 'react-native-onyx';
+import * as ReportUtils from '@libs/ReportUtils';
 
 type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>;
 
-function GroupChatNameEditPage({route}: GroupChatNameEditPageProps) {
+function GroupChatNameEditPage({groupChatDraft}: GroupChatNameEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const currentChatName = decodeURIComponent(route.params.chatName);
+
+    // We will try to get the chatName from the draft if it exists there.
+    const participantAccountIDs = groupChatDraft.participants.map(participant => participant.accountID);
+    const currentChatName = groupChatDraft.reportName || ReportUtils.getGroupChatName(participantAccountIDs);
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM> = {};
-        const chatName = values.newChatName.trim();
-        if (!ValidationUtils.isRequiredFulfilled(chatName)) {
-            errors.newChatName = 'groupConfirmPage.editName.nameRequiredError';
-        }
-        return errors;
+        // TODO: There is some restriction on max characters (255) not much else. We should let people set this to an empty string if they want.
+        return {};
     }, []);
 
     const editName = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
@@ -78,4 +79,8 @@ function GroupChatNameEditPage({route}: GroupChatNameEditPageProps) {
 
 GroupChatNameEditPage.displayName = 'GroupChatNameEditPage';
 
-export default GroupChatNameEditPage;
+export default withOnyx({
+    groupChatDraft: {
+        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
+    },
+})(GroupChatNameEditPage);

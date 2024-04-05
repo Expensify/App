@@ -279,7 +279,7 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
-    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {chatName: string};
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: undefined;
 };
 
 type SearchNavigatorParamList = {

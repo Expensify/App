@@ -186,10 +186,7 @@ const ROUTES = {
     NEW: 'new',
     NEW_CHAT: 'new/chat',
     NEW_CHAT_CONFIRM: 'new/chat/confirm',
-    NEW_CHAT_EDIT_NAME: {
-        route: 'new/chat/confirm/:chatName/edit',
-        getRoute: (chatName: string) => `new/chat/confirm/${encodeURIComponent(chatName)}/edit` as const,
-    },
+    NEW_CHAT_EDIT_NAME: 'new/chat/confirm/name/edit',
     NEW_ROOM: 'new/room',
 
     REPORT: 'r',

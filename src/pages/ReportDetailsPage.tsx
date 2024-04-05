@@ -83,7 +83,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const participants = useMemo(() => ReportUtils.getVisibleMemberIDs(report), [report]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
-
+    const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
@@ -199,7 +199,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const renderAvatar = ReportUtils.isGroupChat(report) ? (
+    const renderAvatar = isGroupChat ? (
         <AvatarWithImagePicker
             source={icons[0].source}
             size={CONST.AVATAR_SIZE.XLARGE}
@@ -213,6 +213,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             reportID={report?.reportID}
         />
     );
+
+    const participantAccountIDs = ReportUtils.getVisibleParticipantAccountIDs(report);
+    const reportName = isGroupChat ? ReportUtils.getGroupChatName(participantAccountIDs, true, report.reportID ?? '') : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -236,7 +239,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                                 <DisplayNames
-                                    fullTitle={ReportUtils.getReportName(report)}
+                                    fullTitle={reportName}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={isChatRoom && !isChatThread ? 0 : 1}

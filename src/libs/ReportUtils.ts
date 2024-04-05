@@ -1717,7 +1717,16 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participantAccountIDs: number[], shouldApplyLimit = false): string | undefined {
+function getGroupChatName(participantAccountIDs: number[], shouldApplyLimit = false, reportID: string): string | undefined {
+    // If we have a reportID always try to get the name from the report.
+    if (reportID) {
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const reportName = allReports?.[reportKey]?.reportName;
+        if (reportName.length > 0) {
+            return reportName;
+        }
+    }
+
     let participants = participantAccountIDs;
     if (shouldApplyLimit) {
         participants = participants.slice(0, 5);
@@ -1729,6 +1738,11 @@ function getGroupChatName(participantAccountIDs: number[], shouldApplyLimit = fa
         .sort((first, second) => localeCompare(first ?? '', second ?? ''))
         .filter(Boolean)
         .join(', ');
+}
+
+function getVisibleParticipantAccountIDs(report) {
+    const accountIDStrings = Object.keys(report.participants);
+    return accountIDStrings.map(accountID => parseInt(accountID, 10));
 }
 
 /**
@@ -5370,7 +5384,7 @@ function isReportParticipant(accountID: number, report: OnyxEntry<Report>): bool
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
-    return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
+    return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report) || isGroupChat(report);
 }
 
 function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string): OnyxEntry<Report> | undefined {
@@ -5974,6 +5988,7 @@ export {
     hasActionsWithErrors,
     getGroupChatName,
     getOutstandingChildRequest,
+    getVisibleParticipantAccountIDs,
 };
 
 export type {

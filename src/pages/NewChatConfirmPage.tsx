@@ -112,7 +112,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     };
 
     const navigateToEditChatName = () => {
-        Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME.getRoute(groupName ?? ''));
+        Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME);
     };
 
     return (
