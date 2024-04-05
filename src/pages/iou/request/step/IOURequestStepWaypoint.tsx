@@ -95,7 +95,7 @@ function IOURequestStepWaypoint({
         }
 
         if (waypointValue !== '' && waypointAddress !== waypointValue) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'distance.errors.selectSuggestedAddress');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, `distance.errors.${isOffline ? 'selectSuggestedAddress' : 'selectSuggestedAddressOrCurrentLocation'}`);
         }
 
         return errors;
