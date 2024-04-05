@@ -70,7 +70,6 @@ function IOURequestStepTaxRatePage({
     const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
         if (isEditing) {
             const newTaxCode = taxes.data.code;
-            console.log('tax rate ', newTaxCode);
             if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
                 navigateBack();
                 return;

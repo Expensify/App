@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, TaxRate, TaxRates, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagList, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -41,7 +41,7 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWit
     const transactionTaxAmount = TransactionUtils.getAmount(transaction);
     const transactionTaxCode = transaction?.taxCode ?? '';
     const defaultTaxValue = taxRates?.defaultValue;
-    const editingTaxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode].value : taxRates?.defaultValue) || '';
+    const editingTaxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode].value : taxRates?.defaultValue) ?? '';
     const moneyRequestTaxPercentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
     const percentage = isEditing ? editingTaxPercentage : moneyRequestTaxPercentage;
     return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(percentage, transactionTaxAmount));
