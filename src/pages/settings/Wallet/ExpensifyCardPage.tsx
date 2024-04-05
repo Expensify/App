@@ -55,12 +55,11 @@ type ExpensifyCardPageProps = ExpensifyCardPageOnyxProps & StackScreenProps<Sett
 type PossibleTitles = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
 
 type LimitTypeTranslationKeys = {
-    limitNameKey: TranslationPaths;
-    limitTitleKey: PossibleTitles;
+    limitNameKey: TranslationPaths | undefined;
+    limitTitleKey: PossibleTitles | undefined;
 };
 
-function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>): LimitTypeTranslationKeys {
-    // eslint-disable-next-line default-case
+function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): LimitTypeTranslationKeys {
     switch (limitType) {
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
             return {limitNameKey: 'cardPage.smartLimit.name', limitTitleKey: 'cardPage.smartLimit.title'};
@@ -68,6 +67,8 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
             return {limitNameKey: 'cardPage.monthlyLimit.name', limitTitleKey: 'cardPage.monthlyLimit.title'};
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
             return {limitNameKey: 'cardPage.fixedLimit.name', limitTitleKey: 'cardPage.fixedLimit.title'};
+        default:
+            return {limitNameKey: undefined, limitTitleKey: undefined};
     }
 }
 
@@ -83,12 +84,12 @@ function ExpensifyCardPage({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const shouldDisplayCardDomain = !cardList?.[cardId].isAdminIssuedVirtualCard;
+    const shouldDisplayCardDomain = !cardList?.[cardId].nameValuePairs?.issuedBy;
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
         if (shouldDisplayCardDomain) {
-            return CardUtils.getDomainCards(cardList)[domain].filter((card) => !card.isAdminIssuedVirtualCard);
+            return CardUtils.getDomainCards(cardList)[domain].filter((card) => !card.nameValuePairs?.issuedBy);
         }
         return [cardList?.[cardId]];
     }, [shouldDisplayCardDomain, cardList, cardId, domain]);
@@ -132,7 +133,7 @@ function ExpensifyCardPage({
     const hasDetectedIndividualFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
 
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(cardsToShow?.[0]?.availableSpend);
-    const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.[0]?.limitType);
+    const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.[0]?.nameValuePairs?.limitType);
 
     const goToGetPhysicalCardFlow = () => {
         let updatedDraftValues = draftValues;
@@ -199,14 +200,15 @@ function ExpensifyCardPage({
                                     interactive={false}
                                     titleStyle={styles.newKansasLarge}
                                 />
-                                <MenuItemWithTopDescription
-                                    description={translate(limitNameKey)}
-                                    title={translate(limitTitleKey, formattedAvailableSpendAmount)}
-                                    interactive={false}
-                                    titleStyle={styles.walletCardLimit}
-                                    numberOfLinesTitle={3}
-                                />
-
+                                {limitNameKey && limitTitleKey && (
+                                    <MenuItemWithTopDescription
+                                        description={translate(limitNameKey)}
+                                        title={translate(limitTitleKey, formattedAvailableSpendAmount)}
+                                        interactive={false}
+                                        titleStyle={styles.walletCardLimit}
+                                        numberOfLinesTitle={3}
+                                    />
+                                )}
                                 {virtualCards.map((card) => (
                                     <>
                                         {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.pan ? (

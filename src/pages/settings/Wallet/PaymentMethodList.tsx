@@ -223,8 +223,10 @@ function PaymentMethodList({
                     return;
                 }
 
+                const isAdminIssuedVirtualCard = !!card.nameValuePairs?.issuedBy;
+
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
-                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !card.isAdminIssuedVirtualCard) {
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
                     const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
                     assignedCardsGrouped[domainGroupIndex].errors = {...assignedCardsGrouped[domainGroupIndex].errors, ...card.errors};
                     if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
@@ -236,10 +238,11 @@ function PaymentMethodList({
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
-                    title: card.bank,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    title: isAdminIssuedVirtualCard ? card.nameValuePairs?.cardTitle || card.bank : card.bank,
                     description: card.domainName,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName ?? '', card.cardID.toString() ?? '')),
-                    isGroupedCardDomain: !card.isAdminIssuedVirtualCard,
+                    isGroupedCardDomain: !isAdminIssuedVirtualCard,
                     shouldShowRightIcon: true,
                     interactive: true,
                     canDismissError: true,
