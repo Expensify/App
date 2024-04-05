@@ -82,19 +82,20 @@ function IOURequestStepAmount({
     );
 
     useEffect(() => {
-        if (isEditing) {
-            // A temporary solution to not prevent users from editing the currency
-            // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
-            // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
-            TransactionEdit.createBackupTransaction(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
-
-            return () => {
-                if (isSaveButtonPressed.current) {
-                    return;
-                }
-                TransactionEdit.removeBackupTransaction(transaction.transactionID || '');
-            };
+        if (!isEditing) {
+            return;
         }
+        // A temporary solution to not prevent users from editing the currency
+        // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
+        // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
+        TransactionEdit.createBackupTransaction(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
+
+        return () => {
+            if (isSaveButtonPressed.current) {
+                return;
+            }
+            TransactionEdit.removeBackupTransaction(transaction.transactionID || '');
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
