@@ -4,7 +4,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
 import * as Link from '@userActions/Link';
-import type {ConnectToQuickbooksOnlineButtonProps} from './types';
+import type {ConnectToQuickbooksOnlineButtonOnyxProps, ConnectToQuickbooksOnlineButtonProps} from './types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {withOnyx} from 'react-native-onyx';
 
 function ConnectToQuickbooksOnlineButton({policyID, environmentURL}: ConnectToQuickbooksOnlineButtonProps) {
     const styles = useThemeStyles();
@@ -22,4 +24,8 @@ function ConnectToQuickbooksOnlineButton({policyID, environmentURL}: ConnectToQu
     );
 }
 
-export default ConnectToQuickbooksOnlineButton;
+export default withOnyx<ConnectToQuickbooksOnlineButtonProps, ConnectToQuickbooksOnlineButtonOnyxProps>({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(ConnectToQuickbooksOnlineButton);
