@@ -460,14 +460,15 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedCategories: string[],
     optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags,
     isNewChatReport: boolean,
-    transactionThreadReport: OptimisticChatReport,
-    transactionThreadCreatedReportAction: OptimisticCreatedReportAction,
+    transactionThreadReport: OptimisticChatReport | EmptyObject,
+    transactionThreadCreatedReportAction: OptimisticCreatedReportAction | EmptyObject,
     shouldCreateNewMoneyRequestReport: boolean,
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     optimisticNextStep?: OnyxTypes.ReportNextStep | null,
     isOneOnOneSplit = false,
+    existingTransactionThreadReportID?: string,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const outstandingChildRequest = ReportUtils.getOutstandingChildRequest(iouReport);
@@ -477,6 +478,7 @@ function buildOnyxDataForMoneyRequest(
     if (TransactionUtils.isDistanceRequest(transaction)) {
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
     }
+    const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
     if (chatReport) {
         optimisticData.push({
@@ -544,20 +546,11 @@ function buildOnyxDataForMoneyRequest(
                       [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
                   },
               },
-
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
             value: transactionThreadReport,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
-            value: {
-                [transactionThreadCreatedReportAction.reportActionID]: transactionThreadCreatedReportAction,
-            },
-        },
-
         // Remove the temporary transaction used during the creation flow
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -565,6 +558,16 @@ function buildOnyxDataForMoneyRequest(
             value: null,
         },
     );
+
+    if (!isEmptyObject(transactionThreadCreatedReportAction)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
+            value: {
+                [transactionThreadCreatedReportAction.reportActionID]: transactionThreadCreatedReportAction,
+            },
+        });
+    }
 
     if (!isOneOnOneSplit) {
         optimisticData.push({
@@ -685,7 +688,10 @@ function buildOnyxDataForMoneyRequest(
                 },
             },
         },
-        {
+    );
+
+    if (!isEmptyObject(transactionThreadCreatedReportAction)) {
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
             value: {
@@ -694,8 +700,8 @@ function buildOnyxDataForMoneyRequest(
                     errors: null,
                 },
             },
-        },
-    );
+        });
+    }
 
     const errorKey = DateUtils.getMicroseconds();
 
@@ -731,9 +737,11 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
             value: {
-                errorFields: {
-                    createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
-                },
+                errorFields: existingTransactionThreadReport
+                    ? null
+                    : {
+                          createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                      },
             },
         },
         {
@@ -769,16 +777,19 @@ function buildOnyxDataForMoneyRequest(
                       }),
             },
         },
-        {
+    ];
+
+    if (!isEmptyObject(transactionThreadCreatedReportAction)) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
             value: {
                 [transactionThreadCreatedReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage', false, errorKey),
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                 },
             },
-        },
-    ];
+        });
+    }
 
     // We don't need to compute violations unless we're on a paid policy
     if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
@@ -971,7 +982,13 @@ function buildOnyxDataForTrackExpense(
     return [optimisticData, successData, failureData];
 }
 
-function getDeleteTrackExpenseInformation(chatReportID: string, transactionID: string, reportAction: OnyxTypes.ReportAction, shouldDeleteTransactionFromOnyx = true) {
+function getDeleteTrackExpenseInformation(
+    chatReportID: string,
+    transactionID: string,
+    reportAction: OnyxTypes.ReportAction,
+    shouldDeleteTransactionFromOnyx = true,
+    isMovingTransactionFromTrackExpense = false,
+) {
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -983,10 +1000,11 @@ function getDeleteTrackExpenseInformation(chatReportID: string, transactionID: s
     }
 
     // STEP 2: Decide if we need to:
-    // 1. Delete the transactionThread - delete if there are no visible comments in the thread
-    // 2. Update the moneyRequestPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
-    const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
-    const shouldShowDeletedRequestMessage = !!transactionThreadID && !shouldDeleteTransactionThread;
+    // 1. Delete the transactionThread - delete if there are no visible comments in the thread and we're not moving the transaction
+    // 2. Update the moneyRequestPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted and we're not moving the transaction
+    const shouldDeleteTransactionThread = !isMovingTransactionFromTrackExpense && (transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false);
+
+    const shouldShowDeletedRequestMessage = !isMovingTransactionFromTrackExpense && !!transactionThreadID && !shouldDeleteTransactionThread;
 
     // STEP 3: Update the IOU reportAction.
     const updatedReportAction = {
@@ -1151,6 +1169,7 @@ function getMoneyRequestInformation(
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
+    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
 ): MoneyRequestInformation {
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
@@ -1263,6 +1282,8 @@ function getMoneyRequestInformation(
             false,
             receiptObject,
             false,
+            linkedTrackedExpenseReportAction?.childReportID,
+            linkedTrackedExpenseReportAction,
         );
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -1307,8 +1328,8 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedCategories,
         optimisticPolicyRecentlyUsedTags,
         isNewChatReport,
-        optimisticTransactionThread,
-        optimisticCreatedActionForTransactionThread,
+        optimisticTransactionThread ?? {},
+        optimisticCreatedActionForTransactionThread ?? {},
         shouldCreateNewMoneyRequestReport,
         policy,
         policyTagList,
@@ -1326,8 +1347,8 @@ function getMoneyRequestInformation(
         createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : '0',
         createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : '0',
         reportPreviewAction,
-        transactionThreadReportID: optimisticTransactionThread.reportID,
-        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
+        transactionThreadReportID: optimisticTransactionThread?.reportID ?? '0',
+        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID ?? '0',
         onyxData: {
             optimisticData,
             successData,
@@ -2230,30 +2251,24 @@ function updateDistanceRequest(
     API.write(WRITE_COMMANDS.UPDATE_DISTANCE_REQUEST, params, onyxData);
 }
 
-function convertTrackedExpenseToRequest(
-    payerAccountID: number,
-    chatReportID: string,
+const getConvertTrackedExpenseInformation = (
     transactionID: string,
     actionableWhisperReportActionID: string,
-    createdChatReportActionID: string,
     moneyRequestReportID: string,
-    moneyRequestCreatedReportActionID: string,
-    moneyRequestPreviewReportActionID: string,
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string,
-    onyxData: OnyxData,
-) {
-    const optimisticData = onyxData.optimisticData;
-    const successData = onyxData.successData;
-    const failureData = onyxData.failureData;
+) => {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
 
     // Delete the transaction from the track expense report
     const {
         optimisticData: deleteOptimisticData,
         successData: deleteSuccessData,
         failureData: deleteFailureData,
-    } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, transactionID, linkedTrackedExpenseReportAction, false);
+    } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, transactionID, linkedTrackedExpenseReportAction, false, true);
 
     optimisticData?.push(...deleteOptimisticData);
     successData?.push(...deleteSuccessData);
@@ -2312,6 +2327,43 @@ function convertTrackedExpenseToRequest(
         },
     });
 
+    return {optimisticData, successData, failureData, modifiedExpenseReportActionID: modifiedExpenseReportAction.reportActionID};
+};
+
+function convertTrackedExpenseToRequest(
+    payerAccountID: number,
+    chatReportID: string,
+    transactionID: string,
+    actionableWhisperReportActionID: string,
+    createdChatReportActionID: string,
+    moneyRequestReportID: string,
+    moneyRequestCreatedReportActionID: string,
+    moneyRequestPreviewReportActionID: string,
+    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
+    linkedTrackedExpenseReportID: string,
+    transactionThreadReportID: string,
+    onyxData: OnyxData,
+) {
+    const {optimisticData, successData, failureData} = onyxData;
+
+    const {
+        optimisticData: moveTransactionOptimisticData,
+        successData: moveTransactionSuccessData,
+        failureData: moveTransactionFailureData,
+        modifiedExpenseReportActionID,
+    } = getConvertTrackedExpenseInformation(
+        transactionID,
+        actionableWhisperReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+    );
+
+    optimisticData?.push(...moveTransactionOptimisticData);
+    successData?.push(...moveTransactionSuccessData);
+    failureData?.push(...moveTransactionFailureData);
+
     const parameters = {
         payerAccountID,
         chatReportID,
@@ -2322,7 +2374,7 @@ function convertTrackedExpenseToRequest(
         moneyRequestCreatedReportActionID,
         moneyRequestPreviewReportActionID,
         transactionThreadReportID,
-        modifiedExpenseReportActionID: modifiedExpenseReportAction.reportActionID,
+        modifiedExpenseReportActionID,
     };
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
@@ -2339,75 +2391,25 @@ function categorizeTrackedExpense(
     transactionThreadReportID: string,
     onyxData: OnyxData,
 ) {
-    const optimisticData = onyxData.optimisticData;
-    const successData = onyxData.successData;
-    const failureData = onyxData.failureData;
+    const {optimisticData, successData, failureData} = onyxData;
 
-    // delete the transaction from the track expense report
     const {
-        optimisticData: deleteOptimisticData,
-        successData: deleteSuccessData,
-        failureData: deleteFailureData,
-    } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, transactionID, linkedTrackedExpenseReportAction, false);
+        optimisticData: moveTransactionOptimisticData,
+        successData: moveTransactionSuccessData,
+        failureData: moveTransactionFailureData,
+        modifiedExpenseReportActionID,
+    } = getConvertTrackedExpenseInformation(
+        transactionID,
+        actionableWhisperReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+    );
 
-    optimisticData?.push(...deleteOptimisticData);
-    successData?.push(...deleteSuccessData);
-    failureData?.push(...deleteFailureData);
-
-    // Build modified expense report action with the transaction changes
-    const modifiedExpenseReportAction = ReportUtils.buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadReportID, moneyRequestReportID);
-
-    optimisticData?.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-        value: {
-            [modifiedExpenseReportAction.reportActionID]: modifiedExpenseReportAction as OnyxTypes.ReportAction,
-        },
-    });
-
-    successData?.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-        value: {
-            [modifiedExpenseReportAction.reportActionID]: { pendingAction: null },
-        },
-    });
-
-    failureData?.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-        value: {
-            [modifiedExpenseReportAction.reportActionID]: {
-                ...(modifiedExpenseReportAction as OnyxTypes.ReportAction),
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'),
-            },
-        },
-    });
-
-    // Resolve actionable whisper message
-    optimisticData?.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportID}`,
-        value: {
-            [actionableWhisperReportActionID]: {
-                originalMessage: {
-                    resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
-                },
-            },
-        },
-    });
-
-    failureData?.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportID}`,
-        value: {
-            [actionableWhisperReportActionID]: {
-                originalMessage: {
-                    resolution: null,
-                },
-            },
-        },
-    });
+    optimisticData?.push(...moveTransactionOptimisticData);
+    successData?.push(...moveTransactionSuccessData);
+    failureData?.push(...moveTransactionFailureData);
 
     const parameters = {
         policyID,
@@ -2416,13 +2418,56 @@ function categorizeTrackedExpense(
         moneyRequestReportID,
         moneyRequestCreatedReportActionID,
         actionableWhisperReportActionID,
-        modifiedExpenseReportActionID: modifiedExpenseReportAction.reportActionID,
+        modifiedExpenseReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, parameters, { optimisticData, successData, failureData });
+    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, parameters, {optimisticData, successData, failureData});
 }
 
+function shareTrackedExpense(
+    policyID: string,
+    transactionID: string,
+    moneyRequestPreviewReportActionID: string,
+    moneyRequestReportID: string,
+    moneyRequestCreatedReportActionID: string,
+    actionableWhisperReportActionID: string,
+    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
+    linkedTrackedExpenseReportID: string,
+    transactionThreadReportID: string,
+    onyxData: OnyxData,
+) {
+    const {optimisticData, successData, failureData} = onyxData;
 
+    const {
+        optimisticData: moveTransactionOptimisticData,
+        successData: moveTransactionSuccessData,
+        failureData: moveTransactionFailureData,
+        modifiedExpenseReportActionID,
+    } = getConvertTrackedExpenseInformation(
+        transactionID,
+        actionableWhisperReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+    );
+
+    optimisticData?.push(...moveTransactionOptimisticData);
+    successData?.push(...moveTransactionSuccessData);
+    failureData?.push(...moveTransactionFailureData);
+
+    const parameters = {
+        policyID,
+        transactionID,
+        moneyRequestPreviewReportActionID,
+        moneyRequestReportID,
+        moneyRequestCreatedReportActionID,
+        actionableWhisperReportActionID,
+        modifiedExpenseReportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.SHARE_TRACKED_TRANSACTION, parameters, {optimisticData, successData, failureData});
+}
 
 /**
  * Request money from another user
@@ -2491,6 +2536,7 @@ function requestMoney(
         payeeAccountID,
         payeeEmail,
         moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
     );
 
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
@@ -2518,8 +2564,11 @@ function requestMoney(
             break;
         }
         case CONST.IOU.ACTION.CATEGORIZE: {
+            if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
+                return;
+            }
             categorizeTrackedExpense(
-                chatReport.policyID,
+                chatReport.policyID ?? '',
                 transaction.transactionID,
                 iouAction.reportActionID,
                 iouReport.reportID,
@@ -2533,18 +2582,21 @@ function requestMoney(
             break;
         }
         case CONST.IOU.ACTION.SHARE: {
-            // todo need to seperate this action into a new function
-            const parameters = {
-                policyID: chatReport.policyID,
-                transactionID: (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID,
-                moneyRequestPreviewReportActionID: reportPreviewAction.reportActionID,
-                moneyRequestReportID: iouReport.reportID,
-                moneyRequestCreatedReportActionID: createdIOUReportActionID,
+            if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
+                return;
+            }
+            shareTrackedExpense(
+                chatReport.policyID ?? '',
+                transaction.transactionID,
+                iouAction.reportActionID,
+                iouReport.reportID,
+                createdIOUReportActionID,
                 actionableWhisperReportActionID,
-                // modifiedExpenseReportActionID - not sure what need to be done here maybe `buildOptimisticModifiedExpenseReportAction` with transaction changes
-            };
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.SHARE_TRACKED_TRANSACTION, parameters, onyxData);
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID,
+                transactionThreadReportID,
+                onyxData,
+            );
             break;
         }
         default: {
@@ -2582,13 +2634,12 @@ function requestMoney(
         }
     }
 
-    Navigation.dismissModal(activeReportID);
     if (action === CONST.IOU.ACTION.SHARE) {
-        // not sure the correct way to navigate to the share should it be instant? todo: ask for clarification
-        setTimeout(() => {
-            Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(activeReportID));
-        }, 1000);
+        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(activeReportID));
+    } else {
+        Navigation.dismissModal(activeReportID);
     }
+
     Report.notifyNewAction(activeReportID, payeeAccountID);
 }
 

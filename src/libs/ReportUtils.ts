@@ -188,6 +188,8 @@ type OptimisticIOUReportAction = Pick<
     | 'receipt'
     | 'whisperedToAccountIDs'
     | 'childReportID'
+    | 'childVisibleActionCount'
+    | 'childCommenterCount'
 >;
 
 type ReportRouteParams = {
@@ -3406,6 +3408,7 @@ function buildOptimisticIOUReportAction(
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
     created = DateUtils.getDBTime(),
+    linkedExpenseReportAction: ReportAction | EmptyObject = {},
 ): OptimisticIOUReportAction {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -3450,6 +3453,7 @@ function buildOptimisticIOUReportAction(
     }
 
     return {
+        ...linkedExpenseReportAction,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         automatic: false,
@@ -3629,8 +3633,6 @@ function buildOptimisticModifiedExpenseReportAction(
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxEntry<Policy>,
-    isMovingTransactionFromTrackedExpense?: boolean,
-    movedToReportID?: string,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
     return {
@@ -3800,6 +3802,7 @@ function buildOptimisticChatReport(
     parentReportActionID = '',
     parentReportID = '',
     description = '',
+    existingTransactionThreadReportID = '',
 ): OptimisticChatReport {
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
@@ -3835,7 +3838,7 @@ function buildOptimisticChatReport(
         // For group chats we need to have participants object as we are migrating away from `participantAccountIDs` and `visibleChatMemberAccountIDs`. See https://github.com/Expensify/App/issues/34692
         participants,
         policyID,
-        reportID: generateReportID(),
+        reportID: existingTransactionThreadReportID.toString() || generateReportID(),
         reportName,
         stateNum: 0,
         statusNum: 0,
@@ -4237,8 +4240,13 @@ function buildOptimisticTaskReport(
  * @param reportAction - the parent IOU report action from which to create the thread
  * @param moneyRequestReport - the report which the report action belongs to
  */
-function buildTransactionThread(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, moneyRequestReport: OnyxEntry<Report>): OptimisticChatReport {
+function buildTransactionThread(
+    reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
+    moneyRequestReport: OnyxEntry<Report>,
+    existingTransactionThreadReportID?: string,
+): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
+
     return buildOptimisticChatReport(
         participantAccountIDs,
         getTransactionReportName(reportAction),
@@ -4252,6 +4260,8 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction | Optimisti
         CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction?.reportActionID,
         moneyRequestReport?.reportID,
+        '',
+        existingTransactionThreadReportID,
     );
 }
 
@@ -4278,12 +4288,15 @@ function buildOptimisticMoneyRequestEntities(
     isSendMoneyFlow = false,
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
-): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction] {
+    existingTransactionThreadReportID?: string,
+    linkedTrackedExpenseReportAction?: ReportAction,
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | EmptyObject] {
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
     const iouActionCreationTime = DateUtils.getDBTime();
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
+
     const iouAction = buildOptimisticIOUReportAction(
         type,
         amount,
@@ -4298,14 +4311,15 @@ function buildOptimisticMoneyRequestEntities(
         receipt,
         isOwnPolicyExpenseChat,
         iouActionCreationTime,
+        linkedTrackedExpenseReportAction,
     );
 
-    // Create optimistic transactionThread and the `CREATED` action for it
-    const transactionThread = buildTransactionThread(iouAction, iouReport);
-    const createdActionForTransactionThread = buildOptimisticCreatedReportAction(payeeEmail);
+    // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
+    const transactionThread = buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID);
+    const createdActionForTransactionThread = existingTransactionThreadReportID ? {} : buildOptimisticCreatedReportAction(payeeEmail);
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
-    iouAction.childReportID = transactionThread.reportID;
+    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread.reportID;
 
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
@@ -5750,7 +5764,6 @@ function hasActionsWithErrors(reportID: string): boolean {
     const reportActions = ReportActionsUtils.getAllReportActions(reportID ?? '');
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
-
 
 function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>, reportActionID: string): void {
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
