@@ -53,6 +53,9 @@ type SidebarLinksDataOnyxProps = {
 
     /** All policy members */
     policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
+
+    /** Drafts of reports */
+    reportsDrafts: OnyxCollection<string>;
 };
 
 type SidebarLinksDataProps = CurrentReportIDContextValue &
@@ -76,6 +79,7 @@ function SidebarLinksData({
     priorityMode = CONST.PRIORITY_MODE.DEFAULT,
     policyMembers,
     transactionViolations,
+    reportsDrafts,
 }: SidebarLinksDataProps) {
     const {accountID} = useCurrentUserPersonalDetails();
     const network = useNetwork();
@@ -105,7 +109,7 @@ function SidebarLinksData({
                 activeWorkspaceID,
                 policyMemberAccountIDs,
             ),
-        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
     );
 
     const optionListItems: string[] | null = useMemo(() => {
@@ -180,7 +184,6 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSele
     (report && {
         reportID: report.reportID,
         participantAccountIDs: report.participantAccountIDs,
-        hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,
@@ -261,7 +264,8 @@ const SidebarLinkDataWithCurrentReportID = withCurrentReportID(
             prevProps.onLinkClick === nextProps.onLinkClick &&
             lodashIsEqual(prevProps.policyMembers, nextProps.policyMembers) &&
             lodashIsEqual(prevProps.transactionViolations, nextProps.transactionViolations) &&
-            prevProps.currentReportID === nextProps.currentReportID,
+            prevProps.currentReportID === nextProps.currentReportID &&
+            lodashIsEqual(prevProps.reportsDrafts, nextProps.reportsDrafts),
     ),
 );
 
@@ -297,6 +301,10 @@ export default withOnyx<Omit<SidebarLinksDataProps, 'currentReportID' | 'updateC
     },
     transactionViolations: {
         key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        initialValue: {},
+    },
+    reportsDrafts: {
+        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         initialValue: {},
     },
 })(SidebarLinkDataWithCurrentReportID);
