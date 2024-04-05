@@ -21,6 +21,8 @@ import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
 function BaseTextInput(
@@ -54,6 +56,7 @@ function BaseTextInput(
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
+        shouldEnableMarkdown = false,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -63,6 +66,7 @@ function BaseTextInput(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const InputComponent = shouldEnableMarkdown ? RNMarkdownTextInput : RNTextInput;
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -81,6 +85,8 @@ function BaseTextInput(
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+
+    const markdownStyle = useMarkdownStyle();
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -321,8 +327,8 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            <RNTextInput
-                                ref={(element) => {
+                            <InputComponent
+                                ref={(element: BaseTextInputRef | null) => {
                                     if (typeof ref === 'function') {
                                         ref(element);
                                     } else if (ref && 'current' in ref) {
@@ -330,7 +336,7 @@ function BaseTextInput(
                                         ref.current = element;
                                     }
 
-                                    input.current = element;
+                                    input.current = element as TextInput | null;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
@@ -370,6 +376,7 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
+                                markdownStyle={markdownStyle}
                             />
                             {inputProps.isLoading && (
                                 <ActivityIndicator
