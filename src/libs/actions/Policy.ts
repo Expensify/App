@@ -1039,7 +1039,6 @@ function leaveWorkspace(policyID: string) {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 oldPolicyName: policy?.name ?? '',
-                hasDraft: false,
                 pendingChatMembers,
             },
         });
