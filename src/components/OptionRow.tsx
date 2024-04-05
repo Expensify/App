@@ -154,14 +154,14 @@ function OptionRow({
     }
 
     return (
-        <OfflineWithFeedback
-            pendingAction={option.pendingAction}
-            errors={option.allReportErrors}
-            shouldShowErrorMessages={false}
-            needsOffscreenAlphaCompositing
-        >
-            <Hoverable>
-                {(hovered) => (
+        <Hoverable>
+            {(hovered) => (
+                <OfflineWithFeedback
+                    pendingAction={option.pendingAction}
+                    errors={option.allReportErrors}
+                    shouldShowErrorMessages={false}
+                    needsOffscreenAlphaCompositing
+                >
                     <PressableWithFeedback
                         nativeID={keyForList}
                         ref={pressableRef}
@@ -229,7 +229,12 @@ function OptionRow({
                                         numberOfLines={isMultilineSupported ? 2 : 1}
                                         textStyles={displayNameStyle}
                                         shouldUseFullTitle={
-                                            !!option.isChatRoom || !!option.isPolicyExpenseChat || !!option.isMoneyRequestReport || !!option.isThread || !!option.isTaskReport
+                                            !!option.isChatRoom ||
+                                            !!option.isPolicyExpenseChat ||
+                                            !!option.isMoneyRequestReport ||
+                                            !!option.isThread ||
+                                            !!option.isTaskReport ||
+                                            !!option.isSelfDM
                                         }
                                     />
                                     {option.alternateText ? (
@@ -309,9 +314,9 @@ function OptionRow({
                             </View>
                         )}
                     </PressableWithFeedback>
-                )}
-            </Hoverable>
-        </OfflineWithFeedback>
+                </OfflineWithFeedback>
+            )}
+        </Hoverable>
     );
 }
 
@@ -340,3 +345,5 @@ export default React.memo(
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
         prevProps.option.customIcon === nextProps.option.customIcon,
 );
+
+export type {OptionRowProps};

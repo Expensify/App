@@ -1,5 +1,19 @@
+diff --git a/node_modules/react-native-web/dist/modules/AccessibilityUtil/propsToAccessibilityComponent.js b/node_modules/react-native-web/dist/modules/AccessibilityUtil/propsToAccessibilityComponent.js
+index 9c9a533..7794181 100644
+--- a/node_modules/react-native-web/dist/modules/AccessibilityUtil/propsToAccessibilityComponent.js
++++ b/node_modules/react-native-web/dist/modules/AccessibilityUtil/propsToAccessibilityComponent.js
+@@ -27,7 +27,8 @@ var roleComponents = {
+   navigation: 'nav',
+   paragraph: 'p',
+   region: 'section',
+-  strong: 'strong'
++  strong: 'strong',
++  switch: 'button'
+ };
+ var emptyObject = {};
+ var propsToAccessibilityComponent = function propsToAccessibilityComponent(props) {
 diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
-index faeb323..68d740a 100644
+index 7f6c880..b05da08 100644
 --- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 +++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 @@ -78,14 +78,6 @@ function scrollEventThrottleOrDefault(scrollEventThrottle) {
@@ -17,7 +31,7 @@ index faeb323..68d740a 100644
  
  /**
   * Base implementation for the more convenient [`<FlatList>`](https://reactnative.dev/docs/flatlist)
-@@ -1119,7 +1111,8 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1107,7 +1099,8 @@ class VirtualizedList extends StateSafePureComponent {
        _keylessItemComponentName = '';
        var spacerKey = this._getSpacerKey(!horizontal);
        var renderRegions = this.state.renderMask.enumerateRegions();

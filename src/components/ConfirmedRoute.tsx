@@ -25,7 +25,7 @@ type ConfirmedRoutePropsOnyxProps = {
 
 type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
     /** Transaction that stores the distance request data */
-    transaction: Transaction | undefined;
+    transaction: OnyxEntry<Transaction>;
 };
 
 function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {

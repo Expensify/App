@@ -53,6 +53,9 @@ type LocaleContextProps = {
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: (digit: string) => string;
 
+    /** Formats a number into its localized ordinal representation */
+    toLocaleOrdinal: (number: number) => string;
+
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: (digit: string) => string;
 
@@ -69,6 +72,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     updateLocale: () => '',
     formatPhoneNumber: () => '',
     toLocaleDigit: () => '',
+    toLocaleOrdinal: () => '',
     fromLocaleDigit: () => '',
     preferredLocale: CONST.LOCALES.DEFAULT,
 });
@@ -107,6 +111,8 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => LocaleDigitUtils.toLocaleDigit(locale, digit), [locale]);
 
+    const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(() => (number) => LocaleDigitUtils.toLocaleOrdinal(locale, number), [locale]);
+
     const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => LocaleDigitUtils.fromLocaleDigit(locale, localeDigit), [locale]);
 
     const contextValue = useMemo<LocaleContextProps>(
@@ -119,10 +125,23 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
             updateLocale,
             formatPhoneNumber,
             toLocaleDigit,
+            toLocaleOrdinal,
             fromLocaleDigit,
             preferredLocale: locale,
         }),
-        [translate, numberFormat, datetimeToRelative, datetimeToCalendarTime, datetimeToLocalString, updateLocale, formatPhoneNumber, toLocaleDigit, fromLocaleDigit, locale],
+        [
+            translate,
+            numberFormat,
+            datetimeToRelative,
+            datetimeToCalendarTime,
+            datetimeToLocalString,
+            updateLocale,
+            formatPhoneNumber,
+            toLocaleDigit,
+            toLocaleOrdinal,
+            fromLocaleDigit,
+            locale,
+        ],
     );
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;

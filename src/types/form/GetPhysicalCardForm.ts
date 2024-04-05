@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {Country} from '@src/CONST';
 import type Form from './Form';
 import ADDRESS_INPUT_IDS from './HomeAddressForm';
 
@@ -16,7 +17,7 @@ type GetPhysicalCardForm = Form<
     {
         [INPUT_IDS.ADDRESS_LINE_1]: string;
         [INPUT_IDS.ADDRESS_LINE_2]: string;
-        [INPUT_IDS.COUNTRY]: string;
+        [INPUT_IDS.COUNTRY]: Country | '';
         [INPUT_IDS.STATE]: string;
         [INPUT_IDS.CITY]: string;
         [INPUT_IDS.ZIP_POST_CODE]: string;

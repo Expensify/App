@@ -11,6 +11,7 @@ type ThemeColors = {
     appBG: Color;
     splashBG: Color;
     highlightBG: Color;
+    messageHighlightBG: Color;
     border: Color;
     borderLighter: Color;
     borderFocus: Color;
@@ -30,6 +31,7 @@ type ThemeColors = {
     buttonDefaultBG: Color;
     buttonHoveredBG: Color;
     buttonPressedBG: Color;
+    buttonSuccessText: Color;
     danger: Color;
     dangerHover: Color;
     dangerPressed: Color;

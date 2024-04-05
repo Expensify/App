@@ -1,11 +1,11 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Str from 'expensify-common/lib/str';
-import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportNextStep} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -24,6 +24,13 @@ Onyx.connect({
 
         currentUserAccountID = value?.accountID ?? -1;
     },
+});
+
+let allPolicies: OnyxCollection<Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
 });
 
 function parseMessage(messages: Message[] | undefined) {
@@ -64,7 +71,7 @@ type BuildNextStepParameters = {
  * @returns nextStep
  */
 function buildNextStep(
-    report: OnyxEntry<Report> | EmptyObject,
+    report: Report | EmptyObject,
     predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
     {isPaidWithExpensify}: BuildNextStepParameters = {},
 ): ReportNextStep | null {
@@ -72,13 +79,13 @@ function buildNextStep(
         return null;
     }
 
-    const {policyID = '', ownerAccountID = -1, managerID = -1} = report ?? {};
-    const policy = ReportUtils.getPolicy(policyID);
-    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, preventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
+    const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
+    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
     const isSelfApproval = currentUserAccountID === submitsTo;
-    const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([report?.ownerAccountID ?? -1])[0] ?? '';
+    const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
     const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitsTo) ?? '';
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
@@ -165,7 +172,7 @@ function buildNextStep(
             }
 
             // Prevented self submitting
-            if ((isPreventSelfApprovalEnabled ?? preventSelfApprovalEnabled) && isSelfApproval) {
+            if ((isPreventSelfApprovalEnabled ?? preventSelfApproval) && isSelfApproval) {
                 optimisticNextStep.message = [
                     {
                         text: "Oops! Looks like you're submitting to ",
@@ -259,7 +266,7 @@ function buildNextStep(
                         text: 'Waiting for ',
                     },
                     {
-                        text: managerDisplayName,
+                        text: 'you',
                         type: 'strong',
                     },
                     {
@@ -282,7 +289,7 @@ function buildNextStep(
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'you',
+                        text: managerDisplayName,
                         type: 'strong',
                     },
                     {

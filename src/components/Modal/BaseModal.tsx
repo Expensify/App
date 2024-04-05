@@ -41,6 +41,7 @@ function BaseModal(
         avoidKeyboard = false,
         children,
         shouldUseCustomBackdrop = false,
+        onBackdropPress,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -117,7 +118,11 @@ function BaseModal(
             return;
         }
 
-        onClose();
+        if (onBackdropPress) {
+            onBackdropPress();
+        } else {
+            onClose();
+        }
     };
 
     const handleDismissModal = () => {
@@ -210,7 +215,7 @@ function BaseModal(
             customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
         >
             <View
-                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
+                style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
                 ref={ref}
             >
                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>

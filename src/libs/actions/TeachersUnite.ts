@@ -4,7 +4,7 @@ import * as API from '@libs/API';
 import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PhoneNumber from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -69,7 +69,7 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
  */
 function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: string, policyID: string) {
     const policyName = CONST.TEACHERS_UNITE.POLICY_NAME;
-    const loggedInEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
+    const loggedInEmail = PhoneNumber.addSMSDomainIfPhoneNumber(sessionEmail);
     const reportCreationData: ReportCreationData = {};
 
     const expenseChatData = ReportUtils.buildOptimisticChatReport([sessionAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, sessionAccountID, true, policyName);

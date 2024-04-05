@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {Styles} from '@styles/index';
 
 type ReportDateIndicatorProps = {
-    style: Styles;
+    style?: Styles;
     created: string;
 };
 

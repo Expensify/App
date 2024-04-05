@@ -39,6 +39,7 @@ jest.mock('@react-navigation/native', (): typeof Navigation => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
+        useRoute: jest.fn(),
         useFocusEffect: jest.fn(),
         useIsFocused: () => ({
             navigate: mockedNavigate,
@@ -142,11 +143,14 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
     const timestamp = Date.now() - millisecondsInThePast;
     const created = DateUtils.getDBTime(timestamp);
+    const previousReportActionID = lastFakeReportActionID;
+    const reportActionID = ++lastFakeReportActionID;
 
     return {
         actor,
         actorAccountID: 1,
-        reportActionID: `${++lastFakeReportActionID}`,
+        reportActionID: `${reportActionID}`,
+        previousReportActionID: `${previousReportActionID}`,
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         shouldShow: true,
         created,
@@ -183,7 +187,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
             },
         ],
         originalMessage: {
-            childReportID: `${++lastFakeReportActionID}`,
+            childReportID: `${reportActionID}`,
             emojiReactions: {
                 heart: {
                     createdAt: '2023-08-28 15:27:52',
@@ -213,7 +217,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
     };
 }
 
-function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boolean, hasAddWorkspaceError: boolean, isUnread: boolean, isPinned: boolean, hasDraft: boolean): Report {
+function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boolean, hasAddWorkspaceError: boolean, isUnread: boolean, isPinned: boolean): Report {
     return {
         ...getFakeReport([1, 2], 0, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
@@ -222,7 +226,6 @@ function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boo
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.APPROVED : 0,
         errorFields: hasAddWorkspaceError ? {1708946640843000: {addWorkspaceRoom: 'blah'}} : undefined,
         isPinned,
-        hasDraft,
     };
 }
 
@@ -260,7 +263,7 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
             enabled: true,
         },
         autoReportingOffset: 1,
-        preventSelfApprovalEnabled: true,
+        preventSelfApproval: true,
         submitsTo: 123456,
         defaultBillable: false,
         disabledFields: {defaultBillable: true, reimbursable: false},

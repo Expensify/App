@@ -7,7 +7,6 @@ type AddCommentOrAttachementParams = {
     reportComment?: string;
     file?: FileObject;
     timezone?: string;
-    shouldAllowActionableMentionWhispers?: boolean;
     clientCreatedTime?: string;
     isOldDotConciergeChat?: boolean;
 };
