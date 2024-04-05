@@ -8,6 +8,9 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
@@ -54,10 +57,13 @@ function BaseTextInput(
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
+        markdownEnabled = false,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
+    const InputComponent = markdownEnabled ? RNMarkdownTextInput : RNTextInput;
+
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -321,13 +327,14 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            <RNTextInput
-                                ref={(element) => {
+                            <InputComponent
+                                ref={(element: AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
+                                    const baseTextInputRef = element as BaseTextInputRef | null;
                                     if (typeof ref === 'function') {
-                                        ref(element);
+                                        ref(baseTextInputRef);
                                     } else if (ref && 'current' in ref) {
                                         // eslint-disable-next-line no-param-reassign
-                                        ref.current = element;
+                                        ref.current = baseTextInputRef;
                                     }
 
                                     input.current = element;
