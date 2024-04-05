@@ -573,6 +573,19 @@ function updateGroupChatName(reportID: string, reportName: string) {
     API.write('UpdateGroupChatName', {reportName, reportID}, {optimisticData});
 }
 
+function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    // If we have no file that means we are removing the avatar.
+    // TODO: Add some error handling. In this case, we can easily show the user some feedback.
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {avatarUrl: file?.uri ?? ''}
+        },
+    ];
+    API.write('UpdateGroupChatAvatar', {file, reportID}, {optimisticData});
+}
+
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
@@ -3124,4 +3137,5 @@ export {
     updateGroupChatName,
     stashGroupChatAvatar,
     unstashGroupChatAvatar,
+    updateGroupChatAvatar,
 };

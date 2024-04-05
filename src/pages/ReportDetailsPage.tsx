@@ -204,8 +204,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             source={icons[0].source}
             size={CONST.AVATAR_SIZE.XLARGE}
             avatarStyle={styles.avatarXLarge}
-            enablePreview
-            // Add interactions
+            disableViewPhoto
+            onImageRemoved={() => {
+                // Calling this without a file will remove the avatar
+                Report.updateGroupChatAvatar(report.reportID ?? '');
+            }}
+            onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
         />
     ) : (
         <RoomHeaderAvatars
