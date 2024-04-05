@@ -109,7 +109,7 @@ function SidebarLinksData({
                 activeWorkspaceID,
                 policyMemberAccountIDs,
             ),
-        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
     );
 
     const optionListItems: string[] | null = useMemo(() => {
