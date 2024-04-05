@@ -387,7 +387,7 @@ const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequest
     },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route?.params?.transactionID}`,
-    }
+    },
 })(IOURequestStepScan);
 
 // eslint-disable-next-line rulesdir/no-negated-variables
