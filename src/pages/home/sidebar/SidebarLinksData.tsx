@@ -109,7 +109,9 @@ function SidebarLinksData({
                 activeWorkspaceID,
                 policyMemberAccountIDs,
             ),
-        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
+        // we need reports draft in deps array for reloading of list when reportDrafts will change
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
     );
 
     const optionListItems: string[] | null = useMemo(() => {
