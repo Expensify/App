@@ -56,6 +56,7 @@ import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import {hasValidDraftComment} from './DraftCommentUtils';
 import originalGetReportPolicyID from './getReportPolicyID';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
@@ -403,7 +404,6 @@ type OptionData = {
     phoneNumber?: string | null;
     isUnread?: boolean | null;
     isUnreadWithMention?: boolean | null;
-    hasDraftComment?: boolean | null;
     keyForList?: string | null;
     searchText?: string | null;
     isIOUReportOwner?: boolean | null;
@@ -450,6 +450,10 @@ type AncestorIDs = {
 };
 
 type MissingPaymentMethod = 'bankAccount' | 'wallet';
+
+type OutstandingChildRequest = {
+    hasOutstandingChildRequest?: boolean;
+};
 
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
@@ -2787,6 +2791,7 @@ function getModifiedExpenseOriginalMessage(
     if ('taxAmount' in transactionChanges) {
         originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
         originalMessage.taxAmount = transactionChanges?.taxAmount;
+        originalMessage.currency = TransactionUtils.getCurrency(oldTransaction);
     }
 
     if ('taxCode' in transactionChanges) {
@@ -4478,9 +4483,12 @@ function shouldReportBeInOptionList({
         return true;
     }
 
+    // Retrieve the draft comment for the report and convert it to a boolean
+    const hasDraftComment = hasValidDraftComment(report.reportID);
+
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (report.hasDraft || requiresAttentionFromCurrentUser(report)) {
+    if (hasDraftComment || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
@@ -5732,6 +5740,32 @@ function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, io
     }
 }
 
+/**
+ * @returns the object to update `report.hasOutstandingChildRequest`
+ */
+function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject): OutstandingChildRequest {
+    if (!iouReport || isEmptyObject(iouReport)) {
+        return {};
+    }
+
+    if (!isExpenseReport(iouReport)) {
+        return {
+            hasOutstandingChildRequest: iouReport.managerID === currentUserAccountID && iouReport.total !== 0,
+        };
+    }
+
+    const policy = getPolicy(iouReport.policyID);
+    const shouldBeManuallySubmitted = PolicyUtils.isPaidGroupPolicy(policy) && !policy?.harvesting?.enabled;
+    if (shouldBeManuallySubmitted || PolicyUtils.isPolicyAdmin(policy)) {
+        return {
+            hasOutstandingChildRequest: true,
+        };
+    }
+
+    // We don't need to update hasOutstandingChildRequest in this case
+    return {};
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5958,6 +5992,7 @@ export {
     hasActionsWithErrors,
     getReportActionActorAccountID,
     getGroupChatName,
+    getOutstandingChildRequest,
 };
 
 export type {

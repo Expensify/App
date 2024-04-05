@@ -443,20 +443,19 @@ function getSearchText(
 ): string {
     let searchTerms: string[] = [];
 
-    if (!isChatRoomOrPolicyExpenseChat) {
-        for (const personalDetail of personalDetailList) {
-            if (personalDetail.login) {
-                // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-                // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-                // More info https://github.com/Expensify/App/issues/8007
-                searchTerms = searchTerms.concat([
-                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
-                    personalDetail.login,
-                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
-                ]);
-            }
+    for (const personalDetail of personalDetailList) {
+        if (personalDetail.login) {
+            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+            // More info https://github.com/Expensify/App/issues/8007
+            searchTerms = searchTerms.concat([
+                PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
+                personalDetail.login,
+                personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
+            ]);
         }
     }
+
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
@@ -654,7 +653,6 @@ function createOption(
         login: null,
         reportID: '',
         phoneNumber: null,
-        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isDefaultRoom: false,
@@ -699,7 +697,6 @@ function createOption(
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
-        result.hasDraftComment = report.hasDraft;
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
