@@ -95,8 +95,13 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
 
     let updatesAfterGaps: DeferredUpdatesDictionary = {};
     if (gapExists && firstUpdateAfterGaps) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        updatesAfterGaps = Object.fromEntries(Object.entries(updates).filter(([lastUpdateID]) => Number(lastUpdateID) >= firstUpdateAfterGaps!));
+        updatesAfterGaps = Object.entries(updates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            if (Number(lastUpdateID) >= firstUpdateAfterGaps!) {
+                acc[Number(lastUpdateID)] = update;
+            }
+            return acc;
+        }, {});
     }
 
     return {applicableUpdates, updatesAfterGaps, latestMissingUpdateID};
