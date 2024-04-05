@@ -96,8 +96,8 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
     let updatesAfterGaps: DeferredUpdatesDictionary = {};
     if (gapExists && firstUpdateAfterGaps) {
         updatesAfterGaps = Object.entries(updates).reduce<DeferredUpdatesDictionary>(
-            (acc, [lastUpdateID, update]) => ({
-                ...acc,
+            (accUpdates, [lastUpdateID, update]) => ({
+                ...accUpdates,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 ...(Number(lastUpdateID) >= firstUpdateAfterGaps! ? {[Number(lastUpdateID)]: update} : {}),
             }),
@@ -114,8 +114,8 @@ function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
     // We only want to apply deferred updates that are newer than the last update that was applied to the client.
     // At this point, the missing updates from "GetMissingOnyxUpdates" have been applied already, so we can safely filter out.
     const pendingDeferredUpdates = Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>(
-        (acc, [lastUpdateID, update]) => ({
-            ...acc,
+        (accUpdates, [lastUpdateID, update]) => ({
+            ...accUpdates,
             // It should not be possible for lastUpdateIDAppliedToClient to be null,
             // after the missing updates have been applied.
             // If still so we want to keep the deferred update in the list.
