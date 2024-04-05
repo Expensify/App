@@ -31,18 +31,19 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
 
-type IOURequestStepScanProps = IOURequestStepOnyxProps & WithWritableReportOrNotFoundProps;
+type IOURequestStepScanProps = IOURequestStepOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN>;
 
 function IOURequestStepScan({
     report,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
-    transaction: {isFromGlobalCreate},
+    transaction,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -200,7 +201,7 @@ function IOURequestStepScan({
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
-        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -209,7 +210,7 @@ function IOURequestStepScan({
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
         IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-    }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
+    }, [iouType, report, reportID, transactionID, transaction?.isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {

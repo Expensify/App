@@ -31,11 +31,12 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
 
-type IOURequestStepScanProps = IOURequestStepOnyxProps & WithWritableReportOrNotFoundProps;
+type IOURequestStepScanProps = IOURequestStepOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN>;
 
 function IOURequestStepScan({
     report,
@@ -43,7 +44,7 @@ function IOURequestStepScan({
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
-    transaction: {isFromGlobalCreate},
+    transaction,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -171,16 +172,18 @@ function IOURequestStepScan({
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
-        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
 
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
+
         IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+        
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-    }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
+    }, [iouType, report, reportID, transactionID, transaction?.isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
@@ -233,7 +236,7 @@ function IOURequestStepScan({
         camera?.current
             ?.takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !user.isMutedAllSounds,
+                enableShutterSound: !user?.isMutedAllSounds,
             })
             .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
@@ -255,7 +258,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
+    }, [cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user?.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -381,12 +384,6 @@ IOURequestStepScan.displayName = 'IOURequestStepScan';
 const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequestStepOnyxProps>({
     user: {
         key: ONYXKEYS.USER,
-    },
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route?.params?.reportID}`,
-    },
-    transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route?.params?.transactionID}`,
     },
 })(IOURequestStepScan);
 
