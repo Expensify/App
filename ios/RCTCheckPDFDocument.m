@@ -15,19 +15,24 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(checkPdf:(NSString *)fileurl callback: (RCTResponseSenderBlock)callback)
 {
-  NSString *path = [[NSBundle mainBundle] pathForResource:@"booking" ofType:@"pdf"];//Path of your PDF
-  
-  NSData *data = [[NSFileManager defaultManager] contentsAtPath:path];
-  
-  CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
-  
-  CGPDFDocumentRef document = CGPDFDocumentCreateWithProvider(provider);
-  
-
-  if (document == nil) {
-      NSLog(@"The PDF is corrupted");//Can't be opened
-  }
-  CGDataProviderRelease(provider);
-  CGPDFDocumentRelease(document);
+  NSURL *url = [NSURL URLWithString:fileurl];
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+      NSData *ns = [NSData dataWithContentsOfURL:url];
+      BOOL fileExists = [fileManager fileExistsAtPath:[url path]];
+      BOOL isPDF = NO;
+      if ([ns length] >= 1024) 
+      {
+          uint8_t pdfBytes[] = { 0x25, 0x50, 0x44, 0x46 };
+          NSData *pdfHeader = [NSData dataWithBytes:pdfBytes length:4];
+          NSRange range = [ns rangeOfData:pdfHeader options:NSDataSearchAnchored range:NSMakeRange(0, 1024)];
+          if (range.length > 0)
+          {
+            callback(@[@YES]);
+          }
+          else
+          {
+            callback(@[@NO]);
+          }
+      }
 }
 @end

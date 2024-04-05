@@ -166,35 +166,32 @@ function IOURequestStepScan({
         }, []),
     );
 
-    // eslint-disable-next-line @lwc/lwc/no-async-await
-    const validateReceipt = async (file) => {
-        console.log(file);
-        await CheckPDFDocument.checkPdf(file.name, (isCorrect) => {
-            console.log('isCorrect', isCorrect);
-            isCorrectPDF = isCorrect;
-            const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-            if (!isCorrect) {
-                Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-                return false;
-            }
+    const validateReceipt = (file) =>
+        new Promise((resolve) => {
+            CheckPDFDocument.checkPdf(file.uri, (isCorrect) => {
+                const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+                if (!isCorrect) {
+                    Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+                    resolve(false);
+                }
 
-            if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
-                Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-                return false;
-            }
+                if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
+                    Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+                    resolve(false);
+                }
 
-            if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
-                return false;
-            }
+                if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                    Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+                    resolve(false);
+                }
 
-            if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-                return false;
-            }
-            return true;
+                if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                    Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+                    resolve(false);
+                }
+                resolve(true);
+            });
         });
-    };
 
     const navigateBack = () => {
         Navigation.goBack();
@@ -231,21 +228,22 @@ function IOURequestStepScan({
      * @param {Object} file
      */
     const setReceiptAndNavigate = (file) => {
-        if (!validateReceipt(file)) {
-            return;
-        }
+        validateReceipt(file).then((res) => {
+            if (!res) {
+                return;
+            }
+            // Store the receipt on the transaction object in Onyx
+            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+            // So, let us also save the file type in receipt for later use during blob fetch
+            IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT, file.type);
 
-        // Store the receipt on the transaction object in Onyx
-        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-        // So, let us also save the file type in receipt for later use during blob fetch
-        IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT, file.type);
+            if (action === CONST.IOU.ACTION.EDIT) {
+                updateScanAndNavigate(file, file.uri);
+                return;
+            }
 
-        if (action === CONST.IOU.ACTION.EDIT) {
-            updateScanAndNavigate(file, file.uri);
-            return;
-        }
-
-        navigateToConfirmationStep();
+            navigateToConfirmationStep();
+        });
     };
 
     const capturePhoto = useCallback(() => {
