@@ -1,5 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
-import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
@@ -99,7 +99,6 @@ function ReportActionsView({
     // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
     const [currentReportActionID, setCurrentReportActionID] = useState('');
     const isFirstLinkedActionRender = useRef(true);
-    const isFirstRender = useRef(true);
 
     const network = useNetwork();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
@@ -356,7 +355,7 @@ function ReportActionsView({
             (reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) ||
             (!reportActionID && !isLoadingOlderReportsFirstNeeded)
         ) {
-            handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID, hasNewestReportAction});
+            handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
         }
     }, [
         isLoadingInitialReportActions,
