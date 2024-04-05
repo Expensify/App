@@ -3314,9 +3314,50 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
 
 function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
     const policy = getPolicy(report?.policyID);
-    const ownerPersonalDetails = getPersonalDetailsForAccountID(policy?.submitsTo ?? 0);
-    let submittedToDisplayName = `${ownerPersonalDetails.displayName ?? ''}${ownerPersonalDetails.displayName !== ownerPersonalDetails.login ? ` (${ownerPersonalDetails.login})` : ''}`;
-    if (ownerPersonalDetails?.accountID === currentUserAccountID) {
+
+    if (report?.ownerAccountID !== currentUserAccountID && policy.role === CONST.POLICY.ROLE.ADMIN) {
+        const ownerPersonalDetail = getPersonalDetailsForAccountID(report?.ownerAccountID ?? 0);
+        const ownerDisplayName = `${ownerPersonalDetail.displayName ?? ''}${ownerPersonalDetail.displayName !== ownerPersonalDetail.login ? ` (${ownerPersonalDetail.login})` : ''}`;
+
+        return [
+            {
+                style: 'normal',
+                text: 'You (on behalf of ',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+            {
+                style: 'strong',
+                text: ownerDisplayName,
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+            {
+                style: 'normal',
+                text: ' via admin-submit)',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+            {
+                style: 'normal',
+                text: ' submitted this report',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+            {
+                style: 'normal',
+                text: ' to ',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+            {
+                style: 'strong',
+                text: 'you',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+        ];
+    }
+
+    const submittedToPersonalDetail = getPersonalDetailsForAccountID(policy?.submitsTo ?? 0);
+    let submittedToDisplayName = `${submittedToPersonalDetail.displayName ?? ''}${
+        submittedToPersonalDetail.displayName !== submittedToPersonalDetail.login ? ` (${submittedToPersonalDetail.login})` : ''
+    }`;
+    if (submittedToPersonalDetail?.accountID === currentUserAccountID) {
         submittedToDisplayName = 'yourself';
     }
 
