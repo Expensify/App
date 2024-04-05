@@ -1723,7 +1723,7 @@ function getGroupChatName(participantAccountIDs: number[] = [], shouldApplyLimit
     if (reportID) {
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
         const reportName = allReports?.[reportKey]?.reportName;
-        if (reportName.length > 0) {
+        if (reportName && reportName.length > 0) {
             return reportName;
         }
     }
@@ -1741,7 +1741,7 @@ function getGroupChatName(participantAccountIDs: number[] = [], shouldApplyLimit
         .join(', ');
 }
 
-function getVisibleParticipantAccountIDs(reportID) {
+function getVisibleParticipantAccountIDs(reportID: string) {
     const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
     const report = allReports?.[reportKey];
     if (!report) {
