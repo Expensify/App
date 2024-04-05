@@ -1105,18 +1105,16 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>, selectedOptions?: SelectedTagOption[]): Option[] {
+function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
-
         return {
             text: cleanedName,
             keyForList: tag.name,
             searchText: tag.name,
             tooltipText: cleanedName,
             isDisabled: !tag.enabled,
-            isSelected: selectedOptions?.some((selectedTag) => selectedTag.name === tag.name),
         };
     });
 }
@@ -1148,7 +1146,7 @@ function getTagListSections(
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getTagsOptions(selectedTagOptions, selectedOptions),
+            data: getTagsOptions(selectedTagOptions),
         });
 
         return tagSections;
@@ -1161,7 +1159,7 @@ function getTagListSections(
             // "Search" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(searchTags, selectedOptions),
+            data: getTagsOptions(searchTags),
         });
 
         return tagSections;
@@ -1172,7 +1170,7 @@ function getTagListSections(
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            data: getTagsOptions(enabledTags, selectedOptions),
+            data: getTagsOptions(enabledTags),
         });
 
         return tagSections;
@@ -1197,7 +1195,7 @@ function getTagListSections(
             // "Selected" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(selectedTagOptions, selectedOptions),
+            data: getTagsOptions(selectedTagOptions),
         });
     }
 
@@ -1208,7 +1206,7 @@ function getTagListSections(
             // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
-            data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
+            data: getTagsOptions(cutRecentlyUsedTags),
         });
     }
 
@@ -1216,7 +1214,7 @@ function getTagListSections(
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        data: getTagsOptions(filteredTags, selectedOptions),
+        data: getTagsOptions(filteredTags),
     });
 
     return tagSections;
