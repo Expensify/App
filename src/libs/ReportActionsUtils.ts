@@ -214,37 +214,6 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
 }
 
 /**
- * Returns the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions with a childReportID. Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
- */
-function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions> | ReportAction[]): string | null {
-    const reportActionsArray = Object.values(reportActions ?? {});
-
-    if (!reportActionsArray.length) {
-        return null;
-    }
-
-    // Get all IOU report actions for the report.
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.PAY];
-    const iouRequestActions = reportActionsArray.filter(
-        (action) =>
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-            (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
-            action.childReportID &&
-            // Include deleted IOU reportActions if they have childAactions because we want to display those comments
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            ((action.originalMessage.deleted && action.childVisibleActionCount) || action.originalMessage.IOUTransactionID),
-    );
-
-    // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
-    if (!iouRequestActions.length || iouRequestActions.length > 1) {
-        return null;
-    }
-
-    // Ensure we have a childReportID associated with the IOU report action
-    return iouRequestActions[0].childReportID ?? null;
-}
-
-/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -281,8 +250,8 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 }
 
 /**
- * Returns a sorted and filtered list of report actions from both the parent report and the child
- * transaction thread report in order to display details from both report s in the one-transaction report view.
+ * Returns a sorted and filtered list of report actions from a report and it's associated child
+ * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
 function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[]): ReportAction[] {
     if (isEmptyObject(transactionThreadReportActions)) {
@@ -801,6 +770,45 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
         reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
         reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED
     );
+}
+
+/**
+ * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ */
+function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions> | ReportAction[]): string | null {
+    const reportActionsArray = Object.values(reportActions ?? {});
+
+    if (!reportActionsArray.length) {
+        return null;
+    }
+
+    // Get all IOU report actions for the report.
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.PAY];
+    const iouRequestActions = reportActionsArray.filter(
+        (action) =>
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+            (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
+            action.childReportID &&
+            // Include deleted IOU reportActions if they have visibile childActions (like comments) because we'll want to display
+            // those reports using the standard report view
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            ((isMessageDeleted(action) && action.childVisibleActionCount) || action.originalMessage.IOUTransactionID),
+    );
+
+    // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
+    if (!iouRequestActions.length || iouRequestActions.length > 1) {
+        return null;
+    }
+
+    // If there's only IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
+    // and want to display it using the standard view
+    if (((iouRequestActions[0] as OriginalMessageIOU).originalMessage?.deleted ?? '') !== '') {
+        return null;
+    }
+
+    // Ensure we have a childReportID associated with the IOU report action
+    return iouRequestActions[0].childReportID ?? null;
 }
 
 /**
