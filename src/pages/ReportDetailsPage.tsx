@@ -214,7 +214,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     );
 
-    const participantAccountIDs = ReportUtils.getVisibleParticipantAccountIDs(report);
+    const participantAccountIDs = ReportUtils.getVisibleParticipantAccountIDs(report.reportID ?? '');
     const reportName = isGroupChat ? ReportUtils.getGroupChatName(participantAccountIDs, true, report.reportID ?? '') : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
@@ -239,7 +239,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                                 <DisplayNames
-                                    fullTitle={reportName}
+                                    fullTitle={reportName ?? ''}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={isChatRoom && !isChatThread ? 0 : 1}

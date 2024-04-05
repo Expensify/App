@@ -1718,7 +1718,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participantAccountIDs: number[], shouldApplyLimit = false, reportID: string): string | undefined {
+function getGroupChatName(participantAccountIDs: number[] = [], shouldApplyLimit = false, reportID = ''): string | undefined {
     // If we have a reportID always try to get the name from the report.
     if (reportID) {
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
@@ -1741,7 +1741,13 @@ function getGroupChatName(participantAccountIDs: number[], shouldApplyLimit = fa
         .join(', ');
 }
 
-function getVisibleParticipantAccountIDs(report) {
+function getVisibleParticipantAccountIDs(reportID) {
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const report = allReports?.[reportKey];
+    if (!report) {
+        return [];
+    }
+
     const accountIDStrings = Object.keys(report.participants);
     return accountIDStrings.map(accountID => parseInt(accountID, 10));
 }

@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {Keyboard} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -35,8 +35,14 @@ function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    // We will try to get the chatName from the draft if it exists there.
-    const participantAccountIDs = groupChatDraft?.participants.map(participant => participant.accountID);
+    // We will try to get the chatName from the report or draft depending on what flow we are in
+    const participantAccountIDs = useMemo(() => {
+        if (reportID) {
+            return ReportUtils.getVisibleParticipantAccountIDs(reportID);
+        }
+
+        return groupChatDraft?.participants.map(participant => participant.accountID);
+    }, [groupChatDraft, reportID]);
     const existingReportName = ReportUtils.getGroupChatName(participantAccountIDs, false, reportID);
     const currentChatName = reportID ? existingReportName : (groupChatDraft?.reportName || existingReportName);
 
