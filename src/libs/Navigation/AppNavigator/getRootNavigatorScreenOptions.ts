@@ -90,10 +90,6 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-
-                // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
-                marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
-                ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
             },
         },
 
@@ -102,9 +98,6 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
-
-                // This is necessary to cover whole screen. Including translated sidebar.
-                marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
             },
         },
 
