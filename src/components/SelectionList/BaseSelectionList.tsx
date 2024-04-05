@@ -409,15 +409,8 @@ function BaseSelectionList<TItem extends ListItem>(
         setCurrentPage(1);
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
-    }, [
-        canSelectMultiple,
-        flattenedSections.allOptions.length,
-        flattenedSections.selectedOptions.length,
-        prevTextInputValue,
-        textInputValue,
-        updateAndScrollToFocusedIndex,
-        prevSelectedOptions,
-    ]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [canSelectMultiple, flattenedSections.allOptions.length, flattenedSections.selectedOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
 
     useEffect(
         () => () => {
