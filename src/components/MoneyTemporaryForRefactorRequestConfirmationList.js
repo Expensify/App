@@ -796,7 +796,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={!isReadOnly && isPolicyExpenseChat}
                     title={DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
@@ -807,7 +807,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         );
                     }}
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={!isReadOnly && isPolicyExpenseChat}
                 />
             ),
             shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
