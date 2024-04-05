@@ -1873,10 +1873,10 @@ function getIcons(
 
     if (isGroupChat(report)) {
         const groupChatIcon = {
-            source: getDefaultGroupAvatar(report.reportID),
+            source: report.avatarUrl ? report.avatarUrl : getDefaultGroupAvatar(report.reportID),
             id: -1,
             type: CONST.ICON_TYPE_AVATAR,
-            name: getGroupChatName(report.participantAccountIDs ?? []),
+            name: getGroupChatName(report.participantAccountIDs ?? [], true, report.reportID ?? ''),
         };
         return [groupChatIcon];
     }
