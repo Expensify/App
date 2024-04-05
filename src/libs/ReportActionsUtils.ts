@@ -231,6 +231,7 @@ function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions>
             (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
             action.childReportID &&
             // Include deleted IOU reportActions if they have childAactions because we want to display those comments
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             ((action.originalMessage.deleted && action.childVisibleActionCount) || action.originalMessage.IOUTransactionID),
     );
 
@@ -277,6 +278,26 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     });
 
     return sortedActions;
+}
+
+/**
+ * Returns a combined list of report actions for a report and associated transaction thread report
+ */
+function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[]): ReportAction[] {
+    if (isEmptyObject(transactionThreadReportActions)) {
+        return reportActions;
+    }
+
+    // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
+    const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
+    const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+        const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
+        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
+    });
+
+    return getSortedReportActions(filteredReportActions, true);
 }
 
 /**
@@ -1077,6 +1098,7 @@ export {
     isApprovedOrSubmittedReportAction,
     getReportPreviewAction,
     getSortedReportActions,
+    getCombinedReportActions,
     getSortedReportActionsForDisplay,
     isConsecutiveActionMadeByPreviousActor,
     isCreatedAction,

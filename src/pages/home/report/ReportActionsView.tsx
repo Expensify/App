@@ -138,19 +138,7 @@ function ReportActionsView({
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
     const combinedReportActions = useMemo(() => {
-        if (isEmptyObject(transactionThreadReportActions)) {
-            return allReportActions;
-        }
-
-        // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
-        const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
-
-        // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
-            const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !ReportActionsUtils.isSentMoneyReportAction(action);
-        });
-        return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
+        return ReportActionsUtils.getCombinedReportActions(allReportActions, transactionThreadReportActions);
     }, [allReportActions, transactionThreadReportActions]);
 
     const indexOfLinkedAction = useMemo(() => {
