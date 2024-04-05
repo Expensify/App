@@ -1324,6 +1324,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Cleaning',
@@ -1331,6 +1332,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Cleaning',
                         tooltipText: 'Cleaning',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },
