@@ -281,8 +281,8 @@ type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
 };
 
-type SearchNavigatorParamList = {
-    [SCREENS.SEARCH_ROOT]: undefined;
+type FindNavigatorParamList = {
+    [SCREENS.FIND_ROOT]: undefined;
 };
 
 type DetailsNavigatorParamList = {
@@ -542,7 +542,7 @@ type PrivateNotesNavigatorParamList = {
 };
 
 type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
+    [SCREENS.LEFT_MODAL.FIND]: NavigatorScreenParams<FindNavigatorParamList>;
     [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: NavigatorScreenParams<WorkspaceSwitcherNavigatorParamList>;
 };
 
@@ -700,7 +700,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList & SearchNavigatorParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & FindNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
@@ -742,7 +742,7 @@ export type {
     ParticipantsNavigatorParamList,
     RoomMembersNavigatorParamList,
     RoomInviteNavigatorParamList,
-    SearchNavigatorParamList,
+    FindNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     TeachersUniteNavigatorParamList,

@@ -34,7 +34,7 @@ type SearchPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT>;
+type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.FIND_ROOT>;
 
 type SearchPageSectionItem = {
     data: OptionData[];

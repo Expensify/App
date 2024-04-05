@@ -24,7 +24,7 @@ const test = () => {
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
                 console.debug(`[E2E] Sidebar loaded, navigating to search route…`);
-                Navigation.navigate(ROUTES.SEARCH);
+                Navigation.navigate(ROUTES.FIND);
                 return;
             }
 

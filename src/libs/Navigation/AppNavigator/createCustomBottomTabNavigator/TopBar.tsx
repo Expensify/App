@@ -64,7 +64,7 @@ function TopBar({policy}: TopBarProps) {
                         <PressableWithoutFeedback
                             accessibilityLabel={translate('sidebarScreen.buttonSearch')}
                             style={[styles.flexRow, styles.mr2]}
-                            onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH))}
+                            onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.FIND))}
                         >
                             <Icon
                                 src={Expensicons.MagnifyingGlass}

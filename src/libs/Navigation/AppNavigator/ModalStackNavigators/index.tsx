@@ -7,6 +7,7 @@ import type {
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
+    FindNavigatorParamList,
     FlagCommentNavigatorParamList,
     MoneyRequestNavigatorParamList,
     NewChatNavigatorParamList,
@@ -22,7 +23,6 @@ import type {
     ReportSettingsNavigatorParamList,
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
-    SearchNavigatorParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     SplitDetailsNavigatorParamList,
@@ -145,8 +145,8 @@ const RoomInviteModalStackNavigator = createModalStackNavigator<RoomInviteNaviga
     [SCREENS.ROOM_INVITE_ROOT]: () => require('../../../../pages/RoomInvitePage').default as React.ComponentType,
 });
 
-const SearchModalStackNavigator = createModalStackNavigator<SearchNavigatorParamList>({
-    [SCREENS.SEARCH_ROOT]: () => require('../../../../pages/SearchPage').default as React.ComponentType,
+const SearchModalStackNavigator = createModalStackNavigator<FindNavigatorParamList>({
+    [SCREENS.FIND_ROOT]: () => require('../../../../pages/SearchPage').default as React.ComponentType,
 });
 
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
