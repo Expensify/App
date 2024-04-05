@@ -41,7 +41,6 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     return (
         <Tooltip text={translate('workspace.switcher.headerTitle')}>
             <PressableWithFeedback
-                ref={pressableRef}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 ref={pressableRef}
                 accessibilityLabel={translate('common.workspaces')}
