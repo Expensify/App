@@ -25,7 +25,7 @@ import * as OnyxUpdates from './OnyxUpdates';
 let lastUpdateIDAppliedToClient: number | null = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value: number) => (lastUpdateIDAppliedToClient = value),
+    callback: (value) => (lastUpdateIDAppliedToClient = value),
 });
 
 let queryPromise: Promise<Response | Response[] | void> | undefined;
