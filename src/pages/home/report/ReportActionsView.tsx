@@ -634,6 +634,7 @@ export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'}
         },
         lastVisitedPath: {
             key: ONYXKEYS.LAST_VISITED_PATH,
+            selector: (path) => path ?? '',
         },
     })(MemoizedReportActionsView),
 );
