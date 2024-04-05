@@ -520,7 +520,7 @@ describe('ReportUtils', () => {
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 };
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, {}, [currentUserAccountID, participantsAccountIDs[0]]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, null, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
@@ -532,7 +532,7 @@ describe('ReportUtils', () => {
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 };
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, {}, [currentUserAccountID, participantsAccountIDs[0]]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, null, [currentUserAccountID, participantsAccountIDs[0]]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
@@ -666,7 +666,7 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, {}, [currentUserAccountID, ...participantsAccountIDs]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, null, [currentUserAccountID, ...participantsAccountIDs]);
                 expect(moneyRequestOptions.length).toBe(3);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
