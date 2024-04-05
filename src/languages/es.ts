@@ -1942,7 +1942,7 @@ export default {
                 subtitle: 'Configura campos personalizados para los gastos.',
             },
             connections: {
-                title: 'Conexión',
+                title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
         },

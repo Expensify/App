@@ -213,6 +213,8 @@ const EmojiPicker = forwardRef((props, ref) => {
             anchorDimensions={emojiAnchorDimension.current}
             avoidKeyboard
             shoudSwitchPositionIfOverflow
+            shouldEnableNewFocusManagement
+            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}
