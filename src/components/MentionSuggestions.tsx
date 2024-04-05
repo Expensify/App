@@ -22,7 +22,7 @@ type Mention = {
     login?: string;
 
     /** Array of icons of the user. We use the first element of this array */
-    icons: Icon[];
+    icons?: Icon[];
 };
 
 type MentionSuggestionsProps = {
@@ -67,16 +67,18 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
 
             return (
                 <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
-                    <View style={styles.mentionSuggestionsAvatarContainer}>
-                        <Avatar
-                            source={item.icons[0].source}
-                            size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
-                            name={item.icons[0].name}
-                            type={item.icons[0].type}
-                            fill={isIcon ? theme.success : undefined}
-                            fallbackIcon={item.icons[0].fallbackIcon}
-                        />
-                    </View>
+                    {item.icons && (
+                        <View style={styles.mentionSuggestionsAvatarContainer}>
+                            <Avatar
+                                source={item.icons[0].source}
+                                size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
+                                name={item.icons[0].name}
+                                type={item.icons[0].type}
+                                fill={isIcon ? theme.success : undefined}
+                                fallbackIcon={item.icons[0].fallbackIcon}
+                            />
+                        </View>
+                    )}
                     <Text
                         style={[styles.mentionSuggestionsText, styles.flexShrink1]}
                         numberOfLines={1}
