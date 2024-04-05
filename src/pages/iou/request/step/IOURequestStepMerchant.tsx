@@ -92,7 +92,7 @@ function IOURequestStepMerchant({
         [isMerchantRequired],
     );
 
-    const updateMerchant = (value: ValidationData) => {
+    const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
         const newMerchant = value.moneyRequestMerchant?.trim();
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
