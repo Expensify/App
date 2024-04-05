@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,18 +12,13 @@ import Text from './Text';
 type AttachmentOfflineIndicatorProps = {
     /** Whether the offline indicator is displayed for the attachment preview. */
     isPreview?: boolean;
-
-    /** Title text to be displayed. */
-    title: string;
-
-    /** Subtitle text to be displayed. */
-    subtitle: string;
 };
 
-function AttachmentOfflineIndicator({title, subtitle, isPreview = false}: AttachmentOfflineIndicatorProps) {
+function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
     if (!isOffline) {
         return null;
@@ -38,8 +34,8 @@ function AttachmentOfflineIndicator({title, subtitle, isPreview = false}: Attach
             />
             {!isPreview && (
                 <View>
-                    <Text style={[styles.notFoundTextHeader]}>{title}</Text>
-                    <Text>{subtitle}</Text>
+                    <Text style={[styles.notFoundTextHeader]}>{translate('common.youAppearToBeOffline')}</Text>
+                    <Text>{translate('common.attachementWillBeAvailableOnceBackOnline')}</Text>
                 </View>
             )}
         </View>
