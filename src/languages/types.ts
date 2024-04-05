@@ -1,5 +1,4 @@
 import type {ReportAction} from '@src/types/onyx';
-import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type en from './en';
 
 type AddressLineParams = {
@@ -298,8 +297,6 @@ type HeldRequestParams = {comment: string};
 
 type DistanceRateOperationsParams = {count: number};
 
-type PolicyConnectionSyncStageParams = {stage: PolicyConnectionSyncStage};
-
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
@@ -403,5 +400,4 @@ export type {
     ZipCodeExampleFormatParams,
     LogSizeParams,
     HeldRequestParams,
-    PolicyConnectionSyncStageParams,
 };
