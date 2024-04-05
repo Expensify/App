@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -69,6 +70,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
     const {translate} = useLocalize();
+    const {canUseAccountingIntegrations} = usePermissions();
 
     const policyID = policy?.id ?? '';
     const policyName = policy?.name ?? '';
