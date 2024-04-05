@@ -2,9 +2,8 @@ import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,7 +42,6 @@ type ReportFieldDropdownData = {
     keyForList: string;
     searchText: string;
     tooltipText: string;
-    isSelected?: boolean;
 };
 
 type ReportFieldDropdownSectionItem = {
@@ -73,7 +71,6 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
                     keyForList: option,
                     searchText: option,
                     tooltipText: option,
-                    isSelected: option === fieldValue,
                 })),
             });
         } else {
@@ -87,7 +84,6 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
                             keyForList: selectedValue,
                             searchText: selectedValue,
                             tooltipText: selectedValue,
-                            isSelected: true,
                         },
                     ],
                 });
@@ -134,18 +130,27 @@ function EditReportFieldDropdownPage({fieldName, onSubmit, fieldKey, fieldValue,
             {({insets}) => (
                 <>
                     <HeaderWithBackButton title={fieldName} />
-                    <SelectionList
-                        ListItem={RadioListItem}
-                        containerStyle={{paddingBottom: getSafeAreaMargins(insets).marginBottom}}
+                    <OptionsSelector
+                        // @ts-expect-error TODO: TS migration
+                        contentContainerStyles={[{paddingBottom: getSafeAreaMargins(insets).marginBottom}]}
+                        optionHoveredStyle={styles.hoveredComponentBG}
+                        sectionHeaderStyle={styles.mt5}
+                        selectedOptions={[{name: fieldValue}]}
                         textInputLabel={translate('common.search')}
+                        boldStyle
                         sections={sections}
-                        sectionTitleStyles={styles.mt5}
-                        textInputValue={searchValue}
-                        onSelectRow={(option) => onSubmit({[fieldKey]: fieldValue === option.text ? '' : option.text})}
+                        // Focus the first option when searching
+                        focusedIndex={0}
+                        value={searchValue}
+                        onSelectRow={(option: Record<string, string>) =>
+                            onSubmit({
+                                [fieldKey]: fieldValue === option.text ? '' : option.text,
+                            })
+                        }
                         onChangeText={setSearchValue}
+                        highlightSelectedOptions
                         isRowMultilineSupported
                         headerMessage={headerMessage}
-                        initiallyFocusedOptionKey={fieldValue}
                     />
                 </>
             )}

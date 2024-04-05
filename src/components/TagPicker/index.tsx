@@ -2,8 +2,7 @@ import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -101,15 +100,21 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
     const selectedOptionKey = sections[0]?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
 
     return (
-        <SelectionList
-            ListItem={RadioListItem}
-            containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
-            sectionTitleStyles={styles.mt5}
+        <OptionsSelector
+            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
+            contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
+            optionHoveredStyle={styles.hoveredComponentBG}
+            sectionHeaderStyle={styles.mt5}
             sections={sections}
-            textInputValue={searchValue}
+            selectedOptions={selectedOptions}
             headerMessage={headerMessage}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
+            textInputLabel={translate('common.search')}
+            boldStyle
+            highlightSelectedOptions
             isRowMultilineSupported
+            shouldShowTextInput={shouldShowTextInput}
+            // Focus the first option when searching
+            focusedIndex={0}
             // Focus the selected option on first load
             initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}

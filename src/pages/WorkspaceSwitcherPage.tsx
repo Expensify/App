@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -7,10 +7,9 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {MagnifyingGlass} from '@components/Icon/Expensicons';
 import OptionRow from '@components/OptionRow';
+import OptionsSelector from '@components/OptionsSelector';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -58,6 +57,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const [selectedOption, setSelectedOption] = useState<SimpleWorkspaceItem>();
     const [searchTerm, setSearchTerm] = useState('');
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
@@ -105,6 +105,11 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
 
             const {policyID} = option;
 
+            if (policyID) {
+                setSelectedOption(option);
+            } else {
+                setSelectedOption(undefined);
+            }
             setActiveWorkspaceID(policyID);
             Navigation.goBack();
             if (policyID !== activeWorkspaceID) {
@@ -124,7 +129,6 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
             .map((policy) => ({
                 text: policy?.name,
                 policyID: policy?.id,
-                isSelected: policy?.id === activeWorkspaceID,
                 brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                 icons: [
                     {
@@ -138,7 +142,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 keyForList: policy?.id,
                 isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
             }));
-    }, [policies, getIndicatorTypeForPolicy, hasUnreadData, isOffline, activeWorkspaceID]);
+    }, [policies, getIndicatorTypeForPolicy, hasUnreadData, isOffline]);
 
     const filteredAndSortedUserWorkspaces = useMemo(
         () =>
@@ -232,20 +236,28 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 </View>
 
                 {usersWorkspaces.length > 0 ? (
-                    <SelectionList
-                        ListItem={UserListItem}
-                        textInputPlaceholder={translate('workspace.switcher.placeholder')}
-                        textInputRef={inputCallbackRef}
+                    <OptionsSelector
+                        // @ts-expect-error TODO: remove this comment once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TS
+                        placeholder={translate('workspace.switcher.placeholder')}
+                        ref={inputCallbackRef}
                         sections={[usersWorkspacesSectionData]}
-                        textInputValue={searchTerm}
+                        value={searchTerm}
+                        shouldShowTextInput={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
                         onChangeText={setSearchTerm}
+                        selectedOptions={selectedOption ? [selectedOption] : []}
                         onSelectRow={selectPolicy}
                         shouldPreventDefaultFocusOnSelectRow
                         headerMessage={headerMessage}
-                        containerStyle={[styles.pt0, styles.mt0]}
-                        textInputIconLeft={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? MagnifyingGlass : undefined}
-                        initiallyFocusedOptionKey={activeWorkspaceID}
-                        textInputAutoFocus={false}
+                        highlightSelectedOptions
+                        shouldShowOptions
+                        autoFocus={false}
+                        canSelectMultipleOptions={false}
+                        shouldShowSubscript={false}
+                        showTitleTooltip={false}
+                        contentContainerStyles={[styles.pt0, styles.mt0]}
+                        textIconLeft={MagnifyingGlass}
+                        // Null is to avoid selecting unfocused option when Global selected, undefined is to focus selected workspace
+                        initiallyFocusedOptionKey={!activeWorkspaceID ? null : undefined}
                     />
                 ) : (
                     <WorkspaceCardCreateAWorkspace />
@@ -257,6 +269,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
             setSearchTerm,
             searchTerm,
             selectPolicy,
+            selectedOption,
             styles,
             theme.textSupporting,
             translate,
@@ -267,6 +280,14 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
             headerMessage,
         ],
     );
+
+    useEffect(() => {
+        if (!activeWorkspaceID) {
+            return;
+        }
+        const optionToSet = usersWorkspaces.find((option) => option.policyID === activeWorkspaceID);
+        setSelectedOption(optionToSet);
+    }, [activeWorkspaceID, usersWorkspaces]);
 
     return (
         <ScreenWrapper testID={WorkspaceSwitcherPage.displayName}>
