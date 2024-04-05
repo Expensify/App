@@ -2049,7 +2049,7 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.6.1)
   - Turf (2.7.0)
-  - VisionCamera (4.0.0-beta.11):
+  - VisionCamera (4.0.0-beta.13):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2581,7 +2581,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: d447f37981dd33b4adb88c091f7e63014448fb27
+  VisionCamera: 3033e0dd5272d46e97bcb406adea4ae0e6907abf
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
 PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d

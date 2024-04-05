@@ -23,8 +23,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {ReportWithoutHasDraft} from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
-import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -49,7 +47,7 @@ type HeaderViewOnyxProps = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
     /** Parent report */
-    parentReport: OnyxEntry<ReportWithoutHasDraft>;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
 
     /** The current policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -377,8 +375,7 @@ export default memo(
             initialValue: null,
         },
         parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? report?.reportID}`,
-            selector: reportWithoutHasDraftSelector,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? report?.reportID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
