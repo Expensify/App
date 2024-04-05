@@ -23,8 +23,6 @@ type WorkspaceSwitcherButtonProps = WorkspaceSwitcherButtonOnyxProps;
 function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
-    const pressableRef = useRef<View>();
-
     const pressableRef = useRef<HTMLDivElement | View | null>(null);
 
     const {source, name, type} = useMemo(() => {
