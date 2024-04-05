@@ -382,7 +382,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
-        iouType: string;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
         backTo: Routes;
@@ -395,7 +395,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
-        iouType: string;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
         backTo: Routes;
@@ -635,6 +635,16 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACES_CENTRAL_PANE]: NavigatorScreenParams<WorkspacesCentralPaneNavigatorParamList>;
 };
 
+type OnboardingModalNavigatorParamList = {
+    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
+    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
+    [SCREENS.ONBOARDING.PURPOSE]: undefined;
+};
+
+type WelcomeVideoModalNavigatorParamList = {
+    [SCREENS.WELCOME_VIDEO.ROOT]: undefined;
+};
+
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.SETTINGS.ROOT]: undefined;
@@ -694,6 +704,8 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
+    [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
+    [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [SCREENS.TRANSACTION_RECEIPT]: {
         reportID: string;
@@ -731,6 +743,8 @@ export type {
     BottomTabNavigatorParamList,
     LeftModalNavigatorParamList,
     RightModalNavigatorParamList,
+    OnboardingModalNavigatorParamList,
+    WelcomeVideoModalNavigatorParamList,
     PublicScreensParamList,
     MoneyRequestNavigatorParamList,
     SplitDetailsNavigatorParamList,

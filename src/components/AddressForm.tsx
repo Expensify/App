@@ -118,9 +118,9 @@ function AddressForm({
 
         ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
 
-        if (countrySpecificZipRegex && values.zipPostCode) {
-            if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
-                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
+        if (countrySpecificZipRegex) {
+            if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
+                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode?.trim())) {
                     errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', countryZipFormat];
                 } else {
                     errors.zipPostCode = 'common.error.fieldRequired';
