@@ -2635,7 +2635,7 @@ function requestMoney(
     }
 
     if (action === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(activeReportID));
+        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID));
     } else {
         Navigation.dismissModal(activeReportID);
     }
