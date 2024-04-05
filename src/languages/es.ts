@@ -1,5 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
+import {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -48,7 +49,6 @@ import type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
-    PolicyConnectionSyncStageParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -2033,7 +2033,7 @@ export default {
             disconnectPrompt: '¿Estás seguro de que deseas desconectar esta intregración?',
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
-                syncStageName: ({stage}: PolicyConnectionSyncStageParams) => {
+                syncStageName: (stage: PolicyConnectionSyncStage) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importando clientes';
