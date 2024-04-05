@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
-import {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
