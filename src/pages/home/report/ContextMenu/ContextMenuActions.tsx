@@ -202,8 +202,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     InteractionManager.runAfterInteractions(() => {
-                        // Normally the focus callback of the main composer doesn't focus for natives,
-                        // so we need to pass true here to allow focusing for natives too.
+                        // Normally the focus callback of the main composer doesn't focus when willBlurTextInputOnTapOutside
+                        // is false, so we need to pass true here to override this condition.
                         ReportActionComposeFocusManager.focus(true);
                     });
                     Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, reportID);
