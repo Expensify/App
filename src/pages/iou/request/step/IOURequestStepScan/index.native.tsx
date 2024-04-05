@@ -181,7 +181,7 @@ function IOURequestStepScan({
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
 
         IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-        
+
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     }, [iouType, report, reportID, transactionID, transaction?.isFromGlobalCreate, backTo]);
 
