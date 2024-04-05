@@ -92,6 +92,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                 title: translate(item.translationKey),
                 icon: item.icon,
                 onPress: item.action,
+                containerStyle: [styles.pl10],
             }))
             .reverse();
     }, [shouldStoreLogs, translate, waitForNavigate]);
@@ -119,8 +120,8 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                         titleStyles={styles.accountSettingsSectionTitle}
                         illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOT].backgroundColor}
                         renderSubtitle={() => (
-                            <Text style={[styles.mt4]}>
-                                <Text>{translate('initialSettingsPage.troubleshoot.description')}</Text>{' '}
+                            <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('initialSettingsPage.troubleshoot.description')}</Text>{' '}
                                 <TextLink
                                     style={styles.link}
                                     onPress={() => Report.navigateToConciergeChat()}
