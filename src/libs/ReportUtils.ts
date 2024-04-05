@@ -56,6 +56,7 @@ import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import {hasValidDraftComment} from './DraftCommentUtils';
 import originalGetReportPolicyID from './getReportPolicyID';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
@@ -391,7 +392,6 @@ type OptionData = {
     phoneNumber?: string | null;
     isUnread?: boolean | null;
     isUnreadWithMention?: boolean | null;
-    hasDraftComment?: boolean | null;
     keyForList?: string | null;
     searchText?: string | null;
     isIOUReportOwner?: boolean | null;
@@ -2779,6 +2779,7 @@ function getModifiedExpenseOriginalMessage(
     if ('taxAmount' in transactionChanges) {
         originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
         originalMessage.taxAmount = transactionChanges?.taxAmount;
+        originalMessage.currency = TransactionUtils.getCurrency(oldTransaction);
     }
 
     if ('taxCode' in transactionChanges) {
@@ -4469,9 +4470,12 @@ function shouldReportBeInOptionList({
         return true;
     }
 
+    // Retrieve the draft comment for the report and convert it to a boolean
+    const hasDraftComment = hasValidDraftComment(report.reportID);
+
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (report.hasDraft || requiresAttentionFromCurrentUser(report)) {
+    if (hasDraftComment || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);

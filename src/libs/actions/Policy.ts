@@ -160,7 +160,6 @@ Onyx.connect({
                     return;
                 }
                 const {reportID} = policyReport;
-                cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
@@ -362,7 +361,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                hasDraft: false,
                 oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
                 policyName: '',
             },
@@ -412,14 +410,13 @@ function deleteWorkspace(policyID: string, policyName: string) {
     ];
 
     reportsToArchive.forEach((report) => {
-        const {reportID, stateNum, statusNum, hasDraft, oldPolicyName} = report ?? {};
+        const {reportID, stateNum, statusNum, oldPolicyName} = report ?? {};
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum,
                 statusNum,
-                hasDraft,
                 oldPolicyName,
                 policyName: report?.policyName,
             },
@@ -881,7 +878,6 @@ function removeMembers(accountIDs: number[], policyID: string) {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 oldPolicyName: policy.name,
-                hasDraft: false,
                 pendingChatMembers,
             },
         });
@@ -936,14 +932,13 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const filteredWorkspaceChats = workspaceChats.filter((report): report is Report => report !== null);
 
-    filteredWorkspaceChats.forEach(({reportID, stateNum, statusNum, hasDraft, oldPolicyName = null}) => {
+    filteredWorkspaceChats.forEach(({reportID, stateNum, statusNum, oldPolicyName = null}) => {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum,
                 statusNum,
-                hasDraft,
                 oldPolicyName,
             },
         });
@@ -1515,7 +1510,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
     const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const customUnitID = distanceUnit?.customUnitID;
 
-    if (!policy || !customUnitID) {
+    if (!policy) {
         return;
     }
 
@@ -1524,22 +1519,24 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
     const finallyRates: Record<string, Rate> = {};
     const failureRates: Record<string, Rate> = {};
 
-    for (const rateID of Object.keys(currentRates)) {
-        optimisticRates[rateID] = {
-            ...currentRates[rateID],
-            pendingFields: {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-            currency,
-        };
-        finallyRates[rateID] = {
-            ...currentRates[rateID],
-            pendingFields: {currency: null},
-            currency,
-        };
-        failureRates[rateID] = {
-            ...currentRates[rateID],
-            pendingFields: {currency: null},
-            errorFields: {currency: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
-        };
+    if (customUnitID) {
+        for (const rateID of Object.keys(currentRates)) {
+            optimisticRates[rateID] = {
+                ...currentRates[rateID],
+                pendingFields: {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                currency,
+            };
+            finallyRates[rateID] = {
+                ...currentRates[rateID],
+                pendingFields: {currency: null},
+                currency,
+            };
+            failureRates[rateID] = {
+                ...currentRates[rateID],
+                pendingFields: {currency: null},
+                errorFields: {currency: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+            };
+        }
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -1561,12 +1558,14 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 },
                 name,
                 outputCurrency: currency,
-                customUnits: {
-                    [customUnitID]: {
-                        ...distanceUnit,
-                        rates: optimisticRates,
+                ...(customUnitID && {
+                    customUnits: {
+                        [customUnitID]: {
+                            ...distanceUnit,
+                            rates: optimisticRates,
+                        },
                     },
-                },
+                }),
             },
         },
     ];
@@ -1578,11 +1577,14 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 pendingFields: {
                     generalSettings: null,
                 },
-                customUnits: {
-                    [customUnitID]: {
-                        rates: finallyRates,
+                ...(customUnitID && {
+                    customUnits: {
+                        [customUnitID]: {
+                            ...distanceUnit,
+                            rates: finallyRates,
+                        },
                     },
-                },
+                }),
             },
         },
     ];
@@ -1595,11 +1597,14 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 errorFields: {
                     generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
-                customUnits: {
-                    [customUnitID]: {
-                        rates: failureRates,
+                ...(customUnitID && {
+                    customUnits: {
+                        [customUnitID]: {
+                            ...distanceUnit,
+                            rates: failureRates,
+                        },
                     },
-                },
+                }),
             },
         },
     ];
