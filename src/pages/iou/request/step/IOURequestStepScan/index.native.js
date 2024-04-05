@@ -1,11 +1,13 @@
 import {useFocusEffect} from '@react-navigation/core';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import {useCameraDevices} from 'react-native-vision-camera';
+import {useCameraDevice} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -30,6 +32,7 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
@@ -42,17 +45,25 @@ const propTypes = {
     /** The report that the transaction belongs to */
     report: reportPropTypes,
 
+    /** Information about the logged in user's account */
+    user: PropTypes.shape({
+        /** Whether user muted all sounds in the application */
+        isMutedAllSounds: PropTypes.bool,
+    }),
+
     /** The transaction (or draft transaction) being changed */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    user: {},
     transaction: {},
 };
 
 function IOURequestStepScan({
     report,
+    user,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
@@ -60,12 +71,15 @@ function IOURequestStepScan({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const devices = useCameraDevices('wide-angle-camera');
-    const device = devices.back;
+    const device = useCameraDevice('back', {
+        physicalDevices: ['wide-angle-camera'],
+    });
 
+    const hasFlash = device != null && device.hasFlash;
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
+    const [didCapturePhoto, setDidCapturePhoto] = useState(false);
 
     const {translate} = useLocalize();
 
@@ -122,6 +136,7 @@ function IOURequestStepScan({
 
     useFocusEffect(
         useCallback(() => {
+            setDidCapturePhoto(false);
             const refreshCameraPermissionStatus = () => {
                 CameraPermission.getCameraPermissionStatus()
                     .then(setCameraPermissionStatus)
@@ -186,7 +201,7 @@ function IOURequestStepScan({
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
         IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
@@ -234,10 +249,14 @@ function IOURequestStepScan({
             return;
         }
 
+        if (didCapturePhoto) {
+            return;
+        }
+
         return camera.current
             .takePhoto({
-                qualityPrioritization: 'speed',
-                flash: flash ? 'on' : 'off',
+                flash: flash && hasFlash ? 'on' : 'off',
+                enableShutterSound: !user.isMutedAllSounds,
             })
             .then((photo) => {
                 // Store the receipt on the transaction object in Onyx
@@ -251,13 +270,15 @@ function IOURequestStepScan({
                     return;
                 }
 
+                setDidCapturePhoto(true);
                 navigateToConfirmationStep();
             })
             .catch((error) => {
+                setDidCapturePhoto(false);
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus]);
+    }, [cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -356,20 +377,22 @@ function IOURequestStepScan({
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
-                <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    accessibilityLabel={translate('receipt.flash')}
-                    style={[styles.alignItemsEnd]}
-                    disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                    onPress={() => setFlash((prevFlash) => !prevFlash)}
-                >
-                    <Icon
-                        height={32}
-                        width={32}
-                        src={Expensicons.Bolt}
-                        fill={flash ? theme.iconHovered : theme.textSupporting}
-                    />
-                </PressableWithFeedback>
+                {hasFlash && (
+                    <PressableWithFeedback
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flash')}
+                        style={[styles.alignItemsEnd]}
+                        disabled={cameraPermissionStatus !== RESULTS.GRANTED}
+                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={Expensicons.Bolt}
+                            fill={flash ? theme.iconHovered : theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
+                )}
             </View>
         </StepScreenWrapper>
     );
@@ -379,4 +402,12 @@ IOURequestStepScan.defaultProps = defaultProps;
 IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(IOURequestStepScan);

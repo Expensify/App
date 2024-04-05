@@ -7,6 +7,7 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
@@ -19,7 +20,6 @@ import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -50,9 +50,6 @@ const propTypes = {
         }),
     ),
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
-
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -61,33 +58,26 @@ const propTypes = {
 
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
-
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     dismissedReferralBanners: {},
     participants: [],
     safeAreaPaddingBottomStyle: {},
-    reports: {},
     betas: [],
     isDistanceRequest: false,
-    isSearchingForReports: false,
 };
 
 function MoneyRequestParticipantsSelector({
     betas,
     dismissedReferralBanners,
     participants,
-    reports,
     navigateToRequest,
     navigateToSplit,
     onAddParticipants,
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
-    isSearchingForReports,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -96,6 +86,7 @@ function MoneyRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {canUseP2PDistanceRequests} = usePermissions();
+    const {options, areOptionsInitialized} = useOptionsList();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -104,8 +95,8 @@ function MoneyRequestParticipantsSelector({
 
     const newChatOptions = useMemo(() => {
         const chatOptions = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports,
+            options.personalDetails,
             betas,
             searchTerm,
             participants,
@@ -132,7 +123,7 @@ function MoneyRequestParticipantsSelector({
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         };
-    }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest, canUseP2PDistanceRequests]);
+    }, [options.reports, options.personalDetails, betas, searchTerm, participants, iouType, canUseP2PDistanceRequests, isDistanceRequest]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -141,7 +132,6 @@ function MoneyRequestParticipantsSelector({
      */
     const sections = useMemo(() => {
         const newSections = [];
-        let indexOffset = 0;
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             searchTerm,
@@ -149,12 +139,10 @@ function MoneyRequestParticipantsSelector({
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
             maxParticipantsReached,
-            indexOffset,
             personalDetails,
             true,
         );
         newSections.push(formatResults.section);
-        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return newSections;
@@ -164,17 +152,13 @@ function MoneyRequestParticipantsSelector({
             title: translate('common.recents'),
             data: newChatOptions.recentReports,
             shouldShow: !_.isEmpty(newChatOptions.recentReports),
-            indexOffset,
         });
-        indexOffset += newChatOptions.recentReports.length;
 
         newSections.push({
             title: translate('common.contacts'),
             data: newChatOptions.personalDetails,
             shouldShow: !_.isEmpty(newChatOptions.personalDetails),
-            indexOffset,
         });
-        indexOffset += newChatOptions.personalDetails.length;
 
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
@@ -184,7 +168,6 @@ function MoneyRequestParticipantsSelector({
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
-                indexOffset,
             });
         }
 
@@ -373,7 +356,7 @@ function MoneyRequestParticipantsSelector({
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
-                showLoadingPlaceholder={isSearchingForReports}
+                showLoadingPlaceholder={!areOptionsInitialized}
                 rightHandSideComponent={itemRightSideComponent}
             />
         </View>
@@ -388,14 +371,7 @@ export default withOnyx({
     dismissedReferralBanners: {
         key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
     betas: {
         key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
     },
 })(MoneyRequestParticipantsSelector);

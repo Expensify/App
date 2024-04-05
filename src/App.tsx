@@ -16,12 +16,14 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
+import OptionsListContextProvider from './components/OptionListContextProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
+import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullScreenContext';
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
@@ -78,8 +80,10 @@ function App({url}: AppProps) {
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
                         PlaybackContextProvider,
+                        FullScreenContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
+                        OptionsListContextProvider,
                     ]}
                 >
                     <CustomStatusBarAndBackground />
