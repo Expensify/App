@@ -1,36 +1,28 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import React from 'react';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type AttachmentOfflineIndicatorProps = {
-    /** Optional styles for container element that will override the default styling for the offline indicator */
-    containerStyles?: StyleProp<ViewStyle>;
+    /** Whether the offline indicator is displayed for the attachment preview. */
+    isPreview?: boolean;
 
-    /** Optional styles for the container */
-    style?: StyleProp<ViewStyle>;
+    /** Title text to be displayed. */
+    title: string;
+
+    /** Subtitle text to be displayed. */
+    subtitle: string;
 };
 
-function AttachmentOfflineIndicator({containerStyles, title, subtitle, isPreview = false}: AttachmentOfflineIndicatorProps) {
+function AttachmentOfflineIndicator({title, subtitle, isPreview = false}: AttachmentOfflineIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
-
-    const computedStyles = useMemo((): StyleProp<ViewStyle> => {
-        if (containerStyles) {
-            return containerStyles;
-        }
-
-        return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
-    }, [containerStyles, isSmallScreenWidth, styles.offlineIndicatorMobile, styles.offlineIndicator]);
 
     if (!isOffline) {
         return null;
@@ -39,7 +31,7 @@ function AttachmentOfflineIndicator({containerStyles, title, subtitle, isPreview
     return (
         <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, styles.h100, styles.w100]}>
             <Icon
-                fill={theme.offline}
+                fill={theme.border}
                 src={Expensicons.OfflineCloud}
                 width={variables.iconSizeSuperLarge}
                 height={variables.iconSizeSuperLarge}
@@ -54,6 +46,6 @@ function AttachmentOfflineIndicator({containerStyles, title, subtitle, isPreview
     );
 }
 
-AttachmentOfflineIndicator.displayName = 'OfflineIndicator';
+AttachmentOfflineIndicator.displayName = 'AttachmentOfflineIndicator';
 
 export default AttachmentOfflineIndicator;
