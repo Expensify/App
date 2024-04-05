@@ -18,7 +18,6 @@ import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import * as Localize from '@libs/Localize';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -28,7 +27,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, ReportAction, ReportActionReactions, Report as ReportType} from '@src/types/onyx';
+import type {Beta, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -66,6 +65,7 @@ type ShouldShow = (
 
 type ContextMenuActionPayload = {
     reportAction: ReportAction;
+    transaction?: OnyxEntry<Transaction>;
     reportID: string;
     draftMessage: string;
     selection: string;
@@ -346,7 +346,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, selection, reportID}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, reportID}) => {
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = ReportActionsUtils.getReportActionMessageText(reportAction);
@@ -370,7 +370,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReport);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
+                    const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction, transaction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
@@ -411,7 +411,7 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = menuTarget?.current && 'tagName' in menuTarget.current && menuTarget?.current.tagName === 'IMG' && isAttachment;
-            return Permissions.canUseCommentLinking(betas) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
