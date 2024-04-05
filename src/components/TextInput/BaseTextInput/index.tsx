@@ -1,13 +1,13 @@
 import Str from 'expensify-common/lib/str';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
-import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
@@ -36,6 +36,7 @@ function BaseTextInput(
         placeholder = '',
         errorText = '',
         icon = null,
+        iconLeft = null,
         textInputContainerStyles,
         touchableInputWrapperStyle,
         containerStyles,
@@ -50,7 +51,6 @@ function BaseTextInput(
         hint = '',
         onInputChange = () => {},
         shouldDelayFocus = false,
-        submitOnEnter = false,
         multiline = false,
         shouldInterceptSwipe = false,
         autoCorrect = true,
@@ -58,7 +58,7 @@ function BaseTextInput(
         inputID,
         ...inputProps
     }: BaseTextInputProps,
-    ref: BaseTextInputRef,
+    ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -79,7 +79,7 @@ function BaseTextInput(
     const [width, setWidth] = useState<number | null>(null);
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
-    const input = useRef<TextInput & HTMLElement>(null);
+    const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
 
     // AutoFocus which only works on mount:
@@ -243,6 +243,8 @@ function BaseTextInput(
 
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
+    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const maxHeight = StyleSheet.flatten(containerStyles).maxHeight;
@@ -277,11 +279,12 @@ function BaseTextInput(
     return (
         <>
             <View
-                style={[styles.pointerEventsNone, containerStyles]}
+                style={[containerStyles]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
                 <PressableWithoutFeedback
+                    role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
                     accessibilityLabel={label}
@@ -317,6 +320,16 @@ function BaseTextInput(
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                            {iconLeft && (
+                                <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                    <Icon
+                                        src={iconLeft}
+                                        fill={theme.icon}
+                                        height={variables.iconSizeNormal}
+                                        width={variables.iconSizeNormal}
+                                    />
+                                </View>
+                            )}
                             {Boolean(prefixCharacter) && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
@@ -337,7 +350,7 @@ function BaseTextInput(
                                         ref.current = element;
                                     }
 
-                                    (input.current as AnimatedTextInputRef | null) = element;
+                                    input.current = element as HTMLInputElement | null;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
@@ -383,9 +396,6 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
-                                // FormSubmit Enter key handler does not have access to direct props.
-                                // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
-                                dataSet={{submitOnEnter: isMultiline && submitOnEnter}}
                             />
                             {inputProps.isLoading && (
                                 <ActivityIndicator
@@ -435,8 +445,9 @@ function BaseTextInput(
              */}
             {(!!autoGrow || autoGrowHeight) && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
-                // https://github.com/Expensify/App/issues/8158
-                // https://github.com/Expensify/App/issues/26628
+                // Reference: https://github.com/Expensify/App/issues/8158, https://github.com/Expensify/App/issues/26628
+                // For mobile Chrome, ensure proper display of the text selection handle (blue bubble down).
+                // Reference: https://github.com/Expensify/App/issues/34921
                 <Text
                     style={[
                         inputStyle,
@@ -445,8 +456,11 @@ function BaseTextInput(
                         styles.visibilityHidden,
                     ]}
                     onLayout={(e) => {
+                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
+                            return;
+                        }
                         let additionalWidth = 0;
-                        if (Browser.isMobileSafari() || Browser.isSafari()) {
+                        if (Browser.isMobileSafari() || Browser.isSafari() || Browser.isMobileChrome()) {
                             additionalWidth = 2;
                         }
                         setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);

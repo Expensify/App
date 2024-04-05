@@ -2,48 +2,89 @@
 
 This directory contains the scripts and configuration files for running the
 performance regression tests. These tests are called E2E tests because they
-run the app on a real device (physical or emulated).
+run the actual app on a real device (physical or emulated).
 
 ![Example of a e2e test run](https://raw.githubusercontent.com/hannojg/expensify-app/5f945c25e2a0650753f47f3f541b984f4d114f6d/e2e/example.gif)
 
-To run the e2e tests:
-
-1. Connect an android device. The tests are currently designed to run only on android. It can be
-   a physical device or an emulator.
-
-2. Make sure Fastlane was initialized by running `bundle install`
-
-3. Run the tests with `npm run test:e2e`.
-  > 💡 Tip: To run the tests locally faster, and you are only making changes to JS, it's recommended to
-    build the app once with `npm run android-build-e2e` and from then on run the tests with
-    `npm run test:e2e -- --buildMode js-only`. This will only rebuild the JS code, and not the
-    whole native app!
-
-Ideally you want to run these tests on your branch before you want to merge your new feature to `main`.
 
 ## Available CLI options
 
 The tests can be run with the following CLI options:
 
-- `--config`: Extend/Overwrite the default config with your values, e.g. `--config config.local.js`
+- `--config`: Extend/Overwrite the default config with your values, e.g. `--config config.local.ts`
 - `--includes`: Expects a string/regexp to filter the tests to run, e.g. `--includes "login|signup"`
-- `--skipInstallDeps`: Skips the `npm install` step, useful during development
-- `--development`: Applies some default configurations:
-  - Sets the config to `config.local.js`, which executes the tests with fewer iterations 
-  - Runs the tests only on the current branch
-- `--buildMode`: There are three build modes, the default is `full`:
-  1. **full**: rebuilds the full native app in (e2e) release mode
-  2. **js-only**: only rebuilds the js bundle, and then re-packages
-                   the existing native app with the new package. If there
-                   is no existing native app, it will fallback to mode "full"
-  3. **skip**: does not rebuild anything, and just runs the existing native app
-- `--skipCheckout`: Won't checkout any baseline or comparison branch, and will just run the tests
 
-## Available environment variables
+## Running the tests on your machine
 
-The tests can be run with the following environment variables:
+You have two options when running the e2e tests:
 
-- `baseline`: Change the baseline to run the tests again (default is `main`).
+1. Run a debug build of the app (useful when developing a test)
+2. Run two (e2e) release builds against each other (useful to test performance regression and the suite as a whole)
+
+### Running a debug build
+
+1. You need to create a debug build of the app that's configured with some build flags to enable e2e testing.
+The build flags should be specified in your `./.env` file. You can use the `./tests/e2e/.env.e2e` file as a template:
+
+```sh
+cp ./tests/e2e/.env.e2e .env
+```
+
+> [!IMPORTANT]
+> There are some non-public environment variables that you still have to add to the `.env` file. Ask on slack for the values (cc @vit, @andrew, @hanno gödecke).
+
+2. Create a new android build like you usually would:
+
+```sh
+npm run android
+```
+
+3. We need to modify the app entry to point to the one for the tests. Therefore rename `./index.js` to `./appIndex.js` temporarily.
+
+4. Create a new `./index.js` with the following content:
+```js
+require('./src/libs/E2E/reactNativeLaunchingTest');
+```
+
+5. In `./src/libs/E2E/reactNativeLaunchingTest.ts` change the main app import to the new `./appIndex.js` file:
+```diff
+- import '../../../index';
++ import '../../../appIndex';
+```
+
+6. You can now run the tests. This command will invoke the test runner:
+
+```sh
+npm run test:e2e:dev
+```
+
+### Running two release builds
+
+The e2e tests are meant to detect performance regressions. For that we need to compare two builds against each other. On the CI system this is e.g. the latest release build (baseline) VS the currently merged PR (compare).
+
+You need to build the two apps first. Note that the two apps will be installed on the same device at the same time, so both apps have a different package name. Therefor, we have special build types for the e2e tests.
+
+1. Create a new android build for the baseline:
+
+> [!IMPORTANT]
+> There are some non-public environment variables that you still have to add to the `./tests/e2e/.env.e2e` and `./tests/e2e/.env.e2edelta` file. Ask on slack for the values (cc @vit, @andrew, @hanno gödecke).
+
+```sh
+npm run android-build-e2e
+```
+
+2. Create a new android build for the compare:
+
+```sh
+npm run android-build-e2edelta
+```
+
+3. Run the tests:
+
+```sh
+npm run test:e2e
+```
+
 
 ## Performance regression testing
 
@@ -76,7 +117,7 @@ components:
     - Orchestrates the test suite.
     - Runs the app with the tests on a device
     - Responsible for gathering and comparing results
-    - Located in `e2e/testRunner.js`.
+    - Located in `e2e/testRunner.ts`.
 
 - Test server:
   - A nodeJS application that starts an HTTP server.
@@ -115,6 +156,18 @@ Submitting test results doesn't automatically finish the test. This enables you 
 from one test (e.g. measuring multiple things at the same time).
 
 To finish a test call `E2EClient.submitTestDone()`.
+
+## Network calls
+
+Network calls can add a variance to the test results. To mitigate this in the past we used to provide mocks for the API
+calls. However, this is not a realistic scenario, as we want to test the app in a realistic environment.
+
+Now we have a module called `NetworkInterceptor`. The interceptor will intercept all network calls and will
+cache the request and response. The next time the same request is made, it will return the cached response.
+
+When writing a test you usually don't need to care about this, as the interceptor is enabled by default.
+However, look out for "!!! Missed cache hit for url" logs when developing your test. This can indicate a bug
+with the NetworkInterceptor where a request should have been cached but wasn't (which would introduce variance in your test!).
 
 
 ## Android specifics

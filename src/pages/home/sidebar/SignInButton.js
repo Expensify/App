@@ -16,14 +16,14 @@ function SignInButton() {
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
-            onPress={Session.signOutAndRedirectToSignIn}
+            onPress={() => Session.signOutAndRedirectToSignIn()}
         >
             <View style={styles.signInButtonAvatar}>
                 <Button
                     medium
                     success
                     text={translate('common.signIn')}
-                    onPress={Session.signOutAndRedirectToSignIn}
+                    onPress={() => Session.signOutAndRedirectToSignIn()}
                 />
             </View>
         </PressableWithoutFeedback>

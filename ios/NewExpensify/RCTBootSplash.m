@@ -26,6 +26,12 @@ RCT_EXPORT_MODULE();
   return dispatch_get_main_queue();
 }
 
++ (void)invalidateBootSplash {
+    _resolverQueue = nil;
+    _rootView = nil;
+    _nativeHidden = false;
+}
+
 + (void)initWithStoryboard:(NSString * _Nonnull)storyboardName
                   rootView:(RCTRootView * _Nullable)rootView {
   if (rootView == nil || _rootView != nil || RCTRunningInAppExtension())
@@ -101,6 +107,9 @@ RCT_EXPORT_MODULE();
                                   repeats:false
                                     block:^(NSTimer * _Nonnull timer) {
     [timer invalidate];
+
+    if (_rootView == nil)
+      return;
 
     if (_resolverQueue == nil)
       _resolverQueue = [[NSMutableArray alloc] init];

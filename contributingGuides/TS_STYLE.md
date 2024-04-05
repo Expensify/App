@@ -671,7 +671,7 @@ declare module "external-library-name" {
 
 > This section contains instructions that are applicable during the migration.
 
-- 🚨 DO NOT write new code in TypeScript yet. The only time you write TypeScript code is when the file you're editing has already been migrated to TypeScript by the migration team, or when you need to add new files under `src/libs`, `src/hooks`, `src/styles`, and `src/languages` directories. This guideline will be updated once it's time for new code to be written in TypeScript. If you're doing a major overhaul or refactoring of particular features or utilities of App and you believe it might be beneficial to migrate relevant code to TypeScript as part of the refactoring, please ask in the #expensify-open-source channel about it (and prefix your message with `TS ATTENTION:`).
+- 🚨 Any new files under `src/` directory MUST be created in TypeScript now! New files in other directories (e.g. `tests/`, `desktop/`) can be created in TypeScript, if desired.
 
 - If you're migrating a module that doesn't have a default implementation (i.e. `index.ts`, e.g. `getPlatform`), convert `index.website.js` to `index.ts`. Without `index.ts`, TypeScript cannot get type information where the module is imported.
 

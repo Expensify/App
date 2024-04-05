@@ -1,4 +1,5 @@
 import React, {useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {Text} from 'react-native';
 import {Animated} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import BootSplash from '@libs/BootSplash';
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
+import UpdateRequiredView from '@pages/ErrorPage/UpdateRequiredView';
+import CONST from '@src/CONST';
 import type {BaseErrorBoundaryProps, LogError} from './types';
 
 /**
@@ -11,15 +13,18 @@ import type {BaseErrorBoundaryProps, LogError} from './types';
  */
 
 function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseErrorBoundaryProps) {
-    const catchError = (error: Error, errorInfo: React.ErrorInfo) => {
-        logError(errorMessage, error, JSON.stringify(errorInfo));
+    const [errorContent, setErrorContent] = useState('');
+    const catchError = (errorObject: Error, errorInfo: React.ErrorInfo) => {
+        logError(errorMessage, errorObject, JSON.stringify(errorInfo));
         // We hide the splash screen since the error might happened during app init
         BootSplash.hide();
+        setErrorContent(errorObject.message);
     };
+    const updateRequired = errorContent === CONST.ERROR.UPDATE_REQUIRED;
 
     return (
         <ErrorBoundary
-            fallback={<GenericErrorPage />}
+            fallback={updateRequired ? <UpdateRequiredView /> : <GenericErrorPage />}
             onError={catchError}
         >
             {children}

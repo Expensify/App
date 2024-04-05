@@ -98,27 +98,6 @@ Due to some technical constraints, Apple and Google sign-in may require addition
 
 ## Apple
 
-### iOS/Android
-
-The iOS and Android implementations do not require extra steps to test, aside from signing into an Apple account on the iOS device before being able to use Sign in with Apple.
-
-### Web and desktop
-
-#### Render the web Sign In with Apple button in development
-
-The Google Sign In button renders differently in development mode. To prevent confusion
-for developers about a possible regression, we decided to not render third party buttons in
-development mode.
-
-To show the Apple Sign In button in development mode, you can comment out the following code in the 
-LoginForm.js file:
-
-```js
-if (CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-  return;
-}
-```
-
 #### Port requirements
 
 The Sign in with Apple process will break after the user signs in if the pop-up process is not started from a page at an HTTPS domain registered with Apple. To fix this, you could make a new configuration with your own HTTPS domain, but then the Apple configuration won't match that of Expensify's backend.
@@ -167,7 +146,7 @@ After you've set ngrok up to be able to run on your machine (requires configurin
 ngrok http 8082 --host-header="dev.new.expensify.com:8082" --subdomain=mysubdomain
 ```
 
-The `--host-header` flag is there to avoid webpack errors with header validation. In addition, add `allowedHosts: 'all'` to the dev server config in `webpack.dev.js`:
+The `--host-header` flag is there to avoid webpack errors with header validation. In addition, add `allowedHosts: 'all'` to the dev server config in `webpack.dev.ts`:
 
 ```js
 devServer: {
@@ -240,32 +219,49 @@ open desktop-build
 
 2. Even with this build, the deep link may not be handled by the correct app, as the development Electron config seems to intercept it sometimes. To manage this, install [SwiftDefaultApps](https://github.com/Lord-Kamina/SwiftDefaultApps), which adds a preference pane that can be used to configure which app should handle deep links.
 
-## Google
+### Test the Apple / Google SSO buttons in development environment
 
-### Web
-
-#### Render the web Sign In with Google button in Development
-
-The Google Sign In button renders differently in development mode. To prevent confusion
+The Apple/Google Sign In button renders differently in development mode. To prevent confusion
 for developers about a possible regression, we decided to not render third party buttons in
 development mode.
 
-To show the Google Sign In button in development mode, you can comment out the following code in the 
-LoginForm.js file:
+Here's how you can re-enable the SSO buttons in development mode:
 
-```js
-if (CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-  return;
-}
-```
-
-#### Port requirements
-
-Google allows the web app to be hosted at localhost, but according to the
-current Google console configuration for the Expensify client ID, it must be
-hosted on port 8082.
-
-### Desktop
+- Remove this [condition](https://github.com/Expensify/App/blob/c2a718c9100e704c89ad9564301348bc53a49777/src/pages/signin/LoginForm/BaseLoginForm.tsx#L300) so that we always render the SSO button components
+    ```diff
+    diff --git a/src/pages/signin/LoginForm/BaseLoginForm.tsx b/src/pages/signin/LoginForm/BaseLoginForm.tsx
+    index 4286a26033..850f8944ca 100644
+    --- a/src/pages/signin/LoginForm/BaseLoginForm.tsx
+    +++ b/src/pages/signin/LoginForm/BaseLoginForm.tsx
+    @@ -288,7 +288,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
+                                // for developers about possible regressions, we won't render buttons in development mode.
+                                // For more information about these differences and how to test in development mode,
+                                // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
+    -                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (
+    +                            (
+                                    <View style={[getSignInWithStyles()]}>
+                                        <Text
+                                            accessibilityElementsHidden
+    ```
+- Update the webpack.dev.ts [config](https://github.com/Expensify/App/blob/1d6bb1d14cff3dd029868a0a7c8ee14ae78c527b/config/webpack/webpack.dev.js#L47-L49) to change `host` from `dev.new.expensify.com` to `localhost` and server type from `https` to `http`. The reason for this is that Google Sign In allows localhost, but `dev.new.expensify.com` is not a registered Google Sign In domain.
+    ```diff
+    diff --git a/config/webpack/webpack.dev.ts b/config/webpack/webpack.dev.ts
+    index e28383eff5..b14f6f34aa 100644
+    --- a/config/webpack/webpack.dev.js
+    +++ b/config/webpack/webpack.dev.js
+    @@ -44,9 +44,9 @@ module.exports = (env = {}) =>
+                    ...proxySettings,
+                    historyApiFallback: true,
+                    port,
+    -                host: 'dev.new.expensify.com',
+    +                host: 'localhost',
+                    server: {
+    -                    type: 'https',
+    +                    type: 'http',
+                        options: {
+                            key: path.join(__dirname, 'key.pem'),
+                            cert: path.join(__dirname, 'certificate.pem'),
+    ```
 
 #### Set Environment to something other than "Development"
 

@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxCollection} from 'react-native-onyx/lib/types';
+import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';

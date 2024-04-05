@@ -1,7 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +27,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-    const updateHandler = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
+    const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
@@ -41,6 +42,12 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
             }
             if (response.jsonCode !== 200 && request.failureData) {
                 return updateHandler(request.failureData);
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
+            if (request.finallyData) {
+                return updateHandler(request.finallyData);
             }
             return Promise.resolve();
         })
@@ -71,6 +78,7 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
  */
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdateEvent[]; type: 'pusher'}>): Promise<void>;
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
+function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<Response>;
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
@@ -79,7 +87,12 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 
         // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.
         // However, we do need to apply the successData and failureData from the request
-        if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response && (!isEmptyObject(request.successData) || !isEmptyObject(request.failureData))) {
+        if (
+            type === CONST.ONYX_UPDATE_TYPES.HTTPS &&
+            request &&
+            response &&
+            (!isEmptyObject(request.successData) || !isEmptyObject(request.failureData) || !isEmptyObject(request.finallyData))
+        ) {
             Log.info('[OnyxUpdateManager] Applying success or failure data from request without onyxData from response');
 
             // We use a spread here instead of delete because we don't want to change the response for other middlewares
@@ -95,7 +108,7 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
         return applyHTTPSOnyxUpdates(request, response);
     }
-    if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
+    if ((type === CONST.ONYX_UPDATE_TYPES.PUSHER || type === CONST.ONYX_UPDATE_TYPES.AIRSHIP) && updates) {
         return applyPusherOnyxUpdates(updates);
     }
 }
@@ -129,5 +142,17 @@ function doesClientNeedToBeUpdated(previousUpdateID = 0): boolean {
     return lastUpdateIDAppliedToClient < previousUpdateID;
 }
 
+function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer) {
+    const previousUpdateID = Number(updates.previousUpdateID) || 0;
+    if (!doesClientNeedToBeUpdated(previousUpdateID)) {
+        apply(updates);
+        return;
+    }
+
+    // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
+    SequentialQueue.pause();
+    saveUpdateInformation(updates);
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {saveUpdateInformation, doesClientNeedToBeUpdated, apply};
+export {saveUpdateInformation, doesClientNeedToBeUpdated, apply, applyOnyxUpdatesReliably};

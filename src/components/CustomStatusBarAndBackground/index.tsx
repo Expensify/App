@@ -1,8 +1,10 @@
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
+import type {StatusBarStyle} from '@styles/index';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
@@ -10,32 +12,35 @@ import updateStatusBarAppearance from './updateStatusBarAppearance';
 type CustomStatusBarAndBackgroundProps = {
     /** Whether the CustomStatusBar is nested within another CustomStatusBar.
      *  A nested CustomStatusBar will disable the "root" CustomStatusBar. */
-    isNested: boolean;
+    isNested?: boolean;
 };
 
 function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
-    const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarAndBackgroundContext);
+    const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
-    const [statusBarStyle, setStatusBarStyle] = useState(theme.statusBarStyle);
+    const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
 
-    const isDisabled = !isNested && isRootStatusBarDisabled;
+    const isDisabled = !isNested && !isRootStatusBarEnabled;
 
     // Disable the root status bar when a nested status bar is rendered
     useEffect(() => {
         if (isNested) {
-            disableRootStatusBar(true);
+            setRootStatusBarEnabled(false);
         }
 
         return () => {
             if (!isNested) {
                 return;
             }
-            disableRootStatusBar(false);
+            setRootStatusBarEnabled(true);
         };
-    }, [disableRootStatusBar, isNested]);
+    }, [isNested, setRootStatusBarEnabled]);
 
-    const prevStatusBarBackgroundColor = useRef(theme.appBG);
-    const statusBarBackgroundColor = useRef(theme.appBG);
+    const didForceUpdateStatusBarRef = useRef(false);
+    const prevIsRootStatusBarEnabled = usePrevious(isRootStatusBarEnabled);
+    // The prev and current status bar background color refs are initialized with the splash screen background color so the status bar color is changed from the splash screen color to the expected color atleast once on first render - https://github.com/Expensify/App/issues/34154
+    const prevStatusBarBackgroundColor = useRef(theme.splashBG);
+    const statusBarBackgroundColor = useRef(theme.splashBG);
     const statusBarAnimation = useSharedValue(0);
 
     useAnimatedReaction(
@@ -56,9 +61,11 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     // Updates the status bar style and background color depending on the current route and theme
     // This callback is triggered everytime the route changes or the theme changes
     const updateStatusBarStyle = useCallback(
-        (listenerId?: number) => {
-            // Check if this function is either called through the current navigation listener or the general useEffect which listens for theme changes.
-            if (listenerId !== undefined && listenerId !== listenerCount.current) {
+        (listenerID?: number) => {
+            // Check if this function is either called through the current navigation listener
+            // react-navigation library has a bug internally, where it can't keep track of the listeners, therefore, sometimes when the useEffect would re-render and we run navigationRef.removeListener the listener isn't removed and we end up with two or more listeners.
+            // https://github.com/Expensify/App/issues/34154#issuecomment-1898519399
+            if (listenerID !== undefined && listenerID !== listenerCount.current) {
                 return;
             }
 
@@ -94,37 +101,56 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             }
 
             // Don't update the status bar style if it's the same as the current one, to prevent flashing.
-            if (newStatusBarStyle !== statusBarStyle) {
+            // Force update if the root status bar is back on active or it won't overwirte the nested status bar style
+            if ((!didForceUpdateStatusBarRef.current && !prevIsRootStatusBarEnabled && isRootStatusBarEnabled) || newStatusBarStyle !== statusBarStyle) {
                 updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
                 setStatusBarStyle(newStatusBarStyle);
+
+                if (!prevIsRootStatusBarEnabled && isRootStatusBarEnabled) {
+                    didForceUpdateStatusBarRef.current = true;
+                }
             }
         },
-        [statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
+        [prevIsRootStatusBarEnabled, isRootStatusBarEnabled, statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
     );
 
-    // Add navigation state listeners to update the status bar every time the route changes
-    // We have to pass a count as the listener id, because "react-navigation" somehow doesn't remove listeners properly
+    useEffect(() => {
+        updateStatusBarAppearance({backgroundColor: theme.appBG});
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this to run on first render
+    }, []);
+
+    useEffect(() => {
+        didForceUpdateStatusBarRef.current = false;
+    }, [isRootStatusBarEnabled]);
+
     useEffect(() => {
         if (isDisabled) {
             return;
         }
 
-        const listenerId = ++listenerCount.current;
-        const listener = () => updateStatusBarStyle(listenerId);
+        // Update status bar when theme changes
+        updateStatusBarStyle();
+
+        // Add navigation state listeners to update the status bar every time the route changes
+        // We have to pass a count as the listener id, because "react-navigation" somehow doesn't remove listeners properly
+        const listenerID = ++listenerCount.current;
+        const listener = () => updateStatusBarStyle(listenerID);
 
         navigationRef.addListener('state', listener);
         return () => navigationRef.removeListener('state', listener);
-    }, [isDisabled, theme.appBG, updateStatusBarStyle]);
+    }, [isDisabled, updateStatusBarStyle]);
 
-    // Update the global background (on web) everytime the theme changes.
+    // Update the global background and status bar style (on web) everytime the theme changes.
     // The background of the html element needs to be updated, otherwise you will see a big contrast when resizing the window or when the keyboard is open on iOS web.
+    // The status bar style needs to be updated when the user changes the theme, otherwise, the status bar will not change its color (mWeb iOS).
     useEffect(() => {
         if (isDisabled) {
             return;
         }
 
         updateGlobalBackgroundColor(theme);
-    }, [isDisabled, theme]);
+        updateStatusBarStyle();
+    }, [isDisabled, theme, updateStatusBarStyle]);
 
     if (isDisabled) {
         return null;

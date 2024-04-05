@@ -6,6 +6,8 @@ import FontUtils from '@styles/utils/FontUtils';
 import positioning from '@styles/utils/positioning';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
+// eslint-disable-next-line no-restricted-imports
+import titleBarHeight from '@styles/utils/titleBarHeight';
 import variables from '@styles/variables';
 import type StyleUtilGenerator from './types';
 
@@ -116,6 +118,7 @@ type TooltipParams = {
     tooltipWrapperHeight?: number;
     manualShiftHorizontal?: number;
     manualShiftVertical?: number;
+    shouldForceRenderingBelow?: boolean;
 };
 
 type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles};
@@ -155,6 +158,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         tooltipWrapperHeight,
         manualShiftHorizontal = 0,
         manualShiftVertical = 0,
+        shouldForceRenderingBelow = false,
     }) => {
         const tooltipVerticalPadding = spacing.pv1;
 
@@ -179,10 +183,13 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
 
         if (isTooltipSizeReady) {
             // Determine if the tooltip should display below the wrapped component.
-            // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
+            // If either a tooltip will try to render within GUTTER_WIDTH or desktop header logical pixels of the top of the screen,
             // Or the wrapped component is overlapping at top-center with another element
             // we'll display it beneath its wrapped component rather than above it as usual.
-            shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight));
+            shouldShowBelow =
+                shouldForceRenderingBelow ||
+                yOffset - tooltipHeight - POINTER_HEIGHT < GUTTER_WIDTH + titleBarHeight ||
+                !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight));
 
             // When the tooltip size is ready, we can start animating the scale.
             scale = currentSize;

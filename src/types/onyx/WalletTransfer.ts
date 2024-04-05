@@ -25,7 +25,7 @@ type WalletTransfer = {
     paymentMethodType?: ValueOf<Pick<PaymentMethod, 'accountType'>>;
 };
 
-type FilterMethodPaymentType = typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT | null;
+type FilterMethodPaymentType = typeof CONST.PAYMENT_METHODS.DEBIT_CARD | typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT | '';
 
 export default WalletTransfer;
 

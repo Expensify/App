@@ -1,6 +1,5 @@
 import React from 'react';
 import {AppState} from 'react-native';
-import withWindowDimensions from '@components/withWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import BaseModal from './BaseModal';
 import type BaseModalProps from './types';
@@ -28,4 +27,4 @@ function Modal({useNativeDriver = true, ...rest}: BaseModalProps) {
 }
 
 Modal.displayName = 'Modal';
-export default withWindowDimensions(Modal);
+export default Modal;

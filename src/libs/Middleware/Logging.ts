@@ -1,3 +1,4 @@
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
@@ -87,7 +88,7 @@ const Logging: Middleware = (response, request) => {
                 // This error seems to only throw on dev when localhost:8080 tries to access the production web server. It's unclear whether this can happen on production or if
                 // it's a sign that the web server is down.
                 Log.hmmm('[Network] API request error: Gateway Timeout error', logParams);
-            } else if (request.command === 'AuthenticatePusher') {
+            } else if (request.command === SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER) {
                 // AuthenticatePusher requests can return with fetch errors and no message. It happens because we return a non 200 header like 403 Forbidden.
                 // This is common to see if we are subscribing to a bad channel related to something the user shouldn't be able to access. There's no additional information
                 // we can get about these requests.

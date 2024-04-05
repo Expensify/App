@@ -1,11 +1,13 @@
 import React from 'react';
-import type {TText} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getCurrentData from './getCurrentData';
 import type InlineCodeBlockProps from './types';
+import type {TTextOrTPhrasing} from './types';
 import WrappedText from './WrappedText';
 
-function InlineCodeBlock<TComponent extends TText>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
+function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
+    const data = getCurrentData(defaultRendererProps);
 
     return (
         <TDefaultRenderer
@@ -16,7 +18,7 @@ function InlineCodeBlock<TComponent extends TText>({TDefaultRenderer, defaultRen
                 textStyles={textStyle}
                 wordStyles={[boxModelStyle, styles.codeWordStyle]}
             >
-                {defaultRendererProps.tnode.data}
+                {data}
             </WrappedText>
         </TDefaultRenderer>
     );

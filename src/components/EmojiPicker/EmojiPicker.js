@@ -7,6 +7,7 @@ import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
@@ -31,8 +32,13 @@ const EmojiPicker = forwardRef((props, ref) => {
     const [emojiPopoverAnchorOrigin, setEmojiPopoverAnchorOrigin] = useState(DEFAULT_ANCHOR_ORIGIN);
     const [activeID, setActiveID] = useState();
     const emojiPopoverAnchorRef = useRef(null);
+    const emojiAnchorDimension = useRef({
+        width: 0,
+        height: 0,
+    });
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
+    const activeEmoji = useRef();
     const emojiSearchInput = useRef();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
@@ -53,12 +59,14 @@ const EmojiPicker = forwardRef((props, ref) => {
      * @param {Function} [onEmojiSelectedValue=() => {}] - Run a callback when Emoji selected.
      * @param {React.MutableRefObject} emojiPopoverAnchorValue - Element to which Popover is anchored
      * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
-     * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
+     * @param {Function} [onWillShow] - Run a callback when Popover will show
      * @param {String} id - Unique id for EmojiPicker
+     * @param {String} activeEmojiValue - Selected emoji to be highlighted
      */
-    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, id) => {
+    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow, id, activeEmojiValue) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
+        activeEmoji.current = activeEmojiValue;
         emojiPopoverAnchorRef.current = emojiPopoverAnchorValue;
         const emojiPopoverAnchor = getEmojiPopoverAnchor();
         if (emojiPopoverAnchor.current && emojiPopoverAnchor.current.blur) {
@@ -69,9 +77,17 @@ const EmojiPicker = forwardRef((props, ref) => {
         const anchorOriginValue = anchorOrigin || DEFAULT_ANCHOR_ORIGIN;
 
         calculateAnchorPosition(emojiPopoverAnchor.current, anchorOriginValue).then((value) => {
-            onWillShow();
+            // eslint-disable-next-line es/no-optional-chaining
+            onWillShow?.();
             setIsEmojiPickerVisible(true);
-            setEmojiPopoverAnchorPosition(value);
+            setEmojiPopoverAnchorPosition({
+                horizontal: value.horizontal,
+                vertical: value.vertical,
+            });
+            emojiAnchorDimension.current = {
+                width: value.width,
+                height: value.height,
+            };
             setEmojiPopoverAnchorOrigin(anchorOriginValue);
             setActiveID(id);
         });
@@ -86,7 +102,13 @@ const EmojiPicker = forwardRef((props, ref) => {
         if (isNavigating) {
             onModalHide.current = () => {};
         }
-        emojiPopoverAnchorRef.current = null;
+        const currOnModalHide = onModalHide.current;
+        onModalHide.current = () => {
+            if (currOnModalHide) {
+                currOnModalHide();
+            }
+            emojiPopoverAnchorRef.current = null;
+        };
         setIsEmojiPickerVisible(false);
     };
 
@@ -144,7 +166,14 @@ const EmojiPicker = forwardRef((props, ref) => {
                 return;
             }
             calculateAnchorPosition(emojiPopoverAnchor.current, emojiPopoverAnchorOrigin).then((value) => {
-                setEmojiPopoverAnchorPosition(value);
+                setEmojiPopoverAnchorPosition({
+                    horizontal: value.horizontal,
+                    vertical: value.vertical,
+                });
+                emojiAnchorDimension.current = {
+                    width: value.width,
+                    height: value.height,
+                };
             });
         });
         return () => {
@@ -159,6 +188,7 @@ const EmojiPicker = forwardRef((props, ref) => {
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
     return (
         <PopoverWithMeasuredContent
+            shouldHandleNavigationBack={Browser.isMobileChrome()}
             isVisible={isEmojiPickerVisible}
             onClose={hideEmojiPicker}
             onModalShow={focusEmojiSearchInput}
@@ -180,10 +210,13 @@ const EmojiPicker = forwardRef((props, ref) => {
             anchorAlignment={emojiPopoverAnchorOrigin}
             outerStyle={StyleUtils.getOuterModalStyle(windowHeight, props.viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
+            anchorDimensions={emojiAnchorDimension.current}
             avoidKeyboard
+            shoudSwitchPositionIfOverflow
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}
+                activeEmoji={activeEmoji.current}
                 ref={(el) => (emojiSearchInput.current = el)}
             />
         </PopoverWithMeasuredContent>

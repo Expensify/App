@@ -1,8 +1,8 @@
 import debounce from 'lodash/debounce';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import Log from '@libs/Log';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -35,21 +35,12 @@ Onyx.connect({
 // eslint-disable-next-line @typescript-eslint/no-use-before-define
 const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
 
-let allReports: OnyxCollection<Report> | undefined;
+let allReports: OnyxCollection<Report> | undefined = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!key || !report) {
-            return;
-        }
-
-        if (!allReports) {
-            allReports = {};
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-
-        allReports[reportID] = report;
+    waitForCollectionCallback: true,
+    callback: (reports) => {
+        allReports = reports;
 
         // Each time a new report is added we will check to see if the user should be switched
         autoSwitchToFocusMode();
@@ -120,7 +111,21 @@ function tryFocusModeUpdate() {
             return;
         }
 
-        const reportCount = Object.keys(allReports ?? {}).length;
+        const validReports = [];
+        Object.keys(allReports ?? {}).forEach((key) => {
+            const report = allReports?.[key];
+            if (!report) {
+                return;
+            }
+
+            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? 0, report)) {
+                return;
+            }
+
+            validReports.push(report);
+        });
+
+        const reportCount = validReports.length;
         if (reportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
             Log.info('Not switching user to optimized focus mode as they do not have enough reports', false, {reportCount});
             return;

@@ -1,9 +1,9 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
-import FormHelpMessage from './FormHelpMessage';
 import type {Choice} from './RadioButtons';
 import RadioButtons from './RadioButtons';
 import Text from './Text';
@@ -31,8 +31,8 @@ function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuesti
                 items={possibleAnswers}
                 key={currentQuestionIndex}
                 onPress={onInputChange}
+                errorText={errorText}
             />
-            <FormHelpMessage message={errorText} />
         </>
     );
 }

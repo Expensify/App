@@ -10,15 +10,18 @@ type TextPillProps = {
     color?: string;
 
     /** Styles to apply to the text */
-    textStyles: StyleProp<TextStyle>;
+    textStyles?: StyleProp<TextStyle>;
 
     children: React.ReactNode;
 };
 
 function TextPill({color, textStyles, children}: TextPillProps) {
     const styles = useThemeStyles();
-
-    return <Text style={[{backgroundColor: color ?? colors.red, borderRadius: 6}, styles.overflowHidden, styles.textStrong, styles.ph2, styles.pv1, textStyles]}>{children}</Text>;
+    return (
+        <Text style={[{backgroundColor: color ?? colors.red, borderRadius: 6}, styles.overflowHidden, styles.textStrong, styles.ph2, styles.pv1, styles.flexShrink0, textStyles]}>
+            {children}
+        </Text>
+    );
 }
 
 TextPill.displayName = 'TextPill';

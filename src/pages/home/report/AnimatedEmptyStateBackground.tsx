@@ -1,19 +1,19 @@
 import React from 'react';
-import Animated, {SensorType, useAnimatedSensor, useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
+import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as NumberUtils from '@libs/NumberUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-const IMAGE_OFFSET_Y = 75;
+// Maximum horizontal and vertical shift in pixels on sensor value change
+const IMAGE_OFFSET_X = 30;
+const IMAGE_OFFSET_Y = 20;
 
 function AnimatedEmptyStateBackground() {
     const StyleUtils = useStyleUtils();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
-    const IMAGE_OFFSET_X = windowWidth / 2;
 
     // If window width is greater than the max background width, repeat the background image
     const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
@@ -22,10 +22,11 @@ function AnimatedEmptyStateBackground() {
     const animatedSensor = useAnimatedSensor(SensorType.GYROSCOPE);
     const xOffset = useSharedValue(0);
     const yOffset = useSharedValue(0);
+    const isReducedMotionEnabled = useReducedMotion();
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
-        if (!isSmallScreenWidth) {
+        if (!isSmallScreenWidth || isReducedMotionEnabled) {
             return {};
         }
         /*
@@ -34,12 +35,14 @@ function AnimatedEmptyStateBackground() {
          */
         const {x, y} = animatedSensor.sensor.value;
         // The x vs y here seems wrong but is the way to make it feel right to the user
-        xOffset.value = NumberUtils.clampWorklet(xOffset.value + y, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
-        yOffset.value = NumberUtils.clampWorklet(yOffset.value - x, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
+        xOffset.value = clamp(xOffset.value + y * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
+        yOffset.value = clamp(yOffset.value - x * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
         return {
-            transform: [{translateX: withSpring(-IMAGE_OFFSET_X - xOffset.value)}, {translateY: withSpring(yOffset.value)}],
+            // On Android, scroll view sub views gets clipped beyond container bounds. Set the top position so that image wouldn't get clipped
+            top: IMAGE_OFFSET_Y,
+            transform: [{translateX: withSpring(xOffset.value)}, {translateY: withSpring(yOffset.value, {overshootClamping: true})}, {scale: 1.15}],
         };
-    }, []);
+    }, [isReducedMotionEnabled]);
 
     return (
         <Animated.Image

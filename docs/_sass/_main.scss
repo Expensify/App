@@ -62,12 +62,12 @@ html,
 body {
     height: 100%;
     min-height: 100%;
-    background: $color-appBG;
-    color: $color-text-supporting;
+    background: var(--color-appBG);
+    color: var(--color-text-supporting);
 }
 
 hr {
-    background: $color-borders;
+    background: var(--color-borders);
     border: none;
     display: inline-block;
     width: 24px;
@@ -84,7 +84,7 @@ em {
 }
 
 a {
-    color: $color-link;
+    color: var(--color-link);
     text-decoration: none;
 
     img {
@@ -97,9 +97,9 @@ h2,
 h3,
 h4,
 h5,
-h6, 
+h6,
 summary {
-    color: $color-text;
+    color: var(--color-text);
     font-weight: bold;
     padding-bottom: 12px;
 }
@@ -116,22 +116,22 @@ h6 {
     font-size: 1.5em;
 }
 
-details summary { 
+details summary {
     cursor: pointer;
     user-select: none;
 }
 
 details > summary {
-    list-style-image: url("/assets/images/arrow-right.svg");
+    list-style-image: url('/assets/images/arrow-right.svg');
 }
 
 details[open] > summary {
-    list-style-image: url("/assets/images/down.svg");
+    list-style-image: url('/assets/images/down.svg');
 }
 
-h1, 
+h1,
 summary {
-    font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-weight: 500;
     font-size: larger;
 }
@@ -151,28 +151,28 @@ select,
 textarea {
     line-height: 1.4;
     font-weight: 400;
-    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 16px;
-    color: $color-text-supporting;
+    color: var(--color-text-supporting);
 }
 
 button {
     border-radius: 12px;
     padding: 12px;
-    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 15px;
     font-weight: bold;
 
     &.success {
-        background-color: $color-button-success-background;
-        color: $color-text;
+        background-color: var(--color-button-success-background);
+        color: var(--color-button-text);
         width: 100%;
         border-radius: 100px;
         padding-left: 20px;
         padding-right: 20px;
 
         &:hover {
-            background-color: $color-button-success-background-hover;
+            background-color: var(--color-button-success-background-hover);
             cursor: pointer;
         }
 
@@ -205,9 +205,9 @@ button {
 
 #lhn {
     position: fixed;
-    background-color: $color-highlightBG;
+    background-color: var(--color-highlightBG);
     box-sizing: border-box;
-    border-right-color: $color-borders;
+    border-right-color: var(--color-borders);
     border-right-width: 1px;
     border-style: solid;
     width: 100%;
@@ -229,7 +229,6 @@ button {
     li {
         list-style: none;
     }
-
 
     #lhn-content {
         overflow: auto;
@@ -253,7 +252,6 @@ button {
             &::-webkit-scrollbar {
                 display: none;
             }
-
         }
 
         &.expanded {
@@ -307,7 +305,7 @@ button {
 
     .selected {
         font-weight: bold;
-        color: $color-text;
+        color: var(--color-text);
     }
 
     .hide {
@@ -338,7 +336,7 @@ button {
         margin-left: 420px;
         /* On wide screens, the padding needs to be equal to
         the view width, minus the content size, minus the lhn size, divided by two. */
-        padding: 52px calc((100vw - 1000px - 420px)/2) 0 calc((100vw - 1000px - 420px)/2);
+        padding: 52px calc((100vw - 1000px - 420px) / 2) 0 calc((100vw - 1000px - 420px) / 2);
     }
 
     ul,
@@ -350,10 +348,14 @@ button {
     h1 {
         &.title {
             font-size: 2.25em;
+            flex: 1;
         }
     }
 
     .article {
+        .hidden {
+            display: none;
+        }
         img {
             display: block;
             margin: 20px auto;
@@ -379,7 +381,7 @@ button {
             // Box shadow is used here because border-radius and border-collapse don't work together. It leads to double borders.
             // https://stackoverflow.com/questions/628301/the-border-radius-property-and-border-collapsecollapse-dont-mix-how-can-i-use
             border-style: hidden;
-            box-shadow: 0 0 0 1px $color-borders;
+            box-shadow: 0 0 0 1px var(--color-borders);
         }
 
         th:first-child {
@@ -401,12 +403,12 @@ button {
         th,
         td {
             padding: 6px 13px;
-            border: 1px solid $color-borders;
+            border: 1px solid var(--color-borders);
         }
 
         thead tr th {
             font-weight: bold;
-            background-color: $color-highlightBG;
+            background-color: var(--color-highlightBG);
         }
 
         .img-wrap {
@@ -415,7 +417,8 @@ button {
             flex-wrap: wrap;
         }
 
-        h1, summary {
+        h1,
+        summary {
             font-size: 1.5em;
             padding: 20px 0 12px 0;
         }
@@ -423,12 +426,12 @@ button {
         h2 {
             font-size: 1.125em;
             font-weight: 500;
-            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+            font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
         }
 
         h3 {
             font-size: 1em;
-            font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+            font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
         }
 
         h2,
@@ -442,38 +445,100 @@ button {
             margin-bottom: 20px;
             padding-top: 20px;
             padding-left: 5%;
-            border-left: 5px solid #1B5744;
+            border-left: 5px solid var(--color-button-background-hover);
 
             em:before {
-                content: "\“\a";
+                content: '\“\a';
                 white-space: pre;
                 font-size: 60px;
                 line-height: 1em;
-                color: #03d47c;
+                color: var(--color-accent);
             }
 
             p:first-child {
                 font-size: large;
-                font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+                font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
                 opacity: 0.8;
             }
         }
-    }
 
+        .selector-container {
+            background-color: var(--color-highlightBG);
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 20px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            * > ol,
+            ul {
+                padding: 0;
+            }
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                flex-direction: column;
+            }
+        }
+
+        select {
+            height: 28px;
+            border-radius: 20px;
+            padding: 0px 26px 0px 12px;
+            color: var(--color-text);
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                width: 100px;
+            }
+        }
+
+        select {
+            background: url('/assets/images/down.svg') no-repeat right var(--color-button-background);
+            background-size: 12px;
+            background-position-x: 85%;
+            appearance: none !important;
+            -moz-appearance: none !important;
+            -webkit-appearance: none !important;
+        }
+
+        .info {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background-color: var(--color-highlightBG);
+            color: var(--color-text);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+
+            img {
+                height: 16px;
+                width: 16px;
+            }
+
+            * {
+                padding: 0;
+                margin: 0;
+            }
+        }
+    }
 }
 
 .link {
     display: inline;
-    color: $color-text-supporting;
+    color: var(--color-text-supporting);
     cursor: pointer;
 
     &:hover {
-        color: $color-link;
+        color: var(--color-link);
     }
 }
 
 .lhn-items {
-
     ol,
     ul {
         padding-left: 32px;
@@ -497,7 +562,7 @@ button {
 
     .selected-article {
         font-weight: bold;
-        color: $color-text;
+        color: var(--color-text);
     }
 
     .home-link {
@@ -517,7 +582,6 @@ button {
     }
 }
 
-
 .platform-cards-group {
     @extend .cards-group;
 
@@ -533,16 +597,16 @@ button {
     padding: 28px;
     font-weight: 700;
     cursor: pointer;
-    color: $color-text;
-    background-color: $color-highlightBG;
+    color: var(--color-text);
+    background-color: var(--color-highlightBG);
 
     &:hover {
-        background-color: $color-row-hover;
+        background-color: var(--color-row-hover);
     }
 
     .row {
         display: flex;
-        flex-basis:100%;
+        flex-basis: 100%;
     }
 
     .body {
@@ -553,7 +617,7 @@ button {
     }
 
     h3.title {
-        font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     }
 
     h3.title,
@@ -636,14 +700,14 @@ button {
     }
 
     p.description {
-        color: $color-text-supporting;
+        color: var(--color-text-supporting);
         padding: 20px 0 20px 0;
     }
 
     p.url {
         padding: 0;
         font-size: 0.8em;
-        color: $color-text-supporting;
+        color: var(--color-text-supporting);
     }
 }
 
@@ -665,7 +729,7 @@ button {
 
     p.description {
         padding: 0;
-        color: $color-text-supporting;
+        color: var(--color-text-supporting);
 
         &.with-min-height {
             min-height: 68px;
@@ -692,7 +756,7 @@ button {
             padding-top: 0px;
         }
     }
-    h2  {
+    h2 {
         padding-bottom: 24px;
     }
     p {
@@ -750,8 +814,8 @@ button {
     }
 
     h3 {
-        color: $color-success;
-        font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        color: var(--color-success);
+        font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
         font-size: 17px;
         font-weight: 500;
         padding: 0;
@@ -768,13 +832,13 @@ button {
             margin: 0 0 8px;
 
             a {
-                color: $color-text-supporting;
+                color: var(--color-text-supporting);
                 display: block;
                 padding: 4px 0;
                 word-break: break-word;
 
                 &:hover {
-                    color: $color-link;
+                    color: var(--color-link);
                 }
             }
         }
@@ -784,21 +848,21 @@ button {
         padding-bottom: 20px;
 
         a {
-            color: $color-text-supporting;
+            color: var(--color-text-supporting);
             display: inline-block;
 
             &:hover {
-                color: $color-link;
+                color: var(--color-link);
             }
         }
     }
 
     &__fine-print {
-        color: $color-text-supporting;
+        color: var(--color-text-supporting);
         font-size: 10px;
 
         a {
-            color: $color-link;
+            color: var(--color-link);
         }
     }
 
@@ -841,4 +905,46 @@ button {
             width: 25%;
         }
     }
+}
+
+.title-platform-tabs {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    h1 {
+        padding: 0;
+    }
+
+    @include maxBreakpoint($breakpoint-tablet) {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+#platform-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    gap: 4px;
+}
+
+#platform-tabs > * {
+    cursor: pointer;
+    border-radius: 20px;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    height: 36px;
+    line-height: 16px;
+}
+
+#platform-tabs > .active {
+    color: var(--color-button-text);
+    background-color: var(--color-button-success-background);
+}
+
+.hidden {
+    display: none;
 }

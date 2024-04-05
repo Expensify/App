@@ -58,6 +58,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
                 onMouseDown={(e) => e.preventDefault()}
                 onPress={() => onSelect(index)}
                 onLongPress={() => {}}
+                shouldUseHapticsOnLongPress={false}
                 accessibilityLabel={accessibilityLabelExtractor(item, index)}
             >
                 {renderSuggestionMenuItem(item, index)}
@@ -107,7 +108,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
                     keyExtractor={keyExtractor}
                     removeClippedSubviews={false}
                     showsVerticalScrollIndicator={innerHeight > rowHeight.value}
-                    extraData={highlightedSuggestionIndex}
+                    extraData={[highlightedSuggestionIndex, renderSuggestionMenuItem]}
                 />
             </ColorSchemeWrapper>
         </Animated.View>

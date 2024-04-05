@@ -26,3 +26,9 @@ declare module '*.lottie' {
     const value: LottieViewProps['source'];
     export default value;
 }
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+interface Window {
+    setSupportToken: (token: string, email: string, accountID: number) => void;
+    shouldAllowRawHTMLMessages: boolean;
+}

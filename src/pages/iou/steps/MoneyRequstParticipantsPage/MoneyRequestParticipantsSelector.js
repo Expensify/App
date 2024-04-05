@@ -1,23 +1,25 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import OptionsSelector from '@components/OptionsSelector';
-import refPropTypes from '@components/refPropTypes';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import {useOptionsList} from '@components/OptionListContextProvider';
+import {PressableWithFeedback} from '@components/Pressable';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
+import SelectCircle from '@components/SelectCircle';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
+import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
-import * as Browser from '@libs/Browser';
-import compose from '@libs/compose';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -31,11 +33,11 @@ const propTypes = {
     /** Callback to request parent modal to go to next step, which should be split */
     navigateToSplit: PropTypes.func.isRequired,
 
-    /** A ref to forward to options selector's text input */
-    forwardedRef: refPropTypes,
-
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
+
+    /** An object that holds data about which referral banners have been dismissed */
+    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
 
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
@@ -48,9 +50,6 @@ const propTypes = {
         }),
     ),
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
-
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -59,47 +58,72 @@ const propTypes = {
 
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
-
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    dismissedReferralBanners: {},
     participants: [],
-    forwardedRef: undefined,
     safeAreaPaddingBottomStyle: {},
-    reports: {},
     betas: [],
     isDistanceRequest: false,
-    isSearchingForReports: false,
 };
 
 function MoneyRequestParticipantsSelector({
-    forwardedRef,
     betas,
+    dismissedReferralBanners,
     participants,
-    reports,
-    translate,
     navigateToRequest,
     navigateToSplit,
     onAddParticipants,
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
-    isSearchingForReports,
 }) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
-    const [newChatOptions, setNewChatOptions] = useState({
-        recentReports: [],
-        personalDetails: [],
-        userToInvite: null,
-    });
+    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
+    const {canUseP2PDistanceRequests} = usePermissions();
+    const {options, areOptionsInitialized} = useOptionsList();
+
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
+
+    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
+
+    const newChatOptions = useMemo(() => {
+        const chatOptions = OptionsListUtils.getFilteredOptions(
+            options.reports,
+            options.personalDetails,
+            betas,
+            searchTerm,
+            participants,
+            CONST.EXPENSIFY_EMAILS,
+
+            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // sees the option to request money from their admin on their own Workspace Chat.
+            iouType === CONST.IOU.TYPE.REQUEST,
+
+            canUseP2PDistanceRequests || !isDistanceRequest,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
+            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
+            canUseP2PDistanceRequests || !isDistanceRequest,
+            true,
+        );
+        return {
+            recentReports: chatOptions.recentReports,
+            personalDetails: chatOptions.personalDetails,
+            userToInvite: chatOptions.userToInvite,
+        };
+    }, [options.reports, options.personalDetails, betas, searchTerm, participants, iouType, canUseP2PDistanceRequests, isDistanceRequest]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -108,19 +132,17 @@ function MoneyRequestParticipantsSelector({
      */
     const sections = useMemo(() => {
         const newSections = [];
-        let indexOffset = 0;
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             searchTerm,
             participants,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
+            maxParticipantsReached,
             personalDetails,
             true,
-            indexOffset,
         );
         newSections.push(formatResults.section);
-        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return newSections;
@@ -130,17 +152,13 @@ function MoneyRequestParticipantsSelector({
             title: translate('common.recents'),
             data: newChatOptions.recentReports,
             shouldShow: !_.isEmpty(newChatOptions.recentReports),
-            indexOffset,
         });
-        indexOffset += newChatOptions.recentReports.length;
 
         newSections.push({
             title: translate('common.contacts'),
             data: newChatOptions.personalDetails,
             shouldShow: !_.isEmpty(newChatOptions.personalDetails),
-            indexOffset,
         });
-        indexOffset += newChatOptions.personalDetails.length;
 
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
@@ -150,7 +168,6 @@ function MoneyRequestParticipantsSelector({
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
-                indexOffset,
             });
         }
 
@@ -164,6 +181,9 @@ function MoneyRequestParticipantsSelector({
      */
     const addSingleParticipant = useCallback(
         (option) => {
+            if (participants.length) {
+                return;
+            }
             onAddParticipants(
                 [
                     {
@@ -179,7 +199,7 @@ function MoneyRequestParticipantsSelector({
             );
             navigateToRequest();
         },
-        [onAddParticipants, navigateToRequest],
+        [navigateToRequest, onAddParticipants, participants.length],
     );
 
     /**
@@ -225,73 +245,49 @@ function MoneyRequestParticipantsSelector({
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+                _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 searchTerm.trim(),
                 maxParticipantsReached,
                 _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
+        [maxParticipantsReached, newChatOptions, participants, searchTerm],
     );
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
-
-    useEffect(() => {
-        const chatOptions = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
-            betas,
-            searchTerm,
-            participants,
-            CONST.EXPENSIFY_EMAILS,
-
-            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to request money from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.TYPE.REQUEST,
-
-            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            !isDistanceRequest,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
-            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
-            !isDistanceRequest,
-            true,
-        );
-        setNewChatOptions({
-            recentReports: chatOptions.recentReports,
-            personalDetails: chatOptions.personalDetails,
-            userToInvite: chatOptions.userToInvite,
-        });
-    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest]);
-
-    // When search term updates we will fetch any reports
-    const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        Report.searchInServer(text);
-        setSearchTerm(text);
-    }, []);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to show error message if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = !isDistanceRequest && iouType !== CONST.IOU.TYPE.SEND;
+    const isAllowedToSplit = (canUseP2PDistanceRequests || !isDistanceRequest) && iouType !== CONST.IOU.TYPE.SEND;
 
-    const handleConfirmSelection = useCallback(() => {
-        if (shouldShowSplitBillErrorMessage) {
-            return;
-        }
+    const handleConfirmSelection = useCallback(
+        (keyEvent, option) => {
+            const shouldAddSingleParticipant = option && !participants.length;
 
-        navigateToSplit();
-    }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
+            if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
+                return;
+            }
+
+            if (shouldAddSingleParticipant) {
+                addSingleParticipant(option);
+                return;
+            }
+
+            navigateToSplit();
+        },
+        [shouldShowSplitBillErrorMessage, navigateToSplit, addSingleParticipant, participants.length],
+    );
 
     const footerContent = useMemo(
         () => (
             <View>
+                {!dismissedReferralBanners[referralContentType] && (
+                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
+                        <ReferralProgramCTA referralContentType={referralContentType} />
+                    </View>
+                )}
+
                 {shouldShowSplitBillErrorMessage && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
@@ -299,76 +295,83 @@ function MoneyRequestParticipantsSelector({
                         message="iou.error.splitBillMultipleParticipantsErrorMessage"
                     />
                 )}
-                <Button
-                    success
-                    text={translate('iou.addToSplit')}
-                    onPress={handleConfirmSelection}
-                    pressOnEnter
-                    isDisabled={shouldShowSplitBillErrorMessage}
-                />
+
+                {!!participants.length && (
+                    <Button
+                        success
+                        text={translate('iou.addToSplit')}
+                        onPress={handleConfirmSelection}
+                        pressOnEnter
+                        large
+                        isDisabled={shouldShowSplitBillErrorMessage}
+                    />
+                )}
             </View>
         ),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [handleConfirmSelection, shouldShowSplitBillErrorMessage, translate],
+        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
+    );
+
+    const itemRightSideComponent = useCallback(
+        (item) => {
+            if (!isAllowedToSplit) {
+                return null;
+            }
+            if (item.isSelected) {
+                return (
+                    <PressableWithFeedback
+                        onPress={() => addParticipantToSelection(item)}
+                        disabled={item.isDisabled}
+                        role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                    >
+                        <SelectCircle isChecked={item.isSelected} />
+                    </PressableWithFeedback>
+                );
+            }
+
+            return (
+                <Button
+                    onPress={() => addParticipantToSelection(item)}
+                    style={[styles.pl2]}
+                    text={translate('iou.split')}
+                    small
+                />
+            );
+        },
+        [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-            <OptionsSelector
-                canSelectMultipleOptions={isAllowedToSplit}
-                shouldShowMultipleOptionSelectorAsButton
-                multipleOptionSelectorButtonText={translate('iou.split')}
-                onAddToSelection={addParticipantToSelection}
+            <SelectionList
+                onConfirm={handleConfirmSelection}
                 sections={sections}
-                selectedOptions={participants}
-                onSelectRow={addSingleParticipant}
-                onChangeText={setSearchTermAndSearchInServer}
-                ref={forwardedRef}
-                headerMessage={headerMessage}
-                boldStyle
-                shouldShowConfirmButton={isAllowedToSplit}
-                onConfirmSelection={handleConfirmSelection}
+                ListItem={UserListItem}
+                textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                shouldShowOptions={isOptionsDataReady}
-                shouldShowReferralCTA
-                referralContentType={iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST}
-                shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-                shouldDelayFocus
-                footerContent={isAllowedToSplit && footerContent}
-                isLoadingNewOptions={isSearchingForReports}
+                textInputHint={offlineMessage}
+                onChangeText={setSearchTermAndSearchInServer}
+                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                onSelectRow={addSingleParticipant}
+                footerContent={footerContent}
+                headerMessage={headerMessage}
+                showLoadingPlaceholder={!areOptionsInitialized}
+                rightHandSideComponent={itemRightSideComponent}
             />
         </View>
     );
 }
 
 MoneyRequestParticipantsSelector.propTypes = propTypes;
-MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
+MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
-const MoneyRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => (
-    <MoneyRequestParticipantsSelector
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-MoneyRequestParticipantsSelectorWithRef.displayName = 'MoneyRequestParticipantsSelectorWithRef';
-
-export default compose(
-    withLocalize,
-    withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        isSearchingForReports: {
-            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-            initWithStoredValues: false,
-        },
-    }),
-)(MoneyRequestParticipantsSelectorWithRef);
+export default withOnyx({
+    dismissedReferralBanners: {
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+})(MoneyRequestParticipantsSelector);

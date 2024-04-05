@@ -16,6 +16,7 @@ const useEmojiPickerMenu = () => {
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
     const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis), [allEmojis]);
     const headerRowIndices = useMemo(() => _.map(headerEmojis, (headerEmoji) => headerEmoji.index), [headerEmojis]);
+    const spacersIndexes = useMemo(() => EmojiUtils.getSpacersIndexes(allEmojis), [allEmojis]);
     const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const isListFiltered = allEmojis.length !== filteredEmojis.length;
@@ -23,7 +24,12 @@ const useEmojiPickerMenu = () => {
     const [preferredSkinTone] = usePreferredEmojiSkinTone();
     const {windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
-    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight);
+    /**
+     * At EmojiPicker has set innerContainerStyle with maxHeight: '95%' by styles.popoverInnerContainer
+     * to avoid the list style to be cut off due to the list height being larger than the container height
+     * so we need to calculate listStyle based on the height of the window and innerContainerStyle at the EmojiPicker
+     */
+    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight * 0.95);
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);
@@ -61,6 +67,7 @@ const useEmojiPickerMenu = () => {
         preferredSkinTone,
         listStyle,
         emojiListRef,
+        spacersIndexes,
     };
 };
 

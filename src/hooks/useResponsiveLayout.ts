@@ -1,25 +1,27 @@
-import type {ParamListBase, RouteProp} from '@react-navigation/native';
-import {useRoute} from '@react-navigation/native';
+import {useEffect, useState} from 'react';
+import Navigation from '@libs/Navigation/Navigation';
 import useWindowDimensions from './useWindowDimensions';
 
-type RouteParams = ParamListBase & {
-    params: {isInRHP?: boolean};
-};
 type ResponsiveLayoutResult = {
     shouldUseNarrowLayout: boolean;
+    isSmallScreenWidth: boolean;
+    isInModal: boolean;
 };
+
 /**
- * Hook to determine if we are on mobile devices or in the RHP
+ * Hook to determine if we are on mobile devices or in the Modal Navigator
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth} = useWindowDimensions();
-    try {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const {params} = useRoute<RouteProp<RouteParams, 'params'>>();
-        return {shouldUseNarrowLayout: isSmallScreenWidth || (params?.isInRHP ?? false)};
-    } catch (error) {
-        return {
-            shouldUseNarrowLayout: isSmallScreenWidth,
-        };
-    }
+
+    const [isInModal, setIsInModal] = useState(Navigation.isDisplayedInModal());
+
+    useEffect(() => {
+        Navigation.isNavigationReady().then(() => {
+            setIsInModal(Navigation.isDisplayedInModal());
+        });
+    }, []);
+
+    const shouldUseNarrowLayout = isSmallScreenWidth || isInModal;
+    return {shouldUseNarrowLayout, isSmallScreenWidth, isInModal};
 }

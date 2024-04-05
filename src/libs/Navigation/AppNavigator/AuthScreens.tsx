@@ -1,18 +1,20 @@
-import React, {memo, useEffect, useRef} from 'react';
+import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
-import type {AuthScreensParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
@@ -36,9 +38,13 @@ import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
+import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
+import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -47,22 +53,24 @@ type AuthScreensProps = {
     /** The report ID of the last opened public room as anonymous user */
     lastOpenedPublicRoomID: OnyxEntry<string>;
 
-    /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
-    isUsingMemoryOnlyKeys: OnyxEntry<boolean>;
-
     /** The last Onyx update ID was applied to the client */
-    lastUpdateIDAppliedToClient: OnyxEntry<number>;
+    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
-const loadSidebarScreen = () => require('../../../pages/home/sidebar/SidebarScreen').default as React.ComponentType;
 const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default as React.ComponentType;
 const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default as React.ComponentType;
 const loadConciergePage = () => require('../../../pages/ConciergePage').default as React.ComponentType;
+const loadProfileAvatar = () => require('../../../pages/settings/Profile/ProfileAvatar').default as React.ComponentType;
+const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
+const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
+const loadReceiptView = () => require('../../../pages/TransactionReceiptPage').default as React.ComponentType;
+const loadWorkspaceJoinUser = () => require('@pages/workspace/WorkspaceJoinUserPage').default as React.ComponentType;
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let isLoadingApp = false;
+let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -76,8 +84,7 @@ Onyx.connect({
         currentAccountID = value.accountID ?? -1;
 
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
-            // This means sign in in RHP was successful, so we can dismiss the modal and subscribe to user events
-            Navigation.dismissModal();
+            // This means sign in in RHP was successful, so we can subscribe to user events
             User.subscribeToUserEvents();
         }
     },
@@ -112,6 +119,22 @@ Onyx.connect({
     },
 });
 
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value: OnyxEntry<number>) => {
+        lastUpdateIDAppliedToClient = value;
+    },
+});
+
+function handleNetworkReconnect() {
+    if (isLoadingApp) {
+        App.openApp();
+    } else {
+        Log.info('[handleNetworkReconnect] Sending ReconnectApp');
+        App.reconnectApp(lastUpdateIDAppliedToClient);
+    }
+}
+
 const RootStack = createCustomStackNavigator<AuthScreensParamList>();
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
@@ -126,14 +149,17 @@ const modalScreenListeners = {
         // Clear search input (WorkspaceInvitePage) when modal is closed
         SearchInputManager.searchInput = '';
         Modal.setModalVisibility(false);
+        Modal.willAlertModalBecomeVisible(false);
     },
 };
 
-function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false}: AuthScreensProps) {
+function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useOnboardingLayout();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const onboardingScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {
@@ -147,40 +173,32 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
-        const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+        const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
-            Session.signOutAndRedirectToSignIn();
+            Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
             return;
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => {
-            if (isLoadingApp) {
-                App.openApp();
-            } else {
-                App.reconnectApp(lastUpdateIDAppliedToClient);
-            }
-        });
+        NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=AuthenticatePusher`,
+            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
         }).then(() => {
             User.subscribeToUserEvents();
         });
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-        // Note: If a Guide has enabled the memory only key mode then we do want to run OpenApp as their app will not be rehydrated with
-        // the correct state on refresh. They are explicitly opting out of storing data they would need (i.e. reports_) to take advantage of
-        // the optimizations performed during ReconnectApp.
-        if (shouldGetAllData) {
+        if (SessionUtils.didUserLogInDuringSession()) {
             App.openApp();
         } else {
-            App.reconnectApp(lastUpdateIDAppliedToClient);
+            Log.info('[AuthScreens] Sending ReconnectApp');
+            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         PriorityMode.autoSwitchToFocusMode();
@@ -251,9 +269,9 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
             <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
                 <RootStack.Screen
-                    name={SCREENS.HOME}
-                    options={screenOptions.homeScreen}
-                    getComponent={loadSidebarScreen}
+                    name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
+                    options={screenOptions.bottomTab}
+                    component={BottomTabNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
@@ -289,6 +307,33 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name={SCREENS.PROFILE_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadProfileAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACE_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadWorkspaceAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.REPORT_AVATAR}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadReportAvatar}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name={SCREENS.NOT_FOUND}
                     options={screenOptions.fullScreen}
                     component={NotFoundPage}
@@ -300,6 +345,11 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
+                    options={screenOptions.fullScreen}
+                    component={FullScreenNavigator}
+                />
+                <RootStack.Screen
                     name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
                     options={screenOptions.leftModalNavigator}
                     component={LeftModalNavigator}
@@ -309,6 +359,34 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={screenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
+                    options={onboardingScreenOptions}
+                    component={WelcomeVideoModalNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
+                    options={onboardingScreenOptions}
+                    component={OnboardingModalNavigator}
+                />
+                <RootStack.Screen
+                    name={SCREENS.WORKSPACE_JOIN_USER}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    listeners={modalScreenListeners}
+                    getComponent={loadWorkspaceJoinUser}
+                />
+                <RootStack.Screen
+                    name={SCREENS.TRANSACTION_RECEIPT}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={loadReceiptView}
+                    listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
         </View>
@@ -326,10 +404,7 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     lastOpenedPublicRoomID: {
         key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
     },
-    isUsingMemoryOnlyKeys: {
-        key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
-    },
-    lastUpdateIDAppliedToClient: {
+    initialLastUpdateIDAppliedToClient: {
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     },
 })(AuthScreensMemoized);

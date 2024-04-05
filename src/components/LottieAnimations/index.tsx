@@ -1,11 +1,8 @@
+import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import type DotLottieAnimation from './types';
 
-const DotLottieAnimations: Record<string, DotLottieAnimation> = {
-    ExpensifyLounge: {
-        file: require('@assets/animations/ExpensifyLounge.lottie'),
-        w: 1920,
-        h: 1080,
-    },
+const DotLottieAnimations = {
     FastMoney: {
         file: require('@assets/animations/FastMoney.lottie'),
         w: 375,
@@ -25,6 +22,7 @@ const DotLottieAnimations: Record<string, DotLottieAnimation> = {
         file: require('@assets/animations/PreferencesDJ.lottie'),
         w: 375,
         h: 240,
+        backgroundColor: colors.blue500,
     },
     ReviewingBankInfo: {
         file: require('@assets/animations/ReviewingBankInfo.lottie'),
@@ -35,6 +33,7 @@ const DotLottieAnimations: Record<string, DotLottieAnimation> = {
         file: require('@assets/animations/WorkspacePlanet.lottie'),
         w: 375,
         h: 240,
+        backgroundColor: colors.pink800,
     },
     SaveTheWorld: {
         file: require('@assets/animations/SaveTheWorld.lottie'),
@@ -45,12 +44,29 @@ const DotLottieAnimations: Record<string, DotLottieAnimation> = {
         file: require('@assets/animations/Safe.lottie'),
         w: 625,
         h: 400,
+        backgroundColor: colors.ice500,
     },
     Magician: {
         file: require('@assets/animations/Magician.lottie'),
         w: 853,
         h: 480,
     },
-};
+    Update: {
+        file: require('@assets/animations/Update.lottie'),
+        w: variables.updateAnimationW,
+        h: variables.updateAnimationH,
+    },
+    Coin: {
+        file: require('@assets/animations/Coin.lottie'),
+        w: 375,
+        h: 240,
+        backgroundColor: colors.yellow600,
+    },
+    Desk: {
+        file: require('@assets/animations/Desk.lottie'),
+        w: 200,
+        h: 120,
+    },
+} satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;

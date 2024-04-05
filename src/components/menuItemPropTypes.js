@@ -164,11 +164,16 @@ const propTypes = {
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress: PropTypes.bool,
 
+    shouldPutLeftPaddingWhenNoIcon: PropTypes.bool,
+
     /** The menu item link or function to get the link */
     link: PropTypes.oneOfType(PropTypes.func, PropTypes.string),
 
     /** Icon should be displayed in its own color */
     displayInDefaultIconColor: PropTypes.bool,
+
+    /** Is this menu item in the settings pane */
+    isPaneMenu: PropTypes.bool,
 };
 
 export default propTypes;

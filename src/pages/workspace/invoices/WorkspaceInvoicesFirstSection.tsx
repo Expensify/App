@@ -24,6 +24,7 @@ function WorkspaceInvoicesFirstSection({policyID}: WorkspaceInvoicesFirstSection
         <Section
             title={translate('workspace.invoices.invoiceClientsAndCustomers')}
             icon={Illustrations.InvoiceBlue}
+            isCentralPane
             menuItems={[
                 {
                     title: translate('workspace.invoices.sendInvoice'),
@@ -44,7 +45,6 @@ function WorkspaceInvoicesFirstSection({policyID}: WorkspaceInvoicesFirstSection
                     link: () => Link.buildOldDotURL(viewAllInvoicesUrl),
                 },
             ]}
-            containerStyles={[styles.cardSection]}
         >
             <View style={[styles.mv3]}>
                 <Text>{translate('workspace.invoices.invoiceFirstSectionCopy')}</Text>

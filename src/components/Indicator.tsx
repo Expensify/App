@@ -1,8 +1,7 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -47,7 +46,7 @@ function Indicator({reimbursementAccount, allPolicyMembers, policies, bankAccoun
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
-    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => !!policy));
+    const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
     const cleanAllPolicyMembers = Object.fromEntries(Object.entries(allPolicyMembers ?? {}).filter(([, policyMembers]) => !!policyMembers));
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
@@ -87,6 +86,7 @@ export default withOnyx<IndicatorProps, IndicatorOnyxProps>({
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
     },
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

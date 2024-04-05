@@ -63,6 +63,7 @@ function process(): Promise<void> {
     if (persistedRequests.length === 0 || NetworkStore.isOffline()) {
         return Promise.resolve();
     }
+
     const requestToProcess = persistedRequests[0];
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
@@ -176,7 +177,7 @@ function push(request: OnyxRequest) {
     flush();
 }
 
-function getCurrentRequest(): OnyxRequest | Promise<void> {
+function getCurrentRequest(): Promise<void> {
     if (currentRequest === null) {
         return Promise.resolve();
     }

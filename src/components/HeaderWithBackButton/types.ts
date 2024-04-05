@@ -1,15 +1,17 @@
 import type {ReactNode} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
-import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ThreeDotsMenuItems = {
+type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
-    icon?: IconAsset;
+    icon: IconAsset;
 
     /** Text label */
     text: string;
@@ -27,6 +29,13 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Title color */
     titleColor?: string;
+
+    /**
+     * Icon displayed on the left of the title.
+     * If it is passed, the new styling is applied to the component:
+     * taller header on desktop and different font of the title.
+     * */
+    icon?: IconAsset;
 
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
@@ -61,8 +70,11 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should disable threedots button */
     shouldDisableThreeDotsButton?: boolean;
 
+    /** Whether we should set modal visibility when three dot menu opens */
+    shouldSetModalVisibility?: boolean;
+
     /** List of menu items for more(three dots) menu */
-    threeDotsMenuItems?: ThreeDotsMenuItems[];
+    threeDotsMenuItems?: ThreeDotsMenuItem[];
 
     /** The anchor position of the menu */
     threeDotsAnchorPosition?: AnchorPosition;
@@ -79,8 +91,8 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Data to display a step counter in the header */
     stepCounter?: StepCounterParams;
 
-    /** Whether we should show an avatar */
-    shouldShowAvatarWithDisplay?: boolean;
+    /** Whether we should show a report avatar */
+    shouldShowReportAvatarWithDisplay?: boolean;
 
     /** Parent report, if provided it will override props.report for AvatarWithDisplay */
     parentReport?: OnyxEntry<Report>;
@@ -90,9 +102,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
     policy?: OnyxEntry<Policy>;
-
-    /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
-    personalDetails?: OnyxCollection<PersonalDetails>;
 
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;
@@ -108,6 +117,19 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
+
+    /** Whether we should overlay the 3 dots menu */
+    shouldOverlayDots?: boolean;
+
+    /** 0 - 100 number indicating current progress of the progress bar */
+    progressBarPercentage?: number;
+
+    /** Policy avatar to display in the header */
+    policyAvatar?: Icon;
+
+    /** Additional styles to add to the component */
+    style?: StyleProp<ViewStyle>;
 };
 
+export type {ThreeDotsMenuItem};
 export default HeaderWithBackButtonProps;

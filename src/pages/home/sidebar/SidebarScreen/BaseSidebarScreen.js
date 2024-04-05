@@ -3,7 +3,9 @@ import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import Performance from '@libs/Performance';
+import {getPolicyIDFromNavigationState} from '@libs/PolicyUtils';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -19,6 +21,7 @@ const startTimer = () => {
 
 function BaseSidebarScreen(props) {
     const styles = useThemeStyles();
+    const activeWorkspaceID = getPolicyIDFromNavigationState();
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
@@ -28,11 +31,13 @@ function BaseSidebarScreen(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
+            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}, styles.pb0]}
             testID={BaseSidebarScreen.displayName}
+            includePaddingTop={false}
         >
             {({insets}) => (
                 <>
+                    <TopBar activeWorkspaceID={activeWorkspaceID} />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData
                             onLinkClick={startTimer}
@@ -40,7 +45,6 @@ function BaseSidebarScreen(props) {
                             onLayout={props.onLayout}
                         />
                     </View>
-                    {props.children}
                 </>
             )}
         </ScreenWrapper>

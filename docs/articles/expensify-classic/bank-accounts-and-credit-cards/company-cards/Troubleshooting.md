@@ -8,6 +8,12 @@ Whether you're encountering issues related to company cards, require assistance 
 ## How to add company cards to Expensify
 You can add company credit cards under the Domain settings in your Expensify account by navigating to *Settings* > *Domain* > _Domain Name_ > *Company Cards* and clicking *Import Card/Bank* and following the prompts.
 
+## Known issues importing transactions
+The first step should always be to "Update" your card, either from Settings > Your Account > Credit Card Import or Settings > Domain > [Domain Name] > Company Cards for centrally managed cards. If a "Fix" or "Fix card" option appears, follow the steps to fix the connection. If this fails to import your missing transactions, there is a known issue whereby some transactions will not import for certain API-based company card connections. So far this has been reported on American Express, Chase and Wells Fargo. This can be temporarily resolved by creating the expenses manually instead:
+
+- [Manually add the expenses](https://help.expensify.com/articles/expensify-classic/expenses/expenses/Add-an-expense)
+- [Upload the expenses via CSV](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/CSV-Import)
+
 # Errors connecting company cards
 
 ## Error: Too many attempts
@@ -49,16 +55,16 @@ The card will only appear in the drop-down list for assignment once it’s activ
 # Troubleshooting issues assigning company cards
 
 ## Why do bank connections break?
-Banks often make changes to safeguard your confidential information, and when they do, we need to update the connection between Expensify and the bank. We have a team of engineers that works closely with banks to monitor this and update our software accordingly when this happens. 
+Banks often make changes to safeguard your confidential information, and when they do, we need to update the connection between Expensify and the bank. We have a team of engineers who work closely with banks to monitor this and update our software accordingly when this happens. 
 The first step is to check if there have been any changes to your bank information. Have you recently changed your banking password without updating it in Expensify? Has your banking username or card number been updated? Did you update your security questions for your bank?
-If you've answered "yes" to any of these questions, a Domain Admins need to update this information in Expensify and manually reestablish the connection by heading to *Settings* > *Domains* > _Domain Name_ > *Company Cards* > *Fix*. The Domain Admin will be prompted to enter the new credentials/updated information and this should reestablish the connection.
+If you've answered "yes" to any of these questions, a Domain Admins need to update this information in Expensify and manually re-establish the connection by heading to *Settings* > *Domains* > _Domain Name_ > *Company Cards* > *Fix*. The Domain Admin will be prompted to enter the new credentials/updated information and this should reestablish the connection.
 
 ## How do I resolve errors while I’m trying to import my card?*
 Make sure you're importing your card in the correct spot in Expensify and selecting the right bank connection. For company cards, use the master administrative credentials to import your set of cards at *Settings* > *Domains* > _Domain Name_ > *Company Cards* > *Import Card*.
 Please note there are some things that cannot be bypassed within Expensify, including two-factor authentication being enabled within your bank account. This will prevent the connection from remaining stable and will need to be turned off on the bank side. 
 
 ## What are the most reliable bank connections in Expensify?*
-The most reliable corporate card to use with Expensify is the Expensify Card. We offer daily settlement, unapproved expense limits, and real-time compliance for secure and efficient spending, as well as 2% cash back. Click here to learn more or apply.
+The most reliable corporate card to use with Expensify is the Expensify Visa® Commercial Card. We offer daily settlement, unapproved expense limits, and real-time compliance for secure and efficient spending, as well as 2% cash back (_Applies to USD purchases only._) Click here to learn more or apply.
 Additionally, we've teamed up with major banks worldwide to ensure a smooth import of credit card transactions into your accounts. Corporate cards from the following banks also offer the most dependable connections in Expensify:
 - American Express
 - Bank of America

@@ -11,6 +11,9 @@ type Card = {
     maskedPan?: string; // do not reference, removing as part of Expensify/App#27943
     lastFourPAN?: string;
     cardName: string;
+    cardTitle: string; // used only for virtual limit cards
+    limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+    isAdminIssuedVirtualCard: boolean;
     isVirtual: boolean;
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
     cardholderFirstName: string;
@@ -33,5 +36,7 @@ type TCardDetails = {
     };
 };
 
+type CardList = Record<string, Card>;
+
 export default Card;
-export type {TCardDetails};
+export type {TCardDetails, CardList};

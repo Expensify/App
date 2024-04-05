@@ -1,5 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import React, {useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 import {StyleSheet} from 'react-native';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';

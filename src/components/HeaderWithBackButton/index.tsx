@@ -1,5 +1,6 @@
-import React from 'react';
-import {Keyboard, View} from 'react-native';
+import React, {useMemo} from 'react';
+import {Keyboard, StyleSheet, View} from 'react-native';
+import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -14,24 +15,25 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
+    icon,
     iconFill,
     guidesCallTaskID = '',
-    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
+    onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report = null,
     policy,
-    personalDetails = null,
-    shouldShowAvatarWithDisplay = false,
+    policyAvatar,
+    shouldShowReportAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
@@ -39,6 +41,7 @@ function HeaderWithBackButton({
     shouldShowGetAssistanceButton = false,
     shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
+    shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
     stepCounter,
@@ -52,25 +55,92 @@ function HeaderWithBackButton({
     threeDotsMenuItems = [],
     shouldEnableDetailPageNavigation = false,
     children = null,
+    shouldOverlayDots = false,
     shouldOverlay = false,
-    singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
+    progressBarPercentage,
+    style,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    // @ts-expect-error TODO: Remove this once useKeyboardState (https://github.com/Expensify/App/issues/24941) is migrated to TypeScript.
     const {isKeyboardShown} = useKeyboardState();
-    const waitForNavigate = useWaitForNavigation();
+
+    // If the icon is present, the header bar should be taller and use different font.
+    const isCentralPaneSettings = !!icon;
+
+    const middleContent = useMemo(() => {
+        if (progressBarPercentage) {
+            return (
+                <>
+                    {/* Reserves as much space for the middleContent as possible */}
+                    <View style={styles.flexGrow1} />
+                    {/* Uses absolute positioning so that it's always centered instead of being affected by the
+                    presence or absence of back/close buttons to the left/right of it */}
+                    <View style={styles.headerProgressBarContainer}>
+                        <View style={styles.headerProgressBar}>
+                            <View style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]} />
+                        </View>
+                    </View>
+                </>
+            );
+        }
+
+        if (shouldShowReportAvatarWithDisplay) {
+            return (
+                <AvatarWithDisplayName
+                    report={report}
+                    policy={policy}
+                    shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                />
+            );
+        }
+
+        return (
+            <Header
+                title={title}
+                subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
+            />
+        );
+    }, [
+        StyleUtils,
+        isCentralPaneSettings,
+        policy,
+        progressBarPercentage,
+        report,
+        shouldEnableDetailPageNavigation,
+        shouldShowReportAvatarWithDisplay,
+        stepCounter,
+        styles.flexGrow1,
+        styles.headerProgressBar,
+        styles.headerProgressBarContainer,
+        styles.headerProgressBarFill,
+        styles.textHeadlineH2,
+        subtitle,
+        title,
+        titleColor,
+        translate,
+    ]);
 
     return (
         <View
             // Hover on some part of close icons will not work on Electron if dragArea is true
             // https://github.com/Expensify/App/issues/29598
             dataSet={{dragArea: false}}
-            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}
+            style={[
+                styles.headerBar,
+                isCentralPaneSettings && styles.headerBarDesktopHeight,
+                shouldShowBorderBottom && styles.borderBottom,
+                // progressBarPercentage can be 0 which would
+                // be falsey, hence using !== undefined explicitly
+                progressBarPercentage !== undefined && styles.pl0,
+                shouldShowBackButton && [styles.pl2, styles.pr2],
+                shouldOverlay && StyleSheet.absoluteFillObject,
+                style,
+            ]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
@@ -99,20 +169,23 @@ function HeaderWithBackButton({
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
-                {shouldShowAvatarWithDisplay ? (
-                    <AvatarWithDisplayName
-                        report={report}
-                        policy={policy}
-                        personalDetails={personalDetails}
-                        shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                    />
-                ) : (
-                    <Header
-                        title={title}
-                        subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                        textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
+                {icon && (
+                    <Icon
+                        src={icon}
+                        width={variables.iconHeader}
+                        height={variables.iconHeader}
+                        additionalStyles={[styles.mr2]}
                     />
                 )}
+                {policyAvatar && (
+                    <Avatar
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        source={policyAvatar?.source}
+                        name={policyAvatar?.name}
+                        type={policyAvatar?.type}
+                    />
+                )}
+                {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
                     {children}
                     {shouldShowDownloadButton && (
@@ -145,7 +218,7 @@ function HeaderWithBackButton({
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
                                 disabled={shouldDisableGetAssistanceButton}
-                                onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID, Navigation.getActiveRoute()))))}
+                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID, Navigation.getActiveRoute()))}
                                 style={[styles.touchableButtonImage]}
                                 role="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
@@ -164,7 +237,8 @@ function HeaderWithBackButton({
                             menuItems={threeDotsMenuItems}
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
-                            shouldOverlay={shouldOverlay}
+                            shouldOverlay={shouldOverlayDots}
+                            shouldSetModalVisibility={shouldSetModalVisibility}
                         />
                     )}
                     {shouldShowCloseButton && (

@@ -23,7 +23,7 @@ type Status = {
     clearAfter: string; // ISO 8601 format;
 };
 
-type PersonalDetails = {
+type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the current user from their personal details */
     accountID: number;
 
@@ -43,7 +43,7 @@ type PersonalDetails = {
     phoneNumber?: string;
 
     /** Avatar URL of the current user from their personal details */
-    avatar: AvatarSource;
+    avatar?: AvatarSource;
 
     /** Avatar thumbnail URL of the current user from their personal details */
     avatarThumbnail?: string;
@@ -68,24 +68,23 @@ type PersonalDetails = {
     /** Flag for checking if data is from optimistic data */
     isOptimisticPersonalDetail?: boolean;
 
-    /** Whether we are loading the data via the API */
-    isLoading?: boolean;
-
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields<'avatar'>;
-
-    /** Field-specific pending states for offline UI status */
-    pendingFields?: OnyxCommon.PendingFields<'avatar' | 'originalFileName'>;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: string;
 
     /** Status of the current user from their personal details */
     status?: Status;
+}>;
+
+type PersonalDetailsMetadata = {
+    /** Whether we are waiting for the data to load via the API */
+    isLoading?: boolean;
 };
 
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
 export default PersonalDetails;
 
-export type {Timezone, Status, SelectedTimezone, PersonalDetailsList};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata};
