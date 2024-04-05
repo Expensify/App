@@ -49,7 +49,6 @@ export default function createRandomOptionData(index: number): OptionData {
         iouReportAmount: randNumber({min: 0, max: 1000}),
         currency: randWord(),
         isWaitingOnBankAccount: randBoolean(),
-        hasDraft: randBoolean(),
         lastVisibleActionLastModified: new Date().toISOString(),
         lastActorAccountID: randNumber(),
         ownerAccountID: randNumber(),
