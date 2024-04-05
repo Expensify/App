@@ -426,7 +426,7 @@ function ReportActionItemMessageEdit(
         }
         const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
             if (scrolling) {
-                suggestionsRef?.current?.updateShouldShowSuggestionMenuToFalse();
+                suggestionsRef?.current?.resetSuggestions();
                 return;
             }
             // Reopen the suggestion after scroll has end

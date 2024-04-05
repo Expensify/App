@@ -648,7 +648,7 @@ function ReportActionsList({
                         if (!currentActiveSuggestionsRef.current) {
                             return;
                         }
-                        currentActiveSuggestionsRef.current.updateShouldShowSuggestionMenuToFalse();
+                        currentActiveSuggestionsRef.current.resetSuggestions();
                     }}
                     onScrollEndDrag={() => {
                         if (!currentActiveSuggestionsRef.current) {
