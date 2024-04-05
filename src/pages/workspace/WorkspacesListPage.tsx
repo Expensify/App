@@ -28,6 +28,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -36,6 +37,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, Report} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -321,7 +323,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 return {
                     title: policy.name,
                     icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                    action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
+                    action: () => {
+                        navigationSidebarRef.navigate(SCREENS.WORKSPACE.INITIAL, {
+                            policyID: policy.id,
+                        });
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
+                    },
                     brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,

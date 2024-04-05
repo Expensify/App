@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getTopmostWorkspacesCentralPaneName from '@libs/Navigation/getTopmostWorkspacesCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
+import {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
@@ -260,7 +261,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => {
+                        navigationSidebarRef.goBack();
+                        Navigation.dismissModal();
+                    }}
                     policyAvatar={policyAvatar}
                     style={styles.headerBarDesktopHeight}
                 />

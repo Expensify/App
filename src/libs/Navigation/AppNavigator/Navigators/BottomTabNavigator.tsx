@@ -1,4 +1,3 @@
-import {useNavigationState} from '@react-navigation/native';
 import type {StackNavigationOptions} from '@react-navigation/stack';
 import React from 'react';
 import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator';
@@ -10,6 +9,7 @@ import SCREENS from '@src/SCREENS';
 import ActiveRouteContext from './ActiveRouteContext';
 
 const loadInitialSettingsPage = () => require('../../../../pages/settings/InitialSettingsPage').default as React.ComponentType;
+const loadWorkspaceInitialPage = () => require('../../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType;
 
 const Tab = createCustomBottomTabNavigator<BottomTabNavigatorParamList>();
 
@@ -31,6 +31,10 @@ function BottomTabNavigator() {
                 <Tab.Screen
                     name={SCREENS.SETTINGS.ROOT}
                     getComponent={loadInitialSettingsPage}
+                />
+                <Tab.Screen
+                    name={SCREENS.WORKSPACE.INITIAL}
+                    getComponent={loadWorkspaceInitialPage}
                 />
             </Tab.Navigator>
         </ActiveRouteContext.Provider>
