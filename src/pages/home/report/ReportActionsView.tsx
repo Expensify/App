@@ -99,6 +99,7 @@ function ReportActionsView({
     // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
     const [currentReportActionID, setCurrentReportActionID] = useState('');
     const isFirstLinkedActionRender = useRef(true);
+    const isFirstRender = useRef(true);
 
     const network = useNetwork();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
@@ -231,6 +232,10 @@ function ReportActionsView({
 
     useFocusEffect(
         useCallback(() => {
+            if (isFirstRender.current) {
+                isFirstRender.current = false;
+                return;
+            }
             if (isFirstLinkedActionRender.current) {
                 isFirstLinkedActionRender.current = false;
             }
