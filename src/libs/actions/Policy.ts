@@ -799,7 +799,6 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, policyName: strin
                           statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                           stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                           oldPolicyName: policyName,
-                          hasDraft: false,
                       }
                     : {}),
             },
@@ -814,7 +813,6 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, policyName: strin
                           statusNum: announceReport.statusNum,
                           stateNum: announceReport.stateNum,
                           oldPolicyName: announceReport.oldPolicyName,
-                          hasDraft: announceReport.hasDraft,
                       }
                     : {}),
             },
