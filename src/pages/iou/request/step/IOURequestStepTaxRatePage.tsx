@@ -60,11 +60,17 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(backTo);
     };
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const selectedTaxRate = transactionTaxCode === defaultExternalID ? taxRates && TransactionUtils.getDefaultTaxName(taxRates) : transaction?.taxRate?.keyForList;
+    const moneyRequestSelectedTaxRate = transaction?.taxRate?.keyForList || (taxRates && TransactionUtils.getDefaultTaxName(taxRates));
+    const editingSelectedTaxRate =
+        taxRates &&
+        (transactionTaxCode === defaultExternalID
+            ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
+            : transactionTaxCode && TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode));
 
     const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
         if (isEditing) {
             const newTaxCode = taxes.data.code;
+            console.log('tax rate ', newTaxCode);
             if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
                 navigateBack();
                 return;
@@ -97,7 +103,7 @@ function IOURequestStepTaxRatePage({
             testID={IOURequestStepTaxRatePage.displayName}
         >
             <TaxPicker
-                selectedTaxRate={selectedTaxRate}
+                selectedTaxRate={isEditing ? editingSelectedTaxRate ?? '' : moneyRequestSelectedTaxRate}
                 policyID={report?.policyID}
                 onSubmit={updateTaxRates}
             />
