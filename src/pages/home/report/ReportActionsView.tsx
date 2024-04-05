@@ -356,7 +356,7 @@ function ReportActionsView({
                 });
             }
         }
-    }, [isFocused, report.reportID, report.pendingFields, didSubscribeToReportTypingEvents, route, reportID, lastVisitedPath]);
+    }, [isFocused, report.reportID, report.pendingFields, didSubscribeToReportTypingEvents, route, reportID]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
@@ -614,6 +614,9 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
         return false;
     }
 
+    if (oldProps.lastVisitedPath !== newProps.lastVisitedPath) {
+        return false;
+    }
     return lodashIsEqual(oldProps.report, newProps.report);
 }
 
