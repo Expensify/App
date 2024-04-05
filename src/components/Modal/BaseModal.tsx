@@ -225,7 +225,7 @@ function BaseModal(
         >
             <ModalContent onDismiss={handleDismissModal}>
                 <View
-                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
+                    style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
                     ref={ref}
                 >
                     <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
