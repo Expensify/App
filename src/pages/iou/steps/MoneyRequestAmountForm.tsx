@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import BigNumberPad from '@components/BigNumberPad';
@@ -21,6 +21,8 @@ import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/typ
 import CONST from '@src/CONST';
 import type {SelectedTabRequest} from '@src/types/onyx';
 
+type CurrentMoney = {amount: string; currency: string};
+
 type MoneyRequestAmountFormProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
@@ -41,7 +43,7 @@ type MoneyRequestAmountFormProps = {
     onCurrencyButtonPress?: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-    onSubmitButtonPress: ({amount, currency}: {amount: string; currency: string}) => void;
+    onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab?: SelectedTabRequest;
@@ -229,7 +231,8 @@ function MoneyRequestAmountForm(
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
-        if (isAmountInvalid(currentAmount)) {
+        // Skip the check for tax amount form as 0 is a valid input
+        if (!isTaxAmountForm && isAmountInvalid(currentAmount)) {
             setFormError('iou.error.invalidAmount');
             return;
         }
@@ -245,7 +248,7 @@ function MoneyRequestAmountForm(
         initializeAmount(backendAmount);
 
         onSubmitButtonPress({amount: currentAmount, currency});
-    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
+    }, [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -346,3 +349,4 @@ function MoneyRequestAmountForm(
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
 export default React.forwardRef(MoneyRequestAmountForm);
+export type {CurrentMoney};
