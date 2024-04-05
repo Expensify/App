@@ -19,41 +19,43 @@ function QuickbooksExportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
+    const policyOwner = policy?.owner ?? '';
+    const {exporter} = policy?.connections?.quickbooksOnline?.config?.export ?? {};
 
     const sections = [
         {
             description: translate('workspace.qbo.preferredExporter'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.enableNewCategories),
-            title: 'zany@cathyscroissants.com',
+            title: exporter ?? policyOwner,
         },
         {
             description: translate('workspace.qbo.date'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT_DATE.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncClasses),
             title: 'Date of last expense',
         },
         {
             description: translate('workspace.qbo.exportExpenses'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncCustomers),
             title: 'Vendor bill',
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_INVOICES.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICES.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncLocations),
             title: 'Accounts Receivable (A/R)',
         },
         {
             description: translate('workspace.qbo.exportCompany'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_COMPANY_CARDS.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARDS.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncTaxes),
             title: 'Debit card',
         },
         {
             description: translate('workspace.qbo.exportExpensifyCard'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncTaxes),
             title: 'Credit card',
             interactive: false,

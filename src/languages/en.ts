@@ -1842,6 +1842,8 @@ export default {
             creditCard: 'Credit Card',
             debitCard: 'Debit Card',
             vendorBill: 'Vendor Bill',
+            exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
+            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
         },
         categories: {
             deleteCategories: 'Delete categories',

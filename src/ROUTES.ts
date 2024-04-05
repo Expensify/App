@@ -454,21 +454,29 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/profile/currency',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/currency` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT: {
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_COMPANY_CARDS: {
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARDS: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/company-cards',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/company-cards` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_COMPANY_CARD: {
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/company-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/company-card` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_INVOICES: {
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoices',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/invoices` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/preferred-exporter` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER_LIST: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/preferred-exporter-list',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/preferred-exporter-list` as const,
     },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',
@@ -675,7 +683,7 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/distance-rates/:rateID/edit',
         getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKSONLINE_EXPORT_DATE: {
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/date',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/date` as const,
     },
