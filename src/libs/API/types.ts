@@ -101,7 +101,7 @@ const WRITE_COMMANDS = {
     REMOVE_EMOJI_REACTION: 'RemoveEmojiReaction',
     LEAVE_ROOM: 'LeaveRoom',
     INVITE_TO_ROOM: 'InviteToRoom',
-    INVITE_MEMBERS_TO_GROUP_CHAT: 'InviteMembersToGroupChat',
+    INVITE_TO_GROUP_CHAT: 'InviteToGroupChat',
     REMOVE_FROM_ROOM: 'RemoveFromRoom',
     FLAG_COMMENT: 'FlagComment',
     UPDATE_REPORT_PRIVATE_NOTE: 'UpdateReportPrivateNote',
@@ -287,7 +287,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REMOVE_EMOJI_REACTION]: Parameters.RemoveEmojiReactionParams;
     [WRITE_COMMANDS.LEAVE_ROOM]: Parameters.LeaveRoomParams;
     [WRITE_COMMANDS.INVITE_TO_ROOM]: Parameters.InviteToRoomParams;
-    [WRITE_COMMANDS.INVITE_MEMBERS_TO_GROUP_CHAT]: Parameters.InviteMembersToGroupChat;
+    [WRITE_COMMANDS.INVITE_TO_GROUP_CHAT]: Parameters.InviteToGroupChat;
     [WRITE_COMMANDS.REMOVE_FROM_ROOM]: Parameters.RemoveFromRoomParams;
     [WRITE_COMMANDS.FLAG_COMMENT]: Parameters.FlagCommentParams;
     [WRITE_COMMANDS.UPDATE_REPORT_PRIVATE_NOTE]: Parameters.UpdateReportPrivateNoteParams;

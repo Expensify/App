@@ -1749,6 +1749,18 @@ function getVisibleParticipantAccountIDs(reportID: string) {
     }
 
     const accountIDStrings = Object.keys(report.participants);
+    const visibleParticipantAccountIDs = accountIDStrings.filter(accountID => report.participants[accountID] && !report.participants[accountID].hidden);
+    return visibleParticipantAccountIDs.map(accountID => parseInt(accountID, 10));
+}
+
+function getParticipantAccountIDs(reportID: string) {
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const report = allReports?.[reportKey];
+    if (!report) {
+        return [];
+    }
+
+    const accountIDStrings = Object.keys(report.participants);
     return accountIDStrings.map(accountID => parseInt(accountID, 10));
 }
 
@@ -6018,6 +6030,7 @@ export {
     getGroupChatName,
     getOutstandingChildRequest,
     getVisibleParticipantAccountIDs,
+    getParticipantAccountIDs,
 };
 
 export type {

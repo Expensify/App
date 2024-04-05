@@ -1,6 +1,6 @@
-type InviteMembersToGroupChat = {
+type InviteToGroupChat = {
     reportID: string;
     inviteeEmails: string[];
 };
 
-export default InviteMembersToGroupChat;
+export default InviteToGroupChat;

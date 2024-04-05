@@ -21,14 +21,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { useOptionsList } from '@components/OptionListContextProvider';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import SearchInputManager from './workspace/SearchInputManager';
@@ -42,7 +42,11 @@ type InviteReportParticipantsPageProps = InviteReportParticipantsPageOnyxProps &
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 
-function InviteReportParticipantsPage({betas, personalDetails, report, policies, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
+function InviteReportParticipantsPage({betas, personalDetails, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
@@ -57,14 +61,14 @@ function InviteReportParticipantsPage({betas, personalDetails, report, policies,
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
         () =>
-            [...PersonalDetailsUtils.getLoginsByAccountIDs(report?.visibleChatMemberAccountIDs ?? []), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
+            [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantAccountIDs(report?.reportID ?? '')), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
                 PhoneNumber.addSMSDomainIfPhoneNumber(participant),
             ),
         [report],
     );
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetails, betas ?? [], searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
@@ -88,7 +92,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, policies,
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
 
-        if (!didScreenTransitionEnd) {
+        if (!areOptionsInitialized) {
             return [];
         }
 
@@ -130,7 +134,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, policies,
         }
 
         return sectionsArr;
-    }, [invitePersonalDetails, searchTerm, selectedOptions, translate, userToInvite, didScreenTransitionEnd]);
+    }, [invitePersonalDetails, searchTerm, selectedOptions, translate, userToInvite, areOptionsInitialized]);
 
     const toggleOption = useCallback(
         (option: OptionsListUtils.MemberForList) => {
@@ -167,7 +171,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, policies,
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         if (reportID) {
-            Report.inviteMembersToGroupChat(reportID, invitedEmailsToAccountIDs);
+            Report.inviteToGroupChat(reportID, invitedEmailsToAccountIDs);
         }
         SearchInputManager.searchInput = '';
         Navigation.navigate(backRoute);

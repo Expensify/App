@@ -21,7 +21,7 @@ import type {
     GetNewerActionsParams,
     GetOlderActionsParams,
     GetReportPrivateNoteParams,
-    InviteMembersToGroupChatParams,
+    InviteToGroupChatParams,
     InviteToRoomParams,
     LeaveRoomParams,
     MarkAsUnreadParams,
@@ -2461,7 +2461,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     );
 
     const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(newLogins, newAccountIDs);
     const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
@@ -2509,9 +2510,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 }
 
 /** Invites people to a group chat */
-function inviteMembersToGroupChat(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
+function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
     const report = currentReportData?.[reportID];
-
     if (!report) {
         return;
     }
@@ -2528,7 +2528,7 @@ function inviteMembersToGroupChat(reportID: string, inviteeEmailsToAccountIDs: R
     const participantsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
             hidden: false,
-            role: accountID === currentUserAccountID ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
+            role: CONST.REPORT.ROLE.MEMBER,
         };
         // eslint-disable-next-line no-param-reassign
         reportParticipants[accountID] = participant;
@@ -2536,7 +2536,8 @@ function inviteMembersToGroupChat(reportID: string, inviteeEmailsToAccountIDs: R
     }, {} as Participants);
 
     const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(newLogins, newAccountIDs);
     const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
@@ -2577,13 +2578,14 @@ function inviteMembersToGroupChat(reportID: string, inviteeEmailsToAccountIDs: R
         ...newPersonalDetailsOnyxData.finallyData,
     ];
 
-    const parameters: InviteMembersToGroupChatParams = {
+    const parameters: InviteToGroupChatParams = {
         reportID,
         inviteeEmails,
+        accountIDList: newAccountIDs.join(),
     };
 
     // Looks like a wrong API command
-    API.write(WRITE_COMMANDS.INVITE_MEMBERS_TO_GROUP_CHAT, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.INVITE_TO_GROUP_CHAT, parameters, {optimisticData, successData, failureData});
 }
 
 /** Removes people from a room
@@ -3123,7 +3125,7 @@ export {
     shouldShowReportActionNotification,
     leaveRoom,
     inviteToRoom,
-    inviteMembersToGroupChat,
+    inviteToGroupChat,
     removeFromRoom,
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,

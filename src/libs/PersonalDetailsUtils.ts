@@ -115,6 +115,21 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
     }, []);
 }
 
+function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
+    const newAccountIDs = [];
+    const newLogins = [];
+    logins.forEach((login, index) => {
+        const accountID = accountIDs[index];
+
+        if (allPersonalDetails && Object.keys(allPersonalDetails?.[accountID] ?? {}).length === 0) {
+            newAccountIDs.push(accountID);
+            newLogins.push(login);
+        }
+    });
+
+    return {newAccountIDs, newLogins};
+}
+
 /**
  * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored
  *
@@ -122,13 +137,12 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
  * @param accountIDs Array of user accountIDs
  * @returns Object with optimisticData, successData and failureData (object of personal details objects)
  */
-function getNewPersonalDetailsOnyxData(logins: string[], accountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+function getNewPersonalDetailsOnyxData(newLogins: string[], newAccountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
-    logins.forEach((login, index) => {
-        const accountID = accountIDs[index];
-
+    newLogins.forEach((login, index) => {
+        const accountID = newAccountIDs[index];
         if (allPersonalDetails && Object.keys(allPersonalDetails?.[accountID] ?? {}).length === 0) {
             personalDetailsNew[accountID] = {
                 login,
@@ -297,4 +311,5 @@ export {
     getEffectiveDisplayName,
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
+    getNewAccountIDsAndLogins,
 };
