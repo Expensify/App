@@ -107,17 +107,12 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
 function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
     // We only want to apply deferred updates that are newer than the last update that was applied to the client.
     // At this point, the missing updates from "GetMissingOnyxUpdates" have been applied already, so we can safely filter out.
-    const pendingDeferredUpdates = Object.fromEntries(
-        Object.entries(deferredUpdates).filter(([lastUpdateID]) => {
-            // It should not be possible for lastUpdateIDAppliedToClient to be null,
-            // after the missing updates have been applied.
-            // If still so we want to keep the deferred update in the list.
-            if (!lastUpdateIDAppliedToClient) {
-                return true;
-            }
-            return (Number(lastUpdateID) ?? 0) > lastUpdateIDAppliedToClient;
-        }),
-    );
+    const pendingDeferredUpdates = Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
+        if (!lastUpdateIDAppliedToClient || (Number(lastUpdateID) ?? 0) > lastUpdateIDAppliedToClient) {
+            acc[Number(lastUpdateID)] = update;
+        }
+        return acc;
+    }, {});
 
     // If there are no remaining deferred updates after filtering out outdated ones,
     // we can just unpause the queue and return
