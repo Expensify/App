@@ -28,7 +28,7 @@ const run = () => {
             // Extract timestamp, Graphite accepts timestamp in seconds
             const timestamp = current.metadata?.creationDate ? Math.floor(new Date(current.metadata.creationDate).getTime() / 1000) : '';
 
-            if (current.name && current.meanDuration && current.meanCount) {
+            if (current.name && current.meanDuration && current.meanCount && timestamp) {
                 const formattedName = current.name.split(' ').join('-');
 
                 const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
