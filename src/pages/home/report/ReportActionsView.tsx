@@ -3,8 +3,8 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
@@ -12,14 +12,13 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
-import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
@@ -33,6 +32,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
+import UserTypingEventListener from './UserTypingEventListener';
 
 type ReportActionsViewOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -43,9 +43,6 @@ type ReportActionsViewOnyxProps = {
 
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Stores last visited path */
-    lastVisitedPath?: string;
 };
 
 type ReportActionsViewProps = ReportActionsViewOnyxProps & {
@@ -91,14 +88,12 @@ function ReportActionsView({
     isLoadingOlderReportActions = false,
     isLoadingNewerReportActions = false,
     isReadyForCommentLinking = false,
-    lastVisitedPath,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionID = route?.params?.reportActionID;
     const didLayout = useRef(false);
-    const didSubscribeToReportTypingEvents = useRef(false);
 
     // triggerListID is used when navigating to a chat with messages loaded from LHN. Typically, these include thread actions, task actions, etc. Since these messages aren't the latest,we don't maintain their position and instead trigger a recalculation of their positioning in the list.
     // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
@@ -324,40 +319,6 @@ function ReportActionsView({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth, reportActions, isReportFullyVisible]);
 
-    useEffect(() => {
-        // Ensures the optimistic report is created successfully
-        if (route?.params?.reportID !== reportID) {
-            return;
-        }
-
-        if (isFocused) {
-            // Ensures subscription event succeeds when the report/workspace room is created optimistically.
-            // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
-            // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
-            // Existing reports created will have empty fields for `pendingFields`.
-            const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
-
-            if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-                const interactionTask = InteractionManager.runAfterInteractions(() => {
-                    Report.subscribeToReportTypingEvents(reportID);
-                    didSubscribeToReportTypingEvents.current = true;
-                });
-                return () => {
-                    interactionTask.cancel();
-                };
-            }
-        } else {
-            const topmostReportId = Navigation.getTopmostReportId();
-
-            if (topmostReportId !== report.reportID && didSubscribeToReportTypingEvents.current) {
-                didSubscribeToReportTypingEvents.current = false;
-                InteractionManager.runAfterInteractions(() => {
-                    Report.unsubscribeFromReportChannel(report.reportID);
-                });
-            }
-        }
-    }, [isFocused, report.reportID, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route]);
-
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
     }, []);
@@ -574,6 +535,7 @@ function ReportActionsView({
                 onContentSizeChange={onContentSizeChange}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
+            <UserTypingEventListener report={report} />
             <PopoverReactionList ref={reactionListRef} />
         </>
     );
@@ -614,9 +576,6 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
         return false;
     }
 
-    if (oldProps.lastVisitedPath !== newProps.lastVisitedPath) {
-        return false;
-    }
     return lodashIsEqual(oldProps.report, newProps.report);
 }
 
@@ -634,10 +593,6 @@ export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'}
         },
         transactionThreadReport: {
             key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-        },
-        lastVisitedPath: {
-            key: ONYXKEYS.LAST_VISITED_PATH,
-            selector: (path) => path ?? '',
         },
     })(MemoizedReportActionsView),
 );
