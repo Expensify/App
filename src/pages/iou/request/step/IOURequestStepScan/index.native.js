@@ -1,8 +1,10 @@
 import {useFocusEffect} from '@react-navigation/core';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, NativeModules, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {withOnyx} from 'react-native-onyx';
 import {PdfManager} from 'react-native-pdf';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
@@ -31,6 +33,7 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
@@ -45,17 +48,25 @@ const propTypes = {
     /** The report that the transaction belongs to */
     report: reportPropTypes,
 
+    /** Information about the logged in user's account */
+    user: PropTypes.shape({
+        /** Whether user muted all sounds in the application */
+        isMutedAllSounds: PropTypes.bool,
+    }),
+
     /** The transaction (or draft transaction) being changed */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    user: {},
     transaction: {},
 };
 
 function IOURequestStepScan({
     report,
+    user,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
@@ -259,6 +270,7 @@ function IOURequestStepScan({
         return camera.current
             .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
+                enableShutterSound: !user.isMutedAllSounds,
             })
             .then((photo) => {
                 // Store the receipt on the transaction object in Onyx
@@ -280,7 +292,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus, didCapturePhoto]);
+    }, [cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -404,4 +416,12 @@ IOURequestStepScan.defaultProps = defaultProps;
 IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(IOURequestStepScan);
