@@ -281,7 +281,8 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 }
 
 /**
- * Returns a combined list of report actions for a report and associated transaction thread report
+ * Returns a sorted and filtered list of report actions from both the parent report and the child
+ * transaction thread report in order to display details from both report s in the one-transaction report view.
  */
 function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[]): ReportAction[] {
     if (isEmptyObject(transactionThreadReportActions)) {
