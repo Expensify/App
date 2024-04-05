@@ -21,6 +21,7 @@ import type {
     GetNewerActionsParams,
     GetOlderActionsParams,
     GetReportPrivateNoteParams,
+    InviteMembersToGroupChatParams,
     InviteToRoomParams,
     LeaveRoomParams,
     MarkAsUnreadParams,
@@ -72,7 +73,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
+import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -2453,6 +2454,84 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
+/** Invites people to a group chat */
+function inviteMembersToGroupChat(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
+    const report = currentReportData?.[reportID];
+
+    if (!report) {
+        return;
+    }
+
+    const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
+    const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
+    const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
+        (accountID): accountID is number => typeof accountID === 'number',
+    );
+    const visibleMemberAccountIDsAfterInvitation = [...new Set([...(report?.visibleChatMemberAccountIDs ?? []), ...inviteeAccountIDs])].filter(
+        (accountID): accountID is number => typeof accountID === 'number',
+    );
+
+    const participantsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].reduce((reportParticipants: Participants, accountID: number) => {
+        const participant: ReportParticipant = {
+            hidden: false,
+            role: accountID === currentUserAccountID ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
+        };
+        // eslint-disable-next-line no-param-reassign
+        reportParticipants[accountID] = participant;
+        return reportParticipants;
+    }, {} as Participants);
+
+    const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participantAccountIDs: participantAccountIDsAfterInvitation,
+                visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
+                participants: participantsAfterInvitation,
+                pendingChatMembers,
+            },
+        },
+        ...newPersonalDetailsOnyxData.optimisticData,
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingChatMembers: report?.pendingChatMembers ?? null,
+            },
+        },
+        ...newPersonalDetailsOnyxData.finallyData,
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participantAccountIDs: report.participantAccountIDs,
+                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
+                participants: report.participants,
+                pendingChatMembers: report?.pendingChatMembers ?? null,
+            },
+        },
+        ...newPersonalDetailsOnyxData.finallyData,
+    ];
+
+    const parameters: InviteMembersToGroupChatParams = {
+        reportID,
+        inviteeEmails,
+    };
+
+    // Looks like a wrong API command
+    API.write(WRITE_COMMANDS.INVITE_MEMBERS_TO_GROUP_CHAT, parameters, {optimisticData, successData, failureData});
+}
+
 /** Removes people from a room
  *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
@@ -2940,7 +3019,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function setGroupDraft(participants: Array<{login: string; accountID: number}>, reportName = '') {
+function setGroupDraft(participants?: Array<{login: string; accountID: number}>, reportName = '') {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {participants, reportName});
 }
 
@@ -2990,6 +3069,7 @@ export {
     shouldShowReportActionNotification,
     leaveRoom,
     inviteToRoom,
+    inviteMembersToGroupChat,
     removeFromRoom,
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,

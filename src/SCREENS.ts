@@ -266,6 +266,7 @@ const SCREENS = {
         ROOT: 'NewChat_Root',
         NEW_CHAT: 'chat',
         NEW_CHAT_CONFIRM: 'NewChat_Confirm',
+        NEW_CHAT_EDIT_NAME: 'NewChat_Edit_Name',
         NEW_ROOM: 'room',
     },
 
@@ -302,7 +303,12 @@ const SCREENS = {
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
-    REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
+    REPORT_PARTICIPANTS: {
+        ROOT: 'ReportParticipants_Root',
+        INVITE: 'ReportParticipants_Invite',
+        DETAILS: 'ReportParticipants_Details',
+        ROLE: 'ReportParticipants_Role',
+    },
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
     SEARCH_ROOT: 'Search_Root',

@@ -5056,6 +5056,10 @@ function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return true;
     }
 
+    if (isGroupChat(report)) {
+        return false;
+    }
+
     // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
     // which means this has to be a public room we want to disable renaming for
     if (!policy) {

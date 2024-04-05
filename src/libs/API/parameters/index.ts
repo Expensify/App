@@ -92,6 +92,7 @@ export type {default as AddEmojiReactionParams} from './AddEmojiReactionParams';
 export type {default as RemoveEmojiReactionParams} from './RemoveEmojiReactionParams';
 export type {default as LeaveRoomParams} from './LeaveRoomParams';
 export type {default as InviteToRoomParams} from './InviteToRoomParams';
+export type {default as InviteMembersToGroupChat} from './InviteMembersToGroupChat';
 export type {default as RemoveFromRoomParams} from './RemoveFromRoomParams';
 export type {default as FlagCommentParams} from './FlagCommentParams';
 export type {default as UpdateReportPrivateNoteParams} from './UpdateReportPrivateNoteParams';

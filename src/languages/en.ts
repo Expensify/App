@@ -1224,6 +1224,14 @@ export default {
     },
     groupConfirmPage: {
         groupName: 'Group name',
+        editName: {
+            nameRequiredError: 'Group chat name is required.',
+        },
+    },
+    groupPage: {
+        people: {
+            groupMembersListTitle: 'Directory of all group members.',
+        },
     },
     languagePage: {
         language: 'Language',
