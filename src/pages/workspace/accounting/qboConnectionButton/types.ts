@@ -6,11 +6,9 @@ type ConnectToQuickbooksOnlineButtonOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-type ConnectToQuickbooksOnlineButtonProps = {
+type ConnectToQuickbooksOnlineButtonProps = ConnectToQuickbooksOnlineButtonOnyxProps & {
     policyID: string;
     environmentURL: string;
 };
 
-type ConnectToQuickbooksOnlineButtonPropsWithSession = ConnectToQuickbooksOnlineButtonOnyxProps & ConnectToQuickbooksOnlineButtonProps;
-
-export type {ConnectToQuickbooksOnlineButtonOnyxProps, ConnectToQuickbooksOnlineButtonProps, ConnectToQuickbooksOnlineButtonPropsWithSession};
+export type {ConnectToQuickbooksOnlineButtonOnyxProps, ConnectToQuickbooksOnlineButtonProps};
