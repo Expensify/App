@@ -11,7 +11,6 @@ import type {
     MoneyRequestNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
-    OnboardEngagementNavigatorParamList,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
@@ -163,12 +162,6 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
     [SCREENS.NEW_TASK.DESCRIPTION]: () => require('../../../../pages/tasks/NewTaskDescriptionPage').default as React.ComponentType,
 });
 
-const OnboardEngagementModalStackNavigator = createModalStackNavigator<OnboardEngagementNavigatorParamList>({
-    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: () => require('../../../../pages/OnboardEngagement/PurposeForUsingExpensifyPage').default as React.ComponentType,
-    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: () => require('../../../../pages/OnboardEngagement/ManageTeamsExpensesPage').default as React.ComponentType,
-    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: () => require('../../../../pages/OnboardEngagement/ExpensifyClassicPage').default as React.ComponentType,
-});
-
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
     [SCREENS.SAVE_THE_WORLD.ROOT]: () => require('../../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
     [SCREENS.I_KNOW_A_TEACHER]: () => require('../../../../pages/TeachersUnite/KnowATeacherPage').default as React.ComponentType,
@@ -316,7 +309,6 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
 export {
     AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
-    OnboardEngagementModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
     FlagCommentStackNavigator,
