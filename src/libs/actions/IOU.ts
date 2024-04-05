@@ -128,10 +128,6 @@ type SendMoneyParamsData = {
     failureData: OnyxUpdate[];
 };
 
-type OutstandingChildRequest = {
-    hasOutstandingChildRequest?: boolean;
-};
-
 type GPSPoint = {
     lat: number;
     long: number;

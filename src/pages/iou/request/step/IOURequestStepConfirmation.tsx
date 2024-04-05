@@ -489,7 +489,7 @@ function IOURequestStepConfirmation({
                     />
                     {isLoading && <FullScreenLoadingIndicator />}
                     <View style={[styles.flex1, isLoading && styles.opacity0]}>
-                        {/* @ts-expect-error wait until MoneyRequestConfirmationList is migrated to typescript */}
+                        {/* @ts-expect-error TODO: Remove this once MoneyRequestConfirmationList (https://github.com/Expensify/App/issues/36130) is migrated to TypeScript. */}
                         <MoneyRequestConfirmationList
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
