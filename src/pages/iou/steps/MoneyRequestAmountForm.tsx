@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import BigNumberPad from '@components/BigNumberPad';
@@ -21,6 +21,8 @@ import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/typ
 import CONST from '@src/CONST';
 import type {SelectedTabRequest} from '@src/types/onyx';
 
+type CurrentMoney = {amount: string; currency: string};
+
 type MoneyRequestAmountFormProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
@@ -34,11 +36,14 @@ type MoneyRequestAmountFormProps = {
     /** Whether the amount is being edited or not */
     isEditing?: boolean;
 
+    /** Whether the currency symbol is pressable */
+    isCurrencyPressable?: boolean;
+
     /** Fired when back button pressed, navigates to currency selection page */
-    onCurrencyButtonPress: () => void;
+    onCurrencyButtonPress?: () => void;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
-    onSubmitButtonPress: ({amount, currency}: {amount: string; currency: string}) => void;
+    onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab?: SelectedTabRequest;
@@ -59,7 +64,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmount(taxAmount);
+    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmount(Math.abs(taxAmount));
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -70,6 +75,7 @@ function MoneyRequestAmountForm(
         amount = 0,
         taxAmount = 0,
         currency = CONST.CURRENCY.USD,
+        isCurrencyPressable = true,
         isEditing = false,
         onCurrencyButtonPress,
         onSubmitButtonPress,
@@ -98,7 +104,7 @@ function MoneyRequestAmountForm(
 
     const forwardDeletePressedRef = useRef(false);
 
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, currency);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(Math.abs(taxAmount), currency);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -225,7 +231,8 @@ function MoneyRequestAmountForm(
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
-        if (isAmountInvalid(currentAmount)) {
+        // Skip the check for tax amount form as 0 is a valid input
+        if (!isTaxAmountForm && isAmountInvalid(currentAmount)) {
             setFormError('iou.error.invalidAmount');
             return;
         }
@@ -241,7 +248,7 @@ function MoneyRequestAmountForm(
         initializeAmount(backendAmount);
 
         onSubmitButtonPress({amount: currentAmount, currency});
-    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, initializeAmount]);
+    }, [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -301,7 +308,7 @@ function MoneyRequestAmountForm(
                         setSelection({start, end});
                     }}
                     onKeyPress={textInputKeyPress}
-                    isCurrencyPressable
+                    isCurrencyPressable={isCurrencyPressable}
                 />
                 {!!formError && (
                     <FormHelpMessage
@@ -342,3 +349,4 @@ function MoneyRequestAmountForm(
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
 export default React.forwardRef(MoneyRequestAmountForm);
+export type {CurrentMoney};

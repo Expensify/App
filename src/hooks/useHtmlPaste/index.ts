@@ -3,6 +3,33 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useCallback, useEffect} from 'react';
 import type UseHtmlPaste from './types';
 
+const insertByCommand = (text: string) => {
+    document.execCommand('insertText', false, text);
+};
+
+const insertAtCaret = (target: HTMLElement, text: string) => {
+    const selection = window.getSelection();
+    if (selection?.rangeCount) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        const node = document.createTextNode(text);
+        range.insertNode(node);
+
+        // Move caret to the end of the newly inserted text node.
+        range.setStart(node, node.length);
+        range.setEnd(node, node.length);
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        // Dispatch paste event to simulate real browser behavior
+        target.dispatchEvent(new Event('paste', {bubbles: true}));
+        // Dispatch input event to trigger Markdown Input to parse the new text
+        target.dispatchEvent(new Event('input', {bubbles: true}));
+    } else {
+        insertByCommand(text);
+    }
+};
+
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
     const navigation = useNavigation();
 
@@ -12,7 +39,12 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
      */
     const paste = useCallback((text: string) => {
         try {
-            document.execCommand('insertText', false, text);
+            const textInputHTMLElement = textInputRef.current as HTMLElement;
+            if (textInputHTMLElement?.hasAttribute('contenteditable')) {
+                insertAtCaret(textInputHTMLElement, text);
+            } else {
+                insertByCommand(text);
+            }
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             textInputRef.current?.blur();
