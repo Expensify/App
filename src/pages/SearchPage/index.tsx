@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -52,9 +51,9 @@ const SearchPageFooterInstance = <SearchPageFooter />;
 
 function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
+    const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const themeStyles = useThemeStyles();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: isScreenTransitionEnd,
     });
@@ -143,31 +142,25 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
             shouldEnableMaxHeight
             navigation={navigation}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('common.search')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
-                    <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
-                        <SelectionList<OptionData>
-                            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                            ListItem={UserListItem}
-                            textInputValue={searchValue}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputHint={offlineMessage}
-                            onChangeText={setSearchValue}
-                            headerMessage={headerMessage}
-                            headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
-                            onLayout={setPerformanceTimersEnd}
-                            onSelectRow={selectReport}
-                            showLoadingPlaceholder={!areOptionsInitialized}
-                            footerContent={SearchPageFooterInstance}
-                            isLoadingNewOptions={isSearchingForReports ?? undefined}
-                        />
-                    </View>
-                </>
-            )}
+            <HeaderWithBackButton
+                title={translate('common.search')}
+                onBackButtonPress={Navigation.goBack}
+            />
+            <SelectionList<OptionData>
+                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                ListItem={UserListItem}
+                textInputValue={searchValue}
+                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputHint={offlineMessage}
+                onChangeText={setSearchValue}
+                headerMessage={headerMessage}
+                headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
+                onLayout={setPerformanceTimersEnd}
+                onSelectRow={selectReport}
+                showLoadingPlaceholder={!areOptionsInitialized}
+                footerContent={SearchPageFooterInstance}
+                isLoadingNewOptions={isSearchingForReports ?? undefined}
+            />
         </ScreenWrapper>
     );
 }

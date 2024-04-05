@@ -48,9 +48,6 @@ const propTypes = {
         }),
     ),
 
-    /** Padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
@@ -63,7 +60,6 @@ const propTypes = {
 
 const defaultProps = {
     participants: [],
-    safeAreaPaddingBottomStyle: {},
     betas: [],
     dismissedReferralBanners: {},
     didScreenTransitionEnd: false,
@@ -74,7 +70,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     participants,
     onFinish,
     onParticipantsAdded,
-    safeAreaPaddingBottomStyle,
     iouType,
     iouRequestType,
     dismissedReferralBanners,
@@ -353,23 +348,21 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     );
 
     return (
-        <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-            <SelectionList
-                onConfirm={handleConfirmSelection}
-                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                ListItem={UserListItem}
-                textInputValue={searchTerm}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputHint={offlineMessage}
-                onChangeText={setSearchTerm}
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                onSelectRow={addSingleParticipant}
-                footerContent={footerContent}
-                headerMessage={headerMessage}
-                showLoadingPlaceholder={!areOptionsInitialized}
-                rightHandSideComponent={itemRightSideComponent}
-            />
-        </View>
+        <SelectionList
+            onConfirm={handleConfirmSelection}
+            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+            ListItem={UserListItem}
+            textInputValue={searchTerm}
+            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputHint={offlineMessage}
+            onChangeText={setSearchTerm}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            onSelectRow={addSingleParticipant}
+            footerContent={footerContent}
+            headerMessage={headerMessage}
+            showLoadingPlaceholder={!areOptionsInitialized}
+            rightHandSideComponent={itemRightSideComponent}
+        />
     );
 }
 

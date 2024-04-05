@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -50,9 +49,6 @@ const propTypes = {
         }),
     ),
 
-    /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
 
@@ -63,22 +59,11 @@ const propTypes = {
 const defaultProps = {
     dismissedReferralBanners: {},
     participants: [],
-    safeAreaPaddingBottomStyle: {},
     betas: [],
     isDistanceRequest: false,
 };
 
-function MoneyRequestParticipantsSelector({
-    betas,
-    dismissedReferralBanners,
-    participants,
-    navigateToRequest,
-    navigateToSplit,
-    onAddParticipants,
-    safeAreaPaddingBottomStyle,
-    iouType,
-    isDistanceRequest,
-}) {
+function MoneyRequestParticipantsSelector({betas, dismissedReferralBanners, participants, navigateToRequest, navigateToSplit, onAddParticipants, iouType, isDistanceRequest}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
@@ -281,11 +266,12 @@ function MoneyRequestParticipantsSelector({
 
     const footerContent = useMemo(
         () => (
-            <View>
+            <>
                 {!dismissedReferralBanners[referralContentType] && (
-                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA referralContentType={referralContentType} />
-                    </View>
+                    <ReferralProgramCTA
+                        referralContentType={referralContentType}
+                        style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
+                    />
                 )}
 
                 {shouldShowSplitBillErrorMessage && (
@@ -306,7 +292,7 @@ function MoneyRequestParticipantsSelector({
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
-            </View>
+            </>
         ),
         [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
     );
@@ -343,23 +329,21 @@ function MoneyRequestParticipantsSelector({
     );
 
     return (
-        <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-            <SelectionList
-                onConfirm={handleConfirmSelection}
-                sections={sections}
-                ListItem={UserListItem}
-                textInputValue={searchTerm}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputHint={offlineMessage}
-                onChangeText={setSearchTermAndSearchInServer}
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                onSelectRow={addSingleParticipant}
-                footerContent={footerContent}
-                headerMessage={headerMessage}
-                showLoadingPlaceholder={!areOptionsInitialized}
-                rightHandSideComponent={itemRightSideComponent}
-            />
-        </View>
+        <SelectionList
+            onConfirm={handleConfirmSelection}
+            sections={sections}
+            ListItem={UserListItem}
+            textInputValue={searchTerm}
+            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputHint={offlineMessage}
+            onChangeText={setSearchTermAndSearchInServer}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            onSelectRow={addSingleParticipant}
+            footerContent={footerContent}
+            headerMessage={headerMessage}
+            showLoadingPlaceholder={!areOptionsInitialized}
+            rightHandSideComponent={itemRightSideComponent}
+        />
     );
 }
 
