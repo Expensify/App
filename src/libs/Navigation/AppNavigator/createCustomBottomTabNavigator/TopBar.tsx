@@ -21,7 +21,7 @@ import type {Policy, Session as SessionType} from '@src/types/onyx';
 
 type TopBarOnyxProps = {
     policy: OnyxEntry<Policy>;
-    session: OnyxEntry<SessionType>;
+    session: OnyxEntry<Pick<SessionType, 'authTokenType'>>;
 };
 
 // eslint-disable-next-line react/no-unused-prop-types
@@ -88,5 +88,6 @@ export default withOnyx<TopBarProps, TopBarOnyxProps>({
     },
     session: {
         key: ONYXKEYS.SESSION,
+        selector: (session) => session && {authTokenType: session.authTokenType},
     },
 })(TopBar);
