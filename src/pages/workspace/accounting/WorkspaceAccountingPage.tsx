@@ -105,9 +105,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: translate('workspace.accounting.qbo'),
-                description: isSyncInProgress
-                    ? translate('workspace.accounting.connections.syncStageName', {stage: 'quickbooksOnlineImportCustomers'})
-                    : translate('workspace.accounting.lastSync'),
+                description: isSyncInProgress ? translate('workspace.accounting.connections.syncStageName', 'quickbooksOnlineImportCustomers') : translate('workspace.accounting.lastSync'),
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
