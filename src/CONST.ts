@@ -56,6 +56,15 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
+const onboardingChoices = {
+    TRACK: 'newDotTrack',
+    EMPLOYER: 'newDotEmployer',
+    MANAGE_TEAM: 'newDotManageTeam',
+    PERSONAL_SPEND: 'newDotPersonalSpend',
+    CHAT_SPLIT: 'newDotSplitChat',
+    LOOKING_AROUND: 'newDotLookingAround',
+};
+
 const CONST = {
     MERGED_ACCOUNT_PREFIX: 'MERGED_',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
@@ -842,6 +851,7 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
+            ONBOARDING: 'onboarding',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
@@ -3429,6 +3439,11 @@ const CONST = {
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
         MIN_HEIGHT: 120,
+        CONTROLS_STATUS: {
+            SHOW: 'show',
+            HIDE: 'hide',
+            VOLUME_ONLY: 'volumeOnly',
+        },
         CONTROLS_POSITION: {
             NATIVE: 32,
             NORMAL: 8,
@@ -3457,6 +3472,73 @@ const CONST = {
         NAME: 'Expensify',
         SUBSCRIPT_ICON_SIZE: 8,
         MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
+    },
+
+    WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+
+    ONBOARDING_CHOICES: {...onboardingChoices},
+
+    ONBOARDING_CONCIERGE: {
+        [onboardingChoices.TRACK]:
+            "# Welcome to Expensify, let's start tracking your expenses!\n" +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. "My business expenses”).\n' +
+            '\n' +
+            'Then, add expenses to your workspace:\n' +
+            '1. Find your workspace using the search field.\n' +
+            '2. Click the gray + button next to the message field.\n' +
+            '3. Click Request money, then add your expense type.\n' +
+            '\n' +
+            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
+        [onboardingChoices.EMPLOYER]:
+            '# Welcome to Expensify, the fastest way to get paid back!\n' +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            'To submit expenses for reimbursement:\n' +
+            '1. From the home screen, click the green + button > Request money.\n' +
+            "2. Enter an amount or scan a receipt, then input your boss's email.\n" +
+            '\n' +
+            "That'll send a request to get you paid back. Let me know if you have any questions!",
+        [onboardingChoices.MANAGE_TEAM]:
+            "# Welcome to Expensify, let's start managing your team's expenses!\n" +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "To manage your team's expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. “Sales team expenses”).\n' +
+            '\n' +
+            'Then, invite your team to your workspace via the Members pane and connect a business bank account to reimburse them. Let me know if you have any questions!',
+        [onboardingChoices.PERSONAL_SPEND]:
+            "# Welcome to Expensify, let's start tracking your expenses!\n" +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. "My expenses”).\n' +
+            '\n' +
+            'Then, add expenses to your workspace:\n' +
+            '1. Find your workspace using the search field.\n' +
+            '2. Click the gray + button next to the message field.\n' +
+            '3. Click Request money, then add your expense type.\n' +
+            '\n' +
+            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
+        [onboardingChoices.CHAT_SPLIT]:
+            '# Welcome to Expensify, where splitting the bill is an easy conversation!\n' +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            'To split an expense:\n' +
+            '1. From the home screen, click the green + button > Request money.\n' +
+            '2. Enter an amount or scan a receipt, then choose who you want to split it with.\n' +
+            '\n' +
+            "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
+        [onboardingChoices.LOOKING_AROUND]:
+            '# Welcome to Expensify!\n' +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',

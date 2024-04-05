@@ -438,8 +438,8 @@ function MenuItem(
                                 combinedStyle,
                                 !interactive && styles.cursorDefault,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
-                                !focused && (isHovered || pressed) && hoverAndPressStyle,
                                 ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
+                                !focused && (isHovered || pressed) && hoverAndPressStyle,
                                 shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                             ] as StyleProp<ViewStyle>
                         }
