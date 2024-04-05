@@ -1,4 +1,5 @@
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -104,9 +105,12 @@ type CustomBaseTextInputProps = {
 
     /** Type of autocomplete */
     autoCompleteType?: string;
+
+    /** Should enable markdown to use RNMarkdownTextInput instead of RNTextInput */
+    shouldEnableMarkdown?: boolean;
 };
 
-type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
+type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 

@@ -8,12 +8,14 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import RNTextInput from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import useLocalize from '@hooks/useLocalize';
+import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,10 +58,13 @@ function BaseTextInput(
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
+        shouldEnableMarkdown = false,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
+    const InputComponent = shouldEnableMarkdown ? RNMarkdownTextInput : RNTextInput;
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const {hasError = false} = inputProps;
@@ -81,6 +86,8 @@ function BaseTextInput(
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
     const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
+
+    const markdownStyle = useMarkdownStyle();
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -341,8 +348,8 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            <RNTextInput
-                                ref={(element) => {
+                            <InputComponent
+                                ref={(element: BaseTextInputRef | null) => {
                                     if (typeof ref === 'function') {
                                         ref(element);
                                     } else if (ref && 'current' in ref) {
@@ -396,6 +403,7 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
+                                markdownStyle={markdownStyle}
                             />
                             {inputProps.isLoading && (
                                 <ActivityIndicator
