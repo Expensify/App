@@ -80,7 +80,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             return;
         }
 
-        Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
+        // Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
+        Report.completeOnboarding({
+            data: CONST.ONBOARDING_MESSAGES[selectedPurpose],
+            engagementChoice: selectedPurpose,
+            targetEmail: CONST.EMAIL.CONCIERGE,
+            firstName: 'Test',
+            lastName: 'Testovsky',
+        });
 
         Navigation.dismissModal();
         // Only navigate to concierge chat when central pane is visible
