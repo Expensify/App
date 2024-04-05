@@ -39,7 +39,6 @@ import * as Device from '@userActions/Device';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
-import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -643,7 +642,6 @@ function resetHomeRouteParams() {
 function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
-    Welcome.resetReadyCheck();
     PriorityMode.resetHasReadRequiredDataFromStorage();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
