@@ -18,7 +18,7 @@ import type {BaseShareLogListOnyxProps, BaseShareLogListProps} from './types';
 
 function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, setSearchValue] = useState('');
-    const [searchOptions, setSearchOptions] = useState<Pick<OptionsListUtils.GetOptions, 'recentReports' | 'personalDetails' | 'userToInvite'>>({
+    const [searchOptions, setSearchOptions] = useState<Pick<OptionsListUtils.Options, 'recentReports' | 'personalDetails' | 'userToInvite'>>({
         recentReports: [],
         personalDetails: [],
         userToInvite: null,

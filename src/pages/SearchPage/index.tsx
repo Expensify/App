@@ -37,7 +37,7 @@ type SearchPageOnyxProps = {
 
 type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT>;
 
-type Options = OptionsListUtils.GetOptions & {headerMessage: string};
+type Options = OptionsListUtils.Options & {headerMessage: string};
 
 type SearchPageSectionItem = {
     data: OptionData[];

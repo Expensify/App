@@ -161,7 +161,7 @@ type MemberForList = {
 type SectionForSearchTerm = {
     section: CategorySection;
 };
-type GetOptions = {
+type Options = {
     recentReports: ReportUtils.OptionData[];
     personalDetails: ReportUtils.OptionData[];
     userToInvite: ReportUtils.OptionData | null;
@@ -1471,7 +1471,7 @@ function getOptions(
         taxRates,
         includeSelfDM = false,
     }: GetOptionsConfig,
-): GetOptions {
+): Options {
     if (includeCategories) {
         const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
 
@@ -1782,7 +1782,7 @@ function getOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = []): GetOptions {
+function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = []): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getOptions(options, {
@@ -1807,7 +1807,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, searchValue = '', betas: Beta[] = []): GetOptions {
+function getShareLogOptions(options: OptionList, searchValue = '', betas: Beta[] = []): Options {
     return getOptions(options, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -1978,7 +1978,7 @@ function getMemberInviteOptions(
     searchValue = '',
     excludeLogins: string[] = [],
     includeSelectedOptions = false,
-): GetOptions {
+): Options {
     return getOptions(
         {reports: [], personalDetails},
         {
@@ -2100,7 +2100,7 @@ function formatSectionsFromSearchTerm(
 /**
  * Filters options based on the search input value
  */
-function filterOptions(options: GetOptions, searchInputValue: string): GetOptions {
+function filterOptions(options: Options, searchInputValue: string): Options {
     const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
@@ -2226,4 +2226,4 @@ export {
     getTaxRatesSection,
 };
 
-export type {MemberForList, CategorySection, GetOptions, OptionList, SearchOption, PayeePersonalDetails, Category};
+export type {MemberForList, CategorySection, Options, OptionList, SearchOption, PayeePersonalDetails, Category};
