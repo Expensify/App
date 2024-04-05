@@ -18,9 +18,9 @@ import type {Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+// @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-// @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepParticipantsOnyxProps = {
@@ -73,7 +73,11 @@ function IOURequestStepParticipants({
     }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID]);
 
     const updateRouteParams = useCallback(() => {
-        IOU.updateMoneyRequestTypeParams(navigation?.getState()?.routes, newIouType.current);
+        const navigationState = navigation.getState();
+        if (!navigationState || !newIouType.current) {
+            return;
+        }
+        IOU.updateMoneyRequestTypeParams(navigationState.routes, newIouType.current);
     }, [navigation]);
 
     useEffect(() => {
