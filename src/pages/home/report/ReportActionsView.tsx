@@ -363,7 +363,6 @@ function ReportActionsView({
         checkIfContentSmallerThanList,
         reportActionID,
         indexOfLinkedAction,
-        hasNewestReportAction,
         handleReportActionPagination,
         network.isOffline,
         reportActions.length,
