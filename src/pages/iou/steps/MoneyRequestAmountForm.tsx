@@ -231,7 +231,8 @@ function MoneyRequestAmountForm(
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
-        if (isAmountInvalid(currentAmount)) {
+        // Skip the check for tax amount form as 0 is a valid input
+        if (!isTaxAmountForm && isAmountInvalid(currentAmount)) {
             setFormError('iou.error.invalidAmount');
             return;
         }
