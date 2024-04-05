@@ -1,3 +1,5 @@
+import * as IOU from '@libs/actions/IOU';
+import * as Policy from '@libs/actions/Policy';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Task from '@userActions/Task';
 
@@ -9,6 +11,30 @@ describe('ReportUtils', () => {
     it('does not export getParentReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getParentReport).toBeUndefined();
+    });
+
+    it('does not export isOneTransactionReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.isOneTransactionReport).toBeUndefined();
+    });
+
+    it('does not export getPolicy', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getPolicy).toBeUndefined();
+    });
+});
+
+describe('Policy', () => {
+    it('does not export getPolicy', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(Policy.getPolicy).toBeUndefined();
+    });
+});
+
+describe('IOU', () => {
+    it('does not export getPolicy', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(IOU.getPolicy).toBeUndefined();
     });
 });
 

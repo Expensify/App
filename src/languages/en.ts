@@ -144,6 +144,7 @@ export default {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         chats: 'Chats',
+        group: 'Group',
         profile: 'Profile',
         referral: 'Referral',
         payments: 'Payments',
@@ -313,6 +314,12 @@ export default {
         member: 'Member',
         role: 'Role',
         currency: 'Currency',
+        emptyLHN: {
+            title: 'Woohoo! All caught up.',
+            subtitleText1: 'Find a chat using the',
+            subtitleText2: 'button above, or create something using the',
+            subtitleText3: 'button below.',
+        },
     },
     location: {
         useCurrent: 'Use current location',
@@ -517,7 +524,7 @@ export default {
         asCopilot: 'as copilot for',
     },
     mentionSuggestions: {
-        hereAlternateText: 'Notify everyone online in this room',
+        hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -595,6 +602,9 @@ export default {
         sendMoney: 'Send Money',
         assignTask: 'Assign Task',
         shortcut: 'Shortcut',
+        trackManual: 'Track Manual',
+        trackScan: 'Track Scan',
+        trackDistance: 'Track Distance',
     },
     iou: {
         amount: 'Amount',
@@ -881,6 +891,11 @@ export default {
             submitBug: 'submit a bug',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
             resetAndRefresh: 'Reset and refresh',
+            clientSideLogging: 'Client side logging',
+            noLogsToShare: 'No logs to share',
+            useProfiling: 'Use profiling',
+            profileTrace: 'Profile trace',
+            releaseOptions: 'Release options',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -889,6 +904,7 @@ export default {
             execute: 'Execute',
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
+            logs: 'Logs',
         },
         security: 'Security',
         signOut: 'Sign out',
@@ -1037,6 +1053,11 @@ export default {
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
         walletActivationFailed: 'Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.',
+        addYourBankAccount: 'Add your bank account.',
+        addBankAccountBody: "Let's connect your bank account to Expensify so it’s easier than ever to send and receive payments directly in the app.",
+        chooseYourBankAccount: 'Choose your bank account.',
+        chooseAccountBody: 'Make sure that you select the right one.',
+        confirmYourBankAccount: 'Confirm your bank account.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -1201,6 +1222,9 @@ export default {
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom decription for the room.',
     },
+    groupConfirmPage: {
+        groupName: 'Group name',
+    },
     languagePage: {
         language: 'Language',
         languages: {
@@ -1290,6 +1314,29 @@ export default {
         loginForm: 'Login form',
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
+    onboarding: {
+        welcome: 'Welcome!',
+        welcomeVideo: {
+            title: 'Welcome to Expensify',
+            description: 'Getting paid is as easy as sending a message.',
+            button: "Let's go",
+        },
+        whatsYourName: "What's your name?",
+        purpose: {
+            title: 'What do you want to do today?',
+            error: 'Please make a selection before continuing',
+            [CONST.ONBOARDING_CHOICES.TRACK]: 'Track business spend for taxes',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget personal spend',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: "I'm just looking around",
+        },
+        error: {
+            requiredFirstName: 'Please input your first name to continue',
+            requiredLastName: 'Please input your last name to continue',
+        },
+    },
     personalDetails: {
         error: {
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
@@ -1339,7 +1386,7 @@ export default {
     },
     newChatPage: {
         createChat: 'Create chat',
-        createGroup: 'Create group',
+        startGroup: 'Start group',
         addToGroup: 'Add to group',
     },
     yearPickerPage: {
@@ -1868,7 +1915,7 @@ export default {
                 subtitle: 'Set up custom fields for spend.',
             },
             connections: {
-                title: 'Connections',
+                title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
         },
@@ -2054,8 +2101,6 @@ export default {
             disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
             enableRate: 'Enable rate',
             status: 'Status',
-            enabled: 'Enabled',
-            disabled: 'Disabled',
             unit: 'Unit',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
@@ -2136,7 +2181,7 @@ export default {
             failedToClearBalanceButtonText: 'OK',
             failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
             successTitle: 'Woohoo! All set.',
-            successDescription: "You're now the owner if this workspace.",
+            successDescription: "You're now the owner of this workspace.",
             errorTitle: 'Oops! Not so fast...',
             errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
             errorDescriptionPartTwo: 'reach out to Concierge',
@@ -2408,6 +2453,7 @@ export default {
         hiddenMessage: '[Hidden message]',
     },
     threads: {
+        thread: 'Thread',
         replies: 'Replies',
         reply: 'Reply',
         from: 'From',

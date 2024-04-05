@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
 import * as API from '@libs/API';
 import type {
@@ -18,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -42,6 +44,8 @@ type ReimbursementAccountStep = BankAccountStep | '';
 
 type ReimbursementAccountSubStep = BankAccountSubStep | '';
 
+type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
+
 type BusinessAddress = {
     addressStreet?: string;
     addressCity?: string;
@@ -56,7 +60,7 @@ type PersonalAddress = {
     requestorAddressZipCode?: string;
 };
 
-function clearPlaid(): Promise<void> {
+function clearPlaid(): Promise<void | void[]> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
     return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
@@ -83,6 +87,23 @@ function openPersonalBankAccountSetupView(exitReportID?: string) {
 }
 
 /**
+ * TODO: remove the previous function and rename this function to openPersonalBankAccountSetupView after migrating to the new flow
+ * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
+ */
+function openPersonalBankAccountSetupViewRefactor(exitReportID?: string) {
+    clearPlaid().then(() => {
+        if (exitReportID) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+        }
+        Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
+    });
+}
+
+function clearPersonalBankAccountSetupType() {
+    Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {setupType: null});
+}
+
+/**
  * Whether after adding a bank account we should continue with the KYC flow. If so, we must specify the fallback route.
  */
 function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Route) {
@@ -92,11 +113,17 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
 function clearPersonalBankAccount() {
     clearPlaid();
     Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+    Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
+    clearPersonalBankAccountSetupType();
 }
 
 function clearOnfidoToken() {
     Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
     Onyx.merge(ONYXKEYS.ONFIDO_APPLICANT_ID, '');
+}
+
+function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccountForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, bankData);
 }
 
 /**
@@ -503,6 +530,16 @@ function setReimbursementAccountLoading(isLoading: boolean) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading});
 }
 
+function validatePlaidSelection(values: FormOnyxValues<AccountFormValues>): FormInputErrors<AccountFormValues> {
+    const errorFields: FormInputErrors<AccountFormValues> = {};
+
+    if (!values.selectedPlaidAccountID) {
+        errorFields.selectedPlaidAccountID = 'bankAccount.error.youNeedToSelectAnOption';
+    }
+
+    return errorFields;
+}
+
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
@@ -527,6 +564,10 @@ export {
     validateBankAccount,
     verifyIdentityForBankAccount,
     setReimbursementAccountLoading,
+    openPersonalBankAccountSetupViewRefactor,
+    updateAddPersonalBankAccountDraft,
+    clearPersonalBankAccountSetupType,
+    validatePlaidSelection,
 };
 
 export type {BusinessAddress, PersonalAddress};

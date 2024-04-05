@@ -50,17 +50,12 @@ type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMe
 
 const policyChangeActionsSet = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG));
 
-const allReports: OnyxCollection<Report> = {};
-
+let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!key || !report) {
-            return;
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReports[reportID] = report;
+    waitForCollectionCallback: true,
+    callback: (reports) => {
+        allReports = reports;
     },
 });
 
@@ -219,6 +214,35 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
 }
 
 /**
+ * Returns the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions with a childReportID. Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ */
+function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions> | ReportAction[]): string | null {
+    const reportActionsArray = Object.values(reportActions ?? {});
+
+    if (!reportActionsArray.length) {
+        return null;
+    }
+
+    // Get all IOU report actions for the report.
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.PAY];
+    const iouRequestActions = reportActionsArray.filter(
+        (action) =>
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+            (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
+            action.childReportID &&
+            action.originalMessage.IOUTransactionID,
+    );
+
+    // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
+    if (!iouRequestActions.length || iouRequestActions.length > 1) {
+        return null;
+    }
+
+    // Ensure we have a childReportID associated with the IOU report action
+    return iouRequestActions[0].childReportID ?? null;
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -263,9 +287,14 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     let index;
 
     if (id) {
-        index = sortedReportActions.findIndex((obj) => obj.reportActionID === id);
+        index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
     } else {
-        index = sortedReportActions.findIndex((obj) => obj.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        index = sortedReportActions.findIndex(
+            (reportAction) =>
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                !reportAction.isOptimisticAction,
+        );
     }
 
     if (index === -1) {
@@ -299,6 +328,9 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     while (
         (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
         sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        sortedReportActions[startIndex - 1]?.isOptimisticAction ||
         sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM
     ) {
         startIndex--;
@@ -643,12 +675,12 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): OnyxE
 /**
  * Find the transaction associated with this reportAction, if one exists.
  */
-function getLinkedTransactionID(reportID: string, reportActionID: string): string | null {
-    const reportAction = allReportActions?.[reportID]?.[reportActionID];
+function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction>, reportID?: string): string | null {
+    const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[reportID ?? '']?.[reportActionOrID] : reportActionOrID;
     if (!reportAction || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return null;
     }
-    return reportAction.originalMessage.IOUTransactionID ?? null;
+    return reportAction.originalMessage?.IOUTransactionID ?? null;
 }
 
 function getReportAction(reportID: string, reportActionID: string): OnyxEntry<ReportAction> {
@@ -1027,6 +1059,7 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
 
 export {
     extractLinksFromMessageHtml,
+    getOneTransactionThreadReportID,
     getAllReportActions,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,

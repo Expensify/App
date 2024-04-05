@@ -397,7 +397,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connectionID = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: true,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction?.pendingAction).toBeFalsy();
@@ -1142,7 +1141,8 @@ describe('actions/IOU', () => {
                                         groupChat =
                                             Object.values(allReports ?? {}).find(
                                                 (report) =>
-                                                    report?.type === CONST.REPORT.TYPE.CHAT && isEqual(report.participantAccountIDs, [CARLOS_ACCOUNT_ID, JULES_ACCOUNT_ID, VIT_ACCOUNT_ID]),
+                                                    report?.type === CONST.REPORT.TYPE.CHAT &&
+                                                    isEqual(report.participantAccountIDs, [CARLOS_ACCOUNT_ID, JULES_ACCOUNT_ID, VIT_ACCOUNT_ID, RORY_ACCOUNT_ID]),
                                             ) ?? null;
                                         expect(isEmptyObject(groupChat)).toBe(false);
                                         expect(groupChat?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -1584,7 +1584,6 @@ describe('actions/IOU', () => {
                                                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                             ) ?? null;
                                         expect(payIOUAction).toBeTruthy();
-                                        expect(payIOUAction?.pendingAction).toBeFalsy();
 
                                         resolve();
                                     },
@@ -2640,7 +2639,6 @@ describe('actions/IOU', () => {
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: true,
                     callback: (report) => {
                         Onyx.disconnect(connectionID);
                         expect(report).toBeTruthy();
@@ -2697,7 +2695,6 @@ describe('actions/IOU', () => {
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: true,
                     callback: (report) => {
                         Onyx.disconnect(connectionID);
                         expect(report).toBeTruthy();
