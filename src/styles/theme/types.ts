@@ -11,6 +11,7 @@ type ThemeColors = {
     appBG: Color;
     splashBG: Color;
     highlightBG: Color;
+    messageHighlightBG: Color;
     border: Color;
     borderLighter: Color;
     borderFocus: Color;
@@ -89,7 +90,6 @@ type ThemeColors = {
     starDefaultBG: Color;
     mapAttributionText: Color;
     white: Color;
-    progressBarBackground: Color;
     videoPlayerBG: Color;
     transparentWhite: Color;
 

@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -13,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -31,6 +33,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
 
     const saveAndNavigate = useCallback((values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -71,6 +74,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         return errors;
     };
 
+    const PersonalDetailsFooterInstance = <OfflineIndicator />;
+
     return (
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
@@ -85,6 +90,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 <FormProvider
                     style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
+                    footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
                     validate={validate}
                     onSubmit={saveAndNavigate}
                     submitButtonText={translate('common.continue')}
@@ -95,8 +101,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     shouldTrimValues={false}
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={styles.textHeroSmall}>{translate('onboarding.welcome')} </Text>
-                        <Text style={styles.textHeroSmall}>{translate('onboarding.whatsYourName')}</Text>
+                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.welcome')} </Text>
+                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whatsYourName')}</Text>
                     </View>
                     <View style={styles.mb4}>
                         <InputWrapper

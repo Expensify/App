@@ -45,6 +45,7 @@ const lightTheme = {
     inverse: colors.productLight900,
     shadow: colors.black,
     componentBG: colors.productLight100,
+    messageHighlightBG: colors.yellow100,
     hoverComponentBG: colors.productLight300,
     activeComponentBG: colors.productLight400,
     signInSidebar: colors.green800,
@@ -87,7 +88,6 @@ const lightTheme = {
     starDefaultBG: 'rgb(254, 228, 94)',
     mapAttributionText: colors.black,
     white: colors.white,
-    progressBarBackground: colors.productLight400,
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
 

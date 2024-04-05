@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -29,10 +30,6 @@ type VideoLoadedEventType = {
     };
 };
 
-type VideoPlaybackStatusEventType = {
-    isLoaded: boolean;
-};
-
 type VideoStatus = 'video' | 'animation';
 
 function OnboardingWelcomeVideo() {
@@ -42,8 +39,8 @@ function OnboardingWelcomeVideo() {
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
     const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
-    const [isVideoLoaded, setIsVideoLoaded] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
     useEffect(() => {
@@ -53,11 +50,11 @@ function OnboardingWelcomeVideo() {
 
         if (isOffline) {
             setWelcomeVideoStatus('animation');
-        } else if (!isOffline && isVideoLoaded) {
+        } else if (!isOffline) {
             setWelcomeVideoStatus('video');
             setIsWelcomeVideoStatusLocked(true);
         }
-    }, [isOffline, isVideoLoaded, isWelcomeVideoStatusLocked]);
+    }, [isOffline, isWelcomeVideoStatusLocked]);
 
     const closeModal = useCallback(() => {
         setIsModalVisible(false);
@@ -75,10 +72,6 @@ function OnboardingWelcomeVideo() {
             setVideoAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
         }
     };
-
-    const setVideoStatus = useCallback((event: VideoPlaybackStatusEventType) => {
-        setIsVideoLoaded(event.isLoaded);
-    }, []);
 
     const getWelcomeVideo = () => {
         const aspectRatio = videoAspectRatio || VIDEO_ASPECT_RATIO;
@@ -99,7 +92,6 @@ function OnboardingWelcomeVideo() {
                         url={CONST.WELCOME_VIDEO_URL}
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                         onVideoLoaded={setAspectRatio}
-                        onPlaybackStatusUpdate={setVideoStatus}
                         controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY}
                         shouldUseControlsBottomMargin={false}
                         shouldPlay
@@ -110,6 +102,7 @@ function OnboardingWelcomeVideo() {
                         <Lottie
                             source={LottieAnimations.Hands}
                             style={styles.h100}
+                            webStyle={isSmallScreenWidth ? styles.h100 : undefined}
                             autoPlay
                             loop
                         />
@@ -145,7 +138,7 @@ function OnboardingWelcomeVideo() {
                         <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
                         <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
                             <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
-                                <Text style={styles.textHeroSmall}>{translate('onboarding.welcomeVideo.title')}</Text>
+                                <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.welcomeVideo.title')}</Text>
                                 <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
                             </View>
                             <Button

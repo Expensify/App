@@ -98,6 +98,22 @@ type CategorySection = CategorySectionBase & {
     data: Option[];
 };
 
+type TaxRatesOption = {
+    text?: string;
+    code?: string;
+    searchText?: string;
+    tooltipText?: string;
+    isDisabled?: boolean;
+    keyForList?: string;
+    data: Partial<TaxRate>;
+};
+
+type TaxSection = {
+    title: string | undefined;
+    shouldShow: boolean;
+    data: TaxRatesOption[];
+};
+
 type CategoryTreeSection = CategorySectionBase & {
     data: OptionTree[];
 };
@@ -427,20 +443,19 @@ function getSearchText(
 ): string {
     let searchTerms: string[] = [];
 
-    if (!isChatRoomOrPolicyExpenseChat) {
-        for (const personalDetail of personalDetailList) {
-            if (personalDetail.login) {
-                // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-                // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-                // More info https://github.com/Expensify/App/issues/8007
-                searchTerms = searchTerms.concat([
-                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
-                    personalDetail.login,
-                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
-                ]);
-            }
+    for (const personalDetail of personalDetailList) {
+        if (personalDetail.login) {
+            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+            // More info https://github.com/Expensify/App/issues/8007
+            searchTerms = searchTerms.concat([
+                PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
+                personalDetail.login,
+                personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
+            ]);
         }
     }
+
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
@@ -577,7 +592,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(
+        const reportPreviewMessage = ReportUtils.getReportPreviewMessage(
             !isEmptyObject(iouReport) ? iouReport : null,
             lastIOUMoneyReportAction,
             true,
@@ -586,6 +601,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             true,
             lastReportAction,
         );
+        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(reportPreviewMessage);
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
@@ -637,7 +653,6 @@ function createOption(
         login: null,
         reportID: '',
         phoneNumber: null,
-        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isDefaultRoom: false,
@@ -682,7 +697,6 @@ function createOption(
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
-        result.hasDraftComment = report.hasDraft;
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
@@ -857,7 +871,7 @@ function getSearchValueForPhoneOrEmail(searchTerm: string) {
  * Verifies that there is at least one enabled option
  */
 function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
-    return Object.values(options).some((option) => option.enabled);
+    return Object.values(options).some((option) => option.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -1239,7 +1253,7 @@ function sortTaxRates(taxRates: TaxRates): TaxRate[] {
 /**
  * Builds the options for taxRates
  */
-function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
+function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[] {
     return taxRates.map((taxRate) => ({
         text: taxRate.modifiedName,
         keyForList: taxRate.modifiedName,
@@ -1253,7 +1267,7 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): TaxSection[] {
     const policyRatesSections = [];
 
     const taxes = transformedTaxRates(taxRates);
@@ -1695,7 +1709,7 @@ function getOptions(
         !isCurrentUser({login: searchValue} as PersonalDetails) &&
         selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
-            (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
+            (parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
         !optionsToExclude.find((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
         !excludeUnknownUsers
@@ -2124,4 +2138,4 @@ export {
     getTaxRatesSection,
 };
 
-export type {MemberForList, CategorySection, GetOptions, OptionList, SearchOption, PayeePersonalDetails, Category};
+export type {MemberForList, CategorySection, GetOptions, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption};

@@ -432,12 +432,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightHero,
         },
 
-        textHeroSmall: {
-            fontSize: variables.fontSizeHeroSmall,
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
-            lineHeight: variables.lineHeightHeroSmall,
-        },
-
         textStrong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -4547,7 +4541,7 @@ const styles = (theme: ThemeColors) =>
             width: variables.componentSizeMedium,
             height: variables.iconSizeXXXSmall,
             borderRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: theme.progressBarBackground,
+            backgroundColor: theme.border,
             alignSelf: 'center',
         },
 

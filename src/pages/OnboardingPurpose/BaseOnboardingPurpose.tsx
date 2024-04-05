@@ -9,6 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import OfflineIndicator from '@components/OfflineIndicator';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -46,6 +47,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
     const [error, setError] = useState(false);
     const theme = useTheme();
 
+    const PurposeFooterInstance = <OfflineIndicator />;
+
     useEffect(() => {
         setSelectedPurpose(onboardingPurposeSelected ?? undefined);
     }, [onboardingPurposeSelected]);
@@ -79,6 +82,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
         Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
 
+        Navigation.dismissModal();
         // Only navigate to concierge chat when central pane is visible
         // Otherwise stay on the chats screen.
         if (isSmallScreenWidth) {
@@ -130,7 +134,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                     <ScrollView style={[styles.flex1, styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, paddingHorizontal]}>
                         <View style={styles.flex1}>
                             <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                                <Text style={styles.textHeroSmall}>{translate('onboarding.purpose.title')} </Text>
+                                <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.purpose.title')} </Text>
                             </View>
                             <MenuItemList
                                 menuItems={menuItems}
@@ -140,14 +144,13 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                     </ScrollView>
                     <FormAlertWithSubmitButton
                         enabledWhenOffline
+                        footerContent={isSmallScreenWidth && PurposeFooterInstance}
                         buttonText={translate('common.continue')}
                         onSubmit={() => {
                             if (!selectedPurpose) {
                                 setError(true);
                                 return;
                             }
-
-                            // API call for AcceptSpontanaTerms when backend gets implemented
                             setError(false);
                             completeEngagement();
                         }}
@@ -162,6 +165,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 }
 
 BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
+
 export default withOnyx<BaseOnboardingPurposeProps, BaseOnboardingPurposeOnyxProps>({
     onboardingPurposeSelected: {
         key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
