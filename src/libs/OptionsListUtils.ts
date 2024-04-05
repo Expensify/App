@@ -2160,7 +2160,7 @@ function filterOptions(options: Options, searchInputValue: string): Options {
             ],
         });
         const personalDetails = filterArrayByMatch(items.personalDetails, term, {
-            keys: ['participantsList.0.displayName', 'login', (item) => item.login?.replace(emailRegex, '') ?? ''],
+            keys: [(item) => item.participantsList?.[0]?.displayName ?? '', 'login', (item) => item.login?.replace(emailRegex, '') ?? ''],
         });
 
         return {

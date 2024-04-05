@@ -47,42 +47,6 @@ type Options<T = unknown> = {
 type IndexableByString = Record<string, unknown>;
 
 /**
- * Given path: "foo.bar.baz" and item: {foo: {bar: {baz: 'buzz'}}} -> 'buzz'
- * @param path a dot-separated set of keys
- * @param item the item to get the value from
- */
-function getNestedValues<T>(path: string, item: T): string[] {
-    const keys = path.split('.');
-    let values: Array<T | IndexableByString | string> = [item];
-
-    for (const nestedKey of keys) {
-        let nestedValues: Array<T | IndexableByString | string> = [];
-
-        for (const nestedItem of values) {
-            if (nestedItem != null) {
-                if (Object.hasOwnProperty.call(nestedItem, nestedKey)) {
-                    const nestedValue = (nestedItem as IndexableByString)[nestedKey];
-                    if (nestedValue != null) {
-                        nestedValues.push(nestedValue as IndexableByString | string);
-                    }
-                } else if (nestedKey === '*') {
-                    nestedValues = nestedValues.concat(nestedItem);
-                }
-            }
-        }
-
-        values = nestedValues;
-    }
-
-    if (Array.isArray(values[0])) {
-        const result: string[] = [];
-        return result.concat(...(values as string[]));
-    }
-
-    return values as string[];
-}
-
-/**
  * Gets value for key in item at arbitrarily nested keypath
  * @param item - the item
  * @param key - the potentially nested keypath or property callback
@@ -101,8 +65,6 @@ function getItemValues<T>(item: T, key: KeyOption<T>): string[] {
         value = null;
     } else if (Object.hasOwnProperty.call(item, keyCopy)) {
         value = (item as IndexableByString)[keyCopy];
-    } else if (keyCopy.includes('.')) {
-        return getNestedValues<T>(keyCopy, item);
     } else {
         return [];
     }
