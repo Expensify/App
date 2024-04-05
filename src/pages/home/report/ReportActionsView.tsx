@@ -225,24 +225,9 @@ function ReportActionsView({
             if (isFirstLinkedActionRender.current) {
                 isFirstLinkedActionRender.current = false;
             }
-            setCurrentReportActionID(firstReportActionID);
+                setCurrentReportActionID(firstReportActionID);
         },
         [fetchNewerAction, hasMoreCached, newestReportAction],
-    );
-
-    useFocusEffect(
-        useCallback(() => {
-            if (isFirstRender.current) {
-                isFirstRender.current = false;
-                return;
-            }
-            if (isFirstLinkedActionRender.current) {
-                isFirstLinkedActionRender.current = false;
-            }
-            if (newestReportAction?.reportActionID) {
-                setCurrentReportActionID(newestReportAction.reportActionID);
-            }
-        }, [newestReportAction?.reportActionID]),
     );
 
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
@@ -368,10 +353,10 @@ function ReportActionsView({
         const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
 
         if (
-            (reportActionID && indexOfLinkedAction > -1 && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded) ||
-            (!reportActionID && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded)
+            (reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) ||
+            (!reportActionID && !isLoadingOlderReportsFirstNeeded)
         ) {
-            handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
+            handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID, hasNewestReportAction});
         }
     }, [
         isLoadingInitialReportActions,
