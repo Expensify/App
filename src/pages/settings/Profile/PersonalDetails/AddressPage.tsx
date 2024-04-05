@@ -6,12 +6,14 @@ import AddressForm from '@components/AddressForm';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import type {FormOnyxValues} from '@src/components/Form/types';
+import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -46,7 +48,11 @@ function AddressPage({privatePersonalDetails, route, isLoadingApp = true}: Addre
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const address = useMemo(() => privatePersonalDetails?.address, [privatePersonalDetails]);
-    const countryFromUrl = route.params?.country;
+    const countryFromUrlTemp = route?.params?.country;
+
+    // Check if country is valid
+    const countryFromUrl = CONST.ALL_COUNTRIES[countryFromUrlTemp as keyof typeof CONST.ALL_COUNTRIES] ? countryFromUrlTemp : '';
+    const stateFromUrl = useGeographicalStateFromRoute();
     const [currentCountry, setCurrentCountry] = useState(address?.country);
     const [street1, street2] = (address?.street ?? '').split('\n');
     const [state, setState] = useState(address?.state);
@@ -97,6 +103,13 @@ function AddressPage({privatePersonalDetails, route, isLoadingApp = true}: Addre
         }
         handleAddressChange(countryFromUrl, 'country');
     }, [countryFromUrl, handleAddressChange]);
+
+    useEffect(() => {
+        if (!stateFromUrl) {
+            return;
+        }
+        handleAddressChange(stateFromUrl, 'state');
+    }, [handleAddressChange, stateFromUrl]);
 
     return (
         <ScreenWrapper
