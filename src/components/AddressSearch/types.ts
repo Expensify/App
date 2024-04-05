@@ -13,18 +13,6 @@ type CurrentLocationButtonProps = {
     isDisabled?: boolean;
 };
 
-type RenamedInputKeysProps = {
-    street: string;
-    street2: string;
-    city: string;
-    state: string;
-    lat?: string;
-    lng?: string;
-    zipCode: string;
-    address?: string;
-    country?: string;
-};
-
 type OnPressProps = {
     address: string;
     lat: number;
@@ -97,4 +85,4 @@ type AddressSearchProps = {
 
 type IsCurrentTargetInsideContainerType = (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>, containerRef: RefObject<View | HTMLElement>) => boolean;
 
-export type {CurrentLocationButtonProps, AddressSearchProps, RenamedInputKeysProps, IsCurrentTargetInsideContainerType, StreetValue};
+export type {CurrentLocationButtonProps, AddressSearchProps, IsCurrentTargetInsideContainerType, StreetValue};
