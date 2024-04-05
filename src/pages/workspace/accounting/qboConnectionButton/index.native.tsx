@@ -9,11 +9,11 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ConnectToQuickbooksOnlineButtonOnyxProps, ConnectToQuickbooksOnlineButtonPropsWithSession} from './types';
+import type {ConnectToQuickbooksOnlineButtonOnyxProps, ConnectToQuickbooksOnlineButtonProps} from './types';
 
 type WebViewNavigationEvent = WebViewNavigation;
 
-function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbooksOnlineButtonPropsWithSession) {
+function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbooksOnlineButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
@@ -64,7 +64,7 @@ function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbook
 
 ConnectToQuickbooksOnlineButton.displayName = 'ConnectToQuickbooksOnlineButton';
 
-export default withOnyx<ConnectToQuickbooksOnlineButtonPropsWithSession, ConnectToQuickbooksOnlineButtonOnyxProps>({
+export default withOnyx<ConnectToQuickbooksOnlineButtonProps, ConnectToQuickbooksOnlineButtonOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },
