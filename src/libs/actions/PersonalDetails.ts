@@ -235,43 +235,6 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
 }
 
 /**
- * Fetches additional personal data like legal name, date of birth, address
- */
-function openPersonalDetails() {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS, {}, {optimisticData, successData, failureData});
-}
-
-/**
  * Fetches public profile info about a given user.
  * The API will only return the accountID, displayName, and avatar for the user
  * but the profile page will use other info (e.g. contact methods and pronouns) if they are already available in Onyx
@@ -443,7 +406,6 @@ function clearAvatarErrors() {
 export {
     clearAvatarErrors,
     deleteAvatar,
-    openPersonalDetails,
     openPublicProfilePage,
     updateAddress,
     updateAutomaticTimezone,
