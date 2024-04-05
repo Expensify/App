@@ -61,6 +61,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
+                [SCREENS.SEARCH]: ROUTES.SEARCH,
             },
         },
         [SCREENS.NOT_FOUND]: '*',

@@ -5,6 +5,7 @@ import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/create
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import type {BottomTabNavigatorParamList} from '@libs/Navigation/types';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
+import SearchPageBottomTab from '@pages/Search/SearchPageBottomTab';
 import SCREENS from '@src/SCREENS';
 import ActiveRouteContext from './ActiveRouteContext';
 
@@ -26,6 +27,10 @@ function BottomTabNavigator() {
                 <Tab.Screen
                     name={SCREENS.HOME}
                     component={SidebarScreen}
+                />
+                <Tab.Screen
+                    name={SCREENS.SEARCH_BOTTOM_TAB}
+                    component={SearchPageBottomTab}
                 />
                 <Tab.Screen
                     name={SCREENS.SETTINGS.ROOT}

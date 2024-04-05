@@ -3,21 +3,25 @@ import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/na
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 
 type Routes = StackNavigationState<ParamListBase>['routes'];
-function reduceReportRoutes(routes: Routes): Routes {
+function reduceCentralPaneRoutes(routes: Routes): Routes {
     const result: Routes = [];
     let count = 0;
     const reverseRoutes = [...routes].reverse();
 
     reverseRoutes.forEach((route) => {
         if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
-            // Remove all report routes except the last 3. This will improve performance.
+            // Remove all central pane routes except the last 3. This will improve performance.
             if (count < 3) {
                 result.push(route);
                 count++;
@@ -52,15 +56,34 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         navigationRef.resetRoot(navigationRef.getRootState());
     }, [isSmallScreenWidth]);
 
-    const stateToRender = useMemo(() => {
-        const result = reduceReportRoutes(state.routes);
+    const {stateToRender, searchRoute} = useMemo(() => {
+        const routes = reduceCentralPaneRoutes(state.routes);
+
+        const lastRoute = routes[routes.length - 1];
+        const isLastRouteSearchRoute = getTopmostCentralPaneRoute({routes: [lastRoute]} as State<RootStackParamList>)?.name === SCREENS.SEARCH;
+
+        const firstRoute = routes[0];
+
+        if (isSmallScreenWidth && isLastRouteSearchRoute) {
+            return {
+                stateToRender: {
+                    ...state,
+                    index: 0,
+                    routes: [firstRoute],
+                },
+                searchRoute: lastRoute,
+            };
+        }
 
         return {
-            ...state,
-            index: result.length - 1,
-            routes: [...result],
+            stateToRender: {
+                ...state,
+                index: routes.length - 1,
+                routes: [...routes],
+            },
+            searchRoute: undefined,
         };
-    }, [state]);
+    }, [state, isSmallScreenWidth]);
 
     return (
         <NavigationContent>
@@ -71,6 +94,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
                 descriptors={descriptors}
                 navigation={navigation}
             />
+            {searchRoute && <View style={{display: 'none'}}>{descriptors[searchRoute.key].render()}</View>}
         </NavigationContent>
     );
 }

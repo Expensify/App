@@ -13,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
+import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -53,6 +54,12 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
 
     // Parent navigator of the bottom tab bar is the root navigator.
     const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
+        const topmostCentralPaneRoute = getTopmostCentralPaneRoute(state);
+
+        if (topmostCentralPaneRoute && topmostCentralPaneRoute.name === SCREENS.SEARCH) {
+            return SCREENS.SEARCH;
+        }
+
         const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
@@ -83,10 +90,28 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                         )}
                     </View>
                 </PressableWithFeedback>
+                <PressableWithFeedback
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.SEARCH);
+                    }}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.search')}
+                    wrapperStyle={styles.flex1}
+                    style={styles.bottomTabBarItem}
+                >
+                    <View>
+                        <Icon
+                            src={Expensicons.ReceiptSearch}
+                            fill={currentTabName === SCREENS.SEARCH ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                    </View>
+                </PressableWithFeedback>
             </Tooltip>
 
-            <BottomTabBarFloatingActionButton />
             <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
+            <BottomTabBarFloatingActionButton />
         </View>
     );
 }

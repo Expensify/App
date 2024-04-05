@@ -20,6 +20,8 @@ const ROUTES = {
 
     ALL_SETTINGS: 'all-settings',
 
+    SEARCH: 'search',
+
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {

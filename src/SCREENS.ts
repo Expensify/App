@@ -13,6 +13,8 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     ALL_SETTINGS: 'AllSettings',
+    SEARCH: 'Search',
+    SEARCH_BOTTOM_TAB: 'SearchBottomTab',
     REPORT: 'Report',
     PROFILE_AVATAR: 'ProfileAvatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',

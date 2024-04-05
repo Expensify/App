@@ -59,6 +59,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SEARCH]: {
+        filter: string;
+    };
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
@@ -636,6 +639,7 @@ type FullScreenNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
+    [SCREENS.SEARCH_BOTTOM_TAB]: undefined;
     [SCREENS.SETTINGS.ROOT]: undefined;
 };
 
