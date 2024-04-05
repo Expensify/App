@@ -1,4 +1,3 @@
-// tests/utils/collections/optionData.ts
 import {rand, randBoolean, randEmail, randNumber, randPhoneNumber, randWord} from '@ngneat/falso';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
