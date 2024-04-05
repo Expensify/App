@@ -157,33 +157,32 @@ function IOURequestStepScan({
 
     // eslint-disable-next-line @lwc/lwc/no-async-await
     const validateReceipt = async (file) => {
-        let isCorrectPDF;
-
-        await CheckPDFDocument.checkPdf(file.uri, (isCorrect) => {
+        console.log(file);
+        await CheckPDFDocument.checkPdf(file.name, (isCorrect) => {
             console.log('isCorrect', isCorrect);
             isCorrectPDF = isCorrect;
+            const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+            if (!isCorrect) {
+                Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+                return false;
+            }
+
+            if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
+                Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+                return false;
+            }
+
+            if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+                return false;
+            }
+
+            if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+                return false;
+            }
+            return true;
         });
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!isCorrectPDF) {
-            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-            return false;
-        }
-
-        if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
-            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-            return false;
-        }
-
-        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
-            return false;
-        }
-
-        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-            return false;
-        }
-        return true;
     };
 
     const navigateBack = () => {

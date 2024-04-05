@@ -13,15 +13,21 @@
 
 RCT_EXPORT_MODULE();
 
-RCT_EXPORT_METHOD(checkPdf:(NSString *)url callback: (RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(checkPdf:(NSString *)fileurl callback: (RCTResponseSenderBlock)callback)
 {
-  NSURL *fileURL = [NSURL fileURLWithPath:url];
-  CGPDFDocumentRef pdfDocument = CGPDFDocumentCreateWithURL((__bridge CFURLRef)fileURL);
-  BOOL isValid = (pdfDocument != NULL);
-  if (pdfDocument) {
-      CGPDFDocumentRelease(pdfDocument);
-      callback(@[@YES]);
+  NSString *path = [[NSBundle mainBundle] pathForResource:@"booking" ofType:@"pdf"];//Path of your PDF
+  
+  NSData *data = [[NSFileManager defaultManager] contentsAtPath:path];
+  
+  CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
+  
+  CGPDFDocumentRef document = CGPDFDocumentCreateWithProvider(provider);
+  
+
+  if (document == nil) {
+      NSLog(@"The PDF is corrupted");//Can't be opened
   }
-  callback(@[@isValid]);
+  CGDataProviderRelease(provider);
+  CGPDFDocumentRelease(document);
 }
 @end
