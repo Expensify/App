@@ -21,6 +21,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
+// @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -51,8 +52,10 @@ type IOURequestStepTagOnyxProps = {
 
 type IOURequestStepTagProps = IOURequestStepTagOnyxProps &
     StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_TAG> &
-    WithWritableReportOrNotFoundProps &
-    WithFullTransactionOrNotFoundProps;
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAG> &
+    // TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAG>;
 
 function IOURequestStepTag({
     policy,
@@ -83,7 +86,7 @@ function IOURequestStepTag({
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTag = ReportUtils.isGroupPolicy(report) && (transactionTag ?? OptionsListUtils.hasEnabledTags(policyTagLists));
+    const shouldShowTag = ReportUtils.isGroupPolicy(report) && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !shouldShowTag || (isEditing && (isSplitBill ? !canEditSplitBill : reportAction && !canEditMoneyRequest(reportAction)));
@@ -138,6 +141,7 @@ function IOURequestStepTag({
 IOURequestStepTag.displayName = 'IOURequestStepTag';
 
 export default withWritableReportOrNotFound(
+    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
     withFullTransactionOrNotFound(
         withOnyx<IOURequestStepTagProps, IOURequestStepTagOnyxProps>({
             splitDraftTransaction: {

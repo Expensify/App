@@ -20,15 +20,13 @@ import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
+// @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepMerchantOnyxProps = {
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -44,8 +42,10 @@ type IOURequestStepMerchantOnyxProps = {
 
 type IOURequestStepMerchantProps = IOURequestStepMerchantOnyxProps &
     StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT> &
-    WithFullTransactionOrNotFoundProps &
-    WithWritableReportOrNotFoundProps;
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT> &
+    // TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT>;
 
 type ValidationData = {
     moneyRequestMerchant?: string;
@@ -71,6 +71,8 @@ function IOURequestStepMerchant({
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const merchant = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+
+    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
     const isMerchantRequired = ReportUtils.isGroupPolicy(report) || transaction?.participants?.some((participant) => Boolean(participant.isPolicyExpenseChat));
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -153,6 +155,7 @@ function IOURequestStepMerchant({
 IOURequestStepMerchant.displayName = 'IOURequestStepMerchant';
 
 export default withWritableReportOrNotFound(
+    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
     withFullTransactionOrNotFound(
         withOnyx<IOURequestStepMerchantProps, IOURequestStepMerchantOnyxProps>({
             splitDraftTransaction: {
