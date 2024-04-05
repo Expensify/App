@@ -46,6 +46,12 @@ type SuggestionProps = {
 
     /** The height of the composer */
     composerHeight?: number;
+
+    /** if current composer is connected with chat room or not */
+    isChatRoom: boolean;
+
+    /** policy ID connected to current composer */
+    policyID?: string;
 };
 
 /**
@@ -66,6 +72,8 @@ function Suggestions(
         measureParentContainer,
         isAutoSuggestionPickerLarge = true,
         isComposerFocused,
+        isChatRoom,
+        policyID,
     }: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
@@ -155,6 +163,8 @@ function Suggestions(
         isAutoSuggestionPickerLarge,
         measureParentContainer,
         isComposerFocused,
+        isChatRoom,
+        policyID,
     };
 
     return (
