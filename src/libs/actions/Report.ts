@@ -70,16 +70,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {
-    NewGroupChatDraft,
-    PersonalDetails,
-    PersonalDetailsList,
-    PolicyReportField,
-    RecentlyUsedReportFields,
-    ReportActionReactions,
-    ReportMetadata,
-    ReportUserIsTyping,
-} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -210,12 +201,6 @@ let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
     callback: (val) => (allRecentlyUsedReportFields = val),
-});
-
-let newGroupDraft: OnyxEntry<NewGroupChatDraft>;
-Onyx.connect({
-    key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    callback: (value) => (newGroupDraft = value),
 });
 
 function clearGroupChat() {
@@ -799,14 +784,15 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    const isGroupChat = participantAccountIDs.length > 1;
 
     // If we are not creating a new Group Chat then we are creating a 1:1 DM and will look for an existing chat
-    if (!newGroupDraft) {
+    if (!isGroupChat) {
         chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     }
 
     if (isEmptyObject(chat)) {
-        if (newGroupDraft) {
+        if (isGroupChat) {
             newChat = ReportUtils.buildOptimisticChatReport(
                 participantAccountIDs,
                 reportName,
