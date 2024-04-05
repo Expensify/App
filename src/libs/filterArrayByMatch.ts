@@ -27,14 +27,8 @@ type RankingInfo = {
 
 type ValueGetterKey<T> = (item: T) => string | string[];
 
-type IndexedItem<T> = {
-    item: T;
-    index: number;
-};
-type RankedItem<T> = RankingInfo & IndexedItem<T>;
-
 type KeyAttributesOptions<T> = {
-    key?: string | ValueGetterKey<T>;
+    key: string | ValueGetterKey<T>;
     threshold?: Ranking;
 };
 
@@ -53,26 +47,18 @@ type IndexableByString = Record<string, unknown>;
  * @returns an array containing the value(s) at the nested keypath
  */
 function getItemValues<T>(item: T, key: KeyOption<T>): string[] {
-    let keyCopy = key;
-    if (typeof keyCopy === 'object') {
-        keyCopy = keyCopy.key as string;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    let value: string | string[] | null | unknown;
-    if (typeof keyCopy === 'function') {
-        value = keyCopy(item);
-    } else if (item == null) {
-        value = null;
-    } else if (Object.hasOwnProperty.call(item, keyCopy)) {
-        value = (item as IndexableByString)[keyCopy];
-    } else {
+    if (!item) {
         return [];
     }
 
-    if (Array.isArray(value)) {
-        return value as string[];
+    const resolvedKey = typeof key === 'object' ? key.key : key;
+    const value = typeof resolvedKey === 'function' ? resolvedKey(item) : (item as IndexableByString)[resolvedKey];
+
+    if (!value) {
+        return [];
     }
-    return [String(value)];
+
+    return Array.isArray(value) ? value.map(String) : [String(value)];
 }
 
 /**
@@ -81,15 +67,8 @@ function getItemValues<T>(item: T, key: KeyOption<T>): string[] {
  * @param keys - the keys to use to retrieve the values
  * @return objects with {itemValue}
  */
-function getAllValuesToRank<T>(item: T, keys: ReadonlyArray<KeyOption<T>>) {
-    const allValues: string[] = [];
-    for (const key of keys) {
-        const itemValues = getItemValues(item, key);
-        for (const value of itemValues) {
-            allValues.push(value);
-        }
-    }
-    return allValues;
+function getAllValuesToRank<T>(item: T, keys: ReadonlyArray<KeyOption<T>>): string[] {
+    return keys.flatMap((key) => getItemValues(item, key));
 }
 
 /**
@@ -144,35 +123,16 @@ function getMatchRanking(testString: string, stringToRank: string): Ranking {
     // will return a number between rankings.MATCHES and rankings.MATCHES + 1 depending  on how close of a match it is.
     let matchingInOrderCharCount = 0;
     let charNumber = 0;
-    function findMatchingCharacter(matchChar: string, string: string, index: number) {
-        for (let j = index; j < string.length; j++) {
-            if (string[j] === matchChar) {
-                matchingInOrderCharCount += 1;
-                return j + 1;
-            }
-        }
-        return -1;
-    }
-
-    const firstIndex = findMatchingCharacter(stringToRank[0], testString, 0);
-
-    if (firstIndex < 0) {
-        return MATCH_RANK.NO_MATCH;
-    }
-
-    charNumber = firstIndex;
-    for (let i = 1; i < stringToRank.length; i++) {
-        const matchChar = stringToRank[i];
-        charNumber = findMatchingCharacter(matchChar, testString, charNumber);
-        const found = charNumber > -1;
-
-        if (!found) {
+    for (const char of stringToRank) {
+        charNumber = lowercaseTestString.indexOf(char, charNumber) + 1;
+        if (!charNumber) {
             return MATCH_RANK.NO_MATCH;
         }
+        matchingInOrderCharCount++;
     }
 
-    const spread = charNumber - firstIndex;
-
+    // Calculate ranking based on character sequence and spread
+    const spread = charNumber - lowercaseTestString.indexOf(stringToRank[0]);
     const spreadPercentage = 1 / spread;
     const inOrderPercentage = matchingInOrderCharCount / stringToRank.length;
     const ranking = MATCH_RANK.MATCHES + inOrderPercentage * spreadPercentage;
@@ -223,19 +183,10 @@ function getHighestRanking<T>(item: T, keys: ReadonlyArray<KeyOption<T>>, value:
 function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string, options: Options<T>): T[] {
     const {keys, threshold = MATCH_RANK.MATCHES} = options;
 
-    let matchedItems = items.reduce((matches: Array<RankedItem<T>>, item: T, index: number): Array<RankedItem<T>> => {
-        const rankingInfo = getHighestRanking(item, keys, searchValue, options);
-        const {rank, keyThreshold = threshold} = rankingInfo;
-
-        if (rank >= keyThreshold) {
-            matches.push({...rankingInfo, item, index});
-        }
-        return matches;
-    }, []);
-
-    matchedItems = matchedItems.filter((item) => item.rank >= threshold + 1);
-
-    return matchedItems.map((item) => item.item);
+    return items
+        .map((item) => ({...getHighestRanking(item, keys, searchValue, options), item}))
+        .filter(({rank, keyThreshold = threshold}) => rank >= Math.max(keyThreshold, threshold + 1))
+        .map(({item}) => item);
 }
 
 export default filterArrayByMatch;
