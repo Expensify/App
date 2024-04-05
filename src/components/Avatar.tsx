@@ -112,7 +112,7 @@ function Avatar({
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}
-                        fill={imageError ? theme.border : iconColors?.fill ?? fill}
+                        fill={imageError ? iconColors?.fill ?? theme.offline : iconColors?.fill ?? fill}
                         additionalStyles={[StyleUtils.getAvatarBorderStyle(size, type), iconColors, iconAdditionalStyles]}
                     />
                 </View>
