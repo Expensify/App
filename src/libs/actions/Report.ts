@@ -544,6 +544,22 @@ function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
 }
 
+function updateGroupChatName(reportID: string, reportName: string) {
+    if (!reportID || !reportName) {
+        return;
+    }
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {reportName},
+        },
+    ];
+
+    API.write('UpdateGroupChatName', {reportName, reportID}, {optimisticData});
+}
+
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
@@ -635,6 +651,8 @@ function openReport(
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = participantAccountIDList.join(',');
         parameters.reportName = newReportObject.reportName ?? '';
+
+        clearGroupChat();
     }
 
     if (isFromDeepLink) {
@@ -3095,4 +3113,5 @@ export {
     setGroupDraft,
     clearGroupChat,
     startNewChat,
+    updateGroupChatName,
 };

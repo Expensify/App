@@ -99,7 +99,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                     description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
                                     onPress={() =>
                                         isGroupChat
-                                            ? Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME.getRoute(reportName ?? ''))
+                                            ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(reportID))
                                             : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(reportID))
                                     }
                                 />

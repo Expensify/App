@@ -24,20 +24,34 @@ import * as ReportUtils from '@libs/ReportUtils';
 
 type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>;
 
-function GroupChatNameEditPage({groupChatDraft}: GroupChatNameEditPageProps) {
+function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
+    const {groupChatDraft} = props;
+
+    // If we have a reportID this means we are using this page to update an existing Group Chat name
+    const reportID = props.route.params?.reportID;
+    const isUpdatingExistingReport = Boolean(reportID);
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     // We will try to get the chatName from the draft if it exists there.
-    const participantAccountIDs = groupChatDraft.participants.map(participant => participant.accountID);
-    const currentChatName = groupChatDraft.reportName || ReportUtils.getGroupChatName(participantAccountIDs);
+    const participantAccountIDs = groupChatDraft?.participants.map(participant => participant.accountID);
+    const existingReportName = ReportUtils.getGroupChatName(participantAccountIDs, false, reportID);
+    const currentChatName = reportID ? existingReportName : (groupChatDraft?.reportName || existingReportName);
+
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
-        // TODO: There is some restriction on max characters (255) not much else. We should let people set this to an empty string if they want.
+        // TODO: There is some restriction on max characters (255 so we can use tag name limit) not much else. We should let people set this to an empty string if they want.
         return {};
     }, []);
 
     const editName = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
+        if (isUpdatingExistingReport) {
+            Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
+            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+            return;
+        }
+
         Report.setGroupDraft(undefined, values[INPUT_IDS.NEW_CHAT_NAME]);
         Keyboard.dismiss();
         Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
