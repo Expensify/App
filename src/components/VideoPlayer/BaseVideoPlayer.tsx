@@ -19,7 +19,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import shouldReplayVideo from './shouldReplayVideo';
-import type {VideoWithOnFullScreenUpdate} from './types';
+import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
 import * as VideoUtils from './utils';
 import VideoPlayerControls from './VideoPlayerControls';
 
@@ -44,9 +44,8 @@ function BaseVideoPlayer({
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
     // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
     // eslint-disable-next-line no-unused-vars
-    isVideoHovered = false,
     isPreview,
-}) {
+}: VideoPlayerProps) {
     const styles = useThemeStyles();
     const {pauseVideo, playVideo, currentlyPlayingURL, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL, videoResumeTryNumber} =
         usePlaybackContext();
