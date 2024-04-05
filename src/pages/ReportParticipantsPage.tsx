@@ -11,6 +11,7 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -322,6 +323,22 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         },
         [report],
     );
+    const headerTitle = useMemo(() => {
+        if (ReportUtils.isChatRoom(report) ||
+            ReportUtils.isPolicyExpenseChat(report) ||
+            ReportUtils.isChatThread(report) ||
+            ReportUtils.isTaskReport(report) ||
+            ReportUtils.isMoneyRequestReport(report))
+        {
+            return translate('common.members');
+        }
+        if (ReportUtils.isGroupChat(report)) {
+            return 'Everyone';
+        }
+
+        return translate('common.details');
+    }, [report, translate]);
+    const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -331,17 +348,13 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         >
             <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
                 <HeaderWithBackButton
+                    title={headerTitle}
+                    subtitle={isGroupChat ? translate('common.members') : ''}
+                    icon={isGroupChat ? Illustrations.ReceiptWrangler : undefined}
                     onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
-                    title={translate(
-                        ReportUtils.isChatRoom(report) ||
-                            ReportUtils.isPolicyExpenseChat(report) ||
-                            ReportUtils.isChatThread(report) ||
-                            ReportUtils.isTaskReport(report) ||
-                            ReportUtils.isMoneyRequestReport(report) ||
-                            ReportUtils.isGroupChat(report)
-                            ? 'common.members'
-                            : 'common.details',
-                    )}
+                    shouldShowBackButton={isSmallScreenWidth}
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                    subtitleOnTop={isGroupChat}
                 >
                     {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
