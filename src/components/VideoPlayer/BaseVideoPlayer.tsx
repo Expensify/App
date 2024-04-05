@@ -70,7 +70,6 @@ function BaseVideoPlayer({
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
-    const {translate} = useLocalize();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
