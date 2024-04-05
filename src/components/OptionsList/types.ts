@@ -2,15 +2,13 @@ import type {RefObject} from 'react';
 import type {SectionList, SectionListData, StyleProp, View, ViewStyle} from 'react-native';
 import type {OptionData} from '@libs/ReportUtils';
 
-type OptionsList = SectionList<OptionData, Section>;
 type OptionsListData = SectionListData<OptionData, Section>;
+type OptionsListDataWithIndexOffset = SectionListData<OptionData, SectionWithIndexOffset>;
+type OptionsList = SectionList<OptionData, SectionWithIndexOffset>;
 
 type Section = {
     /** Title of the section */
     title: string;
-
-    /** The initial index of this section given the total number of options in each section's data array */
-    indexOffset: number;
 
     /** Array of options */
     data: OptionData[];
@@ -20,6 +18,11 @@ type Section = {
 
     /** Whether this section is disabled or not */
     isDisabled?: boolean;
+};
+
+type SectionWithIndexOffset = Section & {
+    /** The initial index of this section given the total number of options in each section's data array */
+    indexOffset: number;
 };
 
 type OptionsListProps = {
@@ -134,4 +137,4 @@ type BaseOptionListProps = OptionsListProps & {
     listStyles?: StyleProp<ViewStyle>;
 };
 
-export type {OptionsListProps, BaseOptionListProps, Section, OptionsList, OptionsListData};
+export type {OptionsListProps, BaseOptionListProps, Section, OptionsList, OptionsListData, SectionWithIndexOffset, OptionsListDataWithIndexOffset};
