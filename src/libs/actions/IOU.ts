@@ -2136,7 +2136,6 @@ function requestMoney(
         payeeEmail,
         moneyRequestReportID,
     );
-
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
     const parameters: RequestMoneyParams = {
