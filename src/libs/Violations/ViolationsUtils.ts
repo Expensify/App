@@ -28,7 +28,7 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'tagOutOfPolicy' violation if tag is not in policy
     if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: 'violation'});
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
     }
 
     // Remove 'tagOutOfPolicy' violation if tag is in policy
@@ -43,7 +43,7 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'missingTag violation' if tag is required and not set
     if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
+        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION});
     }
     return newTransactionViolations;
 }
@@ -77,7 +77,7 @@ function getTagViolationsForMultiLevelTags(
     if (errorIndexes.length !== 0) {
         newTransactionViolations.push({
             name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
-            type: 'violation',
+            type: CONST.VIOLATION_TYPES.VIOLATION,
             data: {
                 errorIndexes,
             },
@@ -91,7 +91,7 @@ function getTagViolationsForMultiLevelTags(
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                    type: 'violation',
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
                     data: {
                         tagName: policyTagKeys[i],
                     },
@@ -142,7 +142,7 @@ const ViolationsUtils = {
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
-                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation'});
+                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
@@ -157,7 +157,7 @@ const ViolationsUtils = {
 
             // Add 'missingCategory' violation if category is required and not set
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
-                newTransactionViolations.push({name: 'missingCategory', type: 'violation'});
+                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION});
             }
         }
 

@@ -17,11 +17,17 @@ type WithWritableReportOrNotFoundOnyxProps = {
     report: OnyxEntry<Report>;
 };
 
-type Route = RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT>;
+type MoneyRequestRouteName =
+    | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
+    | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
+    | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
+    | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT;
 
-type WithWritableReportOrNotFoundProps = WithWritableReportOrNotFoundOnyxProps & {route: Route};
+type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
 
-export default function <TProps extends WithWritableReportOrNotFoundProps, TRef>(
+type WithWritableReportOrNotFoundProps<T extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & {route: Route<T>};
+
+export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables

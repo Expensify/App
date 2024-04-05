@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -8,6 +9,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RenderHTML from '@components/RenderHTML';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -145,15 +147,6 @@ function ReportPreview({
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
     }
-    const previewSubtitle =
-        // Formatted merchant can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (formattedMerchant ?? formattedDescription) ||
-        translate('iou.requestCount', {
-            count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
-            scanningReceipts: numberOfScanningReceipts,
-            pendingReceipts: numberOfPendingRequests,
-        });
 
     const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
@@ -234,6 +227,24 @@ function ReportPreview({
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
 
+    const {isSupportTextHtml, supportText} = useMemo(() => {
+        if (formattedMerchant) {
+            return {isSupportTextHtml: false, supportText: formattedMerchant};
+        }
+        if (formattedDescription ?? moneyRequestComment) {
+            const parsedSubtitle = new ExpensiMark().replace(formattedDescription ?? moneyRequestComment);
+            return {isSupportTextHtml: !!parsedSubtitle, supportText: parsedSubtitle ? `<muted-text>${parsedSubtitle}</muted-text>` : ''};
+        }
+        return {
+            isSupportTextHtml: false,
+            supportText: translate('iou.requestCount', {
+                count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+                scanningReceipts: numberOfScanningReceipts,
+                pendingReceipts: numberOfPendingRequests,
+            }),
+        };
+    }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -296,10 +307,14 @@ function ReportPreview({
                                                 )}
                                             </View>
                                         </View>
-                                        {shouldShowSubtitle && (
+                                        {shouldShowSubtitle && supportText && (
                                             <View style={styles.flexRow}>
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                                    {isSupportTextHtml ? (
+                                                        <RenderHTML html={supportText} />
+                                                    ) : (
+                                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
+                                                    )}
                                                 </View>
                                             </View>
                                         )}

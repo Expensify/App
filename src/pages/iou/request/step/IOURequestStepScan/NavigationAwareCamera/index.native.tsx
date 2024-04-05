@@ -11,6 +11,7 @@ function NavigationAwareCamera({cameraTabIndex, ...props}: NavigationAwareCamera
     return (
         <Camera
             ref={ref}
+            photoQualityBalance="speed"
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isActive={isCameraActive}
