@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
+import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import * as App from './App';
 import * as OnyxUpdates from './OnyxUpdates';
 
@@ -25,7 +25,7 @@ import * as OnyxUpdates from './OnyxUpdates';
 let lastUpdateIDAppliedToClient: number | null = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => (lastUpdateIDAppliedToClient = value),
+    callback: (value: number) => (lastUpdateIDAppliedToClient = value),
 });
 
 let queryPromise: Promise<Response | Response[] | void> | undefined;
@@ -160,22 +160,8 @@ export default () => {
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     Onyx.connect({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
-        callback: (value) => {
-            if (!value) {
-                return;
-            }
-
-            // Since we used the same key that used to store another object, let's confirm that the current object is
-            // following the new format before we proceed. If it isn't, then let's clear the object in Onyx.
-            if (
-                !(typeof value === 'object' && !!value) ||
-                !('type' in value) ||
-                (!(value.type === CONST.ONYX_UPDATE_TYPES.HTTPS && value.request && value.response) &&
-                    !((value.type === CONST.ONYX_UPDATE_TYPES.PUSHER || value.type === CONST.ONYX_UPDATE_TYPES.AIRSHIP) && value.updates))
-            ) {
-                console.debug('[OnyxUpdateManager] Invalid format found for updates, cleaning and unpausing the queue');
-                Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
-                SequentialQueue.unpause();
+        callback: (value: unknown) => {
+            if (!isValidOnyxUpdateFromServer(value)) {
                 return;
             }
 
