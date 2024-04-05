@@ -4634,10 +4634,8 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObj
 function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full?: boolean) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     let total = expenseReport.total ?? 0;
-    const transactions = TransactionUtils.getAllReportTransactions(expenseReport.reportID);
-    const hasHeldExpenses = transactions.some((transaction) => TransactionUtils.isOnHold(transaction));
 
-    if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
+    if (ReportUtils.hasHeldExpenses(expenseReport.reportID) && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID);
@@ -4733,8 +4731,8 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
     ];
 
     // Clear hold reason of all transactions if we approve all requests
-    if (full && hasHeldExpenses) {
-        const heldTransactions = transactions.filter(TransactionUtils.isOnHold);
+    const heldTransactions = ReportUtils.getAllHeldTransactions(expenseReport.reportID);
+    if (full && heldTransactions.length) {
         heldTransactions.forEach((heldTransaction) => {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
