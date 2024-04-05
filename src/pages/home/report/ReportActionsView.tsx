@@ -356,7 +356,7 @@ function ReportActionsView({
                 });
             }
         }
-    }, [isFocused, report.reportID, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID]);
+    }, [isFocused, report.reportID, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
