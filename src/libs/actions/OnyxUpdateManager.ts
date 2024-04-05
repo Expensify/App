@@ -116,6 +116,9 @@ function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
     const pendingDeferredUpdates = Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>(
         (acc, [lastUpdateID, update]) => ({
             ...acc,
+            // It should not be possible for lastUpdateIDAppliedToClient to be null,
+            // after the missing updates have been applied.
+            // If still so we want to keep the deferred update in the list.
             ...(!lastUpdateIDAppliedToClient || (Number(lastUpdateID) ?? 0) > lastUpdateIDAppliedToClient ? {[Number(lastUpdateID)]: update} : {}),
         }),
         {},
