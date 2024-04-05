@@ -85,6 +85,7 @@ function ExpensifyCardPage({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const shouldDisplayCardDomain = !cardList?.[cardId].nameValuePairs?.issuedBy;
+    const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardId].nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
@@ -159,7 +160,7 @@ function ExpensifyCardPage({
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={translate('cardPage.expensifyCard')}
+                        title={pageTitle}
                         onBackButtonPress={() => Navigation.goBack()}
                     />
                     <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
