@@ -25,7 +25,7 @@ function TextWithEmojiFragment({text, passedStyles, styleAsDeleted, styleAsMuted
     const processedTextArray = splitTextWithEmojis(text);
 
     return (
-        <>
+        <Text style={[emojisOnly ? styles.onlyEmojisText : undefined, styles.ltr, passedStyles]}>
             {processedTextArray.map((word: string) =>
                 CONST.REGEX.EMOJIS.test(word) ? (
                     <Text style={[emojisOnly ? styles.onlyEmojisText : styles.emojisWithinText]}>{word}</Text>
@@ -62,7 +62,7 @@ function TextWithEmojiFragment({text, passedStyles, styleAsDeleted, styleAsMuted
                     </Text>
                 </>
             )}
-        </>
+        </Text>
     );
 }
 

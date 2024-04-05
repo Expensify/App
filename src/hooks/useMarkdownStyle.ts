@@ -4,7 +4,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
-function useMarkdownStyle(): MarkdownStyle {
+function useMarkdownStyle(containsEmojisOnly?: boolean): MarkdownStyle {
     const theme = useTheme();
 
     const markdownStyle = useMemo(
@@ -30,7 +30,7 @@ function useMarkdownStyle(): MarkdownStyle {
                 backgroundColor: 'transparent',
             },
             emoji: {
-                fontSize: 19,
+                fontSize: containsEmojisOnly ? 27 : 19,
             },
             pre: {
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
@@ -46,7 +46,7 @@ function useMarkdownStyle(): MarkdownStyle {
                 backgroundColor: theme.mentionBG,
             },
         }),
-        [theme],
+        [theme, containsEmojisOnly],
     );
 
     return markdownStyle;

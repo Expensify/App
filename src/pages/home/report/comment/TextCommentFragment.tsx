@@ -74,7 +74,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
     return (
-        <Text style={[styles.ltr, style]}>
+        <Text style={[textContainsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, style]}>
             <ZeroWidthView
                 text={text}
                 displayAsGroup={displayAsGroup}
@@ -107,7 +107,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                     {fragment.isEdited && (
                         <>
                             <Text
-                                style={[styles.userSelectNone]}
+                                style={[textContainsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {' '}

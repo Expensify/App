@@ -10,6 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ComposerUtils from '@libs/ComposerUtils';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import type {ComposerProps} from './types';
 
 function Composer(
@@ -27,14 +28,16 @@ function Composer(
         // user can read new chats without the keyboard in the way of the view.
         // On Android the selection prop is required on the TextInput but this prop has issues on IOS
         selection,
+        value,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
 ) {
+    const textContainsOnlyEmojis = containsOnlyEmojis(value ?? '');
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const theme = useTheme();
-    const markdownStyle = useMarkdownStyle();
+    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -81,6 +84,7 @@ function Composer(
             markdownStyle={markdownStyle}
             autoFocus={autoFocus}
             isFullComposerAvailable={isFullComposerAvailable}
+            value={value}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
