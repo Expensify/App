@@ -31,7 +31,7 @@ function TopBar({policy, session}: TopBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+    const isAnonymousUser = Session.isAnonymousUser(session);
 
     const headerBreadcrumb = policy?.name
         ? {type: CONST.BREADCRUMB_TYPE.STRONG, text: policy.name}
