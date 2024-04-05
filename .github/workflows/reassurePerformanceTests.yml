@@ -1,8 +1,11 @@
 name: Reassure Performance Tests
 
 on:
+  push:
+    branches: [main]
+    paths-ignore: [docs/**, contributingGuides/**, jest/**, workflow_tests/**]
   pull_request:
-    types: [opened, synchronize, closed]
+    types: [opened, synchronize]
     branches-ignore: [staging, production]
     paths-ignore: [docs/**, .github/**, contributingGuides/**, tests/**, workflow_tests/**, '**.md', '**.sh']
 
