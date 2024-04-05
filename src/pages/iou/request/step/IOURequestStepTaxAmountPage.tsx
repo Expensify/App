@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagList, TaxRate, TaxRates, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -34,12 +34,17 @@ type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
         transaction: OnyxEntry<Transaction>;
     };
 
-function getTaxAmount(transaction: OnyxEntry<Transaction>, defaultTaxValue: string | undefined): number | undefined {
+function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWithDefault | undefined, isEditing: boolean): number | undefined {
     if (!transaction?.amount) {
         return;
     }
-    const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
-    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(percentage, transaction?.amount));
+    const transactionTaxAmount = TransactionUtils.getAmount(transaction);
+    const transactionTaxCode = transaction?.taxCode ?? '';
+    const defaultTaxValue = taxRates?.defaultValue;
+    const editingTaxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode].value : taxRates?.defaultValue) || '';
+    const moneyRequestTaxPercentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
+    const percentage = isEditing ? editingTaxPercentage : moneyRequestTaxPercentage;
+    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(percentage, transactionTaxAmount));
 }
 
 function IOURequestStepTaxAmountPage({
@@ -156,7 +161,7 @@ function IOURequestStepTaxAmountPage({
                 isEditing={Boolean(backTo || isEditing)}
                 currency={transaction?.currency}
                 amount={transactionDetails?.taxAmount}
-                taxAmount={getTaxAmount(transaction, taxRates?.defaultValue)}
+                taxAmount={getTaxAmount(transaction, taxRates, Boolean(backTo || isEditing))}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
