@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -74,7 +74,15 @@ function IOURequestStepTaxAmountPage({
         // Only USD is allowed for distance requests.
         // Remove query from the route and encode it.
         Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backTo ? 'confirm' : '', currency, Navigation.getActiveRouteWithoutParams()),
+            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
+                CONST.IOU.ACTION.CREATE,
+                iouType,
+                transactionID,
+                reportID,
+                backTo ? 'confirm' : '',
+                currency,
+                Navigation.getActiveRouteWithoutParams(),
+            ),
         );
     };
 
