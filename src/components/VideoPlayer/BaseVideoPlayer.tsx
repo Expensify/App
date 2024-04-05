@@ -308,13 +308,11 @@ function BaseVideoPlayer({
                             </PressableWithoutFeedback>
                             {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {isLoading && isOffline && (
-                                <View style={[styles.pAbsolute, styles.h100, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                    <AttachmentOfflineIndicator
-                                        title={translate('common.youAppearToBeOffline')}
-                                        subtitle={translate('common.attachementWillBeAvailableOnceBackOnline')}
-                                        isPreview={isPreview}
-                                    />
-                                </View>
+                                <AttachmentOfflineIndicator
+                                    title={translate('common.youAppearToBeOffline')}
+                                    subtitle={translate('common.attachementWillBeAvailableOnceBackOnline')}
+                                    isPreview={isPreview}
+                                />
                             )}
                             {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
