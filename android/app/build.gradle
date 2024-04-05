@@ -100,6 +100,7 @@ android {
         multiDexEnabled rootProject.ext.multiDexEnabled
         versionCode 1001045907
         versionName "1.4.59-7"
+        resConfigs "en", "es"
     }
 
     flavorDimensions "default"
