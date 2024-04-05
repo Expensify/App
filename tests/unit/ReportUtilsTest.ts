@@ -634,7 +634,8 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                 };
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, null, [currentUserAccountID, participantsAccountIDs[0]]);
-                expect(moneyRequestOptions.length).toBe(2);
+                expect(moneyRequestOptions.length).toBe(3);
+                expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND)).toBe(true);
             });
