@@ -23,6 +23,7 @@ type WorkspaceSwitcherButtonProps = WorkspaceSwitcherButtonOnyxProps;
 function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
+    const pressableRef = useRef<View>();
 
     const pressableRef = useRef<HTMLDivElement | View | null>(null);
 
@@ -44,11 +45,13 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
             <PressableWithFeedback
                 ref={pressableRef}
                 accessibilityRole={CONST.ROLE.BUTTON}
+                ref={pressableRef}
                 accessibilityLabel={translate('common.workspaces')}
                 accessible
                 onPress={() => {
                     pressableRef?.current?.blur();
                     interceptAnonymousUser(() => {
+                        pressableRef.current?.blur();
                         Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
                     });
                 }}

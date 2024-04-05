@@ -3,8 +3,10 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,7 +15,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
 import type {BaseShareLogListOnyxProps, BaseShareLogListProps} from './types';
 
 function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
@@ -96,7 +97,7 @@ function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
         setSearchValue(value);
     };
 
-    const attachLogToReport = (option: Report) => {
+    const attachLogToReport = (option: ListItem) => {
         if (!option.reportID) {
             return;
         }
@@ -110,30 +111,24 @@ function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
             testID={BaseShareLogList.displayName}
             includeSafeAreaPaddingBottom={false}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('initialSettingsPage.debugConsole.shareLog')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
-                    />
-                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                        <OptionsSelector
-                            // @ts-expect-error TODO: remove this comment once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TS
-                            sections={sections}
-                            onSelectRow={attachLogToReport}
-                            onChangeText={onChangeText}
-                            value={searchValue}
-                            headerMessage={headerMessage}
-                            showTitleTooltip
-                            shouldShowOptions={areOptionsInitialized}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            autoFocus
-                        />
-                    </View>
-                </>
-            )}
+            <HeaderWithBackButton
+                title={translate('initialSettingsPage.debugConsole.shareLog')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
+            />
+            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                <SelectionList
+                    ListItem={UserListItem}
+                    sections={sections}
+                    onSelectRow={attachLogToReport}
+                    onChangeText={onChangeText}
+                    textInputValue={searchValue}
+                    headerMessage={headerMessage}
+                    shouldShowTooltips={areOptionsInitialized}
+                    isLoadingNewOptions={!areOptionsInitialized}
+                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
