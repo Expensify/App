@@ -24,13 +24,13 @@ type EditRequestTaxAmountPageProps = {
 
 function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurrency, onSubmit}: EditRequestTaxAmountPageProps) {
     const {translate} = useLocalize();
-    const textInput = useRef<BaseTextInputRef>(null);
+    const textInput = useRef<BaseTextInputRef | null>();
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
+            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -52,7 +52,7 @@ function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurre
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 taxAmount={defaultTaxAmount}
-                ref={textInput}
+                ref={(e) => (textInput.current = e)}
                 isCurrencyPressable={false}
                 onSubmitButtonPress={onSubmit}
                 isEditing
