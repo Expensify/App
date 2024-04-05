@@ -1,12 +1,12 @@
 import {getCommandURL} from '@libs/ApiUtils';
 import CONFIG from '@src/CONFIG';
 
-const getQuickBooksOnlineSetupLink = (policyID: string) => {
-    const callbackPath = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}/workspace/${policyID}/accounting`;
-    const otherParams = new URLSearchParams({callbackPath, policyID}).toString();
+function getQuickBooksOnlineSetupLink(policyID: string) {
+    const callbackPath = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)}`;
+    const params = new URLSearchParams({callbackPath, policyID});
     const commandURL = getCommandURL({command: 'ConnectToQuickbooksOnline'});
 
-    return `${commandURL}&${otherParams}`;
-};
+    return commandURL + params.toString();
+}
 
 export default getQuickBooksOnlineSetupLink;
