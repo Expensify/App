@@ -256,8 +256,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_INVOICES]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportInvoicesPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARDS]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportCompanyCardsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARD]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportCompanyCardPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: () => require('../../../../pages/workspace/accounting/qbo/QuickBooksExportPreferredExporter').default as React.ComponentType,
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER_LIST]: () => require('../../../../pages/workspace/accounting/qbo/QuickBooksExportPreferredExporterList').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: () =>
+        require('../../../../pages/workspace/accounting/qbo/QuickBooksExportPreferredExporter').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER_LIST]: () =>
+        require('../../../../pages/workspace/accounting/qbo/QuickBooksExportPreferredExporterList').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,
