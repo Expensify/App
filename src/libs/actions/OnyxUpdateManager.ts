@@ -95,13 +95,14 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
 
     let updatesAfterGaps: DeferredUpdatesDictionary = {};
     if (gapExists && firstUpdateAfterGaps) {
-        updatesAfterGaps = Object.entries(updates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            if (Number(lastUpdateID) >= firstUpdateAfterGaps!) {
-                acc[Number(lastUpdateID)] = update;
-            }
-            return acc;
-        }, {});
+        updatesAfterGaps = Object.entries(updates).reduce<DeferredUpdatesDictionary>(
+            (acc, [lastUpdateID, update]) => ({
+                ...acc,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                ...(Number(lastUpdateID) >= firstUpdateAfterGaps! ? {[Number(lastUpdateID)]: update} : {}),
+            }),
+            {},
+        );
     }
 
     return {applicableUpdates, updatesAfterGaps, latestMissingUpdateID};
@@ -112,12 +113,13 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
 function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
     // We only want to apply deferred updates that are newer than the last update that was applied to the client.
     // At this point, the missing updates from "GetMissingOnyxUpdates" have been applied already, so we can safely filter out.
-    const pendingDeferredUpdates = Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
-        if (!lastUpdateIDAppliedToClient || (Number(lastUpdateID) ?? 0) > lastUpdateIDAppliedToClient) {
-            acc[Number(lastUpdateID)] = update;
-        }
-        return acc;
-    }, {});
+    const pendingDeferredUpdates = Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>(
+        (acc, [lastUpdateID, update]) => ({
+            ...acc,
+            ...(!lastUpdateIDAppliedToClient || (Number(lastUpdateID) ?? 0) > lastUpdateIDAppliedToClient ? {[Number(lastUpdateID)]: update} : {}),
+        }),
+        {},
+    );
 
     // If there are no remaining deferred updates after filtering out outdated ones,
     // we can just unpause the queue and return

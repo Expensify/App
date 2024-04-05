@@ -1,4 +1,5 @@
 import type {OnyxUpdate} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import type Request from './Request';
 import type Response from './Response';
 
