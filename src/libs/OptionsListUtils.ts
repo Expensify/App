@@ -2152,4 +2152,4 @@ export {
     getFirstKeyForList,
 };
 
-export type {MemberForList, CategorySection, GetOptions, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption, Option};
+export type {MemberForList, CategorySection, CategoryTreeSection, GetOptions, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption, Option};
