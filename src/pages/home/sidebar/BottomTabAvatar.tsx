@@ -1,15 +1,15 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import React, {useCallback} from 'react';
+import {OnyxEntry} from 'react-native-onyx';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-// import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
-// import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
@@ -20,9 +20,16 @@ type BottomTabAvatarProps = {
 
     /** Whether the avatar is selected */
     isSelected?: boolean;
+
+    /** Last visited path in the app */
+    lastVisitedPath: OnyxEntry<string | undefined>;
+
+    persistedSettingsPath: OnyxEntry<string | undefined>;
+
+    onPress: (lastVisitedPath: OnyxEntry<string | undefined>) => void;
 };
 
-function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomTabAvatarProps) {
+function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false, lastVisitedPath, persistedSettingsPath, onPress}: BottomTabAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -35,10 +42,12 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
         }
 
         interceptAnonymousUser(() => {
-            // Navigation.navigate(ROUTES.SETTINGS);
+            onPress(lastVisitedPath);
+
+            Navigation.navigate(persistedSettingsPath);
             navigationSidebarRef.navigate(SCREENS.SETTINGS.ROOT);
         });
-    }, [isCreateMenuOpen]);
+    }, [isCreateMenuOpen, lastVisitedPath, onPress, persistedSettingsPath]);
 
     let children;
 

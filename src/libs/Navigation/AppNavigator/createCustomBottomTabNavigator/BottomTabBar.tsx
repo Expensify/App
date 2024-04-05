@@ -1,5 +1,5 @@
 import {useNavigation, useNavigationState} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -29,14 +29,19 @@ import SCREENS from '@src/SCREENS';
 
 type PurposeForUsingExpensifyModalOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
+
+    /** Last visited path in the app */
+    lastVisitedPath: OnyxEntry<string | undefined>;
 };
 type PurposeForUsingExpensifyModalProps = PurposeForUsingExpensifyModalOnyxProps;
 
-function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps) {
+function BottomTabBar({isLoadingApp = false, lastVisitedPath}: PurposeForUsingExpensifyModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const persistedPath = useRef<OnyxEntry<string | undefined>>(lastVisitedPath);
+    const persistedSettingsPath = useRef<OnyxEntry<string | undefined>>(ROUTES.SETTINGS_PROFILE);
 
     useEffect(() => {
         const navigationState = navigationRef.getState() as State<RootStackParamList> | undefined;
@@ -79,6 +84,8 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             <Tooltip text={translate('common.chats')}>
                 <PressableWithFeedback
                     onPress={() => {
+                        persistedSettingsPath.current = lastVisitedPath;
+                        Navigation.navigate(persistedPath.current);
                         navigationSidebarRef.navigate(SCREENS.HOME);
                     }}
                     role={CONST.ROLE.BUTTON}
@@ -101,7 +108,12 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             </Tooltip>
 
             <BottomTabBarFloatingActionButton />
-            <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
+            <BottomTabAvatar
+                isSelected={currentTabName === SCREENS.SETTINGS.ROOT}
+                lastVisitedPath={lastVisitedPath}
+                persistedSettingsPath={persistedSettingsPath.current}
+                onPress={(lastVisitedPath2) => (persistedPath.current = lastVisitedPath2)}
+            />
         </View>
     );
 }
@@ -111,5 +123,8 @@ BottomTabBar.displayName = 'BottomTabBar';
 export default withOnyx<PurposeForUsingExpensifyModalProps, PurposeForUsingExpensifyModalOnyxProps>({
     isLoadingApp: {
         key: ONYXKEYS.IS_LOADING_APP,
+    },
+    lastVisitedPath: {
+        key: ONYXKEYS.LAST_VISITED_PATH,
     },
 })(BottomTabBar);
