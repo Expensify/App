@@ -1,8 +1,7 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -23,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
@@ -35,6 +35,7 @@ type NewChatConfirmPageOnyxProps = {
 type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
+    const fileRef = useRef();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -50,10 +51,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
-    const isReportNameWasChanged = newGroupDraft?.reportName !== '';
-
-    const groupName = isReportNameWasChanged ? newGroupDraft?.reportName : ReportUtils.getGroupChatName(participantAccountIDs ?? []);
-
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : ReportUtils.getGroupChatName(participantAccountIDs ?? []);
     const sections: ListItem[] = useMemo(
         () =>
             selectedOptions
@@ -102,9 +100,9 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         if (!newGroupDraft) {
             return;
         }
+
         const logins: string[] = newGroupDraft.participants.map((participant) => participant.login);
-        const reportName = isReportNameWasChanged ? newGroupDraft.reportName : '';
-        Report.navigateToAndOpenReport(logins, true, reportName);
+        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName, newGroupDraft.avatarUri, fileRef.current);
     };
 
     const navigateBack = () => {
@@ -115,6 +113,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME);
     };
 
+    const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
     return (
         <ScreenWrapper testID={NewChatConfirmPage.displayName}>
             <HeaderWithBackButton
@@ -122,11 +121,18 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 onBackButtonPress={navigateBack}
             />
             <View style={styles.avatarSectionWrapper}>
-                <Avatar
-                    containerStyles={[styles.avatarXLarge, styles.mb3]}
-                    imageStyles={[styles.avatarXLarge]}
-                    source={ReportUtils.getDefaultGroupAvatar()}
+                <AvatarWithImagePicker
+                    isUsingDefaultAvatar={!stashedLocalAvatarImage}
+                    source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar()}
+                    onImageSelected={(image) => {
+                        fileRef.current = image;
+                        Report.stashGroupChatAvatar(image?.uri ?? '');
+                    }}
+                    onImageRemoved={Report.unstashGroupChatAvatar}
                     size={CONST.AVATAR_SIZE.XLARGE}
+                    avatarStyle={styles.avatarXLarge}
+                    editIconStyle={styles.smallEditIconAccount}
+                    disableViewPhoto
                 />
             </View>
             <MenuItemWithTopDescription

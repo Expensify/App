@@ -83,6 +83,7 @@ import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
+import { CustomRNImageManipulatorResult } from '@libs/cropOrRotateImage/types';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -206,6 +207,18 @@ Onyx.connect({
 
 function clearGroupChat() {
     Onyx.set(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, null);
+}
+
+function stashGroupChatAvatar(avatarUri: string) {
+    if (!avatarUri) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {avatarUri});
+}
+
+function unstashGroupChatAvatar() {
+    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {avatarUri: null});
 }
 
 function startNewChat() {
@@ -580,6 +593,7 @@ function openReport(
     parentReportActionID = '0',
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
+    avatar?: File | CustomRNImageManipulatorResult
 ) {
     if (!reportID) {
         return;
@@ -651,6 +665,11 @@ function openReport(
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = participantAccountIDList.join(',');
         parameters.reportName = newReportObject.reportName ?? '';
+
+        // If we have an avatar then include it with the parameters
+        if (avatar) {
+            parameters.file = avatar;
+        }
 
         clearGroupChat();
     }
@@ -799,7 +818,7 @@ function openReport(
  * @param userLogins list of user logins to start a chat report with.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, reportName?: string) {
+function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, reportName?: string, avatarUri?: string, avatarFile?: File | CustomRNImageManipulatorResult) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
@@ -812,18 +831,7 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
 
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
-            newChat = ReportUtils.buildOptimisticChatReport(
-                participantAccountIDs,
-                reportName,
-                CONST.REPORT.CHAT_TYPE.GROUP,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-            );
+            newChat = ReportUtils.buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '');
         } else {
             newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
         }
@@ -831,7 +839,7 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     const report = isEmptyObject(chat) ? newChat : chat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report.reportID, '', userLogins, newChat);
+    openReport(report.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
         Navigation.dismissModalWithReport(report);
     } else {
@@ -3114,4 +3122,6 @@ export {
     clearGroupChat,
     startNewChat,
     updateGroupChatName,
+    stashGroupChatAvatar,
+    unstashGroupChatAvatar,
 };

@@ -117,6 +117,9 @@ type AvatarWithImagePickerProps = {
 
     /** Allows to open an image without Attachment Picker. */
     enablePreview?: boolean;
+
+    /** Hard disables the "View photo" option */
+    disableViewPhoto?: boolean;
 };
 
 function AvatarWithImagePicker({
@@ -144,6 +147,7 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
+    disableViewPhoto = false,
 }: AvatarWithImagePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -355,7 +359,7 @@ function AvatarWithImagePicker({
                                 const menuItems = createMenuItems(openPicker);
 
                                 // If the current avatar isn't a default avatar, allow the "View Photo" option
-                                if (!isUsingDefaultAvatar) {
+                                if (!disableViewPhoto && !isUsingDefaultAvatar) {
                                     menuItems.push({
                                         icon: Expensicons.Eye,
                                         text: translate('avatarWithImagePicker.viewPhoto'),

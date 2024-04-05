@@ -6,6 +6,7 @@ type SelectedParticipant = {
 type NewGroupChatDraft = {
     participants: SelectedParticipant[];
     reportName: string;
+    avatarUri: string;
 };
 export type {SelectedParticipant};
 export default NewGroupChatDraft;

@@ -268,6 +268,7 @@ type OptimisticChatReport = Pick<
     | 'visibility'
     | 'description'
     | 'writeCapability'
+    | 'avatarUrl'
 > & {
     isOptimisticReport: true;
 };
@@ -3778,6 +3779,7 @@ function buildOptimisticChatReport(
     parentReportActionID = '',
     parentReportID = '',
     description = '',
+    avatarUrl = '',
 ): OptimisticChatReport {
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
@@ -3820,7 +3822,27 @@ function buildOptimisticChatReport(
         visibility,
         description,
         writeCapability,
+        avatarUrl,
     };
+}
+
+function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportName: string, avatarUri: string) {
+    return buildOptimisticChatReport(
+        participantAccountIDs,
+        reportName,
+        CONST.REPORT.CHAT_TYPE.GROUP,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        undefined,
+        undefined,
+        undefined,
+        avatarUri
+    );
 }
 
 /**
@@ -5830,6 +5852,7 @@ export {
     buildOptimisticWorkspaceChats,
     buildOptimisticTaskReport,
     buildOptimisticChatReport,
+    buildOptimisticGroupChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticRenamedRoomReportAction,
