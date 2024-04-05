@@ -1,6 +1,8 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+// import ConnectToQuickbooksOnlineButton from './qboConnectionButton';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -25,13 +27,12 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ConnectToQuickbooksOnlineButton from './qboConnectionButton';
 
 function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {environmentURL} = useEnvironment();
+    // const {environmentURL} = useEnvironment();
     // const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {canUseAccountingIntegrations} = usePermissions();
@@ -40,25 +41,23 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
 
     // TODO
-    // const [policyIsConnectedToAccountingSystem, setPolicyIsConnectedToAccountingSystem] = useState(false);
-    const [policyIsConnectedToAccountingSystem] = useState(false);
+    const [policyIsConnectedToAccountingSystem, setPolicyIsConnectedToAccountingSystem] = useState(false);
 
     // TODO
-    // const [isSyncInProgress, setIsSyncInProgress] = useState(false);
-    const [isSyncInProgress] = useState(false);
+    const [isSyncInProgress, setIsSyncInProgress] = useState(false);
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
-    const policyID = policy?.id ?? '';
+    // const policyID = policy?.id ?? '';
 
-    // TODO
+    // TODO remove
     // fake a QBO connection sync
-    // const openQBOsync = useCallback(() => {
-    //     setIsSyncInProgress(true);
-    //     setTimeout(() => setIsSyncInProgress(false), 5000);
-    //     setPolicyIsConnectedToAccountingSystem(true);
-    // }, []);
+    const openQBOsync = useCallback(() => {
+        setIsSyncInProgress(true);
+        setTimeout(() => setIsSyncInProgress(false), 5000);
+        setPolicyIsConnectedToAccountingSystem(true);
+    }, []);
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(
         () => [
@@ -70,14 +69,22 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                 shouldShowRightComponent: true,
                 title: translate('workspace.accounting.qbo'),
                 rightComponent: (
-                    <ConnectToQuickbooksOnlineButton
-                        policyID={policyID}
-                        environmentURL={environmentURL}
+                    // TODO use ConnectToQuickbooksOnlineButton instead
+                    // <ConnectToQuickbooksOnlineButton
+                    //     policyID={policyID}
+                    //     environmentURL={environmentURL}
+                    // />
+
+                    <Button
+                        onPress={openQBOsync}
+                        text={translate('workspace.accounting.setup')}
+                        style={styles.justifyContentCenter}
+                        small
                     />
                 ),
             },
         ],
-        [styles.sectionMenuItemTopDescription, translate, policyID, environmentURL],
+        [styles.sectionMenuItemTopDescription, translate, openQBOsync, styles.justifyContentCenter],
     );
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
@@ -199,7 +206,8 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
             <FullPageNotFoundView
                 onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                 onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                shouldShow={!hasAccess}
+                // TODO change back to !hasAccess
+                shouldShow={hasAccess}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <HeaderWithBackButton
