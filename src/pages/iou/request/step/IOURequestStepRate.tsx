@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import StepScreenWrapper from './StepScreenWrapper';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
@@ -47,7 +48,7 @@ function IOURequestStepRate({
 
     const lastSelectedRate = lastSelectedDistanceRates[policy?.id ?? '0'] ?? rates[0]?.customUnitRateID;
 
-    const data = Object.values(rates).map((rate) => ({
+    const sections = Object.values(rates).map((rate) => ({
         text: rate.name ?? '',
         alternateText: DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit),
         keyForList: rate.name ?? '',
@@ -55,7 +56,7 @@ function IOURequestStepRate({
         isSelected: lastSelectedRate ? lastSelectedRate === rate.customUnitRateID : Boolean(rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE),
     }));
 
-    const unit = Object.values(rates)[0]?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
+    const unit = (Object.values(rates)[0]?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
 
     const initiallyFocusedOption = rates[lastSelectedRate]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
 
@@ -75,7 +76,7 @@ function IOURequestStepRate({
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>
 
             <SelectionList
-                sections={[{data}]}
+                sections={[{data: sections}]}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 initiallyFocusedOptionKey={initiallyFocusedOption}

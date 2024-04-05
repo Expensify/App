@@ -110,13 +110,15 @@ function IOURequestStepParticipants({
 
             IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
 
+            const participant = val[0];
+
             // change customUnitRateID when choosing
-            if (val[0].isPolicyExpenseChat && TransactionUtils.isCustomUnitRateIDForP2P(transaction)) {
+            if (participant.isPolicyExpenseChat && TransactionUtils.isCustomUnitRateIDForP2P(transaction)) {
                 let customUnitRateID = '';
-                if (val[0].policyID && lastSelectedDistanceRates[val[0].policyID]) {
-                    customUnitRateID = lastSelectedDistanceRates[val[0].policyID];
+                if (lastSelectedDistanceRates[participant.policyID]) {
+                    customUnitRateID = lastSelectedDistanceRates[participant.policyID];
                 } else {
-                    const policy = ReportUtils.getPolicy(val[0].policyID);
+                    const policy = ReportUtils.getPolicy(participant.policyID);
                     const defaultRate = DistanceRequestUtils.getDefaultMileageRate(policy);
                     customUnitRateID = defaultRate ? defaultRate.customUnitRateID : '';
                 }
@@ -135,7 +137,7 @@ function IOURequestStepParticipants({
             }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
-            selectedReportID.current = lodashGet(val, '[0].reportID', reportID);
+            selectedReportID.current = participant.reportID;
         },
         [iouType, participants, transactionID, transaction, reportID, updateRouteParams, lastSelectedDistanceRates],
     );

@@ -769,7 +769,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 />
             ),
             shouldShow: isDistanceRequest && !canUseP2PDistanceRequests,
-            isSupplementary: true,
+            isSupplementary: false,
         },
         {
             item: (
@@ -796,7 +796,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!isReadOnly && isPolicyExpenseChat}
+                    shouldShowRightIcon={!isReadOnly}
                     title={DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
@@ -807,7 +807,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         );
                     }}
                     disabled={didConfirm}
-                    interactive={!isReadOnly && isPolicyExpenseChat}
+                    interactive={!isReadOnly}
                 />
             ),
             shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
