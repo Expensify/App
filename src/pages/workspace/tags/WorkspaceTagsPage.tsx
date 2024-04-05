@@ -91,7 +91,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                         return {
                             value: tag.name,
-                            text: tag.name,
+                            text: PolicyUtils.getCleanedTagName(tag.name),
                             keyForList: tag.name,
                             isSelected: !!selectedTags[tag.name],
                             pendingAction: tag.pendingAction,
