@@ -382,6 +382,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -395,6 +396,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
