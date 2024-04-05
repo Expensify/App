@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -79,10 +80,10 @@ function IOURequestStepMerchant({
     };
 
     const validate = useCallback(
-        (value: ValidationData) => {
-            const errors: ValidationData = {};
+        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
 
-            if (isMerchantRequired && (value.moneyRequestMerchant ?? '').length <= 0) {
+            if (isMerchantRequired && !value.moneyRequestMerchant) {
                 errors.moneyRequestMerchant = 'common.error.fieldRequired';
             }
 
@@ -91,10 +92,6 @@ function IOURequestStepMerchant({
         [isMerchantRequired],
     );
 
-    /**
-     * @param value
-     * @param value.moneyRequestMerchant
-     */
     const updateMerchant = (value: ValidationData) => {
         const newMerchant = value.moneyRequestMerchant?.trim();
 
@@ -114,7 +111,8 @@ function IOURequestStepMerchant({
         IOU.setMoneyRequestMerchant(transactionID, newMerchant ?? '', !isEditing);
         if (isEditing) {
             // When creating new money requests newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
-            IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant ?? CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
         }
         navigateBack();
     };

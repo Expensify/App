@@ -5308,3 +5308,5 @@ export {
     canIOUBePaid,
     canApproveIOU,
 };
+
+export type {IOURequestType};

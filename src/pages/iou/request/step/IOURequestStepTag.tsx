@@ -28,9 +28,6 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepTagOnyxProps = {
-    // /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    // transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
 

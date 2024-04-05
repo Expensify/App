@@ -28,6 +28,8 @@ type IOURequestStepParticipantsOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
+type IOUValueType = ValueOf<typeof CONST.IOU.TYPE>;
+
 type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
     StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
@@ -35,7 +37,7 @@ type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
     // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
 
-type IouRef = ValueOf<typeof CONST.IOU.TYPE> | null;
+type IOURef = IOUValueType | null;
 
 function IOURequestStepParticipants({
     route: {
@@ -63,7 +65,7 @@ function IOURequestStepParticipants({
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
-    const newIouType = useRef<IouRef>();
+    const newIouType = useRef<IOURef>();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -91,7 +93,7 @@ function IOURequestStepParticipants({
     }, [participants, updateRouteParams]);
 
     const addParticipant = useCallback(
-        (val: Participant[], selectedIouType: ValueOf<typeof CONST.IOU.TYPE>) => {
+        (val: Participant[], selectedIouType: IOUValueType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
             // It's only possible to switch between REQUEST and SPLIT.
             // We want to update the IOU type only if it's not updated yet to prevent unnecessary updates.
@@ -121,15 +123,15 @@ function IOURequestStepParticipants({
             }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
-            selectedReportID.current = val[0].reportID ?? reportID;
+            selectedReportID.current = val[0]?.reportID ?? reportID;
         },
         [reportID, transactionID, iouType, participants, updateRouteParams],
     );
 
     const goToNextStep = useCallback(
-        (selectedIouType: ValueOf<typeof CONST.IOU.TYPE>) => {
+        (selectedIouType: IOUValueType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            let nextStepIOUType: ValueOf<typeof CONST.IOU.TYPE> = CONST.IOU.TYPE.REQUEST;
+            let nextStepIOUType: IOUValueType = CONST.IOU.TYPE.REQUEST;
 
             if (isSplit && iouType !== CONST.IOU.TYPE.REQUEST) {
                 nextStepIOUType = CONST.IOU.TYPE.SPLIT;
