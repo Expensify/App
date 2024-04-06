@@ -61,7 +61,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const dropdownButtonRef = useRef(null);
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        ReportUtils.getVisibleMemberIDs(report).forEach((accountID) => {
+        ReportUtils.getVisibleChatMemberAccountIDs(report.reportID).forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];
 

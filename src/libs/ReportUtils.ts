@@ -748,17 +748,17 @@ function isOpenExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
- * Checks if the supplied report has a common policy member with the array passed in params.
+ * Checks if the supplied report has a member with the array passed in params.
  */
-function hasParticipantInArray(report: Report, policyMemberAccountIDs: number[]) {
-    if (!report.participantAccountIDs) {
+function hasParticipantInArray(report: Report, memberAccountIDs: number[]) {
+    if (!report.participants) {
         return false;
     }
 
-    const policyMemberAccountIDsSet = new Set(policyMemberAccountIDs);
+    const memberAccountIDsSet = new Set(memberAccountIDs);
 
-    for (const reportParticipant of report.participantAccountIDs) {
-        if (policyMemberAccountIDsSet.has(reportParticipant)) {
+    for (const accountID in report.participants) {
+        if (memberAccountIDsSet.has(parseInt(accountID, 10))) {
             return true;
         }
     }
@@ -1741,7 +1741,7 @@ function getGroupChatName(participantAccountIDs: number[] = [], shouldApplyLimit
         .join(', ');
 }
 
-function getVisibleParticipantAccountIDs(reportID: string) {
+function getVisibleChatMemberAccountIDs(reportID: string) {
     const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
     const report = allReports?.[reportKey];
     if (!report) {
@@ -1762,6 +1762,16 @@ function getParticipantAccountIDs(reportID: string) {
 
     const accountIDStrings = Object.keys(report.participants);
     return accountIDStrings.map(accountID => parseInt(accountID, 10));
+}
+
+function getParticipants(reportID: string) {
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const report = allReports?.[reportKey];
+    if (!report) {
+        return {};
+    }
+
+    return report.participants;
 }
 
 /**
@@ -5261,27 +5271,6 @@ function getTaskAssigneeChatOnyxData(
 }
 
 /**
- * Returns an array of the participants Ids of a report
- *
- * @deprecated Use getVisibleMemberIDs instead
- */
-function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
-    if (!report) {
-        return [];
-    }
-
-    const participants = report.participantAccountIDs ?? [];
-
-    // Build participants list for IOU/expense reports
-    if (isMoneyRequestReport(report)) {
-        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...participants].filter(Boolean) as number[];
-        const onlyUnique = [...new Set([...onlyTruthyValues])];
-        return onlyUnique;
-    }
-    return participants;
-}
-
-/**
  * Returns an array of the visible member accountIDs for a report*
  */
 function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
@@ -5442,7 +5431,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         isChatRoom(report) &&
         !isChatThread(report) &&
         !isEmpty(policy) &&
-        (getVisibleMemberIDs(report).includes(currentUserAccountID ?? 0) || getParticipantsIDs(report).includes(currentUserAccountID ?? 0))
+        hasParticipantInArray(report, [currentUserAccountID ?? 0])
     );
 }
 
@@ -5958,7 +5947,6 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
-    getParticipantsIDs,
     getVisibleMemberIDs,
     canEditMoneyRequest,
     canEditFieldOfMoneyRequest,
@@ -6029,8 +6017,9 @@ export {
     hasActionsWithErrors,
     getGroupChatName,
     getOutstandingChildRequest,
-    getVisibleParticipantAccountIDs,
+    getVisibleChatMemberAccountIDs,
     getParticipantAccountIDs,
+    getParticipants,
 };
 
 export type {

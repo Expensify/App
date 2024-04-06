@@ -55,7 +55,7 @@ function UserListItem({
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
-            canSelectMultiple={!shouldShowLeftCheckbox && canSelectMultiple}
+            canSelectMultiple={shouldShowLeftCheckbox && canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}

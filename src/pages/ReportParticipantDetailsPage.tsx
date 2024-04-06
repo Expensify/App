@@ -26,6 +26,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import * as Report from '@libs/actions/Report';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 
@@ -63,8 +64,9 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
 
     const removeUser = useCallback(() => {
         setIsRemoveMemberConfirmModalVisible(false);
+        Report.removeFromGroupChat(report?.reportID, [accountID]);
         Navigation.goBack(backTo);
-    }, [backTo]);
+    }, [backTo, report, accountID]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
@@ -102,7 +104,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                     )}
 
                     <Button
-                        text={translate('workspace.people.removeMemberButtonTitle')}
+                        text={translate('workspace.people.removeMemberGroupButtonTitle')}
                         onPress={askForConfirmationToRemove}
                         medium
                         isDisabled={isSelectedUserAdmin || isSelectedMemberCurrentUser}
@@ -113,7 +115,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
 
                     <ConfirmModal
                         danger
-                        title={translate('workspace.people.removeMemberTitle')}
+                        title={translate('workspace.people.removeMemberGroupButtonTitle')}
                         isVisible={isRemoveMemberConfirmModalVisible}
                         onConfirm={removeUser}
                         onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}

@@ -2509,6 +2509,23 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
+function removeFromGroupChat(reportID: string, accountIDList: number[]) {
+    const removeParticipantsData = {};
+    accountIDList.forEach(accountID => {
+        removeParticipantsData[accountID] = null;
+    });
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participants: removeParticipantsData,
+            },
+        },
+    ];
+    API.write('RemoveFromGroupChat', {reportID, accountIDList: accountIDList.join()}, {optimisticData});
+}
+
 /** Invites people to a group chat */
 function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
     const report = currentReportData?.[reportID];

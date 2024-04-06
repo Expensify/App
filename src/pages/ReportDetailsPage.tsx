@@ -81,7 +81,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    const participants = useMemo(() => ReportUtils.getVisibleMemberIDs(report), [report]);
+    const participants = useMemo(() => ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? ''), [report]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
@@ -219,7 +219,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     );
 
-    const participantAccountIDs = ReportUtils.getVisibleParticipantAccountIDs(report.reportID ?? '');
+    const participantAccountIDs = ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
     const reportName = isGroupChat ? ReportUtils.getGroupChatName(participantAccountIDs, true, report.reportID ?? '') : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
