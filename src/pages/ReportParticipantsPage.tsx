@@ -21,19 +21,19 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Report from '@libs/actions/Report';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as Report from '@libs/actions/Report';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Session} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import variables from '@styles/variables';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
@@ -106,15 +106,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
 
         return result;
-    }, [
-        formatPhoneNumber,
-        personalDetails,
-        report,
-        selectedMembers,
-        session?.accountID,
-        translate,
-        styles,
-    ]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, session?.accountID, translate, styles]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
@@ -325,12 +317,13 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         [report],
     );
     const headerTitle = useMemo(() => {
-        if (ReportUtils.isChatRoom(report) ||
+        if (
+            ReportUtils.isChatRoom(report) ||
             ReportUtils.isPolicyExpenseChat(report) ||
             ReportUtils.isChatThread(report) ||
             ReportUtils.isTaskReport(report) ||
-            ReportUtils.isMoneyRequestReport(report))
-        {
+            ReportUtils.isMoneyRequestReport(report)
+        ) {
             return translate('common.members');
         }
         if (ReportUtils.isGroupChat(report)) {

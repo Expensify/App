@@ -1749,8 +1749,8 @@ function getVisibleChatMemberAccountIDs(reportID: string) {
     }
 
     const accountIDStrings = Object.keys(report.participants);
-    const visibleParticipantAccountIDs = accountIDStrings.filter(accountID => report.participants[accountID] && !report.participants[accountID].hidden);
-    return visibleParticipantAccountIDs.map(accountID => parseInt(accountID, 10));
+    const visibleParticipantAccountIDs = accountIDStrings.filter((accountID) => report.participants[accountID] && !report.participants[accountID].hidden);
+    return visibleParticipantAccountIDs.map((accountID) => parseInt(accountID, 10));
 }
 
 function getParticipantAccountIDs(reportID: string) {
@@ -1761,7 +1761,7 @@ function getParticipantAccountIDs(reportID: string) {
     }
 
     const accountIDStrings = Object.keys(report.participants);
-    return accountIDStrings.map(accountID => parseInt(accountID, 10));
+    return accountIDStrings.map((accountID) => parseInt(accountID, 10));
 }
 
 function getParticipants(reportID: string) {
@@ -3869,7 +3869,7 @@ function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportN
         undefined,
         undefined,
         undefined,
-        avatarUri
+        avatarUri,
     );
 }
 

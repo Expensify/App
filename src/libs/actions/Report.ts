@@ -44,6 +44,7 @@ import type {
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -83,7 +84,6 @@ import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
-import { CustomRNImageManipulatorResult } from '@libs/cropOrRotateImage/types';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -580,7 +580,7 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {avatarUrl: file?.uri ?? ''}
+            value: {avatarUrl: file?.uri ?? ''},
         },
     ];
     API.write('UpdateGroupChatAvatar', {file, reportID}, {optimisticData});
@@ -606,7 +606,7 @@ function openReport(
     parentReportActionID = '0',
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
-    avatar?: File | CustomRNImageManipulatorResult
+    avatar?: File | CustomRNImageManipulatorResult,
 ) {
     if (!reportID) {
         return;
@@ -2313,7 +2313,8 @@ function navigateToMostRecentReport(reportID: string, isChatThread: boolean) {
 
     // We want to filter out the current report, hidden reports and empty chats
     const filteredReportsByLastRead = sortedReportsByLastRead.filter(
-        (sortedReport) => sortedReport?.reportID !== reportID &&
+        (sortedReport) =>
+            sortedReport?.reportID !== reportID &&
             sortedReport?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
             ReportUtils.shouldReportBeInOptionList({
                 report: sortedReport,
@@ -2324,7 +2325,7 @@ function navigateToMostRecentReport(reportID: string, isChatThread: boolean) {
                 excludeEmptyChats: true,
                 doesReportHaveViolations: false,
                 includeSelfDM: true,
-            })
+            }),
     );
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
 
@@ -2512,7 +2513,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: string) {
     const participants = {};
     const memberRoles = {};
-    accountIDList.forEach(accountID => {
+    accountIDList.forEach((accountID) => {
         memberRoles[accountID] = role;
         participants[accountID] = {role};
     });
@@ -2548,7 +2549,7 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
         }
     }
 
-    accountIDList.forEach(accountID => {
+    accountIDList.forEach((accountID) => {
         removeParticipantsData[accountID] = null;
     });
     const optimisticData = [

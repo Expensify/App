@@ -17,6 +17,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Report from '@libs/actions/Report';
 import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
@@ -26,7 +27,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
-import * as Report from '@libs/actions/Report';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 

@@ -1,6 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -12,11 +13,10 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {UserListItemProps} from './types';
-import Badge from '@components/Badge';
-import variables from '@styles/variables';
 
 function UserListItem({
     item,

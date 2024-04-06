@@ -2,12 +2,14 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -21,8 +23,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import UserListItem from '@components/SelectionList/UserListItem';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */

@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import {Keyboard} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -11,6 +12,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {NewChatNavigatorParamList} from '@navigation/types';
 import * as Report from '@userActions/Report';
@@ -19,8 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
-import { withOnyx } from 'react-native-onyx';
-import * as ReportUtils from '@libs/ReportUtils';
 
 type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>;
 
@@ -41,10 +41,10 @@ function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
             return ReportUtils.getVisibleChatMemberAccountIDs(reportID);
         }
 
-        return groupChatDraft?.participants.map(participant => participant.accountID);
+        return groupChatDraft?.participants.map((participant) => participant.accountID);
     }, [groupChatDraft, reportID]);
     const existingReportName = ReportUtils.getGroupChatName(participantAccountIDs, false, reportID);
-    const currentChatName = reportID ? existingReportName : (groupChatDraft?.reportName || existingReportName);
+    const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
         // TODO: There is some restriction on max characters (255 so we can use tag name limit) not much else. We should let people set this to an empty string if they want.
