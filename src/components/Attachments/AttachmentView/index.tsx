@@ -163,6 +163,10 @@ function AttachmentView({
             }
         };
 
+        const onPDFLoadError = () => {
+            setIsPdfFailedToLoad(true);
+        }
+
         // We need the following View component on android native
         // So that the event will propagate properly and
         // the Password protected preview will be shown for pdf attachement we are about to send.
@@ -177,9 +181,7 @@ function AttachmentView({
                     onLoadComplete={onPDFLoadComplete}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedAsChatAttachment={isUsedAsChatAttachment}
-                    onLoadError={() => {
-                        setIsPdfFailedToLoad(true);
-                    }}
+                    onLoadError={onPDFLoadError}
                 />
             </View>
         );
