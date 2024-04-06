@@ -65,9 +65,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     policies: PropTypes.object,
 
-    // eslint-disable-next-line react/forbid-prop-types
-    policyMembers: PropTypes.object,
-
     /** All of the transaction violations */
     transactionViolations: PropTypes.shape({
         violations: PropTypes.arrayOf(
@@ -102,7 +99,6 @@ const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
     policies: {},
-    policyMembers: {},
     transactionViolations: {},
     allReportActions: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -120,7 +116,6 @@ function SidebarLinksData({
     policies,
     priorityMode,
     network,
-    policyMembers,
     transactionViolations,
     currentUserPersonalDetails,
 }) {
@@ -129,7 +124,7 @@ function SidebarLinksData({
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
 
-    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, currentUserPersonalDetails.accountID);
+    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policies, activeWorkspaceID, currentUserPersonalDetails.accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);
@@ -322,9 +317,6 @@ export default compose(
             selector: policySelector,
             initialValue: {},
         },
-        policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-        },
         transactionViolations: {
             key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
             initialValue: {},
@@ -348,7 +340,6 @@ export default compose(
             prevProps.network.isOffline === nextProps.network.isOffline &&
             _.isEqual(prevProps.insets, nextProps.insets) &&
             prevProps.onLinkClick === nextProps.onLinkClick &&
-            _.isEqual(prevProps.policyMembers, nextProps.policyMembers) &&
             _.isEqual(prevProps.transactionViolations, nextProps.transactionViolations) &&
             _.isEqual(prevProps.currentUserPersonalDetails, nextProps.currentUserPersonalDetails) &&
             prevProps.currentReportID === nextProps.currentReportID,
