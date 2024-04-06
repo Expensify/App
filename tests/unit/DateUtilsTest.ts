@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, addMinutes, format, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {format as tzFormat, utcToZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
-import CONST from '../../src/CONST';
-import DateUtils from '../../src/libs/DateUtils';
-import ONYXKEYS from '../../src/ONYXKEYS';
+import DateUtils from '@libs/DateUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const LOCALE = CONST.LOCALES.EN;
@@ -13,14 +15,27 @@ describe('DateUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: 999},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {999: {timezone: {selected: UTC}}},
+                [ONYXKEYS.SESSION]: {
+                    accountID: 999,
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    '999': {
+                        accountID: 999,
+                        timezone: {
+                            // UTC is not recognized as a valid timezone but
+                            // in these tests we want to use it to avoid issues
+                            // because of daylight saving time
+                            selected: UTC as SelectedTimezone,
+                        },
+                    },
+                },
             },
         });
         return waitForBatchedUpdates();
     });
 
     afterEach(() => {
+        jest.restoreAllMocks();
         jest.useRealTimers();
         Onyx.clear();
     });
@@ -39,7 +54,7 @@ describe('DateUtils', () => {
     });
 
     it('formatToDayOfWeek should return a weekday', () => {
-        const weekDay = DateUtils.formatToDayOfWeek(datetime);
+        const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime));
         expect(weekDay).toBe('Monday');
     });
     it('formatToLocalTime should return a date in a local format', () => {
@@ -53,32 +68,35 @@ describe('DateUtils', () => {
     });
 
     it('should fallback to current date when getLocalDateFromDatetime is failing', () => {
-        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, undefined, 'InvalidTimezone');
+        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, undefined, 'InvalidTimezone' as SelectedTimezone);
         expect(localDate.getTime()).not.toBeNaN();
     });
 
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
-        const today = setMinutes(setHours(new Date(), 14), 32);
+        const today = setMinutes(setHours(new Date(), 14), 32).toString();
         expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 2:32 PM');
 
-        const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1);
+        const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1).toString();
         expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow)).toBe('Tomorrow at 2:32 PM');
 
-        const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43);
+        const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43).toString();
         expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 7:43 AM');
 
-        const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17);
+        const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17).toString();
         expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
 
-        const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32);
+        const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32).toString();
         expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 2:32 PM');
     });
 
     it('should update timezone if automatic and selected timezone do not match', () => {
-        Intl.DateTimeFormat = jest.fn(() => ({
-            resolvedOptions: () => ({timeZone: 'America/Chicago'}),
-        }));
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: UTC, automatic: true}}}).then(() => {
+        jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+            () =>
+                ({
+                    resolvedOptions: () => ({timeZone: 'America/Chicago'}),
+                } as Intl.DateTimeFormat),
+        );
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
             expect(result).toEqual({
                 selected: 'America/Chicago',
@@ -88,10 +106,13 @@ describe('DateUtils', () => {
     });
 
     it('should not update timezone if automatic and selected timezone match', () => {
-        Intl.DateTimeFormat = jest.fn(() => ({
-            resolvedOptions: () => ({timeZone: UTC}),
-        }));
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: UTC, automatic: true}}}).then(() => {
+        jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+            () =>
+                ({
+                    resolvedOptions: () => ({timeZone: UTC}),
+                } as Intl.DateTimeFormat),
+        );
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
             expect(result).toEqual({
                 selected: UTC,
@@ -102,7 +123,7 @@ describe('DateUtils', () => {
 
     it('canUpdateTimezone should return true when lastUpdatedTimezoneTime is more than 5 minutes ago', () => {
         // Use fake timers to control the current time
-        jest.useFakeTimers('modern');
+        jest.useFakeTimers();
         jest.setSystemTime(addMinutes(new Date(), 6));
         const isUpdateTimezoneAllowed = DateUtils.canUpdateTimezone();
         expect(isUpdateTimezoneAllowed).toBe(true);
@@ -110,20 +131,20 @@ describe('DateUtils', () => {
 
     it('canUpdateTimezone should return false when lastUpdatedTimezoneTime is less than 5 minutes ago', () => {
         // Use fake timers to control the current time
-        jest.useFakeTimers('modern');
+        jest.useFakeTimers();
         jest.setSystemTime(addMinutes(new Date(), 4));
         const isUpdateTimezoneAllowed = DateUtils.canUpdateTimezone();
         expect(isUpdateTimezoneAllowed).toBe(false);
     });
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
-        const aFewSecondsAgo = subSeconds(new Date(), 10);
+        const aFewSecondsAgo = subSeconds(new Date(), 10).toString();
         expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo)).toBe('less than a minute ago');
 
-        const aMinuteAgo = subMinutes(new Date(), 1);
+        const aMinuteAgo = subMinutes(new Date(), 1).toString();
         expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo)).toBe('1 minute ago');
 
-        const anHourAgo = subHours(new Date(), 1);
+        const anHourAgo = subHours(new Date(), 1).toString();
         expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo)).toBe('about 1 hour ago');
     });
 
