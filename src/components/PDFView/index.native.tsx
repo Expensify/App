@@ -129,7 +129,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         }
         const containerStyles =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (isUsedAsChatAttachment || (shouldRequestPassword && isSmallScreenWidth)) ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
+            isUsedAsChatAttachment || (shouldRequestPassword && isSmallScreenWidth) ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
         const loadingIndicatorStyles = isUsedAsChatAttachment
             ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT)]
             : [];
