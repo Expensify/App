@@ -26,15 +26,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
+import * as Report from '@libs/actions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Session} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import variables from '@styles/variables';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import variables from '@styles/variables';
 
 type ReportParticipantsPageOnyxProps = {
     /** Personal details of all the users */
@@ -198,20 +199,19 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         }
 
         // Remove the admin from the list
-        // const accountIDsToRemove = session?.accountID ? selectedMembers.filter((id) => id !== session.accountID) : selectedMembers;
-
-        // Policy.removeMembers(accountIDsToRemove, route.params.policyID);
+        const accountIDsToRemove = session?.accountID ? selectedMembers.filter((id) => id !== session.accountID) : selectedMembers;
+        Report.removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
     };
 
-    const changeUserRole = (role: typeof CONST.REPORT.ROLE.ADMIN) => {
+    const changeUserRole = (role: string) => {
         if (!isEmptyObject(errors)) {
             return;
         }
 
-        // const accountIDsToUpdate = selectedMembers.filter((id) => report.participants?.[id].role !== role);
-        // Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
+        const accountIDsToUpdate = selectedMembers.filter((id) => report.participants?.[id].role !== role);
+        Report.updateGroupChatMemberRoles(report.reportID, accountIDsToUpdate, role);
         setSelectedMembers([]);
     };
 
@@ -268,6 +268,12 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: Expensicons.MakeAdmin,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
+            },
+            {
+                text: translate('workspace.people.makeMember'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                icon: Expensicons.MakeAdmin,
+                onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
             },
         ];
 
