@@ -236,18 +236,16 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     }
 
     /**
-        When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx
-        or could be partially loaded such that `reimbursementAccount.achData.currentStep` is unavailable.
+        When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
         Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
         it relies on complete data. Thus, we should wait to calculate it until we have received
         the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
         which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
-    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(
-        reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && _.has(reimbursementAccount, 'achData.currentStep'),
-    );
+    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps);
 
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState(hasACHDataBeenLoaded ? getShouldShowContinueSetupButtonInitialValue() : false);
+    const [isReimbursementAccountLoading, setIsReimbursementAccountLoading] = useState(true);
 
     const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = lodashGet(policy, 'name', '');
@@ -256,6 +254,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const requestorStepRef = useRef(null);
+    const prevIsReimbursementAccountLoading = usePrevious(reimbursementAccount.isLoading);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
 
@@ -278,13 +277,17 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     useEffect(
         () => {
             fetchData();
-            return () => {
-                BankAccounts.clearReimbursementAccount();
-            };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     ); // The empty dependency array ensures this runs only once after the component mounts.
+
+    useEffect(() => {
+        if (reimbursementAccount.isLoading === prevIsReimbursementAccountLoading) {
+            return;
+        }
+        setIsReimbursementAccountLoading(reimbursementAccount.isLoading);
+    }, [prevIsReimbursementAccountLoading, reimbursementAccount.isLoading]);
 
     useEffect(
         () => {
@@ -294,7 +297,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             }
 
             if (!hasACHDataBeenLoaded) {
-                if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount.isLoading === false) {
+                if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && isReimbursementAccountLoading === false) {
                     setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
                     setHasACHDataBeenLoaded(true);
                 }
@@ -415,7 +418,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         }
     };
 
-    const isLoading = (isLoadingApp || account.isLoading || reimbursementAccount.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
+    const isLoading = (isLoadingApp || account.isLoading || isReimbursementAccountLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
     const shouldShowOfflineLoader = !(
         isOffline &&
         _.contains(
