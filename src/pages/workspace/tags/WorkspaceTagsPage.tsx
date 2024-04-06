@@ -82,7 +82,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
             fetchTags();
         }, [fetchTags]),
     );
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).slice(0, 1), [policyTags]);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags)[0], [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
             policyTagLists
