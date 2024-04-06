@@ -84,21 +84,22 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     // We currently don't support multi level tags, so let's only get the first level tags.
     const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags)[0], [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
-        () => lodashSortBy(policyTagList.tags).map((value) => {
-            const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
-            const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            return {
-                value: tag.name,
-                text: PolicyUtils.getCleanedTagName(tag.name),
-                keyForList: tag.name,
-                isSelected: !!selectedTags[tag.name],
-                pendingAction: tag.pendingAction,
-                errors: tag.errors ?? undefined,
-                enabled: tag.enabled,
-                isDisabled,
-                rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
-            };
-        }),
+        () =>
+            lodashSortBy(policyTagList.tags).map((value) => {
+                const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
+                const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                return {
+                    value: tag.name,
+                    text: PolicyUtils.getCleanedTagName(tag.name),
+                    keyForList: tag.name,
+                    isSelected: !!selectedTags[tag.name],
+                    pendingAction: tag.pendingAction,
+                    errors: tag.errors ?? undefined,
+                    enabled: tag.enabled,
+                    isDisabled,
+                    rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
+                };
+            }),
         [policyTagList.tags, selectedTags],
     );
 
