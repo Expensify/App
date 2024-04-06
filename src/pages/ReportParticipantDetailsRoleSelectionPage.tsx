@@ -8,6 +8,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import * as Report from '@libs/actions/Report';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -52,7 +53,8 @@ function ReportParticipantDetailsRoleSelectionPage({report, route}: ReportPartic
         if (!member) {
             return;
         }
-        // add API call
+
+        Report.updateGroupChatMemberRoles(report.reportID, [accountID], value);
         Navigation.goBack(backTo);
     };
 

@@ -107,7 +107,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                         text={translate('workspace.people.removeMemberGroupButtonTitle')}
                         onPress={askForConfirmationToRemove}
                         medium
-                        isDisabled={isSelectedUserAdmin || isSelectedMemberCurrentUser}
+                        isDisabled={isSelectedMemberCurrentUser}
                         icon={Expensicons.RemoveMembers}
                         iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
                         style={styles.mv5}
@@ -126,7 +126,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                 </View>
                 <View style={styles.w100}>
                     <MenuItemWithTopDescription
-                        disabled={isSelectedUserAdmin || isSelectedMemberCurrentUser}
+                        disabled={isSelectedMemberCurrentUser}
                         title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
                         description={translate('common.role')}
                         shouldShowRightIcon

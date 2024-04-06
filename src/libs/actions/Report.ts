@@ -2509,6 +2509,27 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
+function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: string) {
+    const participants = {};
+    const memberRoles = {};
+    accountIDList.forEach(accountID => {
+        memberRoles[accountID] = role;
+        participants[accountID] = {role};
+    });
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participants,
+            },
+        },
+    ];
+
+    API.write('UpdateGroupChatMemberRoles', {reportID, memberRoles: JSON.stringify(memberRoles)}, {optimisticData});
+}
+
 function removeFromGroupChat(reportID: string, accountIDList: number[]) {
     const removeParticipantsData = {};
     const currentParticipants = ReportUtils.getParticipants(reportID);
@@ -3192,4 +3213,5 @@ export {
     updateGroupChatAvatar,
     leaveGroupChat,
     removeFromGroupChat,
+    updateGroupChatMemberRoles,
 };

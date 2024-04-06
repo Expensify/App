@@ -37,9 +37,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import ChatActionsBar from '@components/ChatActionsBar';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import ChatActionsBar from '@components/ChatActionsBar';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
