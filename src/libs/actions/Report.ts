@@ -2511,6 +2511,22 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
 function removeFromGroupChat(reportID: string, accountIDList: number[]) {
     const removeParticipantsData = {};
+    const currentParticipants = ReportUtils.getParticipants(reportID);
+    const participantAccountIDs = [];
+    const visibleChatMemberAccountIDs = [];
+    for (const accountIDKey in currentParticipants) {
+        if (Object.hasOwn(currentParticipants, accountIDKey)) {
+            const participant = currentParticipants[accountIDKey];
+            const participantAccountID = parseInt(accountIDKey, 10);
+            if (!accountIDList.includes(participantAccountID)) {
+                participantAccountIDs.push(participantAccountID);
+                if (!participant.hidden) {
+                    visibleChatMemberAccountIDs.push(participantAccountID);
+                }
+            }
+        }
+    }
+
     accountIDList.forEach(accountID => {
         removeParticipantsData[accountID] = null;
     });
@@ -2520,6 +2536,8 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participants: removeParticipantsData,
+                participantAccountIDs,
+                visibleChatMemberAccountIDs,
             },
         },
     ];
@@ -3173,4 +3191,5 @@ export {
     unstashGroupChatAvatar,
     updateGroupChatAvatar,
     leaveGroupChat,
+    removeFromGroupChat,
 };
