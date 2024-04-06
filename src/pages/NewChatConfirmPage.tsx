@@ -7,7 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -23,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import UserListItem from '@components/SelectionList/UserListItem';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
@@ -37,7 +37,6 @@ type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
     const fileRef = useRef();
     const {translate} = useLocalize();
-    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const participantAccountIDs = newGroupDraft?.participants.map((participant) => participant.accountID);
@@ -58,31 +57,20 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 .map((selectedOption: Participant) => {
                     const accountID = selectedOption.accountID;
                     const isAdmin = personalData.accountID === accountID;
-                    let roleBadge = null;
-                    if (isAdmin) {
-                        roleBadge = (
-                            <Badge
-                                text={translate('common.admin')}
-                                textStyles={styles.textStrong}
-                                badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, styles.activeItemBadge]}
-                            />
-                        );
-                    }
-
                     const section: ListItem = {
                         login: selectedOption?.login ?? '',
                         text: selectedOption?.text ?? '',
                         keyForList: selectedOption?.keyForList ?? '',
                         isSelected: !isAdmin,
                         isDisabled: isAdmin,
-                        rightElement: roleBadge,
                         accountID,
                         icons: selectedOption?.icons,
+                        isAdmin,
                     };
                     return section;
                 })
                 .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
-        [selectedOptions, personalData.accountID, translate, styles.textStrong, styles.justifyContentCenter, styles.badgeBordered, styles.activeItemBadge, StyleUtils],
+        [selectedOptions, personalData.accountID],
     );
 
     /**
@@ -142,15 +130,17 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 shouldCheckActionAllowedOnPress={false}
                 description={translate('groupConfirmPage.groupName')}
             />
-            <SelectionList
-                sections={[{data: sections}]}
-                ListItem={TableListItem}
-                onSelectRow={unselectOption}
-                showConfirmButton={selectedOptions.length > 1}
-                confirmButtonText={translate('newChatPage.startGroup')}
-                onConfirm={createGroup}
-                shouldHideListOnInitialRender={false}
-            />
+            <View style={{paddingHorizontal: 2}}>
+                <SelectionList
+                    sections={[{title: translate('common.members'), data: sections}]}
+                    ListItem={UserListItem}
+                    onSelectRow={unselectOption}
+                    showConfirmButton={selectedOptions.length > 1}
+                    confirmButtonText={translate('newChatPage.startGroup')}
+                    onConfirm={createGroup}
+                    shouldHideListOnInitialRender={false}
+                />
+            </View>
         </ScreenWrapper>
     );
 }

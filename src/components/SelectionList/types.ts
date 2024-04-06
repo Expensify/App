@@ -110,6 +110,9 @@ type ListItem = {
 
     /** The search value from the selection list */
     searchText?: string | null;
+
+    /** Whether to show an "Admin" badge next to the Display Name */
+    isAdmin?: boolean;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {

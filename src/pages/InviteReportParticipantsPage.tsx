@@ -28,10 +28,10 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import { useOptionsList } from '@components/OptionListContextProvider';
+import UserListItem from '@components/SelectionList/UserListItem';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import SearchInputManager from './workspace/SearchInputManager';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 
 type InviteReportParticipantsPageOnyxProps = {
     /** All of the personal details for everyone */
@@ -217,7 +217,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
-                    ListItem={RadioListItem}
+                    ListItem={UserListItem}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
