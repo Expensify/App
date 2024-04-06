@@ -16,7 +16,7 @@ import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormOnyxValues} from './Form/types';
-import StatePicker from './StatePicker';
+import StateSelector from './StateSelector';
 import TextInput from './TextInput';
 
 type CountryZipRegex = {
@@ -118,9 +118,9 @@ function AddressForm({
 
         ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
 
-        if (countrySpecificZipRegex && values.zipPostCode) {
-            if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
-                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
+        if (countrySpecificZipRegex) {
+            if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
+                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode?.trim())) {
                     errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', countryZipFormat];
                 } else {
                     errors.zipPostCode = 'common.error.fieldRequired';
@@ -190,7 +190,7 @@ function AddressForm({
             {isUSAForm ? (
                 <View style={styles.mhn5}>
                     <InputWrapper
-                        InputComponent={StatePicker}
+                        InputComponent={StateSelector}
                         inputID={INPUT_IDS.STATE}
                         defaultValue={state}
                         onValueChange={onAddressChanged}

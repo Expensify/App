@@ -68,7 +68,6 @@ function BaseAttachmentViewPdf({
 
     return (
         <PDFView
-            // @ts-expect-error waiting for https://github.com/Expensify/App/issues/16186 merge
             onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
