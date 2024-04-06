@@ -273,12 +273,12 @@ function getPathWithoutPolicyID(path: string) {
     return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
 
-function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<PolicyMembers>, currentPolicyID?: string, currentUserAccountID?: number) {
-    return policyMembers
-        ? Object.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${currentPolicyID}`] ?? {})
-              .map((policyMemberAccountID) => Number(policyMemberAccountID))
-              .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID)
-        : [];
+function getPolicyMembersByIdWithoutCurrentUser(policies: OnyxCollection<Policy>, personalDetails: OnyxEntry<PersonalDetailsList>, currentPolicyID?: string, currentUserAccountID?: number) {
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID}`] ?? null;
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails);
+    return Object.values(policyMemberEmailsToAccountIDs)
+        .map((policyMemberAccountID) => Number(policyMemberAccountID))
+        .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
 }
 
 function goBackFromInvalidPolicy() {

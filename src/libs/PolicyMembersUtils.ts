@@ -1,15 +1,23 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyMembers} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
 import {getPolicyMembersByIdWithoutCurrentUser} from './PolicyUtils';
 
-let policyMembers: OnyxCollection<PolicyMembers>;
+let policies: OnyxCollection<Policy>;
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (value) => (policyMembers = value),
+    callback: (value) => (policies = value),
+});
+
+let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => {
+        allPersonalDetails = val;
+    },
 });
 
 function getPolicyMemberAccountIDs(policyID?: string) {
@@ -19,7 +27,7 @@ function getPolicyMemberAccountIDs(policyID?: string) {
 
     const currentUserAccountID = getCurrentUserAccountID();
 
-    return getPolicyMembersByIdWithoutCurrentUser(policyMembers, policyID, currentUserAccountID);
+    return getPolicyMembersByIdWithoutCurrentUser(policies, allPersonalDetails, policyID, currentUserAccountID);
 }
 
 export default getPolicyMemberAccountIDs;
