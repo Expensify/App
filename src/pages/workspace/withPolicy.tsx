@@ -92,7 +92,6 @@ const policyPropTypes = {
 
 type WithPolicyOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
-    policyMembers: OnyxEntry<OnyxTypes.PolicyMembers>;
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
 };
 
@@ -102,7 +101,6 @@ type WithPolicyProps = WithPolicyOnyxProps & {
 
 const policyDefaultProps: WithPolicyOnyxProps = {
     policy: {} as OnyxTypes.Policy,
-    policyMembers: {},
     policyDraft: {} as OnyxTypes.Policy,
 };
 
@@ -133,9 +131,6 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
     return withOnyx<TProps & RefAttributes<TRef>, WithPolicyOnyxProps>({
         policy: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
-        },
-        policyMembers: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
         },
         policyDraft: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getPolicyIDFromRoute(props.route)}`,

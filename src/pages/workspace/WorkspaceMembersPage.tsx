@@ -70,16 +70,8 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function WorkspaceMembersPage({
-    policyMembers,
-    personalDetails,
-    invitedEmailsToAccountIDsDraft,
-    route,
-    policy,
-    session,
-    currentUserPersonalDetails,
-    isLoadingReportData = true,
-}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
+    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
@@ -87,18 +79,18 @@ function WorkspaceMembersPage({
     const [errors, setErrors] = useState({});
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const accountIDs = useMemo(() => Object.keys(policyMembers ?? {}).map((accountID) => Number(accountID)), [policyMembers]);
+    const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
-    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policyMembers) && isOffline;
+    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const dropdownButtonRef = useRef(null);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = useMemo(
-        () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers)),
-        [isOfflineAndNoMemberDataAvailable, personalDetails, policyMembers],
+        () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
+        [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
     );
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
@@ -111,7 +103,7 @@ function WorkspaceMembersPage({
             if (details?.[key]) {
                 return {
                     ...result,
-                    [key]: details[key],
+                    [key]: details[policyMemberEmailsToAccountIDs[key] ?? ''],
                 };
             }
             return result;
@@ -151,7 +143,7 @@ function WorkspaceMembersPage({
         }
         setSelectedEmployees((prevSelected) => {
             // Filter all personal details in order to use the elements needed for the current workspace
-            const currentPersonalDetails = filterPersonalDetails(policyMembers, personalDetails);
+            const currentPersonalDetails = filterPersonalDetails(policy?.employeeList ?? {}, personalDetails);
             // We need to filter the previous selected employees by the new personal details, since unknown/new user id's change when transitioning from offline to online
             const prevSelectedElements = prevSelected.map((id) => {
                 const prevItem = prevPersonalDetails?.id;
@@ -164,7 +156,7 @@ function WorkspaceMembersPage({
             );
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policyMembers, policy?.employeeList]);
+    }, [policy?.employeeList]);
 
     useEffect(() => {
         const isReconnecting = prevIsOffline && !isOffline;
@@ -296,8 +288,8 @@ function WorkspaceMembersPage({
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
 
-        Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
-            const accountID = Number(accountIDKey);
+        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyMember]) => {
+            const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
             if (isDeletedPolicyMember(policyMember)) {
                 return;
             }
@@ -334,7 +326,7 @@ function WorkspaceMembersPage({
             }
 
             result.push({
-                keyForList: accountIDKey,
+                keyForList: String(accountID),
                 accountID,
                 isSelected,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
@@ -368,7 +360,8 @@ function WorkspaceMembersPage({
         personalDetails,
         policy?.owner,
         policy?.ownerAccountID,
-        policyMembers,
+        policy?.employeeList,
+        policyMemberEmailsToAccountIDs,
         policyOwner,
         selectedEmployees,
         session?.accountID,
@@ -396,7 +389,7 @@ function WorkspaceMembersPage({
             return translate('workspace.common.mustBeOnlineToViewMembers');
         }
 
-        return !isLoading && isEmptyObject(policyMembers) ? translate('workspace.common.memberNotFound') : '';
+        return !isLoading && isEmptyObject(policy?.employeeList) ? translate('workspace.common.memberNotFound') : '';
     };
 
     const getHeaderContent = () => (
@@ -434,7 +427,7 @@ function WorkspaceMembersPage({
             return;
         }
 
-        const accountIDsToUpdate = selectedEmployees.filter((id) => policyMembers?.[id].role !== role);
+        const accountIDsToUpdate = selectedEmployees.filter((id) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[id]]?.role !== role);
 
         Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
         setSelectedEmployees([]);
@@ -450,7 +443,7 @@ function WorkspaceMembersPage({
         ];
 
         if (PolicyUtils.isPaidGroupPolicy(policy)) {
-            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
+            if (selectedEmployees.find((employee) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[employee]]?.role === CONST.POLICY.ROLE.ADMIN)) {
                 options.push({
                     text: translate('workspace.people.makeMember'),
                     value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
@@ -459,7 +452,7 @@ function WorkspaceMembersPage({
                 });
             }
 
-            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
+            if (selectedEmployees.find((employee) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[employee]]?.role === CONST.POLICY.ROLE.USER)) {
                 options.push({
                     text: translate('workspace.people.makeAdmin'),
                     value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,

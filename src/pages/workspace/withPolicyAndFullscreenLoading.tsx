@@ -28,7 +28,7 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): ComponentWithPolicyAndFullscreenLoading<TProps, TRef> {
     function WithPolicyAndFullscreenLoading(
-        {isLoadingReportData = true, policy = policyDefaultProps.policy, policyDraft = policyDefaultProps.policyDraft, policyMembers = policyDefaultProps.policyMembers, ...rest}: TProps,
+        {isLoadingReportData = true, policy = policyDefaultProps.policy, policyDraft = policyDefaultProps.policyDraft, ...rest}: TProps,
         ref: ForwardedRef<TRef>,
     ) {
         if (isLoadingReportData && isEmpty(policy) && isEmpty(policyDraft)) {
@@ -42,7 +42,6 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}
                 policyDraft={policyDraft}
-                policyMembers={policyMembers}
                 ref={ref}
             />
         );
