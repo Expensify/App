@@ -9,7 +9,6 @@ import type {ValueOf} from 'type-fest';
 import taxPropTypes from '@components/taxPropTypes';
 import {translatableTextPropTypes} from '@libs/Localize';
 import type {CentralPaneNavigatorParamList, FullScreenNavigatorParamList, SettingsNavigatorParamList, WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
-import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -85,9 +84,6 @@ const policyPropTypes = {
         /** Collection of tax rates attached to a policy */
         taxRates: taxPropTypes,
     }),
-
-    /** The employee list of this policy */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
 };
 
 type WithPolicyOnyxProps = {

@@ -25,7 +25,7 @@ function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefin
 }
 
 /**
- * Checks if we have any errors stored within the POLICY_MEMBERS. Determines whether we should show a red brick road error or not.
+ * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
 function hasEmployeeListError(policy: OnyxEntry<Policy>): boolean {
     return Object.values(policy?.employeeList ?? {}).some((employee) => Object.keys(employee?.errors ?? {}).length > 0);
