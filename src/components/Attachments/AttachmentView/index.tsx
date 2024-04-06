@@ -165,7 +165,7 @@ function AttachmentView({
 
         const onPDFLoadError = () => {
             setIsPdfFailedToLoad(true);
-        }
+        };
 
         // We need the following View component on android native
         // So that the event will propagate properly and
