@@ -9,7 +9,6 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import type {MaybePhraseKey} from '@libs/Localize';
 import * as Localize from '@libs/Localize';
-import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
