@@ -151,6 +151,9 @@ type UserListItemProps = ListItemProps & {
 
     /** The React element that will be shown as a footer */
     FooterComponent?: ReactElement;
+
+    /** Whether to show the left checkbox when selecting multiple items */
+    shouldShowLeftCheckbox?: boolean;
 };
 
 type InviteMemberListItemProps = UserListItemProps;
@@ -306,6 +309,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * When false, the list will render immediately and scroll to the bottom which works great for small lists.
      */
     shouldHideListOnInitialRender?: boolean;
+
+    /** Override checklist behavior */
+    shouldShowLeftCheckbox?: boolean;
 };
 
 type SelectionListHandle = {

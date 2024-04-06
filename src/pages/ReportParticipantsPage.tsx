@@ -34,6 +34,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import variables from '@styles/variables';
 
 type ReportParticipantsPageOnyxProps = {
     /** Personal details of all the users */
@@ -70,16 +71,14 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             }
 
             const isSelected = selectedMembers.includes(accountID);
-
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
-
             let roleBadge = null;
             if (isAdmin) {
                 roleBadge = (
                     <Badge
                         text={translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
+                        textStyles={[styles.badgeText, styles.textStrong, variables.fontSizeNormal]}
+                        badgeStyles={[styles.justifyContentCenter, styles.badgeSmall]}
                     />
                 );
             }
@@ -107,17 +106,13 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
         return result;
     }, [
-        StyleUtils,
         formatPhoneNumber,
         personalDetails,
         report,
         selectedMembers,
         session?.accountID,
-        styles.activeItemBadge,
-        styles.badgeBordered,
-        styles.justifyContentCenter,
-        styles.textStrong,
         translate,
+        styles,
     ]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);

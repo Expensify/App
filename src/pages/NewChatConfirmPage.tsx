@@ -133,6 +133,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             />
             <View style={{paddingHorizontal: 2, flex: 1}}>
                 <SelectionList
+                    canSelectMultiple
                     sections={[{title: translate('common.members'), data: sections}]}
                     ListItem={UserListItem}
                     onSelectRow={unselectOption}
@@ -140,6 +141,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     confirmButtonText={translate('newChatPage.startGroup')}
                     onConfirm={createGroup}
                     shouldHideListOnInitialRender={false}
+                    shouldShowLeftCheckbox={false}
                 />
             </View>
         </ScreenWrapper>

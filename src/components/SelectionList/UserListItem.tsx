@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {UserListItemProps} from './types';
 import Badge from '@components/Badge';
+import variables from '@styles/variables';
 
 function UserListItem({
     item,
@@ -28,6 +29,7 @@ function UserListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    shouldShowLeftCheckbox = true,
 }: UserListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -53,7 +55,7 @@ function UserListItem({
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
-            canSelectMultiple={canSelectMultiple}
+            canSelectMultiple={!shouldShowLeftCheckbox && canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
@@ -71,7 +73,7 @@ function UserListItem({
         >
             {(hovered?: boolean) => (
                 <>
-                    {canSelectMultiple && (
+                    {shouldShowLeftCheckbox && canSelectMultiple && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -127,7 +129,7 @@ function UserListItem({
                             {item.isAdmin && (
                                 <Badge
                                     text={translate('common.admin')}
-                                    textStyles={[styles.badgeText, styles.textStrong, styles.fontSizeNormal]}
+                                    textStyles={[styles.badgeText, styles.textStrong, variables.fontSizeNormal]}
                                     badgeStyles={[styles.justifyContentCenter, styles.badgeSmall, item.alternateText ? styles.mb1 : null]}
                                 />
                             )}
