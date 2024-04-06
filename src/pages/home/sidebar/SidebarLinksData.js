@@ -90,6 +90,8 @@ const propTypes = {
         ),
     }),
 
+    reportsDrafts: PropTypes.objectOf(PropTypes.string),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -101,6 +103,7 @@ const defaultProps = {
     policies: {},
     transactionViolations: {},
     allReportActions: {},
+    reportsDrafts: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -118,6 +121,7 @@ function SidebarLinksData({
     network,
     transactionViolations,
     currentUserPersonalDetails,
+    reportsDrafts,
 }) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -133,8 +137,20 @@ function SidebarLinksData({
     const isLoading = isLoadingApp;
 
     const optionItemsMemoized = useMemo(
-        () => SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
-        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs],
+        () =>
+            SidebarUtils.getOrderedReportIDs(
+                null,
+                chatReports,
+                betas,
+                policies,
+                priorityMode,
+                allReportActions,
+                transactionViolations,
+                activeWorkspaceID,
+                policyMemberAccountIDs,
+                reportsDrafts,
+            ),
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
     );
 
     const optionListItems = useMemo(() => {
@@ -214,7 +230,6 @@ const chatReportSelector = (report) =>
     report && {
         reportID: report.reportID,
         participantAccountIDs: report.participantAccountIDs,
-        hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,
@@ -321,6 +336,10 @@ export default compose(
             key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
             initialValue: {},
         },
+        reportsDrafts: {
+            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+            initialValue: {},
+        },
     }),
 )(
     /* 
@@ -342,6 +361,7 @@ export default compose(
             prevProps.onLinkClick === nextProps.onLinkClick &&
             _.isEqual(prevProps.transactionViolations, nextProps.transactionViolations) &&
             _.isEqual(prevProps.currentUserPersonalDetails, nextProps.currentUserPersonalDetails) &&
-            prevProps.currentReportID === nextProps.currentReportID,
+            prevProps.currentReportID === nextProps.currentReportID &&
+            _.isEqual(prevProps.reportsDrafts, nextProps.reportsDrafts),
     ),
 );
