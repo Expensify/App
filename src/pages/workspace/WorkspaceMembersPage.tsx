@@ -55,12 +55,10 @@ type WorkspaceMembersPageOnyxProps = {
     /** An object containing the accountID for every invited user email */
     invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
 };
-
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
     WorkspaceMembersPageOnyxProps &
     StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
-
 /**
  * Inverts an object, equivalent of _.invert
  */
@@ -70,55 +68,60 @@ function invertObject(object: Record<string, string>): Record<string, string> {
     return inverted;
 }
 
-type MemberOption = Omit<ListItem, 'accountID'> & {email: string; accountID: number};
+type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({
+    policyMembers,
+    personalDetails,
+    invitedEmailsToAccountIDsDraft,
+    route,
+    policy,
+    session,
+    currentUserPersonalDetails,
+    isLoadingReportData = true,
+}: WorkspaceMembersPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+    const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const accountEmails = useMemo(() => Object.keys(policy?.employeeList ?? {}).map((email) => email), [policy?.employeeList]);
-    const prevAccountEmails = usePrevious(accountEmails);
+    const accountIDs = useMemo(() => Object.keys(policyMembers ?? {}).map((accountID) => Number(accountID)), [policyMembers]);
+    const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
-    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList ?? {}) && isOffline;
+    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policyMembers) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const dropdownButtonRef = useRef(null);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = useMemo(
-        () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList ?? {})),
-        [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
+        () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers)),
+        [isOfflineAndNoMemberDataAvailable, personalDetails, policyMembers],
     );
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
-
     const policyID = route.params.policyID;
-
     /**
      * Get filtered personalDetails list with current policyMembers
      */
-    const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
+    const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
         Object.keys(members ?? {}).reduce((result, key) => {
-            const details = Object.values(personalDetailsList ?? {}).find((currentDetails) => currentDetails?.login === key);
-            if (details) {
+            if (details?.[key]) {
                 return {
                     ...result,
-                    [key]: details,
+                    [key]: details[key],
                 };
             }
             return result;
         }, {});
-
     /**
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        Policy.openWorkspaceMembersPage(route.params.policyID, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policy, personalDetails)));
-    }, [route.params.policyID, policy, personalDetails]);
+        Policy.openWorkspaceMembersPage(route.params.policyID, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails)));
+    }, [route.params.policyID, policy?.employeeList, personalDetails]);
 
     /**
      * Check if the current selection includes members that cannot be removed
@@ -126,8 +129,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     const validateSelection = useCallback(() => {
         const newErrors: Errors = {};
         selectedEmployees.forEach((member) => {
-            const details = Object.values(personalDetails ?? {}).find((currentDetails) => currentDetails?.login === member);
-            if (details?.accountID !== policy?.ownerAccountID && details?.accountID !== session?.accountID) {
+            if (member !== policy?.ownerAccountID && member !== session?.accountID) {
                 return;
             }
             newErrors[member] = translate('workspace.people.error.cannotRemove');
@@ -135,36 +137,34 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         setErrors(newErrors);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedEmployees, policy?.owner, session?.accountID]);
-
     useEffect(() => {
         getWorkspaceMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
     useEffect(() => {
         validateSelection();
     }, [preferredLocale, validateSelection]);
 
     useEffect(() => {
-        if (removeMembersConfirmModalVisible && !lodashIsEqual(accountEmails, prevAccountEmails)) {
+        if (removeMembersConfirmModalVisible && !lodashIsEqual(accountIDs, prevAccountIDs)) {
             setRemoveMembersConfirmModalVisible(false);
         }
         setSelectedEmployees((prevSelected) => {
             // Filter all personal details in order to use the elements needed for the current workspace
-            const currentPersonalDetails = filterPersonalDetails(policy?.employeeList ?? {}, personalDetails);
+            const currentPersonalDetails = filterPersonalDetails(policyMembers, personalDetails);
             // We need to filter the previous selected employees by the new personal details, since unknown/new user id's change when transitioning from offline to online
-            const prevSelectedElements = prevSelected.map((email) => {
-                const prevItem = prevPersonalDetails?.find((item) => item?.login === email);
+            const prevSelectedElements = prevSelected.map((id) => {
+                const prevItem = prevPersonalDetails?.id;
                 const res = Object.values(currentPersonalDetails).find((item) => prevItem?.login === item?.login);
-                return res?.login ?? email;
+                return res?.accountID ?? id;
             });
             // This is an equivalent of the lodash intersection function. The reduce method below is used to filter the items that exist in both arrays.
-            return [prevSelectedElements, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policy, personalDetails))].reduce((prev, members) =>
+            return [prevSelectedElements, Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails))].reduce((prev, members) =>
                 prev.filter((item) => members.includes(item)),
             );
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy]);
+    }, [policyMembers, policy?.employeeList]);
 
     useEffect(() => {
         const isReconnecting = prevIsOffline && !isOffline;
@@ -173,14 +173,12 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         }
         getWorkspaceMembers();
     }, [isOffline, prevIsOffline, getWorkspaceMembers]);
-
     /**
      * Open the modal to invite a user
      */
     const inviteUser = () => {
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID));
     };
-
     /**
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
@@ -191,18 +189,12 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         }
 
         // Remove the admin from the list
-        const accountIDsToRemove = (session?.accountID ? selectedEmployees.filter((email) => email !== session.email) : selectedEmployees)
-            .map((email) => {
-                const details = Object.values(personalDetails ?? {}).find((currentDetails) => currentDetails?.login === email);
-                return details?.accountID;
-            })
-            .filter(Boolean) as number[];
+        const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
 
         Policy.removeMembers(accountIDsToRemove, route.params.policyID);
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
     };
-
     /**
      * Show the modal to confirm removal of the selected members
      */
@@ -212,65 +204,60 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         }
         setRemoveMembersConfirmModalVisible(true);
     };
-
     /**
      * Add or remove all users passed from the selectedEmployees list
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
         const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const everyoneSelected = enabledAccounts.every((member) => selectedEmployees.includes(member.email));
+        const everyoneSelected = enabledAccounts.every((member) => selectedEmployees.includes(member.accountID));
 
         if (everyoneSelected) {
             setSelectedEmployees([]);
         } else {
-            const everyEmail = enabledAccounts.map((member) => member.email);
-            setSelectedEmployees(everyEmail);
+            const everyAccountId = enabledAccounts.map((member) => member.accountID);
+            setSelectedEmployees(everyAccountId);
         }
 
         validateSelection();
     };
-
     /**
      * Add user from the selectedEmployees list
      */
     const addUser = useCallback(
-        (selectedEmail: string) => {
-            setSelectedEmployees((prevSelected) => [...prevSelected, selectedEmail]);
+        (accountID: number) => {
+            setSelectedEmployees((prevSelected) => [...prevSelected, accountID]);
             validateSelection();
         },
         [validateSelection],
     );
-
     /**
      * Remove user from the selectedEmployees list
      */
     const removeUser = useCallback(
-        (selectedEmail: string) => {
-            setSelectedEmployees((prevSelected) => prevSelected.filter((email) => email !== selectedEmail));
+        (accountID: number) => {
+            setSelectedEmployees((prevSelected) => prevSelected.filter((id) => id !== accountID));
             validateSelection();
         },
         [validateSelection],
     );
-
     /**
      * Toggle user from the selectedEmployees list
      */
     const toggleUser = useCallback(
-        (email: string, pendingAction?: PendingAction) => {
+        (accountID: number, pendingAction?: PendingAction) => {
             if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
 
             // Add or remove the user if the checkbox is enabled
-            if (selectedEmployees.includes(email)) {
-                removeUser(email);
+            if (selectedEmployees.includes(accountID)) {
+                removeUser(accountID);
             } else {
-                addUser(email);
+                addUser(accountID);
             }
         },
         [selectedEmployees, addUser, removeUser],
     );
-
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
@@ -278,13 +265,11 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
                 return;
             }
-
             Policy.clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, Navigation.getActiveRoute()));
         },
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
-
     /**
      * Dismisses the errors on one item
      */
@@ -298,7 +283,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         },
         [route.params.policyID],
     );
-
     /**
      * Check if the policy member is deleted from the workspace
      */
@@ -308,21 +292,20 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     );
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
-
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
-
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
 
-        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyMember]) => {
+        Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
+            const accountID = Number(accountIDKey);
             if (isDeletedPolicyMember(policyMember)) {
                 return;
             }
 
-            const details = Object.values(personalDetails ?? {}).find((currentDetails) => currentDetails?.login === email);
+            const details = personalDetails?.[accountID];
 
             if (!details) {
-                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with email: ${email}`);
+                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
                 return;
             }
 
@@ -335,11 +318,10 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 }
             }
 
-            const isSelected = selectedEmployees.includes(email);
+            const isSelected = selectedEmployees.includes(accountID);
 
             const isOwner = policy?.owner === details.login;
             const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
-
             let roleBadge = null;
             if (isOwner || isAdmin) {
                 roleBadge = (
@@ -351,12 +333,9 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 );
             }
 
-            const accountID = details.accountID ?? 0;
-
             result.push({
-                keyForList: email,
+                keyForList: accountIDKey,
                 accountID,
-                email,
                 isSelected,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
                 isDisabled: isPolicyAdmin && (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors)),
@@ -373,14 +352,11 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 ],
                 errors: policyMember.errors,
                 pendingAction: policyMember.pendingAction,
-
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
         });
-
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
-
         return result;
     }, [
         StyleUtils,
@@ -392,7 +368,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         personalDetails,
         policy?.owner,
         policy?.ownerAccountID,
-        policy?.employeeList,
+        policyMembers,
         policyOwner,
         selectedEmployees,
         session?.accountID,
@@ -402,27 +378,25 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         styles.textStrong,
         translate,
     ]);
-
     const data = useMemo(() => getUsers(), [getUsers]);
-
     useEffect(() => {
         if (!isFocused) {
             return;
         }
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || accountEmails === prevAccountEmails) {
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || accountIDs === prevAccountIDs) {
             return;
         }
         const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
         selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails, 1500);
         Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
-    }, [invitedEmailsToAccountIDsDraft, route.params.policyID, isFocused, accountEmails, prevAccountEmails]);
+    }, [invitedEmailsToAccountIDsDraft, route.params.policyID, isFocused, accountIDs, prevAccountIDs]);
 
     const getHeaderMessage = () => {
         if (isOfflineAndNoMemberDataAvailable) {
             return translate('workspace.common.mustBeOnlineToViewMembers');
         }
 
-        return !isLoading && isEmptyObject(policy?.employeeList ?? {}) ? translate('workspace.common.memberNotFound') : '';
+        return !isLoading && isEmptyObject(policyMembers) ? translate('workspace.common.memberNotFound') : '';
     };
 
     const getHeaderContent = () => (
@@ -439,7 +413,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             )}
         </>
     );
-
     const getCustomListHeader = () => {
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
@@ -451,31 +424,21 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 </View>
             </View>
         );
-
         if (isPolicyAdmin) {
             return header;
         }
-
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
     };
-
     const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
         if (!isEmptyObject(errors)) {
             return;
         }
 
-        const accountIDsToUpdate = selectedEmployees
-            .filter((email) => policy?.employeeList?.[email].role !== role)
-            .map((email) => {
-                const details = Object.values(personalDetails ?? {}).find((currentDetails) => currentDetails?.login === email);
-                return details?.accountID;
-            })
-            .filter(Boolean) as number[];
+        const accountIDsToUpdate = selectedEmployees.filter((id) => policyMembers?.[id].role !== role);
 
         Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
         setSelectedEmployees([]);
     };
-
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
@@ -487,7 +450,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         ];
 
         if (PolicyUtils.isPaidGroupPolicy(policy)) {
-            if (selectedEmployees.find((employee) => policy?.employeeList?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
+            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
                 options.push({
                     text: translate('workspace.people.makeMember'),
                     value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
@@ -496,7 +459,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 });
             }
 
-            if (selectedEmployees.find((employee) => policy?.employeeList?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
+            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
                 options.push({
                     text: translate('workspace.people.makeAdmin'),
                     value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
@@ -505,15 +468,12 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 });
             }
         }
-
         return options;
     };
-
     const getHeaderButtons = () => {
         if (!isPolicyAdmin) {
             return null;
         }
-
         return (
             <View style={styles.w100}>
                 {selectedEmployees.length > 0 ? (
@@ -541,7 +501,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             </View>
         );
     };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -595,7 +554,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
                         onSelectRow={openMemberDetails}
-                        onCheckboxPress={(item) => toggleUser(item.email)}
+                        onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
                         showLoadingPlaceholder={isLoading}
@@ -610,9 +569,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         </ScreenWrapper>
     );
 }
-
 WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
-
 export default withCurrentUserPersonalDetails(
     withPolicyAndFullscreenLoading(
         withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({

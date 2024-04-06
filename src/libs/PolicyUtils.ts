@@ -133,8 +133,8 @@ const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boo
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(policy: OnyxEntry<Policy>, personalDetails: OnyxEntry<PersonalDetailsList>): MemberEmailsToAccountIDs {
-    const members = policy?.employeeList ?? {};
+function getMemberAccountIDsForWorkspace(policyMembers: PolicyMembers | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): MemberEmailsToAccountIDs {
+    const members = policyMembers ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     Object.keys(members).forEach((email) => {
         const member = members?.[email];

@@ -41,7 +41,7 @@ type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxPro
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
-function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApproverPageProps) {
+function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApproverPageProps) {
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
     const [searchTerm, setSearchTerm] = useState('');
@@ -58,11 +58,14 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
         const policyMemberDetails: MemberOption[] = [];
         const approverDetails: MemberOption[] = [];
 
-        Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
-            const accountID = Number(accountIDKey);
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails);
+
+        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyMember]) => {
             if (isDeletedPolicyMember(policyMember)) {
                 return;
             }
+
+            const accountID = Number(policyMemberEmailsToAccountIDs[email] || '');
 
             const details = personalDetails?.[accountID];
             if (!details) {
@@ -85,7 +88,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
             }
 
             const formattedMember = {
-                keyForList: accountIDKey,
+                keyForList: String(accountID),
                 accountID,
                 isSelected: policy?.approver === details.login,
                 isDisabled: policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors),
@@ -111,7 +114,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
             }
         });
         return [policyMemberDetails, approverDetails];
-    }, [personalDetails, policyMembers, translate, policy?.approver, StyleUtils, isDeletedPolicyMember, policy?.owner, styles]);
+    }, [personalDetails, translate, policy?.approver, StyleUtils, isDeletedPolicyMember, policy?.owner, styles, policy?.employeeList]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
