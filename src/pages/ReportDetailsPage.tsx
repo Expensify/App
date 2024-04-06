@@ -134,7 +134,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
-                subtitle: NonpendingChatMembers.length,
+                subtitle: NonpendingChatMembers?.length,
                 isAnonymousAction: false,
                 action: () => {
                     if (isUserCreatedPolicyRoom || isChatThread) {
