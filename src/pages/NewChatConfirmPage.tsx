@@ -66,6 +66,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                         accountID,
                         icons: selectedOption?.icons,
                         isAdmin,
+                        alternateText: selectedOption?.login ?? '',
                     };
                     return section;
                 })
@@ -130,7 +131,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 shouldCheckActionAllowedOnPress={false}
                 description={translate('groupConfirmPage.groupName')}
             />
-            <View style={{paddingHorizontal: 2}}>
+            <View style={{paddingHorizontal: 2, flex: 1}}>
                 <SelectionList
                     sections={[{title: translate('common.members'), data: sections}]}
                     ListItem={UserListItem}
