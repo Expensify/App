@@ -11,7 +11,6 @@ function AttachmentViewPdf({
     onLoadComplete,
     style,
     isUsedAsChatAttachment,
-    containerStyles,
     onLoadError,
 }: AttachmentViewPdfProps) {
     return (
@@ -24,7 +23,6 @@ function AttachmentViewPdf({
             onToggleKeyboard={onToggleKeyboard}
             onLoadComplete={onLoadComplete}
             isUsedAsChatAttachment={isUsedAsChatAttachment}
-            containerStyles={containerStyles}
             onLoadError={onLoadError}
         />
     );

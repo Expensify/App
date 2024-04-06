@@ -16,9 +16,6 @@ type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'is
 
     /** Whether the PDF is used as a chat attachment */
     isUsedAsChatAttachment?: boolean;
-
-    /** Additional container styles */
-    containerStyles?: StyleProp<ViewStyle>;
 };
 
 export default AttachmentViewPdfProps;

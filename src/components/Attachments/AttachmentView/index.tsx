@@ -177,7 +177,6 @@ function AttachmentView({
                     onLoadComplete={onPDFLoadComplete}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedAsChatAttachment={isUsedAsChatAttachment}
-                    containerStyles={containerStyles}
                     onLoadError={() => {
                         setIsPdfFailedToLoad(true);
                     }}
