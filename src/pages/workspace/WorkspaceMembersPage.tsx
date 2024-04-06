@@ -71,7 +71,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
 function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
-    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails);
+    const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails), [policy?.employeeList, personalDetails]);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
@@ -100,10 +100,10 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
      */
     const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
         Object.keys(members ?? {}).reduce((result, key) => {
-            if (details?.[key]) {
+            if (details?.[policyMemberEmailsToAccountIDs[key] ?? '']) {
                 return {
                     ...result,
-                    [key]: details[policyMemberEmailsToAccountIDs[key] ?? ''],
+                    [policyMemberEmailsToAccountIDs[key] ?? '']: details[policyMemberEmailsToAccountIDs[key] ?? ''],
                 };
             }
             return result;
@@ -162,7 +162,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             );
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy?.employeeList]);
+    }, [policy?.employeeList, policyMemberEmailsToAccountIDs]);
 
     useEffect(() => {
         const isReconnecting = prevIsOffline && !isOffline;
@@ -171,12 +171,14 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         }
         getWorkspaceMembers();
     }, [isOffline, prevIsOffline, getWorkspaceMembers]);
+
     /**
      * Open the modal to invite a user
      */
     const inviteUser = () => {
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID));
     };
+
     /**
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
@@ -193,6 +195,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
     };
+
     /**
      * Show the modal to confirm removal of the selected members
      */
@@ -202,6 +205,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         }
         setRemoveMembersConfirmModalVisible(true);
     };
+
     /**
      * Add or remove all users passed from the selectedEmployees list
      */
@@ -218,6 +222,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
 
         validateSelection();
     };
+
     /**
      * Add user from the selectedEmployees list
      */
@@ -228,6 +233,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         },
         [validateSelection],
     );
+
     /**
      * Remove user from the selectedEmployees list
      */
@@ -238,6 +244,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         },
         [validateSelection],
     );
+
     /**
      * Toggle user from the selectedEmployees list
      */
@@ -256,6 +263,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         },
         [selectedEmployees, addUser, removeUser],
     );
+
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
@@ -268,6 +276,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         },
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
+
     /**
      * Dismisses the errors on one item
      */
@@ -281,6 +290,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         },
         [route.params.policyID],
     );
+
     /**
      * Check if the policy member is deleted from the workspace
      */
@@ -288,6 +298,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         (policyMember: PolicyMember): boolean => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
         [isOffline],
     );
+
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
@@ -377,7 +388,9 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         styles.textStrong,
         translate,
     ]);
+
     const data = useMemo(() => getUsers(), [getUsers]);
+
     useEffect(() => {
         if (!isFocused) {
             return;
@@ -412,6 +425,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             )}
         </>
     );
+
     const getCustomListHeader = () => {
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
@@ -428,6 +442,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         }
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
     };
+
     const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
         if (!isEmptyObject(errors)) {
             return;
@@ -438,6 +453,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
         setSelectedEmployees([]);
     };
+
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
@@ -469,6 +485,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         }
         return options;
     };
+
     const getHeaderButtons = () => {
         if (!isPolicyAdmin) {
             return null;
@@ -500,6 +517,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             </View>
         );
     };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -568,7 +586,9 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         </ScreenWrapper>
     );
 }
+
 WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
+
 export default withCurrentUserPersonalDetails(
     withPolicyAndFullscreenLoading(
         withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({

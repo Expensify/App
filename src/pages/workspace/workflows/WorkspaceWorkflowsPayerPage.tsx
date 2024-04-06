@@ -60,8 +60,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const policyAdminDetails: MemberOption[] = [];
         const authorizedPayerDetails: MemberOption[] = [];
 
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails);
+
         Object.entries(policy?.employeeList ?? {}).forEach(([email, policyMember]) => {
-            const accountID = Object.values(personalDetails ?? {}).find((details) => details?.login === email)?.accountID ?? 0;
+            const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
             const details = personalDetails?.[accountID];
             if (!details) {
                 Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);

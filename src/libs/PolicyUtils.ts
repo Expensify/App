@@ -153,8 +153,8 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyMembers | undefined
 /**
  * Get login list that we should not show in the workspace invite options
  */
-function getIneligibleInvitees(policy: OnyxEntry<Policy>): string[] {
-    const members = policy?.employeeList ?? {};
+function getIneligibleInvitees(employeeList?: PolicyMembers): string[] {
+    const members = employeeList ?? {};
     const memberEmailsToExclude: string[] = [...CONST.EXPENSIFY_EMAILS];
     Object.keys(members).forEach((email) => {
         const policyMember = members?.[email];

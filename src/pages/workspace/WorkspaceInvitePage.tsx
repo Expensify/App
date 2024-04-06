@@ -91,7 +91,7 @@ function WorkspaceInvitePage({
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
 
-    const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policy), [policy]);
+    const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policy?.employeeList), [policy?.employeeList]);
 
     useEffect(() => {
         const newUsersToInviteDict: Record<number, OptionData> = {};

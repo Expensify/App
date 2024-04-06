@@ -65,7 +65,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                 return;
             }
 
-            const accountID = Number(policyMemberEmailsToAccountIDs[email] || '');
+            const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
 
             const details = personalDetails?.[accountID];
             if (!details) {
