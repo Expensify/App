@@ -441,7 +441,7 @@ const ROUTES = {
     ONBOARD_MANAGE_EXPENSES: 'onboard/manage-expenses',
     ONBOARD_EXPENSIFY_CLASSIC: 'onboard/expensify-classic',
 
-    TEACHERS_UNITE: 'teachersunite',
+    TEACHERS_UNITE: 'settings/teachersunite',
     I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
     I_AM_A_TEACHER: 'settings/teachersunite/i-am-a-teacher',
     INTRO_SCHOOL_PRINCIPAL: 'settings/teachersunite/intro-school-principal',
