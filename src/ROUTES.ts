@@ -682,6 +682,11 @@ const ROUTES = {
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
+    ONBOARDING_ROOT: 'onboarding',
+    ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
+    ONBOARDING_PURPOSE: 'onboarding/purpose',
+    WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
+
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
