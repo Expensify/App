@@ -96,7 +96,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
     /**
-     * Get filtered personalDetails list with current policyMembers
+     * Get filtered personalDetails list with current employeeList
      */
     const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
         Object.keys(members ?? {}).reduce((result, key) => {
