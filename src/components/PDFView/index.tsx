@@ -1,30 +1,36 @@
 import 'core-js/features/array/at';
 // eslint-disable-next-line no-restricted-imports
-import type {CSSProperties} from 'react';
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import {PDFPreviewer} from 'react-fast-pdf';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import type { CSSProperties } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
+import { PDFPreviewer } from 'react-fast-pdf';
+import { ActivityIndicator, View } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
-import type {PDFViewOnyxProps, PDFViewProps} from './types';
+import type { PDFViewOnyxProps, PDFViewProps } from './types';
 
-function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, errorLabelStyles, maxCanvasArea, maxCanvasHeight, maxCanvasWidth, style}: PDFViewProps) {
+const LOADING_THUMBNAIL_HEIGHT = 250;
+const LOADING_THUMBNAIL_WIDTH = 250;
+
+function PDFView({ onToggleKeyboard, fileName, onPress, isFocused, sourceURL, maxCanvasArea, maxCanvasHeight, maxCanvasWidth, style, isUsedAsChatAttachment, onLoadError }: PDFViewProps) {
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
+    const { windowHeight, isSmallScreenWidth } = useWindowDimensions();
     const prevWindowHeight = usePrevious(windowHeight);
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -79,6 +85,21 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
         }
     }, [isKeyboardOpen, prevWindowHeight, toggleKeyboardOnSmallScreens, windowHeight]);
 
+    const renderLoadingIndicator = () => {
+        if (isUsedAsChatAttachment) {
+            return (
+                <View style={[styles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <ActivityIndicator
+                        color={theme.spinner}
+                        size="large"
+                    />
+                </View>
+            );
+        }
+
+        return <FullScreenLoadingIndicator />;
+    }
+
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
@@ -95,9 +116,10 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
                     maxCanvasWidth={maxCanvasWidth}
                     maxCanvasHeight={maxCanvasHeight}
                     maxCanvasArea={maxCanvasArea}
-                    LoadingComponent={<FullScreenLoadingIndicator />}
-                    ErrorComponent={<Text style={errorLabelStyles}>{translate('attachmentView.failedToLoadPDF')}</Text>}
-                    renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
+                    LoadingComponent={renderLoadingIndicator()}
+                    shouldShowErrorComponent={false}
+                    onLoadError={onLoadError}
+                    renderPasswordForm={({ isPasswordInvalid, onSubmit, onPasswordChange }) => (
                         <PDFPasswordForm
                             isFocused={!!isFocused}
                             isPasswordInvalid={isPasswordInvalid}
