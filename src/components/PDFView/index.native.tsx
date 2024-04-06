@@ -32,7 +32,7 @@ import type {PDFViewNativeProps} from './types';
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
 
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onLoadError, isUsedAsChatAttachment}: PDFViewNativeProps){
+function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onLoadError, isUsedAsChatAttachment}: PDFViewNativeProps) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -128,7 +128,8 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             pdfStyles.push(themeStyles.invisible);
         }
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const containerStyles = (isUsedAsChatAttachment || (shouldRequestPassword && isSmallScreenWidth)) ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
+        const containerStyles =
+            isUsedAsChatAttachment || (shouldRequestPassword && isSmallScreenWidth) ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
         const loadingIndicatorStyles = isUsedAsChatAttachment
             ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT)]
             : [];
