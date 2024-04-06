@@ -25,7 +25,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
@@ -82,29 +81,25 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
             fetchTags();
         }, [fetchTags]),
     );
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags)[0], [policyTags]);
+    // We currently don't support multi level tags, so let's only get the first level tags.
+    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags)[0], [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
-        () =>
-            policyTagLists
-                .map((policyTagList) =>
-                    lodashSortBy(policyTagList?.tags ? Object.values(policyTagList.tags) : [], 'name', localeCompare).map((value) => {
-                        const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
-                        const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                        return {
-                            value: tag.name,
-                            text: PolicyUtils.getCleanedTagName(tag.name),
-                            keyForList: tag.name,
-                            isSelected: !!selectedTags[tag.name],
-                            pendingAction: tag.pendingAction,
-                            errors: tag.errors ?? undefined,
-                            enabled: tag.enabled,
-                            isDisabled,
-                            rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
-                        };
-                    }),
-                )
-                .flat(),
-        [policyTagLists, selectedTags],
+        () => lodashSortBy(policyTagList.tags).map((value) => {
+            const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
+            const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            return {
+                value: tag.name,
+                text: PolicyUtils.getCleanedTagName(tag.name),
+                keyForList: tag.name,
+                isSelected: !!selectedTags[tag.name],
+                pendingAction: tag.pendingAction,
+                errors: tag.errors ?? undefined,
+                enabled: tag.enabled,
+                isDisabled,
+                rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
+            };
+        }),
+        [policyTagList.tags, selectedTags],
     );
 
     const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
