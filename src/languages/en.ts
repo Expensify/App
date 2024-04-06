@@ -2080,6 +2080,7 @@ export default {
         },
         invite: {
             member: 'Invite member',
+            members: 'Invite members',
             invitePeople: 'Invite new members',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,

@@ -352,7 +352,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                     subtitle={isGroupChat ? translate('common.members') : ''}
                     icon={isGroupChat ? Illustrations.ReceiptWrangler : undefined}
                     onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     subtitleOnTop={isGroupChat}
                 >

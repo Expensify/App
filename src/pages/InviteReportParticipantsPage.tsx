@@ -10,7 +10,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
@@ -32,6 +31,7 @@ import { useOptionsList } from '@components/OptionListContextProvider';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import SearchInputManager from './workspace/SearchInputManager';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 
 type InviteReportParticipantsPageOnyxProps = {
     /** All of the personal details for everyone */
@@ -156,7 +156,8 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     const reportID = report?.reportID;
     const backRoute = useMemo(() => reportID && ROUTES.REPORT_PARTICIPANTS.getRoute(reportID), [reportID]);
-    const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
+    const existingParticipantAccountIDs = ReportUtils.getVisibleParticipantAccountIDs(report?.reportID ?? '');
+    const reportName = useMemo(() => ReportUtils.getGroupChatName(existingParticipantAccountIDs, true, report?.reportID ?? ''), [report]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
@@ -207,7 +208,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                 onBackButtonPress={() => Navigation.goBack(backRoute)}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.invite.invitePeople')}
+                    title={translate('workspace.invite.members')}
                     subtitle={reportName}
                     onBackButtonPress={() => {
                         Navigation.goBack(backRoute);
@@ -216,7 +217,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
-                    ListItem={UserListItem}
+                    ListItem={RadioListItem}
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
