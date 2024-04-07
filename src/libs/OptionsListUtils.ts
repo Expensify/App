@@ -98,6 +98,22 @@ type CategorySection = CategorySectionBase & {
     data: Option[];
 };
 
+type TaxRatesOption = {
+    text?: string;
+    code?: string;
+    searchText?: string;
+    tooltipText?: string;
+    isDisabled?: boolean;
+    keyForList?: string;
+    data: Partial<TaxRate>;
+};
+
+type TaxSection = {
+    title: string | undefined;
+    shouldShow: boolean;
+    data: TaxRatesOption[];
+};
+
 type CategoryTreeSection = CategorySectionBase & {
     data: OptionTree[];
 };
@@ -141,6 +157,9 @@ type GetOptionsConfig = {
     includeSelectedOptions?: boolean;
     includeTaxRates?: boolean;
     taxRates?: TaxRatesWithDefault;
+    includePolicyReportFieldOptions?: boolean;
+    policyReportFieldOptions?: string[];
+    recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
@@ -168,6 +187,7 @@ type GetOptions = {
     categoryOptions: CategoryTreeSection[];
     tagOptions: CategorySection[];
     taxRatesOptions: CategorySection[];
+    policyReportFieldOptions?: CategorySection[] | null;
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
@@ -427,20 +447,19 @@ function getSearchText(
 ): string {
     let searchTerms: string[] = [];
 
-    if (!isChatRoomOrPolicyExpenseChat) {
-        for (const personalDetail of personalDetailList) {
-            if (personalDetail.login) {
-                // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-                // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-                // More info https://github.com/Expensify/App/issues/8007
-                searchTerms = searchTerms.concat([
-                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
-                    personalDetail.login,
-                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
-                ]);
-            }
+    for (const personalDetail of personalDetailList) {
+        if (personalDetail.login) {
+            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+            // More info https://github.com/Expensify/App/issues/8007
+            searchTerms = searchTerms.concat([
+                PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
+                personalDetail.login,
+                personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
+            ]);
         }
     }
+
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
@@ -638,7 +657,6 @@ function createOption(
         login: null,
         reportID: '',
         phoneNumber: null,
-        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isDefaultRoom: false,
@@ -683,7 +701,6 @@ function createOption(
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
-        result.hasDraftComment = report.hasDraft;
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
@@ -1217,6 +1234,81 @@ function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>
 }
 
 /**
+ * Transforms the provided report field options into option objects.
+ *
+ * @param reportFieldOptions - an initial report field options array
+ */
+function getReportFieldOptions(reportFieldOptions: string[]): Option[] {
+    return reportFieldOptions.map((name) => ({
+        text: name,
+        keyForList: name,
+        searchText: name,
+        tooltipText: name,
+        isDisabled: false,
+    }));
+}
+
+/**
+ * Build the section list for report field options
+ */
+function getReportFieldOptionsSection(options: string[], recentlyUsedOptions: string[], selectedOptions: Array<Partial<ReportUtils.OptionData>>, searchInputValue: string) {
+    const reportFieldOptionsSections = [];
+    const selectedOptionKeys = selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o);
+    let indexOffset = 0;
+
+    if (searchInputValue) {
+        const searchOptions = options.filter((option) => option.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        reportFieldOptionsSections.push({
+            // "Search" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getReportFieldOptions(searchOptions),
+        });
+
+        return reportFieldOptionsSections;
+    }
+
+    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((recentlyUsedOption) => !selectedOptionKeys.includes(recentlyUsedOption));
+    const filteredOptions = options.filter((option) => !selectedOptionKeys.includes(option));
+
+    if (selectedOptionKeys.length) {
+        reportFieldOptionsSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getReportFieldOptions(selectedOptionKeys),
+        });
+
+        indexOffset += selectedOptionKeys.length;
+    }
+
+    if (filteredRecentlyUsedOptions.length > 0) {
+        reportFieldOptionsSections.push({
+            // "Recent" section
+            title: Localize.translateLocal('common.recent'),
+            shouldShow: true,
+            indexOffset,
+            data: getReportFieldOptions(filteredRecentlyUsedOptions),
+        });
+
+        indexOffset += filteredRecentlyUsedOptions.length;
+    }
+
+    reportFieldOptionsSections.push({
+        // "All" section when items amount more than the threshold
+        title: Localize.translateLocal('common.all'),
+        shouldShow: true,
+        indexOffset,
+        data: getReportFieldOptions(filteredOptions),
+    });
+
+    return reportFieldOptionsSections;
+}
+
+/**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
  *
  * @param  taxRates - The original tax rates object.
@@ -1240,7 +1332,7 @@ function sortTaxRates(taxRates: TaxRates): TaxRate[] {
 /**
  * Builds the options for taxRates
  */
-function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
+function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[] {
     return taxRates.map((taxRate) => ({
         text: taxRate.modifiedName,
         keyForList: taxRate.modifiedName,
@@ -1254,7 +1346,7 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): Option[] {
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): TaxSection[] {
     const policyRatesSections = [];
 
     const taxes = transformedTaxRates(taxRates);
@@ -1441,6 +1533,9 @@ function getOptions(
         includeTaxRates,
         taxRates,
         includeSelfDM = false,
+        includePolicyReportFieldOptions = false,
+        policyReportFieldOptions = [],
+        recentlyUsedPolicyReportFieldOptions = [],
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1482,6 +1577,20 @@ function getOptions(
             categoryOptions: [],
             tagOptions: [],
             taxRatesOptions,
+        };
+    }
+
+    if (includePolicyReportFieldOptions) {
+        const transformedPolicyReportFieldOptions = getReportFieldOptionsSection(policyReportFieldOptions, recentlyUsedPolicyReportFieldOptions, selectedOptions, searchInputValue);
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
+            policyReportFieldOptions: transformedPolicyReportFieldOptions,
         };
     }
 
@@ -1868,6 +1977,9 @@ function getFilteredOptions(
     includeTaxRates = false,
     taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
     includeSelfDM = false,
+    includePolicyReportFieldOptions = false,
+    policyReportFieldOptions: string[] = [],
+    recentlyUsedPolicyReportFieldOptions: string[] = [],
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -1892,6 +2004,9 @@ function getFilteredOptions(
             includeTaxRates,
             taxRates,
             includeSelfDM,
+            includePolicyReportFieldOptions,
+            policyReportFieldOptions,
+            recentlyUsedPolicyReportFieldOptions,
         },
     );
 }
@@ -2125,4 +2240,4 @@ export {
     getTaxRatesSection,
 };
 
-export type {MemberForList, CategorySection, GetOptions, OptionList, SearchOption, PayeePersonalDetails, Category};
+export type {MemberForList, CategorySection, CategoryTreeSection, GetOptions, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption};
