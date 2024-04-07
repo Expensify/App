@@ -1,24 +1,22 @@
-import {useNavigation} from '@react-navigation/native';
-import type {StackNavigationProp} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
+import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -26,32 +24,25 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import SearchInputManager from './workspace/SearchInputManager';
 
-type RoomInvitePageOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
-
-type RoomInvitePageProps = RoomInvitePageOnyxProps & WithReportOrNotFoundProps;
+type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 
-function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePageProps) {
+function RoomInvitePage({betas, report, policies}: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [invitePersonalDetails, setInvitePersonalDetails] = useState<ReportUtils.OptionData[]>([]);
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const navigation: StackNavigationProp<RootStackParamList> = useNavigation();
+    const {options, areOptionsInitialized} = useOptionsList();
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
@@ -67,7 +58,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
     );
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetails, betas ?? [], searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
@@ -86,25 +77,12 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         setInvitePersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [personalDetails, betas, searchTerm, excludedUsers]);
-
-    useEffect(() => {
-        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
-            setDidScreenTransitionEnd(true);
-        });
-
-        return () => {
-            unsubscribeTransitionEnd();
-        };
-        // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [betas, searchTerm, excludedUsers, options.personalDetails]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
-        let indexOffset = 0;
 
-        if (!didScreenTransitionEnd) {
+        if (!areOptionsInitialized) {
             return [];
         }
 
@@ -125,9 +103,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         sectionsArr.push({
             title: undefined,
             data: filterSelectedOptionsFormatted,
-            indexOffset,
         });
-        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
@@ -138,20 +114,17 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         sectionsArr.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
-            indexOffset,
         });
-        indexOffset += personalDetailsFormatted.length;
 
         if (hasUnselectedUserToInvite) {
             sectionsArr.push({
                 title: undefined,
                 data: [OptionsListUtils.formatMemberForList(userToInvite)],
-                indexOffset,
             });
         }
 
         return sectionsArr;
-    }, [invitePersonalDetails, searchTerm, selectedOptions, translate, userToInvite, didScreenTransitionEnd]);
+    }, [areOptionsInitialized, selectedOptions, searchTerm, invitePersonalDetails, userToInvite, translate]);
 
     const toggleOption = useCallback(
         (option: OptionsListUtils.MemberForList) => {
@@ -214,6 +187,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
         }
         return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
     }, [searchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -246,7 +220,7 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
                     onConfirm={inviteUsers}
                     showScrollIndicator
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                    showLoadingPlaceholder={!areOptionsInitialized}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton
@@ -266,10 +240,4 @@ function RoomInvitePage({betas, personalDetails, report, policies}: RoomInvitePa
 
 RoomInvitePage.displayName = 'RoomInvitePage';
 
-export default withReportOrNotFound()(
-    withOnyx<RoomInvitePageProps, RoomInvitePageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    })(RoomInvitePage),
-);
+export default withNavigationTransitionEnd(withReportOrNotFound()(RoomInvitePage));

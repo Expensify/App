@@ -13,6 +13,7 @@ import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import * as CollectionUtils from './CollectionUtils';
+import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -77,11 +78,25 @@ function getOrderedReportIDs(
 
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay = allReportsDictValues.filter((report) => {
-        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`;
+        if (!report) {
+            return false;
+        }
+
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
         const parentReportActions = allReportActions?.[parentReportActionsKey];
-        const parentReportAction = parentReportActions?.find((action) => action && report && action?.reportActionID === report?.parentReportActionID);
+        const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+        const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
         const doesReportHaveViolations =
             betas.includes(CONST.BETAS.VIOLATIONS) && !!parentReportAction && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction);
+        const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        const isFocused = report.reportID === currentReportId;
+        const hasErrors = Object.keys(OptionsListUtils.getAllReportErrors(report, reportActions) ?? {}).length !== 0;
+        const hasBrickError = hasErrors || doesReportHaveViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        const shouldOverrideHidden = hasBrickError || isFocused || report.isPinned;
+        if (isHidden && !shouldOverrideHidden) {
+            return false;
+        }
+
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
@@ -93,14 +108,6 @@ function getOrderedReportIDs(
             includeSelfDM: true,
         });
     });
-
-    if (reportsToDisplay.length === 0) {
-        // Display Concierge chat report when there is no report to be displayed
-        const conciergeChatReport = allReportsDictValues.find(ReportUtils.isConciergeChatReport);
-        if (conciergeChatReport) {
-            reportsToDisplay.push(conciergeChatReport);
-        }
-    }
 
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
@@ -133,7 +140,7 @@ function getOrderedReportIDs(
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(report);
-        } else if (report.hasDraft) {
+        } else if (hasValidDraftComment(report.reportID)) {
             draftReports.push(report);
         } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(report);
@@ -208,7 +215,6 @@ function getOptionData({
         phoneNumber: null,
         isUnread: null,
         isUnreadWithMention: null,
-        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isPinned: false,
@@ -257,7 +263,6 @@ function getOptionData({
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
     result.isUnread = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
-    result.hasDraftComment = report.hasDraft;
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
@@ -374,7 +379,10 @@ function getOptionData({
                       .join(' ');
         }
 
-        result.alternateText = ReportUtils.isGroupChat(report) && lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageText}` : lastMessageText || formattedLogin;
+        result.alternateText =
+            (ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report)) && lastActorDisplayName
+                ? `${lastActorDisplayName}: ${lastMessageText}`
+                : lastMessageText || formattedLogin;
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);

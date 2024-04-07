@@ -2,7 +2,7 @@ import {deepEqual} from 'fast-equals';
 import lodashGet from 'lodash/get';
 import lodashMap from 'lodash/map';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -93,6 +93,8 @@ const propTypes = {
         ),
     }),
 
+    reportsDrafts: PropTypes.objectOf(PropTypes.string),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -105,6 +107,7 @@ const defaultProps = {
     policyMembers: {},
     transactionViolations: {},
     allReportActions: {},
+    reportsDrafts: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -123,6 +126,7 @@ function SidebarLinksData({
     policyMembers,
     transactionViolations,
     currentUserPersonalDetails,
+    reportsDrafts,
 }) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -136,18 +140,26 @@ function SidebarLinksData({
 
     const reportIDsRef = useRef(null);
     const isLoading = isLoadingApp;
+
+    const optionItemsMemoized = useMemo(
+        () =>
+            SidebarUtils.getOrderedReportIDs(
+                null,
+                chatReports,
+                betas,
+                policies,
+                priorityMode,
+                allReportActions,
+                transactionViolations,
+                activeWorkspaceID,
+                policyMemberAccountIDs,
+                reportsDrafts,
+            ),
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
+    );
+
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(
-            null,
-            chatReports,
-            betas,
-            policies,
-            priorityMode,
-            allReportActions,
-            transactionViolations,
-            activeWorkspaceID,
-            policyMemberAccountIDs,
-        );
+        const reportIDs = optionItemsMemoized;
 
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
@@ -160,7 +172,7 @@ function SidebarLinksData({
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, isLoading, network.isOffline, prevPriorityMode]);
+    }, [optionItemsMemoized, priorityMode, isLoading, network.isOffline, prevPriorityMode]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -223,7 +235,6 @@ const chatReportSelector = (report) =>
     report && {
         reportID: report.reportID,
         participantAccountIDs: report.participantAccountIDs,
-        hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,
@@ -333,5 +344,33 @@ export default compose(
             key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
             initialValue: {},
         },
+        reportsDrafts: {
+            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+            initialValue: {},
+        },
     }),
-)(SidebarLinksData);
+)(
+    /* 
+        While working on audit on the App Start App metric we noticed that by memoizing SidebarLinksData we can avoid 2 additional run of getOrderedReportIDs.
+        With that we can reduce app start up time by ~2s on heavy account.
+        More details - https://github.com/Expensify/App/issues/35234#issuecomment-1926914534
+    */
+    memo(
+        SidebarLinksData,
+        (prevProps, nextProps) =>
+            _.isEqual(prevProps.chatReports, nextProps.chatReports) &&
+            _.isEqual(prevProps.allReportActions, nextProps.allReportActions) &&
+            prevProps.isLoadingApp === nextProps.isLoadingApp &&
+            prevProps.priorityMode === nextProps.priorityMode &&
+            _.isEqual(prevProps.betas, nextProps.betas) &&
+            _.isEqual(prevProps.policies, nextProps.policies) &&
+            prevProps.network.isOffline === nextProps.network.isOffline &&
+            _.isEqual(prevProps.insets, nextProps.insets) &&
+            prevProps.onLinkClick === nextProps.onLinkClick &&
+            _.isEqual(prevProps.policyMembers, nextProps.policyMembers) &&
+            _.isEqual(prevProps.transactionViolations, nextProps.transactionViolations) &&
+            _.isEqual(prevProps.currentUserPersonalDetails, nextProps.currentUserPersonalDetails) &&
+            prevProps.currentReportID === nextProps.currentReportID &&
+            _.isEqual(prevProps.reportsDrafts, nextProps.reportsDrafts),
+    ),
+);
