@@ -3011,7 +3011,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>) {
+function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
     const message = reportAction?.message?.[0];
     if (!message) {
         return;

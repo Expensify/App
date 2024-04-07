@@ -1219,7 +1219,6 @@ function getMoneyRequestInformation(
     } else {
         iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
     }
-
     // STEP 3: Build optimistic receipt and transaction
     const receiptObject: Receipt = {};
     let filename;
@@ -2521,7 +2520,7 @@ function requestMoney(
         isMovingTransactionFromTrackExpense ? {} : currentChatReport,
         participant,
         comment,
-        amount,
+        isMovingTransactionFromTrackExpense ? Math.abs(amount) : amount,
         currency,
         currentCreated,
         merchant,

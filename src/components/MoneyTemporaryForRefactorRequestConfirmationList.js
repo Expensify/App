@@ -27,6 +27,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -935,11 +936,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         isLocalFile,
     } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
 
+    const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail);
+    const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage);
+
     const receiptThumbnailContent = useMemo(
         () =>
             isLocalFile && Str.isPDF(receiptFilename) ? (
                 <PDFThumbnail
-                    previewSourceURL={receiptImage}
+                    previewSourceURL={resolvedThumbnail}
                     style={styles.moneyRequestImage}
                     // We don't support scaning password protected PDF receipt
                     enabled={!isAttachmentInvalid}
@@ -949,7 +953,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <ReceiptImage
                     style={styles.moneyRequestImage}
                     isThumbnail={isThumbnail}
-                    source={receiptThumbnail || receiptImage}
+                    source={resolvedThumbnail || resolvedReceiptImage}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
                     // So if we have a thumbnail, it means we're retrieving the image from the server
@@ -957,7 +961,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     fileExtension={fileExtension}
                 />
             ),
-        [isLocalFile, receiptFilename, receiptImage, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, receiptThumbnail, fileExtension],
+        [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension],
     );
 
     return (

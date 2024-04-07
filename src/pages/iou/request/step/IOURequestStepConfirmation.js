@@ -179,13 +179,18 @@ function IOURequestStepConfirmation({
     }, [transaction, iouType, requestType, transactionID, reportID, iouAction]);
 
     const navigateToAddReceipt = useCallback(() => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-    }, [iouType, transactionID, reportID]);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(iouAction, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+    }, [iouType, transactionID, reportID, iouAction]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
+    // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
+        if ([CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(iouAction)) {
+            return;
+        }
+
         const onSuccess = (file) => {
             const receipt = file;
             receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
@@ -193,7 +198,7 @@ function IOURequestStepConfirmation({
         };
 
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
-    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID]);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, iouAction]);
 
     /**
      * @param {Array} selectedParticipants
