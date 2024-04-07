@@ -10,7 +10,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
-    icon: IconAsset;
+    icon?: IconAsset;
     /** Title of the option */
     title: string;
     /** Subtitle of the option */
@@ -43,14 +43,16 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
             <View style={styles.pRelative}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                        <Icon
-                            src={icon}
-                            height={ICON_SIZE}
-                            width={ICON_SIZE}
-                            additionalStyles={{
-                                ...styles.mr3,
-                            }}
-                        />
+                        {icon && (
+                            <Icon
+                                src={icon}
+                                height={ICON_SIZE}
+                                width={ICON_SIZE}
+                                additionalStyles={{
+                                    ...styles.mr3,
+                                }}
+                            />
+                        )}
                         <View style={[styles.flexColumn, styles.flex1]}>
                             <Text
                                 style={{
