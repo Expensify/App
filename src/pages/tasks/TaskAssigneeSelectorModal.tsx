@@ -69,7 +69,10 @@ function useOptions() {
             false,
             {} as TaxRatesWithDefault,
             false,
-            CONST.REPORT.TYPE.TASK,
+            false,
+            [],
+            [],
+            CONST.REPORT.TYPE.TASK, 
         );
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
