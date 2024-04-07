@@ -4354,7 +4354,7 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
 function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): boolean {
     const currentReport = getReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : null);
-    const reportActions = ReportActionsUtils.getAllReportActions(report?.reportID ?? '');
+    const reportActions = Onyx.connect(report?.reportID ?? '');
     const isChildReportHasComment = Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
@@ -5691,14 +5691,14 @@ function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, rep
  * Checks if report chat contains missing payment method
  */
 function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID: string): boolean {
-    let hasMissingPayment = false;
+    const reportActions = {};
     Onyx.connect({
         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        callback: (reportActions) => {
-            hasMissingPayment = Object.values(reportActions).some((action) => getIndicatedMissingPaymentMethod(userWallet, iouReportID, action) !== undefined);
+        callback: (data) => {
+            reportActions = data;
         },
     });
-    return hasMissingPayment;
+    return Object.values(reportActions).some((action) => getIndicatedMissingPaymentMethod(userWallet, iouReportID, action) !== undefined);
 }
 
 /**
@@ -5716,14 +5716,13 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
  * Checks if report contains actions with errors
  */
 function hasActionsWithErrors(reportID: string): boolean {
-    let reportActions: ReportActions = {};
+    const reportActions = {};
     Onyx.connect({
         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         callback: (data) => {
-            reportActions = data[reportID] ?? {};
+            reportActions = data;
         },
     });
-
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
 
