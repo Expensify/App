@@ -236,11 +236,13 @@ function Expensify({
                 const value = await OnyxStorage.getItem(testKey);
 
                 console.log(value);
+
+                return Promise.resolve();
             };
 
             await Onyx.set(testKey, initialData);
-            printValueInSqlite();
             console.log('after set');
+            await printValueInSqlite();
             Onyx.merge(testKey, change1);
             console.log('after merge 1');
             Onyx.merge(testKey, change2);
@@ -251,9 +253,8 @@ function Expensify({
             console.log('after merge 4');
 
             await promise;
-            printValueInSqlite();
-
             console.log('after await merge 4');
+            await printValueInSqlite();
         }, 10000);
 
         return () => {
