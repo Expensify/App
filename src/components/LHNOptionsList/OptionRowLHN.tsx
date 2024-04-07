@@ -27,7 +27,7 @@ import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}}: OptionRowLHNProps) {
+function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -248,7 +248,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     />
                                 </View>
                             )}
-                            {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
+                            {hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
