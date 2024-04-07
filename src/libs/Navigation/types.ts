@@ -606,6 +606,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
@@ -623,6 +626,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_ADVANCED]: {
         policyID: string;
     };
 };
