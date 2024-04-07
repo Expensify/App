@@ -7,7 +7,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {MagnifyingGlass} from '@components/Icon/Expensicons';
 import OptionRow from '@components/OptionRow';
-// import OptionsSelector from '@components/OptionsSelector';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -237,54 +236,22 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 </View>
 
                 {usersWorkspaces.length > 0 ? (
-                    <>
-                        {/* <OptionsSelector
-                        // @ts-expect-error TODO: remove this comment once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TS
-                        placeholder={translate('workspace.switcher.placeholder')}
-                        ref={inputCallbackRef}
+                    <SelectionList
+                        textInputPlaceholder={translate('workspace.switcher.placeholder')}
                         sections={[usersWorkspacesSectionData]}
-                        value={searchTerm}
+                        textInputValue={searchTerm}
                         shouldShowTextInput={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
                         onChangeText={setSearchTerm}
-                        selectedOptions={selectedOption ? [selectedOption] : []}
                         onSelectRow={selectPolicy}
                         shouldPreventDefaultFocusOnSelectRow
                         headerMessage={headerMessage}
-                        highlightSelectedOptions
-                        shouldShowOptions
-                        autoFocus={false}
-                        canSelectMultipleOptions={false}
-                        shouldShowSubscript={false}
-                        showTitleTooltip={false}
+                        canSelectMultiple={false}
+                        shouldShowTooltips={false}
                         contentContainerStyles={[styles.pt0, styles.mt0]}
-                        textIconLeft={MagnifyingGlass}
-                        // Null is to avoid selecting unfocused option when Global selected, undefined is to focus selected workspace
-                        initiallyFocusedOptionKey={!activeWorkspaceID ? null : undefined}
-                    /> */}
-
-                        <SelectionList
-                            textInputPlaceholder={translate('workspace.switcher.placeholder')} // In place of placeholder prop of OptionsSelector
-                            // ref={inputCallbackRef} Not required in SelectionList
-                            sections={[usersWorkspacesSectionData]}
-                            textInputValue={searchTerm} // In place of value prop of OptionsSelector
-                            shouldShowTextInput={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH} // New prop added
-                            onChangeText={setSearchTerm}
-                            // selectedOptions={selectedOption ? [selectedOption] : []} > Not in SelectionList > Not required > I added isSelected key to sections
-                            onSelectRow={selectPolicy}
-                            shouldPreventDefaultFocusOnSelectRow
-                            headerMessage={headerMessage}
-                            // highlightSelectedOptions > To add checkmark to seleted option > Not in SelectionList > Not required > BaseListItem adds the checkmark by default if item has isSelected
-                            // shouldShowOptions > To show loader if false > Not in SelectionList > Not required since isLoading is false by default in SelectionList
-                            // autoFocus={false} > Not in SelectionList > Not required > SelectionList handles text input focus
-                            canSelectMultiple={false} // In place of canSelectMultipleOptions prop of OptionsSelector
-                            // shouldShowSubscript={false} > Not in SelectionList > Also removed from OptionsSelector so no change needed for this
-                            shouldShowTooltips={false} // In place of showTitleTooltip prop of OptionsSelector
-                            contentContainerStyles={[styles.pt0, styles.mt0]} // New prop added
-                            textInputIconLeft={MagnifyingGlass} // New prop added
-                            initiallyFocusedOptionKey={activeWorkspaceID}
-                            ListItem={UserListItem}
-                        />
-                    </>
+                        textInputIconLeft={MagnifyingGlass}
+                        initiallyFocusedOptionKey={activeWorkspaceID}
+                        ListItem={UserListItem}
+                    />
                 ) : (
                     <WorkspaceCardCreateAWorkspace />
                 )}
