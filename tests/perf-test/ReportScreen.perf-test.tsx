@@ -43,7 +43,6 @@ jest.mock('react-native-reanimated', () => {
         useSharedValue: jest.fn,
         useAnimatedStyle: jest.fn,
         useAnimatedRef: jest.fn,
-        useReducedMotion: jest.fn,
     } as typeof Animated;
 });
 

@@ -766,36 +766,37 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ImageStyle {
     if (isSmallScreenWidth) {
         return {
+            position: 'absolute',
+            bottom: 0,
             height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '100%',
         };
     }
 
     return {
+        position: 'absolute',
+        bottom: 0,
         height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
         width: '100%',
     };
 }
+
 /**
  * Gets the style for the container of the empty state background image that overlap the created report action
  */
-function getReportWelcomeBackgroundContainerStyle(styles: ThemeStyles, isSmallScreenWidth: boolean, isOverlapBackgroundImage = false): ViewStyle {
+function getReportWelcomeBackgroundContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
     if (isSmallScreenWidth) {
         return {
-            height: isOverlapBackgroundImage ? CONST.EMPTY_STATE_BACKGROUND.OVERLAP : CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
-            overflow: 'hidden',
-            width: '100%',
             position: 'absolute',
-            top: isOverlapBackgroundImage ? -styles.chatContentScrollView.paddingBottom : -(CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP),
+            top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
+            width: '100%',
         };
     }
 
     return {
-        height: isOverlapBackgroundImage ? CONST.EMPTY_STATE_BACKGROUND.OVERLAP : CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
-        overflow: 'hidden',
-        width: '100%',
         position: 'absolute',
-        top: isOverlapBackgroundImage ? -styles.chatContentScrollView.paddingBottom : -(CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT - CONST.EMPTY_STATE_BACKGROUND.OVERLAP),
+        top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
+        width: '100%',
     };
 }
 

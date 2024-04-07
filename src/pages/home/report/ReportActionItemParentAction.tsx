@@ -85,8 +85,8 @@ function ReportActionItemParentAction({
     }, []);
 
     return (
-        <View style={styles.pRelative}>
-            <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+        <View style={[styles.pRelative]}>
+            <AnimatedEmptyStateBackground />
             {allAncestors.map((ancestor) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}

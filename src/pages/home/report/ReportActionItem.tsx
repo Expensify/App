@@ -691,8 +691,8 @@ function ReportActionItem({
                     message = 'parentReportAction.deletedRequest';
                 }
                 return (
-                    <View style={styles.pRelative}>
-                        <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+                    <View style={[styles.pRelative]}>
+                        <AnimatedEmptyStateBackground />
                         <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
                             <ReportActionItemSingle
                                 action={parentReportAction}
@@ -719,8 +719,8 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <View style={styles.pRelative}>
-                        <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+                    <View style={[styles.pRelative]}>
+                        <AnimatedEmptyStateBackground />
                         <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
                             <ReportActionItemSingle
                                 action={parentReportAction}
@@ -735,8 +735,8 @@ function ReportActionItem({
                 );
             }
             return (
-                <View style={styles.pRelative}>
-                    <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+                <View style={[styles.pRelative]}>
+                    <AnimatedEmptyStateBackground />
                     <TaskView
                         report={report}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}

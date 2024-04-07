@@ -57,8 +57,8 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
             onClose={() => navigateToConciergeChatAndDeleteReport(props.report?.reportID ?? props.reportID)}
             needsOffscreenAlphaCompositing
         >
-            <View style={styles.pRelative}>
-                <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+            <View style={[styles.pRelative]}>
+                <AnimatedEmptyStateBackground />
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}

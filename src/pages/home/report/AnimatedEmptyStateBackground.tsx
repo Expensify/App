@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -12,13 +11,8 @@ import CONST from '@src/CONST';
 const IMAGE_OFFSET_X = 30;
 const IMAGE_OFFSET_Y = 20;
 
-type AnimatedEmptyStateBackgroundProps = {
-    /** Whether we should display the image as the overlap of report action */
-    isOverlapBackgroundImage?: boolean;
-};
-function AnimatedEmptyStateBackground({isOverlapBackgroundImage = false}: AnimatedEmptyStateBackgroundProps) {
+function AnimatedEmptyStateBackground() {
     const StyleUtils = useStyleUtils();
-    const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
 
@@ -52,15 +46,10 @@ function AnimatedEmptyStateBackground({isOverlapBackgroundImage = false}: Animat
     }, [isReducedMotionEnabled]);
 
     return (
-        <View
-            style={[
-                isOverlapBackgroundImage ? styles.justifyContentEnd : styles.justifyContentStart,
-                StyleUtils.getReportWelcomeBackgroundContainerStyle(styles, isSmallScreenWidth, isOverlapBackgroundImage),
-            ]}
-        >
+        <View style={StyleUtils.getReportWelcomeBackgroundContainerStyle(isSmallScreenWidth)}>
             <Animated.Image
                 source={illustrations.EmptyStateBackgroundImage}
-                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
+                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth)]}
                 resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
             />
         </View>

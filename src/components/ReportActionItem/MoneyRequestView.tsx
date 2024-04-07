@@ -252,7 +252,7 @@ function MoneyRequestView({
     );
 
     return (
-        <View style={styles.pRelative}>
+        <View style={[styles.pRelative]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}

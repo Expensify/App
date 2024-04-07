@@ -61,8 +61,8 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
     }, [policy, report]);
 
     return (
-        <View style={styles.pRelative}>
-            <AnimatedEmptyStateBackground isOverlapBackgroundImage />
+        <View style={[styles.pRelative]}>
+            <AnimatedEmptyStateBackground />
             {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
                 <>
                     {ReportUtils.reportFieldsEnabled(report) &&
