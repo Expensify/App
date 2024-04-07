@@ -1599,7 +1599,7 @@ function getOptions(
         };
     }
 
-    const recentReportOptionsByAction = [];
+    const recentReportOptionsByAction: ReportUtils.OptionData[] = [];
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
     const topmostReportId = Navigation.getTopmostReportId() ?? '';
@@ -1731,7 +1731,7 @@ function getOptions(
 
     const optionsToExcludeByActions: Option[] = [];
     optionsToExcludeByActions.push(...optionsToExclude);
-    let recentReportOptions = [];
+    let recentReportOptions: ReportUtils.OptionData[] = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
     if (includeRecentReports) {
         // Collect the highest context (i.e. DM/Workspace chat) of the money request report for consideration in recent list.
