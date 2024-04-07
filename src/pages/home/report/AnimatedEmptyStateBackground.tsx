@@ -49,7 +49,7 @@ function AnimatedEmptyStateBackground() {
         <View style={StyleUtils.getReportWelcomeBackgroundContainerStyle(isSmallScreenWidth)}>
             <Animated.Image
                 source={illustrations.EmptyStateBackgroundImage}
-                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth)]}
+                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
                 resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
             />
         </View>
