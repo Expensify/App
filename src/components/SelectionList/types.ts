@@ -33,7 +33,7 @@ type CommonListItemProps<TItem> = {
     onDismissError?: (item: TItem) => void;
 
     /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem> | null) | ReactElement | null;
 
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
@@ -278,7 +278,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     isKeyboardShown?: boolean;
 
     /** Component to display on the right side of each child */
-    rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
+    rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem> | null) | ReactElement | null;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
@@ -297,6 +297,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Ref for textInput */
     textInputRef?: MutableRefObject<TextInput | null>;
+
+    /**
+     * When true, the list won't be visible until the list layout is measured. This prevents the list from "blinking" as it's scrolled to the bottom which is recommended for large lists.
+     * When false, the list will render immediately and scroll to the bottom which works great for small lists.
+     */
+    shouldHideListOnInitialRender?: boolean;
 };
 
 type SelectionListHandle = {

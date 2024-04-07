@@ -121,6 +121,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
 
+    /** 0 - 100 number indicating current progress of the progress bar */
+    progressBarPercentage?: number;
+
     /** Policy avatar to display in the header */
     policyAvatar?: Icon;
 
