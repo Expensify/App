@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {Storage as OnyxStorage, withOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -232,16 +232,28 @@ function Expensify({
         setTimeout(async () => {
             const testKey = 'test_key_1';
 
-            connectId = Onyx.connect({
-                key: testKey,
-                callback: (value) => console.log({value: JSON.stringify(value, null, 2)}),
-            });
+            const printValueInSqlite = async () => {
+                const value = await OnyxStorage.getItem(testKey);
+
+                console.log(value);
+            };
 
             await Onyx.set(testKey, initialData);
+            printValueInSqlite();
+            console.log('after set');
             Onyx.merge(testKey, change1);
+            console.log('after merge 1');
             Onyx.merge(testKey, change2);
+            console.log('after merge 2');
             Onyx.merge(testKey, change3);
-            Onyx.merge(testKey, change4);
+            console.log('after merge 3');
+            const promise = Onyx.merge(testKey, change4);
+            console.log('after merge 4');
+
+            await promise;
+            printValueInSqlite();
+
+            console.log('after await merge 4');
         }, 10000);
 
         return () => {
