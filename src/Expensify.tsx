@@ -200,6 +200,57 @@ function Expensify({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
+    useEffect(() => {
+        let connectId: number | undefined;
+
+        const initialData = {
+            a: 'a',
+            b: 'b',
+            c: {
+                d: 'd',
+                e: 'e',
+            },
+        };
+        const change1 = {
+            b: null,
+        };
+        const change2 = null;
+        const change3 = {
+            f: 'f',
+            c: {
+                g: 'g',
+                h: 'h',
+            },
+        };
+        const change4 = {
+            c: {
+                g: null,
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises, @lwc/lwc/no-async-await
+        setTimeout(async () => {
+            const testKey = 'test_key_1';
+
+            connectId = Onyx.connect({
+                key: testKey,
+                callback: (value) => console.log({value: JSON.stringify(value, null, 2)}),
+            });
+
+            await Onyx.set(testKey, initialData);
+            Onyx.merge(testKey, change1);
+            Onyx.merge(testKey, change2);
+            Onyx.merge(testKey, change3);
+            Onyx.merge(testKey, change4);
+        }, 10000);
+
+        return () => {
+            if (connectId) {
+                Onyx.disconnect(connectId);
+            }
+        };
+    }, []);
+
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
