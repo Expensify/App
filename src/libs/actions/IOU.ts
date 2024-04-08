@@ -1370,6 +1370,7 @@ function createDistanceRequest(
         moneyRequestReportID,
     );
 
+    const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
     const parameters: CreateDistanceRequestParams = {
         comment,
         iouReportID: iouReport.reportID,
@@ -1390,8 +1391,7 @@ function createDistanceRequest(
     };
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
-    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
-    const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
+    Navigation.dismissModal(activeReportID);
     Report.notifyNewAction(activeReportID, userAccountID);
 }
 
