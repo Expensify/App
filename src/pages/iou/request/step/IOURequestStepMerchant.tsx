@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,7 +10,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -42,7 +40,6 @@ type IOURequestStepMerchantOnyxProps = {
 };
 
 type IOURequestStepMerchantProps = IOURequestStepMerchantOnyxProps &
-    StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT> &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT> &
     // TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
     // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents

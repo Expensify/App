@@ -1,5 +1,4 @@
 import {useNavigation} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,7 +6,6 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
@@ -31,7 +29,6 @@ type IOURequestStepParticipantsOnyxProps = {
 type IOUValueType = ValueOf<typeof CONST.IOU.TYPE>;
 
 type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
-    StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     // TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
     // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
