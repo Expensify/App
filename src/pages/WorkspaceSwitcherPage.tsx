@@ -21,6 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
@@ -272,7 +273,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
         <ScreenWrapper testID={WorkspaceSwitcherPage.displayName}>
             <HeaderWithBackButton
                 title={translate('workspace.switcher.headerTitle')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={navigationSidebarRef.goBack}
             />
             {everythingSection}
             {workspacesSection}

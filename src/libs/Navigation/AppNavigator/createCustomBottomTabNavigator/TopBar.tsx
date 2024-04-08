@@ -11,12 +11,13 @@ import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import SignInButton from '@pages/home/sidebar/SignInButton';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Policy, Session as SessionType} from '@src/types/onyx';
 
 type TopBarOnyxProps = {
@@ -66,7 +67,11 @@ function TopBar({policy, session}: TopBarProps) {
                         <PressableWithoutFeedback
                             accessibilityLabel={translate('sidebarScreen.buttonSearch')}
                             style={[styles.flexRow, styles.mr2]}
-                            onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH))}
+                            onPress={Session.checkIfActionIsAllowed(() =>
+                                navigationSidebarRef.navigate(NAVIGATORS.LEFT_MODAL_NAVIGATOR, {
+                                    screen: SCREENS.LEFT_MODAL.SEARCH,
+                                }),
+                            )}
                         >
                             <Icon
                                 src={Expensicons.MagnifyingGlass}

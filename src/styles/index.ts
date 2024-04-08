@@ -130,8 +130,10 @@ const headlineFont = {
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        width: '100%',
+        // width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
         height: '100%',
+        zIndex: 10000,
     } satisfies ViewStyle);
 
 const webViewStyles = (theme: ThemeColors) =>

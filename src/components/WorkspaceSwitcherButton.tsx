@@ -4,10 +4,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
+import {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import * as Expensicons from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
@@ -49,7 +50,9 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
                 onPress={() => {
                     pressableRef?.current?.blur();
                     interceptAnonymousUser(() => {
-                        Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
+                        navigationSidebarRef.navigate(NAVIGATORS.LEFT_MODAL_NAVIGATOR, {
+                            screen: SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER,
+                        });
                     });
                 }}
             >

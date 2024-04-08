@@ -43,7 +43,8 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 ...StyleUtils.getNavigationModalCardStyle(),
 
                 // This is necessary to cover translated sidebar with overlay.
-                width: isSmallScreenWidth ? '100%' : '200%',
+                // width: isSmallScreenWidth ? '100%' : '200%',
+                width: '100%',
                 // Excess space should be on the left so we need to position from right.
                 right: 0,
             },

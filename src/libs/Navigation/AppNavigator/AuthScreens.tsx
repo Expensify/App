@@ -358,12 +358,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         component={FullScreenNavigator}
                     />
                     <RootStack.Screen
-                        name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
-                        options={screenOptions.leftModalNavigator}
-                        component={LeftModalNavigator}
-                        listeners={modalScreenListeners}
-                    />
-                    <RootStack.Screen
                         name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                         options={screenOptions.fullScreen}
                         component={DesktopSignInRedirectPage}

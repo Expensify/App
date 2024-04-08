@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import {navigationSidebarRef} from '@libs/Navigation/navigationRef';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
@@ -147,7 +148,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                 <>
                     <HeaderWithBackButton
                         title={translate('common.search')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={navigationSidebarRef.goBack}
                     />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
                         <SelectionList<OptionData>
