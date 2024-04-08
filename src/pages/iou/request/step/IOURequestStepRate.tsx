@@ -65,8 +65,7 @@ function IOURequestStepRate({
     const initiallyFocusedOption = rates[lastSelectedRate]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
 
     function selectDistanceRate(customUnitRateID: string) {
-        IOU.setLastSelectedDistanceRates(policy?.id ?? '', customUnitRateID);
-        IOU.updateDistanceRequestRate('1', customUnitRateID);
+        IOU.updateDistanceRequestRate('1', customUnitRateID, policy?.id ?? '');
         Navigation.goBack(backTo);
     }
 
@@ -106,8 +105,7 @@ export default compose(
         rates: {
             // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
-            // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
-            selector: (policy) => DistanceRequestUtils.getMileageRates(policy ? policy.id : ''),
+            selector: DistanceRequestUtils.getMileageRates,
         },
     }),
     // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS

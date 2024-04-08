@@ -1,10 +1,12 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 
@@ -28,6 +30,9 @@ Onyx.connect({
     },
 });
 
+const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
+const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
+
 /**
  * Retrieves the default mileage rate based on a given policy.
  *
@@ -38,7 +43,7 @@ Onyx.connect({
  * @returns [currency] - The currency associated with the rate.
  * @returns [unit] - The unit of measurement for the distance.
  */
-function getDefaultMileageRate(policy: OnyxEntry<Policy>): MileageRate | null {
+function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): MileageRate | null {
     if (!policy?.customUnits) {
         return null;
     }
@@ -71,9 +76,6 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy>): MileageRate | null {
  * @returns The converted distance in the specified unit.
  */
 function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
-    const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
-    const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
-
     switch (unit) {
         case CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS:
             return distanceInMeters * METERS_TO_KM;
@@ -176,20 +178,18 @@ function getDistanceMerchant(
 /**
  * Retrieves the mileage rates for given policy.
  *
- * @param policyID - The policy ID from which to extract the mileage rates.
+ * @param policy - The policy from which to extract the mileage rates.
  *
  * @returns An array of mileage rates or an empty array if not found.
  */
-function getMileageRates(policyID?: string): Record<string, MileageRate> {
+function getMileageRates(policy: OnyxEntry<Policy>): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
 
-    if (!policyID) {
+    if (!policy) {
         return mileageRates;
     }
 
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? null;
-
-    if (!policy || !policy?.customUnits) {
+    if (!policy?.customUnits) {
         return mileageRates;
     }
 
@@ -211,7 +211,7 @@ function getMileageRates(policyID?: string): Record<string, MileageRate> {
     return mileageRates;
 }
 
-function getRateForP2P(currency: string) {
+function getRateForP2P(currency: string): RateAndUnit {
     return CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
 }
 
@@ -229,6 +229,25 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
     return Math.round(roundedDistance * rate);
 }
 
+/**
+ * Extracts the distance from a merchant string.
+ *
+ * @param merchant - The merchant string containing the distance.
+ * @returns The distance extracted from the merchant string.
+ */
+function getDistanceFromMerchant(merchant: string | undefined, unit: Unit): number {
+    if (!merchant) {
+        return 0;
+    }
+
+    const distance = Number(merchant.split(' ')[0]);
+    if (!distance) {
+        return 0;
+    }
+
+    return unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? distance / METERS_TO_KM : distance / METERS_TO_MILES;
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -237,6 +256,7 @@ export default {
     getMileageRates,
     getDistanceForDisplay,
     getRateForP2P,
+    getDistanceFromMerchant,
 };
 
 export type {MileageRate};

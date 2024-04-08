@@ -4286,6 +4286,6 @@ const CONST = {
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
-export type {Country};
+export type {Country, RateAndUnit};
 
 export default CONST;

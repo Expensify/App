@@ -284,13 +284,15 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
             waypoint0: {},
             waypoint1: {},
         };
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-        let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-        if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
-            customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID ?? '';
+        if (!isFromGlobalCreate) {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+            const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
+            let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+            if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
+                customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID ?? '';
+            }
+            comment.customUnit = {customUnitRateID};
         }
-        comment.customUnit = {customUnitRateID};
     }
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
@@ -418,13 +420,24 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
     });
 }
 
-/** Set the last selected distance rate for policy */
-function setLastSelectedDistanceRates(policyID: string, rateID: string) {
-    Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: rateID});
+/** Set custom unit rateID for the transaction draft */
+function setCustomUnitRateID(transactionID: string, reportID: string) {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
+    const policy = getPolicy(report?.policyID) ?? null;
+
+    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+
+    if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
+        customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID ?? '';
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
 }
 
 /** Update transaction distance rate */
-function updateDistanceRequestRate(transactionID: string, rateID: string) {
+function updateDistanceRequestRate(transactionID: string, rateID: string, policyID: string) {
+    Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: rateID});
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
 }
 
@@ -5296,6 +5309,7 @@ export {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setShownHoldUseExplanation,
+    setCustomUnitRateID,
     updateMoneyRequestDate,
     updateMoneyRequestBillable,
     updateMoneyRequestMerchant,
@@ -5317,6 +5331,5 @@ export {
     trackExpense,
     canIOUBePaid,
     canApproveIOU,
-    setLastSelectedDistanceRates,
     updateDistanceRequestRate,
 };

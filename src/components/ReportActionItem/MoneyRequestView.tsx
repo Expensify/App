@@ -21,6 +21,7 @@ import type {ViolationField} from '@hooks/useViolations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -64,6 +65,9 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
 
     /** The actions from the parent report */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+
+    /** The rates for the policy */
+    rates: Record<string, MileageRate>;
 };
 
 type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutTransaction & {
@@ -90,6 +94,7 @@ function MoneyRequestView({
     policy,
     transactionViolations,
     shouldShowAnimatedBackground,
+    rates,
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -172,15 +177,14 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
-    const distance = transaction?.routes?.route0?.distance ?? 0;
     const rateID = transaction?.comment.customUnit?.customUnitRateID ?? '0';
 
-    const rates = DistanceRequestUtils.getMileageRates(policy?.id);
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : rates[rateID as string];
     const {unit, rate} = mileageRate;
 
+    const distance = DistanceRequestUtils.getDistanceFromMerchant(transactionMerchant, unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
@@ -553,6 +557,10 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     parentReportActions: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
+    },
+    rates: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+        selector: DistanceRequestUtils.getMileageRates,
     },
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({

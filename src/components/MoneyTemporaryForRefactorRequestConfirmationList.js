@@ -261,19 +261,16 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
     const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
-    // if there is no policyID that means that the transaction was started from Global Create and the participant is not a policy
-    const personalPolicy = policyID === CONST.POLICY.ID_FAKE || !policyID ? PolicyUtils.getPersonalPolicy() : policy;
+    const customUnitRateID = lodashGet(transaction, 'comment.customUnit.customUnitRateID', '');
 
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-        ? DistanceRequestUtils.getRateForP2P(personalPolicy.outputCurrency)
-        : mileageRates[transaction.comment.customUnit.customUnitRateID];
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policy.outputCurrency) : mileageRates[customUnitRateID];
 
     const {unit, rate} = mileageRate || {
         unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
         rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * 100,
     };
 
-    const currency = mileageRate.currency || personalPolicy.outputCurrency;
+    const currency = mileageRate && mileageRate.currency ? mileageRate.currency : policy.outputCurrency;
 
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const taxRates = lodashGet(policy, 'taxRates', {});
@@ -1097,10 +1094,11 @@ export default compose(
         },
         mileageRates: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            selector: (policy) => DistanceRequestUtils.getMileageRates(policy ? policy.id : ''),
+            selector: DistanceRequestUtils.getMileageRates,
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            selector: (policy, props) => (!policy || (props && props.policyID) === CONST.POLICY.ID_FAKE ? PolicyUtils.getPersonalPolicy() : policy),
         },
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);
