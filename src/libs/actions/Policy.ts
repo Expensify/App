@@ -1300,7 +1300,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: onyxKey,
+            key: policyKey,
 
             // Convert to object with each key containing {pendingAction: ‘add’}
             value: {
@@ -1315,7 +1315,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: onyxKey,
+            key: policyKey,
             value: {
                 employeeList: successMembersState,
             },
@@ -1328,7 +1328,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: onyxKey,
+            key: policyKey,
 
             // Convert to object with each key containing the error. We don’t
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
