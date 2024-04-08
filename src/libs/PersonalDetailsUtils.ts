@@ -17,11 +17,18 @@ type FirstAndLastName = {
 
 let personalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
+        emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
+            if (detail?.login) {
+                acc[detail.login.toLowerCase()] = detail;
+            }
+            return acc;
+        }, {});
     },
 });
 
@@ -77,7 +84,7 @@ function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: num
 }
 
 function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
-    return (Object.values(allPersonalDetails ?? {}) as PersonalDetails[]).find((detail) => detail?.login === email);
+    return emailToPersonalDetailsCache[email.toLowerCase()];
 }
 
 /**

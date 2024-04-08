@@ -2745,7 +2745,7 @@ function splitBill(
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal();
+    Navigation.dismissModal(existingSplitChatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -4754,8 +4754,8 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
     const policy = getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
-    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED);
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
+    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
 
     const optimisticData: OnyxUpdate[] = !isSubmitAndClosePolicy
         ? [
@@ -4780,11 +4780,6 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                       statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                   },
               },
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-                  value: optimisticNextStep,
-              },
           ]
         : [
               {
@@ -4797,6 +4792,12 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                   },
               },
           ];
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+        value: optimisticNextStep,
+    });
 
     if (parentReport?.reportID) {
         optimisticData.push({
@@ -4833,24 +4834,22 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStep,
+        },
     ];
     if (!isSubmitAndClosePolicy) {
-        failureData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-                value: {
-                    [optimisticSubmittedReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
-                    },
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticSubmittedReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-                value: currentNextStep,
-            },
-        );
+        });
     }
 
     if (parentReport?.reportID) {
