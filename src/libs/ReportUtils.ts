@@ -4862,6 +4862,12 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     return !isPolicyExpenseChat(report) || isOwnPolicyExpenseChat;
 }
 
+function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: Number) {
+    const reportParticipants = report.participants ?? {};
+    const participant = reportParticipants[accountID] ?? {};
+    return participant.role === CONST.REPORT.ROLE.ADMIN;
+}
+
 /**
  * Helper method to define what money request options we want to show for particular method.
  * There are 4 money request options: Request, Split, Send and Track expense:
@@ -6001,6 +6007,7 @@ export {
     getVisibleChatMemberAccountIDs,
     getParticipantAccountIDs,
     getParticipants,
+    isGroupChatAdmin,
 };
 
 export type {

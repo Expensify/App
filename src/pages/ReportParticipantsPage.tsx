@@ -27,7 +27,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -60,6 +59,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
     const dropdownButtonRef = useRef(null);
+    const currentUserAccountID = Number(session?.accountID);
+    const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
         ReportUtils.getVisibleChatMemberAccountIDs(report.reportID).forEach((accountID) => {
@@ -78,7 +79,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 roleBadge = (
                     <Badge
                         text={translate('common.admin')}
-                        textStyles={[styles.badgeText, styles.textStrong, variables.fontSizeNormal]}
+                        textStyles={[styles.badgeText, styles.textStrong, styles.textNormal]}
                         badgeStyles={[styles.justifyContentCenter, styles.badgeSmall]}
                     />
                 );
@@ -88,7 +89,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 keyForList: `${accountID}`,
                 accountID,
                 isSelected,
-                isDisabledCheckbox: accountID === session?.accountID,
+                isDisabledCheckbox: accountID === currentUserAccountID || !isCurrentUserAdmin,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -106,7 +107,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
 
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, session?.accountID, translate, styles]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, styles, isCurrentUserAdmin]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
@@ -116,14 +117,14 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const validateSelection = useCallback(() => {
         const newErrors: Errors = {};
         selectedMembers.forEach((member) => {
-            if (member !== session?.accountID) {
+            if (member !== currentUserAccountID) {
                 return;
             }
             newErrors[member] = translate('workspace.people.error.cannotRemove');
         });
         setErrors(newErrors);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedMembers, session?.accountID]);
+    }, [selectedMembers, currentUserAccountID]);
 
     /**
      * Add user from the selectedMembers list
@@ -191,7 +192,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         }
 
         // Remove the admin from the list
-        const accountIDsToRemove = session?.accountID ? selectedMembers.filter((id) => id !== session.accountID) : selectedMembers;
+        const accountIDsToRemove = currentUserAccountID ? selectedMembers.filter((id) => id !== currentUserAccountID) : selectedMembers;
         Report.removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
@@ -248,6 +249,10 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     };
 
     const getBulkActionsButtonOptions = () => {
+        if (!isCurrentUserAdmin) {
+            return [];
+        }
+
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
                 text: translate('workspace.people.removeMembersTitle'),
@@ -308,13 +313,13 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
-            if (ReportUtils.isGroupChat(report)) {
-                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID, Navigation.getActiveRoute()));
+            if (ReportUtils.isGroupChat(report) && isCurrentUserAdmin) {
+                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID));
                 return;
             }
             Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
         },
-        [report],
+        [report, isCurrentUserAdmin],
     );
     const headerTitle = useMemo(() => {
         if (
@@ -374,19 +379,14 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 <View style={[styles.w100, styles.flex1]}>
                     <SelectionList
                         ref={selectionListRef}
-                        canSelectMultiple={ReportUtils.isGroupChat(report)}
+                        canSelectMultiple={ReportUtils.isGroupChat(report) && isCurrentUserAdmin}
                         sections={[{data: participants}]}
                         ListItem={TableListItem}
-                        // disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                        // headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
                         onSelectRow={openMemberDetails}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(participants)}
-                        // onDismissError={dismissError}
-                        // showLoadingPlaceholder={isLoading}
                         showScrollIndicator
-                        // shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         textInputRef={textInputRef}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
