@@ -1462,7 +1462,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
                   theme.transparent,
             opacity: 1,
-            // eslint-disable-next-line no-nested-ternary
             ...(isClickable ? styles.cursorPointer : styles.cursorInitial),
         }),
 
