@@ -216,10 +216,6 @@ function ReportActionsList({
     }, [opacity]);
 
     useEffect(() => {
-        hasNewestReportActionRef.current = hasNewestReportAction;
-    }, [hasNewestReportAction]);
-
-    useEffect(() => {
         if (
             scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionIndex &&
@@ -230,6 +226,7 @@ function ReportActionsList({
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
+        hasNewestReportActionRef.current = hasNewestReportAction;
     }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID]);
 
     useEffect(() => {
