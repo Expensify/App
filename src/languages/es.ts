@@ -1231,7 +1231,7 @@ export default {
         people: {
             groupMembersListTitle: 'Directorio de todos los miembros del grupo.'
         }
-    }
+    },
     languagePage: {
         language: 'Idioma',
         languages: {

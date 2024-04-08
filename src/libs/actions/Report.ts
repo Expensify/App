@@ -2574,7 +2574,7 @@ function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedE
         // eslint-disable-next-line no-param-reassign
         reportParticipants[accountID] = participant;
         return reportParticipants;
-    }, report.participants);
+    }, {...report.participants});
 
     const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
