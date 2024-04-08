@@ -13,12 +13,12 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Log from '@libs/Log';
+import {extractVideoPoster, prepareSourceURL, usePoster} from '@libs/setVideoPoster';
 import CONST from '@src/CONST';
 import shouldReplayVideo from './shouldReplayVideo';
 import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
-import * as VideoUtils from './utils';
 import VideoPlayerControls from './VideoPlayerControls';
 
 function BaseVideoPlayer({
@@ -54,8 +54,8 @@ function BaseVideoPlayer({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isBuffering, setIsBuffering] = useState(true);
-    // we add "#t=0.001" at the end of the URL to skip first milisecond of the video and always be able to show proper video preview when video is paused at the beginning
-    const [sourceURL] = useState(VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
+    const [posterURL, setPosterURL] = useState('');
+    const [sourceURL] = useState(prepareSourceURL(url));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
 
@@ -179,6 +179,15 @@ function BaseVideoPlayer({
 
         // If we are uploading a new video, we want to immediately set the video player ref.
         currentVideoPlayerRef.current = videoPlayerRef.current;
+        // We only use poster on web / mWeb where calling video play programatically
+        // is unreliable and needs user action (browser limitation)
+        if (!usePoster) {
+            return;
+        }
+
+        extractVideoPoster(prepareSourceURL(url))
+            .then((posterImage) => setPosterURL(posterImage))
+            .catch((error) => Log.warn('[ExtractVideoPoster]:', error));
     }, [url, currentVideoPlayerRef, isUploading]);
 
     // update shared video elements
@@ -290,6 +299,9 @@ function BaseVideoPlayer({
                                             useNativeControls={false}
                                             resizeMode={resizeMode as ResizeMode}
                                             isLooping={isLooping}
+                                            posterStyle={[styles.w100, styles.h100, {resizeMode: ResizeMode.CONTAIN}]}
+                                            posterSource={{uri: posterURL}}
+                                            usePoster={usePoster}
                                             onReadyForDisplay={(e) => {
                                                 if (isCurrentlyURLSet && !isUploading) {
                                                     playVideo();
