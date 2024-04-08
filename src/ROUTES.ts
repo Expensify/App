@@ -22,6 +22,11 @@ const ROUTES = {
 
     SEARCH: 'search',
 
+    SEARCH_WITH_FILTER: {
+        route: 'search?',
+        getRoute: (tab: string) => `search?filter=${tab}` as const,
+    },
+
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {
