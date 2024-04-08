@@ -3,6 +3,8 @@ import {Animated} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type SwitchProps = {
@@ -49,7 +51,14 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
         >
-            <Animated.View style={[styles.switchThumb, styles.switchThumbTransformation(offsetX.current)]} />
+            <Animated.View style={[styles.switchThumb, styles.switchThumbTransformation(offsetX.current)]}>
+                <Icon
+                    src={Expensicons.Lock}
+                    fill={styles.radioButtonLockIcon.fill}
+                    width={styles.radioButtonLockIcon.width}
+                    height={styles.radioButtonLockIcon.height}
+                />
+            </Animated.View>
         </PressableWithFeedback>
     );
 }

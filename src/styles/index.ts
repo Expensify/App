@@ -2870,6 +2870,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 11,
             position: 'absolute',
             left: 4,
+            justifyContent: 'center',
+            alignItems: 'center',
             backgroundColor: theme.appBG,
         },
 
@@ -2887,6 +2889,12 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+
+        radioButtonLockIcon: {
+            width: 12,
+            height: 12,
+            fill: '#E7ECE9',
         },
 
         checkedContainer: {
