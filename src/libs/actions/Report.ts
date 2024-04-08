@@ -579,7 +579,7 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             value: {avatarUrl: file?.uri ?? ''},
         },
     ];
-    API.write('UpdateGroupChatAvatar', {file, reportID}, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, {file, reportID}, {optimisticData});
 }
 
 /**
@@ -2352,7 +2352,7 @@ function leaveGroupChat(reportID: string) {
             value: null,
         },
     ];
-    API.write('LeaveGroupChat', {reportID}, {optimisticData});
+    API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData});
     navigateToMostRecentReport(reportID, true);
 }
 
@@ -2524,7 +2524,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
         },
     ];
 
-    API.write('UpdateGroupChatMemberRoles', {reportID, memberRoles: JSON.stringify(memberRoles)}, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, {reportID, memberRoles: JSON.stringify(memberRoles)}, {optimisticData});
 }
 
 function removeFromGroupChat(reportID: string, accountIDList: number[]) {
@@ -2559,7 +2559,7 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
             },
         },
     ];
-    API.write('RemoveFromGroupChat', {reportID, accountIDList: accountIDList.join()}, {optimisticData});
+    API.write(WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT, {reportID, accountIDList: accountIDList.join()}, {optimisticData});
 }
 
 /** Invites people to a group chat */
