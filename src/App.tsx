@@ -16,7 +16,6 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
-import OptionsListContextProvider from './components/OptionListContextProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
@@ -83,7 +82,6 @@ function App({url}: AppProps) {
                         FullScreenContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
-                        OptionsListContextProvider,
                     ]}
                 >
                     <CustomStatusBarAndBackground />
