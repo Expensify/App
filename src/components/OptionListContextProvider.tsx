@@ -1,6 +1,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import usePrevious from '@hooks/usePrevious';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -42,7 +43,9 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         reports: [],
         personalDetails: [],
     });
+
     const personalDetails = usePersonalDetails();
+    const prevReports = usePrevious(reports);
 
     useEffect(() => {
         // there is no need to update the options if the options are not initialized
@@ -66,6 +69,31 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
             newOptions.reports[replaceIndex] = newOption;
+            return newOptions;
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reports]);
+
+    useEffect(() => {
+        if (!areOptionsInitialized.current || !reports) {
+            return;
+        }
+        const missingReportId = Object.keys(reports).find((key) => prevReports && !(key in prevReports));
+
+        if (!missingReportId || !reports[missingReportId]) {
+            return;
+        }
+
+        const report = reports[missingReportId];
+
+        if (!report) {
+            return;
+        }
+
+        const reportOption = OptionsListUtils.createOptionFromReport(report, personalDetails);
+        setOptions((prevOptions) => {
+            const newOptions = {...prevOptions};
+            newOptions.reports.push(reportOption);
             return newOptions;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
