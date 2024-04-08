@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/core';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef, useState} from 'react';
@@ -9,6 +8,7 @@ import {withOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevice} from 'react-native-vision-camera';
+import _ from 'underscore';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';
