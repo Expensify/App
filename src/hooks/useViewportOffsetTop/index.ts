@@ -14,7 +14,7 @@ export default function useViewportOffsetTop(shouldAdjustScrollView = false): nu
             if (event?.target instanceof VisualViewport) {
                 targetOffsetTop = event.target.offsetTop;
             }
-            
+
             if (shouldAdjustScrollView && window.visualViewport) {
                 const clientHeight = document.body.clientHeight;
                 const adjustScrollY = Math.round(clientHeight - window.visualViewport.height);
