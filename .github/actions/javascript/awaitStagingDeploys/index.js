@@ -12754,6 +12754,9 @@ function promiseDoWhile(condition, action) {
         console.info('[promiseWhile] promiseDoWhile() condition', condition);
         const actionResult = action?.();
         console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
+        if (actionResult === undefined) {
+            resolve();
+        }
         actionResult
             ?.then(() => promiseWhile(condition, action))
             .then(() => resolve())
