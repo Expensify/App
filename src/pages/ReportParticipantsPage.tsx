@@ -79,7 +79,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 roleBadge = (
                     <Badge
                         text={translate('common.admin')}
-                        textStyles={[styles.badgeText, styles.textStrong, styles.textNormal]}
+                        textStyles={[styles.badgeText, styles.textStrong]}
                         badgeStyles={[styles.justifyContentCenter, styles.badgeSmall]}
                     />
                 );

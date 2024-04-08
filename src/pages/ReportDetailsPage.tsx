@@ -203,6 +203,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const renderAvatar = isGroupChat ? (
         <AvatarWithImagePicker
             source={icons[0].source}
+            isUsingDefaultAvatar={!report.avatarUrl}
             size={CONST.AVATAR_SIZE.XLARGE}
             avatarStyle={styles.avatarXLarge}
             disableViewPhoto
