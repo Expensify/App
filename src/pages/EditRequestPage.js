@@ -73,7 +73,7 @@ const defaultProps = {
 };
 
 const getTaxAmount = (transactionAmount, transactionTaxCode, taxRates) => {
-    const percentage = (transactionTaxCode ? taxRates.taxes[transactionTaxCode].value : taxRates.defaultValue) || '';
+    const percentage = (transactionTaxCode && taxRates.taxes[transactionTaxCode] ? taxRates.taxes[transactionTaxCode].value : taxRates.defaultValue) || '';
     return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transactionAmount)));
 };
 
