@@ -119,7 +119,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport) {
-            IOU.payMoneyRequest(type, chatReport, moneyRequestReport, false);
+            IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
         }
     };
 

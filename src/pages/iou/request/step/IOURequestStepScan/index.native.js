@@ -54,6 +54,12 @@ const propTypes = {
     /** The policy of the report */
     ...policyPropTypes,
 
+    /** Information about the logged in user's account */
+    user: PropTypes.shape({
+        /** Whether user muted all sounds in the application */
+        isMutedAllSounds: PropTypes.bool,
+    }),
+
     /** The transaction (or draft transaction) being changed */
     transaction: transactionPropTypes,
 
@@ -70,6 +76,7 @@ const propTypes = {
 const defaultProps = {
     report: {},
     policy: null,
+    user: {},
     transaction: {},
     personalDetails: {},
     skipConfirmation: false,
@@ -79,6 +86,7 @@ const defaultProps = {
 function IOURequestStepScan({
     report,
     policy,
+    user,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
@@ -312,6 +320,7 @@ function IOURequestStepScan({
         return camera.current
             .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
+                enableShutterSound: !user.isMutedAllSounds,
             })
             .then((photo) => {
                 // Store the receipt on the transaction object in Onyx
@@ -332,7 +341,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, hasFlash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep, cameraPermissionStatus, didCapturePhoto]);
+    }, [cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -472,6 +481,9 @@ export default compose(
                 const transactionID = lodashGet(route, 'params.transactionID', 0);
                 return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
             },
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(IOURequestStepScan);

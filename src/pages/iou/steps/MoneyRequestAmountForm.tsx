@@ -253,7 +253,8 @@ function MoneyRequestAmountForm(
      */
     const submitAndNavigateToNextPage = useCallback(
         (iouPaymentType?: PaymentMethodType | undefined) => {
-            if (isAmountInvalid(currentAmount)) {
+            // Skip the check for tax amount form as 0 is a valid input
+            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
                 setFormError('iou.error.invalidAmount');
                 return;
             }
