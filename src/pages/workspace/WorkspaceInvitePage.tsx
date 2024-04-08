@@ -55,7 +55,6 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
 
 function WorkspaceInvitePage({
     route,
-    personalDetails: personalDetailsProp,
     betas,
     invitedEmailsToAccountIDsDraft,
     policy,
@@ -69,7 +68,7 @@ function WorkspaceInvitePage({
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const openWorkspaceInvitePage = () => {
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetailsProp);
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
     };
     const {options, areOptionsInitialized} = useOptionsList({

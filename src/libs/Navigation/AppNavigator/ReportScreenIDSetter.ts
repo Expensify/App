@@ -73,7 +73,7 @@ function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTime
             return;
         }
 
-        const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policies, personalDetails, activeWorkspaceID, accountID);
+        const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
 
         // If there is no reportID in route, try to find last accessed and use it for setParams
         const reportID = getLastAccessedReportID(

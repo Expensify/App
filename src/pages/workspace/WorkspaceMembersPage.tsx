@@ -71,7 +71,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
 function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
-    const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails), [policy?.employeeList, personalDetails]);
+    const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList), [policy?.employeeList]);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
@@ -112,8 +112,8 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        Policy.openWorkspaceMembersPage(route.params.policyID, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails)));
-    }, [route.params.policyID, policy?.employeeList, personalDetails]);
+        Policy.openWorkspaceMembersPage(route.params.policyID, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList)));
+    }, [route.params.policyID, policy?.employeeList]);
 
     /**
      * Check if the current selection includes members that cannot be removed
@@ -157,7 +157,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 return res?.accountID ?? id;
             });
             // This is an equivalent of the lodash intersection function. The reduce method below is used to filter the items that exist in both arrays.
-            return [prevSelectedElements, Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails))].reduce((prev, members) =>
+            return [prevSelectedElements, Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList))].reduce((prev, members) =>
                 prev.filter((item) => members.includes(item)),
             );
         });
@@ -465,7 +465,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         ];
 
         if (PolicyUtils.isPaidGroupPolicy(policy)) {
-            if (selectedEmployees.find((employee) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[employee]]?.role === CONST.POLICY.ROLE.ADMIN)) {
+            if (selectedEmployees.find((employeeEmail) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[employeeEmail]]?.role === CONST.POLICY.ROLE.ADMIN)) {
                 options.push({
                     text: translate('workspace.people.makeMember'),
                     value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
@@ -474,7 +474,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 });
             }
 
-            if (selectedEmployees.find((employee) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[employee]]?.role === CONST.POLICY.ROLE.USER)) {
+            if (selectedEmployees.find((employeeEmail) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[employeeEmail]]?.role === CONST.POLICY.ROLE.USER)) {
                 options.push({
                     text: translate('workspace.people.makeAdmin'),
                     value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,

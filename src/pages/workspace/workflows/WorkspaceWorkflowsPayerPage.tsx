@@ -60,7 +60,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const policyAdminDetails: MemberOption[] = [];
         const authorizedPayerDetails: MemberOption[] = [];
 
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails);
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
 
         Object.entries(policy?.employeeList ?? {}).forEach(([email, policyMember]) => {
             const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';

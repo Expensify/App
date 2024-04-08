@@ -58,7 +58,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
         const policyMemberDetails: MemberOption[] = [];
         const approverDetails: MemberOption[] = [];
 
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails);
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
 
         Object.entries(policy?.employeeList ?? {}).forEach(([email, policyMember]) => {
             if (isDeletedPolicyMember(policyMember)) {

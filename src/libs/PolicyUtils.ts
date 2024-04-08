@@ -4,13 +4,14 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type { Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {RootStackParamList, State} from './Navigation/types';
+import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -133,7 +134,7 @@ const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boo
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(employeeList: PolicyMembers | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(employeeList: PolicyMembers | undefined): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     Object.keys(members).forEach((email) => {
@@ -141,7 +142,7 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyMembers | undefined
         if (Object.keys(member?.errors ?? {})?.length > 0) {
             return;
         }
-        const personalDetail = Object.values(personalDetails ?? {})?.find((details) => details?.login === email);
+        const personalDetail = getPersonalDetailByEmail(email);
         if (!personalDetail?.login) {
             return;
         }
@@ -277,9 +278,9 @@ function getPathWithoutPolicyID(path: string) {
     return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
 
-function getPolicyMembersByIdWithoutCurrentUser(policies: OnyxCollection<Policy>, personalDetails: OnyxEntry<PersonalDetailsList>, currentPolicyID?: string, currentUserAccountID?: number) {
+function getPolicyMembersByIdWithoutCurrentUser(policies: OnyxCollection<Policy>, currentPolicyID?: string, currentUserAccountID?: number) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID}`] ?? null;
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetails);
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
     return Object.values(policyMemberEmailsToAccountIDs)
         .map((policyMemberAccountID) => Number(policyMemberAccountID))
         .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);

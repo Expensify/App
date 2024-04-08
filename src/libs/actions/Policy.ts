@@ -1275,7 +1275,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string) {
-    const onyxKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
