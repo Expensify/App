@@ -3077,6 +3077,9 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         unencodedName: decodeURIComponent(policyCategory.newName),
                         errors: null,
                         pendingAction: null,
+                        pendingFields: {
+                            name: null,
+                        },
                     },
                 },
             },
@@ -3093,9 +3096,6 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         unencodedName: decodeURIComponent(policyCategory.oldName),
                         errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
                         pendingAction: null,
-                        pendingFields: {
-                            name: null,
-                        },
                     },
                 },
             },
@@ -3409,9 +3409,6 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                             [policyTag.oldName]: {
                                 ...oldTag,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
-                                pendingFields: {
-                                    name: null,
-                                },
                             },
                         },
                     },
