@@ -12,7 +12,7 @@ import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import type {DefaultMileageRate} from '@libs/DistanceRequestUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -64,7 +64,7 @@ type MoneyRequestConfirmationListOnyxProps = {
     session: OnyxEntry<OnyxTypes.Session>;
 
     /** Unit and rate used for if the money request is a distance request */
-    mileageRate: OnyxEntry<DefaultMileageRate>;
+    mileageRate: OnyxEntry<MileageRate>;
 };
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps & {
     /** Callback to inform parent modal of success */

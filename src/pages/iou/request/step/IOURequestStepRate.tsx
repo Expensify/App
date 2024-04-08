@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOU from '@libs/actions/IOU';
 import compose from '@libs/compose';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -33,6 +34,9 @@ type Props = {
             backTo: Route;
         };
     };
+
+    /** Mileage rates */
+    rates: Record<string, MileageRate>;
 };
 
 function IOURequestStepRate({
@@ -41,10 +45,10 @@ function IOURequestStepRate({
         params: {backTo},
     },
     lastSelectedDistanceRates = {},
+    rates,
 }: Props) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const rates = DistanceRequestUtils.getMileageRates(policy?.id);
 
     const lastSelectedRate = lastSelectedDistanceRates[policy?.id ?? '0'] ?? rates[0]?.customUnitRateID;
 
@@ -98,6 +102,12 @@ export default compose(
         // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
         lastSelectedDistanceRates: {
             key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+        },
+        rates: {
+            // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+            // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
+            selector: (policy) => DistanceRequestUtils.getMileageRates(policy ? policy.id : ''),
         },
     }),
     // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS

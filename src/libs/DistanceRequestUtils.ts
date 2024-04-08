@@ -8,7 +8,7 @@ import type Policy from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 
-type DefaultMileageRate = {
+type MileageRate = {
     customUnitRateID?: string;
     rate?: number;
     currency?: string;
@@ -38,7 +38,7 @@ Onyx.connect({
  * @returns [currency] - The currency associated with the rate.
  * @returns [unit] - The unit of measurement for the distance.
  */
-function getDefaultMileageRate(policy: OnyxEntry<Policy>): DefaultMileageRate | null {
+function getDefaultMileageRate(policy: OnyxEntry<Policy>): MileageRate | null {
     if (!policy?.customUnits) {
         return null;
     }
@@ -180,8 +180,8 @@ function getDistanceMerchant(
  *
  * @returns An array of mileage rates or an empty array if not found.
  */
-function getMileageRates(policyID?: string): Record<string, DefaultMileageRate> {
-    const mileageRates: Record<string, DefaultMileageRate> = {};
+function getMileageRates(policyID?: string): Record<string, MileageRate> {
+    const mileageRates: Record<string, MileageRate> = {};
 
     if (!policyID) {
         return mileageRates;
@@ -239,4 +239,4 @@ export default {
     getRateForP2P,
 };
 
-export type {DefaultMileageRate};
+export type {MileageRate};
