@@ -67,9 +67,8 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         }
 
         // example - remove before merge
-        const count = displayNamesWithTooltips.length;
         return translate('reportActionsView.sayHello', {count: 1});
-    }, [isChatRoom, isSelfDM, translate, reportName, displayNamesWithTooltips]);
+    }, [isChatRoom, isSelfDM, translate, reportName]);
 
     return (
         <>
