@@ -39,6 +39,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import localeCompare from '@libs/LocaleCompare';
 
 type PolicyForList = {
     value: string;
@@ -85,7 +86,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags)[0], [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
-            lodashSortBy(policyTagList.tags).map((value) => {
+            lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
                 const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
                 const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 return {
