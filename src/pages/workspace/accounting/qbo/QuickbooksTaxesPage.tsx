@@ -21,7 +21,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncTaxes && syncTaxes !== 'NONE');
+    const isSwitchOn = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <FeatureEnabledAccessOrNotFoundWrapper
@@ -45,7 +45,14 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                                     <Switch
                                         accessibilityLabel={translate('workspace.qbo.taxes')}
                                         isOn={isSwitchOn}
-                                        onToggle={() => Policy.updatePolicyConnectionConfig(policyID, 'quickbooksOnline', 'syncTaxes', isSwitchOn ? 'NONE' : 'TAG')}
+                                        onToggle={() =>
+                                            Policy.updatePolicyConnectionConfig(
+                                                policyID,
+                                                'quickbooksOnline',
+                                                'syncTaxes',
+                                                isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                            )
+                                        }
                                     />
                                 </View>
                             </OfflineWithFeedback>

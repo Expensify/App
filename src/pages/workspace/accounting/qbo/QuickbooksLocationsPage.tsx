@@ -22,8 +22,8 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncLocations, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncLocations && syncLocations !== 'NONE');
-    const isReportFieldsSelected = syncLocations === 'REPORT_FIELD';
+    const isSwitchOn = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isReportFieldsSelected = syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -48,7 +48,14 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                                     <Switch
                                         accessibilityLabel={translate('workspace.qbo.locations')}
                                         isOn={isSwitchOn}
-                                        onToggle={() => Policy.updatePolicyConnectionConfig(policyID, 'quickbooksOnline', 'syncLocations', isSwitchOn ? 'NONE' : 'TAG')}
+                                        onToggle={() =>
+                                            Policy.updatePolicyConnectionConfig(
+                                                policyID,
+                                                'quickbooksOnline',
+                                                'syncLocations',
+                                                isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                            )
+                                        }
                                     />
                                 </View>
                             </OfflineWithFeedback>

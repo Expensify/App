@@ -22,8 +22,8 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncClasses, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncClasses && syncClasses !== 'NONE');
-    const isReportFieldsSelected = syncClasses === 'REPORT_FIELD';
+    const isSwitchOn = Boolean(syncClasses && syncClasses !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isReportFieldsSelected = syncClasses === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -48,7 +48,14 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                                     <Switch
                                         accessibilityLabel={translate('workspace.qbo.classes')}
                                         isOn={isSwitchOn}
-                                        onToggle={() => Policy.updatePolicyConnectionConfig(policyID, 'quickbooksOnline', 'syncClasses', isSwitchOn ? 'NONE' : 'TAG')}
+                                        onToggle={() =>
+                                            Policy.updatePolicyConnectionConfig(
+                                                policyID,
+                                                'quickbooksOnline',
+                                                'syncClasses',
+                                                isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                            )
+                                        }
                                     />
                                 </View>
                             </OfflineWithFeedback>

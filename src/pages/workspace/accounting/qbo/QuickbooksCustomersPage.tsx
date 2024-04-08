@@ -22,8 +22,8 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncCustomers, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncCustomers && syncCustomers !== 'NONE');
-    const isReportFieldsSelected = syncCustomers === 'REPORT_FIELD';
+    const isSwitchOn = Boolean(syncCustomers && syncCustomers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isReportFieldsSelected = syncCustomers === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <FeatureEnabledAccessOrNotFoundWrapper
@@ -47,7 +47,14 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                                     <Switch
                                         accessibilityLabel={translate('workspace.qbo.customers')}
                                         isOn={isSwitchOn}
-                                        onToggle={() => Policy.updatePolicyConnectionConfig(policyID, 'quickbooksOnline', 'syncCustomers', isSwitchOn ? 'NONE' : 'TAG')}
+                                        onToggle={() =>
+                                            Policy.updatePolicyConnectionConfig(
+                                                policyID,
+                                                'quickbooksOnline',
+                                                'syncCustomers',
+                                                isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                            )
+                                        }
                                     />
                                 </View>
                             </OfflineWithFeedback>
