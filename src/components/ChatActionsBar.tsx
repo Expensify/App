@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import * as Report from '@userActions/Report';
+import useLocalize from '@hooks/useLocalize';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
-import useLocalize from '@hooks/useLocalize';
 
 function ChatActionsBar({report}) {
     const {translate} = useLocalize();

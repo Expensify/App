@@ -195,7 +195,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, isSearchingForReports
         }
         const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
         const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
-        Report.setGroupDraft(logins);
+        Report.setGroupDraft({participants: logins});
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
     };
 

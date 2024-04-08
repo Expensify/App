@@ -80,7 +80,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             return;
         }
         const newSelectedParticipants = newGroupDraft.participants.filter((participant) => participant.login !== option.login);
-        Report.setGroupDraft(newSelectedParticipants);
+        Report.setGroupDraft({participants: newSelectedParticipants});
     };
 
     const createGroup = () => {
@@ -113,9 +113,9 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar()}
                     onImageSelected={(image) => {
                         fileRef.current = image;
-                        Report.stashGroupChatAvatar(image?.uri ?? '');
+                        Report.setGroupDraft({avatarUri: image?.uri ?? ''});
                     }}
-                    onImageRemoved={Report.unstashGroupChatAvatar}
+                    onImageRemoved={() => Report.setGroupDraft({avatarUri: null})}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
                     editIconStyle={styles.smallEditIconAccount}

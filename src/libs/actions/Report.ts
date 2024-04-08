@@ -72,7 +72,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, NewGroupChatDraft, PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -207,18 +207,6 @@ Onyx.connect({
 
 function clearGroupChat() {
     Onyx.set(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, null);
-}
-
-function stashGroupChatAvatar(avatarUri: string) {
-    if (!avatarUri) {
-        return;
-    }
-
-    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {avatarUri});
-}
-
-function unstashGroupChatAvatar() {
-    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {avatarUri: null});
 }
 
 function startNewChat() {
@@ -2353,7 +2341,7 @@ function leaveGroupChat(reportID: string) {
         },
     ];
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData});
-    navigateToMostRecentReport(reportID, true);
+    navigateToMostRecentReport(reportID, false);
 }
 
 /** Leave a report by setting the state to submitted and closed */
@@ -2441,7 +2429,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 }
 
 /** Invites people to a room */
-function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
+function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     const report = currentReportData?.[reportID];
 
     if (!report) {
@@ -2506,7 +2494,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
-function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: string) {
+function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
     const participants = {};
     const memberRoles = {};
     accountIDList.forEach((accountID) => {
@@ -2563,7 +2551,7 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
 }
 
 /** Invites people to a group chat */
-function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
+function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     const report = currentReportData?.[reportID];
     if (!report) {
         return;
@@ -2578,7 +2566,7 @@ function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: Record<s
         (accountID): accountID is number => typeof accountID === 'number',
     );
 
-    const participantsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].reduce((reportParticipants: Participants, accountID: number) => {
+    const participantsAfterInvitation = inviteeAccountIDs.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
             hidden: false,
             role: CONST.REPORT.ROLE.MEMBER,
@@ -2586,7 +2574,7 @@ function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: Record<s
         // eslint-disable-next-line no-param-reassign
         reportParticipants[accountID] = participant;
         return reportParticipants;
-    }, {} as Participants);
+    }, report.participants);
 
     const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
@@ -3128,8 +3116,8 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function setGroupDraft(participants?: Array<{login: string; accountID: number}>, reportName = '') {
-    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {participants, reportName});
+function setGroupDraft(newGroupDraft: NewGroupChatDraft) {
+    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
 export {
@@ -3205,8 +3193,6 @@ export {
     clearGroupChat,
     startNewChat,
     updateGroupChatName,
-    stashGroupChatAvatar,
-    unstashGroupChatAvatar,
     updateGroupChatAvatar,
     leaveGroupChat,
     removeFromGroupChat,

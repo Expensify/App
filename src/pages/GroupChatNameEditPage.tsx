@@ -58,7 +58,7 @@ function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
             return;
         }
 
-        Report.setGroupDraft(undefined, values[INPUT_IDS.NEW_CHAT_NAME]);
+        Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
         Keyboard.dismiss();
         Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
     }, []);
