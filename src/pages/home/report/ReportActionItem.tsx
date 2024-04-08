@@ -366,9 +366,10 @@ function ReportActionItem({
             anchor: popoverAnchorRef.current,
             report,
             action,
+            transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
         }),
-        [report, action, toggleContextMenuFromActiveReportAction],
+        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport],
     );
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
