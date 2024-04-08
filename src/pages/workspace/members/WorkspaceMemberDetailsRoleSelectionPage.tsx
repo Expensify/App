@@ -47,7 +47,7 @@ function WorkspaceMemberDetailsRoleSelectionPage({route, personalDetails, policy
         {
             value: CONST.POLICY.ROLE.USER,
             text: translate('common.member'),
-            isSelected: member?.role === CONST.POLICY.ROLE.USER,
+            isSelected: member?.role !== CONST.POLICY.ROLE.ADMIN,
             keyForList: CONST.POLICY.ROLE.USER,
         },
     ];
