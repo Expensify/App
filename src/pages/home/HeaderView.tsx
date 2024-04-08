@@ -153,7 +153,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
             onSelected: join,
         });
     } else if (canLeave) {
-        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
+        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyMember;
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),
