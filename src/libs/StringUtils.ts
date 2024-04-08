@@ -64,6 +64,15 @@ function removeInvisibleCharacters(value: string): string {
 }
 
 /**
+ * Remove accents/diacritics
+ * @param text - The input string
+ * @returns The string with all accents/diacritics removed
+ */
+function normalizeAccents(text: string) {
+    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+/**
  *  Replace all CRLF with LF
  *  @param value - The input string
  *  @returns The string with all CRLF replaced with LF
@@ -72,4 +81,4 @@ function normalizeCRLF(value?: string): string | undefined {
     return value?.replace(/\r\n/g, '\n');
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF};
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF};
