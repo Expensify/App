@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {NavigationProp} from '@react-navigation/core/src/types';
 import type * as Navigation from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/routers';
 import {render} from '@testing-library/react-native';
 import type {ReactElement} from 'react';
 import React from 'react';
@@ -33,17 +31,13 @@ type MockedSidebarLinksProps = {
     currentReportID?: string;
 };
 
-// we have to mock `useIsFocused` because it's used in the SidebarLinks component
-const mockedNavigate: jest.MockedFn<NavigationProp<ParamListBase>['navigate']> = jest.fn();
 jest.mock('@react-navigation/native', (): typeof Navigation => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
         useRoute: jest.fn(),
         useFocusEffect: jest.fn(),
-        useIsFocused: () => ({
-            navigate: mockedNavigate,
-        }),
+        useIsFocused: () => true,
         useNavigation: () => ({
             navigate: jest.fn(),
             addListener: jest.fn(),

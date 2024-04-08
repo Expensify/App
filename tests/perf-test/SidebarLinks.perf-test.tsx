@@ -1,32 +1,33 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
-import _ from 'underscore';
-import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import variables from '../../src/styles/variables';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-jest.mock('../../src/libs/Permissions');
-jest.mock('../../src/hooks/usePermissions.ts');
-jest.mock('../../src/libs/Navigation/Navigation');
-jest.mock('../../src/components/Icon/Expensicons');
+jest.mock('@libs/Permissions');
+jest.mock('@hooks/usePermissions.ts');
+jest.mock('@libs/Navigation/Navigation');
+jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
 
 const getMockedReportsMap = (length = 100) => {
-    const mockReports = Array.from({length}, (__, i) => {
-        const reportID = i + 1;
-        const participants = [1, 2];
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-        const report = LHNTestUtils.getFakeReport(participants, 1, true);
+    const mockReports = Object.fromEntries(
+        Array.from({length}, (value, index) => {
+            const reportID = index + 1;
+            const participants = [1, 2];
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            const report = LHNTestUtils.getFakeReport(participants, 1, true);
 
-        return {[reportKey]: report};
-    });
+            return [reportKey, report];
+        }),
+    );
 
-    return _.assign({}, ...mockReports);
+    return mockReports;
 };
 
 const mockedResponseMap = getMockedReportsMap(500);
@@ -36,11 +37,9 @@ describe('SidebarLinks', () => {
         Onyx.init({
             keys: ONYXKEYS,
             safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-            registerStorageEventListener: () => {},
         });
 
         Onyx.multiSet({
-            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,

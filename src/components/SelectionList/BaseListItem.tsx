@@ -81,7 +81,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {!item.isSelected && item.brickRoadIndicator && (
+                    {!item.isSelected && !!item.brickRoadIndicator && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}
@@ -89,6 +89,7 @@ function BaseListItem<TItem extends ListItem>({
                             />
                         </View>
                     )}
+
                     {rightHandSideComponentRender()}
                 </View>
                 {FooterComponent}
