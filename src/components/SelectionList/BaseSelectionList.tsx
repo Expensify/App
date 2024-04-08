@@ -231,6 +231,7 @@ function BaseSelectionList<TItem extends ListItem>(
             setFocusedIndex(index);
             scrollToIndex(index, true);
         },
+        isFocused,
     });
 
     /**
