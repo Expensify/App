@@ -29,6 +29,7 @@ import type {
     ReportMetadata,
     Session,
     Task,
+    TaxRate,
     Transaction,
     TransactionViolation,
     UserWallet,
@@ -416,6 +417,9 @@ type OptionData = {
     isDisabled?: boolean | null;
     name?: string | null;
     isSelfDM?: boolean | null;
+    reportID?: string;
+    enabled?: boolean;
+    data?: Partial<TaxRate>;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -995,7 +999,7 @@ function filterReportsByPolicyIDAndMemberAccountIDs(reports: Report[], policyMem
 /**
  * Given an array of reports, return them sorted by the last read timestamp.
  */
-function sortReportsByLastRead(reports: Report[], reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
+function sortReportsByLastRead(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
     return reports
         .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
         .sort((a, b) => {
@@ -2783,7 +2787,7 @@ function getModifiedExpenseOriginalMessage(
     }
 
     if ('taxCode' in transactionChanges) {
-        originalMessage.oldTaxRate = policy?.taxRates?.taxes[TransactionUtils.getTaxCode(oldTransaction)].value;
+        originalMessage.oldTaxRate = policy?.taxRates?.taxes[TransactionUtils.getTaxCode(oldTransaction)]?.value;
         originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode].value;
     }
 
@@ -4804,6 +4808,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
  * - Send option should show for:
  *     - DMs
  * - Split options should show for:
+ *     - DMs
  *     - chat/ policy rooms with more than 1 participants
  *     - groups chats with 3 and more participants
  *     - corporate workspace chats
@@ -4829,7 +4834,6 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 
     const otherParticipants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
     const hasSingleOtherParticipantInReport = otherParticipants.length === 1;
-    const hasMultipleOtherParticipants = otherParticipants.length > 1;
     let options: Array<ValueOf<typeof CONST.IOU.TYPE>> = [];
 
     if (isSelfDM(report)) {
@@ -4838,11 +4842,11 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
-    // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
+    // DM chats will have the Split Bill option.
     // Your own workspace chats will have the split bill option.
     if (
         (isChatRoom(report) && otherParticipants.length > 0) ||
-        (isDM(report) && hasMultipleOtherParticipants) ||
+        (isDM(report) && otherParticipants.length > 0) ||
         (isGroupChat(report) && otherParticipants.length > 0) ||
         (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
     ) {
@@ -5473,7 +5477,7 @@ function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, repor
 /**
  * Check if money report has any transactions updated optimistically
  */
-function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
+function hasUpdatedTotal(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     if (!report) {
         return true;
     }
@@ -5481,18 +5485,19 @@ function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(report.reportID);
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
     const hasTransactionWithDifferentCurrency = transactions.some((transaction) => transaction.currency !== report.currency);
+    const hasDifferentWorkspaceCurrency = report.pendingFields?.createChat && isExpenseReport(report) && report.currency !== policy?.outputCurrency;
 
-    return !(hasPendingTransaction && hasTransactionWithDifferentCurrency) && !(hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined);
+    return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentWorkspaceCurrency)) && !(hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined);
 }
 
 /**
  * Return held and full amount formatted with used currency
  */
-function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>): string[] {
+function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string[] {
     const transactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID ?? '');
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
 
-    if (hasUpdatedTotal(iouReport) && hasPendingTransaction) {
+    if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
         const unheldTotal = transactions.reduce((currentVal, transaction) => currentVal - (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
 
         return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
