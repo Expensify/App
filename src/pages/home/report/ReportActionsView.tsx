@@ -28,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
@@ -35,6 +36,12 @@ import ReportActionsList from './ReportActionsList';
 type ReportActionsViewOnyxProps = {
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
+
+    /** Array of report actions for the transaction thread report associated with the current report */
+    transactionThreadReportActions: OnyxTypes.ReportAction[];
+
+    /** The transaction thread report associated with the current report, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 type ReportActionsViewProps = ReportActionsViewOnyxProps & {
@@ -58,6 +65,10 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
 
     /** Whether the report is ready for comment linking */
     isReadyForCommentLinking?: boolean;
+
+    /** The reportID of the transaction thread report associated with this current report, if any */
+    // eslint-disable-next-line react/no-unused-prop-types
+    transactionThreadReportID?: string | null;
 };
 
 const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
@@ -67,9 +78,11 @@ let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({
     report,
+    transactionThreadReport,
     session,
     parentReportAction,
     reportActions: allReportActions = [],
+    transactionThreadReportActions = [],
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
     isLoadingNewerReportActions = false,
@@ -91,12 +104,87 @@ function ReportActionsView({
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const contentListHeight = useRef(0);
     const isFocused = useIsFocused();
-    const prevNetworkRef = useRef(network);
     const prevAuthTokenType = usePrevious(session?.authTokenType);
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
     const prevIsSmallScreenWidthRef = useRef(isSmallScreenWidth);
     const reportID = report.reportID;
     const isLoading = (!!reportActionID && isLoadingInitialReportActions) || !isReadyForCommentLinking;
+    const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
+    const openReportIfNecessary = () => {
+        if (!shouldFetchReport(report)) {
+            return;
+        }
+
+        Report.openReport(reportID, reportActionID);
+    };
+
+    useLayoutEffect(() => {
+        setCurrentReportActionID('');
+    }, [route]);
+
+    // Change the list ID only for comment linking to get the positioning right
+    const listID = useMemo(() => {
+        if (!reportActionID) {
+            // Keep the old list ID since we're not in the Comment Linking flow
+            return listOldID;
+        }
+        isFirstLinkedActionRender.current = true;
+        const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
+        listOldID = newID;
+        return newID;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route, isLoadingInitialReportActions, reportActionID]);
+
+    // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
+    // so that we display transaction-level and report-level report actions in order in the one-transaction view
+    const combinedReportActions = useMemo(() => {
+        if (isEmptyObject(transactionThreadReportActions)) {
+            return allReportActions;
+        }
+
+        // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
+        const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+        // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
+        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+            const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !ReportActionsUtils.isSentMoneyReportAction(action);
+        });
+        return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
+    }, [allReportActions, transactionThreadReportActions]);
+
+    const indexOfLinkedAction = useMemo(() => {
+        if (!reportActionID) {
+            return -1;
+        }
+        return combinedReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
+    }, [combinedReportActions, currentReportActionID, reportActionID]);
+
+    const reportActions = useMemo(() => {
+        if (!reportActionID) {
+            return combinedReportActions;
+        }
+        if (isLoading || indexOfLinkedAction === -1) {
+            return [];
+        }
+
+        if (isFirstLinkedActionRender.current) {
+            return combinedReportActions.slice(indexOfLinkedAction);
+        }
+        const paginationSize = getInitialPaginationSize;
+        return combinedReportActions.slice(Math.max(indexOfLinkedAction - paginationSize, 0));
+
+        // currentReportActionID is needed to trigger batching once the report action has been positioned
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportActionID, combinedReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
+
+    const reportActionIDMap = useMemo(() => {
+        const reportActionIDs = allReportActions.map((action) => action.reportActionID);
+        return reportActions.map((action) => ({
+            reportActionID: action.reportActionID,
+            reportID: reportActionIDs.includes(action.reportActionID) ? reportID : transactionThreadReport?.reportID,
+        }));
+    }, [allReportActions, reportID, transactionThreadReport, reportActions]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -108,67 +196,23 @@ function ReportActionsView({
                 return;
             }
 
-            Report.getNewerActions(reportID, newestReportAction.reportActionID);
+            // If this is a one transaction report, ensure we load newer actions for both this report and the report associated with the transaction
+            if (!isEmptyObject(transactionThreadReport)) {
+                // Get newer actions based on the newest reportAction for the current report
+                const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
+                Report.getNewerActions(newestActionCurrentReport?.reportID ?? '0', newestActionCurrentReport?.reportActionID ?? '0');
+
+                // Get newer actions based on the newest reportAction for the transaction thread report
+                const newestActionTransactionThreadReport = reportActionIDMap.find((item) => item.reportID === transactionThreadReport.reportID);
+                Report.getNewerActions(newestActionTransactionThreadReport?.reportID ?? '0', newestActionTransactionThreadReport?.reportActionID ?? '0');
+            } else {
+                Report.getNewerActions(reportID, newestReportAction.reportActionID);
+            }
         },
-        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportID],
+        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportID, transactionThreadReport, reportActionIDMap],
     );
 
-    const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-
-    const openReportIfNecessary = () => {
-        if (!shouldFetchReport(report)) {
-            return;
-        }
-
-        Report.openReport(reportID, reportActionID);
-    };
-
-    const reconnectReportIfNecessary = () => {
-        if (!shouldFetchReport(report)) {
-            return;
-        }
-
-        Report.reconnect(reportID);
-    };
-
-    useLayoutEffect(() => {
-        setCurrentReportActionID('');
-    }, [route]);
-
-    const listID = useMemo(() => {
-        isFirstLinkedActionRender.current = true;
-        const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
-        listOldID = newID;
-        return newID;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, isLoadingInitialReportActions]);
-
-    const indexOfLinkedAction = useMemo(() => {
-        if (!reportActionID || isLoading) {
-            return -1;
-        }
-
-        return allReportActions.findIndex((obj) => String(obj.reportActionID) === String(isFirstLinkedActionRender.current ? reportActionID : currentReportActionID));
-    }, [allReportActions, currentReportActionID, reportActionID, isLoading]);
-
-    const reportActions = useMemo(() => {
-        if (!reportActionID) {
-            return allReportActions;
-        }
-        if (isLoading || indexOfLinkedAction === -1) {
-            return [];
-        }
-
-        if (isFirstLinkedActionRender.current) {
-            return allReportActions.slice(indexOfLinkedAction);
-        }
-        const paginationSize = getInitialPaginationSize;
-        return allReportActions.slice(Math.max(indexOfLinkedAction - paginationSize, 0));
-        // currentReportActionID is needed to trigger batching once the report action has been positioned
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActionID, allReportActions, indexOfLinkedAction, isLoading, currentReportActionID]);
-
-    const hasMoreCached = reportActions.length < allReportActions.length;
+    const hasMoreCached = reportActions.length < combinedReportActions.length;
     const newestReportAction = useMemo(() => reportActions?.[0], [reportActions]);
     const handleReportActionPagination = useCallback(
         ({firstReportActionID}: {firstReportActionID: string}) => {
@@ -187,8 +231,7 @@ function ReportActionsView({
 
     const mostRecentIOUReportActionID = useMemo(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const hasCachedActionOnFirstRender = useInitialValue(() => reportActions.length > 0);
-    const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated;
-
+    const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
@@ -211,7 +254,7 @@ function ReportActionsView({
     }, []);
 
     useEffect(() => {
-        if (!reportActionID) {
+        if (!reportActionID || indexOfLinkedAction > -1) {
             return;
         }
 
@@ -220,37 +263,15 @@ function ReportActionsView({
         // There should be only one openReport execution per page start or navigating
         Report.openReport(reportID, reportActionID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route]);
-
-    useEffect(() => {
-        const prevNetwork = prevNetworkRef.current;
-        // When returning from offline to online state we want to trigger a request to OpenReport which
-        // will fetch the reportActions data and mark the report as read. If the report is not fully visible
-        // then we call ReconnectToReport which only loads the reportActions data without marking the report as read.
-        const wasNetworkChangeDetected = prevNetwork.isOffline && !network.isOffline;
-        if (wasNetworkChangeDetected) {
-            if (isReportFullyVisible) {
-                openReportIfNecessary();
-            } else {
-                reconnectReportIfNecessary();
-            }
-        }
-        // update ref with current network state
-        prevNetworkRef.current = network;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [network, isReportFullyVisible]);
+    }, [route, indexOfLinkedAction]);
 
     useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(report)) {
-            if (isReportFullyVisible) {
-                openReportIfNecessary();
-            } else {
-                reconnectReportIfNecessary();
-            }
+            openReportIfNecessary();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [session, report, isReportFullyVisible]);
+    }, [session, report]);
 
     useEffect(() => {
         const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
@@ -307,9 +328,20 @@ function ReportActionsView({
         if (!oldestReportAction || hasCreatedAction) {
             return;
         }
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-    }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID]);
+
+        if (!isEmptyObject(transactionThreadReport)) {
+            // Get newer actions based on the newest reportAction for the current report
+            const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
+            Report.getNewerActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
+
+            // Get newer actions based on the newest reportAction for the transaction thread report
+            const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
+            Report.getNewerActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
+        } else {
+            // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
+            Report.getOlderActions(reportID, oldestReportAction.reportActionID);
+        }
+    }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID, reportActionIDMap, transactionThreadReport]);
 
     const loadNewerChats = useCallback(() => {
         if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -433,10 +465,15 @@ function ReportActionsView({
 
         const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '', report.reportID);
         const moneyRequestActions = reportActions.filter(
-            (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            (action) =>
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+                action.originalMessage &&
+                (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                    Boolean(action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails) ||
+                    action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK),
         );
 
-        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0)) {
+        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
             const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
                 CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 0,
@@ -464,7 +501,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [reportActions, report]);
+    }, [reportActions, report, transactionThreadReport]);
 
     // Comments have not loaded at all yet do nothing
     if (!reportActions.length) {
@@ -477,6 +514,8 @@ function ReportActionsView({
         <>
             <ReportActionsList
                 report={report}
+                transactionThreadReport={transactionThreadReport}
+                reportActions={reportActions}
                 parentReportAction={parentReportAction}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={reportActionsToDisplay}
@@ -503,6 +542,10 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
         return false;
     }
     if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
+        return false;
+    }
+
+    if (!lodashIsEqual(oldProps.transactionThreadReportActions, newProps.transactionThreadReportActions)) {
         return false;
     }
 
@@ -535,6 +578,14 @@ export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'}
     withOnyx<ReportActionsViewProps, ReportActionsViewOnyxProps>({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transactionThreadReportActions: {
+            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            canEvict: false,
+            selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+        },
+        transactionThreadReport: {
+            key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
         },
     })(MemoizedReportActionsView),
 );

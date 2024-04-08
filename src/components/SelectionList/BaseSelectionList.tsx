@@ -20,11 +20,12 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, Section, SectionListDataType, SelectionListHandle} from './types';
+import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
 function BaseSelectionList<TItem extends ListItem>(
     {
@@ -62,22 +63,26 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldShowTooltips = true,
         shouldUseDynamicMaxToRenderPerBatch = false,
         rightHandSideComponent,
-        checkmarkPosition,
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
+        headerMessageStyle,
+        shouldHideListOnInitialRender = true,
+        textInputIconLeft,
+        sectionTitleStyles,
+        textInputAutoFocus = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const listRef = useRef<RNSectionList<TItem, Section<TItem>>>(null);
+    const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const shouldShowTextInput = !!textInputLabel;
+    const shouldShowTextInput = !!textInputLabel || !!textInputIconLeft;
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
@@ -166,15 +171,17 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
-        const processedSections = sections.map((section) => {
-            const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
-            remainingOptionsLimit -= data.length;
+        const processedSections = getSectionsWithIndexOffset(
+            sections.map((section) => {
+                const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
+                remainingOptionsLimit -= data.length;
 
-            return {
-                ...section,
-                data,
-            };
-        });
+                return {
+                    ...section,
+                    data,
+                };
+            }),
+        );
 
         const shouldShowMoreButton = flattenedSections.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
         const showMoreButton = shouldShowMoreButton ? (
@@ -306,15 +313,14 @@ function BaseSelectionList<TItem extends ListItem>(
             // We do this so that we can reference the height in `getItemLayout` –
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
-            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]}>
                 <Text style={[styles.ph4, styles.textLabelSupporting]}>{section.title}</Text>
             </View>
         );
     };
 
-    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, Section<TItem>>) => {
-        const indexOffset = section.indexOffset ? section.indexOffset : 0;
-        const normalizedIndex = index + indexOffset;
+    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
+        const normalizedIndex = index + section.indexOffset;
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
@@ -332,7 +338,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                checkmarkPosition={checkmarkPosition}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
             />
@@ -375,6 +380,9 @@ function BaseSelectionList<TItem extends ListItem>(
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
         useCallback(() => {
+            if (!textInputAutoFocus) {
+                return;
+            }
             if (shouldShowTextInput) {
                 focusTimeoutRef.current = setTimeout(() => {
                     if (!innerTextInputRef.current) {
@@ -389,7 +397,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 }
                 clearTimeout(focusTimeoutRef.current);
             };
-        }, [shouldShowTextInput]),
+        }, [shouldShowTextInput, textInputAutoFocus]),
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
@@ -492,8 +500,12 @@ function BaseSelectionList<TItem extends ListItem>(
                                             return;
                                         }
 
-                                        // eslint-disable-next-line no-param-reassign
-                                        textInputRef.current = element as RNTextInput;
+                                        if (typeof textInputRef === 'function') {
+                                            textInputRef(element as RNTextInput);
+                                        } else {
+                                            // eslint-disable-next-line no-param-reassign
+                                            textInputRef.current = element as RNTextInput;
+                                        }
                                     }}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
@@ -506,6 +518,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     inputMode={inputMode}
                                     selectTextOnFocus
                                     spellCheck={false}
+                                    iconLeft={textInputIconLeft}
                                     onSubmitEditing={selectFocusedOption}
                                     blurOnSubmit={!!flattenedSections.allOptions.length}
                                     isLoading={isLoadingNewOptions}
@@ -513,8 +526,10 @@ function BaseSelectionList<TItem extends ListItem>(
                                 />
                             </View>
                         )}
-                        {!!headerMessage && (
-                            <View style={[styles.ph5, styles.pb5]}>
+                        {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
+                        {/* This is misleading because we might be in the process of loading fresh options from the server. */}
+                        {!isLoadingNewOptions && !!headerMessage && (
+                            <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
@@ -571,7 +586,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
                                     onLayout={onSectionListLayout}
-                                    style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
+                                    style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
                                     ListFooterComponent={ShowMoreButtonInstance}
                                 />
                                 {children}
