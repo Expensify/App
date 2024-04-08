@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 
 type AdminAccessOrNotFoundOnyxProps = {
     /** The report currently being looked at */
@@ -50,6 +51,15 @@ function AdminPolicyAccessOrNotFoundComponent(props: AdminPolicyAccessOrNotFound
     }
 
     if (shouldShowNotFoundPage) {
+        const isPolicyNotAccessible = isEmptyObject(props.policy) || !props.policy?.id;
+    
+        if (isPolicyNotAccessible) {
+            return <FullPageNotFoundView
+                shouldShow
+                shouldForceFullScreen
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+            />
+        }
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(props.policyID))} />;
     }
 
