@@ -70,16 +70,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {
-    NewGroupChatDraft,
-    PersonalDetails,
-    PersonalDetailsList,
-    PolicyReportField,
-    RecentlyUsedReportFields,
-    ReportActionReactions,
-    ReportMetadata,
-    ReportUserIsTyping,
-} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -210,12 +201,6 @@ let allRecentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields> = {};
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_REPORT_FIELDS,
     callback: (val) => (allRecentlyUsedReportFields = val),
-});
-
-let newGroupDraft: OnyxEntry<NewGroupChatDraft>;
-Onyx.connect({
-    key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    callback: (value) => (newGroupDraft = value),
 });
 
 function clearGroupChat() {
@@ -799,14 +784,15 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    const isGroupChat = participantAccountIDs.length > 1;
 
     // If we are not creating a new Group Chat then we are creating a 1:1 DM and will look for an existing chat
-    if (!newGroupDraft) {
+    if (!isGroupChat) {
         chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     }
 
     if (isEmptyObject(chat)) {
-        if (newGroupDraft) {
+        if (isGroupChat) {
             newChat = ReportUtils.buildOptimisticChatReport(
                 participantAccountIDs,
                 reportName,
@@ -1612,6 +1598,18 @@ function updateReportName(reportID: string, value: string, previousValue: string
     API.write(WRITE_COMMANDS.SET_REPORT_NAME, parameters, {optimisticData, failureData, successData});
 }
 
+function clearReportFieldErrors(reportID: string, reportField: PolicyReportField) {
+    const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        pendingFields: {
+            [fieldKey]: null,
+        },
+        errorFields: {
+            [fieldKey]: null,
+        },
+    });
+}
+
 function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
     const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
     const recentlyUsedValues = allRecentlyUsedReportFields?.[fieldKey] ?? [];
@@ -1690,6 +1688,65 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
     };
 
     API.write(WRITE_COMMANDS.SET_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
+}
+
+function deleteReportField(reportID: string, reportField: PolicyReportField) {
+    const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                fieldList: {
+                    [fieldKey]: null,
+                },
+                pendingFields: {
+                    [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                fieldList: {
+                    [fieldKey]: reportField,
+                },
+                pendingFields: {
+                    [fieldKey]: null,
+                },
+                errorFields: {
+                    [fieldKey]: ErrorUtils.getMicroSecondOnyxError('report.genericUpdateReportFieldFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    [fieldKey]: null,
+                },
+                errorFields: {
+                    [fieldKey]: null,
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        reportID,
+        fieldID: fieldKey,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
 function updateDescription(reportID: string, previousValue: string, newValue: string) {
@@ -3024,6 +3081,8 @@ export {
     clearNewRoomFormError,
     updateReportField,
     updateReportName,
+    deleteReportField,
+    clearReportFieldErrors,
     resolveActionableMentionWhisper,
     updateRoomVisibility,
     setGroupDraft,
