@@ -29,8 +29,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
+import {getDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
@@ -296,6 +296,9 @@ function ComposerWithSuggestions(
 
     const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
+    // The ref to check whether the comment saving is in progress
+    const isCommentPendingSaved = useRef(false);
+
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
      * API is not called too often.
@@ -330,7 +333,8 @@ function ComposerWithSuggestions(
     const debouncedSaveReportComment = useMemo(
         () =>
             lodashDebounce((selectedReportID, newComment) => {
-                Report.saveReportComment(selectedReportID, newComment || '');
+                Report.saveReportDraftComment(selectedReportID, newComment);
+                isCommentPendingSaved.current = false;
             }, 1000),
         [],
     );
@@ -422,28 +426,12 @@ function ComposerWithSuggestions(
                 });
             }
 
-            // Indicate that draft has been created.
-            if (commentRef.current.length === 0 && newCommentConverted.length !== 0) {
-                Report.setReportWithDraft(reportID, true);
-            }
-
-            const hasDraftStatus = Report.getReportDraftStatus(reportID);
-
-            /**
-             * The extra `!hasDraftStatus` check is to prevent the draft being set
-             * when the user navigates to the ReportScreen. This doesn't alter anything
-             * in terms of functionality.
-             */
-            // The draft has been deleted.
-            if (newCommentConverted.length === 0 && hasDraftStatus) {
-                Report.setReportWithDraft(reportID, false);
-            }
-
             commentRef.current = newCommentConverted;
             if (shouldDebounceSaveComment) {
+                isCommentPendingSaved.current = true;
                 debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
-                Report.saveReportComment(reportID, newCommentConverted || '');
+                Report.saveReportDraftComment(reportID, newCommentConverted);
             }
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
@@ -489,6 +477,7 @@ function ComposerWithSuggestions(
         // We don't really care about saving the draft the user was typing
         // We need to make sure an empty draft gets saved instead
         debouncedSaveReportComment.cancel();
+        isCommentPendingSaved.current = false;
 
         updateComment('');
         setTextInputShouldClear(true);
@@ -602,8 +591,8 @@ function ComposerWithSuggestions(
 
     const setUpComposeFocusManager = useCallback(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside || !isFocused) {
+        ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
+            if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
                 return;
             }
 
@@ -794,6 +783,7 @@ function ComposerWithSuggestions(
                     value={value}
                     updateComment={updateComment}
                     commentRef={commentRef}
+                    isCommentPendingSaved={isCommentPendingSaved}
                 />
             )}
 

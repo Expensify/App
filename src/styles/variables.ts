@@ -125,6 +125,8 @@ export default {
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
+    emptyLHNIconHeight: 16,
     emptyWorkspaceIconWidth: 84,
     emptyWorkspaceIconHeight: 84,
     modalTopIconWidth: 200,
@@ -200,6 +202,8 @@ export default {
     oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
+    onboardingModalWidth: 500,
+    welcomeVideoDelay: 500,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -207,6 +211,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
+    purposeMenuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
 

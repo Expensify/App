@@ -1,6 +1,7 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashSortBy from 'lodash/sortBy';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -9,11 +10,11 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -23,6 +24,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -69,16 +71,17 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const dropdownButtonRef = useRef(null);
     const [deleteTagsConfirmModalVisible, setDeleteTagsConfirmModalVisible] = useState(false);
 
-    function fetchTags() {
+    const fetchTags = useCallback(() => {
         Policy.openPolicyTagsPage(route.params.policyID);
-    }
+    }, [route.params.policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
-    useEffect(() => {
-        fetchTags();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchTags();
+        }, [fetchTags]),
+    );
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
@@ -96,24 +99,12 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                             errors: tag.errors ?? undefined,
                             enabled: tag.enabled,
                             isDisabled,
-                            rightElement: (
-                                <View style={styles.flexRow}>
-                                    <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
-                                        {tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
-                                    </Text>
-                                    <View style={[styles.p1, styles.pl2]}>
-                                        <Icon
-                                            src={Expensicons.ArrowRight}
-                                            fill={theme.icon}
-                                        />
-                                    </View>
-                                </View>
-                            ),
+                            rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
                         };
                     }),
                 )
                 .flat(),
-        [policyTagLists, selectedTags, styles.alignSelfCenter, styles.flexRow, styles.label, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
+        [policyTagLists, selectedTags],
     );
 
     const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
@@ -308,13 +299,14 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         {tagList.length > 0 && !isLoading && (
                             <SelectionList
                                 canSelectMultiple
-                                sections={[{data: tagList, indexOffset: 0, isDisabled: false}]}
+                                sections={[{data: tagList, isDisabled: false}]}
                                 onCheckboxPress={toggleTag}
                                 onSelectRow={navigateToTagSettings}
                                 onSelectAll={toggleAllTags}
                                 showScrollIndicator
                                 ListItem={TableListItem}
                                 customListHeader={getCustomListHeader()}
+                                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                                 listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                                 onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
                             />
