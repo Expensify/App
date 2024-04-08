@@ -5,10 +5,19 @@ import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as DraftCommentUtils from '@libs/DraftCommentUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -39,8 +48,12 @@ function LHNOptionsList({
     const flashListRef = useRef<FlashList<string>>(null);
     const route = useRoute();
 
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const shouldShowEmptyLHN = isSmallScreenWidth && data.length === 0;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -54,6 +67,40 @@ function LHNOptionsList({
         onFirstItemRendered();
     }, [onFirstItemRendered]);
 
+    const emptyLHNSubtitle = useMemo(
+        () => (
+            <View>
+                <Text
+                    color={theme.placeholderText}
+                    style={[styles.textAlignCenter]}
+                >
+                    {translate('common.emptyLHN.subtitleText1')}
+                    <Icon
+                        src={Expensicons.MagnifyingGlass}
+                        width={variables.emptyLHNIconWidth}
+                        height={variables.emptyLHNIconHeight}
+                        small
+                        inline
+                        fill={theme.icon}
+                        additionalStyles={styles.alignItemsCenter}
+                    />
+                    {translate('common.emptyLHN.subtitleText2')}
+                    <Icon
+                        src={Expensicons.Plus}
+                        width={variables.emptyLHNIconWidth}
+                        height={variables.emptyLHNIconHeight}
+                        small
+                        inline
+                        fill={theme.icon}
+                        additionalStyles={styles.alignItemsCenter}
+                    />
+                    {translate('common.emptyLHN.subtitleText3')}
+                </Text>
+            </View>
+        ),
+        [theme, styles.alignItemsCenter, styles.textAlignCenter, translate],
+    );
+
     /**
      * Function which renders a row in the list
      */
@@ -66,7 +113,7 @@ function LHNOptionsList({
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`] ?? null;
             const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID ?? '' : '';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
-            const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
+            const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
             const lastReportAction = sortedReportActions[0];
 
@@ -93,7 +140,7 @@ function LHNOptionsList({
                     isFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
-                    comment={itemComment}
+                    hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
                     canUseViolations={canUseViolations}
                     onLayout={onLayoutItem}
@@ -117,7 +164,10 @@ function LHNOptionsList({
         ],
     );
 
-    const extraData = useMemo(() => [reportActions, reports, policy, personalDetails, data.length], [reportActions, reports, policy, personalDetails, data.length]);
+    const extraData = useMemo(
+        () => [reportActions, reports, policy, personalDetails, data.length, draftComments],
+        [reportActions, reports, policy, personalDetails, data.length, draftComments],
+    );
 
     const previousOptionMode = usePrevious(optionMode);
 
@@ -163,22 +213,33 @@ function LHNOptionsList({
     }, [route, flashListRef, getScrollOffset]);
 
     return (
-        <View style={style ?? styles.flex1}>
-            <FlashList
-                ref={flashListRef}
-                indicatorStyle="white"
-                keyboardShouldPersistTaps="always"
-                contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
-                data={data}
-                testID="lhn-options-list"
-                keyExtractor={keyExtractor}
-                renderItem={renderItem}
-                estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
-                extraData={extraData}
-                showsVerticalScrollIndicator={false}
-                onLayout={onLayout}
-                onScroll={onScroll}
-            />
+        <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
+            {shouldShowEmptyLHN ? (
+                <BlockingView
+                    animation={LottieAnimations.Fireworks}
+                    animationStyles={styles.emptyLHNAnimation}
+                    animationWebStyle={styles.emptyLHNAnimation}
+                    title={translate('common.emptyLHN.title')}
+                    shouldShowLink={false}
+                    CustomSubtitle={emptyLHNSubtitle}
+                />
+            ) : (
+                <FlashList
+                    ref={flashListRef}
+                    indicatorStyle="white"
+                    keyboardShouldPersistTaps="always"
+                    contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
+                    data={data}
+                    testID="lhn-options-list"
+                    keyExtractor={keyExtractor}
+                    renderItem={renderItem}
+                    estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
+                    extraData={extraData}
+                    showsVerticalScrollIndicator={false}
+                    onLayout={onLayout}
+                    onScroll={onScroll}
+                />
+            )}
         </View>
     );
 }
