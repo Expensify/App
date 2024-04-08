@@ -3,8 +3,10 @@ import {View} from 'react-native';
 import * as Report from '@userActions/Report';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
+import useLocalize from '@hooks/useLocalize';
 
 function ChatActionsBar({report}) {
+    const {translate} = useLocalize();
     const isPinned = !!report.isPinned;
     return (
         <View style={{flexDirection: 'row', paddingHorizontal: 14, marginBottom: 20}}>
@@ -13,7 +15,7 @@ function ChatActionsBar({report}) {
                     onPress={() => Report.leaveGroupChat(report.reportID)}
                     icon={Expensicons.Exit}
                     style={{flex: 1}}
-                    text="Leave"
+                    text={translate('common.leave')}
                 />
             </View>
             <View style={{flex: 1, paddingHorizontal: 6}}>
@@ -21,7 +23,7 @@ function ChatActionsBar({report}) {
                     onPress={() => Report.togglePinnedState(report.reportID, isPinned)}
                     icon={Expensicons.Pin}
                     style={{flex: 1}}
-                    text={isPinned ? 'Unpin' : 'Pin'}
+                    text={isPinned ? translate('common.unPin') : translate('common.pin')}
                 />
             </View>
         </View>

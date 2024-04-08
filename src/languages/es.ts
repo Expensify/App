@@ -1227,6 +1227,11 @@ export default {
     groupConfirmPage: {
         groupName: 'Nombre del grupo',
     },
+    groupPage: {
+        people: {
+            groupMembersListTitle: 'Directorio de todos los miembros del grupo.'
+        }
+    }
     languagePage: {
         language: 'Idioma',
         languages: {

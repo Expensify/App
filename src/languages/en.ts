@@ -1224,9 +1224,6 @@ export default {
     },
     groupConfirmPage: {
         groupName: 'Group name',
-        editName: {
-            nameRequiredError: 'Group chat name is required.',
-        },
     },
     groupPage: {
         people: {
