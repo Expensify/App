@@ -72,6 +72,9 @@ type MenuItemBaseProps = {
     /** Used to apply offline styles to child text components */
     style?: StyleProp<ViewStyle>;
 
+    /** Outer wrapper styles */
+    outerWrapperStyle?: StyleProp<ViewStyle>;
+
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
@@ -261,6 +264,7 @@ function MenuItem(
         badgeText,
         style,
         wrapperStyle,
+        outerWrapperStyle,
         containerStyle,
         titleStyle,
         hoverAndPressStyle,
@@ -431,6 +435,7 @@ function MenuItem(
                         onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={ControlSelection.unblock}
                         onSecondaryInteraction={onSecondaryInteraction}
+                        wrapperStyle={outerWrapperStyle}
                         style={({pressed}) =>
                             [
                                 containerStyle,
@@ -438,8 +443,8 @@ function MenuItem(
                                 combinedStyle,
                                 !interactive && styles.cursorDefault,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
-                                !focused && (isHovered || pressed) && hoverAndPressStyle,
                                 ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
+                                !focused && (isHovered || pressed) && hoverAndPressStyle,
                                 shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                             ] as StyleProp<ViewStyle>
                         }
