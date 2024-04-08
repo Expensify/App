@@ -358,7 +358,7 @@ function AvatarWithImagePicker({
                             {({openPicker}) => {
                                 const menuItems = createMenuItems(openPicker);
 
-                                // If the current avatar isn't a default avatar, allow the "View Photo" option
+                                // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
                                 if (!disableViewPhoto && !isUsingDefaultAvatar) {
                                     menuItems.push({
                                         icon: Expensicons.Eye,

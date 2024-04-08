@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as Report from '../libs/actions/Report';
+import * as Report from '@userActions/Report';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
 
