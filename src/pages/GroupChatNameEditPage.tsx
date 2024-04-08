@@ -28,7 +28,7 @@ function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
     const {groupChatDraft} = props;
 
     // If we have a reportID this means we are using this page to update an existing Group Chat name
-    const reportID = props.route.params?.reportID;
+    const reportID = props.route.params?.reportID ?? '';
     const isUpdatingExistingReport = Boolean(reportID);
 
     const styles = useThemeStyles();
@@ -59,7 +59,6 @@ function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
         }
 
         Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
-        Keyboard.dismiss();
         Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
     }, []);
 
@@ -72,7 +71,7 @@ function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('groupConfirmPage.groupName')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack(isUpdatingExistingReport ? ROUTES.REPORT_SETTINGS.getRoute(reportID) : ROUTES.NEW_CHAT_CONFIRM)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM}
@@ -84,7 +83,7 @@ function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
             >
                 <InputWrapper
                     InputComponent={TextInput}
-                    maxLength={CONST.TAG_NAME_LIMIT}
+                    maxLength={CONST.REPORT_NAME_LIMIT}
                     defaultValue={currentChatName}
                     label={translate('common.name')}
                     accessibilityLabel={translate('common.name')}

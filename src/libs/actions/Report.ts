@@ -2625,7 +2625,6 @@ function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedE
         accountIDList: newAccountIDs.join(),
     };
 
-    // Looks like a wrong API command
     API.write(WRITE_COMMANDS.INVITE_TO_GROUP_CHAT, parameters, {optimisticData, successData, failureData});
 }
 
