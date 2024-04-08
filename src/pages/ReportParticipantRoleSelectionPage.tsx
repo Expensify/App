@@ -11,12 +11,12 @@ import * as Report from '@libs/actions/Report';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 
-type ReportParticipantDetailsRoleSelectionPageProps = WithReportOrNotFoundProps & StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
+type ReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
 
 type ListItemType = {
     value: typeof CONST.REPORT.ROLE.ADMIN | typeof CONST.REPORT.ROLE.MEMBER;
@@ -25,13 +25,12 @@ type ListItemType = {
     keyForList: typeof CONST.REPORT.ROLE.ADMIN | typeof CONST.REPORT.ROLE.MEMBER;
 };
 
-function ReportParticipantDetailsRoleSelectionPage({report, route}: ReportParticipantDetailsRoleSelectionPageProps) {
+function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRoleSelectionPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const accountID = Number(route.params.accountID) ?? 0;
-    // const reportID = route.params.reportID;
-    const backTo = route.params.backTo ?? ('' as Route);
+    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID ?? '', accountID);
     const member = report.participants?.[accountID];
 
     const items: ListItemType[] = [
@@ -59,7 +58,7 @@ function ReportParticipantDetailsRoleSelectionPage({report, route}: ReportPartic
     };
 
     return (
-        <ScreenWrapper testID={ReportParticipantDetailsRoleSelectionPage.displayName}>
+        <ScreenWrapper testID={ReportParticipantRoleSelectionPage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.role')}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -76,6 +75,6 @@ function ReportParticipantDetailsRoleSelectionPage({report, route}: ReportPartic
     );
 }
 
-ReportParticipantDetailsRoleSelectionPage.displayName = 'ReportParticipantDetailsRoleSelectionPage';
+ReportParticipantRoleSelectionPage.displayName = 'ReportParticipantRoleSelectionPage';
 
-export default withReportOrNotFound()(ReportParticipantDetailsRoleSelectionPage);
+export default withReportOrNotFound()(ReportParticipantRoleSelectionPage);

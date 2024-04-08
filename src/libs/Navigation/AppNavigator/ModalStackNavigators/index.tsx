@@ -138,7 +138,7 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator<Particip
     [SCREENS.REPORT_PARTICIPANTS.ROOT]: () => require('../../../../pages/ReportParticipantsPage').default as React.ComponentType,
     [SCREENS.REPORT_PARTICIPANTS.INVITE]: () => require('../../../../pages/InviteReportParticipantsPage').default as React.ComponentType,
     [SCREENS.REPORT_PARTICIPANTS.DETAILS]: () => require('../../../../pages/ReportParticipantDetailsPage').default as React.ComponentType,
-    [SCREENS.REPORT_PARTICIPANTS.ROLE]: () => require('../../../../pages/ReportParticipantDetailsRoleSelectionPage').default as React.ComponentType,
+    [SCREENS.REPORT_PARTICIPANTS.ROLE]: () => require('../../../../pages/ReportParticipantRoleSelectionPage').default as React.ComponentType,
 });
 
 const RoomMembersModalStackNavigator = createModalStackNavigator<RoomMembersNavigatorParamList>({

@@ -329,12 +329,10 @@ type ParticipantsNavigatorParamList = {
     [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
         reportID: string;
         accountID: string;
-        backTo: Routes;
     };
     [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
         reportID: string;
         accountID: string;
-        backTo: Routes;
     };
 };
 
