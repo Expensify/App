@@ -558,10 +558,6 @@ function reportActionsExist(reportID: string): boolean {
 }
 
 function updateGroupChatName(reportID: string, reportName: string) {
-    if (!reportID || !reportName) {
-        return;
-    }
-
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -570,7 +566,7 @@ function updateGroupChatName(reportID: string, reportName: string) {
         },
     ];
 
-    API.write('UpdateGroupChatName', {reportName, reportID}, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, {reportName, reportID}, {optimisticData});
 }
 
 function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {

@@ -9,6 +9,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 
 type FirstAndLastName = {
     firstName: string;
@@ -121,7 +122,7 @@ function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
     logins.forEach((login, index) => {
         const accountID = accountIDs[index];
 
-        if (allPersonalDetails && Object.keys(allPersonalDetails?.[accountID] ?? {}).length === 0) {
+        if (isEmptyObject(allPersonalDetails?.[accountID])) {
             newAccountIDs.push(accountID);
             newLogins.push(login);
         }

@@ -758,7 +758,7 @@ function hasParticipantInArray(report: Report, memberAccountIDs: number[]) {
     const memberAccountIDsSet = new Set(memberAccountIDs);
 
     for (const accountID in report.participants) {
-        if (memberAccountIDsSet.has(parseInt(accountID, 10))) {
+        if (memberAccountIDsSet.has(Number(accountID))) {
             return true;
         }
     }
@@ -1741,32 +1741,32 @@ function getGroupChatName(participantAccountIDs: number[] = [], shouldApplyLimit
         .join(', ');
 }
 
-function getVisibleChatMemberAccountIDs(reportID: string) {
-    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-    const report = allReports?.[reportKey];
-    if (!report) {
+function getVisibleChatMemberAccountIDs(reportID: string): number[] {
+    const report = getReport(reportID);
+    if (!report || !report.participants) {
         return [];
     }
-
-    const accountIDStrings = Object.keys(report.participants);
-    const visibleParticipantAccountIDs = accountIDStrings.filter((accountID) => report.participants[accountID] && !report.participants[accountID].hidden);
-    return visibleParticipantAccountIDs.map((accountID) => parseInt(accountID, 10));
+    const visibleParticipantAccountIDs = Object.entries(report.participants).reduce<number[]>((accountIDs, [accountID, participant]) => {
+        if (participant && !participant.hidden) {
+            accountIDs.push(Number(accountID));
+        }
+        return accountIDs;
+    }, []);
+    return visibleParticipantAccountIDs;
 }
 
 function getParticipantAccountIDs(reportID: string) {
-    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-    const report = allReports?.[reportKey];
+    const report = getReport(reportID);
     if (!report) {
         return [];
     }
 
     const accountIDStrings = Object.keys(report.participants);
-    return accountIDStrings.map((accountID) => parseInt(accountID, 10));
+    return accountIDStrings.map((accountID) => Number(accountID));
 }
 
 function getParticipants(reportID: string) {
-    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-    const report = allReports?.[reportKey];
+    const report = getReport(reportID);
     if (!report) {
         return {};
     }
@@ -1901,7 +1901,8 @@ function getIcons(
 
     if (isGroupChat(report)) {
         const groupChatIcon = {
-            source: report.avatarUrl ? report.avatarUrl : getDefaultGroupAvatar(report.reportID),
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
             id: -1,
             type: CONST.ICON_TYPE_AVATAR,
             name: getGroupChatName(report.participantAccountIDs ?? [], true, report.reportID ?? ''),
