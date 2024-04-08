@@ -22,7 +22,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {isTaxPolicyEnabled} from '@libs/PolicyUtils';
+import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -284,7 +284,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
     // A flag for showing tax rate
-    const shouldShowTax = isTaxPolicyEnabled(isPolicyExpenseChat, policy);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
@@ -329,7 +329,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
     const isCategoryRequired = canUseViolations && lodashGet(policy, 'requiresCategory', false);
-    const isTagRequired = canUseViolations && lodashGet(policy, 'requiresTag', false);
 
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
@@ -534,7 +533,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transaction.transactionID, updatedTagsString);
         }
-    }, [policyTagLists, transaction, policyTags, isTagRequired, canUseViolations]);
+    }, [policyTagLists, transaction, policyTags, canUseViolations]);
 
     /**
      * @param {Object} option
@@ -642,6 +641,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
+                shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}
                 policyID={policyID}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
@@ -829,28 +829,38 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             shouldShow: shouldShowCategories,
             isSupplementary: !isCategoryRequired,
         },
-        ..._.map(policyTagLists, ({name}, index) => ({
-            item: (
-                <MenuItemWithTopDescription
-                    key={name}
-                    shouldShowRightIcon={!isReadOnly}
-                    title={TransactionUtils.getTagForDisplay(transaction, index)}
-                    description={name}
-                    numberOfLinesTitle={2}
-                    onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, index, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        )
-                    }
-                    style={[styles.moneyRequestMenuItem]}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    rightLabel={isTagRequired ? translate('common.required') : ''}
-                />
-            ),
-            shouldShow: shouldShowTags,
-            isSupplementary: !isTagRequired,
-        })),
+        ..._.map(policyTagLists, ({name, required}, index) => {
+            const isTagRequired = isUndefined(required) ? false : canUseViolations && required;
+            return {
+                item: (
+                    <MenuItemWithTopDescription
+                        key={name}
+                        shouldShowRightIcon={!isReadOnly}
+                        title={TransactionUtils.getTagForDisplay(transaction, index)}
+                        description={name}
+                        numberOfLinesTitle={2}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                    CONST.IOU.ACTION.CREATE,
+                                    iouType,
+                                    index,
+                                    transaction.transactionID,
+                                    reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            )
+                        }
+                        style={[styles.moneyRequestMenuItem]}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                        rightLabel={isTagRequired ? translate('common.required') : ''}
+                    />
+                ),
+                shouldShow: shouldShowTags,
+                isSupplementary: !isTagRequired,
+            };
+        }),
         {
             item: (
                 <MenuItemWithTopDescription

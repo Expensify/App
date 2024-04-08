@@ -11530,6 +11530,7 @@ GithubUtils_1.default.octokit.pulls
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const GIT_CONST = {
     GITHUB_OWNER: 'Expensify',
     APP_REPO: 'App',
@@ -11544,6 +11545,10 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
     },
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
+    ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
+    ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
+    POLL_RATE: 10000,
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
 };
@@ -11553,7 +11558,7 @@ exports["default"] = CONST;
 /***/ }),
 
 /***/ 9296:
-/***/ (function(module, exports, __nccwpck_require__) {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -11584,7 +11589,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.POLL_RATE = exports.ISSUE_OR_PULL_REQUEST_REGEX = void 0;
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
@@ -11593,20 +11597,8 @@ const plugin_throttling_1 = __nccwpck_require__(9968);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
-const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
-const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
-const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
-const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`);
-exports.ISSUE_OR_PULL_REQUEST_REGEX = ISSUE_OR_PULL_REQUEST_REGEX;
-/**
- * The standard rate in ms at which we'll poll the GitHub API to check for status changes.
- * It's 10 seconds :)
- */
-const POLL_RATE = 10000;
-exports.POLL_RATE = POLL_RATE;
 class GithubUtils {
     static internalOctokit;
-    static POLL_RATE;
     /**
      * Initialize internal octokit
      *
@@ -11731,7 +11723,7 @@ class GithubUtils {
             return [];
         }
         PRListSection = PRListSection[1];
-        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isVerified: match[1] === 'x',
@@ -11749,7 +11741,7 @@ class GithubUtils {
             return [];
         }
         deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -11767,7 +11759,7 @@ class GithubUtils {
             return [];
         }
         internalQASection = internalQASection[1];
-        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2].split('-')[0].trim(),
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -11946,7 +11938,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Pull Request.
      */
     static getPullRequestNumberFromURL(URL) {
-        const matches = URL.match(PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST_1.default.PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Pull Request!`);
         }
@@ -11958,7 +11950,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue.
      */
     static getIssueNumberFromURL(URL) {
-        const matches = URL.match(ISSUE_REGEX);
+        const matches = URL.match(CONST_1.default.ISSUE_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Issue!`);
         }
@@ -11970,7 +11962,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
      */
     static getIssueOrPullRequestNumberFromURL(URL) {
-        const matches = URL.match(ISSUE_OR_PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
@@ -11998,9 +11990,6 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
-// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
-// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
-module.exports = GithubUtils;
 
 
 /***/ }),
