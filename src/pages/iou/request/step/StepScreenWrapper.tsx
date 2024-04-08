@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {PropsWithChildren} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -72,4 +72,4 @@ function StepScreenWrapper({
     );
 }
 
-export default forwardRef(StepScreenWrapper);
+export default StepScreenWrapper;
