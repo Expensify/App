@@ -52,12 +52,14 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
             pressDimmingValue={0.8}
         >
             <Animated.View style={[styles.switchThumb, styles.switchThumbTransformation(offsetX.current)]}>
-                <Icon
-                    src={Expensicons.Lock}
-                    fill={styles.radioButtonLockIcon.fill}
-                    width={styles.radioButtonLockIcon.width}
-                    height={styles.radioButtonLockIcon.height}
-                />
+                {disabled && (
+                    <Icon
+                        src={Expensicons.Lock}
+                        fill={styles.radioButtonLockIcon.fill}
+                        width={styles.radioButtonLockIcon.width}
+                        height={styles.radioButtonLockIcon.height}
+                    />
+                )}
             </Animated.View>
         </PressableWithFeedback>
     );
