@@ -126,9 +126,9 @@ function UserListItem({
                                     item.alternateText ? styles.mb1 : null,
                                 ]}
                             />
-                            {item.isAdmin && (
+                            {item.badgeText && (
                                 <Badge
-                                    text={translate('common.admin')}
+                                    text={item.badgeText}
                                     textStyles={[styles.badgeText, styles.textStrong, variables.fontSizeNormal]}
                                     badgeStyles={[styles.justifyContentCenter, styles.badgeSmall, item.alternateText ? styles.mb1 : null]}
                                 />

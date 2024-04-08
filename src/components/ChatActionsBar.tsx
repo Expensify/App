@@ -28,4 +28,6 @@ function ChatActionsBar({report}) {
     );
 }
 
+ChatActionsBar.displayName = 'ChatActionsBar';
+
 export default ChatActionsBar;

@@ -65,13 +65,13 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                         isDisabled: isAdmin,
                         accountID,
                         icons: selectedOption?.icons,
-                        isAdmin,
+                        badgeText: isAdmin ? translate('common.admin') : '',
                         alternateText: selectedOption?.login ?? '',
                     };
                     return section;
                 })
                 .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
-        [selectedOptions, personalData.accountID],
+        [selectedOptions, personalData.accountID, translate],
     );
 
     /**
