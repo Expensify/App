@@ -48,10 +48,6 @@ type IOURequestStepMerchantProps = IOURequestStepMerchantOnyxProps &
     // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT>;
 
-type ValidationData = {
-    moneyRequestMerchant?: string;
-};
-
 function IOURequestStepMerchant({
     route: {
         params: {transactionID, reportID, backTo, action, iouType},
