@@ -102,7 +102,7 @@ function buildNextStep(
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'you',
+                        text: managerDisplayName,
                         type: 'strong',
                     },
                     {
