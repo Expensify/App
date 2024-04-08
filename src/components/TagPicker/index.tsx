@@ -1,10 +1,9 @@
 import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {EdgeInsets} from 'react-native-safe-area-context';
-import OptionsSelector from '@components/OptionsSelector';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -41,12 +40,6 @@ type TagPickerProps = TagPickerOnyxProps & {
     /** Callback to submit the selected tag */
     onSubmit: () => void;
 
-    /**
-     * Safe area insets required for reflecting the portion of the view,
-     * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
-     */
-    insets: EdgeInsets;
-
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
 
@@ -54,9 +47,8 @@ type TagPickerProps = TagPickerOnyxProps & {
     tagListIndex: number;
 };
 
-function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, insets, onSubmit}: TagPickerProps) {
+function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, onSubmit}: TagPickerProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -91,7 +83,7 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
     const sections = useMemo(
-        () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
+        () => OptionsListUtils.getFilteredOptions([], [], [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
         [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
     );
 
@@ -100,22 +92,14 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
     const selectedOptionKey = sections[0]?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
 
     return (
-        <OptionsSelector
-            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
-            contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
-            optionHoveredStyle={styles.hoveredComponentBG}
-            sectionHeaderStyle={styles.mt5}
+        <SelectionList
+            ListItem={RadioListItem}
+            sectionTitleStyles={styles.mt5}
             sections={sections}
-            selectedOptions={selectedOptions}
+            textInputValue={searchValue}
             headerMessage={headerMessage}
-            textInputLabel={translate('common.search')}
-            boldStyle
-            highlightSelectedOptions
+            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             isRowMultilineSupported
-            shouldShowTextInput={shouldShowTextInput}
-            // Focus the first option when searching
-            focusedIndex={0}
-            // Focus the selected option on first load
             initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
