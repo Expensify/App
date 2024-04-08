@@ -35,8 +35,10 @@ function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: 
         const keywordNode = trie.search(keyword);
         if (!keywordNode) {
             const keywordWithoutAccents = StringUtils.normalizeAccents(keyword);
-            const keywordToAdd = keywordWithoutAccents !== keyword ? keywordWithoutAccents : keyword;
-            trie.add(keywordToAdd, {suggestions: [{code: item.code, types: item.types, name}]});
+            if (keywordWithoutAccents !== keyword) {
+                trie.add(keywordWithoutAccents, {suggestions: [{code: item.code, types: item.types, name}]});
+            }
+            trie.add(keyword, {suggestions: [{code: item.code, types: item.types, name}]});
         } else {
             const suggestion = {code: item.code, types: item.types, name};
             const suggestions = shouldPrependKeyword ? [suggestion, ...(keywordNode.metaData.suggestions ?? [])] : [...(keywordNode.metaData.suggestions ?? []), suggestion];
