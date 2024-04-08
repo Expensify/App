@@ -321,7 +321,10 @@ export default compose(
     withFullTransactionOrNotFound,
     withOnyx({
         transactionBackup: {
-            key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${props.transactionID}`,
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
+            },
         },
     }),
 )(IOURequestStepDistance);
