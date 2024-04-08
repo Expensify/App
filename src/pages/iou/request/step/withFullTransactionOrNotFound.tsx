@@ -17,7 +17,7 @@ type WithFullTransactionOrNotFoundOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-type MoneyRequestRouteName = typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION;
+type MoneyRequestRouteName = typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT;
 
 type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
 
@@ -52,7 +52,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         transaction: {
             key: ({route}) => {
                 const transactionID = route.params.transactionID ?? 0;
-                const userAction = route.params.action ?? CONST.IOU.ACTION.CREATE;
+                const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
                 if (userAction === CONST.IOU.ACTION.CREATE) {
                     return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
