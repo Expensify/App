@@ -8,7 +8,7 @@ import FormProvider from '@components/Form/FormProvider';
 import type {FormProviderProps} from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Picker from '@components/Picker';
-import StatePicker from '@components/StatePicker';
+import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {MaybePhraseKey} from '@libs/Localize';
@@ -45,19 +45,12 @@ const story: Meta<typeof FormProvider> = {
     title: 'Components/Form',
     component: FormProvider,
     subcomponents: {
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         InputWrapper,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         TextInput,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         AddressSearch,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         CheckboxWithLabel,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         Picker,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
-        StatePicker,
-        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
+        StateSelector,
         DatePicker,
     },
 };
@@ -155,7 +148,7 @@ function Template(props: FormProviderProps) {
             />
             <View style={defaultStyles.mt4}>
                 <InputWrapper
-                    InputComponent={StatePicker}
+                    InputComponent={StateSelector}
                     inputID="state"
                     shouldSaveDraft
                 />

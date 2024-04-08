@@ -8,18 +8,22 @@ type Card = {
     bank: string;
     availableSpend: number;
     domainName: string;
-    maskedPan?: string; // do not reference, removing as part of Expensify/App#27943
     lastFourPAN?: string;
-    cardName: string;
-    cardTitle: string; // used only for virtual limit cards
-    limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
-    isAdminIssuedVirtualCard: boolean;
-    isVirtual: boolean;
+    isVirtual: boolean; // Deprecating, use nameValuePairs.isVirtual
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
-    cardholderFirstName: string;
-    cardholderLastName: string;
     errors?: OnyxCommon.Errors;
     isLoading?: boolean;
+    nameValuePairs?: {
+        limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+        cardTitle?: string; // Used only for admin-issued virtual cards
+        issuedBy?: number;
+        hasCustomUnapprovedExpenseLimit?: boolean;
+        unapprovedExpenseLimit?: number;
+        feedCountry?: string;
+        isVirtual?: boolean;
+        previousState?: number;
+        expirationDate?: string;
+    };
 };
 
 type TCardDetails = {

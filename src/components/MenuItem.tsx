@@ -1,7 +1,7 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
@@ -70,6 +70,9 @@ type MenuItemBaseProps = {
 
     /** Used to apply offline styles to child text components */
     style?: StyleProp<ViewStyle>;
+
+    /** Outer wrapper styles */
+    outerWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -257,6 +260,7 @@ function MenuItem(
         badgeText,
         style,
         wrapperStyle,
+        outerWrapperStyle,
         containerStyle,
         titleStyle,
         hoverAndPressStyle,
@@ -325,8 +329,6 @@ function MenuItem(
     const StyleUtils = useStyleUtils();
     const combinedStyle = [style, styles.popoverMenuItem];
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [html, setHtml] = useState('');
-    const titleRef = useRef('');
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
@@ -354,26 +356,25 @@ function MenuItem(
         isDeleted ? styles.offlineFeedback.deleted : {},
     ]);
 
-    useEffect(() => {
-        if (!title || (titleRef.current.length && titleRef.current === title) || !shouldParseTitle) {
-            return;
+    const html = useMemo(() => {
+        if (!title || !shouldParseTitle) {
+            return '';
         }
         const parser = new ExpensiMark();
-        setHtml(parser.replace(title));
-        titleRef.current = title;
+        return parser.replace(title);
     }, [title, shouldParseTitle]);
 
-    const getProcessedTitle = useMemo(() => {
-        let processedTitle = '';
+    const processedTitle = useMemo(() => {
+        let titleToWrap = '';
         if (shouldRenderAsHTML) {
-            processedTitle = title ? convertToLTR(title) : '';
+            titleToWrap = title ? convertToLTR(title) : '';
         }
 
         if (shouldParseTitle) {
-            processedTitle = html;
+            titleToWrap = html;
         }
 
-        return processedTitle ? `<comment>${processedTitle}</comment>` : '';
+        return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
     }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
 
     const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
@@ -429,6 +430,7 @@ function MenuItem(
                         onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={ControlSelection.unblock}
                         onSecondaryInteraction={onSecondaryInteraction}
+                        wrapperStyle={outerWrapperStyle}
                         style={({pressed}) =>
                             [
                                 containerStyle,
@@ -436,8 +438,8 @@ function MenuItem(
                                 combinedStyle,
                                 !interactive && styles.cursorDefault,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
-                                !focused && (isHovered || pressed) && hoverAndPressStyle,
                                 ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
+                                !focused && (isHovered || pressed) && hoverAndPressStyle,
                                 shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                             ] as StyleProp<ViewStyle>
                         }
@@ -536,7 +538,7 @@ function MenuItem(
                                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                     <View style={styles.renderHTMLTitle}>
-                                                        <RenderHTML html={getProcessedTitle} />
+                                                        <RenderHTML html={processedTitle} />
                                                     </View>
                                                 )}
                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
