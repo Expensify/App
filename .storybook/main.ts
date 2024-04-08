@@ -5,12 +5,10 @@ const main: StorybookConfig = {
     addons: ['@storybook/addon-essentials', '@storybook/addon-a11y', '@storybook/addon-webpack5-compiler-babel'],
     staticDirs: ['./public', {from: '../assets/css', to: 'css'}, {from: '../assets/fonts/web', to: 'fonts'}],
     core: {},
-
     managerHead: (head) => `
         ${head}
         ${process.env.ENV === 'staging' ? '<meta name="robots" content="noindex">' : ''}
     `,
-
     framework: {
         name: '@storybook/react-webpack5',
         options: {},
