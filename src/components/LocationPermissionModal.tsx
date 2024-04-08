@@ -1,5 +1,7 @@
 import React from 'react';
 import LocationMarker from '@assets/images/receipt-location-marker.svg';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ConfirmModal from './ConfirmModal';
 
 type LocationPermissionModalProps = {
@@ -19,26 +21,29 @@ type LocationPermissionModalProps = {
     shouldSetModalVisibility?: boolean;
 };
 
-function LocationPermissionModal({
-    shouldSetModalVisibility = true,
-    onModalHide = () => {},
-    isVisible,
-    onConfirm,
-    onCancel,
-}: LocationPermissionModalProps) {
-
+function LocationPermissionModal({shouldSetModalVisibility = true, onModalHide = () => {}, isVisible, onConfirm, onCancel}: LocationPermissionModalProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
     return (
         <ConfirmModal
             isVisible={isVisible}
             onConfirm={onConfirm}
             onCancel={onCancel}
-            confirmText='Continue'
-            cancelText='Not now'
-            prompt='Enabling location access will help accurately determine your default currency and timezone. Tap settings to enable location access.'
-            title='Allow location access'
+            confirmText={translate('common.continue')}
+            cancelText={translate('common.notNow')}
+            prompt={translate('receipt.locationAccessMessage')}
+            promptStyles={[styles.textLabelSupportingEmptyValue, styles.mb4]}
+            title={translate('receipt.locationAccessTitle')}
+            titleContainerStyles={[styles.mt2, styles.mb0]}
+            titleStyles={[styles.textHeadline]}
             shouldSetModalVisibility={shouldSetModalVisibility}
             iconSource={LocationMarker}
+            iconWidth={140}
+            iconHeight={120}
+            shouldCenterIcon
             onModalHide={onModalHide}
+            shouldShowDismissIcon
+            shouldReverseStackedButtons
         />
     );
 }
