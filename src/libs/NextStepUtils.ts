@@ -213,7 +213,7 @@ function buildNextStep(
                         text: ' is waiting for ',
                     },
                     {
-                        text: 'you',
+                        text: managerDisplayName,
                         type: 'strong',
                     },
                     {
@@ -230,7 +230,7 @@ function buildNextStep(
             };
 
             // Self review & another reviewer
-            if (isOwner) {
+            if (!isSelfApproval) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
