@@ -111,8 +111,8 @@ type ListItem = {
     /** The search value from the selection list */
     searchText?: string | null;
 
-    /** Whether to show an "Admin" badge next to the Display Name */
-    isAdmin?: boolean;
+    /** What text to show inside the badge (if none present the badge will be omitted) */
+    badgeText?: string;
 };
 
 type ListItemProps = CommonListItemProps<ListItem> & {
@@ -151,9 +151,6 @@ type UserListItemProps = ListItemProps & {
 
     /** The React element that will be shown as a footer */
     FooterComponent?: ReactElement;
-
-    /** Whether to show the left checkbox when selecting multiple items */
-    shouldShowLeftCheckbox?: boolean;
 };
 
 type InviteMemberListItemProps = UserListItemProps;
@@ -309,9 +306,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * When false, the list will render immediately and scroll to the bottom which works great for small lists.
      */
     shouldHideListOnInitialRender?: boolean;
-
-    /** Override checklist behavior */
-    shouldShowLeftCheckbox?: boolean;
 };
 
 type SelectionListHandle = {

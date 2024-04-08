@@ -1,7 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -13,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {UserListItemProps} from './types';
@@ -29,7 +27,6 @@ function UserListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-    shouldShowLeftCheckbox = true,
 }: UserListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -55,7 +52,7 @@ function UserListItem({
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
-            canSelectMultiple={shouldShowLeftCheckbox && canSelectMultiple}
+            canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
@@ -73,7 +70,7 @@ function UserListItem({
         >
             {(hovered?: boolean) => (
                 <>
-                    {shouldShowLeftCheckbox && canSelectMultiple && (
+                    {canSelectMultiple && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -114,26 +111,17 @@ function UserListItem({
                             />
                         ))}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.text ?? '')}
-                                style={[
-                                    styles.optionDisplayName,
-                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                    item.isBold !== false && styles.sidebarLinkTextBold,
-                                    styles.pre,
-                                    item.alternateText ? styles.mb1 : null,
-                                ]}
-                            />
-                            {item.badgeText && (
-                                <Badge
-                                    text={item.badgeText}
-                                    textStyles={[styles.badgeText, styles.textStrong, variables.fontSizeNormal]}
-                                    badgeStyles={[styles.justifyContentCenter, styles.badgeSmall, item.alternateText ? styles.mb1 : null]}
-                                />
-                            )}
-                        </View>
+                        <TextWithTooltip
+                            shouldShowTooltip={showTooltip}
+                            text={Str.removeSMSDomain(item.text ?? '')}
+                            style={[
+                                styles.optionDisplayName,
+                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                item.isBold !== false && styles.sidebarLinkTextBold,
+                                styles.pre,
+                                item.alternateText ? styles.mb1 : null,
+                            ]}
+                        />
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}

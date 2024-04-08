@@ -71,7 +71,6 @@ function BaseSelectionList<TItem extends ListItem>(
         textInputRef,
         headerMessageStyle,
         shouldHideListOnInitialRender = true,
-        shouldShowLeftCheckbox = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -338,7 +337,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
-                shouldShowLeftCheckbox={shouldShowLeftCheckbox}
             />
         );
     };

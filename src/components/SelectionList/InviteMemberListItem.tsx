@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps} from './types';
+import Badge from '@components/Badge';
 
 function InviteMemberListItem({
     item,
@@ -100,6 +101,13 @@ function InviteMemberListItem({
                                 item.alternateText ? styles.mb1 : null,
                             ]}
                         />
+                        {item.badgeText && (
+                            <Badge
+                                text={item.badgeText}
+                                textStyles={[styles.badgeText, styles.textStrong, variables.fontSizeNormal]}
+                                badgeStyles={[styles.justifyContentCenter, styles.badgeSmall, item.alternateText && styles.mb1]}
+                            />
+                        )}
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}

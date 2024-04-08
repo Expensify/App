@@ -230,7 +230,6 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                     showScrollIndicator
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
-                    shouldShowLeftCheckbox={false}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton
