@@ -92,7 +92,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                 title: translate(item.translationKey),
                 icon: item.icon,
                 onPress: item.action,
-                containerStyle: [styles.pl10],
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
     }, [shouldStoreLogs, translate, waitForNavigate]);
@@ -136,12 +136,10 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                             <View>
                                 <ClientSideLoggingToolMenu />
                             </View>
-                            <View style={[styles.mhn8]}>
-                                <MenuItemList
-                                    menuItems={menuItems}
-                                    shouldUseSingleExecution
-                                />
-                            </View>
+                            <MenuItemList
+                                menuItems={menuItems}
+                                shouldUseSingleExecution
+                            />
                             {!isProduction && (
                                 <View style={[styles.mt6]}>
                                     <TestToolMenu />
