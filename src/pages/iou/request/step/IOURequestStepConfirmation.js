@@ -356,6 +356,7 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     transaction.billable,
+                    transaction.splitShares,
                     transaction.iouRequestType,
                 );
                 return;
@@ -480,6 +481,7 @@ function IOURequestStepConfirmation({
             }
             return participant;
         });
+        console.log('adding participant');
         IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, newParticipants);
     };
 
@@ -519,6 +521,7 @@ function IOURequestStepConfirmation({
                     <View style={[styles.flex1, isLoading && styles.opacity0]}>
                         <MoneyRequestConfirmationList
                             transaction={transaction}
+                            routeTransactionID={transactionID}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                             selectedParticipants={participants}
                             iouAmount={transaction.amount}
@@ -540,7 +543,6 @@ function IOURequestStepConfirmation({
                             // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
                             // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                             // the floating-action-button (since it is something that exists outside the context of a report).
-                            canModifyParticipants={!transaction.isFromGlobalCreate}
                             policyID={report.policyID}
                             bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                             iouMerchant={transaction.merchant}

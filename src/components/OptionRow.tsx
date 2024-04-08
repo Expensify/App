@@ -2,6 +2,7 @@ import lodashIsEqual from 'lodash/isEqual';
 import React, {useEffect, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, StyleSheet, View} from 'react-native';
+import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -246,11 +247,17 @@ function OptionRow({
                                         </Text>
                                     ) : null}
                                 </View>
-                                {option.descriptiveText ? (
-                                    <View style={[styles.flexWrap, styles.pl2]}>
-                                        <Text style={[styles.textLabel]}>{option.descriptiveText}</Text>
-                                    </View>
-                                ) : null}
+                                <View style={[styles.flexWrap, styles.pl2]}>
+                                    <TextInput
+                                        onChangeText={option.onInputChange}
+                                        touchableInputWrapperStyle={{height: 40, width: 50}}
+                                        inputMode={CONST.INPUT_MODE.NUMERIC}
+                                        autoCorrect={false}
+                                        accessibilityRole="text"
+                                        hasError={option.hasError}
+                                        defaultValue={option.descriptiveText}
+                                    />
+                                </View>
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
@@ -326,6 +333,7 @@ export default React.memo(
     OptionRow,
     (prevProps, nextProps) =>
         prevProps.isDisabled === nextProps.isDisabled &&
+        prevProps.isDisabled === nextProps.isDisabled &&
         prevProps.isMultilineSupported === nextProps.isMultilineSupported &&
         prevProps.isSelected === nextProps.isSelected &&
         prevProps.shouldHaveOptionSeparator === nextProps.shouldHaveOptionSeparator &&
@@ -343,7 +351,9 @@ export default React.memo(
         prevProps.option.ownerAccountID === nextProps.option.ownerAccountID &&
         prevProps.option.subtitle === nextProps.option.subtitle &&
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
-        prevProps.option.customIcon === nextProps.option.customIcon,
+        prevProps.option.customIcon === nextProps.option.customIcon &&
+        prevProps.option.onInputChange === nextProps.option.onInputChange &&
+        prevProps.option.hasError === nextProps.option.hasError,
 );
 
 export type {OptionRowProps};

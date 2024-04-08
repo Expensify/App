@@ -137,6 +137,9 @@ function IOURequestStepAmount({
         // to the confirm step.
         if (report.reportID) {
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            if (isSplitBill) {
+                IOU.resetSplitShares(transactionID, report.participantAccountIDs, amount, currency);
+            }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
         }

@@ -99,7 +99,7 @@ function IOURequestStepParticipants({
                 newIouType.current = null;
             }
 
-            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
+            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val, isSplit);
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
@@ -126,6 +126,15 @@ function IOURequestStepParticipants({
                 nextStepIOUType = CONST.IOU.TYPE.SEND;
             }
 
+            if (isSplit) {
+                console.log('p', participants);
+                IOU.resetSplitShares(
+                    transactionID,
+                    participants.map((p) => p.accountID),
+                    transaction.amount / 100,
+                    transaction.currency,
+                );
+            }
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, nextStepIOUType, transactionID, selectedReportID.current || reportID));

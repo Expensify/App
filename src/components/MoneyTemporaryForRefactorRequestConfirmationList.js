@@ -39,6 +39,7 @@ import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import * as Expensicons from './Icon/Expensicons';
+import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
@@ -249,6 +250,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
+    draftTransaction,
+    routeTransactionID,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -381,19 +384,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
     }, [taxRates.defaultValue, transaction, previousTransactionAmount]);
 
-    /**
-     * Returns the participants with amount
-     * @param {Array} participants
-     * @returns {Array}
-     */
-    const getParticipantsWithAmount = useCallback(
-        (participantsList) => {
-            const amount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode);
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '');
-        },
-        [iouAmount, iouCurrencyCode],
-    );
-
     // If completing a split bill fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
         setDidConfirm(false);
@@ -430,39 +420,101 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     }, [isReadOnly, canModifyParticipants, hasMultipleParticipants]);
     const shouldDisablePaidBySection = userCanModifyParticipants.current;
 
+    // Validate that the total of split amounts does not exceed the total amount of the bill
+    //useEffect(() => {
+    //const splitAmountsTotal = _.values(draftTransaction.splitShares).reduce((result, amount) => result + amount, 0);
+    //if (splitAmountsTotal > 300) {
+    //}
+    //}, [draftTransaction.splitShares]);
+
+    const [splitShareAccountIDsWithError, setSplitShareAccountIDsWithError] = useState(-1);
+    const onSplitShareChange = useCallback(
+        (participantOption, value) => {
+            console.log('value', value);
+            const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
+            if (!MoneyRequestUtils.validateAmount(String(value), decimals)) {
+                setSplitShareAccountIDsWithError(participantOption.accountID);
+                setFormError('Please enter valid amounts');
+                return;
+            }
+            setSplitShareAccountIDsWithError(-1);
+            IOU.setSplitShare(routeTransactionID, participantOption.accountID, value, iouCurrencyCode, true);
+        },
+        [routeTransactionID, iouCurrencyCode, splitShareAccountIDsWithError],
+    );
+
+    useEffect(() => {
+        if (!isTypeSplit) {
+            return;
+        }
+        if (draftTransaction.isEvenSplit) {
+            console.log('resetting');
+            const participantAccountIDs = draftTransaction.participants.map((p) => p.accountID);
+            IOU.resetSplitShares(routeTransactionID, participantAccountIDs, iouAmount, iouCurrencyCode);
+        }
+    }, [isTypeSplit, draftTransaction.isEvenSplit, routeTransactionID, draftTransaction.participants, iouAmount, iouCurrencyCode]);
+
+    useEffect(() => {
+        if (!isTypeSplit) {
+            return;
+        }
+
+        const splitSharesMap = draftTransaction.splitShares;
+        const shares = _.values(splitSharesMap);
+        const sumOfShares = Math.round(_.reduce(shares, (prev, current) => prev + current, 0));
+        if (sumOfShares > iouAmount) {
+            const highestShare = Math.max(...shares);
+            const accountIDWithHighestShare = _.chain(splitSharesMap)
+                .keys()
+                .find((key) => splitSharesMap[key] === highestShare)
+                .value();
+            setSplitShareAccountIDsWithError(accountIDWithHighestShare);
+            setFormError(
+                `You entered ${CurrencyUtils.convertToDisplayString(sumOfShares, iouCurrencyCode)} but the total is ${CurrencyUtils.convertToDisplayString(iouAmount, iouCurrencyCode)}`,
+            );
+        } else {
+            setSplitShareAccountIDsWithError(-1);
+        }
+    }, [isTypeSplit, draftTransaction.splitShares, iouAmount, iouCurrencyCode, splitShareAccountIDsWithError]);
+
+    const adjustUnmodifiedShares = useCallback(() => {
+        // Return early if sum of amounts exceed the total or we have invalid amounts
+        if (splitShareAccountIDsWithError) {
+            return;
+        }
+        const sumOfManualShares = _.chain(draftTransaction.splitShares)
+            .keys()
+            .filter((key) => draftTransaction.splitShares[key].isModified)
+            .reduce((prev, current) => prev.amount + current.amount, 0);
+        const unModifiedShares = _.chain(draftTransaction.splitShares)
+            .keys()
+            .filter((key) => !draftTransaction.splitShares[key].isModified)
+            .value();
+
+        const remainingTotal = (iouAmount - sumOfManualShares) / unModifiedShares.length;
+
+        const accountIDs = _.chain(unModifiedShares).keys();
+        IOU.resetSplitShares(routeTransactionID, accountIDs, remainingTotal, iouCurrencyCode);
+    }, [draftTransaction.splitShares, iouAmount, iouCurrencyCode, routeTransactionID, splitShareAccountIDsWithError]);
+
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         const unselectedParticipants = _.filter(pickedParticipants, (participant) => !participant.selected);
         if (hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
-            let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
+            const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee);
+            const formattedParticipantsList = _.union([payeeOption], selectedParticipants, unselectedParticipants, []).map((participantOption) => ({
+                ...participantOption,
+                descriptiveText: CurrencyUtils.convertToDisplayString(draftTransaction.splitShares[participantOption.accountID], iouCurrencyCode),
+                onInputChange: (value) => onSplitShareChange(participantOption, value),
+                hasError: participantOption.accountID == splitShareAccountIDsWithError,
+            }));
 
-            if (!userCanModifyParticipants.current) {
-                formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
-                    ...participant,
-                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
-                }));
-            }
-
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode, true);
-            const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                personalDetailsOfPayee,
-                iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
-            );
-
-            sections.push(
-                {
-                    title: translate('moneyRequestConfirmationList.paidBy'),
-                    data: [formattedPayeeOption],
-                    shouldShow: true,
-                    isDisabled: shouldDisablePaidBySection,
-                },
-                {
-                    title: translate('moneyRequestConfirmationList.splitWith'),
-                    data: formattedParticipantsList,
-                    shouldShow: true,
-                },
-            );
+            console.log('creating options');
+            sections.push({
+                title: translate('moneyRequestConfirmationList.splitWith'),
+                data: formattedParticipantsList,
+                shouldShow: true,
+            });
         } else {
             const formattedSelectedParticipants = _.map(selectedParticipants, (participant) => ({
                 ...participant,
@@ -476,16 +528,15 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
         return sections;
     }, [
+        draftTransaction,
+        onSplitShareChange,
         selectedParticipants,
         pickedParticipants,
         hasMultipleParticipants,
-        iouAmount,
-        iouCurrencyCode,
-        getParticipantsWithAmount,
         personalDetailsOfPayee,
         translate,
-        shouldDisablePaidBySection,
-        userCanModifyParticipants,
+        splitShareAccountIDsWithError,
+        iouCurrencyCode,
     ]);
 
     const selectedOptions = useMemo(() => {
@@ -604,6 +655,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
                 }
+                if (!_.isEmpty(formError)) {
+                    return;
+                }
 
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
@@ -612,6 +666,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         },
         [
             selectedParticipants,
+            formError,
             isMerchantRequired,
             isMerchantEmpty,
             shouldDisplayFieldError,
@@ -711,7 +766,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
                 />
             ),
-            shouldShow: shouldShowSmartScanFields,
+            shouldShow: shouldShowSmartScanFields && !isTypeSplit,
             isSupplementary: false,
         },
         {
@@ -944,71 +999,110 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         [isLocalFile, receiptFilename, receiptImage, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, receiptThumbnail, fileExtension],
     );
 
+    const payeeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips([personalDetailsOfPayee], false);
+
     return (
-        <OptionsSelector
-            sections={optionSelectorSections}
-            onSelectRow={userCanModifyParticipants.current ? selectParticipant : navigateToReportOrUserDetail}
-            onAddToSelection={selectParticipant}
-            onConfirmSelection={confirm}
-            selectedOptions={selectedOptions}
-            canSelectMultipleOptions={userCanModifyParticipants.current}
-            disableArrowKeysActions={!userCanModifyParticipants.current}
-            boldStyle
-            showTitleTooltip
-            shouldTextInputAppearBelowOptions
-            shouldShowTextInput={false}
-            shouldUseStyleForChildren={false}
-            optionHoveredStyle={userCanModifyParticipants.current ? styles.hoveredComponentBG : {}}
-            footerContent={!isEditingSplitBill && footerContent}
-            listStyles={listStyles}
-            shouldAllowScrollingChildren
-        >
-            {isDistanceRequest && (
-                <View style={styles.confirmationListMapItem}>
-                    <ConfirmedRoute transaction={transaction} />
-                </View>
-            )}
-            {receiptImage || receiptThumbnail
-                ? receiptThumbnailContent
-                : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-                  PolicyUtils.isPaidGroupPolicy(policy) &&
-                  !isDistanceRequest &&
-                  iouType === CONST.IOU.TYPE.REQUEST && (
-                      <ReceiptEmptyState
-                          onPress={() =>
-                              Navigation.navigate(
-                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                              )
-                          }
-                      />
-                  )}
-            {primaryFields}
-            {!shouldShowAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
-                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
-                    <Button
-                        small
-                        onPress={toggleShouldExpandFields}
-                        text={translate('common.showMore')}
-                        shouldShowRightIcon
-                        iconRight={Expensicons.DownArrow}
-                        iconFill={theme.icon}
-                        style={styles.mh0}
-                    />
-                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
-                </View>
-            )}
-            {shouldShowAllFields && supplementaryFields}
-            <ConfirmModal
-                title={translate('attachmentPicker.wrongFileType')}
-                onConfirm={navigateBack}
-                onCancel={navigateBack}
-                isVisible={isAttachmentInvalid}
-                prompt={translate('attachmentPicker.protectedPDFNotSupported')}
-                confirmText={translate('common.close')}
-                shouldShowCancelButton={false}
+        <>
+            <MenuItemWithTopDescription
+                key={translate('iou.amount')}
+                shouldShowRightIcon={!isReadOnly && !isDistanceRequest}
+                title={formattedAmount}
+                description={translate('iou.amount')}
+                interactive={!isReadOnly}
+                onPress={() => {
+                    if (isEditingSplitBill) {
+                        Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
+                        return;
+                    }
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                    );
+                }}
+                style={[styles.moneyRequestMenuItem, styles.mt2]}
+                titleStyle={styles.moneyRequestConfirmationAmount}
+                disabled={didConfirm}
+                brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
             />
-        </OptionsSelector>
+            <MenuItem
+                label="Paid By"
+                description={personalDetailsOfPayee.login}
+                title={personalDetailsOfPayee.displayName}
+                icon={personalDetailsOfPayee.icons}
+                onPress={() => {}}
+                shouldShowRightIcon
+                titleWithTooltips={payeeTooltipDetails}
+            />
+            <OptionsSelector
+                sections={optionSelectorSections}
+                onSelectRow={userCanModifyParticipants.current ? selectParticipant : navigateToReportOrUserDetail}
+                onAddToSelection={selectParticipant}
+                onConfirmSelection={confirm}
+                selectedOptions={selectedOptions}
+                canSelectMultipleOptions={userCanModifyParticipants.current}
+                boldStyle
+                showTitleTooltip
+                shouldTextInputAppearBelowOptions
+                shouldShowTextInput={false}
+                shouldUseStyleForChildren={false}
+                optionHoveredStyle={userCanModifyParticipants.current ? styles.hoveredComponentBG : {}}
+                footerContent={!isEditingSplitBill && footerContent}
+                listStyles={listStyles}
+                shouldAllowScrollingChildren
+            >
+                {isDistanceRequest && (
+                    <View style={styles.confirmationListMapItem}>
+                        <ConfirmedRoute transaction={transaction} />
+                    </View>
+                )}
+                {receiptImage || receiptThumbnail
+                    ? receiptThumbnailContent
+                    : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                      PolicyUtils.isPaidGroupPolicy(policy) &&
+                      !isDistanceRequest &&
+                      iouType === CONST.IOU.TYPE.REQUEST && (
+                          <ReceiptEmptyState
+                              onPress={() =>
+                                  Navigation.navigate(
+                                      ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                          CONST.IOU.ACTION.CREATE,
+                                          iouType,
+                                          transaction.transactionID,
+                                          reportID,
+                                          Navigation.getActiveRouteWithoutParams(),
+                                      ),
+                                  )
+                              }
+                          />
+                      )}
+                {primaryFields}
+                {!shouldShowAllFields && (
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
+                        <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
+                        <Button
+                            small
+                            onPress={toggleShouldExpandFields}
+                            text={translate('common.showMore')}
+                            shouldShowRightIcon
+                            iconRight={Expensicons.DownArrow}
+                            iconFill={theme.icon}
+                            style={styles.mh0}
+                        />
+                        <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
+                    </View>
+                )}
+                {shouldShowAllFields && supplementaryFields}
+                <ConfirmModal
+                    title={translate('attachmentPicker.wrongFileType')}
+                    onConfirm={navigateBack}
+                    onCancel={navigateBack}
+                    isVisible={isAttachmentInvalid}
+                    prompt={translate('attachmentPicker.protectedPDFNotSupported')}
+                    confirmText={translate('common.close')}
+                    shouldShowCancelButton={false}
+                />
+            </OptionsSelector>
+        </>
     );
 }
 
@@ -1034,6 +1128,9 @@ export default compose(
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
+        draftTransaction: {
+            key: ({routeTransactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${routeTransactionID}`,
         },
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);

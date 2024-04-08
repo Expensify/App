@@ -396,6 +396,32 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string,
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
+function resetSplitShares(transactionID: string, participantAccountIDs: number[], amount: number, currency: string) {
+    const participantAccountIDsWithoutCurrentUser = participantAccountIDs.filter((p) => p.accountID !== userAccountID);
+    const splitShares = [userAccountID, ...participantAccountIDsWithoutCurrentUser].reduce((result, accountID) => {
+        const isPayer = accountID === userAccountID;
+        const splitAmount = IOUUtils.calculateAmount(participantAccountIDsWithoutCurrentUser.length, amount, currency, isPayer);
+        result[accountID] = splitAmount;
+        return result;
+    }, {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares, isEvenSplit: true});
+}
+
+function setSplitShare(transactionID: string, participantAccountID: string, participantShare: number, currency: string, isManuallyModified: false) {
+    const currencyUnit = Math.min(100, CurrencyUtils.getCurrencyUnit(currency));
+    const share = Math.round(+participantShare * currencyUnit);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        splitShares: {
+            [participantAccountID]: {
+                amount: share,
+                isModified: isManuallyModified,
+            },
+        },
+        isEvenSplit: false,
+    });
+}
+
 function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         receipt: {source, type: type ?? ''},
@@ -2349,6 +2375,7 @@ function createSplitsAndOnyxData(
     tag: string,
     existingSplitChatReportID = '',
     billable = false,
+    splitShares,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
@@ -2515,8 +2542,7 @@ function createSplitsAndOnyxData(
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: splitShares[currentUserEmailForIOUSplit] * 100}];
 
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
@@ -2557,6 +2583,7 @@ function createSplitsAndOnyxData(
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
         const shouldCreateNewOneOnOneIOUReport = ReportUtils.shouldCreateNewMoneyRequestReport(oneOnOneIOUReport, oneOnOneChatReport);
 
+        const splitAmount = splitShares[participant.login] * 100;
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isOwnPolicyExpenseChat
                 ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID ?? '', currentUserAccountID, splitAmount, currency)
@@ -2773,6 +2800,7 @@ function splitBillAndOpenReport(
     category: string,
     tag: string,
     billable: boolean,
+    splitShares,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
 ) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
@@ -2789,6 +2817,7 @@ function splitBillAndOpenReport(
         tag,
         '',
         billable,
+        splitShares,
         iouRequestType,
     );
 
@@ -5078,10 +5107,11 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     const shouldAddAsReport = !isEmptyObject(chatReport) && ReportUtils.isSelfDM(chatReport);
     const participants: Participant[] =
         ReportUtils.isPolicyExpenseChat(chatReport) || shouldAddAsReport
-            ? [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(chatReport), selected: true}]
-            : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
+            ? [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(chatReport)}]
+            : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID}));
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
+    return participants;
 }
 
 function setMoneyRequestId(id: string) {
@@ -5330,4 +5360,6 @@ export {
     trackExpense,
     canIOUBePaid,
     canApproveIOU,
+    setSplitShare,
+    resetSplitShares,
 };

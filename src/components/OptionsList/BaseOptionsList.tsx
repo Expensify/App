@@ -198,6 +198,7 @@ function BaseOptionsList(
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 isMultilineSupported={isRowMultilineSupported}
+                myValue={item.myValue}
             />
         );
     };

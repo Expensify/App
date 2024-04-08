@@ -367,6 +367,14 @@ function MoneyRequestConfirmationList({
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
 
+    useEffect(() => {
+        if (!isSplitBill) {
+            console.log('returning');
+            return;
+        }
+        console.log(iouAmount);
+    }, [iouAmount, isSplitBill]);
+
     const optionSelectorSections: OptionsListUtils.CategorySection[] = useMemo(() => {
         const sections = [];
         const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
