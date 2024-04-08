@@ -118,7 +118,7 @@ function IOURequestStepTag({
             testID={IOURequestStepTag.displayName}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
-            {({insets}) => (
+            {() => (
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
                     <TagPicker
@@ -126,7 +126,6 @@ function IOURequestStepTag({
                         tagListName={policyTagListName}
                         tagListIndex={tagListIndex}
                         selectedTag={tag}
-                        insets={insets}
                         onSubmit={updateTag}
                     />
                 </>
