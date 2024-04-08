@@ -63,7 +63,6 @@ function useOptions({isGroupChat, newGroupDraft}: Omit<NewChatPageProps, 'isSear
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    console.log('newchatpage', didScreenTransitionEnd, areOptionsInitialized);
 
     const options = useMemo(() => {
         const filteredOptions = OptionsListUtils.getFilteredOptions(
