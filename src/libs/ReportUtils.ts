@@ -5271,25 +5271,6 @@ function getTaskAssigneeChatOnyxData(
 }
 
 /**
- * Returns an array of the visible member accountIDs for a report*
- */
-function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
-    if (!report) {
-        return [];
-    }
-
-    const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
-
-    // Build participants list for IOU/expense reports
-    if (isMoneyRequestReport(report)) {
-        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...visibleChatMemberAccountIDs].filter(Boolean) as number[];
-        const onlyUnique = [...new Set([...onlyTruthyValues])];
-        return onlyUnique;
-    }
-    return visibleChatMemberAccountIDs;
-}
-
-/**
  * Return iou report action display message
  */
 function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>, shouldLog = false): string {
@@ -5947,7 +5928,6 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
-    getVisibleMemberIDs,
     canEditMoneyRequest,
     canEditFieldOfMoneyRequest,
     buildTransactionThread,

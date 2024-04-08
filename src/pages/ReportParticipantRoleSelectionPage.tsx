@@ -11,8 +11,8 @@ import * as Report from '@libs/actions/Report';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
-import type SCREENS from '@src/SCREENS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 

@@ -48,7 +48,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = route.params.backTo ?? ('' as Route);
+    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '');
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
@@ -56,7 +56,6 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = details.displayName ?? '';
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
-    const isSelectedUserAdmin = report?.participants?.[accountID]?.role === CONST.REPORT.ROLE.ADMIN;
 
     const askForConfirmationToRemove = () => {
         setIsRemoveMemberConfirmModalVisible(true);
@@ -73,7 +72,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
-        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID));
     }, [accountID, report.reportID]);
 
     return (

@@ -1,6 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SelectCircle from '@components/SelectCircle';
@@ -11,9 +12,8 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import Badge from '@components/Badge';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps} from './types';
 

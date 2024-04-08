@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -20,7 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
