@@ -19,7 +19,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {PaymentType} from './ButtonWithDropdownMenu/types';
+import type {DropdownOption, PaymentType} from './ButtonWithDropdownMenu/types';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 import {useSession} from './OnyxProvider';
@@ -153,7 +153,6 @@ function SettlementButton({
     const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
     const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
     const paymentButtonOptions = useMemo(() => {
-        const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
@@ -187,6 +186,11 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
+        const buttonOptions = [
+            paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT],
+            paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT],
+            paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD],
+        ] as Array<DropdownOption<PaymentType>>;
         const approveButtonOption = {
             text: translate('iou.approve'),
             icon: Expensicons.ThumbsUp,
@@ -204,10 +208,6 @@ function SettlementButton({
         // If the user has previously chosen a specific payment option or paid for some request or expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
-
-        buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
-        buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
-        buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]);
 
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
