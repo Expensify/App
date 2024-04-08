@@ -23,8 +23,9 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getDraftComment from '@libs/ComposerUtils/getDraftComment';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -84,6 +85,12 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 
         /** Whether the report is ready for display */
         isReportReadyForDisplay?: boolean;
+
+        /** A method to call when the input is focus */
+        onComposerFocus?: () => void;
+
+        /** A method to call when the input is blur */
+        onComposerBlur?: () => void;
     };
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
@@ -101,6 +108,8 @@ function ReportActionCompose({
     shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
     lastReportAction,
+    onComposerFocus,
+    onComposerBlur,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -287,20 +296,25 @@ function ReportActionCompose({
         isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
-    const onBlur = useCallback((event: NativeSyntheticEvent<TextInputFocusEventData>) => {
-        const webEvent = event as unknown as FocusEvent;
-        setIsFocused(false);
-        if (suggestionsRef.current) {
-            suggestionsRef.current.resetSuggestions();
-        }
-        if (webEvent.relatedTarget && webEvent.relatedTarget === actionButtonRef.current) {
-            isKeyboardVisibleWhenShowingModalRef.current = true;
-        }
-    }, []);
+    const onBlur = useCallback(
+        (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+            const webEvent = event as unknown as FocusEvent;
+            setIsFocused(false);
+            onComposerBlur?.();
+            if (suggestionsRef.current) {
+                suggestionsRef.current.resetSuggestions();
+            }
+            if (webEvent.relatedTarget && webEvent.relatedTarget === actionButtonRef.current) {
+                isKeyboardVisibleWhenShowingModalRef.current = true;
+            }
+        },
+        [onComposerBlur],
+    );
 
     const onFocus = useCallback(() => {
         setIsFocused(true);
-    }, []);
+        onComposerFocus?.();
+    }, [onComposerFocus]);
 
     // resets the composer to normal size when
     // the send button is pressed.

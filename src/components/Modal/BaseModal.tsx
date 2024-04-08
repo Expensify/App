@@ -15,6 +15,7 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
+import ModalContent from './ModalContent';
 import type BaseModalProps from './types';
 
 function BaseModal(
@@ -41,6 +42,9 @@ function BaseModal(
         avoidKeyboard = false,
         children,
         shouldUseCustomBackdrop = false,
+        onBackdropPress,
+        shouldEnableNewFocusManagement = false,
+        restoreFocusType,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -54,6 +58,14 @@ function BaseModal(
 
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
+
+    const modalId = useMemo(() => ComposerFocusManager.getId(), []);
+    const saveFocusState = () => {
+        if (shouldEnableNewFocusManagement) {
+            ComposerFocusManager.saveFocusState(modalId);
+        }
+        ComposerFocusManager.resetReadyToFocus(modalId);
+    };
 
     /**
      * Hides modal
@@ -69,11 +81,9 @@ function BaseModal(
                 onModalHide();
             }
             Modal.onModalDidClose();
-            if (!fullscreen) {
-                ComposerFocusManager.setReadyToFocus();
-            }
+            ComposerFocusManager.refocusAfterModalFullyClosed(modalId, restoreFocusType);
         },
-        [shouldSetModalVisibility, onModalHide, fullscreen],
+        [shouldSetModalVisibility, onModalHide, restoreFocusType, modalId],
     );
 
     useEffect(() => {
@@ -117,11 +127,15 @@ function BaseModal(
             return;
         }
 
-        onClose();
+        if (onBackdropPress) {
+            onBackdropPress();
+        } else {
+            onClose();
+        }
     };
 
     const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus();
+        ComposerFocusManager.setReadyToFocus(modalId);
     };
 
     const {
@@ -185,7 +199,7 @@ function BaseModal(
             onModalShow={handleShowModal}
             propagateSwipe={propagateSwipe}
             onModalHide={hideModal}
-            onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
+            onModalWillShow={saveFocusState}
             onDismiss={handleDismissModal}
             onSwipeComplete={() => onClose?.()}
             swipeDirection={swipeDirection}
@@ -209,12 +223,14 @@ function BaseModal(
             avoidKeyboard={avoidKeyboard}
             customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
         >
-            <View
-                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
-                ref={ref}
-            >
-                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-            </View>
+            <ModalContent onDismiss={handleDismissModal}>
+                <View
+                    style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
+                    ref={ref}
+                >
+                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                </View>
+            </ModalContent>
         </ReactNativeModal>
     );
 }
