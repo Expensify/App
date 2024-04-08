@@ -406,6 +406,7 @@ export default withOnyx({
             _.isEqual(prevProps.dismissedReferralBanners, nextProps.dismissedReferralBanners) &&
             prevProps.iouRequestType === nextProps.iouRequestType &&
             prevProps.iouType === nextProps.iouType &&
-            _.isEqual(prevProps.betas, nextProps.betas),
+            _.isEqual(prevProps.betas, nextProps.betas) &&
+            prevProps.isSearchingForReports === nextProps.isSearchingForReports,
     ),
 );
