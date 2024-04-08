@@ -9,10 +9,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {PendingMapViewProps} from './MapViewTypes';
 
-function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps) {
+function PendingMapView({title = '', subtitle = '', style, isSmallIcon = false}: PendingMapViewProps) {
     const hasTextContent = !_.isEmpty(title) || !_.isEmpty(subtitle);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const iconSize = isSmallIcon ? variables.iconSizeSuperLarge : variables.iconSizeUltraLarge;
     return (
         <View style={[styles.mapPendingView, style]}>
             {hasTextContent ? (
@@ -27,8 +28,8 @@ function PendingMapView({title = '', subtitle = '', style}: PendingMapViewProps)
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
                     <Icon
                         src={Expensicons.EmptyStateRoutePending}
-                        width={variables.iconSizeUltraLarge}
-                        height={variables.iconSizeUltraLarge}
+                        width={iconSize}
+                        height={iconSize}
                         fill={theme.border}
                     />
                 </View>

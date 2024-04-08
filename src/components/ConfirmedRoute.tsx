@@ -26,9 +26,12 @@ type ConfirmedRoutePropsOnyxProps = {
 type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
     /** Transaction that stores the distance request data */
     transaction: OnyxEntry<Transaction>;
+
+    /** Whether the size of the route pending icon is small. */
+    isSmallIcon?: boolean;
 };
 
-function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
+function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
@@ -102,7 +105,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
             styleURL={CONST.MAPBOX.STYLE_URL}
         />
     ) : (
-        <PendingMapView />
+        <PendingMapView isSmallIcon={isSmallIcon} />
     );
 }
 

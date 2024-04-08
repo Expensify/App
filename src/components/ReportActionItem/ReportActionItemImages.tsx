@@ -81,7 +81,10 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                         >
                             {showMapAsImage ? (
                                 <View style={[styles.w100, styles.h100]}>
-                                    <ConfirmedRoute transaction={transaction} />
+                                    <ConfirmedRoute
+                                        transaction={transaction}
+                                        isSmallIcon={numberOfShownImages !== 1}
+                                    />
                                 </View>
                             ) : (
                                 <ReportActionItemImage
