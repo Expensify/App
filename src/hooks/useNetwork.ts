@@ -12,7 +12,7 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
     const callback = useRef(onReconnect);
     callback.current = onReconnect;
 
-    const {isOffline} = useContext(NetworkContext) ?? CONST.DEFAULT_NETWORK_DATA;
+    const {isOffline, networkStatus} = useContext(NetworkContext) ?? {...CONST.DEFAULT_NETWORK_DATA, networkStatus: CONST.NETWORK.NETWORK_STATUS.UNKNOWN};
     const prevOfflineStatusRef = useRef(isOffline);
     useEffect(() => {
         // If we were offline before and now we are not offline then we just reconnected
@@ -29,5 +29,5 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
         prevOfflineStatusRef.current = isOffline;
     }, [isOffline]);
 
-    return {isOffline: isOffline ?? false};
+    return {isOffline: networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE};
 }
