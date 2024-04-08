@@ -15,8 +15,8 @@ const main: StorybookConfig = {
         options: {},
     },
     docs: {
-        autodocs: false
-    }
+        autodocs: false,
+    },
 };
 
 export default main;
