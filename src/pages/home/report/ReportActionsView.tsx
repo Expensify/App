@@ -5,6 +5,7 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import RenderHTML from '@components/RenderHTML';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
@@ -530,6 +531,11 @@ function ReportActionsView({
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
             <PopoverReactionList ref={reactionListRef} />
+            <RenderHTML html={'<comment><mention-report>#admins</mention-report></comment>'} />
+            <RenderHTML html={'<comment><mention-report reportID="3088255940953979" /></comment>'} />
+            <RenderHTML html={'<comment><mention-report/></comment>'} />
+            <RenderHTML html={'<comment><mention-report>#dupa</mention-report></comment>'} />
+            <RenderHTML html={'<comment><mention-report reportID="111111" /></comment>'} />
         </>
     );
 }
