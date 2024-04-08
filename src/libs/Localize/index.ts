@@ -48,18 +48,7 @@ function init() {
 }
 
 type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
-type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown
-    ? (...args: A) => string
-    :
-          | string
-          | {
-                zero?: string | ((...args: unknown[]) => string);
-                one?: string | ((...args: unknown[]) => string);
-                two?: string | ((...args: unknown[]) => string);
-                few?: string | ((...args: unknown[]) => string);
-                many?: string | ((...args: unknown[]) => string);
-                other: string | ((...args: unknown[]) => string);
-            };
+type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 /**
  * Map to store translated values for each locale.
@@ -127,46 +116,49 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
-            return translatedPhrase(...phraseParameters);
+            const result = translatedPhrase(...phraseParameters);
+            if (typeof result === 'string') {
+                cacheForLocale?.set(phraseKey, result);
+                return result;
+            }
+            const countParam = phraseParameters.find((param: unknown) => !!(param as Record<string, number>).count) as Record<string, number>;
+            const count = countParam ? countParam.count : undefined;
+            
+            if (typeof result === 'object' && count !== undefined) {
+                const pluralRules = new Intl.PluralRules(language);
+                const pluralForm = pluralRules.select(count);
+
+                if (pluralForm in result) {
+                    const translatedPluralForm = result[pluralForm as keyof typeof result];
+                    if (typeof translatedPluralForm === 'string') {
+                        return translatedPluralForm;
+                    }
+                }
+
+                Log.warn(`Pluralization form '${pluralForm}' not found for phrase '${phraseKey}'. Falling back to 'other' form.`);
+                if ('other' in result) {
+                    const otherForm = (result as unknown as Record<string, string>).other;
+                    if (typeof otherForm === 'string') {
+                        return otherForm;
+                    }
+                }
+
+                return null;
+            }
         }
 
-        // We set the translated value in the cache only for the phrases without parameters.
         if (typeof translatedPhrase === 'string') {
             cacheForLocale?.set(phraseKey, translatedPhrase);
             return translatedPhrase;
         }
 
-        if (typeof translatedPhrase === 'object') {
-            const countParam = phraseParameters.find((param: unknown) => !!(param as Record<string, number>).count) as Record<string, number>;
-            const count = countParam ? countParam.count : undefined;
-
-            if (count !== undefined) {
-                const pluralRules = new Intl.PluralRules(language);
-                const pluralForm = pluralRules.select(count);
-
-                if (pluralForm in translatedPhrase) {
-                    const translatedPluralForm = translatedPhrase[pluralForm as keyof typeof translatedPhrase];
-                    if (typeof translatedPluralForm === 'function') {
-                        const tmpTranslatedPluralForm = translatedPluralForm as (...args: unknown[]) => string | null;
-                        return tmpTranslatedPluralForm(...phraseParameters);
-                    }
-                    return translatedPluralForm as string;
-                }
-
-                Log.warn(`Pluralization form '${pluralForm}' not found for phrase '${phraseKey}'. Falling back to 'other' form.`);
-                if ('other' in translatedPhrase) {
-                    const otherForm = translatedPhrase.other;
-                    if (typeof otherForm === 'function') {
-                        return otherForm(...phraseParameters);
-                    }
-                    if (otherForm) {
-                        return otherForm;
-                    }
-                }
-
-                throw new Error(`Pluralization form '${pluralForm}' and 'other' form not found for phrase '${phraseKey}'.`);
-            }
+        if (Array.isArray(translatedPhrase)) {
+            const translatedString = translatedPhrase[0] as string;
+            cacheForLocale?.set(phraseKey, translatedString);
+            return translatedString;
         }
+
+        return null;
     }
 
     if (!fallbackLanguage) {
@@ -174,10 +166,10 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbacktranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...phraseParameters);
+    const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...phraseParameters);
 
-    if (fallbacktranslatedPhrase) {
-        return fallbacktranslatedPhrase;
+    if (fallbackTranslatedPhrase) {
+        return fallbackTranslatedPhrase;
     }
 
     if (fallbackLanguage !== CONST.LOCALES.DEFAULT) {

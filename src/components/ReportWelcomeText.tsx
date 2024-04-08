@@ -66,8 +66,10 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
             return translate('reportActionsView.yourSpace');
         }
 
-        return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isSelfDM, translate, reportName]);
+        // example - remove before merge
+        const count = displayNamesWithTooltips.length;
+        return translate('reportActionsView.sayHello', {count: 1});
+    }, [isChatRoom, isSelfDM, translate, reportName, displayNamesWithTooltips]);
 
     return (
         <>
