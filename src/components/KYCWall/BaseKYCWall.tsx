@@ -167,7 +167,7 @@ function KYCWall({
         ],
     );
 
-    return <>{children(continueAction, viewRef(anchorRef))}</>
+    return <>{children(continueAction, viewRef(anchorRef))}</>;
 }
 
 KYCWall.displayName = 'BaseKYCWall';
