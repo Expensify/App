@@ -30,6 +30,10 @@ export default {
         width: '25%',
     },
 
+    mh100: {
+        maxHeight: '100%',
+    },
+
     mnh100: {
         minHeight: '100%',
     },
