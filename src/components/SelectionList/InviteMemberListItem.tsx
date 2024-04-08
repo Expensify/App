@@ -12,9 +12,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import Badge from '@components/Badge';
+import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps} from './types';
-import Badge from '@components/Badge';
 
 function InviteMemberListItem({
     item,
@@ -90,24 +91,26 @@ function InviteMemberListItem({
                             />
                         ))}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={Str.removeSMSDomain(item.text ?? '')}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                item.isBold !== false && styles.sidebarLinkTextBold,
-                                styles.pre,
-                                item.alternateText ? styles.mb1 : null,
-                            ]}
-                        />
-                        {item.badgeText && (
-                            <Badge
-                                text={item.badgeText}
-                                textStyles={[styles.badgeText, styles.textStrong, variables.fontSizeNormal]}
-                                badgeStyles={[styles.justifyContentCenter, styles.badgeSmall, item.alternateText && styles.mb1]}
+                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={Str.removeSMSDomain(item.text ?? '')}
+                                style={[
+                                    styles.optionDisplayName,
+                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                    item.isBold !== false && styles.sidebarLinkTextBold,
+                                    styles.pre,
+                                    item.alternateText ? styles.mb1 : null,
+                                ]}
                             />
-                        )}
+                            {item.badgeText && (
+                                <Badge
+                                    text={item.badgeText}
+                                    textStyles={[styles.badgeText, styles.textStrong, variables.fontSizeNormal]}
+                                    badgeStyles={[styles.justifyContentCenter, styles.badgeSmall, item.alternateText && styles.mb1]}
+                                />
+                            )}
+                        </View>
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
