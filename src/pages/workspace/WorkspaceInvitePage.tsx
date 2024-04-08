@@ -63,7 +63,6 @@ function WorkspaceInvitePage({
     invitedEmailsToAccountIDsDraft,
     policy,
     isLoadingReportData = true,
-    didScreenTransitionEnd,
 }: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -71,6 +70,7 @@ function WorkspaceInvitePage({
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetailsProp);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -290,6 +290,7 @@ function WorkspaceInvitePage({
             shouldUseCachedViewportHeight
             testID={WorkspaceInvitePage.displayName}
             includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <FullPageNotFoundView
                 shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
@@ -321,7 +322,7 @@ function WorkspaceInvitePage({
                     onSelectRow={toggleOption}
                     onConfirm={inviteUser}
                     showScrollIndicator
-                    showLoadingPlaceholder={!areOptionsInitialized}
+                    showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     footerContent={footerContent}
                 />

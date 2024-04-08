@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -12,6 +11,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
@@ -78,7 +78,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         userToInvite,
         headerMessage,
     } = useMemo(() => {
-        if (!areOptionsInitialized) {
+        if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return {
                 recentReports: [],
                 personalDetails: [],
@@ -89,7 +89,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         const optionList = OptionsListUtils.getSearchOptions(options, debouncedSearchValue.trim(), betas ?? []);
         const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), debouncedSearchValue);
         return {...optionList, headerMessage: header};
-    }, [areOptionsInitialized, options, debouncedSearchValue, betas]);
+    }, [areOptionsInitialized, options, debouncedSearchValue, betas, isScreenTransitionEnd]);
 
     const sections = useMemo((): SearchPageSectionList => {
         const newSections: SearchPageSectionList = [];
@@ -160,7 +160,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                 headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
                 onLayout={setPerformanceTimersEnd}
                 onSelectRow={selectReport}
-                showLoadingPlaceholder={!areOptionsInitialized}
+                showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && SerachPageFooterInstance}
                 isLoadingNewOptions={isSearchingForReports ?? undefined}
             />

@@ -17,6 +17,7 @@ import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -50,18 +51,14 @@ const propTypes = {
 
     /** The request type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
-
-    /** Whether the parent screen transition has ended */
-    didScreenTransitionEnd: PropTypes.bool,
 };
 
 const defaultProps = {
     participants: [],
     betas: [],
-    didScreenTransitionEnd: false,
 };
 
-function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, onFinish, onParticipantsAdded, iouType, iouRequestType, didScreenTransitionEnd}) {
+function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, onFinish, onParticipantsAdded, iouType, iouRequestType}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -70,6 +67,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {canUseP2PDistanceRequests} = usePermissions();
+    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -89,7 +87,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
      */
     const [sections, newChatOptions] = useMemo(() => {
         const newSections = [];
-        if (!areOptionsInitialized) {
+        if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, {}];
         }
         const chatOptions = OptionsListUtils.getFilteredOptions(
@@ -168,6 +166,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
         maxParticipantsReached,
         personalDetails,
         translate,
+        didScreenTransitionEnd,
     ]);
 
     /**
@@ -352,7 +351,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             onSelectRow={addSingleParticipant}
             footerContent={footerContent}
             headerMessage={headerMessage}
-            showLoadingPlaceholder={!areOptionsInitialized}
+            showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
             rightHandSideComponent={itemRightSideComponent}
         />
     );

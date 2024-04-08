@@ -3,14 +3,12 @@ import lodashGet from 'lodash/get';
 import lodashSize from 'lodash/size';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
@@ -53,7 +51,6 @@ const defaultProps = {
 };
 
 function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
     const iouType = useInitialValue(() => lodashGet(route, 'params.iouType', ''));
@@ -128,8 +125,8 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={MoneyRequestParticipantsPage.displayName}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <View style={styles.flex1}>
+            {({didScreenTransitionEnd}) => (
+                <>
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
@@ -139,12 +136,12 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType)}
                         navigateToSplit={() => navigateToConfirmationStep(CONST.IOU.TYPE.SPLIT)}
-                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         iouType={iouType}
                         isDistanceRequest={isDistanceRequest}
                         isScanRequest={isScanRequest}
+                        didScreenTransitionEnd={didScreenTransitionEnd}
                     />
-                </View>
+                </>
             )}
         </ScreenWrapper>
     );

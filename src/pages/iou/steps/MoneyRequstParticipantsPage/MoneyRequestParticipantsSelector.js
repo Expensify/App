@@ -54,15 +54,19 @@ const propTypes = {
 
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
+
+    /** Whether the screen transition has ended */
+    didScreenTransitionEnd: PropTypes.bool,
 };
 
 const defaultProps = {
     participants: [],
     betas: [],
     isDistanceRequest: false,
+    didScreenTransitionEnd: false,
 };
 
-function MoneyRequestParticipantsSelector({betas, participants, navigateToRequest, navigateToSplit, onAddParticipants, iouType, isDistanceRequest}) {
+function MoneyRequestParticipantsSelector({betas, participants, navigateToRequest, navigateToSplit, onAddParticipants, iouType, isDistanceRequest, didScreenTransitionEnd}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -70,7 +74,7 @@ function MoneyRequestParticipantsSelector({betas, participants, navigateToReques
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {canUseP2PDistanceRequests} = usePermissions();
-    const {options, areOptionsInitialized} = useOptionsList();
+    const {options, areOptionsInitialized} = useOptionsList({shouldInitialize: didScreenTransitionEnd});
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -344,7 +348,7 @@ function MoneyRequestParticipantsSelector({betas, participants, navigateToReques
             onSelectRow={addSingleParticipant}
             footerContent={footerContent}
             headerMessage={headerMessage}
-            showLoadingPlaceholder={!areOptionsInitialized}
+            showLoadingPlaceholder={!areOptionsInitialized && !didScreenTransitionEnd}
             rightHandSideComponent={itemRightSideComponent}
         />
     );
