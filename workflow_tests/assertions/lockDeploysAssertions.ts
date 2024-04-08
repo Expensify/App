@@ -71,4 +71,4 @@ function assertlockStagingDeploysJobFailedAfterFirstStep(workflowResult: Step[])
     });
 }
 
-export {assertlockStagingDeploysJobExecuted, assertlockStagingDeploysJobFailedAfterFirstStep};
+export default {assertlockStagingDeploysJobExecuted, assertlockStagingDeploysJobFailedAfterFirstStep};

@@ -146,10 +146,14 @@ function WorkspaceMembersPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedEmployees, policy?.owner, session?.accountID]);
 
+    // useFocusEffect would make getWorkspaceMembers get called twice on fresh login because policyMember is a dependency of getWorkspaceMembers.
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         getWorkspaceMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isFocused]);
 
     useEffect(() => {
         validateSelection();
@@ -285,7 +289,7 @@ function WorkspaceMembersPage({
             }
 
             Policy.clearWorkspaceOwnerChangeFlow(policyID);
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
         },
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
@@ -586,7 +590,7 @@ function WorkspaceMembersPage({
                     <SelectionList
                         ref={selectionListRef}
                         canSelectMultiple={isPolicyAdmin}
-                        sections={[{data, indexOffset: 0, isDisabled: false}]}
+                        sections={[{data, isDisabled: false}]}
                         ListItem={TableListItem}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}

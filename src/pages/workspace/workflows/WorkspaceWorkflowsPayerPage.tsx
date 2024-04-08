@@ -87,7 +87,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                 />
             );
 
-            const isAuthorizedPayer = policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID;
+            const isAuthorizedPayer = policy?.achAccount?.reimburser === details?.login;
 
             const formattedMember = {
                 keyForList: accountIDKey,
@@ -106,28 +106,17 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                     },
                 ],
                 errors: policyMember.errors,
-                pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburserEmail : null,
+                pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburser : null,
             };
 
-            if (policy?.reimburserEmail === details?.login ?? policy?.reimburserAccountID === accountID) {
+            if (isAuthorizedPayer) {
                 authorizedPayerDetails.push(formattedMember);
             } else {
                 policyAdminDetails.push(formattedMember);
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [
-        personalDetails,
-        policyMembers,
-        translate,
-        policy?.reimburserEmail,
-        isDeletedPolicyMember,
-        policy?.owner,
-        styles,
-        StyleUtils,
-        policy?.reimburserAccountID,
-        policy?.pendingFields?.reimburserEmail,
-    ]);
+    }, [personalDetails, policyMembers, translate, policy?.achAccount?.reimburser, isDeletedPolicyMember, policy?.owner, styles, StyleUtils, policy?.pendingFields?.reimburser]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
@@ -149,14 +138,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         sectionsArray.push({
             data: formattedAuthorizedPayer,
             shouldShow: true,
-            indexOffset: 0,
         });
 
         sectionsArray.push({
             title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
             shouldShow: true,
-            indexOffset: formattedAuthorizedPayer.length,
         });
         return sectionsArray;
     }, [formattedPolicyAdmins, formattedAuthorizedPayer, translate, searchTerm]);
@@ -171,13 +158,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
     const setPolicyAuthorizedPayer = (member: MemberOption) => {
         const authorizedPayerEmail = personalDetails?.[member.accountID]?.login ?? '';
 
-        if (policy?.reimburserEmail === authorizedPayerEmail || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        if (policy?.achAccount?.reimburser === authorizedPayerEmail || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             Navigation.goBack();
             return;
         }
 
-        const authorizedPayerAccountID = member.accountID;
-        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayerEmail, authorizedPayerAccountID);
+        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayerEmail);
         Navigation.goBack();
     };
 
