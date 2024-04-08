@@ -5,7 +5,7 @@ import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
 import {getPolicyMembersByIdWithoutCurrentUser} from './PolicyUtils';
 
-let policies: OnyxCollection<Policy>;
+let policies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
@@ -15,9 +15,7 @@ Onyx.connect({
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        allPersonalDetails = val;
-    },
+    callback: (val) => (allPersonalDetails = val),
 });
 
 function getPolicyMemberAccountIDs(policyID?: string) {
