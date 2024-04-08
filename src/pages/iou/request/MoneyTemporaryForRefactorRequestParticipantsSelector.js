@@ -6,6 +6,7 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
@@ -19,8 +20,6 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,9 +45,6 @@ const propTypes = {
         }),
     ),
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
-
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
@@ -61,12 +57,11 @@ const propTypes = {
 
 const defaultProps = {
     participants: [],
-    reports: {},
     betas: [],
     didScreenTransitionEnd: false,
 };
 
-function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, reports, onFinish, onParticipantsAdded, iouType, iouRequestType, didScreenTransitionEnd}) {
+function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, onFinish, onParticipantsAdded, iouType, iouRequestType, didScreenTransitionEnd}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -75,6 +70,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {canUseP2PDistanceRequests} = usePermissions();
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
@@ -91,12 +89,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
      */
     const [sections, newChatOptions] = useMemo(() => {
         const newSections = [];
-        if (!didScreenTransitionEnd) {
+        if (!areOptionsInitialized) {
             return [newSections, {}];
         }
         const chatOptions = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports,
+            options.personalDetails,
             betas,
             debouncedSearchTerm,
             participants,
@@ -157,7 +155,20 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
         }
 
         return [newSections, chatOptions];
-    }, [didScreenTransitionEnd, reports, personalDetails, betas, debouncedSearchTerm, participants, iouType, canUseP2PDistanceRequests, iouRequestType, maxParticipantsReached, translate]);
+    }, [
+        areOptionsInitialized,
+        options.reports,
+        options.personalDetails,
+        betas,
+        debouncedSearchTerm,
+        participants,
+        iouType,
+        canUseP2PDistanceRequests,
+        iouRequestType,
+        maxParticipantsReached,
+        personalDetails,
+        translate,
+    ]);
 
     /**
      * Adds a single participant to the request
@@ -328,12 +339,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
         [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
 
-    const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
-
     return (
         <SelectionList
             onConfirm={handleConfirmSelection}
-            sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
+            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
             ListItem={UserListItem}
             textInputValue={searchTerm}
             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
@@ -343,7 +352,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             onSelectRow={addSingleParticipant}
             footerContent={footerContent}
             headerMessage={headerMessage}
-            showLoadingPlaceholder={!(didScreenTransitionEnd && isOptionsDataReady)}
+            showLoadingPlaceholder={!areOptionsInitialized}
             rightHandSideComponent={itemRightSideComponent}
         />
     );
@@ -354,9 +363,6 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps
 MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
 export default withOnyx({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
     betas: {
         key: ONYXKEYS.BETAS,
     },
@@ -366,7 +372,6 @@ export default withOnyx({
         (prevProps, nextProps) =>
             _.isEqual(prevProps.participants, nextProps.participants) &&
             prevProps.didScreenTransitionEnd === nextProps.didScreenTransitionEnd &&
-            _.isEqual(prevProps.dismissedReferralBanners, nextProps.dismissedReferralBanners) &&
             prevProps.iouRequestType === nextProps.iouRequestType &&
             prevProps.iouType === nextProps.iouType &&
             _.isEqual(prevProps.betas, nextProps.betas),
