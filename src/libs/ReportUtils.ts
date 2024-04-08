@@ -5477,7 +5477,7 @@ function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, repor
 /**
  * Check if money report has any transactions updated optimistically
  */
-function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
+function hasUpdatedTotal(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     if (!report) {
         return true;
     }
@@ -5485,18 +5485,19 @@ function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(report.reportID);
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
     const hasTransactionWithDifferentCurrency = transactions.some((transaction) => transaction.currency !== report.currency);
+    const hasDifferentWorkspaceCurrency = report.pendingFields?.createChat && isExpenseReport(report) && report.currency !== policy?.outputCurrency;
 
-    return !(hasPendingTransaction && hasTransactionWithDifferentCurrency) && !(hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined);
+    return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentWorkspaceCurrency)) && !(hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined);
 }
 
 /**
  * Return held and full amount formatted with used currency
  */
-function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>): string[] {
+function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string[] {
     const transactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID ?? '');
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
 
-    if (hasUpdatedTotal(iouReport) && hasPendingTransaction) {
+    if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
         const unheldTotal = transactions.reduce((currentVal, transaction) => currentVal - (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
 
         return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
