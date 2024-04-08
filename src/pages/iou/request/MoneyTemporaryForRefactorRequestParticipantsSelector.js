@@ -94,7 +94,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-    const actionTypeForParticipants = iouType === CONST.IOU.TYPE.REQUEST && participants.length > 0 ? CONST.IOU.TYPE.SPLIT : iouRequestType;
+    const actionTypeForParticipants = iouType === CONST.IOU.TYPE.SPLIT ? CONST.IOU.TYPE.SPLIT : iouRequestType;
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
@@ -137,7 +137,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             false,
             [],
             [],
-            actionTypeForParticipants, 
+            actionTypeForParticipants,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(

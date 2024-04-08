@@ -72,7 +72,7 @@ function useOptions() {
             false,
             [],
             [],
-            CONST.REPORT.TYPE.TASK, 
+            CONST.REPORT.TYPE.TASK,
         );
 
         const headerMessage = OptionsListUtils.getHeaderMessage(

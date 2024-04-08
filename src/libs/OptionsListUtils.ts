@@ -1540,7 +1540,7 @@ function getOptions(
         includePolicyReportFieldOptions = false,
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
-        actionTypeForParticipants,        
+        actionTypeForParticipants,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1827,7 +1827,7 @@ function getOptions(
                 }
             }
         }
-        
+
         // Let us reset the recent list and the options to exclude if we have found
         // recent reports by action type for setting personal details and for search results.
         if (recentReportOptionsByAction.length > 0) {
@@ -2044,7 +2044,7 @@ function getFilteredOptions(
     includePolicyReportFieldOptions = false,
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
-    actionTypeForParticipants: ActionType = undefined,    
+    actionTypeForParticipants: ActionType = undefined,
 ) {
     return getOptions(
         {reports, personalDetails},
