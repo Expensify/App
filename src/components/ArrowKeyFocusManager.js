@@ -1,6 +1,5 @@
-import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {Component} from 'react';
+import {Component} from 'react';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
@@ -16,9 +15,6 @@ const propTypes = {
 
     /** The maximum index – provided so that the focus can be sent back to the beginning of the list when the end is reached. */
     maxIndex: PropTypes.number.isRequired,
-
-    /** Whether navigation is focused */
-    isFocused: PropTypes.bool.isRequired,
 
     /** A callback executed when the focused input changes. */
     onFocusedIndexChanged: PropTypes.func.isRequired,
@@ -36,7 +32,7 @@ const defaultProps = {
     shouldResetIndexOnEndReached: true,
 };
 
-class BaseArrowKeyFocusManager extends Component {
+class ArrowKeyFocusManager extends Component {
     componentDidMount() {
         const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
         const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
@@ -81,7 +77,7 @@ class BaseArrowKeyFocusManager extends Component {
     }
 
     onArrowUpKey() {
-        if (this.props.maxIndex < 0 || !this.props.isFocused) {
+        if (this.props.maxIndex < 0) {
             return;
         }
 
@@ -100,7 +96,7 @@ class BaseArrowKeyFocusManager extends Component {
     }
 
     onArrowDownKey() {
-        if (this.props.maxIndex < 0 || !this.props.isFocused) {
+        if (this.props.maxIndex < 0) {
             return;
         }
 
@@ -123,20 +119,7 @@ class BaseArrowKeyFocusManager extends Component {
     }
 }
 
-function ArrowKeyFocusManager(props) {
-    const isFocused = useIsFocused();
-
-    return (
-        <BaseArrowKeyFocusManager
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            isFocused={isFocused}
-        />
-    );
-}
-
-BaseArrowKeyFocusManager.propTypes = propTypes;
-BaseArrowKeyFocusManager.defaultProps = defaultProps;
-ArrowKeyFocusManager.displayName = 'ArrowKeyFocusManager';
+ArrowKeyFocusManager.propTypes = propTypes;
+ArrowKeyFocusManager.defaultProps = defaultProps;
 
 export default ArrowKeyFocusManager;

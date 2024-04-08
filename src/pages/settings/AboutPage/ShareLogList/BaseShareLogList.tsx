@@ -1,52 +1,65 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import type {BaseShareLogListProps} from './types';
+import type {BaseShareLogListOnyxProps, BaseShareLogListProps} from './types';
 
-function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+function BaseShareLogList({betas, onAttachLogToReport}: BaseShareLogListProps) {
+    const [searchValue, setSearchValue] = useState('');
+    const [searchOptions, setSearchOptions] = useState<Pick<OptionsListUtils.GetOptions, 'recentReports' | 'personalDetails' | 'userToInvite'>>({
+        recentReports: [],
+        personalDetails: [],
+        userToInvite: null,
+    });
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const betas = useBetas();
+    const styles = useThemeStyles();
+    const isMounted = useRef(false);
     const {options, areOptionsInitialized} = useOptionsList();
-
-    const searchOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return {
-                recentReports: [],
-                personalDetails: [],
-                userToInvite: undefined,
-                headerMessage: '',
-            };
-        }
+    const updateOptions = useCallback(() => {
         const {
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
-        } = OptionsListUtils.getShareLogOptions(options, debouncedSearchValue.trim(), betas ?? []);
+        } = OptionsListUtils.getShareLogOptions(options, searchValue.trim(), betas ?? []);
 
-        const header = OptionsListUtils.getHeaderMessage((localRecentReports?.length || 0) + (localPersonalDetails?.length || 0) !== 0, Boolean(localUserToInvite), debouncedSearchValue);
-
-        return {
+        setSearchOptions({
             recentReports: localRecentReports,
             personalDetails: localPersonalDetails,
             userToInvite: localUserToInvite,
-            headerMessage: header,
-        };
-    }, [areOptionsInitialized, options, debouncedSearchValue, betas]);
+        });
+    }, [betas, options, searchValue]);
+
+    useEffect(() => {
+        if (!areOptionsInitialized) {
+            return;
+        }
+
+        updateOptions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [options, areOptionsInitialized]);
+
+    useEffect(() => {
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return;
+        }
+
+        updateOptions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchValue]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -71,7 +84,17 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         }
 
         return sectionsList;
-    }, [searchOptions?.personalDetails, searchOptions?.recentReports, searchOptions?.userToInvite, translate]);
+    }, [searchOptions.personalDetails, searchOptions.recentReports, searchOptions.userToInvite, translate]);
+
+    const headerMessage = OptionsListUtils.getHeaderMessage(
+        searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
+        Boolean(searchOptions.userToInvite),
+        searchValue,
+    );
+
+    const onChangeText = (value = '') => {
+        setSearchValue(value);
+    };
 
     const attachLogToReport = (option: Report) => {
         if (!option.reportID) {
@@ -87,23 +110,28 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             testID={BaseShareLogList.displayName}
             includeSafeAreaPaddingBottom={false}
         >
-            {({didScreenTransitionEnd}) => (
+            {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.debugConsole.shareLog')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
                     />
-                    <SelectionList
-                        ListItem={UserListItem}
-                        sections={didScreenTransitionEnd ? sections : CONST.EMPTY_ARRAY}
-                        onSelectRow={attachLogToReport}
-                        onChangeText={setSearchValue}
-                        textInputValue={searchValue}
-                        headerMessage={searchOptions.headerMessage}
-                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                        textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                        showLoadingPlaceholder={!didScreenTransitionEnd}
-                    />
+                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <OptionsSelector
+                            // @ts-expect-error TODO: remove this comment once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TS
+                            sections={sections}
+                            onSelectRow={attachLogToReport}
+                            onChangeText={onChangeText}
+                            value={searchValue}
+                            headerMessage={headerMessage}
+                            showTitleTooltip
+                            shouldShowOptions={areOptionsInitialized}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            autoFocus
+                        />
+                    </View>
                 </>
             )}
         </ScreenWrapper>
@@ -112,4 +140,12 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
 
 BaseShareLogList.displayName = 'ShareLogPage';
 
-export default BaseShareLogList;
+export default withOnyx<BaseShareLogListProps, BaseShareLogListOnyxProps>({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+        initialValue: [],
+    },
+})(BaseShareLogList);

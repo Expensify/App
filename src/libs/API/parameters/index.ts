@@ -128,7 +128,6 @@ export type {default as CompleteEngagementModalParams} from './CompleteEngagemen
 export type {default as SetNameValuePairParams} from './SetNameValuePairParams';
 export type {default as SetReportFieldParams} from './SetReportFieldParams';
 export type {default as SetReportNameParams} from './SetReportNameParams';
-export type {default as DeleteReportFieldParams} from './DeleteReportFieldParams';
 export type {default as CompleteSplitBillParams} from './CompleteSplitBillParams';
 export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestParams';
 export type {default as RequestMoneyParams} from './RequestMoneyParams';

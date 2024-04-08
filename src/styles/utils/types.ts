@@ -40,7 +40,7 @@ type ButtonSizeValue = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
 type AvatarSize = {width: number};
 
-type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
+type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
 type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
 type TextColorStyle = {color: string};
 
@@ -55,7 +55,7 @@ export type {
     ButtonSizeValue,
     ButtonStateName,
     AvatarSize,
-    SVGAvatarColorStyle,
+    WorkspaceColorStyle,
     EreceiptColorStyle,
     TextColorStyle,
 };

@@ -13,8 +13,6 @@ type Entry = {
 type Data = {
     significance: Entry[];
     meaningless: Entry[];
-    errors?: string[];
-    warnings?: string[];
 };
 
 const printRegularLine = (entry: Entry) => {
@@ -38,4 +36,4 @@ export default (data: Data) => {
     console.debug('');
 };
 
-export type {Data, Entry};
+export type {Entry};

@@ -6,11 +6,11 @@ import RemoveEmptyReportActionsDrafts from './migrations/RemoveEmptyReportAction
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 import TransactionBackupsToCollection from './migrations/TransactionBackupsToCollection';
 
-export default function () {
+export default function (): Promise<void> {
     const startTime = Date.now();
     Log.info('[Migrate Onyx] start');
 
-    return new Promise<void>((resolve) => {
+    return new Promise((resolve) => {
         // Add all migrations to an array so they are executed in order
         const migrationPromises = [
             CheckForPreviousReportActionID,
@@ -25,7 +25,7 @@ export default function () {
         // previous promise to finish before moving onto the next one.
         /* eslint-disable arrow-body-style */
         migrationPromises
-            .reduce<Promise<void | void[]>>((previousPromise, migrationPromise) => {
+            .reduce((previousPromise, migrationPromise) => {
                 return previousPromise.then(() => {
                     return migrationPromise();
                 });

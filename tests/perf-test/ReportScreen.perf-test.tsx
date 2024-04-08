@@ -81,12 +81,15 @@ jest.mock('@src/hooks/usePermissions.ts');
 
 jest.mock('@src/libs/Navigation/Navigation');
 
+const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
         useFocusEffect: jest.fn(),
-        useIsFocused: () => true,
+        useIsFocused: () => ({
+            navigate: mockedNavigate,
+        }),
         useRoute: () => jest.fn(),
         useNavigation: () => ({
             navigate: jest.fn(),

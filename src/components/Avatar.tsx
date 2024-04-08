@@ -74,26 +74,21 @@ function Avatar({
         setImageError(false);
     }, [source]);
 
+    if (!source) {
+        return null;
+    }
+
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(size);
 
     const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
-    // We pass the color styles down to the SVG for the workspace and fallback avatar.
-    const useFallBackAvatar = imageError || source === Expensicons.FallbackAvatar || !source;
+    const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
-    const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
 
-    let iconColors;
-    if (isWorkspace) {
-        iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(name);
-    } else if (useFallBackAvatar) {
-        iconColors = StyleUtils.getBackgroundColorAndFill(theme.border, theme.icon);
-    } else {
-        iconColors = null;
-    }
+    const avatarSource = imageError ? fallbackAvatar : source;
 
     return (
         <View style={[containerStyles, styles.pointerEventsNone]}>
@@ -112,8 +107,13 @@ function Avatar({
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}
-                        fill={imageError ? iconColors?.fill ?? theme.offline : iconColors?.fill ?? fill}
-                        additionalStyles={[StyleUtils.getAvatarBorderStyle(size, type), iconColors, iconAdditionalStyles]}
+                        fill={imageError ? theme.offline : iconFillColor}
+                        additionalStyles={[
+                            StyleUtils.getAvatarBorderStyle(size, type),
+                            isWorkspace && StyleUtils.getDefaultWorkspaceAvatarColor(name),
+                            imageError && StyleUtils.getBackgroundColorStyle(theme.fallbackIconColor),
+                            iconAdditionalStyles,
+                        ]}
                     />
                 </View>
             )}

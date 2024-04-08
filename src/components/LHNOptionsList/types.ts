@@ -86,8 +86,8 @@ type OptionRowLHNDataProps = {
     /** The transaction linked to the report's last action */
     lastReportActionTransaction?: OnyxEntry<Transaction | EmptyObject>;
 
-    /** Whether a report contains a draft */
-    hasDraftComment: boolean;
+    /** Comment added to report */
+    comment: string;
 
     /** The receipt transaction from the parent report action */
     receiptTransactions: OnyxCollection<Transaction>;
@@ -132,9 +132,6 @@ type OptionRowLHNProps = {
 
     /** The item that should be rendered */
     optionItem?: OptionData;
-
-    /** Whether a report contains a draft */
-    hasDraftComment: boolean;
 
     onLayout?: (event: LayoutChangeEvent) => void;
 };

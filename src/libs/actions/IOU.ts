@@ -35,7 +35,6 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
-import type {TaxRatesOption} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -55,7 +54,7 @@ import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment, Receipt, ReceiptSource, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, ReceiptSource, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -126,6 +125,10 @@ type SendMoneyParamsData = {
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
+};
+
+type OutstandingChildRequest = {
+    hasOutstandingChildRequest?: boolean;
 };
 
 let betas: OnyxTypes.Beta[] = [];
@@ -352,12 +355,12 @@ function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: st
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string, removeOriginalCurrency = false) {
+function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string, removeOriginalCurrency = false, shouldShowOriginalAmount = false) {
     if (removeOriginalCurrency) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, originalCurrency: null});
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, originalCurrency: null, shouldShowOriginalAmount});
         return;
     }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -447,6 +450,41 @@ function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = t
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''}, errorKey);
 }
 
+function needsToBeManuallySubmitted(iouReport: OnyxTypes.Report) {
+    const isPolicyExpenseChat = ReportUtils.isExpenseReport(iouReport);
+
+    if (isPolicyExpenseChat) {
+        const policy = getPolicy(iouReport.policyID);
+        const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+
+        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
+        return isFromPaidPolicy && !policy.harvesting?.enabled;
+    }
+
+    return true;
+}
+
+/**
+ * Return the object to update hasOutstandingChildRequest
+ */
+function getOutstandingChildRequest(policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject, iouReport: OnyxTypes.Report): OutstandingChildRequest {
+    if (!needsToBeManuallySubmitted(iouReport)) {
+        return {
+            hasOutstandingChildRequest: false,
+        };
+    }
+
+    if (PolicyUtils.isPolicyAdmin(policy)) {
+        return {
+            hasOutstandingChildRequest: true,
+        };
+    }
+
+    return {
+        hasOutstandingChildRequest: iouReport.managerID === userAccountID && iouReport.total !== 0,
+    };
+}
+
 /** Builds the Onyx data for a money request */
 function buildOnyxDataForMoneyRequest(
     chatReport: OnyxEntry<OnyxTypes.Report>,
@@ -470,7 +508,7 @@ function buildOnyxDataForMoneyRequest(
     isOneOnOneSplit = false,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const outstandingChildRequest = ReportUtils.getOutstandingChildRequest(iouReport);
+    const outstandingChildRequest = getOutstandingChildRequest(policy ?? {}, iouReport);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = isScanRequest ? CONST.QUICK_ACTIONS.REQUEST_SCAN : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
@@ -757,7 +795,7 @@ function buildOnyxDataForMoneyRequest(
                               errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
                           },
                           [iouAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                              errors: ErrorUtils.getMicroSecondOnyxError(null),
                           },
                       }
                     : {
@@ -1543,21 +1581,17 @@ function getUpdateMoneyRequestParams(
     }
 
     // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+    let updatedMoneyRequestReport = {...iouReport};
     const diff = calculateDiffAmount(iouReport, updatedTransaction, transaction);
 
-    let updatedMoneyRequestReport: OnyxTypes.Report | EmptyObject;
-    if (!iouReport) {
-        updatedMoneyRequestReport = {};
-    } else if (ReportUtils.isExpenseReport(iouReport) && typeof iouReport.total === 'number') {
-        // For expense report, the amount is negative, so we should subtract total from diff
-        updatedMoneyRequestReport = {
-            ...iouReport,
-            total: iouReport.total - diff,
-        };
+    if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
+        // For expense report, the amount is negative so we should subtract total from diff
+        updatedMoneyRequestReport.total -= diff;
     } else {
-        updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true);
+        updatedMoneyRequestReport = iouReport
+            ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true)
+            : {};
     }
-
     updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
 
     optimisticData.push(
@@ -1569,7 +1603,10 @@ function getUpdateMoneyRequestParams(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.parentReportID}`,
-            value: ReportUtils.getOutstandingChildRequest(updatedMoneyRequestReport),
+            value: {
+                hasOutstandingChildRequest:
+                    iouReport && needsToBeManuallySubmitted(iouReport) && updatedMoneyRequestReport.managerID === userAccountID && updatedMoneyRequestReport.total !== 0,
+            },
         },
     );
     successData.push({
@@ -2487,7 +2524,7 @@ function createSplitsAndOnyxData(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
                 value: {
                     [splitIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxError(null),
                     },
                 },
             },
@@ -2734,7 +2771,7 @@ function splitBill(
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(existingSplitChatReportID);
+    Navigation.dismissModal();
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -3753,7 +3790,9 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: ReportUtils.getOutstandingChildRequest(updatedIOUReport),
+            value: {
+                hasOutstandingChildRequest: iouReport && needsToBeManuallySubmitted(iouReport) && updatedIOUReport?.managerID === userAccountID && updatedIOUReport.total !== 0,
+            },
         },
     );
 
@@ -4297,7 +4336,7 @@ function getSendMoneyParams(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
                 value: {
                     [optimisticIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxError(null),
                     },
                 },
             },
@@ -4743,8 +4782,8 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
     const policy = getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
+    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED);
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
 
     const optimisticData: OnyxUpdate[] = !isSubmitAndClosePolicy
         ? [
@@ -4769,6 +4808,11 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                       statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                   },
               },
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+                  value: optimisticNextStep,
+              },
           ]
         : [
               {
@@ -4781,12 +4825,6 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                   },
               },
           ];
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-        value: optimisticNextStep,
-    });
 
     if (parentReport?.reportID) {
         optimisticData.push({
@@ -4823,22 +4861,24 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: currentNextStep,
-        },
     ];
     if (!isSubmitAndClosePolicy) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticSubmittedReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                value: {
+                    [optimisticSubmittedReportAction.reportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                    },
                 },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+                value: currentNextStep,
+            },
+        );
     }
 
     if (parentReport?.reportID) {
@@ -5072,7 +5112,7 @@ function setMoneyRequestCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.IOU, {currency});
 }
 
-function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRatesOption) {
+function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
 

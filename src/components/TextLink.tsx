@@ -1,4 +1,4 @@
-import type {ForwardedRef, KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
+import type {ForwardedRef, KeyboardEventHandler, MouseEventHandler} from 'react';
 import React, {forwardRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, StyleProp, TextStyle} from 'react-native';
@@ -20,7 +20,7 @@ type PressProps = {
     href?: undefined;
 
     /** Overwrites the default link behavior with a custom callback */
-    onPress: (event: GestureResponderEvent | KeyboardEvent) => void;
+    onPress: () => void;
 };
 
 type TextLinkProps = (LinkProps | PressProps) &
@@ -36,9 +36,9 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 
-    const openLink = (event: GestureResponderEvent | KeyboardEvent) => {
+    const openLink = () => {
         if (onPress) {
-            onPress(event);
+            onPress();
         } else {
             Link.openLink(href, environmentURL);
         }
@@ -47,7 +47,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
     const openLinkOnTap = (event: GestureResponderEvent) => {
         event.preventDefault();
 
-        openLink(event);
+        openLink();
     };
 
     const openLinkOnEnterKey: KeyboardEventHandler = (event) => {
@@ -56,7 +56,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
         }
         event.preventDefault();
 
-        openLink(event);
+        openLink();
     };
 
     return (

@@ -13,7 +13,6 @@ type Config = {
     disableCyclicTraversal?: boolean;
     allowHorizontalArrowKeys?: boolean;
     allowNegativeIndexes?: boolean;
-    isFocused?: boolean;
 };
 
 type UseArrowKeyFocusManager = [number, (index: number) => void];
@@ -32,7 +31,6 @@ type UseArrowKeyFocusManager = [number, (index: number) => void];
  * @param [config.itemsPerRow] – The number of items per row. If provided, the arrow keys will move focus horizontally as well as vertically
  * @param [config.disableCyclicTraversal] – Whether to disable cyclic traversal of the list. If true, the arrow keys will have no effect when the first or last item is focused
  * @param [config.allowHorizontalArrowKeys] – Whether to enable the right/left keys
- * @param [config.isFocused] Whether navigation is focused
  */
 export default function useArrowKeyFocusManager({
     maxIndex,
@@ -48,7 +46,6 @@ export default function useArrowKeyFocusManager({
     disableCyclicTraversal = false,
     allowHorizontalArrowKeys = false,
     allowNegativeIndexes = false,
-    isFocused = true,
 }: Config): UseArrowKeyFocusManager {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
     const arrowConfig = useMemo(
@@ -71,7 +68,7 @@ export default function useArrowKeyFocusManager({
     useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex]);
 
     const arrowUpCallback = useCallback(() => {
-        if (maxIndex < 0 || !isFocused) {
+        if (maxIndex < 0) {
             return;
         }
         const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
@@ -98,12 +95,12 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [maxIndex, isFocused, disableCyclicTraversal, itemsPerRow, disabledIndexes, allowNegativeIndexes]);
+    }, [disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex, allowNegativeIndexes]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
     const arrowDownCallback = useCallback(() => {
-        if (maxIndex < 0 || !isFocused) {
+        if (maxIndex < 0) {
             return;
         }
 
@@ -143,7 +140,7 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [disableCyclicTraversal, disabledIndexes, isFocused, itemsPerRow, maxIndex]);
+    }, [disableCyclicTraversal, disabledIndexes, itemsPerRow, maxIndex]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, arrowDownCallback, arrowConfig);
 

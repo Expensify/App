@@ -3,13 +3,13 @@ import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {ListItem} from '@components/SelectionList/types';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceCurrencyDefault} from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
@@ -32,10 +32,9 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const selectedTaxRate = policy?.taxRates && TransactionUtils.getDefaultTaxName(policy?.taxRates);
-
-    const submit = (taxes: OptionsListUtils.TaxRatesOption) => {
-        setWorkspaceCurrencyDefault(policyID, taxes.data.code ?? '');
+    const selectedTaxRate = TransactionUtils.getTaxName(policy?.taxRates?.taxes ?? {}, policy?.taxRates?.foreignTaxDefault ?? '');
+    const submit = ({keyForList}: ListItem) => {
+        setWorkspaceCurrencyDefault(policyID, keyForList ?? '');
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
@@ -59,7 +58,6 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
                                 <View style={[styles.mb4, styles.flex1]}>
                                     <TaxPicker
                                         selectedTaxRate={selectedTaxRate}
-                                        policyID={policyID}
                                         insets={insets}
                                         onSubmit={submit}
                                     />

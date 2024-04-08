@@ -25,6 +25,9 @@ export default PropTypes.shape({
     // reportID (only present when there is a matching report)
     reportID: PropTypes.string,
 
+    // Whether the report has a draft comment or not
+    hasDraftComment: PropTypes.bool,
+
     // Key used internally by React
     keyForList: PropTypes.string,
 

@@ -81,7 +81,7 @@ function buildNextStep(
 
     const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
-    const {submitsTo, harvesting, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
+    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
     const isSelfApproval = currentUserAccountID === submitsTo;
@@ -172,7 +172,7 @@ function buildNextStep(
             }
 
             // Prevented self submitting
-            if (preventSelfApproval && isSelfApproval) {
+            if ((isPreventSelfApprovalEnabled ?? preventSelfApproval) && isSelfApproval) {
                 optimisticNextStep.message = [
                     {
                         text: "Oops! Looks like you're submitting to ",
@@ -254,20 +254,6 @@ function buildNextStep(
 
             break;
         }
-
-        // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
-        case CONST.REPORT.STATUS_NUM.CLOSED:
-            optimisticNextStep = {
-                type,
-                title: 'Finished!',
-                message: [
-                    {
-                        text: 'No further action required!',
-                    },
-                ],
-            };
-
-            break;
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:

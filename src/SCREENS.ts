@@ -32,7 +32,6 @@ const SCREENS = {
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
-        ADD_BANK_ACCOUNT_REFACTOR: 'Settings_Add_Bank_Account_Refactor',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
@@ -126,9 +125,6 @@ const SCREENS = {
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
-    },
-    ONBOARDING_MODAL: {
-        ONBOARDING: 'Onboarding',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
@@ -275,19 +271,10 @@ const SCREENS = {
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
     },
 
-    ONBOARDING: {
-        PERSONAL_DETAILS: 'Onboarding_Personal_Details',
-        PURPOSE: 'Onboarding_Purpose',
-    },
-
     ONBOARD_ENGAGEMENT: {
         ROOT: 'Onboard_Engagement_Root',
         MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
         EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
-    },
-
-    WELCOME_VIDEO: {
-        ROOT: 'Welcome_Video_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

@@ -13,7 +13,6 @@ import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import * as CollectionUtils from './CollectionUtils';
-import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -140,7 +139,7 @@ function getOrderedReportIDs(
         const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(report);
-        } else if (hasValidDraftComment(report.reportID)) {
+        } else if (report.hasDraft) {
             draftReports.push(report);
         } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(report);
@@ -215,6 +214,7 @@ function getOptionData({
         phoneNumber: null,
         isUnread: null,
         isUnreadWithMention: null,
+        hasDraftComment: false,
         keyForList: null,
         searchText: null,
         isPinned: false,
@@ -263,6 +263,7 @@ function getOptionData({
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
     result.isUnread = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
+    result.hasDraftComment = report.hasDraft;
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);

@@ -9,11 +9,11 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -24,7 +24,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -89,10 +88,34 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         isDisabled,
                         pendingAction: value.pendingAction,
                         errors: value.errors ?? undefined,
-                        rightElement: <RightElementEnabledStatus enabled={value.enabled} />,
+                        rightElement: (
+                            <View style={[styles.flexRow, isDisabled && styles.buttonOpacityDisabled]}>
+                                <Text style={[styles.textSupporting, styles.alignSelfCenter, styles.pl2, styles.label]}>
+                                    {value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')}
+                                </Text>
+                                <View style={[styles.p1, styles.pl2]}>
+                                    <Icon
+                                        src={Expensicons.ArrowRight}
+                                        fill={theme.icon}
+                                    />
+                                </View>
+                            </View>
+                        ),
                     };
                 }),
-        [policyCategories, selectedCategories],
+        [
+            policyCategories,
+            selectedCategories,
+            styles.alignSelfCenter,
+            styles.buttonOpacityDisabled,
+            styles.flexRow,
+            styles.label,
+            styles.p1,
+            styles.pl2,
+            styles.textSupporting,
+            theme.icon,
+            translate,
+        ],
     );
 
     const toggleCategory = (category: PolicyOption) => {
@@ -295,7 +318,6 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                                 sections={[{data: categoryList, isDisabled: false}]}
                                 onCheckboxPress={toggleCategory}
                                 onSelectRow={navigateToCategorySettings}
-                                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                                 onSelectAll={toggleAllCategories}
                                 showScrollIndicator
                                 ListItem={TableListItem}

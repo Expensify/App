@@ -109,7 +109,6 @@ const ROUTES = {
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
-    SETTINGS_ADD_BANK_ACCOUNT_REFACTOR: 'settings/wallet/add-bank-account-refactor',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
@@ -682,11 +681,6 @@ const ROUTES = {
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
-    ONBOARDING_ROOT: 'onboarding',
-    ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
-    ONBOARDING_PURPOSE: 'onboarding/purpose',
-    WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
-
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,

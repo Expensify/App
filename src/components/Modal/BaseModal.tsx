@@ -15,7 +15,6 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import ModalContent from './ModalContent';
 import type BaseModalProps from './types';
 
 function BaseModal(
@@ -43,8 +42,6 @@ function BaseModal(
         children,
         shouldUseCustomBackdrop = false,
         onBackdropPress,
-        shouldEnableNewFocusManagement = false,
-        restoreFocusType,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -58,14 +55,6 @@ function BaseModal(
 
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
-
-    const modalId = useMemo(() => ComposerFocusManager.getId(), []);
-    const saveFocusState = () => {
-        if (shouldEnableNewFocusManagement) {
-            ComposerFocusManager.saveFocusState(modalId);
-        }
-        ComposerFocusManager.resetReadyToFocus(modalId);
-    };
 
     /**
      * Hides modal
@@ -81,9 +70,11 @@ function BaseModal(
                 onModalHide();
             }
             Modal.onModalDidClose();
-            ComposerFocusManager.refocusAfterModalFullyClosed(modalId, restoreFocusType);
+            if (!fullscreen) {
+                ComposerFocusManager.setReadyToFocus();
+            }
         },
-        [shouldSetModalVisibility, onModalHide, restoreFocusType, modalId],
+        [shouldSetModalVisibility, onModalHide, fullscreen],
     );
 
     useEffect(() => {
@@ -135,7 +126,7 @@ function BaseModal(
     };
 
     const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(modalId);
+        ComposerFocusManager.setReadyToFocus();
     };
 
     const {
@@ -199,7 +190,7 @@ function BaseModal(
             onModalShow={handleShowModal}
             propagateSwipe={propagateSwipe}
             onModalHide={hideModal}
-            onModalWillShow={saveFocusState}
+            onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
             onDismiss={handleDismissModal}
             onSwipeComplete={() => onClose?.()}
             swipeDirection={swipeDirection}
@@ -223,14 +214,12 @@ function BaseModal(
             avoidKeyboard={avoidKeyboard}
             customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
         >
-            <ModalContent onDismiss={handleDismissModal}>
-                <View
-                    style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
-                    ref={ref}
-                >
-                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                </View>
-            </ModalContent>
+            <View
+                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
+                ref={ref}
+            >
+                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+            </View>
         </ReactNativeModal>
     );
 }

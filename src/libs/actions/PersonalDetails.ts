@@ -72,30 +72,30 @@ function updatePronouns(pronouns: string) {
 }
 
 function updateDisplayName(firstName: string, lastName: string) {
-    if (!currentUserAccountID) {
-        return;
-    }
+    if (currentUserAccountID) {
+        const parameters: UpdateDisplayNameParams = {firstName, lastName};
 
-    const parameters: UpdateDisplayNameParams = {firstName, lastName};
-
-    API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [currentUserAccountID]: {
-                        firstName,
-                        lastName,
-                        displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+        API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
                             firstName,
                             lastName,
-                        }),
+                            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                                firstName,
+                                lastName,
+                            }),
+                        },
                     },
                 },
-            },
-        ],
-    });
+            ],
+        });
+    }
+
+    Navigation.goBack();
 }
 
 function updateLegalName(legalFirstName: string, legalLastName: string) {

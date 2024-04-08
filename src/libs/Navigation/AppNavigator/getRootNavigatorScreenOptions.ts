@@ -1,22 +1,11 @@
 import type {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
-import type {ViewStyle} from 'react-native';
 import type {ThemeStyles} from '@styles/index';
 import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
 
-type GetOnboardingModalNavigatorOptions = (shouldUseNarrowLayout: boolean) => StackNavigationOptions;
-
-type ScreenOptions = {
-    rightModalNavigator: StackNavigationOptions;
-    onboardingModalNavigator: GetOnboardingModalNavigatorOptions;
-    leftModalNavigator: StackNavigationOptions;
-    homeScreen: StackNavigationOptions;
-    fullScreen: StackNavigationOptions;
-    centralPaneNavigator: StackNavigationOptions;
-    bottomTab: StackNavigationOptions;
-};
+type ScreenOptions = Record<string, StackNavigationOptions>;
 
 const commonScreenOptions: StackNavigationOptions = {
     headerShown: false,
@@ -34,7 +23,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
     return {
         rightModalNavigator: {
             ...commonScreenOptions,
-            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
             presentation: 'transparentModal',
 
             // We want pop in RHP since there are some flows that would work weird otherwise
@@ -48,25 +37,9 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 right: 0,
             },
         },
-        onboardingModalNavigator: (shouldUseNarrowLayout: boolean) => ({
-            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, shouldUseNarrowLayout, props),
-            headerShown: false,
-            animationEnabled: true,
-            cardOverlayEnabled: false,
-            presentation: 'transparentModal',
-            cardStyle: {
-                ...StyleUtils.getNavigationModalCardStyle(),
-                backgroundColor: 'transparent',
-                width: '100%',
-                top: 0,
-                left: 0,
-                // We need to guarantee that it covers BottomTabBar on web, but fixed position is not supported in react native.
-                position: 'fixed' as ViewStyle['position'],
-            },
-        }),
         leftModalNavigator: {
             ...commonScreenOptions,
-            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
+            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
             presentation: 'transparentModal',
             gestureDirection: 'horizontal-inverted',
 
@@ -85,7 +58,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         homeScreen: {
             title: CONFIG.SITE_TITLE,
             ...commonScreenOptions,
-            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
 
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
@@ -99,7 +72,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
 
         fullScreen: {
             ...commonScreenOptions,
-            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
 
@@ -112,7 +85,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             title: CONFIG.SITE_TITLE,
             ...commonScreenOptions,
             animationEnabled: isSmallScreenWidth,
-            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
 
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
@@ -122,7 +95,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
 
         bottomTab: {
             ...commonScreenOptions,
-            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
+            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
 
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),

@@ -90,12 +90,10 @@ function ProfilePage({personalDetails, personalDetailsMetadata, route, session, 
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
     const timezone = details?.timezone;
-    const reportRecipient = personalDetails?.[accountID];
-    const isParticipantValidated = reportRecipient?.validated ?? false;
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([accountID]) && !isEmptyObject(timezone) && isParticipantValidated;
+    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([accountID]) && !isEmptyObject(timezone);
     let pronouns = details?.pronouns ?? '';
     if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');

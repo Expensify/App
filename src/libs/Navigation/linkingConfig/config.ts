@@ -80,28 +80,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
-        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.WELCOME_VIDEO.ROOT]: {
-                    path: ROUTES.WELCOME_VIDEO_ROOT,
-                    exact: true,
-                },
-            },
-        },
-        [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
-            path: ROUTES.ONBOARDING_ROOT,
-            initialRouteName: SCREENS.ONBOARDING.PERSONAL_DETAILS,
-            screens: {
-                [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
-                    path: ROUTES.ONBOARDING_PERSONAL_DETAILS,
-                    exact: true,
-                },
-                [SCREENS.ONBOARDING.PURPOSE]: {
-                    path: ROUTES.ONBOARDING_PURPOSE,
-                    exact: true,
-                },
-            },
-        },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
@@ -176,10 +154,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_REFACTOR]: {
-                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_REFACTOR,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {

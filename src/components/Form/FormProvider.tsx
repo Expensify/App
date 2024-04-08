@@ -66,9 +66,6 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
         /** Should validate function be called when the value of the input is changed */
         shouldValidateOnChange?: boolean;
 
-        /** Whether to remove invisible characters from strings before validation and submission */
-        shouldTrimValues?: boolean;
-
         /** Styles that will be applied to the submit button only */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
@@ -88,7 +85,6 @@ function FormProvider(
         enabledWhenOffline = false,
         draftValues,
         onSubmit,
-        shouldTrimValues = true,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
@@ -102,7 +98,7 @@ function FormProvider(
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
-            const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(values) : values;
+            const trimmedStringValues = ValidationUtils.prepareValues(values);
 
             if (shouldClearServerError) {
                 FormActions.clearErrors(formID);
@@ -158,7 +154,7 @@ function FormProvider(
 
             return touchedInputErrors;
         },
-        [errors, formID, validate, shouldTrimValues],
+        [errors, formID, validate],
     );
 
     // When locales change from another session of the same account,
@@ -170,7 +166,7 @@ function FormProvider(
         }
 
         // Prepare validation values
-        const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
 
         // Validate in order to make sure the correct error translations are displayed,
         // making sure to not clear server errors if they exist
@@ -195,7 +191,7 @@ function FormProvider(
         }
 
         // Prepare values before submitting
-        const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
 
         // Touches all form inputs, so we can validate the entire form
         Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
@@ -211,7 +207,7 @@ function FormProvider(
         }
 
         onSubmit(trimmedStringValues);
-    }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
+    }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate]);
 
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {

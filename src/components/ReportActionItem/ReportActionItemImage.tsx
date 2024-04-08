@@ -95,12 +95,10 @@ function ReportActionItemImage({
     if (enablePreviewModal) {
         return (
             <ShowContextMenuContext.Consumer>
-                {({report, transactionThreadReport}) => (
+                {({report}) => (
                     <PressableWithoutFocus
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                        onPress={() =>
-                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID ?? '', transaction?.transactionID ?? ''))
-                        }
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID ?? '', transaction?.transactionID ?? ''))}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
                     >

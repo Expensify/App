@@ -6,8 +6,6 @@ type WalletLinkedAccountType = 'debitCard' | 'bankAccount';
 
 type ErrorCode = 'ssnError' | 'kbaNeeded' | 'kycFailed';
 
-type SetupType = ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
-
 type UserWallet = {
     /** The user's available wallet balance */
     availableBalance: number;
@@ -56,9 +54,6 @@ type UserWallet = {
 
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
-
-    /** The type of setup for adding the bank account */
-    setupType?: SetupType;
 };
 
 export default UserWallet;

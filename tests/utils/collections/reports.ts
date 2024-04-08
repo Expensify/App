@@ -8,6 +8,7 @@ export default function createRandomReport(index: number): Report {
         chatType: rand(Object.values(CONST.REPORT.CHAT_TYPE)),
         currency: randCurrencyCode(),
         displayName: randWord(),
+        hasDraft: randBoolean(),
         ownerAccountID: index,
         isPinned: randBoolean(),
         isOptimisticReport: randBoolean(),

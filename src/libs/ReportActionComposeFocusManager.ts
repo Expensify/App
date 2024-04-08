@@ -3,7 +3,7 @@ import type {TextInput} from 'react-native';
 import ROUTES from '@src/ROUTES';
 import Navigation from './Navigation/Navigation';
 
-type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
+type FocusCallback = () => void;
 
 const composerRef = React.createRef<TextInput>();
 const editComposerRef = React.createRef<TextInput>();
@@ -18,7 +18,7 @@ let mainComposerFocusCallback: FocusCallback | null = null;
  *
  * @param callback callback to register
  */
-function onComposerFocus(callback: FocusCallback | null, isMainComposer = false) {
+function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
     if (isMainComposer) {
         mainComposerFocusCallback = callback;
     } else {
@@ -29,7 +29,7 @@ function onComposerFocus(callback: FocusCallback | null, isMainComposer = false)
 /**
  * Request focus on the ReportActionComposer
  */
-function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
+function focus() {
     /** Do not trigger the refocusing when the active route is not the report route, */
     if (!Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(Navigation.getTopmostReportId() ?? ''))) {
         return;
@@ -40,7 +40,7 @@ function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
             return;
         }
 
-        mainComposerFocusCallback(shouldFocusForNonBlurInputOnTapOutside);
+        mainComposerFocusCallback();
         return;
     }
 

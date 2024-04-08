@@ -1,4 +1,4 @@
-import * as core from '@actions/core';
+import core from '@actions/core';
 import format from 'date-fns/format';
 import fs from 'fs';
 import CONST from '@github/libs/CONST';

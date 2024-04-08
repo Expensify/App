@@ -62,9 +62,6 @@ type AddPlaidBankAccountProps = AddPlaidBankAccountOnyxProps & {
     /** Is displayed in new VBBA */
     isDisplayedInNewVBBA?: boolean;
 
-    /** Is displayed in new enable wallet flow */
-    isDisplayedInWalletFlow?: boolean;
-
     /** Text to display on error message */
     errorText?: string;
 
@@ -87,7 +84,6 @@ function AddPlaidBankAccount({
     isDisplayedInNewVBBA = false,
     errorText = '',
     onInputChange = () => {},
-    isDisplayedInWalletFlow = false,
 }: AddPlaidBankAccountProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -259,10 +255,10 @@ function AddPlaidBankAccount({
         return <FullPageOfflineBlockingView>{renderPlaidLink()}</FullPageOfflineBlockingView>;
     }
 
-    if (isDisplayedInNewVBBA || isDisplayedInWalletFlow) {
+    if (isDisplayedInNewVBBA) {
         return (
             <FullPageOfflineBlockingView>
-                <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
+                <Text style={[styles.mb3, styles.textHeadline]}>{translate('bankAccount.chooseAnAccount')}</Text>
                 {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                     <Icon

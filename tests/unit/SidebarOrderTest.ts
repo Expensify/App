@@ -25,7 +25,6 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         POLICY: 'policy_',
-        REPORT_DRAFT_COMMENT: 'reportDraftComment_',
     },
     NETWORK: 'network',
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
@@ -164,6 +163,7 @@ describe('Sidebar', () => {
             // And the currently viewed report is the first report
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
+                hasDraft: true,
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
@@ -190,7 +190,6 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report1.reportID}`]: 'report1 draft',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -456,6 +455,7 @@ describe('Sidebar', () => {
             const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
             const report2: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
+                hasDraft: true,
             };
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
@@ -481,7 +481,6 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + report2.reportID]: 'This is a draft',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -514,6 +513,7 @@ describe('Sidebar', () => {
             // And the report has a draft
             const report: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
+                hasDraft: true,
             };
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -528,7 +528,6 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]: 'This is a draft',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -539,7 +538,7 @@ describe('Sidebar', () => {
                     })
 
                     // When the draft is removed
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null))
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {hasDraft: null}))
 
                     // Then the pencil icon goes away
                     .then(() => {
@@ -600,6 +599,7 @@ describe('Sidebar', () => {
             };
             const report2: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
+                hasDraft: true,
             };
             const report3: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
@@ -643,7 +643,6 @@ describe('Sidebar', () => {
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [ONYXKEYS.SESSION]: {accountID: currentlyLoggedInUserAccountID},
-                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: 'Report2 draft comment',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -735,15 +734,19 @@ describe('Sidebar', () => {
             // and they all have drafts
             const report1: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
+                hasDraft: true,
             };
             const report2: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
+                hasDraft: true,
             };
             const report3: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
+                hasDraft: true,
             };
             const report4: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([7, 8], 0),
+                hasDraft: true,
             };
 
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
@@ -754,12 +757,6 @@ describe('Sidebar', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
             };
 
-            const reportDraftCommentCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report1.reportID}`]: 'report1 draft',
-                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: 'report2 draft',
-                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report3.reportID}`]: 'report3 draft',
-            };
-
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
@@ -768,7 +765,6 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            ...reportDraftCommentCollectionDataSet,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -784,12 +780,7 @@ describe('Sidebar', () => {
                     })
 
                     // When a new report is added
-                    .then(() =>
-                        Promise.all([
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4),
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`, 'report4 draft'),
-                        ]),
-                    )
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4))
 
                     // Then they are still in alphabetical order
                     .then(() => {
