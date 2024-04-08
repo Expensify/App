@@ -1486,12 +1486,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     };
 }
 
-function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>) {
+function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, reportActions: ReportActions = {}, options: PreviewConfig = {}) {
     const accountIDs = report.participantAccountIDs ?? [];
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, {}),
+        ...createOption(accountIDs, personalDetails, report, reportActions, options),
     };
 }
 
