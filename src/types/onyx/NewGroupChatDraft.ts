@@ -4,9 +4,9 @@ type SelectedParticipant = {
 };
 
 type NewGroupChatDraft = {
-    participants?: SelectedParticipant[];
-    reportName?: string;
-    avatarUri?: string;
+    participants?: SelectedParticipant[]|null;
+    reportName?: string|null;
+    avatarUri?: string|null;
 };
 export type {SelectedParticipant};
 export default NewGroupChatDraft;

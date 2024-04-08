@@ -129,7 +129,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 shouldCheckActionAllowedOnPress={false}
                 description={translate('groupConfirmPage.groupName')}
             />
-            <View style={{paddingHorizontal: 2, flex: 1}}>
+            <View style={[styles.ph1, styles.flex1]}>
                 <SelectionList
                     canSelectMultiple
                     sections={[{title: translate('common.members'), data: sections}]}

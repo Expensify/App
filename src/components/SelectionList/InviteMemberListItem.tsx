@@ -91,7 +91,7 @@ function InviteMemberListItem({
                             />
                         ))}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
                                 text={Str.removeSMSDomain(item.text ?? '')}
@@ -106,8 +106,8 @@ function InviteMemberListItem({
                             {item.badgeText && (
                                 <Badge
                                     text={item.badgeText}
-                                    textStyles={[styles.badgeText, styles.textStrong, variables.fontSizeNormal]}
-                                    badgeStyles={[styles.justifyContentCenter, styles.badgeSmall, item.alternateText && styles.mb1]}
+                                    textStyles={[styles.badgeText, styles.textStrong, styles.textNormal]}
+                                    badgeStyles={[styles.justifyContentCenter, styles.badgeSmall, item.alternateText ? styles.mb1 : undefined]}
                                 />
                             )}
                         </View>

@@ -25,7 +25,7 @@ function ChatActionsBar({report}: ChatActionsBarProps) {
                     text={translate('common.leave')}
                 />
             </View>
-            <View style={{flex: 1, paddingHorizontal: 6}}>
+            <View style={[styles.flex1, styles.ph3]}>
                 <Button
                     onPress={() => Report.togglePinnedState(report.reportID, isPinned)}
                     icon={Expensicons.Pin}
