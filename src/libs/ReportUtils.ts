@@ -5481,9 +5481,9 @@ function hasUpdatedTotal(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): 
     const transactions = TransactionUtils.getAllReportTransactions(report.reportID);
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
     const hasTransactionWithDifferentCurrency = transactions.some((transaction) => transaction.currency !== report.currency);
-    const hasDifferentCurrencyWithWorkspace = report.pendingFields?.createChat && isExpenseReport(report) && report.currency !== policy?.outputCurrency;
+    const hasDifferentWorkspaceCurrency = report.pendingFields?.createChat && isExpenseReport(report) && report.currency !== policy?.outputCurrency;
 
-    return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentCurrencyWithWorkspace)) && !(hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined);
+    return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentWorkspaceCurrency)) && !(hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined);
 }
 
 /**
