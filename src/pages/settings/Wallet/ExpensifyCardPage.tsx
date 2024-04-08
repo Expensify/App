@@ -64,8 +64,8 @@ function ExpensifyCardPage({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const domainCards = useMemo(() => cardList && CardUtils.getDomainCards(cardList)[domain], [cardList, domain]);
-    const virtualCard = useMemo(() => domainCards?.find((card) => card.isVirtual), [domainCards]);
-    const physicalCard = useMemo(() => domainCards?.find((card) => !card.isVirtual), [domainCards]);
+    const virtualCard = useMemo(() => domainCards?.find((card) => card.nameValuePairs?.isVirtual), [domainCards]);
+    const physicalCard = useMemo(() => domainCards?.find((card) => !card.nameValuePairs?.isVirtual), [domainCards]);
 
     const [isLoading, setIsLoading] = useState(false);
     const [isNotFound, setIsNotFound] = useState(false);

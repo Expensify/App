@@ -115,7 +115,7 @@ function BaseGetPhysicalCard({
         }
 
         const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
-        const physicalCard = domainCards.find((card) => !card?.isVirtual);
+        const physicalCard = domainCards.find((card) => !card?.nameValuePairs?.isVirtual);
 
         // When there are no cards for the specified domain, user is redirected to the wallet page
         if (domainCards.length === 0) {
@@ -148,7 +148,7 @@ function BaseGetPhysicalCard({
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
             const domainCards = CardUtils.getDomainCards(cardList)[domain];
-            const physicalCard = domainCards.find((card) => !card?.isVirtual);
+            const physicalCard = domainCards.find((card) => !card?.nameValuePairs?.isVirtual);
             const cardID = physicalCard?.cardID ?? 0;
 
             Wallet.requestPhysicalExpensifyCard(cardID, session?.authToken ?? '', updatedPrivatePersonalDetails);

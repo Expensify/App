@@ -127,7 +127,7 @@ function maskCard(lastFour = ''): string {
  * @returns a physical card object (or undefined if none is found)
  */
 function findPhysicalCard(cards: Card[]) {
-    return cards.find((card) => !card.isVirtual);
+    return cards.find((card) => !card.nameValuePairs?.isVirtual);
 }
 
 /**
