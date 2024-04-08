@@ -264,7 +264,7 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
+        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
     });
 
     return getSortedReportActions(filteredReportActions, true);
@@ -338,7 +338,11 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
     if (!Array.isArray(reportActions)) {
         return null;
     }
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+    ];
     const iouRequestActions = reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
 
     if (iouRequestActions.length === 0) {
@@ -784,7 +788,12 @@ function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions>
     }
 
     // Get all IOU report actions for the report.
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.PAY];
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+    ];
     const iouRequestActions = reportActionsArray.filter(
         (action) =>
             action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&

@@ -141,6 +141,7 @@ function ReportActionsView({
         () => ReportActionsUtils.getCombinedReportActions(allReportActions, transactionThreadReportActions),
         [allReportActions, transactionThreadReportActions],
     );
+
     const indexOfLinkedAction = useMemo(() => {
         if (!reportActionID) {
             return -1;
