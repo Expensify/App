@@ -1316,6 +1316,29 @@ export default {
         loginForm: 'Formulario de inicio de sesión',
         notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
     },
+    onboarding: {
+        welcome: '¡Bienvenido!',
+        welcomeVideo: {
+            title: 'Bienvenido a Expensify',
+            description: 'Cobrar es tan fácil como enviar un mensaje.',
+            button: 'Vámonos',
+        },
+        whatsYourName: '¿Cómo te llamas?',
+        purpose: {
+            title: '¿Qué quieres hacer hoy?',
+            error: 'Por favor, haga una selección antes de continuar.',
+            [CONST.ONBOARDING_CHOICES.TRACK]: 'Seguimiento fiscal de los gastos de las empresas',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar los gastos personales',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide cuentas con tus amigos',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Sólo estoy mirando',
+        },
+        error: {
+            requiredFirstName: 'Introduce tu nombre para continuar',
+            requiredLastName: 'Introduce tu apellido para continuar',
+        },
+    },
     personalDetails: {
         error: {
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
@@ -1919,9 +1942,13 @@ export default {
                 subtitle: 'Configura campos personalizados para los gastos.',
             },
             connections: {
-                title: 'Conexión',
+                title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+        },
+        reportFields: {
+            delete: 'Eliminar campos',
+            deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -2106,8 +2133,6 @@ export default {
             disableRates: ({count}: DistanceRateOperationsParams) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,
             enableRate: 'Activar tasa',
             status: 'Estado',
-            enabled: 'Activada',
-            disabled: 'Desactivada',
             unit: 'Unidad',
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
