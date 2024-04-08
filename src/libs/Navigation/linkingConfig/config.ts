@@ -80,6 +80,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.WELCOME_VIDEO.ROOT]: {
+                    path: ROUTES.WELCOME_VIDEO_ROOT,
+                    exact: true,
+                },
+            },
+        },
+        [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
+            path: ROUTES.ONBOARDING_ROOT,
+            initialRouteName: SCREENS.ONBOARDING.PERSONAL_DETAILS,
+            screens: {
+                [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+                    path: ROUTES.ONBOARDING_PERSONAL_DETAILS,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.PURPOSE]: {
+                    path: ROUTES.ONBOARDING_PURPOSE,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
@@ -156,6 +178,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_REFACTOR]: {
+                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_REFACTOR,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
                             path: ROUTES.SETTINGS_PRONOUNS,
                             exact: true,
@@ -210,6 +236,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
                             path: ROUTES.SETTINGS_ADDRESS_COUNTRY.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
+                            path: ROUTES.SETTINGS_ADDRESS_STATE.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
@@ -522,13 +552,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
-                        [SCREENS.MONEY_REQUEST.AMOUNT]: ROUTES.MONEY_REQUEST_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
                         [SCREENS.MONEY_REQUEST.PARTICIPANTS]: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
-                        [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
                         [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
+                        [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: {path: ROUTES.MONEY_REQUEST_STATE_SELECTOR.route, exact: true},
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,

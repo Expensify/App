@@ -198,7 +198,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     return;
                 }
             }
-            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
+            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
 
             result.push({
                 keyForList: String(accountID),
