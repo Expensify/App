@@ -55,7 +55,7 @@ function KYCWall({
     source,
     userWallet,
     walletTerms,
-}: BaseKYCWallProps) {
+}: BaseKYCWallProps): JSX.Element {
     const anchorRef = useRef<HTMLDivElement | View | null>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
@@ -167,7 +167,7 @@ function KYCWall({
         ],
     );
 
-    return children(continueAction, viewRef(anchorRef));
+    return <>children(continueAction, viewRef(anchorRef))</>
 }
 
 KYCWall.displayName = 'BaseKYCWall';
