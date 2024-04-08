@@ -2,6 +2,7 @@ import {useIsFocused as realUseIsFocused, useTheme as realUseTheme} from '@react
 
 // We only want these mocked for storybook, not jest
 const useIsFocused: typeof realUseIsFocused = process.env.NODE_ENV === 'test' ? realUseIsFocused : () => true;
+
 // @ts-expect-error as we're mocking this function
 const useTheme: typeof realUseTheme = process.env.NODE_ENV === 'test' ? realUseTheme : () => ({});
 
