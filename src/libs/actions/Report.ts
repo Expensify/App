@@ -1622,6 +1622,18 @@ function updateReportName(reportID: string, value: string, previousValue: string
     API.write(WRITE_COMMANDS.SET_REPORT_NAME, parameters, {optimisticData, failureData, successData});
 }
 
+function clearReportFieldErrors(reportID: string, reportField: PolicyReportField) {
+    const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        pendingFields: {
+            [fieldKey]: null,
+        },
+        errorFields: {
+            [fieldKey]: null,
+        },
+    });
+}
+
 function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
     const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
     const recentlyUsedValues = allRecentlyUsedReportFields?.[fieldKey] ?? [];
@@ -1700,6 +1712,65 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
     };
 
     API.write(WRITE_COMMANDS.SET_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
+}
+
+function deleteReportField(reportID: string, reportField: PolicyReportField) {
+    const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                fieldList: {
+                    [fieldKey]: null,
+                },
+                pendingFields: {
+                    [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                fieldList: {
+                    [fieldKey]: reportField,
+                },
+                pendingFields: {
+                    [fieldKey]: null,
+                },
+                errorFields: {
+                    [fieldKey]: ErrorUtils.getMicroSecondOnyxError('report.genericUpdateReportFieldFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    [fieldKey]: null,
+                },
+                errorFields: {
+                    [fieldKey]: null,
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        reportID,
+        fieldID: fieldKey,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
 function updateDescription(reportID: string, previousValue: string, newValue: string) {
@@ -3186,6 +3257,8 @@ export {
     clearNewRoomFormError,
     updateReportField,
     updateReportName,
+    deleteReportField,
+    clearReportFieldErrors,
     resolveActionableMentionWhisper,
     updateRoomVisibility,
     setGroupDraft,

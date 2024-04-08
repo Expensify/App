@@ -3,9 +3,7 @@ import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,37 +44,27 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            onEntryTransitionEnd={() => {
-                inputRef.current?.focus();
-            }}
-            testID={EditReportFieldTextPage.displayName}
+        <FormProvider
+            style={[styles.flexGrow1, styles.ph5]}
+            formID={ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM}
+            onSubmit={onSubmit}
+            validate={validate}
+            submitButtonText={translate('common.save')}
+            enabledWhenOffline
         >
-            <HeaderWithBackButton title={fieldName} />
-            <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM}
-                onSubmit={onSubmit}
-                validate={validate}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={fieldKey}
-                        name={fieldKey}
-                        defaultValue={fieldValue}
-                        label={fieldName}
-                        accessibilityLabel={fieldName}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputRef}
-                    />
-                </View>
-            </FormProvider>
-        </ScreenWrapper>
+            <View style={styles.mb4}>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={fieldKey}
+                    name={fieldKey}
+                    defaultValue={fieldValue}
+                    label={fieldName}
+                    accessibilityLabel={fieldName}
+                    role={CONST.ROLE.PRESENTATION}
+                    ref={inputRef}
+                />
+            </View>
+        </FormProvider>
     );
 }
 
