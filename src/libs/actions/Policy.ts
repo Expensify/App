@@ -4384,6 +4384,18 @@ function clearPolicyDistanceRateErrorFields(policyID: string, customUnitID: stri
     });
 }
 
+/**
+ * Takes removes pendingFields and errorFields from a customUnit
+ */
+function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
+    const cleanedCustomUnit = {...customUnit};
+
+    delete cleanedCustomUnit.pendingFields;
+    delete cleanedCustomUnit.errorFields;
+
+    return cleanedCustomUnit;
+}
+
 function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4432,7 +4444,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
 
     const params: SetPolicyDistanceRatesUnitParams = {
         policyID,
-        customUnit: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(removePendingFieldsFromCustomUnit(newCustomUnit)),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT, params, {optimisticData, successData, failureData});
@@ -4486,7 +4498,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
 
     const params: SetPolicyDistanceRatesDefaultCategoryParams = {
         policyID,
-        customUnit: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(removePendingFieldsFromCustomUnit(newCustomUnit)),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
