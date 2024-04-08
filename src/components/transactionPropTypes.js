@@ -14,9 +14,6 @@ export default PropTypes.shape({
     /** The original transaction amount */
     amount: PropTypes.number,
 
-    /** Whether the original input should be shown */
-    shouldShowOriginalAmount: PropTypes.bool,
-
     /** The edited transaction amount */
     modifiedAmount: PropTypes.number,
 
