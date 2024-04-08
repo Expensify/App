@@ -91,7 +91,6 @@ function IOURequestStepScan({
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
-    transaction: {isFromGlobalCreate},
     personalDetails,
     currentUserPersonalDetails,
     skipConfirmation,
@@ -228,7 +227,7 @@ function IOURequestStepScan({
             }
 
             // If the transaction was created from the global create, the person needs to select participants, so take them there.
-            if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE && !report.reportID) {
+            if (transaction.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE && !report.reportID) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
                 return;
             }
@@ -265,7 +264,7 @@ function IOURequestStepScan({
             }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
         },
-        [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo, currentUserPersonalDetails, personalDetails, shouldSkipConfirmation, transaction],
+        [iouType, report, reportID, transactionID, backTo, currentUserPersonalDetails, personalDetails, shouldSkipConfirmation, transaction],
     );
 
     const updateScanAndNavigate = useCallback(
