@@ -5,7 +5,6 @@ import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, NativeModules, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
-import {PdfManager} from 'react-native-pdf';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevice} from 'react-native-vision-camera';
