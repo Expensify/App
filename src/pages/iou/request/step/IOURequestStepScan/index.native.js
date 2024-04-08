@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
-import _ from '@types/underscore';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef, useState} from 'react';
