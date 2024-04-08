@@ -160,7 +160,7 @@ function BaseVideoPlayer({
                         return;
                     }
 
-                    updateVolume(status.isMuted ? 0 : status.volume);
+                    updateVolume(status.isMuted ? 0 : status.volume || 1);
                 });
             }
         },
