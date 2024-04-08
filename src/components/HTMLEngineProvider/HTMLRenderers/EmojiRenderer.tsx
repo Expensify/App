@@ -8,7 +8,7 @@ function EmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const style = 'islarge' in tnode.attributes ? styles.onlyEmojisText : {};
     return (
         <EmojiWithTooltip
-            style={[style, styles.cursorDefault]}
+            style={[style, styles.cursorDefault, styles.emojiDefault]}
             emojiCode={'data' in tnode ? tnode.data : ''}
         />
     );

@@ -280,6 +280,11 @@ const styles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
         },
 
+        emojiDefault: {
+            fontStyle: 'normal',
+            fontWeight: 'normal',
+        },
+
         emojiSuggestionsEmoji: {
             fontSize: variables.fontSizeMedium,
             width: 51,
