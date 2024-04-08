@@ -46,7 +46,7 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(backTo);
     };
     const taxRates = policy?.taxRates;
-    const defaultTaxName = taxRates ? TransactionUtils.getDefaultTaxName(taxRates) : 'default';
+    const defaultTaxName = taxRates ? TransactionUtils.getDefaultTaxName(taxRates) : '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const selectedTaxRate = transaction?.taxRate?.keyForList || defaultTaxName;
 
