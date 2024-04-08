@@ -1294,7 +1294,10 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const optimisticMembersState: OnyxCollection<PolicyMember> = {};
     const failureMembersState: OnyxCollection<PolicyMember> = {};
     accountIDs.forEach((accountID) => {
-        optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        optimisticMembersState[accountID] = {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            role: CONST.POLICY.ROLE.USER,
+        };
         failureMembersState[accountID] = {
             errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
         };
@@ -1321,12 +1324,11 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             // Convert to object with each key clearing pendingAction, when it is an existing account.
             // Remove the object, when it is a newly created account.
             value: accountIDs.reduce((accountIDsWithClearedPendingAction, accountID) => {
-                let value = null;
-                const accountAlreadyExists = !isEmptyObject(allPersonalDetails?.[accountID]);
-
-                if (accountAlreadyExists) {
-                    value = {pendingAction: null, errors: null};
-                }
+                const value = {
+                    ...allPolicyMembers?.[accountID],
+                    pendingAction: null,
+                    errors: null,
+                };
 
                 return {...accountIDsWithClearedPendingAction, [accountID]: value};
             }, {}),
