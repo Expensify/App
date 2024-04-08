@@ -209,9 +209,9 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
-    const saveAmountAndCurrency = ({amount}) => {
+    const saveAmountAndCurrency = ({amount, paymentMethod}) => {
         if (!isEditing) {
-            navigateToNextPage({amount});
+            navigateToNextPage({amount, paymentMethod});
             return;
         }
 

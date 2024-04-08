@@ -130,7 +130,7 @@ function IOURequestStartPage({
             IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [policy, previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction],
+        [policy, previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction.isFromGlobalCreate],
     );
 
     if (!transaction.transactionID) {
