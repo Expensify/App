@@ -122,7 +122,7 @@ type AvatarWithImagePickerProps = {
     disableViewPhoto?: boolean;
 
     /** Optionally override the default "Edit" icon */
-    editIcon: IconAsset;
+    editIcon?: IconAsset;
 };
 
 function AvatarWithImagePicker({

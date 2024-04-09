@@ -34,9 +34,8 @@ type ReportParticipantDetailsOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type ReportParticipantDetailsPageProps = ReportParticipantDetailsOnyxProps &
-    WithReportOrNotFoundProps &
-    StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>;
+type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps &
+    StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS> & ReportParticipantDetailsOnyxProps;
 
 function ReportParticipantDetails({personalDetails, report, route}: ReportParticipantDetailsPageProps) {
     const styles = useThemeStyles();

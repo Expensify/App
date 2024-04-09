@@ -17,7 +17,6 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
-import { NewGroupChatDraft } from '@src/types/onyx';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -324,11 +323,9 @@ type ParticipantsNavigatorParamList = {
     [SCREENS.REPORT_PARTICIPANTS.ROOT]: {reportID: string};
     [SCREENS.REPORT_PARTICIPANTS.INVITE]: {reportID: string};
     [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
-        reportID: string;
         accountID: string;
     };
     [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
-        reportID: string;
         accountID: string;
     };
 };

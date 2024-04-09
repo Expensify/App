@@ -29,7 +29,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const accountID = Number(route.params.accountID) ?? 0;
+    const accountID = Number(route?.params?.accountID) ?? 0;
     const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID ?? '', accountID);
     const member = report.participants?.[accountID];
 

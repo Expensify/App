@@ -71,7 +71,7 @@ function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPagePro
 
         Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
         Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
-    }, []);
+    }, [isUpdatingExistingReport, reportID]);
 
     return (
         <ScreenWrapper

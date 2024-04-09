@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -88,7 +89,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        source: UserUtils.getAvatar(details?.avatar, accountID),
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -191,7 +192,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         setRemoveMembersConfirmModalVisible(false);
     };
 
-    const changeUserRole = (role: string) => {
+    const changeUserRole = (role: ValueOf<typeof CONST.REPORT.ROLE>) => {
         if (!isEmptyObject(errors)) {
             return;
         }
