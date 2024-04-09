@@ -1,10 +1,12 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
@@ -18,11 +20,8 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 
 type ReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
 
-type ListItemType = {
-    value: typeof CONST.REPORT.ROLE.ADMIN | typeof CONST.REPORT.ROLE.MEMBER;
-    text: string;
-    isSelected: boolean;
-    keyForList: typeof CONST.REPORT.ROLE.ADMIN | typeof CONST.REPORT.ROLE.MEMBER;
+type ListItemType = ListItem & {
+    value: ValueOf<typeof CONST.REPORT.ROLE>;
 };
 
 function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRoleSelectionPageProps) {
