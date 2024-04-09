@@ -22,6 +22,7 @@ import withCurrentReportID from '@components/withCurrentReportID';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -158,6 +159,7 @@ function ReportScreen({
     const firstRenderRef = useRef(true);
     const flatListRef = useRef<FlatList>(null);
     const reactionListRef = useRef<ReactionListRef>(null);
+    const {isOffline} = useNetwork();
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -333,7 +335,7 @@ function ReportScreen({
         );
     }
 
-    const transactionThreadReportID = useMemo(() => ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? []), [reportActions]);
+    const transactionThreadReportID = useMemo(() => ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? [], isOffline), [reportActions, isOffline]);
     if (ReportUtils.isMoneyRequestReport(report)) {
         headerView = (
             <MoneyReportHeader

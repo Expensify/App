@@ -216,7 +216,7 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
 /**
  * Returns the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions with a childReportID. Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
-function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions> | ReportAction[]): string | null {
+function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | null {
     const reportActionsArray = Object.values(reportActions ?? {});
 
     if (!reportActionsArray.length) {
@@ -235,7 +235,7 @@ function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions>
             action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
             (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
             action.childReportID &&
-            action.originalMessage.IOUTransactionID,
+            (Boolean(action.originalMessage.IOUTransactionID) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline))),
     );
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
