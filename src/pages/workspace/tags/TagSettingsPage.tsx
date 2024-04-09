@@ -79,7 +79,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
                         testID={TagSettingsPage.displayName}
                     >
                         <HeaderWithBackButton
-                            title={route.params.tagName}
+                            title={PolicyUtils.getCleanedTagName(route.params.tagName)}
                             shouldShowThreeDotsButton
                             shouldSetModalVisibility={false}
                             threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
@@ -121,7 +121,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
                                 </View>
                             </OfflineWithFeedback>
                             <MenuItemWithTopDescription
-                                title={currentPolicyTag.name}
+                                title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
                                 description={translate(`workspace.tags.tagName`)}
                                 onPress={navigateToEditTag}
                                 shouldShowRightIcon
