@@ -37,12 +37,12 @@ type RequestConflictResolver = {
     getConflictingRequests?: (persistedRequests: Request[]) => Request[];
 
     /**
-     * Should the requests provided to getConflictingRequests include the new request?
+     * Should the persisted requests exclude the new request when there is a conflict?
      * This is useful if the new request and an existing request cancel eachother out completely.
      *
      * @example - In DeleteComment, if you're deleting an optimistic comment, you'd want to cancel the optimistic AddComment call AND the DeleteComment call.
      * */
-    shouldIncludeCurrentRequest?: boolean;
+    shouldExcludeNewRequestOnConflict?: boolean;
 
     /**
      * Callback to handle a single conflicting request.

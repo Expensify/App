@@ -18,16 +18,15 @@ function clear() {
 }
 
 function save(requestToPersist: Request) {
-    const requests = [...persistedRequests, requestToPersist];
+    const requests = [...persistedRequests];
+    let hasConflict = false;
 
     // identify and handle any existing requests that conflict with the new one
-    const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = requestToPersist;
+    const {getConflictingRequests, handleConflictingRequest, shouldExcludeNewRequestOnConflict} = requestToPersist;
     if (getConflictingRequests) {
-        // Get all the requests, potentially including the one we're adding, which will always be at the end of the array
-        const potentiallyConflictingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
-
         // Identify conflicting requests according to logic bound to the new request
-        const conflictingRequests = getConflictingRequests(potentiallyConflictingRequests);
+        const conflictingRequests = getConflictingRequests(requests);
+        hasConflict = conflictingRequests.length > 0;
 
         conflictingRequests.forEach((conflictingRequest) => {
             // delete the conflicting request
@@ -41,11 +40,15 @@ function save(requestToPersist: Request) {
         });
     }
 
+    if (!shouldExcludeNewRequestOnConflict || !hasConflict) {
+        requests.push(requestToPersist)
+    }
+
     // Don't try to serialize conflict resolution functions
     persistedRequests = requests.map((request) => {
         delete request.getConflictingRequests;
         delete request.handleConflictingRequest;
-        delete request.shouldIncludeCurrentRequest;
+        delete request.shouldExcludeNewRequestOnConflict;
         return request;
     });
 
