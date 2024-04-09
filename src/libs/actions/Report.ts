@@ -2411,8 +2411,8 @@ function leaveGroupChat(reportID: string) {
             value: null,
         },
     ];
-    API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData});
     navigateToMostRecentReport(reportID, false);
+    API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData});
 }
 
 /** Leave a report by setting the state to submitted and closed */
