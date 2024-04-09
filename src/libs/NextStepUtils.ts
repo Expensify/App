@@ -213,7 +213,7 @@ function buildNextStep(
                         text: ' is waiting for ',
                     },
                     {
-                        text: managerDisplayName,
+                        text: 'you',
                         type: 'strong',
                     },
                     {
@@ -289,7 +289,7 @@ function buildNextStep(
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'you',
+                        text: managerDisplayName,
                         type: 'strong',
                     },
                     {
