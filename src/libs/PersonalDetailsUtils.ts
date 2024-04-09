@@ -124,11 +124,10 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
 }
 
 function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
-    const newAccountIDs = [];
-    const newLogins = [];
+    const newAccountIDs: number[] = [];
+    const newLogins: string[] = [];
     logins.forEach((login, index) => {
         const accountID = accountIDs[index];
-
         if (isEmptyObject(allPersonalDetails?.[accountID])) {
             newAccountIDs.push(accountID);
             newLogins.push(login);

@@ -751,8 +751,8 @@ function isOpenExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 /**
  * Checks if the supplied report has a member with the array passed in params.
  */
-function hasParticipantInArray(report: Report, memberAccountIDs: number[]) {
-    if (!report.participants) {
+function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: number[]) {
+    if (!report?.participants) {
         return false;
     }
 
@@ -1719,7 +1719,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
 
 function getParticipantAccountIDs(reportID: string) {
     const report = getReport(reportID);
-    if (!report) {
+    if (!report || !report.participants) {
         return [];
     }
 
@@ -4873,6 +4873,10 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
 }
 
 function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
+    if (!report?.participants) {
+        return false;
+    }
+
     const reportParticipants = report.participants ?? {};
     const participant = reportParticipants[accountID] ?? {};
     return participant.role === CONST.REPORT.ROLE.ADMIN;

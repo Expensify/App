@@ -107,7 +107,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
 
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, styles, isCurrentUserAdmin]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, styles]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
