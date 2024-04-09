@@ -829,7 +829,13 @@ function MoneyRequestConfirmationList({
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
+                                        CONST.IOU.ACTION.CREATE,
+                                        iouType,
+                                        transaction?.transactionID ?? '',
+                                        reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
                                 )
                             }
                             disabled={didConfirm}
@@ -846,7 +852,13 @@ function MoneyRequestConfirmationList({
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
+                                        CONST.IOU.ACTION.CREATE,
+                                        iouType,
+                                        transaction?.transactionID ?? '',
+                                        reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
                                 )
                             }
                             disabled={didConfirm}

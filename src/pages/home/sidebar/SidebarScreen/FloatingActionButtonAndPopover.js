@@ -15,7 +15,6 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as App from '@userActions/App';
@@ -25,7 +24,6 @@ import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 /**
  * @param {Object} [policy]
@@ -37,6 +35,8 @@ const policySelector = (policy) =>
         role: policy.role,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
+        avatar: policy.avatar,
+        name: policy.name,
     };
 
 const getQuickActionIcon = (action) => {
@@ -153,13 +153,17 @@ function FloatingActionButtonAndPopover(props) {
 
     const quickActionReport = useMemo(() => (props.quickAction ? ReportUtils.getReport(props.quickAction.chatReportID) : 0), [props.quickAction]);
 
+    const quickActionPolicy = props.allPolicies ? props.allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport.policyID}`] : undefined;
+
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
             const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
             return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
         }
         return [];
-    }, [props.personalDetails, props.session.accountID, quickActionReport]);
+        // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.personalDetails, props.session.accountID, quickActionReport, quickActionPolicy]);
 
     const quickActionTitle = useMemo(() => {
         const titleKey = getQuickActionTitle(props.quickAction && props.quickAction.action);
@@ -327,11 +331,6 @@ function FloatingActionButtonAndPopover(props) {
                         icon: Expensicons.Task,
                         text: translate('newTaskPage.assignTask'),
                         onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                    },
-                    {
-                        icon: Expensicons.Heart,
-                        text: translate('sidebarScreen.saveTheWorld'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
                     ...(!props.isLoading && !Policy.hasActiveChatEnabledPolicies(props.allPolicies)
                         ? [
