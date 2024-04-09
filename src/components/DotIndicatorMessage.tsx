@@ -71,7 +71,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                         >
                             <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
                             <TextLink
-                                style={styles.label}
+                                style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
                                 onPress={() => {
                                     fileDownload(message.source, message.filename);
                                 }}
