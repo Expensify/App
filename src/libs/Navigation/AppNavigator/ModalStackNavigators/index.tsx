@@ -332,6 +332,7 @@ export {
     PrivateNotesModalStackNavigator,
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
+    TravelModalStackNavigator,
     WorkspaceSwitcherModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     ReportDetailsModalStackNavigator,

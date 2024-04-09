@@ -40,7 +40,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
             screens: {
                 [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
-
                 [SCREENS.SETTINGS.PROFILE.ROOT]: {
                     path: ROUTES.SETTINGS_PROFILE,
                     exact: true,
