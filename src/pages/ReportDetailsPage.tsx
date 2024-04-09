@@ -212,6 +212,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 Report.updateGroupChatAvatar(report.reportID ?? '');
             }}
             onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
+            editIcon={Expensicons.Camera}
+            editIconStyle={styles.smallEditIconAccount}
         />
     ) : (
         <RoomHeaderAvatars

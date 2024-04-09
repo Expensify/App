@@ -118,8 +118,9 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     onImageRemoved={() => Report.setGroupDraft({avatarUri: null})}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
-                    editIconStyle={styles.smallEditIconAccount}
                     disableViewPhoto
+                    editIcon={Expensicons.Camera}
+                    editIconStyle={styles.smallEditIconAccount}
                 />
             </View>
             <MenuItemWithTopDescription

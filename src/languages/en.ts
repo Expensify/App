@@ -1225,10 +1225,9 @@ export default {
     groupConfirmPage: {
         groupName: 'Group name',
     },
-    groupPage: {
-        people: {
-            groupMembersListTitle: 'Directory of all group members.',
-        },
+    groupChat: {
+        groupMembersListTitle: 'Directory of all group members.',
+        defaultReportName: ({displayName}) => `${displayName}'s group chat`,
     },
     languagePage: {
         language: 'Language',

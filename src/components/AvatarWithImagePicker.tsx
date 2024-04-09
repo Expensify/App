@@ -120,6 +120,9 @@ type AvatarWithImagePickerProps = {
 
     /** Hard disables the "View photo" option */
     disableViewPhoto?: boolean;
+
+    /** Optionally override the default "Edit" icon */
+    editIcon: IconAsset;
 };
 
 function AvatarWithImagePicker({
@@ -148,6 +151,7 @@ function AvatarWithImagePicker({
     onViewPhotoPress,
     enablePreview = false,
     disableViewPhoto = false,
+    editIcon = Expensicons.Pencil,
 }: AvatarWithImagePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -336,7 +340,7 @@ function AvatarWithImagePicker({
                             {!disabled && (
                                 <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                                     <Icon
-                                        src={Expensicons.Pencil}
+                                        src={editIcon}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
                                         fill={theme.icon}

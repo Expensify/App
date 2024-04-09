@@ -227,7 +227,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         if (!ReportUtils.isGroupChat(report)) {
             return;
         }
-        return <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('groupPage.people.groupMembersListTitle')}</Text>;
+        return <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('groupChat.groupMembersListTitle')}</Text>;
     };
 
     const getCustomListHeader = () => {

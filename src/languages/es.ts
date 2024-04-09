@@ -1227,10 +1227,9 @@ export default {
     groupConfirmPage: {
         groupName: 'Nombre del grupo',
     },
-    groupPage: {
-        people: {
-            groupMembersListTitle: 'Directorio de todos los miembros del grupo.'
-        }
+    groupChat: {
+        groupMembersListTitle: 'Directorio de todos los miembros del grupo.',
+        defaultReportName: ({displayName}) => `Chat de group de ${displayName}`,
     },
     languagePage: {
         language: 'Idioma',

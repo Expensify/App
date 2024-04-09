@@ -815,7 +815,7 @@ function openReport(
  * @param userLogins list of user logins to start a chat report with.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, reportName?: string, avatarUri?: string, avatarFile?: File | CustomRNImageManipulatorResult) {
+function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, reportName?: string, avatarUri?: string, avatarFile?: File | CustomRNImageManipulatorResult | undefined) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);

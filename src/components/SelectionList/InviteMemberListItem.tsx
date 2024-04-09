@@ -120,7 +120,7 @@ function InviteMemberListItem({
                         )}
                     </View>
                     {!!item.rightElement && item.rightElement}
-                    {canSelectMultiple && (
+                    {canSelectMultiple && !item.isDisabled && (
                         <PressableWithFeedback
                             onPress={handleCheckboxPress}
                             disabled={isDisabled}

@@ -1735,11 +1735,15 @@ function getGroupChatName(participantAccountIDs: number[] = [], shouldApplyLimit
     }
     const isMultipleParticipantReport = participants.length > 1;
 
-    return participants
+    if (isMultipleParticipantReport) {
+        return participants
         .map((participant) => getDisplayNameForParticipant(participant, isMultipleParticipantReport))
         .sort((first, second) => localeCompare(first ?? '', second ?? ''))
         .filter(Boolean)
         .join(', ');
+    }
+
+    return `${getDisplayNameForParticipant(participants[0], isMultipleParticipantReport)}'s group chat`;
 }
 
 function getVisibleChatMemberAccountIDs(reportID: string): number[] {
