@@ -1951,6 +1951,11 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
                 makeMeAdmin,
+                autoReporting: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                harvesting: {
+                    enabled: true,
+                },
             },
         },
         {
@@ -2009,6 +2014,11 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                autoReporting: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                harvesting: {
+                    enabled: true,
+                },
                 customUnits,
                 areCategoriesEnabled: true,
                 areTagsEnabled: false,
@@ -2497,6 +2507,11 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
         // Setting the currency to USD as we can only add the VBBA for this policy currency right now
         outputCurrency: CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        autoReporting: true,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        harvesting: {
+            enabled: true,
+        },
         customUnits,
         areCategoriesEnabled: true,
         areTagsEnabled: false,

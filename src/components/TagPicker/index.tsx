@@ -1,11 +1,9 @@
 import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -42,12 +40,6 @@ type TagPickerProps = TagPickerOnyxProps & {
     /** Callback to submit the selected tag */
     onSubmit: () => void;
 
-    /**
-     * Safe area insets required for reflecting the portion of the view,
-     * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
-     */
-    insets: EdgeInsets;
-
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
 
@@ -55,9 +47,8 @@ type TagPickerProps = TagPickerOnyxProps & {
     tagListIndex: number;
 };
 
-function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, insets, onSubmit}: TagPickerProps) {
+function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, onSubmit}: TagPickerProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -103,14 +94,12 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
     return (
         <SelectionList
             ListItem={RadioListItem}
-            containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
             sectionTitleStyles={styles.mt5}
             sections={sections}
             textInputValue={searchValue}
             headerMessage={headerMessage}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             isRowMultilineSupported
-            // Focus the selected option on first load
             initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}

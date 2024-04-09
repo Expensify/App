@@ -124,7 +124,6 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
             .map((policy) => ({
                 text: policy?.name,
                 policyID: policy?.id,
-                isSelected: policy?.id === activeWorkspaceID,
                 brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                 icons: [
                     {
@@ -137,6 +136,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 boldStyle: hasUnreadData(policy?.id),
                 keyForList: policy?.id,
                 isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
+                isSelected: policy?.id === activeWorkspaceID,
             }));
     }, [policies, getIndicatorTypeForPolicy, hasUnreadData, isOffline, activeWorkspaceID]);
 
