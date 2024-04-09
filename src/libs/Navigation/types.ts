@@ -631,6 +631,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_ADVANCED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR]: {
+        policyID: string;
+    };
 };
 
 type FullScreenNavigatorParamList = {
