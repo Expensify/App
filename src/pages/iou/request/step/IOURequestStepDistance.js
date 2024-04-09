@@ -187,7 +187,7 @@ function IOURequestStepDistance({
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
+        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
@@ -198,11 +198,11 @@ function IOURequestStepDistance({
             const oldAddresses = _.mapObject(oldWaypoints, (waypoint) => _.pick(waypoint, 'address'));
             const addresses = _.mapObject(waypoints, (waypoint) => _.pick(waypoint, 'address'));
             if (_.isEqual(oldAddresses, addresses)) {
-                Navigation.dismissModal(report.reportID);
+                Navigation.dismissModal();
                 return;
             }
             IOU.updateMoneyRequestDistance(transaction.transactionID, report.reportID, waypoints);
-            Navigation.dismissModal(report.reportID);
+            Navigation.dismissModal();
             return;
         }
 

@@ -39,7 +39,7 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the a tax rate. */
     name: string;
 
-    /** The value of the tax rate as percentage. */
+    /** The value of the tax rate. */
     value: string;
 
     /** The code associated with the tax rate. If a tax is created in old dot, code field is undefined */
@@ -194,6 +194,7 @@ type ACHAccount = {
     routingNumber: string;
     addressName: string;
     bankName: string;
+    reimburser: string;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -320,9 +321,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled: boolean;
         };
 
-        /** @deprecated Whether the scheduled submit is enabled */
-        isPreventSelfApprovalEnabled?: boolean;
-
         /** Whether the self approval or submitting is enabled */
         preventSelfApproval?: boolean;
 
@@ -395,12 +393,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
-        /** Email of the reimburser when reimbursement is set direct */
-        reimburserEmail?: string;
-
-        /** AccountID of the reimburser when reimbursement is set direct */
-        reimburserAccountID?: number;
-
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
@@ -418,6 +410,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Tags feature is enabled */
         areTagsEnabled?: boolean;
+
+        /** Whether the Accounting feature is enabled */
+        areAccountingEnabled?: boolean;
 
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
@@ -443,8 +438,16 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom'
+    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
+
+type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
+type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+type PolicyConnectionSyncProgress = {
+    status: ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STATUS>;
+    stageInProgress: PolicyConnectionSyncStage;
+    connectionName: PolicyConnectionName;
+};
 
 export default Policy;
 
@@ -458,7 +461,9 @@ export type {
     TaxRate,
     TaxRates,
     TaxRatesWithDefault,
-    PolicyFeatureName,
     IntegrationEntityMap,
+    PolicyFeatureName,
     PendingJoinRequestPolicy,
+    PolicyConnectionSyncStage,
+    PolicyConnectionSyncProgress,
 };

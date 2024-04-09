@@ -9,6 +9,7 @@ import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import toggleProfileTool from '@libs/actions/ProfilingTool';
 import getPlatform from '@libs/getPlatform';
@@ -44,6 +45,7 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
     const [sharePath, setSharePath] = useState('');
     const [totalMemory, setTotalMemory] = useState(0);
     const [usedMemory, setUsedMemory] = useState(0);
+    const {translate} = useLocalize();
 
     // eslint-disable-next-line @lwc/lwc/no-async-await
     const stop = useCallback(async () => {
@@ -142,29 +144,24 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
 
     return (
         <>
-            <Text
-                style={[styles.textLabelSupporting, styles.mt4, styles.mb3]}
-                numberOfLines={1}
-            >
-                Release options
-            </Text>
-
-            <TestToolRow title="Use Profiling">
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.useProfiling')}>
                 <Switch
-                    accessibilityLabel="Use Profiling"
+                    accessibilityLabel={translate('initialSettingsPage.troubleshoot.useProfiling')}
                     isOn={!!isProfilingInProgress}
                     onToggle={onToggleProfiling}
                 />
             </TestToolRow>
-            <Text style={[styles.textLabelSupporting, styles.mb4]}>{!!pathIOS && `path: ${pathIOS}`}</Text>
             {!!pathIOS && (
-                <TestToolRow title="Profile trace">
-                    <Button
-                        small
-                        text="Share"
-                        onPress={onDownloadProfiling}
-                    />
-                </TestToolRow>
+                <>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${pathIOS}`}</Text>
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
+                        <Button
+                            small
+                            text={translate('common.share')}
+                            onPress={onDownloadProfiling}
+                        />
+                    </TestToolRow>
+                </>
             )}
         </>
     );
