@@ -33,6 +33,7 @@ type DisplayNamePageProps = DisplayNamePageOnyxProps & WithCurrentUserPersonalDe
  */
 const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
     PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
+    Navigation.goBack();
 };
 
 function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: DisplayNamePageProps) {
