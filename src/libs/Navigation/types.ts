@@ -435,6 +435,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         reportID: string;
         iouRequestType: IOURequestType;
+        transactionID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;

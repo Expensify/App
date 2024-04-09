@@ -187,7 +187,6 @@ function IOURequestStepAmount({
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
 export default compose(
-    withFullTransactionOrNotFound,
     withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
         splitDraftTransaction: {
             key: ({route}) => {
@@ -202,4 +201,5 @@ export default compose(
             },
         },
     }),
+    withFullTransactionOrNotFound,
 )(IOURequestStepAmount);

@@ -32,8 +32,8 @@ import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
-type IOURequestStartPageOnyxProps = 
-    /** The report that holds the transaction */{
+type IOURequestStartPageOnyxProps = {
+    /** The report that holds the transaction */
     report: OnyxEntry<Report>;
 
     /** The policy tied to the report */
@@ -149,7 +149,6 @@ function IOURequestStartPage({
                             {iouType !== CONST.IOU.TYPE.SEND ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
-                                    selectedTab={selectedTab ?? CONST.IOU.REQUEST_TYPE.SCAN}
                                     onTabSelected={resetIOUTypeIfChanged}
                                     tabBar={TabSelector}
                                 >

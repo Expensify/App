@@ -292,7 +292,6 @@ function IOURequestStepDistance({
 IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 
 export default compose(
-    withFullTransactionOrNotFound,
     withOnyx<IOURequestStepDistanceProps, IOURequestStepDistanceOnyxProps>({
         transactionBackup: {
             key: ({route}) => {
@@ -301,4 +300,5 @@ export default compose(
             },
         },
     }),
+    withFullTransactionOrNotFound,
 )(IOURequestStepDistance);
