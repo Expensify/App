@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -18,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -59,7 +59,7 @@ function IOURequestStepAmount({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
-    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
     const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
 
     useFocusEffect(
@@ -79,7 +79,7 @@ function IOURequestStepAmount({
             // A temporary solution to not prevent users from editing the currency
             // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
             // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
-            TransactionEdit.createBackupTransaction(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
+            TransactionEdit.createBackupTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
             return () => {
                 if (isSaveButtonPressed.current) {
