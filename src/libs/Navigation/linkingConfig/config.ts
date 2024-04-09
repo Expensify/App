@@ -61,6 +61,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
+                [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
             },
         },
         [SCREENS.NOT_FOUND]: '*',
@@ -484,7 +485,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
                     screens: {
-                        [SCREENS.SAVE_THE_WORLD.ROOT]: ROUTES.TEACHERS_UNITE,
                         [SCREENS.I_KNOW_A_TEACHER]: ROUTES.I_KNOW_A_TEACHER,
                         [SCREENS.INTRO_SCHOOL_PRINCIPAL]: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                         [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,

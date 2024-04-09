@@ -2998,6 +2998,7 @@ function startSplitBill(
     comment: string,
     category: string,
     tag: string,
+    currency: string,
     receipt: Receipt,
     existingSplitChatReportID = '',
     billable = false,
@@ -3013,7 +3014,7 @@ function startSplitBill(
     // ReportID is -2 (aka "deleted") on the group transaction
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(
         0,
-        CONST.CURRENCY.USD,
+        currency,
         CONST.REPORT.SPLIT_REPORTID,
         comment,
         '',
@@ -3259,6 +3260,7 @@ function startSplitBill(
         comment,
         category,
         tag,
+        currency,
         isFromGroupDM: !existingSplitChatReport,
         billable,
         ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),

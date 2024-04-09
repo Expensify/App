@@ -29,6 +29,7 @@ const SCREENS = {
         WORKSPACES: 'Settings_Workspaces',
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
+        SAVE_THE_WORLD: 'Settings_TeachersUnite',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',

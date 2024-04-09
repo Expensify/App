@@ -181,6 +181,8 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
     },
 
+    SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
+
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
     NEW: 'new',
@@ -324,14 +326,14 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/amount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAX_RATE: {
-        route: 'create/:iouType/taxRate/:transactionID/:reportID?',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
-            getUrlWithBackToParam(`create/${iouType}/taxRate/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/taxRate/:transactionID/:reportID?',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/taxRate/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAX_AMOUNT: {
-        route: 'create/:iouType/taxAmount/:transactionID/:reportID?',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
-            getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/taxAmount/:transactionID/:reportID?',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CATEGORY: {
         route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
@@ -439,10 +441,10 @@ const ROUTES = {
     ONBOARD_MANAGE_EXPENSES: 'onboard/manage-expenses',
     ONBOARD_EXPENSIFY_CLASSIC: 'onboard/expensify-classic',
 
-    TEACHERS_UNITE: 'teachersunite',
-    I_KNOW_A_TEACHER: 'teachersunite/i-know-a-teacher',
-    I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
-    INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
+    TEACHERS_UNITE: 'settings/teachersunite',
+    I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
+    I_AM_A_TEACHER: 'settings/teachersunite/i-am-a-teacher',
+    INTRO_SCHOOL_PRINCIPAL: 'settings/teachersunite/intro-school-principal',
 
     ERECEIPT: {
         route: 'eReceipt/:transactionID',
