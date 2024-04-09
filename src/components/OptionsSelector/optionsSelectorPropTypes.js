@@ -14,9 +14,6 @@ const propTypes = {
             /** Title of the section */
             title: PropTypes.string,
 
-            /** The initial index of this section given the total number of options in each section's data array */
-            indexOffset: PropTypes.number,
-
             /** Array of options */
             data: PropTypes.arrayOf(optionPropTypes),
 

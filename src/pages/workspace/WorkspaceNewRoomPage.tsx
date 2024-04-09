@@ -16,6 +16,7 @@ import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -69,6 +70,9 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     const wasLoading = usePrevious<boolean>(!!formState?.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
     const {isLoading = false, errorFields = {}} = formState ?? {};
+    const {activeWorkspaceID} = useActiveWorkspace();
+
+    const activeWorkspaceOrDefaultID = activeWorkspaceID ?? activePolicyID;
 
     const workspaceOptions = useMemo(
         () =>
@@ -82,8 +86,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
         [policies],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
-        if (!!activePolicyID && workspaceOptions.some((option) => option.value === activePolicyID)) {
-            return activePolicyID;
+        if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((option) => option.value === activeWorkspaceOrDefaultID)) {
+            return activeWorkspaceOrDefaultID;
         }
         return '';
     });
@@ -132,12 +136,12 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             }
             return;
         }
-        if (!!activePolicyID && workspaceOptions.some((opt) => opt.value === activePolicyID)) {
-            setPolicyID(activePolicyID);
+        if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((opt) => opt.value === activeWorkspaceOrDefaultID)) {
+            setPolicyID(activeWorkspaceOrDefaultID);
         } else {
             setPolicyID('');
         }
-    }, [activePolicyID, policyID, workspaceOptions]);
+    }, [activeWorkspaceOrDefaultID, policyID, workspaceOptions]);
 
     useEffect(() => {
         if (!(((wasLoading && !isLoading) || (isOffline && isLoading)) && isEmptyObject(errorFields))) {
@@ -282,6 +286,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
                                     containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                    shouldInterceptSwipe
                                 />
                             </View>
                             <View style={[styles.mhn5]}>
