@@ -2571,8 +2571,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
-    const participants = {};
-    const memberRoles = {};
+    const participants: Participants = {};
+    const memberRoles: Record<number, string> = {};
     accountIDList.forEach((accountID) => {
         memberRoles[accountID] = role;
         participants[accountID] = {role};
@@ -2592,14 +2592,14 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
 }
 
 function removeFromGroupChat(reportID: string, accountIDList: number[]) {
-    const removeParticipantsData = {};
+    const removeParticipantsData: Record<number, null> = {};
     const currentParticipants = ReportUtils.getParticipants(reportID);
     const participantAccountIDs = [];
     const visibleChatMemberAccountIDs = [];
     for (const accountIDKey in currentParticipants) {
         if (Object.hasOwn(currentParticipants, accountIDKey)) {
-            const participant = currentParticipants[accountIDKey];
-            const participantAccountID = parseInt(accountIDKey, 10);
+            const participantAccountID = Number(accountIDKey);
+            const participant = currentParticipants[participantAccountID];
             if (!accountIDList.includes(participantAccountID)) {
                 participantAccountIDs.push(participantAccountID);
                 if (!participant.hidden) {

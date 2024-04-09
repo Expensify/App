@@ -24,7 +24,7 @@ type PendingChatMember = {
 };
 
 type Participant = {
-    hidden: boolean;
+    hidden?: boolean;
     role?: 'admin' | 'member';
 };
 
