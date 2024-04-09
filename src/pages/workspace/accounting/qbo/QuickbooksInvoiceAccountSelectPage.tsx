@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 
-function QuickbooksExportInvoicesPage({policy}: WithPolicyProps) {
+function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // const policyID = policy?.id ?? '';
@@ -37,7 +37,7 @@ function QuickbooksExportInvoicesPage({policy}: WithPolicyProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={QuickbooksExportInvoicesPage.displayName}
+            testID={QuickbooksInvoiceAccountSelectPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.exportInvoices')} />
             <ScrollView contentContainerStyle={styles.pb2}>
@@ -53,6 +53,6 @@ function QuickbooksExportInvoicesPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksExportInvoicesPage.displayName = 'QuickbooksExportInvoicesPage';
+QuickbooksInvoiceAccountSelectPage.displayName = 'QuickbooksInvoiceAccountSelectPage';
 
-export default withPolicy(QuickbooksExportInvoicesPage);
+export default withPolicy(QuickbooksInvoiceAccountSelectPage);

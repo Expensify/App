@@ -15,7 +15,7 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function QuickbooksExportPage({policy}: WithPolicyProps) {
+function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
@@ -31,25 +31,25 @@ function QuickbooksExportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.qbo.date'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncClasses),
             title: 'Date of last expense',
         },
         {
             description: translate('workspace.qbo.exportExpenses'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncCustomers),
             title: 'Vendor bill',
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICES.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncLocations),
             title: 'Accounts Receivable (A/R)',
         },
         {
             description: translate('workspace.qbo.exportCompany'),
-            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARDS.getRoute(policyID)),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncTaxes),
             title: 'Debit card',
         },
@@ -66,7 +66,7 @@ function QuickbooksExportPage({policy}: WithPolicyProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={QuickbooksExportPage.displayName}
+            testID={QuickbooksExportConfigurationPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.export')} />
             <ScrollView contentContainerStyle={styles.pb2}>
@@ -101,6 +101,6 @@ function QuickbooksExportPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksExportPage.displayName = 'QuickbooksExportPage';
+QuickbooksExportConfigurationPage.displayName = 'QuickbooksExportConfigurationPage';
 
-export default withPolicy(QuickbooksExportPage);
+export default withPolicy(QuickbooksExportConfigurationPage);

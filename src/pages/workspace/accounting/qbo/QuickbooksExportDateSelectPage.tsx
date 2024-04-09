@@ -12,7 +12,7 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 
-function QuickbooksExportDatePage({policy}: WithPolicyProps) {
+function QuickbooksExportDateSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // const policyID = policy?.id ?? '';
@@ -40,7 +40,7 @@ function QuickbooksExportDatePage({policy}: WithPolicyProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={QuickbooksExportDatePage.displayName}
+            testID={QuickbooksExportDateSelectPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.exportDate')} />
             <ScrollView contentContainerStyle={styles.pb2}>
@@ -56,6 +56,6 @@ function QuickbooksExportDatePage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksExportDatePage.displayName = 'QuickbooksExportDatePage';
+QuickbooksExportDateSelectPage.displayName = 'QuickbooksExportDateSelectPage';
 
-export default withPolicy(QuickbooksExportDatePage);
+export default withPolicy(QuickbooksExportDateSelectPage);

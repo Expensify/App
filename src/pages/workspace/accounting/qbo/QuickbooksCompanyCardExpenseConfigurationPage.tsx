@@ -12,29 +12,27 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ROUTES from '@src/ROUTES';
 
-function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
+function QuickbooksCompanyCardExpenseConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const policyOwner = policy?.owner ?? '';
-    const {exporter} = policy?.connections?.quickbooksOnline?.config?.export ?? {};
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={QuickBooksExportPreferredExporterPage.displayName}
+            testID={QuickbooksCompanyCardExpenseConfigurationPage.displayName}
         >
-            <HeaderWithBackButton title={translate('workspace.qbo.preferredExporter')} />
+            <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
             <ScrollView contentContainerStyle={styles.pb2}>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterNote')}</Text>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterSubNote')}</Text>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>
                 <OfflineWithFeedback>
                     <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={exporter ?? policyOwner}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER_LIST.getRoute(policyID))}
+                        title="Debit Card"
+                        description={translate('workspace.qbo.exportAs')}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
                         brickRoadIndicator={undefined}
+                        shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
             </ScrollView>
@@ -42,6 +40,6 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickBooksExportPreferredExporterPage.displayName = 'QuickBooksExportPreferredExporterPage';
+QuickbooksCompanyCardExpenseConfigurationPage.displayName = 'QuickbooksCompanyCardExpenseConfigurationPage';
 
-export default withPolicy(QuickBooksExportPreferredExporterPage);
+export default withPolicy(QuickbooksCompanyCardExpenseConfigurationPage);

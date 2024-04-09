@@ -15,7 +15,7 @@ const CARDS = {
     VENDOR_BILL: 'vendor_bill',
 };
 
-function QuickbooksExportCompanyCardPage({policy}: WithPolicyProps) {
+function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {nonReimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
@@ -49,7 +49,7 @@ function QuickbooksExportCompanyCardPage({policy}: WithPolicyProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={QuickbooksExportCompanyCardPage.displayName}
+            testID={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
             <ScrollView contentContainerStyle={styles.pb2}>
@@ -64,6 +64,6 @@ function QuickbooksExportCompanyCardPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksExportCompanyCardPage.displayName = 'QuickbooksExportCompanyCardPage';
+QuickbooksCompanyCardExpenseAccountSelectPage.displayName = 'QuickbooksCompanyCardExpenseAccountSelectPage';
 
-export default withPolicy(QuickbooksExportCompanyCardPage);
+export default withPolicy(QuickbooksCompanyCardExpenseAccountSelectPage);

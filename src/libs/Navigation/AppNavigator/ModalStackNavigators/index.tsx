@@ -251,15 +251,20 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAXES_SETTINGS_CUSTOM_TAX_NAME]: () => require('../../../../pages/workspace/taxes/WorkspaceTaxesSettingsCustomTaxName').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT]: () => require('../../../../pages/workspace/taxes/WorkspaceTaxesSettingsForeignCurrency').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT]: () => require('../../../../pages/workspace/taxes/WorkspaceTaxesSettingsWorkspaceCurrency').default as React.ComponentType,
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_DATE]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportDatePage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_INVOICES]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportInvoicesPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARDS]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportCompanyCardsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARD]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportCompanyCardPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksExportDateSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/QuickbooksInvoiceAccountSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: () =>
+        require('../../../../pages/workspace/accounting/qbo/QuickbooksOutOfPocketExpenseConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARD_EXPENSE]: () =>
+        require('../../../../pages/workspace/accounting/qbo/QuickbooksCompanyCardExpenseConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/QuickbooksCompanyCardExpenseAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: () =>
-        require('../../../../pages/workspace/accounting/qbo/QuickBooksExportPreferredExporter').default as React.ComponentType,
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER_LIST]: () =>
-        require('../../../../pages/workspace/accounting/qbo/QuickBooksExportPreferredExporterList').default as React.ComponentType,
+        require('../../../../pages/workspace/accounting/qbo/QuickbooksPreferredExporterConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/QuickbooksPreferredExporterSelectPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,
