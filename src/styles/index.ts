@@ -2892,8 +2892,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         toggleSwitchLockIcon: {
-            width: 12,
-            height: 12,
+            width: variables.iconSizeExtraSmall,
+            height: variables.iconSizeExtraSmall,
         },
 
         checkedContainer: {
