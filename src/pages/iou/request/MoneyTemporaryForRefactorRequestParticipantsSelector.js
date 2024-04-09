@@ -100,10 +100,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
-    useEffect(() => {
-        Report.searchInServer(debouncedSearchTerm.trim());
-    }, [debouncedSearchTerm]);
-
     /**
      * Returns the sections needed for the OptionsSelector
      *
@@ -356,6 +352,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         },
         [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
+
+    useEffect(() => {
+        Report.searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>

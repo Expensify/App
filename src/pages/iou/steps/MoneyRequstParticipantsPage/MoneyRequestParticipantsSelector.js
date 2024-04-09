@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -13,13 +13,14 @@ import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
-import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -58,6 +59,9 @@ const propTypes = {
 
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
+
+    /** Whether or not we are searching for reports on the server */
+    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -66,6 +70,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
     betas: [],
     isDistanceRequest: false,
+    isSearchingForReports: false,
 };
 
 function MoneyRequestParticipantsSelector({
@@ -78,10 +83,11 @@ function MoneyRequestParticipantsSelector({
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
+    isSearchingForReports,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -89,7 +95,6 @@ function MoneyRequestParticipantsSelector({
     const {options, areOptionsInitialized} = useOptionsList();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
@@ -98,7 +103,7 @@ function MoneyRequestParticipantsSelector({
             options.reports,
             options.personalDetails,
             betas,
-            searchTerm,
+            debouncedSearchTerm,
             participants,
             CONST.EXPENSIFY_EMAILS,
 
@@ -123,7 +128,7 @@ function MoneyRequestParticipantsSelector({
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         };
-    }, [options.reports, options.personalDetails, betas, searchTerm, participants, iouType, canUseP2PDistanceRequests, isDistanceRequest]);
+    }, [options.reports, options.personalDetails, betas, debouncedSearchTerm, participants, iouType, canUseP2PDistanceRequests, isDistanceRequest]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -134,7 +139,7 @@ function MoneyRequestParticipantsSelector({
         const newSections = [];
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            searchTerm,
+            debouncedSearchTerm,
             participants,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
@@ -172,7 +177,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions.personalDetails, newChatOptions.recentReports, newChatOptions.userToInvite, participants, personalDetails, searchTerm, translate]);
+    }, [maxParticipantsReached, newChatOptions.personalDetails, newChatOptions.recentReports, newChatOptions.userToInvite, participants, personalDetails, debouncedSearchTerm, translate]);
 
     /**
      * Adds a single participant to the request
@@ -247,11 +252,11 @@ function MoneyRequestParticipantsSelector({
             OptionsListUtils.getHeaderMessage(
                 _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
-                searchTerm.trim(),
+                debouncedSearchTerm.trim(),
                 maxParticipantsReached,
-                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions, participants, searchTerm],
+        [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
 
     // Right now you can't split a request with a workspace and other additional participants
@@ -342,6 +347,10 @@ function MoneyRequestParticipantsSelector({
         [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
 
+    useEffect(() => {
+        Report.searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
+
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <SelectionList
@@ -351,13 +360,14 @@ function MoneyRequestParticipantsSelector({
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
-                onChangeText={setSearchTermAndSearchInServer}
+                onChangeText={setSearchTerm}
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
                 showLoadingPlaceholder={!areOptionsInitialized}
                 rightHandSideComponent={itemRightSideComponent}
+                isLoadingNewOptions={!!isSearchingForReports}
             />
         </View>
     );
@@ -373,5 +383,9 @@ export default withOnyx({
     },
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
     },
 })(MoneyRequestParticipantsSelector);
