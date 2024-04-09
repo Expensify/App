@@ -1954,14 +1954,21 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 /**
  * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
  */
-function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>, report: OnyxEntry<Report> | EmptyObject): string {
+function getReimbursementDeQueuedActionMessage(
+    reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>,
+    report: OnyxEntry<Report> | EmptyObject,
+    isLHNPreview = false,
+): string {
     const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
-        const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false) : getDisplayNameForParticipant(report?.managerID) ?? '';
-        return Localize.translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
+        let payerOrApproverName = report?.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant(report?.managerID, true);
+        if (!isLHNPreview) {
+            payerOrApproverName = '';
+        }
+        payerOrApproverName = payerOrApproverName ? `${payerOrApproverName}:` : payerOrApproverName;
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount: formattedAmount});
