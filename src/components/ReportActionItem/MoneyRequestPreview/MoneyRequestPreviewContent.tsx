@@ -97,7 +97,10 @@ function MoneyRequestPreviewContent({
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowRBR =
-        hasViolations || hasFieldErrors || (!(isSettled && !isSettlementOrApprovalPartial) && !(ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial) && isOnHold);
+        hasNoteTypeViolations ||
+        hasViolations ||
+        hasFieldErrors ||
+        (!(isSettled && !isSettlementOrApprovalPartial) && !(ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial) && isOnHold);
 
     /*
      Show the merchant for IOUs and expenses only if:
