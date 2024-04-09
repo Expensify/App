@@ -17,6 +17,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
+import NotFoundPage from './ErrorPage/NotFoundPage';
 
 type ReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
 
@@ -31,6 +32,10 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     const accountID = Number(route?.params?.accountID) ?? 0;
     const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID ?? '', accountID);
     const member = report.participants?.[accountID];
+
+    if (!member) {
+        return <NotFoundPage />;
+    }
 
     const items: ListItemType[] = [
         {
@@ -48,10 +53,6 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     ];
 
     const changeRole = ({value}: ListItemType) => {
-        if (!member) {
-            return;
-        }
-
         Report.updateGroupChatMemberRoles(report.reportID, [accountID], value);
         Navigation.goBack(backTo);
     };
