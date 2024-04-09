@@ -314,6 +314,7 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.category,
                     transaction.tag,
+                    transaction.currency,
                     receiptFile,
                     report.reportID,
                     transaction.billable,
