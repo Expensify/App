@@ -8,6 +8,7 @@ function Modal({useNativeDriver = true, ...rest}: BaseModalProps) {
     return (
         <BaseModal
             useNativeDriver={useNativeDriver}
+            useNativeDriverForBackdrop={false}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >

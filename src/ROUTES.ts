@@ -553,6 +553,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/members` as const,
     },
+    WORKSPACE_ACCOUNTING: {
+        route: 'settings/workspaces/:policyID/accounting',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
+    },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories` as const,
@@ -648,15 +652,15 @@ const ROUTES = {
     },
     WORKSPACE_TAX_EDIT: {
         route: 'settings/workspaces/:policyID/tax/:taxID',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURI(taxID)}` as const,
+        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}` as const,
     },
     WORKSPACE_TAX_NAME: {
         route: 'settings/workspaces/:policyID/tax/:taxID/name',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURI(taxID)}/name` as const,
+        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/name` as const,
     },
     WORKSPACE_TAX_VALUE: {
         route: 'settings/workspaces/:policyID/tax/:taxID/value',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURI(taxID)}/value` as const,
+        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/value` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',

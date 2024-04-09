@@ -278,7 +278,7 @@ function getPathWithoutPolicyID(path: string) {
     return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
 
-function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Policy>, currentPolicyID?: string, currentUserAccountID?: number) {
+function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID}`] ?? null;
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
     return Object.values(policyMemberEmailsToAccountIDs)
