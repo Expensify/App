@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import * as Expensicons from '@components/Icon';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */

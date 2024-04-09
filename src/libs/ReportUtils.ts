@@ -1716,10 +1716,20 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     return shouldUseShortForm ? shortName : longName;
 }
 
+function getParticipantAccountIDs(reportID: string) {
+    const report = getReport(reportID);
+    if (!report) {
+        return [];
+    }
+
+    const accountIDStrings = Object.keys(report.participants);
+    return accountIDStrings.map((accountID) => Number(accountID));
+}
+
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participantAccountIDs: number[] = [], shouldApplyLimit = false, reportID = ''): string | undefined {
+function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = false, reportID = ''): string | undefined {
     // If we have a reportID always try to get the name from the report.
     if (reportID) {
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
@@ -1729,7 +1739,8 @@ function getGroupChatName(participantAccountIDs: number[] = [], shouldApplyLimit
         }
     }
 
-    let participants = participantAccountIDs;
+    // Get participantAccountIDs from participants object
+    let participants = participantAccountIDs ?? getParticipantAccountIDs(reportID);
     if (shouldApplyLimit) {
         participants = participants.slice(0, 5);
     }
@@ -1743,7 +1754,7 @@ function getGroupChatName(participantAccountIDs: number[] = [], shouldApplyLimit
         .join(', ');
     }
 
-    return `${getDisplayNameForParticipant(participants[0], isMultipleParticipantReport)}'s group chat`;
+    return Localize.translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant(participants[0], false)});
 }
 
 function getVisibleChatMemberAccountIDs(reportID: string): number[] {
@@ -1758,16 +1769,6 @@ function getVisibleChatMemberAccountIDs(reportID: string): number[] {
         return accountIDs;
     }, []);
     return visibleParticipantAccountIDs;
-}
-
-function getParticipantAccountIDs(reportID: string) {
-    const report = getReport(reportID);
-    if (!report) {
-        return [];
-    }
-
-    const accountIDStrings = Object.keys(report.participants);
-    return accountIDStrings.map((accountID) => Number(accountID));
 }
 
 function getParticipants(reportID: string) {
@@ -1910,7 +1911,7 @@ function getIcons(
             source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
             id: -1,
             type: CONST.ICON_TYPE_AVATAR,
-            name: getGroupChatName(report.participantAccountIDs ?? [], true, report.reportID ?? ''),
+            name: getGroupChatName(undefined, true, report.reportID ?? ''),
         };
         return [groupChatIcon];
     }

@@ -38,7 +38,7 @@ function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
     // We will try to get the chatName from the report or draft depending on what flow we are in
     const participantAccountIDs = useMemo(() => {
         if (reportID) {
-            return ReportUtils.getVisibleChatMemberAccountIDs(reportID);
+            return ReportUtils.getParticipantAccountIDs(reportID);
         }
 
         return groupChatDraft?.participants.map((participant) => participant.accountID);

@@ -108,7 +108,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
 
-    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], false, optionItem.reportID ?? '') : optionItem.text;
+    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, optionItem.reportID ?? '') : optionItem.text;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     return (
         <OfflineWithFeedback

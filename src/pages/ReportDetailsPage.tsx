@@ -222,8 +222,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     );
 
-    const participantAccountIDs = ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
-    const reportName = isGroupChat ? ReportUtils.getGroupChatName(participantAccountIDs, true, report.reportID ?? '') : ReportUtils.getReportName(report);
+    const reportName = isGroupChat ? ReportUtils.getGroupChatName(undefined, true, report.reportID ?? '') : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>

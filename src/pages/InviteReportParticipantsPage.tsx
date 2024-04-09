@@ -144,8 +144,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     const reportID = report.reportID;
     const backRoute = useMemo(() => ROUTES.REPORT_PARTICIPANTS.getRoute(reportID), [reportID]);
-    const existingParticipantAccountIDs = ReportUtils.getVisibleChatMemberAccountIDs(report?.reportID ?? '');
-    const reportName = useMemo(() => ReportUtils.getGroupChatName(existingParticipantAccountIDs, true, report?.reportID ?? ''), [report]);
+    const reportName = useMemo(() => ReportUtils.getGroupChatName(undefined, true, report?.reportID ?? ''), [report]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;

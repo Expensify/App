@@ -50,7 +50,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
     const reportName =
         ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
-            ? ReportUtils.getGroupChatName(report.participantAccountIDs ?? [], false, report.reportID ?? '')
+            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
             : ReportUtils.getReportName(report);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
