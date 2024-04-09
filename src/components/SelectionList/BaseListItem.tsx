@@ -49,7 +49,7 @@ function BaseListItem<TItem extends ListItem>({
             pendingAction={pendingAction}
             errors={errors}
             errorRowStyles={styles.ph5}
-            style={containerStyle}
+            contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -81,6 +81,15 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
+                    {!item.isSelected && !!item.brickRoadIndicator && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                src={Expensicons.DotIndicator}
+                                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
+                            />
+                        </View>
+                    )}
+
                     {rightHandSideComponentRender()}
                 </View>
                 {FooterComponent}
