@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -23,6 +22,10 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+
+type AmountParams = {
+    amount: string;
+};
 
 type IOURequestStepAmountOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
@@ -108,13 +111,6 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
     };
 
-    type AmountParams = {
-        amount: string;
-    };
-
-    /**
-     * @param amount
-     */
     const navigateToNextPage = ({amount}: AmountParams) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
@@ -169,11 +165,11 @@ function IOURequestStepAmount({
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepAmount.displayName}
-            shouldShowWrapper={Boolean(backTo) || isEditing}
+            shouldShowWrapper={!!backTo || isEditing}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={Boolean(backTo) || isEditing}
+                isEditing={!!backTo || isEditing}
                 currency={currency}
                 amount={Math.abs(transactionAmount)}
                 ref={(e) => (textInput.current = e)}
@@ -187,21 +183,21 @@ function IOURequestStepAmount({
 
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
-export default compose(
-    withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
-        splitDraftTransaction: {
-            key: ({route}) => {
-                const transactionID = route.params.transactionID ?? 0;
-                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+export default withWritableReportOrNotFound(
+    withFullTransactionOrNotFound(
+        withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
+            splitDraftTransaction: {
+                key: ({route}) => {
+                    const transactionID = route.params.transactionID ?? 0;
+                    return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+                },
             },
-        },
-        draftTransaction: {
-            key: ({route}) => {
-                const transactionID = route.params.transactionID ?? 0;
-                return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+            draftTransaction: {
+                key: ({route}) => {
+                    const transactionID = route.params.transactionID ?? 0;
+                    return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+                },
             },
-        },
-    }),
-    withFullTransactionOrNotFound,
-    withWritableReportOrNotFound,
-)(IOURequestStepAmount);
+        })(IOURequestStepAmount),
+    ),
+);

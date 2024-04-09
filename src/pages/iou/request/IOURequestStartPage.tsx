@@ -1,5 +1,4 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import _ from 'lodash';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -27,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Report, SelectedTabRequest, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepScan from './step/IOURequestStepScan';
@@ -71,7 +71,7 @@ function IOURequestStartPage({
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);
     const {canUseP2PDistanceRequests} = usePermissions();
-    const isFromGlobalCreate = _.isEmpty(report?.reportID);
+    const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
     useFocusEffect(
         useCallback(() => {

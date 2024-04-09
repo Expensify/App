@@ -15,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -117,12 +116,14 @@ function IOURequestStepDistance({
      * Takes the user to the page for editing a specific waypoint
      * @param index of the waypoint to edit
      */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const navigateToWaypointEditPage = (index: number) => {
-        Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.REQUEST, transactionID, report?.reportID ?? '', index.toString(), Navigation.getActiveRouteWithoutParams()),
-        );
-    };
+    const navigateToWaypointEditPage = useCallback(
+        (index: number) => {
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.REQUEST, transactionID, report?.reportID, index.toString(), Navigation.getActiveRouteWithoutParams()),
+            );
+        },
+        [action, transactionID, report?.reportID],
+    );
 
     const navigateToNextStep = useCallback(() => {
         if (backTo) {
@@ -292,15 +293,15 @@ function IOURequestStepDistance({
 
 IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 
-export default compose(
-    withOnyx<IOURequestStepDistanceProps, IOURequestStepDistanceOnyxProps>({
-        transactionBackup: {
-            key: ({route}) => {
-                const transactionID = route.params.transactionID ?? 0;
-                return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+export default withWritableReportOrNotFound(
+    withFullTransactionOrNotFound(
+        withOnyx<IOURequestStepDistanceProps, IOURequestStepDistanceOnyxProps>({
+            transactionBackup: {
+                key: ({route}) => {
+                    const transactionID = route.params.transactionID ?? 0;
+                    return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+                },
             },
-        },
-    }),
-    withFullTransactionOrNotFound,
-    withWritableReportOrNotFound,
-)(IOURequestStepDistance);
+        })(IOURequestStepDistance),
+    ),
+);
