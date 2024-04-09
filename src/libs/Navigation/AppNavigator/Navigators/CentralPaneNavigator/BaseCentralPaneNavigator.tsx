@@ -41,10 +41,9 @@ function BaseCentralPaneNavigator() {
                 component={ReportScreenWrapper}
             />
             <Stack.Screen
-                name={SCREENS.SEARCH}
+                name={SCREENS.SEARCH.CENTRAL_PANE}
                 // We do it this way to avoid adding the url params to url
                 component={SearchPage}
-                initialParams={{filter: 'all'}}
             />
 
             {Object.entries(settingsScreens).map(([screenName, componentGetter]) => (

@@ -29,7 +29,7 @@ function BottomTabNavigator() {
                     component={SidebarScreen}
                 />
                 <Tab.Screen
-                    name={SCREENS.SEARCH_BOTTOM_TAB}
+                    name={SCREENS.SEARCH.BOTTOM_TAB}
                     component={SearchPageBottomTab}
                 />
                 <Tab.Screen

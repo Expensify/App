@@ -42,7 +42,7 @@ function SearchPageBottomTab() {
             action: singleExecution(
                 waitForNavigate(() => {
                     setFilter('all');
-                    Navigation.navigate(ROUTES.SEARCH_WITH_FILTER.getRoute('all'));
+                    Navigation.navigate(ROUTES.SEARCH.getRoute('all'));
                 }),
             ),
         },
@@ -52,7 +52,7 @@ function SearchPageBottomTab() {
             action: singleExecution(
                 waitForNavigate(() => {
                     setFilter('sent');
-                    Navigation.navigate(ROUTES.SEARCH_WITH_FILTER.getRoute('sent'));
+                    Navigation.navigate(ROUTES.SEARCH.getRoute('sent'));
                 }),
             ),
         },
@@ -62,7 +62,7 @@ function SearchPageBottomTab() {
             action: singleExecution(
                 waitForNavigate(() => {
                     setFilter('drafts');
-                    Navigation.navigate(ROUTES.SEARCH_WITH_FILTER.getRoute('drafts'));
+                    Navigation.navigate(ROUTES.SEARCH.getRoute('drafts'));
                 }),
             ),
         },
@@ -76,7 +76,7 @@ function SearchPageBottomTab() {
                     tabBar={TabSelector}
                     onTabSelected={(tab: string) => {
                         setFilter(tab);
-                        Navigation.navigate(ROUTES.SEARCH_WITH_FILTER.getRoute(tab));
+                        Navigation.navigate(ROUTES.SEARCH.getRoute(tab));
                     }}
                 >
                     <TopTab.Screen name={CONST.TAB_SEARCH.ALL}>{() => <SearchResults filter="all" />}</TopTab.Screen>

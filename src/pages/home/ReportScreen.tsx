@@ -356,7 +356,8 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !ReportUtils.isValidReportIDFromPath(reportIDFromRoute) || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    // @TODO: isSidebarLoaded has been removed from isLoading variable to prevent from infinite loading on SCREENS.SEARCH.REPORT. Remember to undo this change and handle this case
+    const isLoading = !ReportUtils.isValidReportIDFromPath(reportIDFromRoute) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         !isLinkedMessageAvailable &&
         (isLinkingToMessage ||

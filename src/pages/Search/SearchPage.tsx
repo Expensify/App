@@ -10,7 +10,7 @@ type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SC
 function SearchPage({route}: SearchPageProps) {
     return (
         <ScreenWrapper testID="testPage">
-            <SearchResults filter={route.params.filter} />
+            <SearchResults filter={route.params.query} />
         </ScreenWrapper>
     );
 }

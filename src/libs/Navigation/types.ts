@@ -59,8 +59,8 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
-    [SCREENS.SEARCH]: {
-        filter: string;
+    [SCREENS.SEARCH.CENTRAL_PANE]: {
+        query: string;
     };
 };
 
@@ -549,6 +549,13 @@ type LeftModalNavigatorParamList = {
     [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: NavigatorScreenParams<WorkspaceSwitcherNavigatorParamList>;
 };
 
+type SearchReportParamList = {
+    [SCREENS.SEARCH.REPORT]: {
+        query: string;
+        reportID: string;
+    };
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
@@ -576,6 +583,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
 type WorkspacesCentralPaneNavigatorParamList = {
@@ -639,7 +647,7 @@ type FullScreenNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
-    [SCREENS.SEARCH_BOTTOM_TAB]: undefined;
+    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
     [SCREENS.SETTINGS.ROOT]: undefined;
 };
 
@@ -767,4 +775,5 @@ export type {
     FullScreenNavigatorParamList,
     WorkspacesCentralPaneNavigatorParamList,
     BackToParams,
+    SearchReportParamList,
 };
