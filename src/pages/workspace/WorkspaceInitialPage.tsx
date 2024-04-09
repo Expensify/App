@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -69,6 +70,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
     const {translate} = useLocalize();
+    const {canUseAccountingIntegrations} = usePermissions();
 
     const policyID = policy?.id ?? '';
     const policyName = policy?.name ?? '';
@@ -195,6 +197,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAXES,
             brickRoadIndicator: PolicyUtils.hasTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        });
+    }
+
+    if (policy?.areConnectionsEnabled && canUseAccountingIntegrations) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.accounting',
+            icon: Expensicons.Sync,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)))),
+            // brickRoadIndicator should be set when API will be ready
+            brickRoadIndicator: undefined,
+            routeName: SCREENS.WORKSPACE.ACCOUNTING,
         });
     }
 

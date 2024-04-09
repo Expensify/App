@@ -277,7 +277,7 @@ function ReportActionItem({
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
-    const latestDecision = action.message?.[0].moderationDecision?.decision ?? '';
+    const latestDecision = action.message?.[0]?.moderationDecision?.decision ?? '';
     useEffect(() => {
         if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
             return;
@@ -533,7 +533,7 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldRequest')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT) {
-            children = <ReportActionItemBasicMessage message={action.message?.[0].text ?? ''} />;
+            children = <ReportActionItemBasicMessage message={action.message?.[0]?.text ?? ''} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldRequest')} />;
         } else {
