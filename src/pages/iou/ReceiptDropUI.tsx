@@ -12,16 +12,17 @@ type ReceiptDropUIProps = {
     /** Function to execute when an item is dropped in the drop zone. */
     onDrop: (event: DragEvent) => void;
 
+    /** Pixels the receipt image should be shifted down to match the non-drag view UI */
     receiptImageTopPosition?: number;
 };
 
-function ReceiptDropUI({onDrop, receiptImageTopPosition}: ReceiptDropUIProps) {
+function ReceiptDropUI({onDrop, receiptImageTopPosition = 0}: ReceiptDropUIProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.receiptDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={styles.receiptImageWrapper(receiptImageTopPosition ?? 0)}>
+                <View style={styles.receiptImageWrapper(receiptImageTopPosition)}>
                     <ImageSVG
                         src={ReceiptUpload}
                         contentFit="contain"
