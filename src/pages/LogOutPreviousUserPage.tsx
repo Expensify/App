@@ -83,6 +83,7 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
                 Navigation.navigate(exitUrl);
             });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAccountLoading]);
 
     return <FullScreenLoadingIndicator />;
