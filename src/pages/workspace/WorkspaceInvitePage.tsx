@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -75,6 +76,9 @@ function WorkspaceInvitePage({
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetailsProp);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
     };
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
@@ -98,8 +102,7 @@ function WorkspaceInvitePage({
         const newPersonalDetailsDict: Record<number, OptionData> = {};
         const newSelectedOptionsDict: Record<number, MemberForList> = {};
 
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(personalDetailsProp, betas ?? [], searchTerm, excludedUsers, true);
-
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers, true);
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap: Record<string, MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
@@ -150,12 +153,12 @@ function WorkspaceInvitePage({
         setSelectedOptions(Object.values(newSelectedOptionsDict));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [personalDetailsProp, policyMembers, betas, searchTerm, excludedUsers]);
+    }, [options.personalDetails, policyMembers, betas, searchTerm, excludedUsers]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
 
-        if (!didScreenTransitionEnd) {
+        if (!areOptionsInitialized) {
             return [];
         }
 
@@ -203,7 +206,7 @@ function WorkspaceInvitePage({
         });
 
         return sectionsArr;
-    }, [personalDetails, searchTerm, selectedOptions, usersToInvite, translate, didScreenTransitionEnd]);
+    }, [areOptionsInitialized, selectedOptions, searchTerm, personalDetails, translate, usersToInvite]);
 
     const toggleOption = (option: MemberForList) => {
         Policy.clearErrors(route.params.policyID);
@@ -304,7 +307,7 @@ function WorkspaceInvitePage({
                     onSelectRow={toggleOption}
                     onConfirm={inviteUser}
                     showScrollIndicator
-                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetailsProp)}
+                    showLoadingPlaceholder={!areOptionsInitialized}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 />
                 <View style={[styles.flexShrink0]}>

@@ -65,6 +65,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
+                [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
             },
         },
         [SCREENS.NOT_FOUND]: '*',
@@ -81,6 +82,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.WORKSPACE_SWITCHER,
                         },
                     },
+                },
+            },
+        },
+        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.WELCOME_VIDEO.ROOT]: {
+                    path: ROUTES.WELCOME_VIDEO_ROOT,
+                    exact: true,
+                },
+            },
+        },
+        [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
+            path: ROUTES.ONBOARDING_ROOT,
+            initialRouteName: SCREENS.ONBOARDING.PERSONAL_DETAILS,
+            screens: {
+                [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+                    path: ROUTES.ONBOARDING_PERSONAL_DETAILS,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.PURPOSE]: {
+                    path: ROUTES.ONBOARDING_PURPOSE,
+                    exact: true,
                 },
             },
         },
@@ -158,6 +181,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_REFACTOR]: {
+                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_REFACTOR,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
@@ -280,9 +307,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
-                        },
-                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
-                            path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
                         },
                         [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
                             path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,
@@ -461,7 +485,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
                     screens: {
-                        [SCREENS.SAVE_THE_WORLD.ROOT]: ROUTES.TEACHERS_UNITE,
                         [SCREENS.I_KNOW_A_TEACHER]: ROUTES.I_KNOW_A_TEACHER,
                         [SCREENS.INTRO_SCHOOL_PRINCIPAL]: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                         [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,

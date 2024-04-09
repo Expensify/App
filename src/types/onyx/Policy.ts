@@ -190,6 +190,7 @@ type ACHAccount = {
     routingNumber: string;
     addressName: string;
     bankName: string;
+    reimburser: string;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -316,9 +317,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled: boolean;
         };
 
-        /** @deprecated Whether the scheduled submit is enabled */
-        isPreventSelfApprovalEnabled?: boolean;
-
         /** Whether the self approval or submitting is enabled */
         preventSelfApproval?: boolean;
 
@@ -391,12 +389,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
-        /** Email of the reimburser when reimbursement is set direct */
-        reimburserEmail?: string;
-
-        /** AccountID of the reimburser when reimbursement is set direct */
-        reimburserAccountID?: number;
-
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
@@ -439,7 +431,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom'
+    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
 
 export default Policy;
