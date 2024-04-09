@@ -25,7 +25,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
@@ -39,7 +38,6 @@ import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import * as Expensicons from './Icon/Expensicons';
-import LocationPermissionModal from './LocationPermissionModal';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
@@ -605,7 +603,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     return;
                 }
 
-                playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm(selectedParticipants);
             }
@@ -1010,10 +1007,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 </View>
             )}
             {shouldShowAllFields && supplementaryFields}
-            <LocationPermissionModal
-                onConfirm={() => {}}
-                isVisible
-            />
             <ConfirmModal
                 title={translate('attachmentPicker.wrongFileType')}
                 onConfirm={navigateBack}
