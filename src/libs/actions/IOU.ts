@@ -500,8 +500,8 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
-                lastMessageText: iouAction.message?.[0].text,
-                lastMessageHtml: iouAction.message?.[0].html,
+                lastMessageText: iouAction.message?.[0]?.text,
+                lastMessageHtml: iouAction.message?.[0]?.html,
                 pendingFields: {
                     ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
@@ -824,8 +824,8 @@ function buildOnyxDataForTrackExpense(
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 ...chatReport,
-                lastMessageText: iouAction.message?.[0].text,
-                lastMessageHtml: iouAction.message?.[0].html,
+                lastMessageText: iouAction.message?.[0]?.text,
+                lastMessageHtml: iouAction.message?.[0]?.html,
                 lastReadTime: DateUtils.getDBTime(),
                 iouReportID: iouReport?.reportID,
             },
@@ -839,8 +839,8 @@ function buildOnyxDataForTrackExpense(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                 value: {
                     ...iouReport,
-                    lastMessageText: iouAction.message?.[0].text,
-                    lastMessageHtml: iouAction.message?.[0].html,
+                    lastMessageText: iouAction.message?.[0]?.text,
+                    lastMessageHtml: iouAction.message?.[0]?.html,
                     pendingFields: {
                         ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     },
@@ -2552,8 +2552,8 @@ function createSplitsAndOnyxData(
     );
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
-    splitChatReport.lastMessageText = splitIOUReportAction.message?.[0].text;
-    splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0].html;
+    splitChatReport.lastMessageText = splitIOUReportAction.message?.[0]?.text;
+    splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0]?.html;
 
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
     if (!existingSplitChatReport) {
@@ -3038,8 +3038,8 @@ function startSplitBill(
     );
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
-    splitChatReport.lastMessageText = splitIOUReportAction.message?.[0].text;
-    splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0].html;
+    splitChatReport.lastMessageText = splitIOUReportAction.message?.[0]?.text;
+    splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0]?.html;
 
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
     if (!existingSplitChatReport) {
@@ -4366,8 +4366,8 @@ function getSendMoneyParams(
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
         value: {
             ...optimisticIOUReport,
-            lastMessageText: optimisticIOUReportAction.message?.[0].text,
-            lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
+            lastMessageText: optimisticIOUReportAction.message?.[0]?.text,
+            lastMessageHtml: optimisticIOUReportAction.message?.[0]?.html,
         },
     };
     const optimisticTransactionThreadData: OnyxUpdate = {
@@ -4606,8 +4606,8 @@ function getPayMoneyRequestParams(
                 lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
-                lastMessageText: optimisticIOUReportAction.message?.[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
+                lastMessageText: optimisticIOUReportAction.message?.[0]?.text,
+                lastMessageHtml: optimisticIOUReportAction.message?.[0]?.html,
             },
         },
         {
@@ -4625,8 +4625,8 @@ function getPayMoneyRequestParams(
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
-                lastMessageText: optimisticIOUReportAction.message?.[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
+                lastMessageText: optimisticIOUReportAction.message?.[0]?.text,
+                lastMessageHtml: optimisticIOUReportAction.message?.[0]?.html,
                 hasOutstandingChildRequest: false,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 pendingFields: {
@@ -4847,8 +4847,8 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
             ...expenseReport,
-            lastMessageText: optimisticApprovedReportAction.message?.[0].text,
-            lastMessageHtml: optimisticApprovedReportAction.message?.[0].html,
+            lastMessageText: optimisticApprovedReportAction.message?.[0]?.text,
+            lastMessageHtml: optimisticApprovedReportAction.message?.[0]?.html,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             pendingFields: {
@@ -4954,8 +4954,8 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
                       ...expenseReport,
-                      lastMessageText: optimisticSubmittedReportAction.message?.[0].text ?? '',
-                      lastMessageHtml: optimisticSubmittedReportAction.message?.[0].html ?? '',
+                      lastMessageText: optimisticSubmittedReportAction.message?.[0]?.text ?? '',
+                      lastMessageHtml: optimisticSubmittedReportAction.message?.[0]?.html ?? '',
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                   },
@@ -5080,8 +5080,8 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
-                lastMessageText: optimisticReportAction.message?.[0].text,
-                lastMessageHtml: optimisticReportAction.message?.[0].html,
+                lastMessageText: optimisticReportAction.message?.[0]?.text,
+                lastMessageHtml: optimisticReportAction.message?.[0]?.html,
                 stateNum,
                 statusNum,
             },

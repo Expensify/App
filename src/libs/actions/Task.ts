@@ -130,7 +130,7 @@ function createTaskAndNavigate(
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
-    const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport?.reportAction?.message?.[0].text ?? '');
+    const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport?.reportAction?.message?.[0]?.text ?? '');
     const optimisticParentReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
@@ -655,11 +655,11 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
 function setAssigneeValue(
     assigneeEmail: string,
     assigneeAccountID: number,
-    shareToReportID: string,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
+    shareToReportID?: string,
+    chatReport?: OnyxEntry<OnyxTypes.Report>,
     isCurrentUser = false,
-): OnyxEntry<OnyxTypes.Report> {
-    let report = chatReport;
+): OnyxEntry<OnyxTypes.Report> | undefined {
+    let report: OnyxEntry<OnyxTypes.Report> | undefined = chatReport;
     if (!isCurrentUser) {
         // Check for the chatReport by participants IDs
         if (!report) {
@@ -725,7 +725,7 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID: string, chatReport: OnyxEntry<OnyxTypes.Report>, accountID = 0) {
+function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<OnyxTypes.Report>, accountID = 0) {
     clearOutTaskInfo();
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);

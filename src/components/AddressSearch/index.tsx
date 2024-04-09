@@ -20,10 +20,11 @@ import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrent
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 import listViewOverflow from './listViewOverflow';
-import type {AddressSearchProps, PredefinedPlace, RenamedInputKeysProps} from './types';
+import type {AddressSearchProps, PredefinedPlace} from './types';
 
 /**
  * Check if the place matches the search by the place name or description.
@@ -232,7 +233,7 @@ function AddressSearch(
 
         if (inputID) {
             Object.entries(values).forEach(([key, inputValue]) => {
-                const inputKey = renamedInputKeys?.[key as keyof RenamedInputKeysProps] ?? key;
+                const inputKey = renamedInputKeys?.[key as keyof Address] ?? key;
                 if (!inputKey) {
                     return;
                 }
