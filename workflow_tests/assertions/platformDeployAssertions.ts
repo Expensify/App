@@ -376,7 +376,7 @@ function assertPostGithubCommentJobExecuted(workflowResult: Step[], didExecute =
     });
 }
 
-export {
+export default {
     assertVerifyActorJobExecuted,
     assertDeployChecklistJobExecuted,
     assertAndroidJobExecuted,
