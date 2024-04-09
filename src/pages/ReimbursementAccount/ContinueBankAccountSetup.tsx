@@ -1,7 +1,5 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
-import _ from 'underscore';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,88 +10,85 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
+import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const propTypes = {
+type ContinueBankAccountStepProps = {
     /** Bank account currently in setup */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 
     /** Callback to continue to the next step of the setup */
-    continue: PropTypes.func.isRequired,
+    onContinuePress: () => void;
 
     /* The workspace name */
-    policyName: PropTypes.string,
+    policyName?: string;
 
     /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
+    onBackButtonPress: () => void;
 };
 
-const defaultProps = {policyName: ''};
-
-function ContinueBankAccountSetup(props) {
+function ContinueBankAccountSetup({policyName = '', onBackButtonPress, reimbursementAccount, onContinuePress}: ContinueBankAccountStepProps) {
     const styles = useThemeStyles();
-    const errors = lodashGet(props.reimbursementAccount, 'errors', {});
-    const pendingAction = lodashGet(props.reimbursementAccount, 'pendingAction', null);
+    const {translate} = useLocalize();
+    const errors = reimbursementAccount?.errors ?? {};
+    const pendingAction = reimbursementAccount?.pendingAction ?? null;
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={ContinueBankAccountSetup.displayName}
         >
             <HeaderWithBackButton
-                title={props.translate('workspace.common.connectBankAccount')}
-                subtitle={props.policyName}
+                title={translate('workspace.common.connectBankAccount')}
+                subtitle={policyName}
                 shouldShowGetAssistanceButton
-                onBackButtonPress={props.onBackButtonPress}
+                onBackButtonPress={onBackButtonPress}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
             />
             <ScrollView style={styles.flex1}>
                 <Section
-                    title={props.translate('workspace.bankAccount.almostDone')}
+                    title={translate('workspace.bankAccount.almostDone')}
                     icon={Illustrations.BankArrow}
                 >
                     <OfflineWithFeedback
                         errors={errors}
-                        shouldShowErrorMessage
+                        shouldShowErrorMessages
                         onClose={BankAccounts.resetReimbursementAccount}
                     >
-                        <Text>{props.translate('workspace.bankAccount.youreAlmostDone')}</Text>
+                        <Text>{translate('workspace.bankAccount.youreAlmostDone')}</Text>
                         <Button
                             iconStyles={[styles.customMarginButtonWithMenuItem]}
-                            text={props.translate('workspace.bankAccount.continueWithSetup')}
-                            onPress={props.continue}
+                            text={translate('workspace.bankAccount.continueWithSetup')}
+                            onPress={onContinuePress}
                             icon={Expensicons.Bank}
                             style={[styles.mv4]}
                             shouldShowRightIcon
                             innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                             success
-                            isDisabled={Boolean(pendingAction) || !_.isEmpty(errors)}
+                            isDisabled={!!pendingAction || !isEmptyObject(errors)}
                         />
                         <MenuItem
-                            title={props.translate('workspace.bankAccount.startOver')}
+                            title={translate('workspace.bankAccount.startOver')}
                             icon={Expensicons.RotateLeft}
                             onPress={() => BankAccounts.requestResetFreePlanBankAccount()}
                             shouldShowRightIcon
                             wrapperStyle={[styles.cardMenuItem]}
-                            disabled={Boolean(pendingAction) || !_.isEmpty(errors)}
+                            disabled={!!pendingAction || !isEmptyObject(errors)}
                         />
                     </OfflineWithFeedback>
                 </Section>
             </ScrollView>
 
-            {props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={props.reimbursementAccount} />}
+            {reimbursementAccount?.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
         </ScreenWrapper>
     );
 }
 
-ContinueBankAccountSetup.propTypes = propTypes;
-ContinueBankAccountSetup.defaultProps = defaultProps;
 ContinueBankAccountSetup.displayName = 'ContinueBankAccountSetup';
 
-export default withLocalize(ContinueBankAccountSetup);
+export default ContinueBankAccountSetup;

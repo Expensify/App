@@ -1,45 +1,75 @@
-import PropTypes from 'prop-types';
+import {useIsFocused} from '@react-navigation/native';
+import type {ImageContentFit} from 'expo-image';
+import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import type {SvgProps} from 'react-native-svg';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
-import withNavigation from '@components/withNavigation';
-import withNavigationFocus from '@components/withNavigationFocus';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import * as ReportUtils from '@libs/ReportUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {QuickActionName} from '@src/types/onyx/QuickAction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-/**
- * @param {Object} [policy]
- * @returns {Object|undefined}
- */
-const policySelector = (policy) =>
-    policy && {
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatar' | 'name'>;
+
+type FloatingActionButtonAndPopoverOnyxProps = {
+    /** The list of policies the user has access to. */
+    allPolicies: OnyxCollection<PolicySelector>;
+
+    /** Whether app is in loading state */
+    isLoading: OnyxEntry<boolean>;
+
+    /** Information on the last taken action to display as Quick Action */
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+
+    /** The current session */
+    session: OnyxEntry<OnyxTypes.Session>;
+
+    /** Personal details of all the users */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+};
+
+type FloatingActionButtonAndPopoverProps = FloatingActionButtonAndPopoverOnyxProps & {
+    /* Callback function when the menu is shown */
+    onShowCreateMenu?: () => void;
+
+    /* Callback function before the menu is hidden */
+    onHideCreateMenu?: () => void;
+};
+
+type FloatingActionButtonAndPopoverRef = {
+    hideCreateMenu: () => void;
+};
+
+const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
+    (policy && {
         type: policy.type,
         role: policy.role,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
         avatar: policy.avatar,
         name: policy.name,
-    };
+    }) as PolicySelector;
 
-const getQuickActionIcon = (action) => {
+const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return Expensicons.MoneyCircle;
@@ -60,7 +90,7 @@ const getQuickActionIcon = (action) => {
     }
 };
 
-const getQuickActionTitle = (action) => {
+const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return 'quickAction.requestMoney';
@@ -85,134 +115,85 @@ const getQuickActionTitle = (action) => {
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.trackDistance';
         default:
-            return '';
+            return '' as TranslationPaths;
     }
-};
-
-const propTypes = {
-    ...windowDimensionsPropTypes,
-
-    /* Callback function when the menu is shown */
-    onShowCreateMenu: PropTypes.func,
-
-    /* Callback function before the menu is hidden */
-    onHideCreateMenu: PropTypes.func,
-
-    /** The list of policies the user has access to. */
-    allPolicies: PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-    }),
-
-    /** Indicated whether the report data is loading */
-    isLoading: PropTypes.bool,
-
-    /** Forwarded ref to FloatingActionButtonAndPopover */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-
-    /** Information on the last taken action to display as Quick Action */
-    quickAction: PropTypes.shape({
-        action: PropTypes.string,
-        chatReportID: PropTypes.string,
-        targetAccountID: PropTypes.number,
-        isFirstQuickAction: PropTypes.bool,
-    }),
-
-    /** Personal details of all the users */
-    personalDetails: personalDetailsPropType,
-
-    session: PropTypes.shape({
-        /** Currently logged in user accountID */
-        accountID: PropTypes.number,
-    }).isRequired,
-};
-const defaultProps = {
-    onHideCreateMenu: () => {},
-    onShowCreateMenu: () => {},
-    allPolicies: {},
-    isLoading: false,
-    innerRef: null,
-    quickAction: null,
-    personalDetails: {},
 };
 
 /**
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
- * @param {Object} props
- * @returns {JSX.Element}
  */
-function FloatingActionButtonAndPopover(props) {
+function FloatingActionButtonAndPopover(
+    {onHideCreateMenu, onShowCreateMenu, isLoading = false, allPolicies, quickAction, session, personalDetails}: FloatingActionButtonAndPopoverProps,
+    ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
+) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const fabRef = useRef(null);
+    const fabRef = useRef<HTMLDivElement>(null);
     const {canUseTrackExpense} = usePermissions();
+    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const isFocused = useIsFocused();
+    const prevIsFocused = usePrevious(isFocused);
 
-    const prevIsFocused = usePrevious(props.isFocused);
+    const quickActionReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => (quickAction ? ReportUtils.getReport(quickAction.chatReportID) : null), [quickAction]);
 
-    const quickActionReport = useMemo(() => (props.quickAction ? ReportUtils.getReport(props.quickAction.chatReportID) : 0), [props.quickAction]);
-
-    const quickActionPolicy = props.allPolicies ? props.allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport.policyID}`] : undefined;
+    const quickActionPolicy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`] : undefined;
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
-            const avatars = ReportUtils.getIcons(quickActionReport, props.personalDetails);
-            return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : _.filter(avatars, (avatar) => avatar.id !== props.session.accountID);
+            const avatars = ReportUtils.getIcons(quickActionReport, personalDetails);
+            return avatars.length <= 1 || ReportUtils.isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== session?.accountID);
         }
         return [];
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.personalDetails, props.session.accountID, quickActionReport, quickActionPolicy]);
+    }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy]);
 
     const quickActionTitle = useMemo(() => {
-        const titleKey = getQuickActionTitle(props.quickAction && props.quickAction.action);
+        const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';
-    }, [props.quickAction, translate]);
+    }, [quickAction, translate]);
 
     const navigateToQuickAction = () => {
-        switch (props.quickAction.action) {
+        switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.MANUAL);
-                return;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
+                break;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.SCAN);
-                return;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
+                break;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.DISTANCE);
-                return;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
+                break;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.MANUAL);
-                return;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
+                break;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.SCAN);
-                return;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
+                break;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, props.quickAction.chatReportID, CONST.IOU.REQUEST_TYPE.DISTANCE);
-                return;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
+                break;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, props.quickAction.chatReportID);
-                return;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, quickAction?.chatReportID ?? '');
+                break;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(props.quickAction.chatReportID, quickActionReport, _.get(props.quickAction, 'targetAccountID', 0));
-                return;
+                Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID, quickActionReport, quickAction.targetAccountID ?? 0);
+                break;
             default:
-                return '';
         }
     };
 
     /**
      * Check if LHN status changed from active to inactive.
      * Used to close already opened FAB menu when open any other pages (i.e. Press Command + K on web).
-     *
-     * @param {Object} prevProps
-     * @return {Boolean}
      */
     const didScreenBecomeInactive = useCallback(
-        () =>
+        (): boolean =>
             // When any other page is opened over LHN
-            !props.isFocused && prevIsFocused,
-        [props.isFocused, prevIsFocused],
+            !isFocused && prevIsFocused,
+        [isFocused, prevIsFocused],
     );
 
     /**
@@ -220,14 +201,14 @@ function FloatingActionButtonAndPopover(props) {
      */
     const showCreateMenu = useCallback(
         () => {
-            if (!props.isFocused && props.isSmallScreenWidth) {
+            if (!isFocused && isSmallScreenWidth) {
                 return;
             }
             setIsCreateMenuActive(true);
-            props.onShowCreateMenu();
+            onShowCreateMenu?.();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.isFocused, props.isSmallScreenWidth],
+        [isFocused, isSmallScreenWidth],
     );
 
     /**
@@ -241,7 +222,7 @@ function FloatingActionButtonAndPopover(props) {
                 return;
             }
             setIsCreateMenuActive(false);
-            props.onHideCreateMenu();
+            onHideCreateMenu?.();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isCreateMenuActive],
@@ -256,7 +237,7 @@ function FloatingActionButtonAndPopover(props) {
         hideCreateMenu();
     }, [didScreenBecomeInactive, hideCreateMenu]);
 
-    useImperativeHandle(props.innerRef, () => ({
+    useImperativeHandle(ref, () => ({
         hideCreateMenu() {
             hideCreateMenu();
         },
@@ -274,10 +255,10 @@ function FloatingActionButtonAndPopover(props) {
         <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive && (!props.isSmallScreenWidth || props.isFocused)}
-                anchorPosition={styles.createMenuPositionSidebar(props.windowHeight)}
+                isVisible={isCreateMenuActive && (!isSmallScreenWidth || isFocused)}
+                anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
-                fromSidebarMediumScreen={!props.isSmallScreenWidth}
+                fromSidebarMediumScreen={!isSmallScreenWidth}
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,
@@ -295,6 +276,7 @@ function FloatingActionButtonAndPopover(props) {
                                               CONST.IOU.TYPE.TRACK_EXPENSE,
                                               // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
                                               // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
+                                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                               ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
                                           ),
                                       ),
@@ -332,11 +314,11 @@ function FloatingActionButtonAndPopover(props) {
                         text: translate('newTaskPage.assignTask'),
                         onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                     },
-                    ...(!props.isLoading && !Policy.hasActiveChatEnabledPolicies(props.allPolicies)
+                    ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies)
                         ? [
                               {
                                   displayInDefaultIconColor: true,
-                                  contentFit: 'contain',
+                                  contentFit: 'contain' as ImageContentFit,
                                   icon: Expensicons.NewWorkspace,
                                   iconWidth: 46,
                                   iconHeight: 40,
@@ -346,16 +328,16 @@ function FloatingActionButtonAndPopover(props) {
                               },
                           ]
                         : []),
-                    ...(props.quickAction && props.quickAction.action
+                    ...(quickAction?.action
                         ? [
                               {
-                                  icon: getQuickActionIcon(props.quickAction.action),
+                                  icon: getQuickActionIcon(quickAction?.action),
                                   text: quickActionTitle,
                                   label: translate('quickAction.shortcut'),
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
                                   floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
-                                  description: ReportUtils.getReportName(quickActionReport),
+                                  description: !isEmptyObject(quickActionReport) ? ReportUtils.getReportName(quickActionReport) : '',
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
@@ -377,40 +359,25 @@ function FloatingActionButtonAndPopover(props) {
     );
 }
 
-FloatingActionButtonAndPopover.propTypes = propTypes;
-FloatingActionButtonAndPopover.defaultProps = defaultProps;
 FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
 
-const FloatingActionButtonAndPopoverWithRef = forwardRef((props, ref) => (
-    <FloatingActionButtonAndPopover
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<FloatingActionButtonAndPopoverRef>, FloatingActionButtonAndPopoverOnyxProps>({
+    allPolicies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+        selector: policySelector,
+    },
+    isLoading: {
+        key: ONYXKEYS.IS_LOADING_APP,
+    },
+    quickAction: {
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(forwardRef(FloatingActionButtonAndPopover));
 
-FloatingActionButtonAndPopoverWithRef.displayName = 'FloatingActionButtonAndPopoverWithRef';
-
-export default compose(
-    withNavigation,
-    withNavigationFocus,
-    withWindowDimensions,
-    withOnyx({
-        allPolicies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-            selector: policySelector,
-        },
-        isLoading: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-        quickAction: {
-            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(FloatingActionButtonAndPopoverWithRef);
+export type {PolicySelector};

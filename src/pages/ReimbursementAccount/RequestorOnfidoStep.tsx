@@ -1,10 +1,10 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Onfido from '@components/Onfido';
+import type {OnfidoData} from '@components/Onfido/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
@@ -13,38 +13,35 @@ import Growl from '@libs/Growl';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
+import type {ReimbursementAccount} from '@src/types/onyx';
 
-const propTypes = {
-    /** The bank account currently in setup */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
-
-    /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
-
+type RequestorOnfidoStepOnyxProps = {
     /** The token required to initialize the Onfido SDK */
-    onfidoToken: PropTypes.string,
+    onfidoToken: OnyxEntry<string>;
 
     /** The application ID for our Onfido instance */
-    onfidoApplicantID: PropTypes.string,
+    onfidoApplicantID: OnyxEntry<string>;
 };
 
-const defaultProps = {
-    onfidoToken: null,
-    onfidoApplicantID: null,
+type RequestorOnfidoStepProps = RequestorOnfidoStepOnyxProps & {
+    /** The bank account currently in setup */
+    reimbursementAccount: ReimbursementAccount;
+
+    /** Goes to the previous step */
+    onBackButtonPress: () => void;
 };
 
 const HEADER_STEP_COUNTER = {step: 3, total: 5};
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoToken, onfidoApplicantID}) {
+function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoToken, onfidoApplicantID}: RequestorOnfidoStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const submitOnfidoData = (onfidoData) => {
-        BankAccounts.verifyIdentityForBankAccount(lodashGet(reimbursementAccount, 'achData.bankAccountID', 0), {
+    const submitOnfidoData = (onfidoData: OnfidoData) => {
+        BankAccounts.verifyIdentityForBankAccount(reimbursementAccount.achData?.bankAccountID ?? 0, {
             ...onfidoData,
-            applicantID: onfidoApplicantID,
+            applicantID: onfidoApplicantID ?? '',
         });
         BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
     };
@@ -77,7 +74,7 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={styles.flex1}>
                     <Onfido
-                        sdkToken={onfidoToken}
+                        sdkToken={onfidoToken ?? ''}
                         onUserExit={handleOnfidoUserExit}
                         onError={handleOnfidoError}
                         onSuccess={submitOnfidoData}
@@ -89,11 +86,8 @@ function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoTok
 }
 
 RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
-RequestorOnfidoStep.propTypes = propTypes;
-RequestorOnfidoStep.defaultProps = defaultProps;
-RequestorOnfidoStep.displayName = 'RequestorOnfidoStep';
 
-export default withOnyx({
+export default withOnyx<RequestorOnfidoStepProps, RequestorOnfidoStepOnyxProps>({
     onfidoToken: {
         key: ONYXKEYS.ONFIDO_TOKEN,
     },
