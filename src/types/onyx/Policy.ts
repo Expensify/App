@@ -319,9 +319,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled: boolean;
         };
 
-        /** @deprecated Whether the scheduled submit is enabled */
-        isPreventSelfApprovalEnabled?: boolean;
-
         /** Whether the self approval or submitting is enabled */
         preventSelfApproval?: boolean;
 
@@ -412,6 +409,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Tags feature is enabled */
         areTagsEnabled?: boolean;
 
+        /** Whether the Accounting feature is enabled */
+        areAccountingEnabled?: boolean;
+
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
 
@@ -439,20 +439,42 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
 
+type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
+type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+type PolicyConnectionSyncProgress = {
+    status: ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STATUS>;
+    stageInProgress: PolicyConnectionSyncStage;
+    connectionName: PolicyConnectionName;
+};
+
 export default Policy;
 
 export type {
+    
     PolicyReportField,
+   
     PolicyReportFieldType,
+   
     Unit,
+   
     CustomUnit,
+   
     Attributes,
+   
     Rate,
+   
     TaxRate,
+   
     TaxRates,
+   
     TaxRatesWithDefault,
+   
     PolicyFeatureName,
+   
     PendingJoinRequestPolicy,
+    PolicyConnectionSyncStage,
+    PolicyConnectionSyncProgress,
+,
     QBOConnectionConfig,
     Connections,
     ConnectionName,

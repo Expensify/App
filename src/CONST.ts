@@ -864,11 +864,17 @@ const CONST = {
             RIGHT: 'right',
         },
         POPOVER_MENU_PADDING: 8,
+        RESTORE_FOCUS_TYPE: {
+            DEFAULT: 'default',
+            DELETE: 'delete',
+            PRESERVE: 'preserve',
+        },
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
         CHAT_RENDER: 'chat_render',
+        OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
@@ -1563,6 +1569,28 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
+        },
+        CONNECTIONS: {
+            SYNC_STATUS: {
+                STARTING: 'starting',
+                FINISHED: 'finished',
+                PROGRESS: 'progress',
+            },
+            NAME: {
+                // Here we will add other connections names when we add support for them
+                QBO: 'quickbooksOnline',
+            },
+            SYNC_STAGE_NAME: {
+                STARTING_IMPORT: 'startingImport',
+                QBO_CUSTOMERS: 'quickbooksOnlineImportCustomers',
+                QBO_EMPLOYEES: 'quickbooksOnlineImportEmployees',
+                QBO_ACCOUNTS: 'quickbooksOnlineImportAccounts',
+                QBO_CLASSES: 'quickbooksOnlineImportClasses',
+                QBO_LOCATIONS: 'quickbooksOnlineImportLocations',
+                QBO_PROCESSING: 'quickbooksOnlineImportProcessing',
+                QBO_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
+                QBO_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+            },
         },
     },
 

@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
@@ -74,7 +75,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     shouldSetModalVisibility?: boolean;
 
     /** List of menu items for more(three dots) menu */
-    threeDotsMenuItems?: ThreeDotsMenuItem[];
+    threeDotsMenuItems?: PopoverMenuItem[];
 
     /** The anchor position of the menu */
     threeDotsAnchorPosition?: AnchorPosition;
