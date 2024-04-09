@@ -7,12 +7,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
-import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import SpacerView from '@components/SpacerView';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
@@ -170,7 +168,17 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                       },
                   ]),
         ],
-        [translate, theme.spinner, isSyncInProgress, overflowMenu, threeDotsMenuPosition, styles.popoverMenuIcon, threeDotsMenuContainerRef, styles.sectionMenuItemTopDescription],
+        [
+            translate,
+            theme.spinner,
+            isSyncInProgress,
+            overflowMenu,
+            threeDotsMenuPosition,
+            styles.popoverMenuIcon,
+            threeDotsMenuContainerRef,
+            styles.sectionMenuItemTopDescription,
+            styles.mt3,
+        ],
     );
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
