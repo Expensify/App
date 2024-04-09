@@ -839,8 +839,8 @@ function buildOnyxDataForTrackExpense(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                 value: {
                     ...iouReport,
-                    lastMessageText: iouAction.message?.[0].text,
-                    lastMessageHtml: iouAction.message?.[0].html,
+                    lastMessageText: iouAction.message?.[0]?.text,
+                    lastMessageHtml: iouAction.message?.[0]?.html,
                     pendingFields: {
                         ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     },

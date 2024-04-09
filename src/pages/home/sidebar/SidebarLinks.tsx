@@ -30,7 +30,7 @@ type SidebarLinksProps = {
     /** List of options to display */
     optionListItems: string[];
 
-    /** Wheather the reports are loading. When false it means they are ready to be used. */
+    /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoading: OnyxEntry<boolean>;
 
     /** The chat priority mode */

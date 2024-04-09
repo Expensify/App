@@ -33,7 +33,7 @@ type SidebarLinksDataOnyxProps = {
     /** List of reports */
     chatReports: OnyxCollection<ChatReportSelector>;
 
-    /** Wheather the reports are loading. When false it means they are ready to be used. */
+    /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: OnyxEntry<boolean>;
 
     /** The chat priority mode */
