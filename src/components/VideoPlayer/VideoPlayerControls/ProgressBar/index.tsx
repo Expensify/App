@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import type {LayoutChangeEvent, ViewStyle} from 'react-native';
 import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,21 +71,19 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     const progressBarStyle: ViewStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`}));
 
     return (
-        <GestureHandlerRootView style={[styles.flex1]}>
-            <GestureDetector gesture={pan}>
-                <Animated.View style={[styles.w100, styles.h100, styles.pv2, styles.cursorPointer, styles.flex1, styles.justifyContentCenter]}>
+        <GestureDetector gesture={pan}>
+            <Animated.View style={[styles.w100, styles.h100, styles.pv2, styles.cursorPointer, styles.flex1, styles.justifyContentCenter]}>
+                <Animated.View
+                    style={styles.progressBarOutline}
+                    onLayout={onSliderLayout}
+                >
                     <Animated.View
-                        style={styles.progressBarOutline}
-                        onLayout={onSliderLayout}
-                    >
-                        <Animated.View
-                            style={styles.progressBarFill}
-                            animatedProps={progressBarStyle}
-                        />
-                    </Animated.View>
+                        style={styles.progressBarFill}
+                        animatedProps={progressBarStyle}
+                    />
                 </Animated.View>
-            </GestureDetector>
-        </GestureHandlerRootView>
+            </Animated.View>
+        </GestureDetector>
     );
 }
 
