@@ -10,14 +10,9 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import CONST from '@src/CONST';
 
-const QBO_ONLINE_ACCOUNT_SELECTOR_OPTIONS = {
-    CROISSANT_CO_PAYROLL_ACCOUNT: 'Croissant Co Payroll Account',
-    CROISSANT_CO_MONEY_IN_CLEARING: 'Croissant Co Money in Clearing',
-    CROISSANT_CO_DEBTS_AND_LOANS: 'Croissant Co Debts and Loans',
-};
-
-type CustomSelectorTypes = ValueOf<typeof QBO_ONLINE_ACCOUNT_SELECTOR_OPTIONS>;
+type CustomSelectorTypes = ValueOf<typeof CONST.QBO_ONLINE_ACCOUNT_SELECTOR_OPTIONS>;
 
 type SelectorType = {
     value: CustomSelectorTypes;
@@ -33,7 +28,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
-            Object.entries(QBO_ONLINE_ACCOUNT_SELECTOR_OPTIONS).map(([key, value]) => ({
+            Object.entries(CONST.QBO_ONLINE_ACCOUNT_SELECTOR_OPTIONS).map(([key, value]) => ({
                 value,
                 text: value,
                 keyForList: key,
