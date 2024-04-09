@@ -1,5 +1,5 @@
 ---
-title: Print or download report
+title: Print or download a report
 description: Share, print, or download a report
 ---
 <div id="expensify-classic" markdown="1">
