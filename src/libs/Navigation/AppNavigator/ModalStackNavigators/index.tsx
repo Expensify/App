@@ -348,6 +348,5 @@ export {
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
-    TravelModalStackNavigator,
     WorkspaceSettingsModalStackNavigator,
 };
