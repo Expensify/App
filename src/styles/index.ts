@@ -2891,7 +2891,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        radioButtonLockIcon: {
+        toggleSwitchLockIcon: {
             width: 12,
             height: 12,
         },

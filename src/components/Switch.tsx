@@ -58,8 +58,8 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
                     <Icon
                         src={Expensicons.Lock}
                         fill={isOn ? theme.text : theme.icon}
-                        width={styles.radioButtonLockIcon.width}
-                        height={styles.radioButtonLockIcon.height}
+                        width={styles.toggleSwitchLockIcon.width}
+                        height={styles.toggleSwitchLockIcon.height}
                     />
                 )}
             </Animated.View>
