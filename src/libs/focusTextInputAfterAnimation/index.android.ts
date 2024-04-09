@@ -19,7 +19,7 @@ import type FocusTextInputAfterAnimation from './types';
  */
 const focusTextInputAfterAnimation: FocusTextInputAfterAnimation = (inputRef, animationLength = 0) => {
     setTimeout(() => {
-        inputRef.focus();
+        inputRef?.focus();
     }, animationLength);
 };
 

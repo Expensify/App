@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
@@ -22,6 +23,7 @@ import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -38,19 +40,24 @@ const propTypes = {
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
+
+    /** backup version of the original transaction  */
+    transactionBackup: transactionPropTypes,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
+    transactionBackup: {},
 };
 
 function IOURequestStepDistance({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
+    transactionBackup,
 }) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -76,6 +83,8 @@ function IOURequestStepDistance({
     const nonEmptyWaypointsCount = useMemo(() => _.filter(_.keys(waypoints), (key) => !_.isEmpty(waypoints[key])).length, [waypoints]);
     const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isCreatingNewRequest = !(backTo || isEditing);
 
     useEffect(() => {
         MapboxToken.init();
@@ -86,8 +95,8 @@ function IOURequestStepDistance({
         if (isOffline || !shouldFetchRoute) {
             return;
         }
-        Transaction.getRouteForDraft(transactionID, validatedWaypoints);
-    }, [shouldFetchRoute, transactionID, validatedWaypoints, isOffline]);
+        Transaction.getRoute(transactionID, validatedWaypoints, action === CONST.IOU.ACTION.CREATE);
+    }, [shouldFetchRoute, transactionID, validatedWaypoints, isOffline, action]);
 
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
@@ -112,9 +121,7 @@ function IOURequestStepDistance({
      * @param {Number} index of the waypoint to edit
      */
     const navigateToWaypointEditPage = (index) => {
-        Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST, transactionID, report.reportID, index, Navigation.getActiveRouteWithoutParams()),
-        );
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.REQUEST, transactionID, report.reportID, index, Navigation.getActiveRouteWithoutParams()));
     };
 
     const navigateToNextStep = useCallback(() => {
@@ -128,7 +135,7 @@ function IOURequestStepDistance({
         // to the confirm step.
         if (report.reportID) {
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
         }
 
@@ -157,34 +164,69 @@ function IOURequestStepDistance({
             }
 
             const newWaypoints = {};
+            let emptyWaypointIndex = -1;
             _.each(data, (waypoint, index) => {
                 newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, {});
+                // Find waypoint that BECOMES empty after dragging
+                if (_.isEmpty(newWaypoints[`waypoint${index}`]) && !_.isEmpty(lodashGet(waypoints, `waypoint${index}`, {}))) {
+                    emptyWaypointIndex = index;
+                }
             });
 
             setOptimisticWaypoints(newWaypoints);
             // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            Transaction.updateWaypoints(transactionID, newWaypoints, true).then(() => {
-                setOptimisticWaypoints(null);
+            Promise.all([
+                Transaction.removeWaypoint(transaction, emptyWaypointIndex.toString(), action === CONST.IOU.ACTION.CREATE),
+                Transaction.updateWaypoints(transactionID, newWaypoints, action === CONST.IOU.ACTION.CREATE),
+            ]).then(() => {
+                setOptimisticWaypoints(undefined);
             });
         },
-        [transactionID, waypoints, waypointsList],
+        [transactionID, transaction, waypoints, waypointsList, action],
     );
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
+        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
+        if (isEditing) {
+            // If nothing was changed, simply go to transaction thread
+            // We compare only addresses because numbers are rounded while backup
+            const oldWaypoints = lodashGet(transactionBackup, 'comment.waypoints', {});
+            const oldAddresses = _.mapObject(oldWaypoints, (waypoint) => _.pick(waypoint, 'address'));
+            const addresses = _.mapObject(waypoints, (waypoint) => _.pick(waypoint, 'address'));
+            if (_.isEqual(oldAddresses, addresses)) {
+                Navigation.dismissModal();
+                return;
+            }
+            IOU.updateMoneyRequestDistance(transaction.transactionID, report.reportID, waypoints);
+            Navigation.dismissModal();
+            return;
+        }
+
         navigateToNextStep();
-    }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoadingRoute, isLoading, navigateToNextStep]);
+    }, [
+        duplicateWaypointsError,
+        atLeastTwoDifferentWaypointsError,
+        hasRouteError,
+        isLoadingRoute,
+        isLoading,
+        isEditing,
+        navigateToNextStep,
+        transactionBackup,
+        waypoints,
+        transaction.transactionID,
+        report.reportID,
+    ]);
 
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepDistance.displayName}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={!isCreatingNewRequest}
         >
             <>
                 <View style={styles.flex1}>
@@ -229,9 +271,10 @@ function IOURequestStepDistance({
                         success
                         allowBubble
                         pressOnEnter
+                        large
                         style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                         onPress={submitWaypoints}
-                        text={translate('common.next')}
+                        text={translate(!isCreatingNewRequest ? 'common.save' : 'common.next')}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                     />
                 </View>
@@ -244,4 +287,12 @@ IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 IOURequestStepDistance.propTypes = propTypes;
 IOURequestStepDistance.defaultProps = defaultProps;
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepDistance);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        transactionBackup: {
+            key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${props.transactionID}`,
+        },
+    }),
+)(IOURequestStepDistance);
