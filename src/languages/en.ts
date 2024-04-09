@@ -259,6 +259,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        leaveChat: 'Leave chat',
         leaveThread: 'Leave thread',
         you: 'You',
         youAfterPreposition: 'you',

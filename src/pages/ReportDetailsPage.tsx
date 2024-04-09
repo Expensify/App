@@ -124,7 +124,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
         // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
         if (
-            ((isDefaultRoom && isChatThread && isPolicyMember) ||
+            (isGroupChat || (isDefaultRoom && isChatThread && isPolicyMember) ||
                 (!isUserCreatedPolicyRoom && participants.length) ||
                 (isUserCreatedPolicyRoom && (isPolicyMember || (isChatThread && !ReportUtils.isPublicRoom(report))))) &&
             !ReportUtils.isConciergeChatReport(report)
@@ -133,7 +133,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
-                subtitle: participants.length,
+                subtitle: isGroupChat ? Object.keys(report.participants).length : participants.length,
                 isAnonymousAction: false,
                 action: () => {
                     if (isUserCreatedPolicyRoom || isChatThread) {
@@ -181,7 +181,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isChatThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session, isSelfDM, isDefaultRoom]);
+    }, [isArchivedRoom, participants.length, isChatThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session, isSelfDM, isDefaultRoom, isGroupChat]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;

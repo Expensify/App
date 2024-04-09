@@ -249,6 +249,7 @@ export default {
         enterManually: 'Introducir manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
+        leaveChat: 'Salir del chat',
         leaveThread: 'Salir del hilo',
         you: 'Tú',
         youAfterPreposition: 'ti',

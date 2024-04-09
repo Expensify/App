@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {View} from 'react-native';
 import * as Report from '@userActions/Report';
 import useLocalize from '@hooks/useLocalize';
 import type { Report as OnyxReportType } from '@src/types/onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ConfirmModal from './ConfirmModal';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
 
@@ -13,13 +14,33 @@ type ChatActionsBarProps = {
 
 function ChatActionsBar({report}: ChatActionsBarProps) {
     const styles = useThemeStyles();
+    const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const {translate} = useLocalize();
     const isPinned = !!report.isPinned;
     return (
         <View style={[styles.flexRow, styles.ph3, styles.mb5]}>
             <View style={[styles.flex1, styles.ph1]}>
+                <ConfirmModal
+                    danger
+                    title={translate('common.leaveChat')}
+                    isVisible={isLastMemberLeavingGroupModalVisible}
+                    onConfirm={() => Report.leaveGroupChat(report.reportID)}
+                    onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
+
+                    // TODO: Get this copy confirmed
+                    prompt="Heads up! You are the last member of this group chat. Once you leave you will not be able to access the contents again."
+                    confirmText={translate('common.leave')}
+                    cancelText={translate('common.cancel')}
+                />
                 <Button
-                    onPress={() => Report.leaveGroupChat(report.reportID)}
+                    onPress={() => {
+                        if (Object.keys(report?.participants ?? {}).length === 1) {
+                            setIsLastMemberLeavingGroupModalVisible(true);
+                            return;
+                        }
+
+                        Report.leaveGroupChat(report.reportID);
+                    }}
                     icon={Expensicons.Exit}
                     style={styles.flex1}
                     text={translate('common.leave')}
