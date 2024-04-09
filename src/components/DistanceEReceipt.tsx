@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import EReceiptBackground from '@assets/images/eReceipt_background.svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,8 +15,9 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
+import ReceiptImage from './ReceiptImage';
+import ScrollView from './ScrollView';
 import Text from './Text';
-import ThumbnailImage from './ThumbnailImage';
 
 type DistanceEReceiptProps = {
     /** The transaction for the distance request */
@@ -29,7 +30,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
     const thumbnail = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction).thumbnail : null;
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction) ?? {};
     const formattedTransactionAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const thumbnailSource = tryResolveUrlFromApiRoot((thumbnail as string) || '');
+    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);
     const sortedWaypoints = useMemo<WaypointCollection>(
         () =>
@@ -57,11 +58,9 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                         {TransactionUtils.isFetchingWaypointsFromServer(transaction) || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
-                            <ThumbnailImage
-                                previewSourceURL={thumbnailSource}
-                                style={[styles.w100, styles.h100]}
-                                isAuthTokenRequired
-                                shouldDynamicallyResize={false}
+                            <ReceiptImage
+                                source={thumbnailSource}
+                                shouldUseThumbnailImage
                             />
                         )}
                     </View>

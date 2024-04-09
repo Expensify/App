@@ -17,8 +17,8 @@ type RenamedInputKeysProps = {
     street2: string;
     city: string;
     state: string;
-    lat: string;
-    lng: string;
+    lat?: string;
+    lng?: string;
     zipCode: string;
     address?: string;
     country?: string;
@@ -96,4 +96,4 @@ type AddressSearchProps = {
 
 type IsCurrentTargetInsideContainerType = (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>, containerRef: RefObject<View | HTMLElement>) => boolean;
 
-export type {CurrentLocationButtonProps, AddressSearchProps, RenamedInputKeysProps, IsCurrentTargetInsideContainerType};
+export type {CurrentLocationButtonProps, AddressSearchProps, RenamedInputKeysProps, IsCurrentTargetInsideContainerType, StreetValue};

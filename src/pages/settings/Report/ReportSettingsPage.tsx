@@ -1,16 +1,16 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getGroupChatName} from '@libs/GroupChatUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
@@ -47,7 +47,8 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
-    const reportName = ReportUtils.isGroupChat(report) ? getGroupChatName(report) : ReportUtils.getReportName(report);
+    const reportName =
+        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report) ? ReportUtils.getGroupChatName(report.participantAccountIDs ?? []) : ReportUtils.getReportName(report);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
@@ -143,7 +144,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             </View>
                         )}
                     </View>
-                    {report?.visibility !== undefined &&
+                    {!!report?.visibility &&
                         (shouldAllowChangeVisibility ? (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon

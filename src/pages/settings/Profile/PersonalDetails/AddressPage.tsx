@@ -6,12 +6,16 @@ import AddressForm from '@components/AddressForm';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetails from '@userActions/PersonalDetails';
+import type {FormOnyxValues} from '@src/components/Form/types';
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
@@ -28,7 +32,7 @@ type AddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCRE
  * Submit form to update user's first and last legal name
  * @param values - form input values
  */
-function updateAddress(values: Address) {
+function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) {
     PersonalDetails.updateAddress(
         values.addressLine1?.trim() ?? '',
         values.addressLine2?.trim() ?? '',
@@ -44,7 +48,11 @@ function AddressPage({privatePersonalDetails, route}: AddressPageProps) {
     usePrivatePersonalDetails();
     const {translate} = useLocalize();
     const address = useMemo(() => privatePersonalDetails?.address, [privatePersonalDetails]);
-    const countryFromUrl = route.params?.country;
+    const countryFromUrlTemp = route?.params?.country;
+
+    // Check if country is valid
+    const countryFromUrl = CONST.ALL_COUNTRIES[countryFromUrlTemp as keyof typeof CONST.ALL_COUNTRIES] ? countryFromUrlTemp : '';
+    const stateFromUrl = useGeographicalStateFromRoute();
     const [currentCountry, setCurrentCountry] = useState(address?.country);
     const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
     const [street1, street2] = (address?.street ?? '').split('\n');
@@ -62,29 +70,32 @@ function AddressPage({privatePersonalDetails, route}: AddressPageProps) {
         setZipcode(address.zip);
     }, [address]);
 
-    const handleAddressChange = useCallback((value: string, key: keyof Address) => {
-        if (key !== 'country' && key !== 'state' && key !== 'city' && key !== 'zipPostCode') {
+    const handleAddressChange = useCallback((value: unknown, key: unknown) => {
+        const countryValue = value as Country | '';
+        const addressKey = key as keyof Address;
+
+        if (addressKey !== 'country' && addressKey !== 'state' && addressKey !== 'city' && addressKey !== 'zipPostCode') {
             return;
         }
-        if (key === 'country') {
-            setCurrentCountry(value);
+        if (addressKey === 'country') {
+            setCurrentCountry(countryValue);
             setState('');
             setCity('');
             setZipcode('');
             return;
         }
-        if (key === 'state') {
-            setState(value);
+        if (addressKey === 'state') {
+            setState(countryValue);
             setCity('');
             setZipcode('');
             return;
         }
-        if (key === 'city') {
-            setCity(value);
+        if (addressKey === 'city') {
+            setCity(countryValue);
             setZipcode('');
             return;
         }
-        setZipcode(value);
+        setZipcode(countryValue);
     }, []);
 
     useEffect(() => {
@@ -93,6 +104,13 @@ function AddressPage({privatePersonalDetails, route}: AddressPageProps) {
         }
         handleAddressChange(countryFromUrl, 'country');
     }, [countryFromUrl, handleAddressChange]);
+
+    useEffect(() => {
+        if (!stateFromUrl) {
+            return;
+        }
+        handleAddressChange(stateFromUrl, 'state');
+    }, [handleAddressChange, stateFromUrl]);
 
     return (
         <ScreenWrapper

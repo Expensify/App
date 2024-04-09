@@ -18,6 +18,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
+import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -71,30 +72,30 @@ function updatePronouns(pronouns: string) {
 }
 
 function updateDisplayName(firstName: string, lastName: string) {
-    if (currentUserAccountID) {
-        const parameters: UpdateDisplayNameParams = {firstName, lastName};
-
-        API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            firstName,
-                            lastName,
-                            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                                firstName,
-                                lastName,
-                            }),
-                        },
-                    },
-                },
-            ],
-        });
+    if (!currentUserAccountID) {
+        return;
     }
 
-    Navigation.goBack();
+    const parameters: UpdateDisplayNameParams = {firstName, lastName};
+
+    API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        firstName,
+                        lastName,
+                        displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                            firstName,
+                            lastName,
+                        }),
+                    },
+                },
+            },
+        ],
+    });
 }
 
 function updateLegalName(legalFirstName: string, legalLastName: string) {
@@ -137,7 +138,7 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
     Navigation.goBack();
 }
 
-function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: string) {
+function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
     const parameters: UpdateHomeAddressParams = {
         homeAddressStreet: street,
         addressStreet2: street2,
@@ -285,7 +286,7 @@ function openPublicProfilePage(accountID: number) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
             value: {
                 [accountID]: {
                     isLoading: true,
@@ -297,7 +298,7 @@ function openPublicProfilePage(accountID: number) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
             value: {
                 [accountID]: {
                     isLoading: false,
@@ -309,7 +310,7 @@ function openPublicProfilePage(accountID: number) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
             value: {
                 [accountID]: {
                     isLoading: false,
