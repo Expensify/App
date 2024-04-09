@@ -2084,9 +2084,11 @@ function getMemberInviteOptions(
     searchValue = '',
     excludeLogins: string[] = [],
     includeSelectedOptions = false,
+    reports = [],
+    includeRecentReports = false,
 ): GetOptions {
     return getOptions(
-        {reports: [], personalDetails},
+        {reports, personalDetails},
         {
             betas,
             searchInputValue: searchValue.trim(),
@@ -2094,6 +2096,7 @@ function getMemberInviteOptions(
             excludeLogins,
             sortPersonalDetailsByAlphaAsc: true,
             includeSelectedOptions,
+            includeRecentReports
         },
     );
 }

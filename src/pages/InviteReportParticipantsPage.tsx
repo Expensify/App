@@ -48,13 +48,14 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [invitePersonalDetails, setInvitePersonalDetails] = useState<ReportUtils.OptionData[]>([]);
+    const [recentReports, setRecentReports] = useState<ReportUtils.OptionData[]>([]);
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantAccountIDs(report?.reportID ?? '')), ...CONST.EXPENSIFY_EMAILS], [report]);
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers, false, options.reports, true);
 
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
@@ -71,6 +72,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
         setUserToInvite(inviteOptions.userToInvite);
         setInvitePersonalDetails(inviteOptions.personalDetails);
+        setRecentReports(inviteOptions.recentReports);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [personalDetails, betas, searchTerm, excludedUsers, options]);
@@ -102,9 +104,16 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
+        const recentReportsWithoutSelected = recentReports.filter(({login}) => !selectedLogins.includes(login));
+        const recentReportsFormatted = recentReportsWithoutSelected.map((reportOption) => OptionsListUtils.formatMemberForList(reportOption));
         const personalDetailsWithoutSelected = invitePersonalDetails.filter(({login}) => !selectedLogins.includes(login));
         const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => OptionsListUtils.formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = userToInvite && !selectedLogins.includes(userToInvite.login);
+
+        sectionsArr.push({
+            title: translate('common.recents'),
+            data: recentReportsFormatted,
+        });
 
         sectionsArr.push({
             title: translate('common.contacts'),
@@ -119,7 +128,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         }
 
         return sectionsArr;
-    }, [invitePersonalDetails, searchTerm, selectedOptions, translate, userToInvite, areOptionsInitialized]);
+    }, [invitePersonalDetails, searchTerm, selectedOptions, translate, userToInvite, areOptionsInitialized, recentReports]);
 
     const toggleOption = useCallback(
         (option: OptionsListUtils.MemberForList) => {
