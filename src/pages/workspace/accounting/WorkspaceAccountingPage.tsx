@@ -158,14 +158,6 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: () => {},
                       },
-                      {
-                          key: 'workspace.accounting.other',
-                          iconRight: Expensicons.DownArrow,
-                          shouldShowRightIcon: true,
-                          description: translate('workspace.accounting.other'),
-                          wrapperStyle: [styles.sectionMenuItemTopDescription, styles.mt3],
-                          onPress: () => {},
-                      },
                   ]),
         ],
         [
