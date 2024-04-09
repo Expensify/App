@@ -1,6 +1,7 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {MutableRefObject} from 'react';
 import React from 'react';
+import {InteractionManager} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -26,7 +27,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {Beta, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -200,7 +201,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
                 hideContextMenu(false, () => {
-                    ReportActionComposeFocusManager.focus();
+                    InteractionManager.runAfterInteractions(() => {
+                        // Normally the focus callback of the main composer doesn't focus when willBlurTextInputOnTapOutside
+                        // is false, so we need to pass true here to override this condition.
+                        ReportActionComposeFocusManager.focus(true);
+                    });
                     Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, reportID);
                 });
                 return;
@@ -374,7 +379,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, ReportUtils.getReport(reportID) as OnyxEntry<ReportType>, false));
+                    Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, ReportUtils.getReport(reportID), false));
                 } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
                     const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);
