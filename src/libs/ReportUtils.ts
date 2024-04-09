@@ -5740,7 +5740,8 @@ function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject):
 
     const policy = getPolicy(iouReport.policyID);
     const shouldBeManuallySubmitted = PolicyUtils.isPaidGroupPolicy(policy) && !policy?.harvesting?.enabled;
-    if (shouldBeManuallySubmitted || PolicyUtils.isPolicyAdmin(policy)) {
+    const isOwnFreePolicy = PolicyUtils.isFreeGroupPolicy(policy) && PolicyUtils.isPolicyAdmin(policy);
+    if (shouldBeManuallySubmitted || isOwnFreePolicy) {
         return {
             hasOutstandingChildRequest: true,
         };
