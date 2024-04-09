@@ -2,6 +2,7 @@ import Str from 'expensify-common/lib/str';
 import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
@@ -56,6 +57,7 @@ function SuggestionMention(
 
     // Used to store the selection index of the last inserted mention
     const suggestionInsertionIndexRef = useRef<number | null>(null);
+    const calculateMentionSuggestionRef = useRef<(selectionEnd: number) => void>();
 
     // Used to detect if the selection has changed since the last suggestion insertion
     // If so, we reset the suggestionInsertionIndexRef
@@ -219,19 +221,8 @@ function SuggestionMention(
                 return;
             }
 
-            const valueAfterTheCursor = value.substring(selectionEnd);
-            const indexOfFirstSpecialCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.MENTION_BREAKER);
-
-            let suggestionEndIndex;
-            if (indexOfFirstSpecialCharOrEmojiAfterTheCursor === -1) {
-                // We didn't find a special char/whitespace/emoji after the cursor, so we will use the entire string
-                suggestionEndIndex = value.length;
-            } else {
-                suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
-            }
-
             const afterLastBreakLineIndex = value.lastIndexOf('\n', selectionEnd - 1) + 1;
-            const leftString = value.substring(afterLastBreakLineIndex, suggestionEndIndex);
+            const leftString = value.substring(afterLastBreakLineIndex, selectionEnd);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord: string = words.at(-1) ?? '';
             const secondToLastWord = words[words.length - 3];
@@ -261,9 +252,7 @@ function SuggestionMention(
                 mentionPrefix: prefix,
             };
 
-            const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(suggestionWord);
-
-            if (!isCursorBeforeTheMention && isMentionCode(suggestionWord)) {
+            if (isMentionCode(suggestionWord)) {
                 const suggestions = getMentionOptions(personalDetails, prefix);
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
@@ -279,8 +268,15 @@ function SuggestionMention(
     );
 
     useEffect(() => {
-        calculateMentionSuggestion(selection.end);
-    }, [selection, calculateMentionSuggestion]);
+        calculateMentionSuggestionRef.current = calculateMentionSuggestion;
+    }, [calculateMentionSuggestion]);
+
+    useEffect(() => {
+        if (!isComposerFocused) {
+            return;
+        }
+        calculateMentionSuggestionRef.current?.(selection.end);
+    }, [isComposerFocused]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -300,16 +296,34 @@ function SuggestionMention(
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
 
+    const onSelectionChange = useCallback(
+        (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+            /**
+             * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
+             * because in other case calculateEmojiSuggestion will have an old calculation value
+             * of suggestion instead of current one
+             */
+            const selectionEnd = e.nativeEvent.selection.end;
+            // On iOS, onSelectionChange is called before onChangeText, so it's possible we calculate the mention suggestion with a new selection value but with an old composer value
+            // We use setTimeout to delay the calculation so both selection and value is matched correctly
+            setTimeout(() => {
+                calculateMentionSuggestionRef.current?.(selectionEnd);
+            }, 1);
+        },
+        [calculateMentionSuggestion],
+    );
+
     useImperativeHandle(
         ref,
         () => ({
             resetSuggestions,
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
+            onSelectionChange,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isMentionSuggestionsMenuVisible) {

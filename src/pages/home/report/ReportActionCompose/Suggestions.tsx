@@ -111,7 +111,8 @@ function Suggestions(
 
     const onSelectionChange = useCallback((e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
         const emojiHandler = suggestionEmojiRef.current?.onSelectionChange?.(e);
-        return emojiHandler;
+        const mentionHandler = suggestionMentionRef.current?.onSelectionChange?.(e);
+        return emojiHandler ?? mentionHandler;
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
