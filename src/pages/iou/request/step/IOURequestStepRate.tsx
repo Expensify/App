@@ -32,6 +32,9 @@ type Props = {
         params: {
             /** The route to go back to */
             backTo: Route;
+
+            /** The ID of the transaction being configured */
+            transactionID: string;
         };
     };
 
@@ -42,7 +45,7 @@ type Props = {
 function IOURequestStepRate({
     policy,
     route: {
-        params: {backTo},
+        params: {backTo, transactionID},
     },
     lastSelectedDistanceRates = {},
     rates,
@@ -65,7 +68,7 @@ function IOURequestStepRate({
     const initiallyFocusedOption = rates[lastSelectedRate]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
 
     function selectDistanceRate(customUnitRateID: string) {
-        IOU.updateDistanceRequestRate('1', customUnitRateID, policy?.id ?? '');
+        IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '');
         Navigation.goBack(backTo);
     }
 
