@@ -4871,7 +4871,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     return !isPolicyExpenseChat(report) || isOwnPolicyExpenseChat;
 }
 
-function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: Number) {
+function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
     const reportParticipants = report.participants ?? {};
     const participant = reportParticipants[accountID] ?? {};
     return participant.role === CONST.REPORT.ROLE.ADMIN;

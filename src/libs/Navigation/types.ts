@@ -17,6 +17,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import { NewGroupChatDraft } from '@src/types/onyx';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -273,7 +274,9 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
-    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: undefined;
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
+        reportID?: string,
+    };
 };
 
 type SearchNavigatorParamList = {

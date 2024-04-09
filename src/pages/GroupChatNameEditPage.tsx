@@ -1,10 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
-import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -21,14 +20,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
+import type { Errors } from '@src/types/onyx/OnyxCommon';
+import type { SelectedParticipant } from '@src/types/onyx/NewGroupChatDraft';
+import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 
-type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>;
+type GroupChatNameEditPageOnyxProps = {
+    groupChatDraft?: NewGroupChatDraft;
+};
 
-function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
-    const {groupChatDraft} = props;
+type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME> & GroupChatNameEditPageOnyxProps;
 
+function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPageProps) {
     // If we have a reportID this means we are using this page to update an existing Group Chat name
-    const reportID = props.route.params?.reportID ?? '';
+    const reportID = route.params?.reportID ?? '';
     const isUpdatingExistingReport = Boolean(reportID);
 
     const styles = useThemeStyles();
@@ -41,15 +45,22 @@ function GroupChatNameEditPage(props: GroupChatNameEditPageProps) {
             return ReportUtils.getParticipantAccountIDs(reportID);
         }
 
-        return groupChatDraft?.participants.map((participant) => participant.accountID);
+        return (groupChatDraft?.participants ?? []).map((participant: SelectedParticipant) => participant.accountID);
     }, [groupChatDraft, reportID]);
     const existingReportName = ReportUtils.getGroupChatName(participantAccountIDs, false, reportID);
-    const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
+    const currentChatName = reportID ? existingReportName : (groupChatDraft?.reportName ?? existingReportName);
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
-        // TODO: There is some restriction on max characters (255 so we can use tag name limit) not much else. We should let people set this to an empty string if they want.
-        return {};
-    }, []);
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
+        const errors: Errors & {
+            newChatName?: string | string[];
+        } = {};
+
+        if (ValidationUtils.isValidReportName(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
+            errors.newChatName = translate('common.error.characterLimit', {limit: CONST.REPORT_NAME_LIMIT});
+        }
+
+        return errors;
+    }, [translate]);
 
     const editName = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
         if (isUpdatingExistingReport) {
