@@ -317,9 +317,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled: boolean;
         };
 
-        /** @deprecated Whether the scheduled submit is enabled */
-        isPreventSelfApprovalEnabled?: boolean;
-
         /** Whether the self approval or submitting is enabled */
         preventSelfApproval?: boolean;
 
