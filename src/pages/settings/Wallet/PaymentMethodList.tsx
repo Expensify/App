@@ -320,7 +320,6 @@ function PaymentMethodList({
                     iconRight={item.iconRight}
                     badgeStyle={styles.badgeBordered}
                     hoverAndPressStyle={styles.hoveredComponentBG}
-                    shouldShowRightIcon={item.shouldShowRightIcon}
                     shouldShowSelectedState={shouldShowSelectedState}
                     isSelected={selectedMethodID.toString() === item.methodID?.toString()}
                     interactive={item.interactive}
