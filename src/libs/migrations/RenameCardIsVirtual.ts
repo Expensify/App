@@ -5,7 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type OldCard = Card & {isVirtual?: string};
+type OldCard = Card & {isVirtual?: boolean};
 
 // This migration changes the property name on each card from card list from isVirtual to nameValuePairs.isVirtual
 export default function () {
@@ -32,7 +32,7 @@ export default function () {
                     }
                     return {
                         ...result,
-                        [`${card.cardID}`]: {
+                        [card.cardID]: {
                             nameValuePairs: {
                                 isVirtual: card.isVirtual,
                             },
