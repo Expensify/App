@@ -146,7 +146,7 @@ function ReportActionsView({
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
         const moneyRequestAction = allReportActions.find((action) => {
             const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
-            return actionType === CONST.IOU.REPORT_ACTION_TYPE.CREATE || actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK || !ReportActionsUtils.isSentMoneyReportAction(action);
+            return actionType === CONST.IOU.REPORT_ACTION_TYPE.CREATE || actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK || ReportActionsUtils.isSentMoneyReportAction(action);
         });
 
         // Filter out the money request actions because we don't want to show any preview actions for one-transaction reports
