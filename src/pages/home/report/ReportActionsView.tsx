@@ -531,11 +531,6 @@ function ReportActionsView({
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
             <PopoverReactionList ref={reactionListRef} />
-            <RenderHTML html={'<comment><mention-report>#admins</mention-report></comment>'} />
-            <RenderHTML html={'<comment><mention-report reportID="3088255940953979" /></comment>'} />
-            <RenderHTML html={'<comment><mention-report/></comment>'} />
-            <RenderHTML html={'<comment><mention-report>#dupa</mention-report></comment>'} />
-            <RenderHTML html={'<comment><mention-report reportID="111111" /></comment>'} />
         </>
     );
 }
