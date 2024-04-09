@@ -2366,9 +2366,9 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     }
 
     // TODO: Uncomment this line when BE starts working properly (Editing Track Expense)
-    // if (reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
-    //     return true;
-    // }
+    if (reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
+        return true;
+    }
 
     if (reportAction.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
         return false;
@@ -2945,6 +2945,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     if (isChatThread(report)) {
         return '';
+    }
+    if (isSelfDM(report)) {
+        return Localize.translateLocal('reportActionsView.yourSpace');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -5734,8 +5737,9 @@ function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject):
     }
 
     if (!isExpenseReport(iouReport)) {
+        const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
         return {
-            hasOutstandingChildRequest: iouReport.managerID === currentUserAccountID && iouReport.total !== 0,
+            hasOutstandingChildRequest: iouReport.managerID === currentUserAccountID && reimbursableSpend !== 0,
         };
     }
 

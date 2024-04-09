@@ -35,6 +35,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
     const parentReportAction = ReportActionUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
+    const isTrackExpenseAction = ReportActionUtils.isTrackExpenseAction(parentReportAction);
 
     useEffect(() => {
         if (report && transaction) {
@@ -59,6 +60,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
             isReceiptAttachment
             canEditReceipt={canEditReceipt}
             allowDownload={!isEReceipt}
+            isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={receiptURIs?.filename}
             defaultOpen
             onModalClose={() => {
