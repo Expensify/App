@@ -22,6 +22,7 @@ import type {Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepAmountOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
@@ -32,7 +33,7 @@ type IOURequestStepAmountOnyxProps = {
 };
 
 type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT> & {
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
@@ -56,7 +57,7 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
-    const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: ''};
+    const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
 
     useFocusEffect(
         useCallback(() => {
@@ -168,11 +169,11 @@ function IOURequestStepAmount({
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepAmount.displayName}
-            shouldShowWrapper={Boolean(backTo || isEditing)}
+            shouldShowWrapper={Boolean(backTo) || isEditing}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={Boolean(backTo || isEditing)}
+                isEditing={Boolean(backTo) || isEditing}
                 currency={currency}
                 amount={Math.abs(transactionAmount)}
                 ref={(e) => (textInput.current = e)}
@@ -202,4 +203,5 @@ export default compose(
         },
     }),
     withFullTransactionOrNotFound,
+    withWritableReportOrNotFound,
 )(IOURequestStepAmount);

@@ -32,6 +32,7 @@ import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceOnyxProps = {
     /** backup version of the original transaction  */
@@ -39,7 +40,7 @@ type IOURequestStepDistanceOnyxProps = {
 };
 
 type IOURequestStepDistanceProps = IOURequestStepDistanceOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE> & {
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
@@ -301,4 +302,5 @@ export default compose(
         },
     }),
     withFullTransactionOrNotFound,
+    withWritableReportOrNotFound,
 )(IOURequestStepDistance);

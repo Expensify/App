@@ -428,14 +428,19 @@ type MoneyRequestNavigatorParamList = {
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
-        transactionID: string;
         reportID: string;
+        transactionID: string;
+
+        // These are not used in the screen, but are needed for the navigation
+        // for IOURequestStepDistance and IOURequestStepAmount components
+        backTo: never;
+        action: never;
     };
     [SCREENS.MONEY_REQUEST.START]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         reportID: string;
-        iouRequestType: IOURequestType;
         transactionID: string;
+        iouRequestType: IOURequestType;
     };
     [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
