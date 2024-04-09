@@ -68,8 +68,14 @@ function Badge({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
-        ({pressed}) => [styles.badge, styles.ml2, StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC), badgeStyles],
-        [styles.badge, styles.ml2, StyleUtils, success, error, environment, badgeStyles],
+        ({pressed}) => [
+            styles.defaultBadge,
+            styles.alignSelfCenter,
+            styles.ml2,
+            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC),
+            badgeStyles,
+        ],
+        [styles.defaultBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles],
     );
 
     return (
@@ -92,7 +98,7 @@ function Badge({
                 </View>
             )}
             <Text
-                style={[styles.badgeText, textColorStyles, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                style={[styles.badgeText, styles.textStrong, textColorStyles, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
                 numberOfLines={1}
             >
                 {text}

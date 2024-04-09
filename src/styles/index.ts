@@ -836,6 +836,18 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        defaultBadge: {
+            backgroundColor: theme.transparent,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.buttonHoveredBG,
+            paddingHorizontal: 12,
+            minHeight: 28,
+            height: variables.iconSizeNormal,
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
         badgeSuccess: {
             backgroundColor: theme.success,
         },
