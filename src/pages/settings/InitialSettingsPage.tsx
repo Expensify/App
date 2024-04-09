@@ -254,7 +254,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
                     icon: Expensicons.Lightbulb,
                     routeName: ROUTES.SETTINGS_TROUBLESHOOT,
-},{
+                },
+                {
                     translationKey: 'sidebarScreen.saveTheWorld',
                     icon: Expensicons.Heart,
                     routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
