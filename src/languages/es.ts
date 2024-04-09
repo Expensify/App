@@ -597,7 +597,7 @@ export default {
         splitDistance: 'Dividir Distancia',
         sendMoney: 'Enviar Dinero',
         assignTask: 'Assignar Tarea',
-        shortcut: 'Acceso Directo',
+        header: 'Acción rápida',
         trackManual: 'Seguimiento de Gastos',
         trackScan: 'Seguimiento de Recibo',
         trackDistance: 'Seguimiento de Distancia',
