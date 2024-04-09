@@ -64,7 +64,7 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
     }, [policy, report]);
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(shouldUseNarrowLayout, true)]}>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(shouldUseNarrowLayout, true), styles.overflowHidden]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(shouldUseNarrowLayout, true)]}>
                 {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (

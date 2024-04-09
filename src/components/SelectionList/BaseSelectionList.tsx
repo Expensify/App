@@ -577,6 +577,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item, index) => item.keyForList ?? `${index}`}
                                     extraData={focusedIndex}
+                                    // the only valid values on the new arch are "white", "black", and "default", other values will cause a crash
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
