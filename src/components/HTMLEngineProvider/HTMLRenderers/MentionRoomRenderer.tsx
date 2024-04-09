@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,36 +26,44 @@ type RoomMentionOnyxProps = {
 
 type MentionRoomRendererProps = RoomMentionOnyxProps & CustomRendererProps<TText | TPhrasing>;
 
+const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').slice(1);
+
+const getMentionDetails = (htmlAttributeReportID: string, currentReportID: CurrentReportIDContextValue | null, reports: OnyxCollection<Report>, tnode: TText | TPhrasing) => {
+    if (!isEmpty(htmlAttributeReportID)) {
+        const report = reports?.['report_'.concat(htmlAttributeReportID)];
+
+        const reportID = report?.reportID ?? undefined;
+        const mentionDisplayText = report?.reportName ?? report?.displayName ?? htmlAttributeReportID;
+
+        return {reportID, mentionDisplayText};
+    } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
+        const currentReport = reports?.['report_'.concat(currentReportID?.currentReportID ?? '')];
+
+        let reportID = undefined;
+        Object.values(reports ?? {}).forEach((report) => {
+            if (report?.policyID === currentReport?.policyID && removeLeadingLTRAndHash(report?.reportName ?? '') === mentionDisplayText) {
+                reportID = report?.reportID;
+            }
+        });
+        const mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
+
+        return {reportID, mentionDisplayText};
+    }
+
+    return null;
+};
+
 function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaultRendererProps}: MentionRoomRendererProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
     const currentReportID = useCurrentReportID();
 
-    let reportID: number | undefined;
-    let mentionDisplayText: string;
-
-    const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').slice(1);
-
-    if (!isEmpty(htmlAttributeReportID)) {
-        const report = reports?.['report_'.concat(htmlAttributeReportID)];
-
-        reportID = report?.reportID ? parseInt(report.reportID, 10) : undefined;
-        mentionDisplayText = report?.reportName ?? report?.displayName ?? htmlAttributeReportID;
-    } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
-        mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
-
-        const currentReport = reports?.['report_'.concat(currentReportID?.currentReportID ?? '')];
-
-        // eslint-disable-next-line rulesdir/prefer-early-return
-        Object.values(reports ?? {}).forEach((report) => {
-            if (report?.policyID === currentReport?.policyID && removeLeadingLTRAndHash(report?.reportName ?? '') === mentionDisplayText) {
-                reportID = Number(report?.reportID);
-            }
-        });
-    } else {
+    const mentionDetails = getMentionDetails(htmlAttributeReportID, currentReportID, reports, tnode);
+    if (mentionDetails === null) {
         return null;
     }
+    const {reportID, mentionDisplayText} = mentionDetails;
 
     const navigationRoute = reportID ? ROUTES.REPORT_WITH_ID.getRoute(String(reportID)) : undefined;
     const isCurrentRoomMention = String(reportID) === currentReportID?.currentReportID;
@@ -70,13 +79,14 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
                     {...defaultRendererProps}
                     style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isCurrentRoomMention), {color: StyleUtils.getMentionTextColor(isCurrentRoomMention)}]}
                     suppressHighlighting
-                    onPress={(event) => {
-                        event.preventDefault();
-
-                        if (navigationRoute) {
-                            Navigation.navigate(navigationRoute);
-                        }
-                    }}
+                    onPress={
+                        navigationRoute
+                            ? (event) => {
+                                  event.preventDefault();
+                                  Navigation.navigate(navigationRoute);
+                              }
+                            : undefined
+                    }
                     role={CONST.ROLE.LINK}
                     accessibilityLabel={`/${navigationRoute}`}
                 >
