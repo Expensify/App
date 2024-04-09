@@ -17,7 +17,7 @@ type DistanceRequestProps = {
     onSecondaryInteraction?: () => void;
 
     /** Function to get the index of the item */
-    getIndex?: () => number;
+    getIndex?: () => number | undefined;
 
     /** Whether the item is active */
     isActive?: boolean;

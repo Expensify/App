@@ -17,6 +17,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import type { IOURequestType } from '@libs/actions/IOU';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -330,13 +331,6 @@ type RoomInviteNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
-    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
-        transactionID: string;
-        reportID: string;
-        backTo: string;
-    };
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
         reportID: string;
@@ -419,7 +413,7 @@ type MoneyRequestNavigatorParamList = {
         threadReportID: number;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
-        action: string;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -428,6 +422,23 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.RECEIPT]: {
         iouType: string;
         reportID: string;
+    };
+    [SCREENS.MONEY_REQUEST.CREATE]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+    };
+    [SCREENS.MONEY_REQUEST.START]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        iouRequestType: IOURequestType;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        transactionID: string;
+        backTo: Routes;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
     };
 };
 

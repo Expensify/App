@@ -21,7 +21,11 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
     | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
-    | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT;
+    | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT
+    | typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE
+    | typeof SCREENS.MONEY_REQUEST.CREATE
+    | typeof SCREENS.MONEY_REQUEST.START;
 
 type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
 
@@ -53,7 +57,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
     return withOnyx<TProps & RefAttributes<TRef>, WithWritableReportOrNotFoundOnyxProps>({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '0'}`,
         },
     })(forwardRef(WithWritableReportOrNotFound));
 }

@@ -12,6 +12,7 @@ import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
+import type { IOURequestType } from './actions/IOU';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -45,16 +46,16 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
-function isScanRequest(transaction: Transaction): boolean {
+function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the request creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
     return Boolean(transaction?.receipt?.source);
 }
 
-function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
+function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     if (isDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;
     }

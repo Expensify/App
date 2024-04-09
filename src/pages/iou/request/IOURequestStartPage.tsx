@@ -1,10 +1,9 @@
+import _ from 'lodash';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import { withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -22,31 +21,36 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import type * as OnyxTypes from '@src/types/onyx';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type { Policy, Report, SelectedTabRequest, Transaction } from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
+import type { IOURequestType } from '@userActions/IOU';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import type { WithWritableReportOrNotFoundProps } from './step/withWritableReportOrNotFound';
 
 type IOURequestStartPageOnyxProps = {
-    report?: OnyxEntry<OnyxTypes.Report>,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    selectedTab?: typeof CONST.TAB_REQUEST[keyof typeof CONST.TAB_REQUEST],
-    transaction?: OnyxEntry<OnyxTypes.Transaction>,
+    report: OnyxEntry<Report>;
+
+    policy: OnyxEntry<Policy>;
+
+    selectedTab: OnyxEntry<SelectedTabRequest>;
+    
+    transaction: OnyxEntry<Transaction>;
 };
 
-type IOURequestStartPageProps = WithWritableReportOrNotFoundProps & IOURequestStartPageOnyxProps;
+type IOURequestStartPageProps = IOURequestStartPageOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
 
 function IOURequestStartPage({
+    report,
+    policy,
     route,
     route: {
         params: {iouType, reportID},
     },
-    report,
-    policy,
     selectedTab,
     transaction,
 }: IOURequestStartPageProps) {
@@ -63,11 +67,11 @@ function IOURequestStartPage({
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);
     const {canUseP2PDistanceRequests} = usePermissions();
-    const isFromGlobalCreate = _.isEmpty(report.reportID);
+    const isFromGlobalCreate = _.isEmpty(report?.reportID);
 
     useFocusEffect(
         useCallback(() => {
-            const handler = (event) => {
+            const handler = (event: KeyboardEvent) => {
                 if (event.code !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
                     return;
                 }
@@ -82,7 +86,7 @@ function IOURequestStartPage({
 
     // Clear out the temporary money request if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
-        if (transaction.reportID === reportID) {
+        if (transaction?.reportID === reportID) {
             return;
         }
         IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
@@ -90,30 +94,30 @@ function IOURequestStartPage({
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest = iouType !== CONST.IOU.TYPE.TRACK_EXPENSE && (canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate);
+    const shouldDisplayDistanceRequest = iouType !== CONST.IOU.TYPE.TRACK_EXPENSE && (canUseP2PDistanceRequests ?? isExpenseChat ?? isExpenseReport ?? isFromGlobalCreate);
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
-    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, policy, iouType);
+    const isAllowedToCreateRequest = _.isEmpty(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType);
 
     const navigateBack = () => {
         Navigation.dismissModal();
     };
 
     const resetIOUTypeIfChanged = useCallback(
-        (newIouType) => {
+        (newIouType: IOURequestType) => {
             if (newIouType === previousIOURequestType) {
                 return;
             }
-            if (iouType === CONST.IOU.TYPE.SPLIT && transaction.isFromGlobalCreate) {
-                IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST, newIouType);
+            if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.isFromGlobalCreate) {
+                IOU.updateMoneyRequestTypeParams(navigation.getState()?.routes ?? [], CONST.IOU.TYPE.REQUEST, newIouType);
             }
             IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [policy, previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction.isFromGlobalCreate],
+        [policy, previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction?.isFromGlobalCreate],
     );
 
-    if (!transaction.transactionID) {
+    if (!transaction?.transactionID) {
         // The draft transaction is initialized only after the component is mounted,
         // which will lead to briefly displaying the Not Found page without this loader.
         return <FullScreenLoadingIndicator />;
@@ -141,7 +145,7 @@ function IOURequestStartPage({
                             {iouType !== CONST.IOU.TYPE.SEND ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
-                                    selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
+                                    selectedTab={selectedTab ?? CONST.IOU.REQUEST_TYPE.SCAN}
                                     onTabSelected={resetIOUTypeIfChanged}
                                     tabBar={TabSelector}
                                 >
@@ -161,20 +165,18 @@ function IOURequestStartPage({
 }
 
 IOURequestStartPage.displayName = 'IOURequestStartPage';
-IOURequestStartPage.propTypes = propTypes;
-IOURequestStartPage.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<IOURequestStartPageProps, IOURequestStartPageOnyxProps>({
     report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route?.params?.reportID}`,
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID')}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
     },
     selectedTab: {
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
     },
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', '0')}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? 0}`,
     },
 })(IOURequestStartPage);

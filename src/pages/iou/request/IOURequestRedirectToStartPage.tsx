@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,9 +5,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type { WithWritableReportOrNotFoundProps } from './step/withWritableReportOrNotFound';
 
-type IOURequestRedirectToStartPageProps = WithWritableReportOrNotFoundProps;
+type IOURequestRedirectToStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.START>;
 
 function IOURequestRedirectToStartPage({
     route: {
