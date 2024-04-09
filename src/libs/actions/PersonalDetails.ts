@@ -374,7 +374,14 @@ function openPublicProfilePage(accountID: number) {
     optimisticTaskReport2.parentReportActionID = optimisticAddCommentReport2.reportAction.reportActionID;
 
     // -- Message inside task 2
-    const reportComment4 = ReportUtils.buildOptimisticAddCommentReportAction('Message inside the second task', undefined);
+    const comment = "Here's a multi-line styled comment:\n" +
+    '\n' +
+    '1. Click the green *+* > *Request money*.\n' +
+    '2. Add an expense or scan a receipt.\n' +
+    "3. Enter your reimburser's email or phone number.\n" +
+    '\n' +
+    "That's it! Make sure this is displayed correctly!";
+    const reportComment4 = ReportUtils.buildOptimisticAddCommentReportAction(comment, undefined,);
     const reportCommentAction4: OptimisticAddCommentReportAction = reportComment4.reportAction;
     const reportCommentText4 = reportComment4.commentText;
 
@@ -400,7 +407,7 @@ function openPublicProfilePage(accountID: number) {
     const parameters2: CompleteGuidedSetupParams = {
         firstName: 'Jane',
         lastName: 'Smith',
-        data: JSON.stringify([{
+        guidedSetupData: JSON.stringify([{
             reportID: parentReportID,
             reportActionID: reportCommentAction.reportActionID,
             reportComment: reportCommentText,

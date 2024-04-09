@@ -1,6 +1,6 @@
 type CompleteGuidedSetupParams = {
     engagementChoice: string;
-    data: string;
+    guidedSetupData: string;
     firstName: string;
     lastName: string;
 };
