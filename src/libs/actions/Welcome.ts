@@ -58,7 +58,6 @@ function isAbleToDetermineOnboardingStatus({onAble, onNotAble}: DetermineOnboard
  */
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
-        // Remove once Stage 1 Onboarding Flow is ready
         if (!isFirstTimeNewExpensifyUser) {
             return;
         }
@@ -68,7 +67,6 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
         if (onboardingFlowCompleted) {
             onCompleted?.();
         } else {
-            // Remove once Stage 1 Onboarding Flow is ready
             // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
             Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
 
