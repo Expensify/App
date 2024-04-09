@@ -166,7 +166,6 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         });
         Report.inviteToGroupChat(reportID, invitedEmailsToAccountIDs);
         Navigation.navigate(backRoute);
-        setSelectedOptions([]);
     }, [selectedOptions, backRoute, reportID, validate]);
 
     const headerMessage = useMemo(() => {

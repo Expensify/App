@@ -83,7 +83,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 keyForList: `${accountID}`,
                 accountID,
                 isSelected,
-                isDisabledCheckbox: accountID === currentUserAccountID || !isCurrentUserAdmin,
+                isDisabledCheckbox: accountID === currentUserAccountID,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -243,10 +243,6 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     };
 
     const getBulkActionsButtonOptions = () => {
-        if (!isCurrentUserAdmin) {
-            return [];
-        }
-
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
                 text: translate('workspace.people.removeMembersTitle'),

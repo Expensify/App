@@ -24,7 +24,10 @@ function ChatActionsBar({report}: ChatActionsBarProps) {
                     danger
                     title={translate('common.leaveChat')}
                     isVisible={isLastMemberLeavingGroupModalVisible}
-                    onConfirm={() => Report.leaveGroupChat(report.reportID)}
+                    onConfirm={() => {
+                        setIsLastMemberLeavingGroupModalVisible(false);
+                        Report.leaveGroupChat(report.reportID);
+                    }}
                     onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
 
                     // TODO: Get this copy confirmed

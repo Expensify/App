@@ -102,7 +102,7 @@ function InviteMemberListItem({
                                     item.alternateText ? styles.mb1 : null,
                                 ]}
                             />
-                            {item.badgeText && (
+                            {!!item.badgeText && (
                                 <Badge
                                     text={item.badgeText}
                                     textStyles={[styles.textStrong]}

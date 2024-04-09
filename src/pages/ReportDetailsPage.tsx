@@ -81,10 +81,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    const participants = useMemo(() => ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? ''), [report]);
+    const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const participants = useMemo(() => {
+        if (isGroupChat) {
+            return ReportUtils.getParticipantAccountIDs();
+        }
+
+        return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
+    }, [report, isGroupChat]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
-    const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
@@ -133,7 +139,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
-                subtitle: isGroupChat ? Object.keys(report?.participants ?? {}).length : participants.length,
+                subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
                     if (isUserCreatedPolicyRoom || isChatThread) {
