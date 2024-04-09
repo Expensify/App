@@ -2500,6 +2500,22 @@ function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewActio
 }
 
 /**
+ * Get the transactions related to a report preview with receipts
+ * Get the details linked to the IOU reportAction
+ *
+ * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use withOnyx or Onyx.connect() instead.
+ */
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): Transaction | EmptyObject {
+    let transactionID = '';
+
+    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+        transactionID = (reportAction?.originalMessage as IOUMessage)?.IOUTransactionID ?? '';
+    }
+
+    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
+}
+
+/**
  * Check if any of the transactions in the report has required missing fields
  *
  */
@@ -2514,27 +2530,10 @@ function hasMissingSmartscanFields(iouReportID: string, isLHNPreview = false): b
             if (isEmptyObject(transaction)) {
                 return false;
             }
-            console.log("22222222222", {transaction})
             return TransactionUtils.hasMissingSmartscanFields(transaction) && currentUserAccountID === action?.actorAccountID;
         });
     }
     return TransactionUtils.getAllReportTransactions(iouReportID).some((transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
-}
-
-/**
- * Get the transactions related to a report preview with receipts
- * Get the details linked to the IOU reportAction
- *
- * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use withOnyx or Onyx.connect() instead.
- */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): Transaction | EmptyObject {
-    let transactionID = '';
-
-    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-        transactionID = (reportAction?.originalMessage as IOUMessage)?.IOUTransactionID ?? '';
-    }
-
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
 /**
@@ -5421,7 +5420,7 @@ function hasSmartscanError(reportActions: ReportAction[], isLHNPreview = false) 
             return false;
         }
         const IOUReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-        const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && hasMissingSmartscanFields(IOUReportID, true) && !isSettled(IOUReportID);
+        const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && hasMissingSmartscanFields(IOUReportID, isLHNPreview) && !isSettled(IOUReportID);
         const transactionID = (action.originalMessage as IOUMessage).IOUTransactionID ?? '0';
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
         const isSplitBillError = ReportActionsUtils.isSplitBillAction(action) && TransactionUtils.hasMissingSmartscanFields(transaction as Transaction);
