@@ -1,8 +1,8 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import type { IOURequestType } from '@libs/actions/IOU';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';

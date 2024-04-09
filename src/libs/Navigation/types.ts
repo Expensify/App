@@ -11,13 +11,13 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
-import type { IOURequestType } from '@libs/actions/IOU';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 

@@ -5,11 +5,11 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
+import type {IOURequestType} from '@libs/actions/IOU';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type { IOURequestType } from '@libs/actions/IOU';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorOnyxProps = {

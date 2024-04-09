@@ -2179,7 +2179,7 @@ type UpdateMoneyRequestDistanceParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
-}
+};
 
 /** Updates the waypoints of a distance money request */
 function updateMoneyRequestDistance({
@@ -3813,7 +3813,15 @@ function updateMoneyRequestAmountAndCurrency({
         amount,
         currency,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy ?? null, policyTagList ?? null, policyCategories ?? null, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(
+        transactionID,
+        transactionThreadReportID,
+        transactionChanges,
+        policy ?? null,
+        policyTagList ?? null,
+        policyCategories ?? null,
+        true,
+    );
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
@@ -5452,7 +5460,7 @@ function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMeth
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
 }
 
-export type {IOURequestType}
+export type {IOURequestType};
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,

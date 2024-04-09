@@ -1,9 +1,9 @@
-import _ from 'lodash';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import _ from 'lodash';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import { withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -22,15 +22,15 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
+import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Policy, Report, SelectedTabRequest, Transaction } from '@src/types/onyx';
 import type SCREENS from '@src/SCREENS';
-import type { IOURequestType } from '@userActions/IOU';
+import type {Policy, Report, SelectedTabRequest, Transaction} from '@src/types/onyx';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepScan from './step/IOURequestStepScan';
-import type { WithWritableReportOrNotFoundProps } from './step/withWritableReportOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 type IOURequestStartPageOnyxProps = {
     report: OnyxEntry<Report>;
@@ -38,7 +38,7 @@ type IOURequestStartPageOnyxProps = {
     policy: OnyxEntry<Policy>;
 
     selectedTab: OnyxEntry<SelectedTabRequest>;
-    
+
     transaction: OnyxEntry<Transaction>;
 };
 

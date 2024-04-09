@@ -1,7 +1,11 @@
+import {isEmpty, isEqual} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import {withOnyx } from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
@@ -21,25 +25,22 @@ import * as TransactionAction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 import type SCREENS from '@src/SCREENS';
-import { isEmpty, isEqual } from 'lodash';
-// eslint-disable-next-line no-restricted-imports
-import type { ScrollView as RNScrollView } from 'react-native';
-import type { WaypointCollection } from '@src/types/onyx/Transaction';
-import type { RenderItemParams } from 'react-native-draggable-flatlist/lib/typescript/types';
-import type { Errors } from '@src/types/onyx/OnyxCommon';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type { WithWritableReportOrNotFoundProps } from './withWritableReportOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceOnyxProps = {
     transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-type IOURequestStepDistanceProps = IOURequestStepDistanceOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE> & {
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-};
+type IOURequestStepDistanceProps = IOURequestStepDistanceOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE> & {
+        transaction: OnyxEntry<OnyxTypes.Transaction>;
+    };
 
 function IOURequestStepDistance({
     report,
@@ -54,7 +55,7 @@ function IOURequestStepDistance({
     const {translate} = useLocalize();
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
-    const waypoints = useMemo(() => optimisticWaypoints ?? transaction?.comment?.waypoints ?? { waypoint0: {}, waypoint1: {} }, [optimisticWaypoints, transaction]);
+    const waypoints = useMemo(() => optimisticWaypoints ?? transaction?.comment?.waypoints ?? {waypoint0: {}, waypoint1: {}}, [optimisticWaypoints, transaction]);
     const waypointsList = Object.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
@@ -71,7 +72,10 @@ function IOURequestStepDistance({
     const shouldFetchRoute = (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
     const [shouldShowAtLeastTwoDifferentWaypointsError, setShouldShowAtLeastTwoDifferentWaypointsError] = useState(false);
     const nonEmptyWaypointsCount = useMemo(() => Object.keys(waypoints).filter((key) => isEmpty(waypoints[key])).length, [waypoints]);
-    const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && Object.keys(validatedWaypoints).length !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
+    const duplicateWaypointsError = useMemo(
+        () => nonEmptyWaypointsCount >= 2 && Object.keys(validatedWaypoints).length !== nonEmptyWaypointsCount,
+        [nonEmptyWaypointsCount, validatedWaypoints],
+    );
     const atLeastTwoDifferentWaypointsError = useMemo(() => Object.keys(validatedWaypoints).length < 2, [validatedWaypoints]);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -112,7 +116,9 @@ function IOURequestStepDistance({
      */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const navigateToWaypointEditPage = (index: number) => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.REQUEST, transactionID, report?.reportID ?? '', index.toString(), Navigation.getActiveRouteWithoutParams()));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.REQUEST, transactionID, report?.reportID ?? '', index.toString(), Navigation.getActiveRouteWithoutParams()),
+        );
     };
 
     const navigateToNextStep = useCallback(() => {
@@ -150,7 +156,7 @@ function IOURequestStepDistance({
     };
 
     type DataParams = {
-        data: string[]
+        data: string[];
     };
 
     const updateWaypoints = useCallback(
@@ -190,12 +196,8 @@ function IOURequestStepDistance({
             // If nothing was changed, simply go to transaction thread
             // We compare only addresses because numbers are rounded while backup
             const oldWaypoints = transactionBackup?.comment.waypoints ?? {};
-            const oldAddresses = Object.fromEntries(Object.entries(oldWaypoints).map(
-                ([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]
-            ));
-            const addresses = Object.fromEntries(Object.entries(waypoints).map(
-                ([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]
-            ));
+            const oldAddresses = Object.fromEntries(Object.entries(oldWaypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
+            const addresses = Object.fromEntries(Object.entries(waypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
             if (isEqual(oldAddresses, addresses)) {
                 Navigation.dismissModal();
                 return;

@@ -2,7 +2,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import { withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import compose from '@libs/compose';
@@ -16,12 +17,11 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type { Transaction } from '@src/types/onyx';
 import type SCREENS from '@src/SCREENS';
-import type { BaseTextInputRef } from '@components/TextInput/BaseTextInput/types';
+import type {Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type { WithWritableReportOrNotFoundProps } from './withWritableReportOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepAmountOnyxProps = {
     splitDraftTransaction: OnyxEntry<Transaction>;
@@ -29,9 +29,10 @@ type IOURequestStepAmountOnyxProps = {
     draftTransaction: OnyxEntry<Transaction>;
 };
 
-type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT> & {
-    transaction: OnyxEntry<Transaction>;
-};
+type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT> & {
+        transaction: OnyxEntry<Transaction>;
+    };
 
 function IOURequestStepAmount({
     report,
@@ -51,8 +52,8 @@ function IOURequestStepAmount({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
-    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? { amount: 0 };
-    const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? { currency: '' };
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
+    const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: ''};
 
     useFocusEffect(
         useCallback(() => {

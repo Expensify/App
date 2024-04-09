@@ -7,12 +7,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {IOURequestType} from './actions/IOU';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
-import type { IOURequestType } from './actions/IOU';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
