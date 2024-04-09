@@ -84,7 +84,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     );
 
     // We currently don't support multi level tags, so let's only get the first level tags.
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).slice(0, 1), [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
             policyTagLists
