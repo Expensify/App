@@ -294,6 +294,10 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.LEAVE_ROOM]: Parameters.LeaveRoomParams;
     [WRITE_COMMANDS.INVITE_TO_ROOM]: Parameters.InviteToRoomParams;
     [WRITE_COMMANDS.INVITE_TO_GROUP_CHAT]: Parameters.InviteToGroupChatParams;
+    [WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR]: Parameters.UpdateGroupChatAvatarParams;
+    [WRITE_COMMANDS.LEAVE_GROUP_CHAT]: Parameters.LeaveGroupChatParams;
+    [WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT]: Parameters.RemoveFromGroupChatParams;
+    [WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES]: Parameters.UpdateGroupChatMemberRolesParams;
     [WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME]: Parameters.UpdateGroupChatNameParams;
     [WRITE_COMMANDS.REMOVE_FROM_ROOM]: Parameters.RemoveFromRoomParams;
     [WRITE_COMMANDS.FLAG_COMMENT]: Parameters.FlagCommentParams;
