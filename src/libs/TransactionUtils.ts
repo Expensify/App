@@ -96,6 +96,7 @@ function buildOptimisticTransaction(
     tag = '',
     billable = false,
     pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
+    reimbursable = true,
 ): Transaction {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -124,6 +125,7 @@ function buildOptimisticTransaction(
         category,
         tag,
         billable,
+        reimbursable,
     };
 }
 
