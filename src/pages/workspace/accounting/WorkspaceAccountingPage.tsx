@@ -189,15 +189,15 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     ];
 
     return (
-        <ScreenWrapper
-            testID={WorkspaceAccountingPage.displayName}
-            includeSafeAreaPaddingBottom={false}
-            shouldShowOfflineIndicatorInWideScreen
-        >
-            <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <FeatureEnabledAccessOrNotFoundWrapper
+                policyID={policyID}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            >
+                <ScreenWrapper
+                    testID={WorkspaceAccountingPage.displayName}
+                    includeSafeAreaPaddingBottom={false}
+                    shouldShowOfflineIndicatorInWideScreen
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.common.accounting')}
@@ -234,9 +234,9 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                         cancelText={translate('common.cancel')}
                         danger
                     />
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </AdminPolicyAccessOrNotFoundWrapper>
-        </ScreenWrapper>
+                </ScreenWrapper>
+            </FeatureEnabledAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 
