@@ -450,31 +450,19 @@ type PolicyConnectionSyncProgress = {
 export default Policy;
 
 export type {
-    
     PolicyReportField,
-   
     PolicyReportFieldType,
-   
     Unit,
-   
     CustomUnit,
-   
     Attributes,
-   
     Rate,
-   
     TaxRate,
-   
     TaxRates,
-   
     TaxRatesWithDefault,
-   
     PolicyFeatureName,
-   
     PendingJoinRequestPolicy,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
-,
     QBOConnectionConfig,
     Connections,
     ConnectionName,
