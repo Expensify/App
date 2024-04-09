@@ -1915,9 +1915,13 @@ export default {
                 subtitle: 'Set up custom fields for spend.',
             },
             connections: {
-                title: 'Connections',
+                title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+        },
+        reportFields: {
+            delete: 'Delete field',
+            deleteConfirmation: 'Are you sure that you want to delete this field?',
         },
         tags: {
             tagName: 'Tag name',
