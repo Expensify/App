@@ -217,6 +217,22 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.markAsUnread',
+        icon: Expensicons.ChatBubbleUnread,
+        successIcon: Expensicons.Checkmark,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
+        onPress: (closePopover, {reportAction, reportID}) => {
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction) ?? '';
+            Report.markCommentAsUnread(originalReportID, reportAction?.created);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editAction',
         icon: Expensicons.Pencil,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
@@ -246,22 +262,6 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // No popover to hide, call editAction immediately
             editAction();
-        },
-        getDescription: () => {},
-    },
-    {
-        isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.markAsUnread',
-        icon: Expensicons.ChatBubbleUnread,
-        successIcon: Expensicons.Checkmark,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
-        onPress: (closePopover, {reportAction, reportID}) => {
-            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction) ?? '';
-            Report.markCommentAsUnread(originalReportID, reportAction?.created);
-            if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
-            }
         },
         getDescription: () => {},
     },
