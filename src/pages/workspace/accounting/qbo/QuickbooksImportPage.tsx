@@ -34,7 +34,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             description: translate('workspace.qbo.accounts'),
             action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.enableNewCategories),
-            title: enableNewCategories ? CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED : CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED,
+            title: enableNewCategories,
             pendingAction: pendingFields?.enableNewCategories,
         },
         {

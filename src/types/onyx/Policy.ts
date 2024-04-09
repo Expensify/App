@@ -171,7 +171,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     exportDate: string;
     lastConfigurationTime: number;
     syncTax: boolean;
-    enableNewCategories: boolean;
+    enableNewCategories: IntegrationEntityMap;
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
     export: {
