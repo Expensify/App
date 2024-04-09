@@ -112,30 +112,9 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const participants = useMemo(() => getUsers(), [getUsers]);
 
     /**
-     * Check if the current selection includes members that cannot be removed
-     */
-    const validateSelection = useCallback(() => {
-        const newErrors: Errors = {};
-        selectedMembers.forEach((member) => {
-            if (member !== currentUserAccountID) {
-                return;
-            }
-            newErrors[member] = translate('workspace.people.error.cannotRemove');
-        });
-        setErrors(newErrors);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedMembers, currentUserAccountID]);
-
-    /**
      * Add user from the selectedMembers list
      */
-    const addUser = useCallback(
-        (accountID: number) => {
-            setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
-            validateSelection();
-        },
-        [validateSelection],
-    );
+    const addUser = useCallback((accountID: number) => setSelectedMembers((prevSelected) => [...prevSelected, accountID]), [setSelectedMembers]);
 
     /**
      * Show the modal to confirm removal of the selected members
@@ -160,8 +139,6 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             const everyAccountId = enabledAccounts.map((member) => member.accountID);
             setSelectedMembers(everyAccountId);
         }
-
-        validateSelection();
     };
 
     /**
@@ -170,9 +147,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const removeUser = useCallback(
         (accountID: number) => {
             setSelectedMembers((prevSelected) => prevSelected.filter((id) => id !== accountID));
-            validateSelection();
         },
-        [validateSelection],
+        [setSelectedMembers],
     );
 
     /**
