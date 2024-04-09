@@ -312,6 +312,11 @@ function MoneyRequestPreviewContent({
                                                 </Text>
                                             )}
                                         </View>
+                                        <View style={[styles.flexRow]}>
+                                            {true && (
+                                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>{translate('iou.receiptScanInProgress')}</Text>
+                                            )}
+                                        </View>
                                     </View>
                                 </View>
                             </View>

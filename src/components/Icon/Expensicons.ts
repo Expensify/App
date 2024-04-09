@@ -120,6 +120,7 @@ import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
+import ReceiptScan from '@assets/images/receipt-scan.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
@@ -283,6 +284,7 @@ export {
     QrCode,
     QuestionMark,
     Receipt,
+    ReceiptScan,
     RemoveMembers,
     ReceiptSearch,
     Rotate,

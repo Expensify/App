@@ -629,6 +629,7 @@ export default {
         deleteReceipt: 'Eliminar recibo',
         routePending: 'Ruta pendiente...',
         receiptScanning: 'Escaneo en curso…',
+        receiptScanInProgress: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         missingAmount: 'Falta importe',
         missingMerchant: 'Falta comerciante',

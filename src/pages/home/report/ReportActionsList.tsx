@@ -6,6 +6,7 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
@@ -184,6 +185,7 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
+    Onyx.merge('transactions_8811441407757684730', {cardID: 1, merchant: 'Google', hasEReceipt: true, status: 'Pending'});
 
     const sortedVisibleReportActions = useMemo(
         () =>
