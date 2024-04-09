@@ -100,7 +100,6 @@ function IOURequestStepMerchant({
         IOU.setMoneyRequestMerchant(transactionID, newMerchant ?? '', !isEditing);
         if (isEditing) {
             // When creating new money requests newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
         }
         navigateBack();
