@@ -14,6 +14,26 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
+    const qboSyncToggleSettings = [
+        {
+            title: 'Auto-Sync',
+            subTitle: 'Changes made in Quickbooks will automatically be reflected in Expensify.',
+            isActive: true,
+            onToggle: () => {},
+        },
+        {
+            title: 'Invite Employees',
+            subTitle: 'Import Quickbooks Online employee records and invite them to this workspace.',
+            isActive: true,
+            onToggle: () => {},
+        },
+        {
+            title: 'Automatically Create Entities',
+            subTitle: 'Expensify will automatically create a vendor in Quickbooks, if one does not exist. Expensify will also automatically create a customer when exporting invoices.',
+            isActive: true,
+            onToggle: () => {},
+        },
+    ];
 
     return (
         <ScreenWrapper
@@ -24,32 +44,19 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
             <HeaderWithBackButton title="Advanced" />
 
             <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                <View style={styles.mv3}>
-                    <ToggleSettingOptionRow
-                        title="Auto-Sync"
-                        subtitle="Changes made in Quickbooks will automatically be reflected in Expensify."
-                        isActive
-                        onToggle={() => {}}
-                    />
-                </View>
-
-                <View style={styles.mv3}>
-                    <ToggleSettingOptionRow
-                        title="Invite Employees"
-                        subtitle="Import Quickbooks Online employee records and invite them to this workspace."
-                        isActive
-                        onToggle={() => {}}
-                    />
-                </View>
-
-                <View style={styles.mv3}>
-                    <ToggleSettingOptionRow
-                        title="Automatically Create Entities"
-                        subtitle="Expensify will automatically create a vendor in Quickbooks, if one does not exist. Expensify will also automatically create a customer when exporting invoices."
-                        isActive
-                        onToggle={() => {}}
-                    />
-                </View>
+                {qboSyncToggleSettings.map((item) => (
+                    <View
+                        style={styles.mv3}
+                        key={item.title}
+                    >
+                        <ToggleSettingOptionRow
+                            title={item.title}
+                            subtitle={item.subTitle}
+                            isActive={item.isActive}
+                            onToggle={item.onToggle}
+                        />
+                    </View>
+                ))}
 
                 <View style={styles.mv3}>
                     <SpacerView
