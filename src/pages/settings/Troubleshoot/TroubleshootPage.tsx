@@ -117,7 +117,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                         isCentralPane
                         subtitleMuted
                         illustration={LottieAnimations.Desk}
-                        illustrationStyle={[styles.mt3, styles.mbn5]}
+                        illustrationStyle={[styles.mt4, styles.mbn4]}
                         titleStyles={styles.accountSettingsSectionTitle}
                         illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOT].backgroundColor}
                         renderSubtitle={() => (
