@@ -84,7 +84,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const participants = useMemo(() => {
         if (isGroupChat) {
-            return ReportUtils.getParticipantAccountIDs();
+            return ReportUtils.getParticipantAccountIDs(report.reportID ?? '');
         }
 
         return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');

@@ -33,6 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Session} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import Log from '@libs/Log';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
@@ -66,6 +67,11 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         ReportUtils.getParticipantAccountIDs(report.reportID).forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];
+            if (!details) {
+                Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
+                return;
+            }
+
             const isSelected = selectedMembers.includes(accountID);
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;

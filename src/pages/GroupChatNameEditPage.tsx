@@ -48,13 +48,11 @@ function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPagePro
         return (groupChatDraft?.participants ?? []).map((participant: SelectedParticipant) => participant.accountID);
     }, [groupChatDraft, reportID]);
     const existingReportName = ReportUtils.getGroupChatName(participantAccountIDs, false, reportID);
-    const currentChatName = reportID ? existingReportName : (groupChatDraft?.reportName ?? existingReportName);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const currentChatName = reportID ? existingReportName : (groupChatDraft?.reportName || existingReportName);
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
-        const errors: Errors & {
-            newChatName?: string | string[];
-        } = {};
-
+        const errors: Errors = {};
         if (ValidationUtils.isValidReportName(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
             errors.newChatName = translate('common.error.characterLimit', {limit: CONST.REPORT_NAME_LIMIT});
         }
