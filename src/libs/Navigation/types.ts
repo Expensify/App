@@ -604,9 +604,6 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
