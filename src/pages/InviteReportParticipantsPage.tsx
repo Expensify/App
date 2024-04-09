@@ -1,10 +1,8 @@
-import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -27,7 +25,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -76,7 +73,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         setInvitePersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [personalDetails, betas, searchTerm, excludedUsers]);
+    }, [personalDetails, betas, searchTerm, excludedUsers, options]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
