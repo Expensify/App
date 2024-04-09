@@ -24,13 +24,16 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepAmountOnyxProps = {
+    /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<Transaction>;
 
+    /** The draft transaction object being modified in Onyx */
     draftTransaction: OnyxEntry<Transaction>;
 };
 
 type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT> & {
+        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 

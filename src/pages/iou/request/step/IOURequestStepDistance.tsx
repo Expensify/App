@@ -34,11 +34,13 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceOnyxProps = {
+    /** backup version of the original transaction  */
     transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 type IOURequestStepDistanceProps = IOURequestStepDistanceOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE> & {
+        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 

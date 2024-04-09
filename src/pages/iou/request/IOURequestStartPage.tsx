@@ -32,13 +32,17 @@ import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
-type IOURequestStartPageOnyxProps = {
+type IOURequestStartPageOnyxProps = 
+    /** The report that holds the transaction */{
     report: OnyxEntry<Report>;
 
+    /** The policy tied to the report */
     policy: OnyxEntry<Policy>;
 
+    /** The tab to select by default (whatever the user visited last) */
     selectedTab: OnyxEntry<SelectedTabRequest>;
 
+    /** The transaction being modified */
     transaction: OnyxEntry<Transaction>;
 };
 
