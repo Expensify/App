@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -138,7 +138,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     }
 
     const renderItem = useCallback(
-        (item: Item) => (
+        (item: Item, index: number) => (
             <View
                 key={item.titleTranslationKey}
                 style={styles.mt7}
@@ -147,7 +147,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     icon={item.icon}
                     title={translate(item.titleTranslationKey)}
                     subtitle={translate(item.subtitleTranslationKey)}
-                    isActive={item.isActive}
+                    isActive={index % 2 === 0}
+                    disabled={index % 3 !== 0}
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
                 />
