@@ -601,7 +601,7 @@ export default {
         splitDistance: 'Split Distance',
         sendMoney: 'Send Money',
         assignTask: 'Assign Task',
-        shortcut: 'Shortcut',
+        header: 'Quick action',
         trackManual: 'Track Manual',
         trackScan: 'Track Scan',
         trackDistance: 'Track Distance',
