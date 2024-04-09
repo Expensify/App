@@ -63,15 +63,9 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        ReportUtils.getVisibleChatMemberAccountIDs(report.reportID).forEach((accountID) => {
+        ReportUtils.getParticipantAccountIDs(report.reportID).forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];
-
-            if (!details) {
-                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
-                return;
-            }
-
             const isSelected = selectedMembers.includes(accountID);
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
