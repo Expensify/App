@@ -1,20 +1,21 @@
-import Str from 'expensify-common/lib/str';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
-import {StyleSheet, type TextStyle} from 'react-native';
-import {OnyxCollection, withOnyx} from 'react-native-onyx';
-import {CustomRendererProps, TNodeChildrenRenderer, TPhrasing, TText} from 'react-native-render-html';
+import type {TextStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -37,28 +38,26 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
     const tnodeClone = cloneDeep(tnode);
 
     if (!isEmpty(htmlAttributeReportID)) {
-        const report = reports!['report_' + htmlAttributeReportID];
+        const report = reports?.['report_'.concat(htmlAttributeReportID)];
 
         reportID = report?.reportID ? parseInt(report.reportID, 10) : undefined;
-        mentionDisplayText = report?.displayName ?? report?.reportName ?? htmlAttributeReportID;
+        mentionDisplayText = report?.reportName ?? report?.displayName ?? htmlAttributeReportID;
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
 
-        Object.values(reports ?? {}).some((report) => {
-            if (report?.reportName === mentionDisplayText || report?.reportName === tnodeClone.data) {
-                reportID = Number(report?.reportID);
-                return true;
-            }
-            return false;
-        });
+        const currentReport = reports?.['report_'.concat(currentReportID?.currentReportID ?? '')];
 
-        mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
+        // eslint-disable-next-line rulesdir/prefer-early-return
+        Object.values(reports ?? {}).forEach((report) => {
+            if (report?.policyID === currentReport?.policyID && (report?.reportName === mentionDisplayText || report?.reportName === tnodeClone.data)) {
+                reportID = Number(report?.reportID);
+            }
+        });
     } else {
         return null;
     }
 
     const navigationRoute: Route | undefined = reportID ? ROUTES.REPORT_WITH_ID.getRoute(String(reportID)) : undefined;
-
     const isOurMention = String(reportID) === currentReportID?.currentReportID;
 
     const flattenStyle = StyleSheet.flatten(style as TextStyle);
@@ -68,16 +67,21 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
         <ShowContextMenuContext.Consumer>
             {() => (
                 <Text
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...defaultRendererProps}
                     style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
                     suppressHighlighting
                     onPress={(event) => {
                         event.preventDefault();
-                        Navigation.navigate(navigationRoute);
+
+                        if (navigationRoute) {
+                            Navigation.navigate(navigationRoute);
+                        }
                     }}
                     role={CONST.ROLE.LINK}
                     accessibilityLabel={`/${navigationRoute}`}
                 >
-                    {htmlAttributeReportID ? `#${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone} />}
+                    #{mentionDisplayText}
                 </Text>
             )}
         </ShowContextMenuContext.Consumer>
