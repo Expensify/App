@@ -70,6 +70,13 @@ function setModalVisibility(isVisible: boolean) {
 }
 
 /**
+ * Allows other parts of the app to set whether modals should be dismissable using the Escape key
+ */
+function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
+    Onyx.merge(ONYXKEYS.MODAL, {disableDismissOnEscape});
+}
+
+/**
  * Allows other parts of app to know that an alert modal is about to open.
  * This will trigger as soon as a modal is opened but not yet visible while animation is running.
  * isPopover indicates that the next open modal is popover or bottom docked
@@ -78,4 +85,4 @@ function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible, isPopover});
 }
 
-export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible, closeTop};
+export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop};

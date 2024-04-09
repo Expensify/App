@@ -76,6 +76,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                     return;
                 }
 
+                if (modal.current.disableDismissOnEscape) {
+                    return;
+                }
+
                 Navigation.dismissModal();
             },
             shortcutConfig.descriptionKey,

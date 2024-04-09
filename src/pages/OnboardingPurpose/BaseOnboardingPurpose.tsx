@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Modal from '@userActions/Modal';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -80,6 +81,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             return;
         }
 
+        Modal.setDisableDismissOnEscape(false);
         Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
 
         Navigation.dismissModal();

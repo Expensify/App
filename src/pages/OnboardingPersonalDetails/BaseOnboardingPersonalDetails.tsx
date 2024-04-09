@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,6 +13,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useTheme from '@hooks/useTheme';
+import * as Modal from '@userActions/Modal';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -35,6 +36,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
+
+    useEffect(() => {
+        Modal.setDisableDismissOnEscape(true);
+    }, []);
 
     const saveAndNavigate = useCallback((values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
         PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
