@@ -1,4 +1,3 @@
-import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {TextStyle} from 'react-native';
@@ -35,8 +34,6 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
     let reportID: number | undefined;
     let mentionDisplayText: string;
 
-    const tnodeClone = cloneDeep(tnode);
-
     const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').slice(1);
 
     if (!isEmpty(htmlAttributeReportID)) {
@@ -44,8 +41,8 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
 
         reportID = report?.reportID ? parseInt(report.reportID, 10) : undefined;
         mentionDisplayText = report?.reportName ?? report?.displayName ?? htmlAttributeReportID;
-    } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
-        mentionDisplayText = removeLeadingLTRAndHash(tnodeClone.data);
+    } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
+        mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
 
         const currentReport = reports?.['report_'.concat(currentReportID?.currentReportID ?? '')];
 
@@ -59,8 +56,8 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
         return null;
     }
 
-    const navigationRoute: Route | undefined = reportID ? ROUTES.REPORT_WITH_ID.getRoute(String(reportID)) : undefined;
-    const isOurMention = String(reportID) === currentReportID?.currentReportID;
+    const navigationRoute = reportID ? ROUTES.REPORT_WITH_ID.getRoute(String(reportID)) : undefined;
+    const isCurrentRoomMention = String(reportID) === currentReportID?.currentReportID;
 
     const flattenStyle = StyleSheet.flatten(style as TextStyle);
     const {color, ...styleWithoutColor} = flattenStyle;
@@ -71,7 +68,7 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
                 <Text
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
-                    style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
+                    style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isCurrentRoomMention), {color: StyleUtils.getMentionTextColor(isCurrentRoomMention)}]}
                     suppressHighlighting
                     onPress={(event) => {
                         event.preventDefault();
