@@ -1,7 +1,6 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -28,68 +27,68 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type * as OnyxTypes from '@src/types/onyx';
 import BankInfo from './BankInfo/BankInfo';
-import StepPropTypes from './StepPropTypes';
 
-const propTypes = {
-    ...StepPropTypes,
-
-    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
-    receivedRedirectURI: PropTypes.string,
-
-    /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
-    plaidLinkOAuthToken: PropTypes.string,
-
+type BankAccountStepOnyxProps = {
     /** Object with various information about the user */
-    user: PropTypes.shape({
-        /** Is the user account validated? */
-        validated: PropTypes.bool,
-    }),
+    user: OnyxEntry<OnyxTypes.User>;
 
     /** If the plaid button has been disabled */
-    isPlaidDisabled: PropTypes.bool,
-
-    /* The workspace name */
-    policyName: PropTypes.string,
-
-    /* The workspace ID */
-    policyID: PropTypes.string,
+    isPlaidDisabled: OnyxEntry<boolean>;
 };
 
-const defaultProps = {
-    receivedRedirectURI: null,
-    plaidLinkOAuthToken: '',
-    user: {},
-    isPlaidDisabled: false,
-    policyName: '',
-    policyID: '',
+type BankAccountStepProps = BankAccountStepOnyxProps & {
+    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
+    receivedRedirectURI?: string | null;
+
+    /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
+    plaidLinkOAuthToken?: OnyxEntry<string>;
+
+    /* The workspace name */
+    policyName?: string;
+
+    /* The workspace ID */
+    policyID?: string;
+
+    /** The bank account currently in setup */
+    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
+
+    /** Goes to the previous step */
+    onBackButtonPress: () => void;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
 
-function BankAccountStep(props) {
+function BankAccountStep({
+    plaidLinkOAuthToken = '',
+    policyID = '',
+    policyName = '',
+    user,
+    receivedRedirectURI,
+    reimbursementAccount,
+    onBackButtonPress,
+    isPlaidDisabled = false,
+}: BankAccountStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    let subStep = lodashGet(props.reimbursementAccount, 'achData.subStep', '');
-    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
+    let subStep = reimbursementAccount?.achData?.subStep ?? '';
+    const shouldReinitializePlaidLink = plaidLinkOAuthToken && receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(
-        'new',
-        props.policyID,
-        ROUTES.WORKSPACE_INITIAL.getRoute(props.policyID),
-    )}`;
+    const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
 
     const removeExistingBankAccountDetails = () => {
-        const bankAccountData = {
+        const bankAccountData: Partial<ReimbursementAccountForm> = {
             [bankInfoStepKeys.ROUTING_NUMBER]: '',
             [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
             [bankInfoStepKeys.PLAID_MASK]: '',
-            [bankInfoStepKeys.IS_SAVINGS]: '',
+            [bankInfoStepKeys.IS_SAVINGS]: undefined,
             [bankInfoStepKeys.BANK_NAME]: '',
             [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
             [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
@@ -100,8 +99,8 @@ function BankAccountStep(props) {
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
         return (
             <BankInfo
-                onBackButtonPress={props.onBackButtonPress}
-                policyID={props.policyID}
+                onBackButtonPress={onBackButtonPress}
+                policyID={policyID}
             />
         );
     }
@@ -114,21 +113,21 @@ function BankAccountStep(props) {
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithBackButton
                     title={translate('workspace.common.connectBankAccount')}
-                    subtitle={props.policyName}
+                    subtitle={policyName}
                     stepCounter={subStep ? {step: 1, total: 5} : undefined}
-                    onBackButtonPress={props.onBackButtonPress}
+                    onBackButtonPress={onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 />
-                <ScrollView style={[styles.flex1]}>
+                <ScrollView style={styles.flex1}>
                     <Section
                         icon={Illustrations.MoneyWings}
                         title={translate('workspace.bankAccount.streamlinePayments')}
                     >
-                        <View style={[styles.mv3]}>
+                        <View style={styles.mv3}>
                             <Text>{translate('bankAccount.toGetStarted')}</Text>
                         </View>
-                        {Boolean(plaidDesktopMessage) && (
+                        {!!plaidDesktopMessage && (
                             <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
                                 <TextLink href={bankAccountRoute}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
@@ -138,24 +137,23 @@ function BankAccountStep(props) {
                             iconStyles={[styles.customMarginButtonWithMenuItem]}
                             text={translate('bankAccount.connectOnlineWithPlaid')}
                             onPress={() => {
-                                if (props.isPlaidDisabled || !props.user.validated) {
+                                if (!!isPlaidDisabled || !user?.validated) {
                                     return;
                                 }
                                 removeExistingBankAccountDetails();
                                 BankAccounts.openPlaidView();
                             }}
-                            isDisabled={props.isPlaidDisabled || !props.user.validated}
+                            isDisabled={!!isPlaidDisabled || !user?.validated}
                             style={[styles.mt4]}
                             shouldShowRightIcon
                             success
                             innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                         />
-                        {Boolean(props.error) && <Text style={[styles.formError, styles.mh5]}>{props.error}</Text>}
-                        <View style={[styles.mv3]}>
+                        <View style={styles.mv3}>
                             <MenuItem
                                 icon={Expensicons.Connect}
                                 title={translate('bankAccount.connectManually')}
-                                disabled={!props.user.validated}
+                                disabled={!user?.validated}
                                 onPress={() => {
                                     removeExistingBankAccountDetails();
                                     BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
@@ -165,7 +163,7 @@ function BankAccountStep(props) {
                             />
                         </View>
                     </Section>
-                    {!props.user.validated && (
+                    {!user?.validated && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                             <Icon
                                 src={Expensicons.Exclamation}
@@ -176,7 +174,7 @@ function BankAccountStep(props) {
                                 {translate('bankAccount.validateAccountError.phrase1')}
                                 <TextLink
                                     fontSize={variables.fontSizeLabel}
-                                    onPress={Session.signOutAndRedirectToSignIn}
+                                    onPress={() => Session.signOutAndRedirectToSignIn()}
                                 >
                                     {translate('bankAccount.validateAccountError.phrase2')}
                                 </TextLink>
@@ -194,7 +192,7 @@ function BankAccountStep(props) {
                             <TextLink href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/">
                                 {translate('bankAccount.yourDataIsSecure')}
                             </TextLink>
-                            <View style={[styles.ml1]}>
+                            <View style={styles.ml1}>
                                 <Icon
                                     src={Expensicons.Lock}
                                     fill={theme.link}
@@ -208,11 +206,9 @@ function BankAccountStep(props) {
     );
 }
 
-BankAccountStep.propTypes = propTypes;
-BankAccountStep.defaultProps = defaultProps;
 BankAccountStep.displayName = 'BankAccountStep';
 
-export default withOnyx({
+export default withOnyx<BankAccountStepProps, BankAccountStepOnyxProps>({
     user: {
         key: ONYXKEYS.USER,
     },
