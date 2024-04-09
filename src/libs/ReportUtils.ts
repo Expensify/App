@@ -1969,6 +1969,7 @@ function getReimbursementDeQueuedActionMessage(
             payerOrApproverName = '';
         }
         payerOrApproverName = payerOrApproverName ? `${payerOrApproverName}:` : payerOrApproverName;
+        return Localize.translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount: formattedAmount});
