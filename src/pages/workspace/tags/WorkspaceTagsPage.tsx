@@ -83,10 +83,10 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         }, [fetchTags]),
     );
     // We currently don't support multi level tags, so let's only get the first level tags.
-    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags)[0], [policyTags]);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags)[0], [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
-            lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
+            lodashSortBy(Object.values(policyTagLists.tags || []), 'name', localeCompare).map((value) => {
                 const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
                 const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 return {
@@ -101,7 +101,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                     rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
                 };
             }),
-        [policyTagList.tags, selectedTags],
+        [policyTagLists, selectedTags],
     );
 
     const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
