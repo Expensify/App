@@ -25,6 +25,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
@@ -39,7 +40,6 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import localeCompare from '@libs/LocaleCompare';
 
 type PolicyForList = {
     value: string;
