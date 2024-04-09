@@ -186,39 +186,46 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
-        const buttonOptions = [
-            paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT],
-            paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT],
-            paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD],
-        ] as Array<DropdownOption<PaymentType>>;
+        
+        const buttonOptions = [];
         const approveButtonOption = {
             text: translate('iou.approve'),
             icon: Expensicons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
-
+    
         // Only show the Approve button if the user cannot pay the request
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
             return [approveButtonOption];
         }
-
+    
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
         // If the user has previously chosen a specific payment option or paid for some request or expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
-
+    
+        if ((isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) || 
+            (!isExpenseReport && bankAccountList !== null && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
+        ) {
+            buttonOptions.push(
+                paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT],
+                paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT],
+                paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]
+            );
+        }
+    
         if (isExpenseReport && shouldShowPaywithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
-
+    
         if (shouldShowApproveButton) {
             buttonOptions.push(approveButtonOption);
         }
-
+    
         // Put the preferred payment method to the front of the array, so it's shown as default
         if (paymentMethod) {
             return buttonOptions.sort((method) => (method.value === paymentMethod ? -1 : 0));
