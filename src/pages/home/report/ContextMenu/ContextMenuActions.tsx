@@ -1,4 +1,5 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import type {MutableRefObject} from 'react';
 import React from 'react';
 import {InteractionManager} from 'react-native';
@@ -388,7 +389,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.unheldRequest'));
                 } else if (content) {
-                    setClipboardMessage(content);
+                    setClipboardMessage(
+                        content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, function (match, openTag, content, closeTag) {
+                            content = Str.removeSMSDomain(content);
+                            return openTag + content + closeTag;
+                        }),
+                    );
                 } else if (messageText) {
                     Clipboard.setString(messageText);
                 }
