@@ -2245,14 +2245,14 @@ function filterOptions(options: Options, searchInputValue: string): Options {
 
         return keys;
     };
-
     const matchResults = searchTerms.reduceRight((items, term) => {
         const recentReports = filterArrayByMatch(items.recentReports, term, {
             keys: [
                 (item) => {
                     let keys: string[] = [];
-
-                    keys.push(item.text ?? '');
+                    if (item.text) {
+                        keys.push(item.text);
+                    }
 
                     if (item.login) {
                         keys.push(item.login);

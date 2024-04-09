@@ -88,10 +88,10 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                 headerMessage: '',
             };
         }
-        const optionList = OptionsListUtils.getSearchOptions(options, debouncedSearchValue.trim(), betas ?? []);
-        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), debouncedSearchValue);
+        const optionList = OptionsListUtils.getSearchOptions(options, '', betas ?? []);
+        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), '');
         return {...optionList, headerMessage: header};
-    }, [areOptionsInitialized, betas, debouncedSearchValue, options]);
+    }, [areOptionsInitialized, betas, options]);
 
     const filteredOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
