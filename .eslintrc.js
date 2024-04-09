@@ -250,6 +250,14 @@ module.exports = {
                         message: "Please don't declare enums, use union types instead.",
                     },
                 ],
+                'no-restricted-properties': [
+                    'error',
+                    {
+                        object: 'Image',
+                        property: 'getSize',
+                        message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
+                    },
+                ],
                 'no-restricted-imports': [
                     'error',
                     {
