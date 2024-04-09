@@ -2,19 +2,17 @@ import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {TextStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -28,29 +26,30 @@ type MentionRoomRendererProps = RoomMentionOnyxProps & CustomRendererProps<TText
 
 const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').slice(1);
 
-const getMentionDetails = (htmlAttributeReportID: string, currentReportID: CurrentReportIDContextValue | null, reports: OnyxCollection<Report>, tnode: TText | TPhrasing) => {
+const getMentionDetails = (htmlAttributeReportID: string, currentReportID: string, reports: OnyxCollection<Report>, tnode: TText | TPhrasing) => {
+    let reportID: string | undefined;
+    let mentionDisplayText: string;
+
     if (!isEmpty(htmlAttributeReportID)) {
         const report = reports?.['report_'.concat(htmlAttributeReportID)];
 
-        const reportID = report?.reportID ?? undefined;
-        const mentionDisplayText = report?.reportName ?? report?.displayName ?? htmlAttributeReportID;
-
-        return {reportID, mentionDisplayText};
+        reportID = report?.reportID ?? undefined;
+        mentionDisplayText = report?.reportName ?? report?.displayName ?? htmlAttributeReportID;
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
-        const currentReport = reports?.['report_'.concat(currentReportID?.currentReportID ?? '')];
+        mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
 
-        let reportID = undefined;
+        const currentReport = reports?.['report_'.concat(currentReportID)];
+        // eslint-disable-next-line rulesdir/prefer-early-return
         Object.values(reports ?? {}).forEach((report) => {
             if (report?.policyID === currentReport?.policyID && removeLeadingLTRAndHash(report?.reportName ?? '') === mentionDisplayText) {
                 reportID = report?.reportID;
             }
         });
-        const mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
-
-        return {reportID, mentionDisplayText};
+    } else {
+        return null;
     }
 
-    return null;
+    return {reportID, mentionDisplayText};
 };
 
 function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaultRendererProps}: MentionRoomRendererProps) {
@@ -59,12 +58,12 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
     const htmlAttributeReportID = tnode.attributes.reportid;
     const currentReportID = useCurrentReportID();
 
-    const mentionDetails = getMentionDetails(htmlAttributeReportID, currentReportID, reports, tnode);
-    if (mentionDetails === null) {
+    const mentionDetails = getMentionDetails(htmlAttributeReportID, currentReportID?.currentReportID ?? '', reports, tnode);
+    if (!mentionDetails) {
         return null;
     }
-    const {reportID, mentionDisplayText} = mentionDetails;
 
+    const {reportID, mentionDisplayText} = mentionDetails;
     const navigationRoute = reportID ? ROUTES.REPORT_WITH_ID.getRoute(String(reportID)) : undefined;
     const isCurrentRoomMention = String(reportID) === currentReportID?.currentReportID;
 
@@ -99,8 +98,21 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
 
 MentionRoomRenderer.displayName = 'MentionRoomRenderer';
 
+/**
+ * This function narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
+ * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
+ */
+const chatReportSelector = (report: OnyxEntry<Report>): Report =>
+    (report && {
+        reportID: report.reportID,
+        reportName: report.reportName,
+        displayName: report.displayName,
+        policyID: report.policyID,
+    }) as Report;
+
 export default withOnyx<MentionRoomRendererProps, RoomMentionOnyxProps>({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
+        selector: chatReportSelector,
     },
 })(MentionRoomRenderer);
