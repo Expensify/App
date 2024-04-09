@@ -138,7 +138,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     }
 
     const renderItem = useCallback(
-        (item: Item, index: number) => (
+        (item: Item) => (
             <View
                 key={item.titleTranslationKey}
                 style={styles.mt7}
@@ -147,8 +147,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     icon={item.icon}
                     title={translate(item.titleTranslationKey)}
                     subtitle={translate(item.subtitleTranslationKey)}
-                    isActive={index % 2 === 0}
-                    disabled={index % 3 !== 0}
+                    isActive={item.isActive}
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
                 />
