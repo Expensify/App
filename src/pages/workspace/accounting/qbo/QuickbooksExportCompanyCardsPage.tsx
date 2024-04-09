@@ -32,6 +32,7 @@ function QuickbooksExportCompanyCardsPage({policy}: WithPolicyProps) {
                         description={translate('workspace.qbo.exportAs')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD.getRoute(policyID))}
                         brickRoadIndicator={undefined}
+                        shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
             </ScrollView>
