@@ -52,12 +52,6 @@ function WorkspaceSettingsModalStackNavigator() {
             />
 
             <StackNavigator.Screen
-                key={SCREENS.WORKSPACE.ACCOUNTING}
-                name={SCREENS.WORKSPACE.ACCOUNTING}
-                getComponent={() => require('@pages/workspace/accounting/WorkspaceAccountingPage').default as React.ComponentType}
-            />
-
-            <StackNavigator.Screen
                 key={SCREENS.WORKSPACE.CATEGORIES}
                 name={SCREENS.WORKSPACE.CATEGORIES}
                 getComponent={() => require('@pages/workspace/categories/WorkspaceCategoriesPage').default as React.ComponentType}
@@ -81,11 +75,6 @@ function WorkspaceSettingsModalStackNavigator() {
                 key={SCREENS.WORKSPACE.DISTANCE_RATES}
                 name={SCREENS.WORKSPACE.DISTANCE_RATES}
                 getComponent={() => require('@pages/workspace/distanceRates/PolicyDistanceRatesPage').default as React.ComponentType}
-            />
-            <StackNavigator.Screen
-                key={SCREENS.WORKSPACE.ACCOUNTING}
-                name={SCREENS.WORKSPACE.ACCOUNTING}
-                getComponent={() => require('@pages/workspace/accounting/WorkspaceAccountingPage').default as React.ComponentType}
             />
         </StackNavigator.Navigator>
     );
