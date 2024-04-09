@@ -559,7 +559,6 @@ function updateGroupChatName(reportID: string, reportName: string) {
 
 function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     // If we have no file that means we are removing the avatar.
-    // TODO: Add some error handling. In this case, we can easily show the user some feedback.
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
