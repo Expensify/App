@@ -2894,7 +2894,6 @@ const styles = (theme: ThemeColors) =>
         radioButtonLockIcon: {
             width: 12,
             height: 12,
-            fill: '#E7ECE9',
         },
 
         checkedContainer: {

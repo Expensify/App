@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
@@ -29,6 +30,7 @@ const OFFSET_X = {
 function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
     const styles = useThemeStyles();
     const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
+    const theme = useTheme();
 
     useEffect(() => {
         Animated.timing(offsetX.current, {
@@ -55,7 +57,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
                 {disabled && (
                     <Icon
                         src={Expensicons.Lock}
-                        fill={styles.radioButtonLockIcon.fill}
+                        fill={isOn ? theme.text : theme.icon}
                         width={styles.radioButtonLockIcon.width}
                         height={styles.radioButtonLockIcon.height}
                     />
