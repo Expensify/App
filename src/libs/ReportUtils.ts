@@ -29,6 +29,7 @@ import type {
     ReportMetadata,
     Session,
     Task,
+    TaxRate,
     Transaction,
     TransactionViolation,
     UserWallet,
@@ -56,6 +57,7 @@ import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import {hasValidDraftComment} from './DraftCommentUtils';
 import originalGetReportPolicyID from './getReportPolicyID';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
@@ -165,6 +167,7 @@ type OptimisticExpenseReport = Pick<
     | 'stateNum'
     | 'statusNum'
     | 'total'
+    | 'nonReimbursableTotal'
     | 'notificationPreference'
     | 'parentReportID'
     | 'lastVisibleActionCreated'
@@ -391,7 +394,6 @@ type OptionData = {
     phoneNumber?: string | null;
     isUnread?: boolean | null;
     isUnreadWithMention?: boolean | null;
-    hasDraftComment?: boolean | null;
     keyForList?: string | null;
     searchText?: string | null;
     isIOUReportOwner?: boolean | null;
@@ -416,6 +418,9 @@ type OptionData = {
     isDisabled?: boolean | null;
     name?: string | null;
     isSelfDM?: boolean | null;
+    reportID?: string;
+    enabled?: boolean;
+    data?: Partial<TaxRate>;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -438,6 +443,10 @@ type AncestorIDs = {
 };
 
 type MissingPaymentMethod = 'bankAccount' | 'wallet';
+
+type OutstandingChildRequest = {
+    hasOutstandingChildRequest?: boolean;
+};
 
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
@@ -991,7 +1000,7 @@ function filterReportsByPolicyIDAndMemberAccountIDs(reports: Report[], policyMem
 /**
  * Given an array of reports, return them sorted by the last read timestamp.
  */
-function sortReportsByLastRead(reports: Report[], reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
+function sortReportsByLastRead(reports: Array<OnyxEntry<Report>>, reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
     return reports
         .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
         .sort((a, b) => {
@@ -1336,8 +1345,8 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
     const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            const isReimburser = session?.email === policy?.reimburserEmail;
-            return (!policy?.reimburserEmail || isReimburser) && (isApproved || isManager);
+            const isReimburser = session?.email === policy?.achAccount?.reimburser;
+            return (!policy?.achAccount?.reimburser || isReimburser) && (isApproved || isManager);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
             return isAdmin && (isApproved || isManager);
@@ -2775,10 +2784,11 @@ function getModifiedExpenseOriginalMessage(
     if ('taxAmount' in transactionChanges) {
         originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
         originalMessage.taxAmount = transactionChanges?.taxAmount;
+        originalMessage.currency = TransactionUtils.getCurrency(oldTransaction);
     }
 
     if ('taxCode' in transactionChanges) {
-        originalMessage.oldTaxRate = policy?.taxRates?.taxes[TransactionUtils.getTaxCode(oldTransaction)].value;
+        originalMessage.oldTaxRate = policy?.taxRates?.taxes[TransactionUtils.getTaxCode(oldTransaction)]?.value;
         originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode].value;
     }
 
@@ -3264,8 +3274,9 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
  * @param payeeAccountID - AccountID of the employee (payee)
  * @param total - Amount in cents
  * @param currency
+ * @param reimbursable – Whether the expense is reimbursable
  */
-function buildOptimisticExpenseReport(chatReportID: string, policyID: string, payeeAccountID: number, total: number, currency: string): OptimisticExpenseReport {
+function buildOptimisticExpenseReport(chatReportID: string, policyID: string, payeeAccountID: number, total: number, currency: string, reimbursable = true): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const policyName = getPolicyName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
@@ -3289,6 +3300,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         stateNum,
         statusNum,
         total: storedTotal,
+        nonReimbursableTotal: reimbursable ? 0 : storedTotal,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
@@ -4233,6 +4245,7 @@ function buildOptimisticMoneyRequestEntities(
     isSendMoneyFlow = false,
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
+    isPersonalTrackingExpense = false,
 ): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction] {
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
 
@@ -4247,7 +4260,7 @@ function buildOptimisticMoneyRequestEntities(
         participants,
         transactionID,
         paymentType,
-        iouReport.reportID,
+        isPersonalTrackingExpense ? '0' : iouReport.reportID,
         isSettlingUp,
         isSendMoneyFlow,
         receipt,
@@ -4465,9 +4478,12 @@ function shouldReportBeInOptionList({
         return true;
     }
 
+    // Retrieve the draft comment for the report and convert it to a boolean
+    const hasDraftComment = hasValidDraftComment(report.reportID);
+
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (report.hasDraft || requiresAttentionFromCurrentUser(report)) {
+    if (hasDraftComment || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
@@ -4796,12 +4812,14 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
  * - Send option should show for:
  *     - DMs
  * - Split options should show for:
- *     - chat/ policy rooms with more than 1 participants
+ *     - DMs
+ *     - chat/policy rooms with more than 1 participant
  *     - groups chats with 3 and more participants
  *     - corporate workspace chats
  * - Track expense option should show for:
  *    - Self DMs
- *    - admin rooms
+ *    - own policy expense chats
+ *    - open and processing expense reports tied to own policy expense chat
  *
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
@@ -4821,7 +4839,6 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 
     const otherParticipants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
     const hasSingleOtherParticipantInReport = otherParticipants.length === 1;
-    const hasMultipleOtherParticipants = otherParticipants.length > 1;
     let options: Array<ValueOf<typeof CONST.IOU.TYPE>> = [];
 
     if (isSelfDM(report)) {
@@ -4830,24 +4847,24 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
-    // DM chats will have the Split Bill option only when there are at least 2 other people in the chat.
+    // DM chats will have the Split Bill option.
     // Your own workspace chats will have the split bill option.
     if (
         (isChatRoom(report) && otherParticipants.length > 0) ||
-        (isDM(report) && hasMultipleOtherParticipants) ||
+        (isDM(report) && otherParticipants.length > 0) ||
         (isGroupChat(report) && otherParticipants.length > 0) ||
         (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
     ) {
         options = [CONST.IOU.TYPE.SPLIT];
     }
 
-    // TODO: Re-enable this when we have a clarity on track expense in policy expense chat
-    // if (canUseTrackExpense && isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat) {
-    //     options = [...options, CONST.IOU.TYPE.TRACK_EXPENSE];
-    // }
-
     if (canRequestMoney(report, policy, otherParticipants)) {
         options = [...options, CONST.IOU.TYPE.REQUEST];
+
+        // If the user can request money from the workspace report, they can also track expenses
+        if (canUseTrackExpense && (isPolicyExpenseChat(report) || isExpenseReport(report))) {
+            options = [...options, CONST.IOU.TYPE.TRACK_EXPENSE];
+        }
     }
 
     // Send money option should be visible only in 1:1 DMs
@@ -5465,7 +5482,7 @@ function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, repor
 /**
  * Check if money report has any transactions updated optimistically
  */
-function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
+function hasUpdatedTotal(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     if (!report) {
         return true;
     }
@@ -5473,18 +5490,19 @@ function hasUpdatedTotal(report: OnyxEntry<Report>): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(report.reportID);
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
     const hasTransactionWithDifferentCurrency = transactions.some((transaction) => transaction.currency !== report.currency);
+    const hasDifferentWorkspaceCurrency = report.pendingFields?.createChat && isExpenseReport(report) && report.currency !== policy?.outputCurrency;
 
-    return !(hasPendingTransaction && hasTransactionWithDifferentCurrency) && !(hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined);
+    return !(hasPendingTransaction && (hasTransactionWithDifferentCurrency || hasDifferentWorkspaceCurrency)) && !(hasHeldExpenses(report.reportID) && report?.unheldTotal === undefined);
 }
 
 /**
  * Return held and full amount formatted with used currency
  */
-function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>): string[] {
+function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string[] {
     const transactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID ?? '');
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
 
-    if (hasUpdatedTotal(iouReport) && hasPendingTransaction) {
+    if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
         const unheldTotal = transactions.reduce((currentVal, transaction) => currentVal - (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
 
         return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
@@ -5704,6 +5722,32 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
 function hasActionsWithErrors(reportID: string): boolean {
     const reportActions = ReportActionsUtils.getAllReportActions(reportID ?? '');
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
+}
+
+/**
+ * @returns the object to update `report.hasOutstandingChildRequest`
+ */
+function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject): OutstandingChildRequest {
+    if (!iouReport || isEmptyObject(iouReport)) {
+        return {};
+    }
+
+    if (!isExpenseReport(iouReport)) {
+        return {
+            hasOutstandingChildRequest: iouReport.managerID === currentUserAccountID && iouReport.total !== 0,
+        };
+    }
+
+    const policy = getPolicy(iouReport.policyID);
+    const shouldBeManuallySubmitted = PolicyUtils.isPaidGroupPolicy(policy) && !policy?.harvesting?.enabled;
+    if (shouldBeManuallySubmitted || PolicyUtils.isPolicyAdmin(policy)) {
+        return {
+            hasOutstandingChildRequest: true,
+        };
+    }
+
+    // We don't need to update hasOutstandingChildRequest in this case
+    return {};
 }
 
 export {
@@ -5931,6 +5975,7 @@ export {
     isTrackExpenseReport,
     hasActionsWithErrors,
     getGroupChatName,
+    getOutstandingChildRequest,
 };
 
 export type {
