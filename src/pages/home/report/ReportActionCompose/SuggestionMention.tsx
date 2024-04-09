@@ -252,6 +252,8 @@ function SuggestionMention(
                 mentionPrefix: prefix,
             };
 
+            console.log('is mention', value, selectionEnd)
+
             if (isMentionCode(suggestionWord)) {
                 const suggestions = getMentionOptions(personalDetails, prefix);
                 nextState.suggestedMentions = suggestions;
@@ -276,6 +278,7 @@ function SuggestionMention(
             return;
         }
         calculateMentionSuggestionRef.current?.(selection.end);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFocused]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -310,7 +313,7 @@ function SuggestionMention(
                 calculateMentionSuggestionRef.current?.(selectionEnd);
             }, 1);
         },
-        [calculateMentionSuggestion],
+        [],
     );
 
     useImperativeHandle(
