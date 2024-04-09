@@ -244,19 +244,19 @@ export default withWritableReportOrNotFound(
             recentWaypoints: {
                 key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
 
-        // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
-        // that the google autocomplete component expects for it's "predefined places" feature.
-        selector: (waypoints) =>
-            (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER) : []).map((waypoint) => ({
-                name: waypoint.name,
-                description: waypoint.address ?? '',
-                geometry: {
-                    location: {
-                        lat: waypoint.lat ?? 0,
-                        lng: waypoint.lng ?? 0,
-                    },
-                },
-            })),
+                // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+                // that the google autocomplete component expects for it's "predefined places" feature.
+                selector: (waypoints) =>
+                    (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER) : []).map((waypoint) => ({
+                        name: waypoint.name,
+                        description: waypoint.address ?? '',
+                        geometry: {
+                            location: {
+                                lat: waypoint.lat ?? 0,
+                                lng: waypoint.lng ?? 0,
+                            },
+                        },
+                    })),
             },
         })(IOURequestStepWaypoint),
     ),
