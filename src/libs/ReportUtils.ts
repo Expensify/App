@@ -2503,7 +2503,21 @@ function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewActio
  * Check if any of the transactions in the report has required missing fields
  *
  */
-function hasMissingSmartscanFields(iouReportID: string): boolean {
+function hasMissingSmartscanFields(iouReportID: string, isLHNPreview = false): boolean {
+    if (isLHNPreview) {
+        const reportActions = Object.values(ReportActionsUtils.getAllReportActions(iouReportID));
+        return reportActions.some((action) => {
+            if (!ReportActionsUtils.isMoneyRequestAction(action)) {
+                return false;
+            }
+            const transaction = getLinkedTransaction(action);
+            if (isEmptyObject(transaction)) {
+                return false;
+            }
+            console.log("22222222222", {transaction})
+            return TransactionUtils.hasMissingSmartscanFields(transaction) && currentUserAccountID === action?.actorAccountID;
+        });
+    }
     return TransactionUtils.getAllReportTransactions(iouReportID).some((transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
 }
 
@@ -5401,13 +5415,13 @@ function canEditPolicyDescription(policy: OnyxEntry<Policy>): boolean {
 /**
  * Checks if report action has error when smart scanning
  */
-function hasSmartscanError(reportActions: ReportAction[]) {
+function hasSmartscanError(reportActions: ReportAction[], isLHNPreview = false) {
     return reportActions.some((action) => {
         if (!ReportActionsUtils.isSplitBillAction(action) && !ReportActionsUtils.isReportPreviewAction(action)) {
             return false;
         }
         const IOUReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-        const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && hasMissingSmartscanFields(IOUReportID) && !isSettled(IOUReportID);
+        const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && hasMissingSmartscanFields(IOUReportID, true) && !isSettled(IOUReportID);
         const transactionID = (action.originalMessage as IOUMessage).IOUTransactionID ?? '0';
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
         const isSplitBillError = ReportActionsUtils.isSplitBillAction(action) && TransactionUtils.hasMissingSmartscanFields(transaction as Transaction);

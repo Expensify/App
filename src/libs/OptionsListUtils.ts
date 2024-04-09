@@ -509,10 +509,10 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
-        if (ReportUtils.hasMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
+        if (ReportUtils.hasMissingSmartscanFields(report?.reportID ?? '', true) && !ReportUtils.isSettled(report?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
-    } else if (ReportUtils.hasSmartscanError(Object.values(reportActions ?? {}))) {
+    } else if (ReportUtils.hasSmartscanError(Object.values(reportActions ?? {}), true)) {
         reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
     }
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime

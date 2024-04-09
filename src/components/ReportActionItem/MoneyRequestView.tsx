@@ -210,7 +210,7 @@ function MoneyRequestView({
 
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
-    const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
+    const hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
     }
