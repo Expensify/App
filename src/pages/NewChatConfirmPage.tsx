@@ -22,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type { CustomRNImageManipulatorResult } from '@libs/cropOrRotateImage/types';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
@@ -34,11 +35,11 @@ type NewChatConfirmPageOnyxProps = {
 type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
-    const fileRef = useRef();
+    const fileRef = useRef<File|CustomRNImageManipulatorResult|undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const participantAccountIDs = newGroupDraft?.participants.map((participant) => participant.accountID);
+    const participantAccountIDs = (newGroupDraft?.participants ?? []).map((participant) => participant.accountID);
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
             return [];
@@ -80,7 +81,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         if (!newGroupDraft) {
             return;
         }
-        const newSelectedParticipants = newGroupDraft.participants.filter((participant) => participant.login !== option.login);
+        const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant.login !== option.login);
         Report.setGroupDraft({participants: newSelectedParticipants});
     };
 
@@ -89,8 +90,8 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             return;
         }
 
-        const logins: string[] = newGroupDraft.participants.map((participant) => participant.login);
-        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName, newGroupDraft.avatarUri, fileRef.current);
+        const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
+        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current);
     };
 
     const navigateBack = () => {

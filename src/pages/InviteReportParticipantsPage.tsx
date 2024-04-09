@@ -183,7 +183,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                     : searchValue,
             )
         ) {
-            return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
+            return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName ?? ''});
         }
         return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
     }, [searchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);

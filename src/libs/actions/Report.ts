@@ -546,7 +546,7 @@ function reportActionsExist(reportID: string): boolean {
 }
 
 function updateGroupChatName(reportID: string, reportName: string) {
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -560,7 +560,7 @@ function updateGroupChatName(reportID: string, reportName: string) {
 function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     // If we have no file that means we are removing the avatar.
     // TODO: Add some error handling. In this case, we can easily show the user some feedback.
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -2404,7 +2404,7 @@ function navigateToMostRecentReport(reportID: string, isChatThread: boolean) {
 }
 
 function leaveGroupChat(reportID: string) {
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -2573,7 +2573,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
         participants[accountID] = {role};
     });
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -2607,7 +2607,7 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
     accountIDList.forEach((accountID) => {
         removeParticipantsData[accountID] = null;
     });
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,

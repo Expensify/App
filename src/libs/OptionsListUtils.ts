@@ -2084,7 +2084,7 @@ function getMemberInviteOptions(
     searchValue = '',
     excludeLogins: string[] = [],
     includeSelectedOptions = false,
-    reports = [],
+    reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
 ): GetOptions {
     return getOptions(

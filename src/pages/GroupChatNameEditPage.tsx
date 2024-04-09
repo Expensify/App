@@ -25,7 +25,7 @@ import type { SelectedParticipant } from '@src/types/onyx/NewGroupChatDraft';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 
 type GroupChatNameEditPageOnyxProps = {
-    groupChatDraft?: NewGroupChatDraft;
+    groupChatDraft: NewGroupChatDraft|null;
 };
 
 type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME> & GroupChatNameEditPageOnyxProps;
@@ -109,7 +109,7 @@ function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPagePro
 
 GroupChatNameEditPage.displayName = 'GroupChatNameEditPage';
 
-export default withOnyx({
+export default withOnyx<GroupChatNameEditPageProps, GroupChatNameEditPageOnyxProps>({
     groupChatDraft: {
         key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     },
