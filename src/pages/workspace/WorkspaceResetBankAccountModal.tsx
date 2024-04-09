@@ -1,40 +1,35 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 
-const propTypes = {
-    /** Reimbursement account data */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
-
+type WorkspaceResetBankAccountModalOnyxProps = {
     /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }).isRequired,
+    session: OnyxEntry<OnyxTypes.Session>;
 
-    /** Information about the logged in user's account */
-    user: PropTypes.shape({
-        /** Whether or not the user is on a public domain email account or not */
-        isFromPublicDomain: PropTypes.bool,
-    }).isRequired,
+    /** The user's data */
+    user: OnyxEntry<OnyxTypes.User>;
 };
 
-function WorkspaceResetBankAccountModal({reimbursementAccount, session, user}) {
+type WorkspaceResetBankAccountModalProps = WorkspaceResetBankAccountModalOnyxProps & {
+    /** Reimbursement account data */
+    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
+};
+
+function WorkspaceResetBankAccountModal({reimbursementAccount, session, user}: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const achData = lodashGet(reimbursementAccount, 'achData') || {};
-    const isInOpenState = achData.state === BankAccount.STATE.OPEN;
-    const bankAccountID = achData.bankAccountID;
-    const bankShortName = `${achData.addressName || ''} ${(achData.accountNumber || '').slice(-4)}`;
+    const achData = reimbursementAccount?.achData;
+    const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
+    const bankAccountID = achData?.bankAccountID;
+    const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
 
     return (
         <ConfirmModal
@@ -54,7 +49,7 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session, user}) {
             }
             danger
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session, achData.policyID, user)}
+            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session, achData?.policyID ?? '', user)}
             shouldShowCancelButton
             isVisible
         />
@@ -62,9 +57,8 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session, user}) {
 }
 
 WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
-WorkspaceResetBankAccountModal.propTypes = propTypes;
 
-export default withOnyx({
+export default withOnyx<WorkspaceResetBankAccountModalProps, WorkspaceResetBankAccountModalOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },
