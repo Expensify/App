@@ -60,7 +60,7 @@ const octokit = new Octokit(
             },
         },
     }),
-).rest;
+);
 
 function getType(labels) {
     if (_.contains(labels, 'Bug')) {
@@ -77,7 +77,7 @@ async function getGitHubData() {
     for (const issueNumber of issues) {
         const num = issueNumber.trim();
         console.info(`Fetching ${num}`);
-        const result = await octokit.issues
+        const result = await octokit.rest.issues
             .get({
                 owner: 'Expensify',
                 repo: 'App',
@@ -89,11 +89,35 @@ async function getGitHubData() {
         if (result) {
             const issue = result.data;
             const labels = _.map(issue.labels, (label) => label.name);
+            const type = getType(labels);
+            let capSWProjects = [];
+            if (type === 'NewFeature') {
+                // eslint-disable-next-line rulesdir/prefer-underscore-method
+                capSWProjects = await octokit
+                    .graphql(
+                        `
+                {
+                  repository(owner: "Expensify", name: "App") {
+                    issue(number: 39322) {
+                      projectsV2(last: 30) {
+                        nodes {
+                          title
+                        }
+                      }
+                    }
+                  }
+                }
+                `,
+                    )
+                    .repository.issue.projectsV2.nodes.map((node) => node.title)
+                    .join(',');
+            }
             gitHubData.push({
                 number: issue.number,
                 title: issue.title,
                 labels,
                 type: getType(labels),
+                capSWProjects,
             });
         }
     }
