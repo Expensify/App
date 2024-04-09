@@ -1,7 +1,7 @@
 /* eslint-disable es/no-optional-chaining */
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -42,7 +42,6 @@ type TaskAssigneeSelectorModalOnyxProps = {
 
     /** Whether or not we are searching for reports on the server */
     isSearchingForReports: OnyxEntry<boolean>;
-
 };
 
 type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithNavigationTransitionEndProps;
