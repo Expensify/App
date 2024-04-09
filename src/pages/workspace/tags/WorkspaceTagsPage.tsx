@@ -52,111 +52,111 @@ type PolicyForList = {
 
 type PolicyOption = ListItem & {
     /** Tag name is used as a key for the selectedTags state */
-        keyForList: string;
+    keyForList: string;
+};
+
+type WorkspaceTagsOnyxProps = {
+    /** Collection of tags attached to a policy */
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+};
+
+type WorkspaceTagsPageProps = WorkspaceTagsOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+
+function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
+    const dropdownButtonRef = useRef(null);
+    const [deleteTagsConfirmModalVisible, setDeleteTagsConfirmModalVisible] = useState(false);
+
+    const fetchTags = useCallback(() => {
+        Policy.openPolicyTagsPage(route.params.policyID);
+    }, [route.params.policyID]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchTags});
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchTags();
+        }, [fetchTags]),
+    );
+
+    // We currently don't support multi level tags, so let's only get the first level tags.
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const tagList = useMemo<PolicyForList[]>(
+        () =>
+            policyTagLists
+                .map((policyTagList) =>
+                    lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
+                        const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
+                        const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                        return {
+                            value: tag.name,
+                            text: tag.name,
+                            keyForList: tag.name,
+                            isSelected: !!selectedTags[tag.name],
+                            pendingAction: tag.pendingAction,
+                            errors: tag.errors ?? undefined,
+                            enabled: tag.enabled,
+                            isDisabled,
+                            rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
+                        };
+                    }),
+                )
+                .flat(),
+        [policyTagLists, selectedTags],
+    );
+
+    const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
+        acc[tag.value] = tag;
+        return acc;
+    }, {});
+
+    const toggleTag = (tag: PolicyForList) => {
+        setSelectedTags((prev) => ({
+            ...prev,
+            [tag.value]: !prev[tag.value],
+        }));
     };
 
-    type WorkspaceTagsOnyxProps = {
-        /** Collection of tags attached to a policy */
-        policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
+    const toggleAllTags = () => {
+        const isAllSelected = tagList.every((tag) => !!selectedTags[tag.value]);
+        setSelectedTags(isAllSelected ? {} : Object.fromEntries(tagList.map((item) => [item.value, true])));
     };
 
-    type WorkspaceTagsPageProps = WorkspaceTagsOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+    const getCustomListHeader = () => (
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+            <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
+            <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
+        </View>
+    );
 
-    function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
-        const {isSmallScreenWidth} = useWindowDimensions();
-        const styles = useThemeStyles();
-        const theme = useTheme();
-        const {translate} = useLocalize();
-        const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
-        const dropdownButtonRef = useRef(null);
-        const [deleteTagsConfirmModalVisible, setDeleteTagsConfirmModalVisible] = useState(false);
+    const navigateToTagsSettings = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route.params.policyID));
+    };
 
-        const fetchTags = useCallback(() => {
-            Policy.openPolicyTagsPage(route.params.policyID);
-        }, [route.params.policyID]);
+    const navigateToCreateTagPage = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(route.params.policyID));
+    };
 
-        const {isOffline} = useNetwork({onReconnect: fetchTags});
+    const navigateToTagSettings = (tag: PolicyOption) => {
+        setSelectedTags({});
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, tag.keyForList));
+    };
 
-        useFocusEffect(
-            useCallback(() => {
-                fetchTags();
-            }, [fetchTags]),
-        );
-        
-        // We currently don't support multi level tags, so let's only get the first level tags.
-        const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
-        const tagList = useMemo<PolicyForList[]>(
-            () =>
-                policyTagLists
-                    .map((policyTagList) =>
-                        lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
-                            const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
-                            const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                            return {
-                                value: tag.name,
-                                text: tag.name,
-                                keyForList: tag.name,
-                                isSelected: !!selectedTags[tag.name],
-                                pendingAction: tag.pendingAction,
-                                errors: tag.errors ?? undefined,
-                                enabled: tag.enabled,
-                                isDisabled,
-                                rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
-                            };
-                        }),
-                    )
-                    .flat(),
-            [policyTagLists, selectedTags],
-        );
+    const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
 
-        const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
-            acc[tag.value] = tag;
-            return acc;
-        }, {});
+    const handleDeleteTags = () => {
+        setSelectedTags({});
+        Policy.deletePolicyTags(route.params.policyID, selectedTagsArray);
+        setDeleteTagsConfirmModalVisible(false);
+    };
 
-        const toggleTag = (tag: PolicyForList) => {
-            setSelectedTags((prev) => ({
-                ...prev,
-                [tag.value]: !prev[tag.value],
-            }));
-        };
+    const isLoading = !isOffline && policyTags === undefined;
 
-        const toggleAllTags = () => {
-            const isAllSelected = tagList.every((tag) => !!selectedTags[tag.value]);
-            setSelectedTags(isAllSelected ? {} : Object.fromEntries(tagList.map((item) => [item.value, true])));
-        };
-
-        const getCustomListHeader = () => (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
-                <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
-                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
-            </View>
-        );
-
-        const navigateToTagsSettings = () => {
-            Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route.params.policyID));
-        };
-
-        const navigateToCreateTagPage = () => {
-            Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(route.params.policyID));
-        };
-
-        const navigateToTagSettings = (tag: PolicyOption) => {
-            setSelectedTags({});
-            Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, tag.keyForList));
-        };
-
-        const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
-
-        const handleDeleteTags = () => {
-            setSelectedTags({});
-            Policy.deletePolicyTags(route.params.policyID, selectedTagsArray);
-            setDeleteTagsConfirmModalVisible(false);
-        };
-
-        const isLoading = !isOffline && policyTags === undefined;
-
-        const getHeaderButtons = () => {
+    const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
 
         if (selectedTagsArray.length > 0) {

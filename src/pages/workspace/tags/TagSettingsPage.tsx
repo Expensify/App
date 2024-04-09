@@ -79,7 +79,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
                         testID={TagSettingsPage.displayName}
                     >
                         <HeaderWithBackButton
-                            title={PolicyUtils.getCleanedTagName(route.params.tagName)}
+                            title={route.params.tagName}
                             shouldShowThreeDotsButton
                             shouldSetModalVisibility={false}
                             threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
