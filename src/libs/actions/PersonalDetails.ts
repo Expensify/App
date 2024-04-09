@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
-import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as Session from './Session';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -46,12 +46,6 @@ let allPersonalDetails: OnyxEntry<PersonalDetailsList> = null;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
-});
-
-let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails> = null;
-Onyx.connect({
-    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    callback: (val) => (privatePersonalDetails = val),
 });
 
 function updatePronouns(pronouns: string) {
@@ -77,30 +71,30 @@ function updatePronouns(pronouns: string) {
 }
 
 function updateDisplayName(firstName: string, lastName: string) {
-    if (currentUserAccountID) {
-        const parameters: UpdateDisplayNameParams = {firstName, lastName};
-
-        API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            firstName,
-                            lastName,
-                            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                                firstName,
-                                lastName,
-                            }),
-                        },
-                    },
-                },
-            ],
-        });
+    if (!currentUserAccountID) {
+        return;
     }
 
-    Navigation.goBack();
+    const parameters: UpdateDisplayNameParams = {firstName, lastName};
+
+    API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        firstName,
+                        lastName,
+                        displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                            firstName,
+                            lastName,
+                        }),
+                    },
+                },
+            },
+        ],
+    });
 }
 
 function updateLegalName(legalFirstName: string, legalLastName: string) {
@@ -243,43 +237,6 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
     }
 
     Navigation.goBack(ROUTES.SETTINGS_TIMEZONE);
-}
-
-/**
- * Fetches additional personal data like legal name, date of birth, address
- */
-function openPersonalDetails() {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS, {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -614,18 +571,9 @@ function clearAvatarErrors() {
     });
 }
 
-/**
- * Get private personal details value
- */
-function getPrivatePersonalDetails(): OnyxEntry<PrivatePersonalDetails> {
-    return privatePersonalDetails;
-}
-
 export {
     clearAvatarErrors,
     deleteAvatar,
-    getPrivatePersonalDetails,
-    openPersonalDetails,
     openPublicProfilePage,
     updateAddress,
     updateAutomaticTimezone,
