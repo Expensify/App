@@ -160,6 +160,14 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: () => {},
                       },
+                      {
+                          key: 'workspace.accounting.other',
+                          iconRight: Expensicons.DownArrow,
+                          shouldShowRightIcon: true,
+                          description: translate('workspace.accounting.other'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription, styles.mt3],
+                          onPress: () => {},
+                      },
                   ]),
         ],
         [translate, theme.spinner, isSyncInProgress, overflowMenu, threeDotsMenuPosition, styles.popoverMenuIcon, threeDotsMenuContainerRef, styles.sectionMenuItemTopDescription],
@@ -213,22 +221,6 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                                     menuItems={policyIsConnectedToAccountingSystem ? qboConnectionMenuItems : connectionsMenuItems}
                                     shouldUseSingleExecution
                                 />
-
-                                {policyIsConnectedToAccountingSystem && !isSyncInProgress && (
-                                    <>
-                                        <SpacerView
-                                            shouldShow
-                                            style={[styles.chatItemComposeBoxColor, styles.mr2]}
-                                        />
-                                        <MenuItem
-                                            iconRight={Expensicons.DownArrow}
-                                            shouldShowRightIcon
-                                            description={translate('workspace.accounting.other')}
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                            onPress={() => {}}
-                                        />
-                                    </>
-                                )}
                             </Section>
                         </View>
                     </ScrollView>
