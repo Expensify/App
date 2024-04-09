@@ -36,13 +36,13 @@ export default function useViewportOffsetTop(shouldAdjustScrollView = false): nu
         [shouldAdjustScrollView],
     );
 
-    useEffect(() => addViewportResizeListener(updateOffsetTop), [shouldAdjustScrollView, updateOffsetTop]);
+    useEffect(() => addViewportResizeListener(updateOffsetTop), [updateOffsetTop]);
 
     useEffect(() => {
         if (!shouldAdjustScrollView) {
             return;
         }
-        window.scrollTo({top: viewportOffsetTop});
+        window.scrollTo({top: viewportOffsetTop, behavior: 'instant'});
     }, [shouldAdjustScrollView, viewportOffsetTop]);
 
     return viewportOffsetTop;
