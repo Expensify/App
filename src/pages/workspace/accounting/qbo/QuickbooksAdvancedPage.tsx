@@ -110,6 +110,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                     shouldShowRightIcon
                     shouldShowBasicTitle
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
                 />
             </ScrollView>
         </ScreenWrapper>
