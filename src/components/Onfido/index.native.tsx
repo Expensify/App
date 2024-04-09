@@ -30,7 +30,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         })
             .then(onSuccess)
             .catch((error) => {
-                const errorMessage = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
+                const errorMessage = error.message ?? '';
                 const errorType = error.type;
 
                 Log.hmmm('Onfido error on native', {errorType, errorMessage});
