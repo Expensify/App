@@ -72,7 +72,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {InvitedEmailsToAccountIDs, NewGroupChatDraft, PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
+import type {
+    InvitedEmailsToAccountIDs,
+    NewGroupChatDraft,
+    PersonalDetails,
+    PersonalDetailsList,
+    PolicyReportField,
+    RecentlyUsedReportFields,
+    ReportActionReactions,
+    ReportMetadata,
+    ReportUserIsTyping,
+} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
@@ -2641,15 +2651,18 @@ function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedE
         (accountID): accountID is number => typeof accountID === 'number',
     );
 
-    const participantsAfterInvitation = inviteeAccountIDs.reduce((reportParticipants: Participants, accountID: number) => {
-        const participant: ReportParticipant = {
-            hidden: false,
-            role: CONST.REPORT.ROLE.MEMBER,
-        };
-        // eslint-disable-next-line no-param-reassign
-        reportParticipants[accountID] = participant;
-        return reportParticipants;
-    }, {...report.participants});
+    const participantsAfterInvitation = inviteeAccountIDs.reduce(
+        (reportParticipants: Participants, accountID: number) => {
+            const participant: ReportParticipant = {
+                hidden: false,
+                role: CONST.REPORT.ROLE.MEMBER,
+            };
+            // eslint-disable-next-line no-param-reassign
+            reportParticipants[accountID] = participant;
+            return reportParticipants;
+        },
+        {...report.participants},
+    );
 
     const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);

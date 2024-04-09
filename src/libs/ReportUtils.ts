@@ -1749,10 +1749,10 @@ function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = f
 
     if (isMultipleParticipantReport) {
         return participants
-        .map((participant) => getDisplayNameForParticipant(participant, isMultipleParticipantReport))
-        .sort((first, second) => localeCompare(first ?? '', second ?? ''))
-        .filter(Boolean)
-        .join(', ');
+            .map((participant) => getDisplayNameForParticipant(participant, isMultipleParticipantReport))
+            .sort((first, second) => localeCompare(first ?? '', second ?? ''))
+            .filter(Boolean)
+            .join(', ');
     }
 
     return Localize.translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant(participants[0], false)});

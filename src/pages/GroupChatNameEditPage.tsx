@@ -20,12 +20,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
-import type { Errors } from '@src/types/onyx/OnyxCommon';
-import type { SelectedParticipant } from '@src/types/onyx/NewGroupChatDraft';
+import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type GroupChatNameEditPageOnyxProps = {
-    groupChatDraft: NewGroupChatDraft|null;
+    groupChatDraft: NewGroupChatDraft | null;
 };
 
 type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME> & GroupChatNameEditPageOnyxProps;
@@ -49,27 +49,33 @@ function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPagePro
     }, [groupChatDraft, reportID]);
     const existingReportName = ReportUtils.getGroupChatName(participantAccountIDs, false, reportID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const currentChatName = reportID ? existingReportName : (groupChatDraft?.reportName || existingReportName);
+    const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
-        const errors: Errors = {};
-        if (!ValidationUtils.isValidReportName(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
-            errors.newChatName = translate('common.error.characterLimit', {limit: CONST.REPORT_NAME_LIMIT});
-        }
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
+            const errors: Errors = {};
+            if (!ValidationUtils.isValidReportName(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
+                errors.newChatName = translate('common.error.characterLimit', {limit: CONST.REPORT_NAME_LIMIT});
+            }
 
-        return errors;
-    }, [translate]);
+            return errors;
+        },
+        [translate],
+    );
 
-    const editName = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
-        if (isUpdatingExistingReport) {
-            Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
-            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
-            return;
-        }
+    const editName = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
+            if (isUpdatingExistingReport) {
+                Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
+                Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+                return;
+            }
 
-        Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
-        Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
-    }, [isUpdatingExistingReport, reportID]);
+            Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
+            Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
+        },
+        [isUpdatingExistingReport, reportID],
+    );
 
     return (
         <ScreenWrapper

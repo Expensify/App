@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import * as Report from '@userActions/Report';
 import useLocalize from '@hooks/useLocalize';
-import type { Report as OnyxReportType } from '@src/types/onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ConfirmModal from './ConfirmModal';
+import * as Report from '@userActions/Report';
+import type {Report as OnyxReportType} from '@src/types/onyx';
 import Button from './Button';
+import ConfirmModal from './ConfirmModal';
 import * as Expensicons from './Icon/Expensicons';
 
 type ChatActionsBarProps = {
@@ -29,7 +29,6 @@ function ChatActionsBar({report}: ChatActionsBarProps) {
                         Report.leaveGroupChat(report.reportID);
                     }}
                     onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
-
                     // TODO: Get this copy confirmed
                     prompt="Heads up! You are the last member of this group chat. Once you leave you will not be able to access the contents again."
                     confirmText={translate('common.leave')}

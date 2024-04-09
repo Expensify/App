@@ -2096,7 +2096,7 @@ function getMemberInviteOptions(
             excludeLogins,
             sortPersonalDetailsByAlphaAsc: true,
             includeSelectedOptions,
-            includeRecentReports
+            includeRecentReports,
         },
     );
 }
