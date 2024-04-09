@@ -390,9 +390,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(Localize.translateLocal('iou.unheldRequest'));
                 } else if (content) {
                     setClipboardMessage(
-                        content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, function (match, openTag, content, closeTag) {
-                            content = Str.removeSMSDomain(content);
-                            return openTag + content + closeTag;
+                        content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, function (match, openTag, innerContent, closeTag) {
+                            innerContent = Str.removeSMSDomain(content);
+                            return openTag + innerContent + closeTag;
                         }),
                     );
                 } else if (messageText) {
