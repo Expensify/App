@@ -8,10 +8,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
+import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import SpacerView from '@components/SpacerView';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useEnvironment from '@hooks/useEnvironment';
@@ -168,20 +170,6 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
         [translate, theme.spinner, isSyncInProgress, overflowMenu, threeDotsMenuPosition, styles.popoverMenuIcon, threeDotsMenuContainerRef, styles.sectionMenuItemTopDescription],
     );
 
-    const otherConnectionMenuItems: MenuItemProps[] = useMemo(
-        () => [
-            {
-                key: 'workspace.accounting.other',
-                iconRight: Expensicons.DownArrow,
-                shouldShowRightIcon: true,
-                description: translate('workspace.accounting.other'),
-                wrapperStyle: [styles.sectionMenuItemTopDescription, styles.mt3],
-                onPress: () => {},
-            },
-        ],
-        [styles.sectionMenuItemTopDescription, styles.mt3, translate],
-    );
-
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
             icon: Expensicons.Key,
@@ -203,49 +191,66 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
             includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <FullPageNotFoundView
+            {/* <FullPageNotFoundView
                 onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                 onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                 // TODO change back to !hasAccess
                 shouldShow={hasAccess}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-            >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.accounting')}
-                    shouldShowBackButton={isSmallScreenWidth}
-                    icon={Illustrations.Accounting}
-                    shouldShowThreeDotsButton
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    threeDotsMenuItems={headerThreeDotsMenuItems}
-                />
-                <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <Section
-                            title={translate('workspace.accounting.title')}
-                            subtitle={translate('workspace.accounting.subtitle')}
-                            isCentralPane
-                            subtitleMuted
-                            titleStyles={styles.accountSettingsSectionTitle}
-                            childrenStyles={styles.pt5}
-                        >
-                            <MenuItemList
-                                menuItems={policyIsConnectedToAccountingSystem ? [...qboConnectionMenuItems, ...otherConnectionMenuItems] : connectionsMenuItems}
-                                shouldUseSingleExecution
-                            />
-                        </Section>
-                    </View>
-                </ScrollView>
-                <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle')}
-                    isVisible={isDisconnectModalOpen}
-                    onConfirm={() => {}}
-                    onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt')}
-                    confirmText={translate('workspace.accounting.disconnect')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-            </FullPageNotFoundView>
+            > */}
+            <HeaderWithBackButton
+                title={translate('workspace.common.accounting')}
+                shouldShowBackButton={isSmallScreenWidth}
+                icon={Illustrations.Accounting}
+                shouldShowThreeDotsButton
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                threeDotsMenuItems={headerThreeDotsMenuItems}
+            />
+            <ScrollView contentContainerStyle={styles.pt3}>
+                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('workspace.accounting.title')}
+                        subtitle={translate('workspace.accounting.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        titleStyles={styles.accountSettingsSectionTitle}
+                        childrenStyles={styles.pt5}
+                    >
+                        <MenuItemList
+                            menuItems={policyIsConnectedToAccountingSystem ? qboConnectionMenuItems : connectionsMenuItems}
+                            shouldUseSingleExecution
+                        />
+
+                        {policyIsConnectedToAccountingSystem && !isSyncInProgress && (
+                            <>
+                                <SpacerView
+                                    shouldShow
+                                    style={[styles.chatItemComposeBoxColor, styles.mr2]}
+                                />
+                                <MenuItem
+                                    iconRight={Expensicons.DownArrow}
+                                    shouldShowRightIcon
+                                    description={translate('workspace.accounting.other')}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                    onPress={() => {}}
+                                />
+                            </>
+                        )}
+                    </Section>
+                </View>
+            </ScrollView>
+            <ConfirmModal
+                title={translate('workspace.accounting.disconnectTitle')}
+                isVisible={isDisconnectModalOpen}
+                onConfirm={() => {}}
+                onCancel={() => setIsDisconnectModalOpen(false)}
+                prompt={translate('workspace.accounting.disconnectPrompt')}
+                confirmText={translate('workspace.accounting.disconnect')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+
+            {/* </FullPageNotFoundView> */}
         </ScreenWrapper>
     );
 }
