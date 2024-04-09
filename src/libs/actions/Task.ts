@@ -134,7 +134,7 @@ function createTaskAndNavigate(
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
-    const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport?.reportAction?.message?.[0].text ?? '');
+    const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport?.reportAction?.message?.[0]?.text ?? '');
     const optimisticParentReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
@@ -195,16 +195,12 @@ function createTaskAndNavigate(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: {
-                errorFields: {
-                    createTask: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
-                },
-            },
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
-            value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
+            value: null,
         },
     ];
 
@@ -663,11 +659,11 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
 function setAssigneeValue(
     assigneeEmail: string,
     assigneeAccountID: number,
-    shareToReportID: string,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
+    shareToReportID?: string,
+    chatReport?: OnyxEntry<OnyxTypes.Report>,
     isCurrentUser = false,
-): OnyxEntry<OnyxTypes.Report> {
-    let report = chatReport;
+): OnyxEntry<OnyxTypes.Report> | undefined {
+    let report: OnyxEntry<OnyxTypes.Report> | undefined = chatReport;
     if (!isCurrentUser) {
         // Check for the chatReport by participants IDs
         if (!report) {
