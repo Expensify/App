@@ -147,13 +147,6 @@ function BaseVideoPlayer({
 
             if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 isFullScreenRef.current = false;
-                // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
-                // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
-                if (videoStateRef.current && (!('isPlaying' in videoStateRef.current) || videoStateRef.current.isPlaying)) {
-                    pauseVideo();
-                    playVideo();
-                    videoResumeTryNumber.current = 3;
-                }
 
                 currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
                     if (!('isMuted' in status)) {
@@ -162,6 +155,14 @@ function BaseVideoPlayer({
 
                     updateVolume(status.isMuted ? 0 : status.volume || 1);
                 });
+
+                // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
+                // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
+                if (videoStateRef.current && (!('isPlaying' in videoStateRef.current) || videoStateRef.current.isPlaying)) {
+                    pauseVideo();
+                    playVideo();
+                    videoResumeTryNumber.current = 3;
+                }
             }
         },
         [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber, updateVolume, currentVideoPlayerRef],
