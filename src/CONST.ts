@@ -1200,6 +1200,12 @@ const CONST = {
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
+    QBO_ONLINE_ACCOUNT_SELECTOR_OPTIONS: {
+        CROISSANT_CO_PAYROLL_ACCOUNT: 'Croissant Co Payroll Account',
+        CROISSANT_CO_MONEY_IN_CLEARING: 'Croissant Co Money in Clearing',
+        CROISSANT_CO_DEBTS_AND_LOANS: 'Croissant Co Debts and Loans',
+    },
+
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
