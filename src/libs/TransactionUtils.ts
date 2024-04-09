@@ -96,6 +96,7 @@ function buildOptimisticTransaction(
     tag = '',
     billable = false,
     pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
+    reimbursable = true,
 ): Transaction {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -124,6 +125,7 @@ function buildOptimisticTransaction(
         category,
         tag,
         billable,
+        reimbursable,
     };
 }
 
@@ -625,7 +627,7 @@ function getEnabledTaxRateCount(options: TaxRates) {
  */
 function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction?: Transaction) {
     const defaultTaxKey = taxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${Localize.translateLocal('common.default')}`) || '';
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey]?.name} (${taxRates.taxes[defaultTaxKey]?.value}) • ${Localize.translateLocal('common.default')}`) || '';
     return transaction?.taxRate?.text ?? defaultTaxName;
 }
 
@@ -633,9 +635,9 @@ function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction?: Transact
  * Gets the tax name
  */
 function getTaxName(taxes: TaxRates, transactionTaxCode: string) {
-    const taxName = `${taxes[transactionTaxCode].name}`;
-    const taxValue = `${taxes[transactionTaxCode].value}`;
-    return transactionTaxCode ? `${taxName} (${taxValue})` : '';
+    const taxName = taxes[transactionTaxCode]?.name ?? '';
+    const taxValue = taxes[transactionTaxCode]?.value ?? '';
+    return transactionTaxCode && taxName && taxValue ? `${taxName} (${taxValue})` : '';
 }
 
 export {
