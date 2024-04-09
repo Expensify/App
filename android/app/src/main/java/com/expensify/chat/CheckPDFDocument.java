@@ -6,10 +6,15 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
 import com.facebook.react.bridge.Callback;
 import android.util.Log;
+
+
 
 public class CheckPDFDocument extends ReactContextBaseJavaModule {
     private static final String MODULE_NAME = "CheckPDFDocument";
@@ -25,15 +30,13 @@ public class CheckPDFDocument extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void checkPdf(String name, Callback callback) {
-        Log.d(MODULE_NAME, "Checking pdf: " + name);
-        try {
-            PdfReader pdfReader = new PdfReader(name);
-            Log.d("good", "pdfFileValidator ==> Exit");
-            callback.invoke(true);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            Log.e("bad", "pdfFileValidator ==> Exit. Error ==> " + e.getMessage());
+        if (PdfUtils.isPdfCorrupted(name)) {
+            // Handle the case where the PDF file is corrupted
             callback.invoke(false);
+        } else {
+            // Proceed with processing the PDF file
+            // For example, display the PDF file to the user
+            callback.invoke(true);
         }
     }
 }
