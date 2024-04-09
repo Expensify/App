@@ -16,8 +16,9 @@ import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-// import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
@@ -25,13 +26,14 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // const {environmentURL} = useEnvironment();
-    // const waitForNavigate = useWaitForNavigation();
+    const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -157,7 +159,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.advanced'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: () => {},
+                          onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))),
                       },
                   ]),
         ],
