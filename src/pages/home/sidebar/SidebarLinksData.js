@@ -16,7 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -128,7 +128,7 @@ function SidebarLinksData({
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
 
-    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policies, activeWorkspaceID, currentUserPersonalDetails.accountID);
+    const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, currentUserPersonalDetails.accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs), [activeWorkspaceID]);

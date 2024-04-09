@@ -27,7 +27,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceWorkflowsApproverPageOnyxProps = {
@@ -49,19 +49,19 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const isDeletedPolicyMember = useCallback(
-        (policyMember: PolicyMember) => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
+    const isDeletedPolicyEmployee = useCallback(
+        (policyEmployee: PolicyEmployee) => !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
         [isOffline],
     );
 
-    const [formattedPolicyMembers, formattedApprover] = useMemo(() => {
+    const [formattedPolicyEmployeeList, formattedApprover] = useMemo(() => {
         const policyMemberDetails: MemberOption[] = [];
         const approverDetails: MemberOption[] = [];
 
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
 
-        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyMember]) => {
-            if (isDeletedPolicyMember(policyMember)) {
+        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+            if (isDeletedPolicyEmployee(policyEmployee)) {
                 return;
             }
 
@@ -74,7 +74,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
             }
 
             const isOwner = policy?.owner === details.login;
-            const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
+            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
 
             let roleBadge = null;
             if (isOwner || isAdmin) {
@@ -91,7 +91,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                 keyForList: String(accountID),
                 accountID,
                 isSelected: policy?.approver === details.login,
-                isDisabled: policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors),
+                isDisabled: policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -103,8 +103,8 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                         id: accountID,
                     },
                 ],
-                errors: policyMember.errors,
-                pendingAction: policyMember.pendingAction,
+                errors: policyEmployee.errors,
+                pendingAction: policyEmployee.pendingAction,
             };
 
             if (policy?.approver === details.login) {
@@ -114,13 +114,13 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
             }
         });
         return [policyMemberDetails, approverDetails];
-    }, [personalDetails, translate, policy?.approver, StyleUtils, isDeletedPolicyMember, policy?.owner, styles, policy?.employeeList]);
+    }, [personalDetails, translate, policy?.approver, StyleUtils, isDeletedPolicyEmployee, policy?.owner, styles, policy?.employeeList]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
 
         if (searchTerm !== '') {
-            const filteredOptions = [...formattedApprover, ...formattedPolicyMembers].filter((option) => {
+            const filteredOptions = [...formattedApprover, ...formattedPolicyEmployeeList].filter((option) => {
                 const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
                 return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
             });
@@ -141,12 +141,12 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
 
         sectionsArray.push({
             title: translate('common.all'),
-            data: formattedPolicyMembers,
+            data: formattedPolicyEmployeeList,
             shouldShow: true,
         });
 
         return sectionsArray;
-    }, [formattedPolicyMembers, formattedApprover, searchTerm, translate]);
+    }, [formattedPolicyEmployeeList, formattedApprover, searchTerm, translate]);
 
     const headerMessage = useMemo(
         () => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''),

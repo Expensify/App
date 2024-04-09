@@ -42,7 +42,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyMember, PolicyMembers, Session} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyEmployee, PolicyEmployeeList, Session} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -98,12 +98,13 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     /**
      * Get filtered personalDetails list with current employeeList
      */
-    const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
+    const filterPersonalDetails = (members: OnyxEntry<PolicyEmployeeList>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
         Object.keys(members ?? {}).reduce((result, key) => {
-            if (details?.[policyMemberEmailsToAccountIDs[key] ?? '']) {
+            const memberAccountIdKey = policyMemberEmailsToAccountIDs[key] ?? '';
+            if (details?.[memberAccountIdKey]) {
                 return {
                     ...result,
-                    [policyMemberEmailsToAccountIDs[key] ?? '']: details[policyMemberEmailsToAccountIDs[key] ?? ''],
+                    [memberAccountIdKey]: details[memberAccountIdKey],
                 };
             }
             return result;
@@ -130,7 +131,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedEmployees, policy?.owner, session?.accountID]);
 
-    // useFocusEffect would make getWorkspaceMembers get called twice on fresh login because policyMember is a dependency of getWorkspaceMembers.
+    // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
     useEffect(() => {
         if (!isFocused) {
             return;
@@ -156,10 +157,13 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 const res = Object.values(currentPersonalDetails).find((item) => prevItem?.login === item?.login);
                 return res?.accountID ?? id;
             });
+
+            const currentSelectedElements = Object.entries(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList))
+                .filter((employee) => policy?.employeeList?.[employee[0]]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map((employee) => employee[1]);
+
             // This is an equivalent of the lodash intersection function. The reduce method below is used to filter the items that exist in both arrays.
-            return [prevSelectedElements, Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList))].reduce((prev, members) =>
-                prev.filter((item) => members.includes(item)),
-            );
+            return [prevSelectedElements, currentSelectedElements].reduce((prev, members) => prev.filter((item) => members.includes(item)));
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy?.employeeList, policyMemberEmailsToAccountIDs]);
@@ -294,8 +298,8 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     /**
      * Check if the policy member is deleted from the workspace
      */
-    const isDeletedPolicyMember = useCallback(
-        (policyMember: PolicyMember): boolean => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
+    const isDeletedPolicyEmployee = useCallback(
+        (policyEmployee: PolicyEmployee): boolean => !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
         [isOffline],
     );
 
@@ -305,9 +309,9 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
 
-        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyMember]) => {
+        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
             const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
-            if (isDeletedPolicyMember(policyMember)) {
+            if (isDeletedPolicyEmployee(policyEmployee)) {
                 return;
             }
 
@@ -330,7 +334,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             const isSelected = selectedEmployees.includes(accountID);
 
             const isOwner = policy?.owner === details.login;
-            const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
+            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
             let roleBadge = null;
             if (isOwner || isAdmin) {
                 roleBadge = (
@@ -347,7 +351,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 accountID,
                 isSelected,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
-                isDisabled: isPolicyAdmin && (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors)),
+                isDisabled: isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors)),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -359,8 +363,8 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         id: accountID,
                     },
                 ],
-                errors: policyMember.errors,
-                pendingAction: policyMember.pendingAction,
+                errors: policyEmployee.errors,
+                pendingAction: policyEmployee.pendingAction,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
@@ -372,7 +376,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         currentUserLogin,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
-        isDeletedPolicyMember,
+        isDeletedPolicyEmployee,
         isPolicyAdmin,
         personalDetails,
         policy?.owner,

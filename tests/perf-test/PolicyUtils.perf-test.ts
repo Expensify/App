@@ -1,29 +1,29 @@
 import {measureFunction} from 'reassure';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import createCollection from '../utils/collections/createCollection';
-import createRandomPolicyMember from '../utils/collections/policyMembers';
+import createRandomPolicyEmployeeList from '../utils/collections/policyEmployeeList';
 
 describe('PolicyUtils', () => {
     describe('getMemberAccountIDsForWorkspace', () => {
         test('500 policy members with personal details', async () => {
-            const policyMembers = createCollection(
+            const policyEmployeeList = createCollection(
                 (_, index) => index,
-                () => createRandomPolicyMember(),
+                () => createRandomPolicyEmployeeList(),
             );
 
-            await measureFunction(() => getMemberAccountIDsForWorkspace(policyMembers));
+            await measureFunction(() => getMemberAccountIDsForWorkspace(policyEmployeeList));
         });
 
         test('500 policy members with errors and personal details', async () => {
-            const policyMembers = createCollection(
+            const policyEmployeeList = createCollection(
                 (_, index) => index,
                 () => ({
-                    ...createRandomPolicyMember(),
+                    ...createRandomPolicyEmployeeList(),
                     errors: {error: 'Error message'},
                 }),
             );
 
-            await measureFunction(() => getMemberAccountIDsForWorkspace(policyMembers));
+            await measureFunction(() => getMemberAccountIDsForWorkspace(policyEmployeeList));
         });
     });
 });

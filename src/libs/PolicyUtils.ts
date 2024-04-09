@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -127,14 +127,14 @@ const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => poli
  */
 const isFreeGroupPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.type === CONST.POLICY.TYPE.FREE;
 
-const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
+const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(employeeList: PolicyMembers | undefined): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     Object.keys(members).forEach((email) => {
@@ -154,13 +154,13 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyMembers | undefined
 /**
  * Get login list that we should not show in the workspace invite options
  */
-function getIneligibleInvitees(employeeList?: PolicyMembers): string[] {
-    const members = employeeList ?? {};
+function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
+    const policyEmployeeList = employeeList ?? {};
     const memberEmailsToExclude: string[] = [...CONST.EXPENSIFY_EMAILS];
-    Object.keys(members).forEach((email) => {
-        const policyMember = members?.[email];
+    Object.keys(policyEmployeeList).forEach((email) => {
+        const policyEmployee = policyEmployeeList?.[email];
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
-        if (policyMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyMember?.errors ?? {}).length > 0) {
+        if (policyEmployee?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyEmployee?.errors ?? {}).length > 0) {
             return;
         }
         if (!email) {
@@ -278,7 +278,7 @@ function getPathWithoutPolicyID(path: string) {
     return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
 
-function getPolicyMembersByIdWithoutCurrentUser(policies: OnyxCollection<Policy>, currentPolicyID?: string, currentUserAccountID?: number) {
+function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Policy>, currentPolicyID?: string, currentUserAccountID?: number) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID}`] ?? null;
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
     return Object.values(policyMemberEmailsToAccountIDs)
@@ -344,11 +344,11 @@ export {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
     isPendingDeletePolicy,
-    isPolicyMember,
+    isPolicyEmployee,
     isPaidGroupPolicy,
     extractPolicyIDFromPath,
     getPathWithoutPolicyID,
-    getPolicyMembersByIdWithoutCurrentUser,
+    getPolicyEmployeeListByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
     isPolicyFeatureEnabled,
     hasTaxRateError,

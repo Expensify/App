@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
-import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportMetadata} from '@src/types/onyx';
@@ -73,7 +73,7 @@ function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTime
             return;
         }
 
-        const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
+        const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
 
         // If there is no reportID in route, try to find last accessed and use it for setParams
         const reportID = getLastAccessedReportID(

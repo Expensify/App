@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
-import {getPolicyMembersByIdWithoutCurrentUser} from './PolicyUtils';
+import {getPolicyEmployeeListByIdWithoutCurrentUser} from './PolicyUtils';
 
 let allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -12,14 +12,14 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-function getPolicyMemberAccountIDs(policyID?: string) {
+function getPolicyEmployeeAccountIDs(policyID?: string) {
     if (!policyID) {
         return [];
     }
 
     const currentUserAccountID = getCurrentUserAccountID();
 
-    return getPolicyMembersByIdWithoutCurrentUser(allPolicies, policyID, currentUserAccountID);
+    return getPolicyEmployeeListByIdWithoutCurrentUser(allPolicies, policyID, currentUserAccountID);
 }
 
-export default getPolicyMemberAccountIDs;
+export default getPolicyEmployeeAccountIDs;

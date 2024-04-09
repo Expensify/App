@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import * as OnyxUpdates from '@libs/actions/OnyxUpdates';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -60,9 +60,9 @@ export default function subscribeToReportCommentPushNotifications() {
 
         const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
         const report = getReport(reportID.toString());
-        const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
+        const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
 
-        const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID);
+        const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 
         Log.info('[PushNotification] onSelected() - called', false, {reportID, reportActionID});
         Navigation.isNavigationReady()

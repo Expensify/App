@@ -146,8 +146,8 @@ function RoomInvitePage({betas, report, policies}: RoomInvitePageProps) {
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
-    const isPolicyMember = useMemo(() => (report?.policyID ? PolicyUtils.isPolicyMember(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
-    const backRoute = useMemo(() => reportID && (isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)), [isPolicyMember, reportID]);
+    const isPolicyEmployee = useMemo(() => (report?.policyID ? PolicyUtils.isPolicyEmployee(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
+    const backRoute = useMemo(() => reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)), [isPolicyEmployee, reportID]);
     const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {

@@ -91,7 +91,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         const newSelectedOptionsDict: Record<number, MemberForList> = {};
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers, true);
-        // Update selectedOptions with the latest personalDetails and policyMembers information
+        // Update selectedOptions with the latest personalDetails and policyEmployeeList information
         const detailsMap: Record<string, MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
             if (!detail.login) {

@@ -28,7 +28,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceWorkflowsPayerPageOnyxProps = {
@@ -51,8 +51,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
     const [searchTerm, setSearchTerm] = useState('');
 
-    const isDeletedPolicyMember = useCallback(
-        (policyMember: PolicyMember) => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
+    const isDeletedPolicyEmployee = useCallback(
+        (policyEmployee: PolicyEmployee) => !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
         [isOffline],
     );
 
@@ -62,7 +62,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
 
-        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyMember]) => {
+        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
             const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
             const details = personalDetails?.[accountID];
             if (!details) {
@@ -71,8 +71,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             }
 
             const isOwner = policy?.owner === details?.login;
-            const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
-            const shouldSkipMember = isDeletedPolicyMember(policyMember) || PolicyUtils.isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
+            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
+            const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || PolicyUtils.isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
 
             if (shouldSkipMember) {
                 return;
@@ -92,7 +92,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 keyForList: String(accountID),
                 accountID,
                 isSelected: isAuthorizedPayer,
-                isDisabled: policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors),
+                isDisabled: policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -104,8 +104,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         id: accountID,
                     },
                 ],
-                errors: policyMember.errors,
-                pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburser : null,
+                errors: policyEmployee.errors,
+                pendingAction: policyEmployee.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburser : null,
             };
 
             if (isAuthorizedPayer) {
@@ -115,7 +115,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyMember, policy?.owner, styles, StyleUtils, policy?.pendingFields?.reimburser]);
+    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, styles, StyleUtils, policy?.pendingFields?.reimburser]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];

@@ -77,7 +77,7 @@ import type {
     Policy,
     PolicyCategories,
     PolicyCategory,
-    PolicyMember,
+    PolicyEmployee,
     PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTagList,
@@ -824,9 +824,9 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
 
-    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
-    const successMembersState: OnyxCollection<PolicyMember> = {};
-    const failureMembersState: OnyxCollection<PolicyMember> = {};
+    const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
+    const successMembersState: OnyxCollection<PolicyEmployee> = {};
+    const failureMembersState: OnyxCollection<PolicyEmployee> = {};
     emailList.forEach((email) => {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         successMembersState[email] = null;
@@ -1286,9 +1286,9 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
-    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
-    const successMembersState: OnyxCollection<PolicyMember> = {};
-    const failureMembersState: OnyxCollection<PolicyMember> = {};
+    const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
+    const successMembersState: OnyxCollection<PolicyEmployee> = {};
+    const failureMembersState: OnyxCollection<PolicyEmployee> = {};
     Object.keys(invitedEmailsToAccountIDs).forEach((email) => {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.POLICY.ROLE.USER};
         successMembersState[email] = {pendingAction: null};
