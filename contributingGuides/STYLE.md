@@ -68,14 +68,35 @@ export {
 }
 ```
 
-Using arrow functions is the preferred way to write an anonymous function such as a callback method.
+Using named functions is the preferred way to write a callback method.
 
 ```javascript
 // Bad
-_.map(someArray, function (item) {...});
+people.map(function (item) {...});
+people.map((item) => {...});
+useEffect/useMemo/useCallback(() => {}, []);
+randomList.push({
+     onSelected: Utils.checkIfAllowed(() => Utils.canTeamUp(people)),
+});
 
 // Good
-_.map(someArray, (item) => {...});
+function mappingPeople(person) {};
+people.map(mappingPeople);
+useEffect/useMemo/useCallback(function handlingConnection() {}, []);
+randomList.push({
+     onSelected: Utils.checkIfAllowed(function checkTask() { return Utils.canTeamUp(people); }),
+});
+```
+
+You can still use arrow function for declarations.
+
+```javascript
+// Good
+const myFunction = () => {...};
+const person = { getName: () => {} };
+Utils.connect({
+    callback: (val) => {},
+});
 ```
 
 Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
@@ -123,9 +144,9 @@ myArray.forEach(item => doSomething(item));
 _.each(myArray, item => doSomething(item));
 
 // Bad
-const myArray = Object.keys(someObject).map(key => doSomething(someObject[key]));
+const myArray = Object.keys(someObject).map(function handleSomething(key) {return doSomething(someObject[key]);});
 // Good
-const myArray = _.map(someObject, (value, key) => doSomething(value));
+const myArray = _.map(someObject, function handleSomething(value, key) {return doSomething(value);});
 
 // Bad
 myCollection.includes('item');
@@ -586,7 +607,7 @@ There are pros and cons of each, but ultimately we have standardized on using th
 const focusTimeoutRef = useRef(null);
 
 useFocusEffect(useCallback(() => {
-    focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
+    focusTimeoutRef.current = setTimeout(function runFocusTimeout() {textInputRef.current.focus();}, CONST.ANIMATED_TRANSITION);
     return () => {
         if (!focusTimeoutRef.current) {
             return;

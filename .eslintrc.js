@@ -123,6 +123,7 @@ module.exports = {
                         },
                     },
                 ],
+                'rulesdir/avoid-anonymous-functions': 'warn',
             },
         },
         // This helps disable the `prefer-alias` rule to be enabled for specific directories
