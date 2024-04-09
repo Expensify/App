@@ -4,7 +4,7 @@ import type {PermissionStatus} from 'react-native-permissions';
 import LocationMarker from '@assets/images/receipt-location-marker.svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLocationPermissionStatus, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
+import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import ConfirmModal from './ConfirmModal';
 
 type LocationPermissionModalProps = {
@@ -30,8 +30,8 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
             return;
         }
 
-        getLocationPermissionStatus().then((status) => {
-            if (status === RESULTS.GRANTED) {
+        getLocationPermission().then((status) => {
+            if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 return onGrant();
             }
 
@@ -43,7 +43,7 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
     const onConfirm = () => {
         requestLocationPermission()
             .then((status) => {
-                if (status === RESULTS.GRANTED) {
+                if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                     onGrant();
                 } else {
                     onDeny(status);

@@ -5,8 +5,8 @@ function requestLocationPermission() {
 }
 
 // Android will never return blocked after a check, you have to request the permission to get the info.
-function getLocationPermissionStatus() {
+function getLocationPermission() {
     return check(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
 }
 
-export {requestLocationPermission, getLocationPermissionStatus};
+export {requestLocationPermission, getLocationPermission};
