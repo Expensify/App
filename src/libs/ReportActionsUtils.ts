@@ -224,7 +224,12 @@ function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions>
     }
 
     // Get all IOU report actions for the report.
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.PAY];
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+    ];
     const iouRequestActions = reportActionsArray.filter(
         (action) =>
             action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
@@ -346,7 +351,11 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
     if (!Array.isArray(reportActions)) {
         return null;
     }
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+    ];
     const iouRequestActions = reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
 
     if (iouRequestActions.length === 0) {
@@ -675,12 +684,12 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): OnyxE
 /**
  * Find the transaction associated with this reportAction, if one exists.
  */
-function getLinkedTransactionID(reportID: string, reportActionID: string): string | null {
-    const reportAction = allReportActions?.[reportID]?.[reportActionID];
+function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction>, reportID?: string): string | null {
+    const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[reportID ?? '']?.[reportActionOrID] : reportActionOrID;
     if (!reportAction || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return null;
     }
-    return reportAction.originalMessage.IOUTransactionID ?? null;
+    return reportAction.originalMessage?.IOUTransactionID ?? null;
 }
 
 function getReportAction(reportID: string, reportActionID: string): OnyxEntry<ReportAction> {

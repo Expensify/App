@@ -94,6 +94,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.WAYPOINT]: () => require('../../../../pages/iou/MoneyRequestWaypointPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.RECEIPT]: () => require('../../../../pages/EditRequestReceiptPage').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: () => require('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default as React.ComponentType,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
@@ -189,6 +190,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: () => require('../../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: () => require('../../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: () => require('../../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: () => require('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: () => require('../../../../pages/settings/Profile/Contacts/ContactMethodsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: () => require('../../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require('../../../../pages/settings/Profile/Contacts/NewContactMethodPage').default as React.ComponentType,
@@ -213,6 +215,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: () => require('../../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require('../../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require('../../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_REFACTOR]: () => require('../../../../pages/EnablePayments/AddBankAccount/AddBankAccount').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS]: () => require('../../../../pages/settings/Profile/CustomStatus/StatusPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require('../../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require('../../../../pages/settings/Profile/CustomStatus/SetDatePage').default as React.ComponentType,
@@ -231,7 +234,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: () => require('../../../../pages/workspace/categories/CategorySettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: () => require('../../../../pages/workspace/categories/WorkspaceCategoriesSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require('../../../../pages/workspace/members/WorkspaceMemberDetailsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: () => require('../../../../pages/workspace/members/WorkspaceMemberDetailsRoleSelectionPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: () => require('@pages/workspace/members/WorkspaceOwnerChangeWrapperPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: () => require('../../../../pages/workspace/members/WorkspaceOwnerChangeSuccessPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: () => require('../../../../pages/workspace/members/WorkspaceOwnerChangeErrorPage').default as React.ComponentType,
@@ -265,6 +267,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAX_NAME]: () => require('../../../../pages/workspace/taxes/NamePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAX_VALUE]: () => require('../../../../pages/workspace/taxes/ValuePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAX_CREATE]: () => require('../../../../pages/workspace/taxes/WorkspaceCreateTaxPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
