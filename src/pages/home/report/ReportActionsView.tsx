@@ -5,7 +5,6 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import RenderHTML from '@components/RenderHTML';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';

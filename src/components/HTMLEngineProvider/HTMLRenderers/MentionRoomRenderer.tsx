@@ -37,19 +37,21 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
 
     const tnodeClone = cloneDeep(tnode);
 
+    const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').slice(1);
+
     if (!isEmpty(htmlAttributeReportID)) {
         const report = reports?.['report_'.concat(htmlAttributeReportID)];
 
         reportID = report?.reportID ? parseInt(report.reportID, 10) : undefined;
         mentionDisplayText = report?.reportName ?? report?.displayName ?? htmlAttributeReportID;
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
-        mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
+        mentionDisplayText = removeLeadingLTRAndHash(tnodeClone.data);
 
         const currentReport = reports?.['report_'.concat(currentReportID?.currentReportID ?? '')];
 
         // eslint-disable-next-line rulesdir/prefer-early-return
         Object.values(reports ?? {}).forEach((report) => {
-            if (report?.policyID === currentReport?.policyID && (report?.reportName === mentionDisplayText || report?.reportName === tnodeClone.data)) {
+            if (report?.policyID === currentReport?.policyID && removeLeadingLTRAndHash(report?.reportName ?? '') === mentionDisplayText) {
                 reportID = Number(report?.reportID);
             }
         });
