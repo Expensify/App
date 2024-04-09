@@ -1069,7 +1069,6 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
 export {
     extractLinksFromMessageHtml,
     getOneTransactionThreadReportID,
-    getAllReportActions,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
     getLastVisibleAction,
