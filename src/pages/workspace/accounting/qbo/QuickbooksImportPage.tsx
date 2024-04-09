@@ -21,8 +21,6 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
     const quickbooksOnlineConfigTitles = {
         [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: translate('workspace.qbo.imported'),
         [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: translate('workspace.qbo.imported'),
-        true: translate('workspace.qbo.imported'),
-        false: translate('workspace.qbo.notImported'),
         [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: translate('workspace.qbo.notImported'),
         [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: translate('workspace.qbo.notImported'),
         [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: translate('workspace.qbo.importedAsTags'),
@@ -36,7 +34,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             description: translate('workspace.qbo.accounts'),
             action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.enableNewCategories),
-            title: enableNewCategories,
+            title: enableNewCategories ? CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED : CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED,
             pendingAction: pendingFields?.enableNewCategories,
         },
         {
@@ -89,7 +87,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
                                 pendingAction={section.pendingAction}
                             >
                                 <MenuItemWithTopDescription
-                                    title={quickbooksOnlineConfigTitles[`${section.title ?? false}`]}
+                                    title={quickbooksOnlineConfigTitles[`${section.title ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`]}
                                     description={section.description}
                                     shouldShowRightIcon
                                     onPress={section.action}
