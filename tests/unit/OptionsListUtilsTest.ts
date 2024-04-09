@@ -1243,6 +1243,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'HR',
@@ -1250,6 +1251,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'HR',
                         tooltipText: 'HR',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Medical',
@@ -1257,6 +1259,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Medical',
                         tooltipText: 'Medical',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },
@@ -1272,6 +1275,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },
@@ -1351,6 +1355,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Medical',
                         tooltipText: 'Medical',
                         isDisabled: false,
+                        isSelected: true,
                     },
                 ],
             },
@@ -1364,6 +1369,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'HR',
                         tooltipText: 'HR',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },
@@ -1378,6 +1384,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Benefits',
@@ -1385,6 +1392,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Benefits',
                         tooltipText: 'Benefits',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Cleaning',
@@ -1392,6 +1400,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Cleaning',
                         tooltipText: 'Cleaning',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Food',
@@ -1399,6 +1408,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Food',
                         tooltipText: 'Food',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'HR',
@@ -1406,6 +1416,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'HR',
                         tooltipText: 'HR',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Software',
@@ -1413,6 +1424,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Software',
                         tooltipText: 'Software',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Taxes',
@@ -1420,6 +1432,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Taxes',
                         tooltipText: 'Taxes',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },
@@ -1435,6 +1448,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Cleaning',
@@ -1442,6 +1456,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Cleaning',
                         tooltipText: 'Cleaning',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },

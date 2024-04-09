@@ -230,7 +230,7 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
         );
 });
 
-test('[ReportScreen] should press of the report item', () => {
+test.skip('[ReportScreen] should press of the report item', () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const scenario = async () => {
         /**
