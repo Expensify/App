@@ -1030,6 +1030,10 @@ function leaveWorkspace(policyID: string) {
     const pendingChatMembers = ReportUtils.getPendingChatMembers([sessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     workspaceChats.forEach((report) => {
+        if (ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isReportOwner(report)) {
+            return;
+        }
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
@@ -1061,7 +1065,6 @@ function leaveWorkspace(policyID: string) {
         email: sessionEmail,
         authToken: sessionAuthToken,
     };
-
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
 }
 
