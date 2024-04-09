@@ -2256,7 +2256,7 @@ function updateDistanceRequest(
  * Request money from another user
  */
 function requestMoney(
-    report: OnyxTypes.Report,
+    report: OnyxEntry<OnyxTypes.Report>,
     amount: number,
     currency: string,
     created: string,
@@ -2278,8 +2278,8 @@ function requestMoney(
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
-    const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {
         payerAccountID,
@@ -2314,7 +2314,7 @@ function requestMoney(
         payeeEmail,
         moneyRequestReportID,
     );
-    const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
+    const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
     const parameters: RequestMoneyParams = {
         debtorEmail: payerEmail,
@@ -2347,7 +2347,9 @@ function requestMoney(
     API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
     resetMoneyRequestInfo();
     Navigation.dismissModal(activeReportID);
-    Report.notifyNewAction(activeReportID, payeeAccountID);
+    if (activeReportID) {
+        Report.notifyNewAction(activeReportID, payeeAccountID);
+    }
 }
 
 /**
