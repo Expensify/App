@@ -387,7 +387,11 @@ function ReportScreen({
             return;
         }
         Report.updateLastVisitTime(report.reportID);
-    }, [report.reportID, isFocused]);
+
+        if (report?.errorFields?.notFound) {
+            Report.clearReportNotFoundErrors(report.reportID);
+        }
+    }, [report.reportID, isFocused, report?.errorFields?.notFound]);
 
     const fetchReportIfNeeded = useCallback(() => {
         // Report ID will be empty when the reports collection is empty.
