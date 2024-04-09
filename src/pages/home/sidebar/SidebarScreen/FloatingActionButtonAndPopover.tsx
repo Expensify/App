@@ -180,7 +180,6 @@ function FloatingActionButtonAndPopover(
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
                 Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID ?? '', quickActionReport, quickAction.targetAccountID ?? 0, true);
-                return;
             default:
         }
     };
