@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 // import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundComponent from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import type {AnchorPosition} from '@styles/index';
@@ -198,7 +198,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundComponent
+            <FeatureEnabledAccessOrNotFoundWrapper
                 policyID={policyID}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             >
@@ -243,7 +243,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                         danger
                     />
                 </ScreenWrapper>
-            </PaidPolicyAccessOrNotFoundComponent>
+            </FeatureEnabledAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
