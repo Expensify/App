@@ -53,7 +53,7 @@ function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPagePro
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
         const errors: Errors = {};
-        if (ValidationUtils.isValidReportName(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
+        if (!ValidationUtils.isValidReportName(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
             errors.newChatName = translate('common.error.characterLimit', {limit: CONST.REPORT_NAME_LIMIT});
         }
 
