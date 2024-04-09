@@ -197,7 +197,6 @@ function SettlementButton({
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
-        const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
 
         // Only show the Approve button if the user cannot pay the request
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
@@ -209,9 +208,6 @@ function SettlementButton({
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
 
-        if (canUseWallet) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
-        }
         if (isExpenseReport && shouldShowPaywithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }

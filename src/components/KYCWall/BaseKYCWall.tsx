@@ -1,4 +1,4 @@
-import {useCallback, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
