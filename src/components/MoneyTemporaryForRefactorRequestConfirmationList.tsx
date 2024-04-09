@@ -17,7 +17,6 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {DefaultMileageRate} from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
-import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -259,10 +258,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
-    const defaultTaxKey = taxRates?.defaultExternalID;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const defaultTaxName = (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey].name} (${taxRates?.taxes[defaultTaxKey].value}) • ${Localize.translateLocal('common.default')}`) || '';
-    const taxRateTitle = transaction?.taxRate?.text ?? defaultTaxName;
+    const taxRateTitle = taxRates && transaction ? TransactionUtils.getDefaultTaxName(taxRates, transaction) : '';
 
     const previousTransactionAmount = usePrevious(transaction?.amount);
 
@@ -857,7 +853,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
+                                CONST.IOU.ACTION.CREATE,
+                                iouType,
+                                transaction?.transactionID ?? '',
+                                reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
                         )
                     }
                     disabled={didConfirm}
@@ -878,7 +880,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
+                                CONST.IOU.ACTION.CREATE,
+                                iouType,
+                                transaction?.transactionID ?? '',
+                                reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
                         )
                     }
                     disabled={didConfirm}
