@@ -31,7 +31,9 @@ Onyx.connect({
 let isLoadingApp: boolean | null = false;
 Onyx.connect({
     key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => (isLoadingApp = value),
+    callback: (value) => {
+        isLoadingApp = value ?? false;
+    },
 });
 
 export default () => {
