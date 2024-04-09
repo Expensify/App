@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -27,10 +27,11 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {ListItemType} from './WorkspaceMemberDetailsRoleSelectionModal';
+import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberDetailsRoleSelectionModal';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -46,11 +47,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
+    const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
+    const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
-    const backTo = route.params.backTo ?? ('' as Route);
 
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
@@ -62,6 +63,24 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
+
+    const roleItems: ListItemType[] = useMemo(
+        () => [
+            {
+                value: CONST.POLICY.ROLE.ADMIN,
+                text: translate('common.admin'),
+                isSelected: member?.role === CONST.POLICY.ROLE.ADMIN,
+                keyForList: CONST.POLICY.ROLE.ADMIN,
+            },
+            {
+                value: CONST.POLICY.ROLE.USER,
+                text: translate('common.member'),
+                isSelected: member?.role !== CONST.POLICY.ROLE.ADMIN,
+                keyForList: CONST.POLICY.ROLE.USER,
+            },
+        ],
+        [member?.role, translate],
+    );
 
     useEffect(() => {
         if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
@@ -82,16 +101,24 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const removeUser = useCallback(() => {
         Policy.removeMembers([accountID], policyID);
         setIsRemoveMemberConfirmModalVisible(false);
-        Navigation.goBack(backTo);
-    }, [accountID, backTo, policyID]);
+        Navigation.goBack();
+    }, [accountID, policyID]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.getRoute(policyID, accountID, Navigation.getActiveRoute()));
-    }, [accountID, policyID]);
+        setIsRoleSelectionModalVisible(true);
+    }, []);
+
+    const changeRole = useCallback(
+        ({value}: ListItemType) => {
+            setIsRoleSelectionModalVisible(false);
+            Policy.updateWorkspaceMembersRole(policyID, [accountID], value);
+        },
+        [accountID, policyID],
+    );
 
     const startChangeOwnershipFlow = useCallback(() => {
         Policy.clearWorkspaceOwnerChangeFlow(policyID);
@@ -106,7 +133,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                     <HeaderWithBackButton
                         title={displayName}
                         subtitle={policy?.name}
-                        onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
@@ -172,6 +198,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 icon={Expensicons.Info}
                                 onPress={navigateToProfile}
                                 shouldShowRightIcon
+                            />
+                            <WorkspaceMemberDetailsRoleSelectionModal
+                                isVisible={isRoleSelectionModalVisible}
+                                items={roleItems}
+                                onRoleChange={changeRole}
+                                onClose={() => setIsRoleSelectionModalVisible(false)}
                             />
                         </View>
                     </View>
