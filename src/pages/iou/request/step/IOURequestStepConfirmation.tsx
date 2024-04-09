@@ -28,9 +28,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagList} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -47,10 +48,8 @@ type IOURequestStepConfirmationOnyxProps = {
 };
 
 type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> & {
-        /** The transaction object being modified in Onyx */
-        transaction: OnyxEntry<Transaction>;
-    };
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
 function IOURequestStepConfirmation({
     policy,
@@ -283,6 +282,7 @@ function IOURequestStepConfirmation({
                         billable: transaction.billable,
                         category: transaction.category,
                         tag: transaction.tag,
+                        currency: transaction.currency,
                     });
                 }
                 return;
@@ -544,6 +544,5 @@ const IOURequestStepConfirmationWithOnyx = withOnyx<IOURequestStepConfirmationPr
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmationWithOnyx);
 /* eslint-disable rulesdir/no-negated-variables */
-// @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
 const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
 export default IOURequestStepConfirmationWithWritableReportOrNotFound;
