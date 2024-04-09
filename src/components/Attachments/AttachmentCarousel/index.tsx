@@ -3,8 +3,8 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {scrollTo, useAnimatedRef} from 'react-native-reanimated';
 import {withOnyx} from 'react-native-onyx';
+import Animated, {scrollTo, useAnimatedRef} from 'react-native-reanimated';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -12,12 +12,12 @@ import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenCo
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
@@ -44,8 +44,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
-    const cellWidth = useMemo(() => PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2), [windowWidth]);
-
+    const cellWidth = useMemo(
+        () => PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2),
+        [modalStyles.borderWidth, modalStyles.marginHorizontal, windowWidth],
+    );
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [activeSource, setActiveSource] = useState<AttachmentSource | null>(source);
@@ -160,7 +162,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         ),
         [activeSource, canUseTouchScreen, cellWidth, setShouldShowArrows, shouldShowArrows, styles.h100],
     );
-
     /** Pan gesture handing swiping through attachments on touch screen devices */
     const pan = useMemo(
         () =>
@@ -177,7 +178,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                         newIndex = Math.min(attachments.length - 1, page + 1);
                     } else {
                         // snap scroll position to the nearest cell (making sure it's within the bounds of the list)
-                        const delta = Math.round(-translationX / cellWidth)
+                        const delta = Math.round(-translationX / cellWidth);
                         newIndex = Math.min(attachments.length - 1, Math.max(0, page + delta));
                     }
 
