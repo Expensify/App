@@ -252,8 +252,6 @@ function SuggestionMention(
                 mentionPrefix: prefix,
             };
 
-            console.log('is mention', value, selectionEnd)
-
             if (isMentionCode(suggestionWord)) {
                 const suggestions = getMentionOptions(personalDetails, prefix);
                 nextState.suggestedMentions = suggestions;
