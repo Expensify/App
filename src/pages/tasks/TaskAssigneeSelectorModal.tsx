@@ -185,7 +185,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                     option?.login ?? '',
                     option.accountID,
                     task?.shareDestination ?? '',
-                    report,
+                    null, //passing null as report is null in this condition
                     OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
                 Navigation.goBack(ROUTES.NEW_TASK);
