@@ -191,7 +191,6 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                             state: 'addressState',
                             zipCode: 'addressZipCode',
                         }}
-                        translate={translate}
                         streetTranslationKey={fieldNameTranslationKeys.addressStreet}
                         shouldSaveDraft
                     />
