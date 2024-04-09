@@ -187,7 +187,7 @@ function ReportActionItem({
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef<TextInput & HTMLTextAreaElement>();
-    const popoverAnchorRef = useRef<ReportActionContextMenu.ContextMenuAnchor>(null);
+    const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
@@ -366,9 +366,10 @@ function ReportActionItem({
             anchor: popoverAnchorRef.current,
             report,
             action,
+            transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
         }),
-        [report, action, toggleContextMenuFromActiveReportAction],
+        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport],
     );
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
@@ -752,15 +753,18 @@ function ReportActionItem({
         }
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {
             return (
-                <OfflineWithFeedback pendingAction={action.pendingAction}>
+                // eslint-disable-next-line react/jsx-no-useless-fragment
+                <>
                     {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                         <>
                             {transactionCurrency !== report.currency && (
-                                <MoneyReportView
-                                    report={report}
-                                    policy={policy}
-                                    shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                                />
+                                <OfflineWithFeedback pendingAction={action.pendingAction}>
+                                    <MoneyReportView
+                                        report={report}
+                                        policy={policy}
+                                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                                    />
+                                </OfflineWithFeedback>
                             )}
                             <ShowContextMenuContext.Provider value={contextValue}>
                                 <MoneyRequestView
@@ -771,13 +775,15 @@ function ReportActionItem({
                             </ShowContextMenuContext.Provider>
                         </>
                     ) : (
-                        <MoneyReportView
-                            report={report}
-                            policy={policy}
-                            shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                        />
+                        <OfflineWithFeedback pendingAction={action.pendingAction}>
+                            <MoneyReportView
+                                report={report}
+                                policy={policy}
+                                shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                            />
+                        </OfflineWithFeedback>
                     )}
-                </OfflineWithFeedback>
+                </>
             );
         }
 
