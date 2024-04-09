@@ -15,7 +15,6 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import * as App from '@userActions/App';
@@ -25,7 +24,6 @@ import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 /**
  * @param {Object} [policy]
@@ -333,11 +331,6 @@ function FloatingActionButtonAndPopover(props) {
                         icon: Expensicons.Task,
                         text: translate('newTaskPage.assignTask'),
                         onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                    },
-                    {
-                        icon: Expensicons.Heart,
-                        text: translate('sidebarScreen.saveTheWorld'),
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TEACHERS_UNITE)),
                     },
                     ...(!props.isLoading && !Policy.hasActiveChatEnabledPolicies(props.allPolicies)
                         ? [

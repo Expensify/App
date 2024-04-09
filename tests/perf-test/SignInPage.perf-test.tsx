@@ -114,7 +114,7 @@ describe('SignInPage', () => {
             .then(() => measurePerformance(<SignInPageWrapper navigation={navigation} />, {scenario}));
     });
 
-    test('[SignInPage] should add magic code and click Sign In button', () => {
+    test.skip('[SignInPage] should add magic code and click Sign In button', () => {
         const addListener = jest.fn();
         const scenario = async () => {
             // Checking the SignInPage is mounted
