@@ -36,12 +36,12 @@ function hasValidDraftComment(reportID: string): boolean {
 }
 
 /**
- * Prepares a draft comment by trimming it and returning null if it's empty.
+ * Prepares a draft comment by returning null if it's empty.
  */
 function prepareDraftComment(comment: string | null) {
     // logical OR is used to convert empty string to null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return comment ?? null;
+    return comment || null;
 }
 
 export {getDraftComment, isValidDraftComment, hasValidDraftComment, prepareDraftComment};
