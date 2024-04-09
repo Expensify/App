@@ -27,7 +27,6 @@ function canUseTrackExpense(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>): boolean {
-    return true;
     return !!betas?.includes(CONST.BETAS.P2P_DISTANCE_REQUESTS) || canUseAllBetas(betas);
 }
 
