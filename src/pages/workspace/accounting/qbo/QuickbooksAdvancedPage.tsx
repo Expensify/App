@@ -8,12 +8,19 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SpacerView from '@components/SpacerView';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import Navigation from '@libs/Navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import ROUTES from '@src/ROUTES';
 
 function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
+    const waitForNavigate = useWaitForNavigation();
+
+    const policyID = policy?.id ?? '';
+
     const qboSyncToggleSettings = [
         {
             title: 'Auto-Sync',
@@ -79,6 +86,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                         title="Croissant Co payroll Account"
                         description="Quickbooks Account"
                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
                     />
                 </OfflineWithFeedback>
 
