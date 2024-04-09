@@ -2842,7 +2842,6 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
 /**
  * Get the report action message for a report action.
  */
-
 function getReportActionMessage(reportAction: ReportAction | EmptyObject, parentReportID?: string) {
     if (isEmptyObject(reportAction)) {
         return '';
