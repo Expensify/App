@@ -3,6 +3,7 @@ import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
@@ -32,11 +33,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
 
-type IOURequestStepScanProps = IOURequestStepOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN>;
+type IOURequestStepScanProps = IOURequestStepOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
+        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        transaction: OnyxEntry<OnyxTypes.Transaction>;
+    };
 
 function IOURequestStepScan({
     report,

@@ -1,5 +1,6 @@
 import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
@@ -32,11 +33,16 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
 
-type IOURequestStepScanProps = IOURequestStepOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN>;
+type IOURequestStepScanProps = IOURequestStepOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
+        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        transaction: OnyxEntry<OnyxTypes.Transaction>;
+    };
 
 function IOURequestStepScan({
     report,
