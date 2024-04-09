@@ -209,13 +209,14 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
+                                style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
                             />
                         )}
                     </PressableWithoutFeedback>
                 </OfflineWithFeedback>
             );
         },
-        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
+        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted],
     );
 
     const listHeaderComponent = useCallback(() => {
