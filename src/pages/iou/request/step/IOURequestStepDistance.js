@@ -198,11 +198,11 @@ function IOURequestStepDistance({
             const oldAddresses = _.mapObject(oldWaypoints, (waypoint) => _.pick(waypoint, 'address'));
             const addresses = _.mapObject(waypoints, (waypoint) => _.pick(waypoint, 'address'));
             if (_.isEqual(oldAddresses, addresses)) {
-                Navigation.dismissModal(report.reportID);
+                Navigation.dismissModal();
                 return;
             }
             IOU.updateMoneyRequestDistance(transaction.transactionID, report.reportID, waypoints);
-            Navigation.dismissModal(report.reportID);
+            Navigation.dismissModal();
             return;
         }
 

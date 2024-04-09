@@ -39,7 +39,7 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isSettled = ReportUtils.isSettled(report.reportID);
-    const isTotalUpdated = ReportUtils.hasUpdatedTotal(report);
+    const isTotalUpdated = ReportUtils.hasUpdatedTotal(report, policy);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
 
@@ -62,7 +62,7 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
     }, [policy, report]);
 
     return (
-        <View style={styles.pRelative}>
+        <View style={[styles.pRelative, styles.overflowHidden]}>
             <AnimatedEmptyStateBackground />
             {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
                 <>

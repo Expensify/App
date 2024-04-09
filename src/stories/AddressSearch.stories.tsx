@@ -2,7 +2,8 @@ import type {ComponentMeta, ComponentStory} from '@storybook/react';
 import React, {useState} from 'react';
 import type {AddressSearchProps} from '@components/AddressSearch';
 import AddressSearch from '@components/AddressSearch';
-import type {RenamedInputKeysProps, StreetValue} from '@components/AddressSearch/types';
+import type {StreetValue} from '@components/AddressSearch/types';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type AddressSearchStory = ComponentStory<typeof AddressSearch>;
 
@@ -21,7 +22,7 @@ const story: ComponentMeta<typeof AddressSearch> = {
 };
 
 function Template(props: AddressSearchProps) {
-    const [value, setValue] = useState<string | number | RenamedInputKeysProps | StreetValue>('');
+    const [value, setValue] = useState<string | number | Address | StreetValue>('');
     return (
         <AddressSearch
             value={value as string}
