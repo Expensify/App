@@ -1,4 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -8,15 +10,23 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import * as ReportActions from '@libs/actions/Report';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import type {BaseShareLogListProps} from './types';
+import type {BaseShareLogListProps as BaseShareLogListTypeProps} from './types';
 
-function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
+type BaseShareLogListOnyxProps = {
+    /** Whether or not we are searching for reports on the server */
+    isSearchingForReports: OnyxEntry<boolean>;
+};
+
+type BaseShareLogListProps = BaseShareLogListTypeProps & BaseShareLogListOnyxProps;
+function BaseShareLogList({onAttachLogToReport, isSearchingForReports}: BaseShareLogListProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -82,6 +92,10 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         onAttachLogToReport(option.reportID, filename);
     };
 
+    useEffect(() => {
+        ReportActions.searchInServer(debouncedSearchValue);
+    }, [debouncedSearchValue]);
+
     return (
         <ScreenWrapper
             testID={BaseShareLogList.displayName}
@@ -103,6 +117,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                         textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                         textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                         showLoadingPlaceholder={!didScreenTransitionEnd}
+                        isLoadingNewOptions={!!isSearchingForReports}
                     />
                 </>
             )}
@@ -112,4 +127,9 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
 
 BaseShareLogList.displayName = 'ShareLogPage';
 
-export default BaseShareLogList;
+export default withOnyx<BaseShareLogListProps, BaseShareLogListOnyxProps>({
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
+    },
+})(BaseShareLogList);
