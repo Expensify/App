@@ -16,7 +16,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-// @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -30,8 +29,6 @@ type IOUValueType = ValueOf<typeof CONST.IOU.TYPE>;
 
 type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
-    // TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
 
 type IOURef = IOUValueType | null;
@@ -41,12 +38,12 @@ function IOURequestStepParticipants({
         params: {iouType, reportID, transactionID},
     },
     transaction,
-    transaction: {participants = []},
 }: IOURequestStepParticipantsProps) {
+    const participants = transaction?.participants;
     const {translate} = useLocalize();
     const navigation = useNavigation();
     const selectedReportID = useRef<string>(reportID);
-    const numberOfParticipants = useRef(participants.length);
+    const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const headerTitle = useMemo(() => {
@@ -171,5 +168,4 @@ function IOURequestStepParticipants({
 
 IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 
-// @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));
