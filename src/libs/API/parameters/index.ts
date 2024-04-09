@@ -77,7 +77,6 @@ export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdenti
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
 export type {default as AddCommentOrAttachementParams} from './AddCommentOrAttachementParams';
 export type {default as OptInOutToPushNotificationsParams} from './OptInOutToPushNotificationsParams';
-export type {default as ReconnectToReportParams} from './ReconnectToReportParams';
 export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
@@ -129,6 +128,7 @@ export type {default as CompleteEngagementModalParams} from './CompleteEngagemen
 export type {default as SetNameValuePairParams} from './SetNameValuePairParams';
 export type {default as SetReportFieldParams} from './SetReportFieldParams';
 export type {default as SetReportNameParams} from './SetReportNameParams';
+export type {default as DeleteReportFieldParams} from './DeleteReportFieldParams';
 export type {default as CompleteSplitBillParams} from './CompleteSplitBillParams';
 export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestParams';
 export type {default as RequestMoneyParams} from './RequestMoneyParams';
@@ -187,6 +187,8 @@ export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolic
 export type {default as SetPolicyDistanceRatesEnabledParams} from './SetPolicyDistanceRatesEnabledParams';
 export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDistanceRatesParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
+export type {default as RequestWorkspaceOwnerChangeParams} from './RequestWorkspaceOwnerChangeParams';
+export type {default as AddBillingCardAndRequestWorkspaceOwnerChangeParams} from './AddBillingCardAndRequestWorkspaceOwnerChangeParams';
 export type {default as SetPolicyTaxesEnabledParams} from './SetPolicyTaxesEnabledParams';
 export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams';
 export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValueParams';

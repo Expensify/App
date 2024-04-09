@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -14,7 +15,6 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -30,7 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Beta, ReimbursementAccount, Session} from '@src/types/onyx';
+import type {Beta} from '@src/types/onyx';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -39,14 +39,10 @@ import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyP
 type WorkspaceWorkflowsPageOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
-    /** Reimbursement account details */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-    /** Policy details */
-    session: OnyxEntry<Session>;
 };
 type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, session}: WorkspaceWorkflowsPageProps) {
+function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -57,17 +53,16 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
     const canUseDelayedSubmission = Permissions.canUseWorkflowsDelayedSubmission(betas);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
 
-    const displayNameForAuthorizedPayer = useMemo(() => {
-        const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([policy?.reimburserAccountID ?? 0], session?.accountID ?? 0);
-        const displayNameFromReimburserEmail = PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.displayName ?? policy?.reimburserEmail;
-        return displayNameFromReimburserEmail ?? personalDetails?.[0]?.displayName;
-    }, [policy?.reimburserAccountID, policy?.reimburserEmail, session?.accountID]);
+    const displayNameForAuthorizedPayer = useMemo(
+        () => PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
+        [policy?.achAccount?.reimburser],
+    );
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id ?? '')), [policy?.id]);
 
-    const fetchData = () => {
+    const fetchData = useCallback(() => {
         Policy.openPolicyWorkflowsPage(policy?.id ?? route.params.policyID);
-    };
+    }, [policy?.id, route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
@@ -78,18 +73,23 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
     }, [policy, route.params.policyID]);
 
-    useNetwork({onReconnect: fetchData});
+    const {isOffline} = useNetwork({onReconnect: fetchData});
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
-    useEffect(() => {
-        fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchData();
+        }, [fetchData]),
+    );
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const {accountNumber, state, bankName} = reimbursementAccount?.achData ?? {};
-        const hasVBA = state === BankAccount.STATE.OPEN;
-        const bankDisplayName = bankName ? `${bankName} ${accountNumber ? `${accountNumber.slice(-5)}` : ''}` : '';
-        const hasReimburserEmailError = !!policy?.errorFields?.reimburserEmail;
+        const {accountNumber, addressName, bankName} = policy?.achAccount ?? {};
+        const hasVBA = !!policy?.achAccount;
+        let bankDisplayName = bankName ?? addressName;
+        if (accountNumber && bankDisplayName !== accountNumber) {
+            bankDisplayName += ` ${accountNumber.slice(-5)}`;
+        }
+        const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!policy?.errorFields?.autoReporting;
 
@@ -171,11 +171,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                         newReimbursementChoice = hasVBA ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                     }
 
-                    const newReimburserAccountID =
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        PersonalDetailsUtils.getPersonalDetailByEmail(policy?.reimburserEmail ?? '')?.accountID || policy?.reimburserAccountID || policy?.ownerAccountID;
-                    const newReimburserEmail = PersonalDetailsUtils.getPersonalDetailsByIDs([newReimburserAccountID ?? 0], session?.accountID ?? 0)?.[0]?.login;
-                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserAccountID ?? 0, newReimburserEmail ?? '');
+                    const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
+                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserEmail ?? '');
                 },
                 subMenuItems: (
                     <>
@@ -187,7 +184,8 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                                     ? translate('common.bankAccount')
                                     : translate('workflowsPage.connectBankAccount')
                             }
-                            description={state === BankAccount.STATE.OPEN ? bankDisplayName : undefined}
+                            description={bankDisplayName}
+                            disabled={isOffline || !isPolicyAdmin}
                             onPress={() => {
                                 if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                                     setIsCurrencyModalOpen(true);
@@ -195,15 +193,15 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                                 }
                                 navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                             }}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={!isOffline && isPolicyAdmin}
                             wrapperStyle={containerStyle}
                             hoverAndPressStyle={[styles.mr0, styles.br2]}
                         />
                         {hasVBA && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && (
                             <OfflineWithFeedback
-                                pendingAction={policy?.pendingFields?.reimburserEmail}
-                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER_EMAIL)}
-                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER_EMAIL)}
+                                pendingAction={policy?.pendingFields?.reimburser}
+                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
                                 errorRowStyles={[styles.ml7]}
                             >
                                 <MenuItem
@@ -215,7 +213,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                                     shouldShowRightIcon
                                     wrapperStyle={containerStyle}
                                     hoverAndPressStyle={[styles.mr0, styles.br2]}
-                                    brickRoadIndicator={hasReimburserEmailError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 />
                             </OfflineWithFeedback>
                         )}
@@ -238,9 +236,9 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
         onPressAutoReportingFrequency,
         preferredLocale,
         canUseDelayedSubmission,
-        reimbursementAccount?.achData,
         displayNameForAuthorizedPayer,
-        session?.accountID,
+        isOffline,
+        isPolicyAdmin,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
@@ -263,8 +261,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const isLoading = reimbursementAccount?.isLoading ?? true;
+    const isLoading = Boolean(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
         <FeatureEnabledAccessOrNotFoundWrapper
@@ -280,6 +277,7 @@ function WorkspaceWorkflowsPage({policy, betas, route, reimbursementAccount, ses
                 shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
                 shouldSkipVBBACall
                 isLoading={isLoading}
+                shouldShowLoading={isLoading}
                 shouldUseScrollView
             >
                 <View style={[styles.mt3, styles.textStrong, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -315,13 +313,6 @@ export default withPolicy(
     withOnyx<WorkspaceWorkflowsPageProps, WorkspaceWorkflowsPageOnyxProps>({
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        reimbursementAccount: {
-            // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-            key: ({route}) => `${ONYXKEYS.REIMBURSEMENT_ACCOUNT}${route.params.policyID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     })(WorkspaceWorkflowsPage),
 );

@@ -134,6 +134,7 @@ export default {
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
         chats: 'Chats',
+        group: 'Grupo',
         profile: 'Perfil',
         referral: 'Remisión',
         payments: 'Pagos',
@@ -302,6 +303,13 @@ export default {
         update: 'Actualizar',
         member: 'Miembro',
         role: 'Role',
+        currency: 'Divisa',
+        emptyLHN: {
+            title: 'Woohoo! Todo al día.',
+            subtitleText1: 'Encuentra un chat usando el botón',
+            subtitleText2: 'o crea algo usando el botón',
+            subtitleText3: '.',
+        },
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -512,7 +520,7 @@ export default {
         asCopilot: 'como copiloto de',
     },
     mentionSuggestions: {
-        hereAlternateText: 'Notificar a todos los que estén en linea de esta sala',
+        hereAlternateText: 'Notificar a todos en esta conversación',
     },
     newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
@@ -579,6 +587,20 @@ export default {
         deleteReceipt: 'Eliminar recibo',
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
+    },
+    quickAction: {
+        scanReceipt: 'Escanear Recibo',
+        recordDistance: 'Grabar Distancia',
+        requestMoney: 'Solicitar Dinero',
+        splitBill: 'Dividir Cuenta',
+        splitScan: 'Dividir Recibo',
+        splitDistance: 'Dividir Distancia',
+        sendMoney: 'Enviar Dinero',
+        assignTask: 'Assignar Tarea',
+        shortcut: 'Acceso Directo',
+        trackManual: 'Seguimiento de Gastos',
+        trackScan: 'Seguimiento de Recibo',
+        trackDistance: 'Seguimiento de Distancia',
     },
     iou: {
         amount: 'Importe',
@@ -867,6 +889,11 @@ export default {
             submitBug: 'envíe un error',
             confirmResetDescription: 'Todos los borradores no enviados se perderán, pero el resto de tus datos estarán a salvo.',
             resetAndRefresh: 'Restablecer y actualizar',
+            clientSideLogging: 'Logs del cliente',
+            noLogsToShare: 'No hay logs que compartir',
+            useProfiling: 'Usar el trazado',
+            profileTrace: 'Traza de ejecución',
+            releaseOptions: 'Opciones de publicación',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -875,6 +902,7 @@ export default {
             execute: 'Ejecutar',
             noLogsAvailable: 'No hay registros disponibles',
             logSizeTooLarge: ({size}: LogSizeParams) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
+            logs: 'Logs',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',
@@ -1024,6 +1052,11 @@ export default {
         expensifyCard: 'Tarjeta Expensify',
         walletActivationPending: 'Estamos revisando su información, por favor vuelve en unos minutos.',
         walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
+        addYourBankAccount: 'Añadir tu cuenta bancaria.',
+        addBankAccountBody: 'Conectemos tu cuenta bancaria a Expensify para que sea más fácil que nunca enviar y recibir pagos directamente en la aplicación.',
+        chooseYourBankAccount: 'Elige tu cuenta bancaria.',
+        chooseAccountBody: 'Asegúrese de elegir el adecuado.',
+        confirmYourBankAccount: 'Confirma tu cuenta bancaria.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -1191,6 +1224,9 @@ export default {
         roomDescriptionOptional: 'Descripción de la sala de chat (opcional)',
         explainerText: 'Establece una descripción personalizada para la sala de chat.',
     },
+    groupConfirmPage: {
+        groupName: 'Nombre del grupo',
+    },
     languagePage: {
         language: 'Idioma',
         languages: {
@@ -1280,6 +1316,29 @@ export default {
         loginForm: 'Formulario de inicio de sesión',
         notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
     },
+    onboarding: {
+        welcome: '¡Bienvenido!',
+        welcomeVideo: {
+            title: 'Bienvenido a Expensify',
+            description: 'Cobrar es tan fácil como enviar un mensaje.',
+            button: 'Vámonos',
+        },
+        whatsYourName: '¿Cómo te llamas?',
+        purpose: {
+            title: '¿Qué quieres hacer hoy?',
+            error: 'Por favor, haga una selección antes de continuar.',
+            [CONST.ONBOARDING_CHOICES.TRACK]: 'Seguimiento fiscal de los gastos de las empresas',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar los gastos personales',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide cuentas con tus amigos',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Sólo estoy mirando',
+        },
+        error: {
+            requiredFirstName: 'Introduce tu nombre para continuar',
+            requiredLastName: 'Introduce tu apellido para continuar',
+        },
+    },
     personalDetails: {
         error: {
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
@@ -1331,7 +1390,7 @@ export default {
     },
     newChatPage: {
         createChat: 'Crear chat',
-        createGroup: 'Crear grupo',
+        startGroup: 'Grupo de inicio',
         addToGroup: 'Añadir al grupo',
     },
     yearPickerPage: {
@@ -1883,9 +1942,13 @@ export default {
                 subtitle: 'Configura campos personalizados para los gastos.',
             },
             connections: {
-                title: 'Conexión',
+                title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+        },
+        reportFields: {
+            delete: 'Eliminar campos',
+            deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -1965,6 +2028,7 @@ export default {
             removeMemberButtonTitle: 'Quitar del espacio de trabajo',
             removeMemberPrompt: ({memberName}) => `¿Estás seguro de que deseas eliminar a ${memberName}`,
             removeMemberTitle: 'Eliminar miembro',
+            transferOwner: 'Transferir la propiedad',
             makeMember: 'Hacer miembro',
             makeAdmin: 'Hacer administrador',
             selectAll: 'Seleccionar todo',
@@ -2069,8 +2133,6 @@ export default {
             disableRates: ({count}: DistanceRateOperationsParams) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,
             enableRate: 'Activar tasa',
             status: 'Estado',
-            enabled: 'Activada',
-            disabled: 'Desactivada',
             unit: 'Unidad',
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
@@ -2114,6 +2176,50 @@ export default {
             updateCurrencyPrompt:
                 'Parece que tu espacio de trabajo está configurado actualmente en una moneda diferente a USD. Por favor, haz clic en el botón de abajo para actualizar tu moneda a USD ahora.',
             updateToUSD: 'Actualizar a USD',
+        },
+        changeOwner: {
+            changeOwnerPageTitle: 'Dueño de la transferencia',
+            addPaymentCardTitle: 'Ingrese su tarjeta de pago para transferir la propiedad',
+            addPaymentCardButtonText: 'Aceptar términos y agregar tarjeta de pago',
+            addPaymentCardReadAndAcceptTextPart1: 'Lea y acepte',
+            addPaymentCardReadAndAcceptTextPart2: 'para agregar su tarjeta',
+            addPaymentCardTerms: 'los términos',
+            addPaymentCardPrivacy: 'la política de privacidad',
+            addPaymentCardAnd: 'y',
+            addPaymentCardPciCompliant: 'PCI-DSS obediente',
+            addPaymentCardBankLevelEncrypt: 'Cifrado a nivel bancario',
+            addPaymentCardRedundant: 'Infraestructura redundante',
+            addPaymentCardLearnMore: 'Conozca más sobre nuestra',
+            addPaymentCardSecurity: 'seguridad',
+            // TODO: add spanish translations below
+            amountOwedTitle: 'Saldo pendiente',
+            amountOwedButtonText: 'OK',
+            amountOwedText: 'Esta cuenta tiene un saldo pendiente de un mes anterior.\n\n¿Quiere liquidar el saldo y hacerse cargo de la facturación de este espacio de trabajo?',
+            ownerOwesAmountTitle: 'Saldo pendiente',
+            ownerOwesAmountButtonText: 'Transferir saldo',
+            ownerOwesAmountText: ({email, amount}) =>
+                `La cuenta propietaria de este espacio de trabajo (${email}) tiene un saldo pendiente de un mes anterior.\n\n¿Desea transferir este monto (${amount}) para hacerse cargo de la facturación de este espacio de trabajo? Su tarjeta de pago se cargará inmediatamente.`,
+            subscriptionTitle: 'Asumir la suscripción anual',
+            subscriptionButtonText: 'Transferir suscripción',
+            subscriptionText: ({usersCount, finalCount}) =>
+                `Al hacerse cargo de este espacio de trabajo se fusionará su suscripción anual asociada con su suscripción actual. Esto aumentará el tamaño de su suscripción en ${usersCount} usuarios, lo que hará que su nuevo tamaño de suscripción sea ${finalCount}. ¿Te gustaria continuar?`,
+            duplicateSubscriptionTitle: 'Alerta de suscripción duplicada',
+            duplicateSubscriptionButtonText: 'Continuar',
+            duplicateSubscriptionText: ({email, workspaceName}) =>
+                `Parece que estás intentando hacerte cargo de la facturación de los espacios de trabajo de ${email}, pero para hacerlo, primero debes ser administrador de todos sus espacios de trabajo.\n\nHaz clic en "Continuar" si solo quieres tomar sobrefacturación para el espacio de trabajo ${workspaceName}.\n\nSi desea hacerse cargo de la facturación de toda su suscripción, pídales que lo agreguen como administrador a todos sus espacios de trabajo antes de hacerse cargo de la facturación.`,
+            hasFailedSettlementsTitle: 'No se puede transferir la propiedad',
+            hasFailedSettlementsButtonText: 'Entiendo',
+            hasFailedSettlementsText: ({email}) =>
+                `No puede hacerse cargo de la facturación porque ${email} tiene una liquidación vencida de la tarjeta Expensify. Avíseles que se comuniquen con concierge@expensify.com para resolver el problema. Luego, podrá hacerse cargo de la facturación de este espacio de trabajo.`,
+            failedToClearBalanceTitle: 'Failed to clear balance',
+            failedToClearBalanceButtonText: 'OK',
+            failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
+            successTitle: '¡Guau! Todo listo.',
+            successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
+            errorTitle: '¡Ups! No tan rapido...',
+            errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
+            errorDescriptionPartTwo: 'contacta con el conserje',
+            errorDescriptionPartThree: 'por ayuda.',
         },
     },
     getAssistancePage: {
@@ -2843,6 +2949,7 @@ export default {
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
+        thread: 'Hilo',
         replies: 'Respuestas',
         reply: 'Respuesta',
         from: 'De',

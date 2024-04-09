@@ -14,10 +14,6 @@ function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
-function canUseCommentLinking(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.BETA_COMMENT_LINKING) || canUseAllBetas(betas);
-}
-
 function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
 }
@@ -38,6 +34,10 @@ function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKFLOWS_DELAYED_SUBMISSION) || canUseAllBetas(betas);
 }
 
+function canUseAccountingIntegrations(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.ACCOUNTING_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -48,11 +48,11 @@ function canUseLinkPreviews(): boolean {
 export default {
     canUseChronos,
     canUseDefaultRooms,
-    canUseCommentLinking,
     canUseLinkPreviews,
     canUseViolations,
     canUseTrackExpense,
     canUseReportFields,
     canUseP2PDistanceRequests,
     canUseWorkflowsDelayedSubmission,
+    canUseAccountingIntegrations,
 };
