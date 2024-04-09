@@ -342,7 +342,7 @@ function ReportActionCompose({
         [],
     );
 
-    const isChatRoom = useMemo(() => ReportUtils.isGroupPolicy(report), [report]);
+    const isGroupPolicyReport = useMemo(() => ReportUtils.isGroupPolicy(report), [report]);
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
@@ -436,7 +436,7 @@ function ReportActionCompose({
                                         parentReportID={report?.parentReportID}
                                         parentReportActionID={report?.parentReportActionID}
                                         includeChronos={ReportUtils.chatIncludesChronos(report)}
-                                        isChatRoom={isChatRoom}
+                                        isGroupPolicyReport={isGroupPolicyReport}
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                         isMenuVisible={isMenuVisible}

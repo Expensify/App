@@ -172,8 +172,8 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
         parentReportID: string | undefined;
 
-        /** Whether chat is a room type */
-        isChatRoom: boolean;
+        /** Whether chat is a reoprt from group policy */
+        isGroupPolicyReport: boolean;
 
         /** policy ID of the report */
         policyID: string;
@@ -223,7 +223,7 @@ function ComposerWithSuggestions(
         isEmptyChat,
         lastReportAction,
         parentReportActionID,
-        isChatRoom,
+        isGroupPolicyReport,
         policyID,
 
         // Focus
@@ -777,7 +777,7 @@ function ComposerWithSuggestions(
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
                 isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
-                isChatRoom={isChatRoom}
+                isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
                 // Input
                 value={value}

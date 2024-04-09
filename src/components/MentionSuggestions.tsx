@@ -21,7 +21,7 @@ type Mention = {
     /** Email/phone number of the user */
     login?: string;
 
-    /** Array of icons of the user. We use the first element of this array */
+    /** Array of icons of the user. If present, we use the first element of this array. For room suggestions, the icons are not used */
     icons?: Icon[];
 };
 
@@ -67,7 +67,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
 
             return (
                 <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
-                    {item.icons && (
+                    {item.icons && !!item.icons.length && (
                         <View style={styles.mentionSuggestionsAvatarContainer}>
                             <Avatar
                                 source={item.icons[0].source}

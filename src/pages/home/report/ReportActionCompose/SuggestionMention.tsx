@@ -59,7 +59,7 @@ function SuggestionMention(
         measureParentContainer,
         isComposerFocused,
         reports,
-        isChatRoom,
+        isGroupPolicyReport,
         policyID,
     }: SuggestionProps & RoomMentionOnyxProps,
     ref: ForwardedRef<SuggestionsRef>,
@@ -336,7 +336,7 @@ function SuggestionMention(
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
             }
 
-            const shouldDisplayMenetionsSuggestions = (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '') && isChatRoom;
+            const shouldDisplayMenetionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
             if (!isCursorBeforeTheMention && prefixType === '#' && shouldDisplayMenetionsSuggestions) {
                 // filter reports by room name and current policy
                 const filteredRoomMentions = getRoomMentionOptions(prefix, reports);
@@ -350,7 +350,7 @@ function SuggestionMention(
             }));
             setHighlightedMentionIndex(0);
         },
-        [isComposerFocused, value, isChatRoom, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, personalDetails, getRoomMentionOptions, reports],
+        [isComposerFocused, value, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, personalDetails, getRoomMentionOptions, reports],
     );
 
     useEffect(() => {
