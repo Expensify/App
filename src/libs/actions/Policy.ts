@@ -1294,7 +1294,10 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const optimisticMembersState: OnyxCollection<PolicyMember> = {};
     const failureMembersState: OnyxCollection<PolicyMember> = {};
     accountIDs.forEach((accountID) => {
-        optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        optimisticMembersState[accountID] = {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            role: CONST.POLICY.ROLE.USER,
+        };
         failureMembersState[accountID] = {
             errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
         };
@@ -1321,12 +1324,11 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             // Convert to object with each key clearing pendingAction, when it is an existing account.
             // Remove the object, when it is a newly created account.
             value: accountIDs.reduce((accountIDsWithClearedPendingAction, accountID) => {
-                let value = null;
-                const accountAlreadyExists = !isEmptyObject(allPersonalDetails?.[accountID]);
-
-                if (accountAlreadyExists) {
-                    value = {pendingAction: null, errors: null};
-                }
+                const value = {
+                    ...allPolicyMembers?.[accountID],
+                    pendingAction: null,
+                    errors: null,
+                };
 
                 return {...accountIDsWithClearedPendingAction, [accountID]: value};
             }, {}),
@@ -4384,6 +4386,18 @@ function clearPolicyDistanceRateErrorFields(policyID: string, customUnitID: stri
     });
 }
 
+/**
+ * Takes removes pendingFields and errorFields from a customUnit
+ */
+function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
+    const cleanedCustomUnit = {...customUnit};
+
+    delete cleanedCustomUnit.pendingFields;
+    delete cleanedCustomUnit.errorFields;
+
+    return cleanedCustomUnit;
+}
+
 function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4432,7 +4446,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
 
     const params: SetPolicyDistanceRatesUnitParams = {
         policyID,
-        customUnit: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(removePendingFieldsFromCustomUnit(newCustomUnit)),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT, params, {optimisticData, successData, failureData});
@@ -4486,7 +4500,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
 
     const params: SetPolicyDistanceRatesDefaultCategoryParams = {
         policyID,
-        customUnit: JSON.stringify(newCustomUnit),
+        customUnit: JSON.stringify(removePendingFieldsFromCustomUnit(newCustomUnit)),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
