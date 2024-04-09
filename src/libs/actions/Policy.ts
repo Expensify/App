@@ -3075,6 +3075,9 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         name: policyCategory.newName,
                         unencodedName: decodeURIComponent(policyCategory.newName),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -3091,6 +3094,9 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         unencodedName: decodeURIComponent(policyCategory.newName),
                         errors: null,
                         pendingAction: null,
+                        pendingFields: {
+                            name: null,
+                        },
                     },
                 },
             },
@@ -3381,6 +3387,9 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 ...oldTag,
                                 name: policyTag.newName,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                pendingFields: {
+                                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
                             },
                         },
                     },
@@ -3397,6 +3406,9 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                             [policyTag.newName]: {
                                 errors: null,
                                 pendingAction: null,
+                                pendingFields: {
+                                    name: null,
+                                },
                             },
                         },
                     },
