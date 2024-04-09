@@ -138,6 +138,7 @@ export default {
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Remisión',
+        everyone: 'A todos',
         payments: 'Pagos',
         wallet: 'Billetera',
         preferences: 'Preferencias',

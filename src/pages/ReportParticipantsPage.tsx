@@ -32,8 +32,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Session} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
@@ -51,7 +49,6 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
 function ReportParticipantsPage({report, personalDetails, session}: ReportParticipantsPageProps) {
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
-    const [errors, setErrors] = useState({});
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
@@ -59,9 +56,10 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const StyleUtils = useStyleUtils();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
-    const dropdownButtonRef = useRef(null);
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
+    const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
         ReportUtils.getParticipantAccountIDs(report.reportID).forEach((accountID) => {
@@ -117,16 +115,6 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const addUser = useCallback((accountID: number) => setSelectedMembers((prevSelected) => [...prevSelected, accountID]), [setSelectedMembers]);
 
     /**
-     * Show the modal to confirm removal of the selected members
-     */
-    const askForConfirmationToRemove = () => {
-        if (!isEmptyObject(errors)) {
-            return;
-        }
-        setRemoveMembersConfirmModalVisible(true);
-    };
-
-    /**
      * Add or remove all users passed from the selectedEmployees list
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
@@ -154,35 +142,27 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     /**
      * Open the modal to invite a user
      */
-    const inviteUser = () => {
+    const inviteUser = useCallback(() => {
         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID));
-    };
+    }, [report]);
 
     /**
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
-        if (!isEmptyObject(errors)) {
-            return;
-        }
-
         // Remove the admin from the list
-        const accountIDsToRemove = currentUserAccountID ? selectedMembers.filter((id) => id !== currentUserAccountID) : selectedMembers;
+        const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         Report.removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
     };
 
-    const changeUserRole = (role: ValueOf<typeof CONST.REPORT.ROLE>) => {
-        if (!isEmptyObject(errors)) {
-            return;
-        }
-
+    const changeUserRole = useCallback((role: ValueOf<typeof CONST.REPORT.ROLE>) => {
         const accountIDsToUpdate = selectedMembers.filter((id) => report.participants?.[id].role !== role);
         Report.updateGroupChatMemberRoles(report.reportID, accountIDsToUpdate, role);
         setSelectedMembers([]);
-    };
+    }, [report, selectedMembers]);
 
     /**
      * Toggle user from the selectedMembers list
@@ -199,17 +179,19 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         [selectedMembers, addUser, removeUser],
     );
 
-    const getHeaderContent = () => {
-        if (!ReportUtils.isGroupChat(report)) {
+    const headerContent = useMemo(() => {
+        if (!isGroupChat) {
             return;
         }
-        return <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('groupChat.groupMembersListTitle')}</Text>;
-    };
 
-    const getCustomListHeader = () => {
-        if (!ReportUtils.isGroupChat(report)) {
+        return <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('groupChat.groupMembersListTitle')}</Text>;
+    }, [styles, translate, isGroupChat]);
+
+    const customListHeader = useMemo(() => {
+        if (!isGroupChat) {
             return;
         }
+
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
                 <View>
@@ -222,15 +204,15 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         );
 
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
-    };
+    }, [styles, StyleUtils, translate, isGroupChat]);
 
-    const getBulkActionsButtonOptions = () => {
+    const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
                 text: translate('workspace.people.removeMembersTitle'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: Expensicons.RemoveMembers,
-                onSelected: askForConfirmationToRemove,
+                onSelected: () => setRemoveMembersConfirmModalVisible(true),
             },
             {
                 text: translate('workspace.people.makeAdmin'),
@@ -247,10 +229,10 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         ];
 
         return options;
-    };
+    }, [changeUserRole, translate, setRemoveMembersConfirmModalVisible]);
 
-    const getHeaderButtons = () => {
-        if (!ReportUtils.isGroupChat(report)) {
+    const headerButtons = useMemo(() => {
+        if (!isGroupChat) {
             return;
         }
 
@@ -263,8 +245,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         customText={translate('workspace.common.selected', {selectedNumber: selectedMembers.length})}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
-                        options={getBulkActionsButtonOptions()}
-                        buttonRef={dropdownButtonRef}
+                        options={bulkActionsButtonOptions}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                     />
                 ) : (
@@ -280,18 +261,18 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 )}
             </View>
         );
-    };
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
-            if (ReportUtils.isGroupChat(report) && isCurrentUserAdmin) {
+            if (isGroupChat && isCurrentUserAdmin) {
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID));
                 return;
             }
             Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
         },
-        [report, isCurrentUserAdmin],
+        [report, isCurrentUserAdmin, isGroupChat],
     );
     const headerTitle = useMemo(() => {
         if (
@@ -303,13 +284,12 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         ) {
             return translate('common.members');
         }
-        if (ReportUtils.isGroupChat(report)) {
-            return 'Everyone';
+        if (isGroupChat) {
+            return translate('common.everyone');
         }
 
         return translate('common.details');
-    }, [report, translate]);
-    const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    }, [report, translate, isGroupChat]);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -327,9 +307,9 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     subtitleOnTop={isGroupChat}
                 >
-                    {!isSmallScreenWidth && getHeaderButtons()}
+                    {!isSmallScreenWidth && headerButtons}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 <ConfirmModal
                     danger
                     title={translate('workspace.people.removeMembersTitle')}
@@ -351,16 +331,16 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 <View style={[styles.w100, styles.flex1]}>
                     <SelectionList
                         ref={selectionListRef}
-                        canSelectMultiple={ReportUtils.isGroupChat(report) && isCurrentUserAdmin}
+                        canSelectMultiple={isGroupChat && isCurrentUserAdmin}
                         sections={[{data: participants}]}
                         ListItem={TableListItem}
-                        headerContent={getHeaderContent()}
+                        headerContent={headerContent}
                         onSelectRow={openMemberDetails}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(participants)}
                         showScrollIndicator
                         textInputRef={textInputRef}
-                        customListHeader={getCustomListHeader()}
+                        customListHeader={customListHeader}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     />
                 </View>
