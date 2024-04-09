@@ -1,3 +1,4 @@
+import type {ReactElement} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -5,7 +6,7 @@ import Text from './Text';
 
 type MoneyRequestHeaderStatusBarProps = {
     /** Title displayed in badge */
-    title: string;
+    title: string | ReactElement;
 
     /** Banner Description */
     description: string;

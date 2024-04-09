@@ -19,9 +19,13 @@ import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldBanner from './HoldBanner';
+import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import {ReceiptScan} from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
+import variables from '@styles/variables';
+import theme from '@styles/theme';
 
 type MoneyRequestHeaderOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -213,6 +217,19 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 />
             )}
         </>
+    );
+}
+
+function ScanningReceiptHeaderTitle() {
+    return (
+        <View>
+            <Icon
+                src={ReceiptScan}
+                height={variables.iconSizeExtraSmall}
+                width={variables.iconSizeExtraSmall}
+                fill={theme.}
+            />
+        </View>
     );
 }
 
