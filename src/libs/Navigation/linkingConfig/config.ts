@@ -656,9 +656,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVOICES]: {
                             path: ROUTES.WORKSPACE_INVOICES.route,
                         },
-                        [SCREENS.WORKSPACE.ACCOUNTING]: {
-                            path: ROUTES.WORKSPACE_ACCOUNTING.route,
-                        },
                         [SCREENS.WORKSPACE.TRAVEL]: {
                             path: ROUTES.WORKSPACE_TRAVEL.route,
                         },

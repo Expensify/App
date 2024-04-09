@@ -82,11 +82,6 @@ function WorkspaceSettingsModalStackNavigator() {
                 name={SCREENS.WORKSPACE.DISTANCE_RATES}
                 getComponent={() => require('@pages/workspace/distanceRates/PolicyDistanceRatesPage').default as React.ComponentType}
             />
-            <StackNavigator.Screen
-                key={SCREENS.WORKSPACE.ACCOUNTING}
-                name={SCREENS.WORKSPACE.ACCOUNTING}
-                getComponent={() => require('@pages/workspace/accounting/WorkspaceAccountingPage').default as React.ComponentType}
-            />
         </StackNavigator.Navigator>
     );
 }
