@@ -743,17 +743,16 @@ type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => in
 /**
  * Represents all routes in the app as a union of literal strings.
  * */
-type AllRoutes = {
+type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
 type RoutesValidationError =
     'Error: RoutesValidationError implies that one or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
-type RouteIsPlainString = AssertTypesNotEqual<string, AllRoutes, RoutesValidationError>;
-
-// type Route = RouteIsPlainString extends true ? never : AllRoutes;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {RouteIsPlainString, HybridAppRoute, AllRoutes};
+export type {Route, HybridAppRoute};
