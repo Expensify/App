@@ -157,12 +157,17 @@ function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.LEAVE_POLICY
     );
 }
 
 function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
+}
+
+function isLeaveMemberAction(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.LEAVE_POLICY;
 }
 
 function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageReimbursementDequeued {
@@ -839,9 +844,18 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
 
 function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
+    const isLeaveAction = isLeaveMemberAction(reportAction);
 
     // Currently, we only render messages when members are invited
-    const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
+    let verb = Localize.translateLocal('workspace.invite.removed');
+
+    if (isInviteAction) {
+        verb = Localize.translateLocal('workspace.invite.invited');
+    }
+
+    if (isLeaveAction) {
+        verb = Localize.translateLocal('workspace.invite.leftWorkspace');
+    }
 
     const originalMessage = reportAction?.originalMessage as ChangeLog;
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
