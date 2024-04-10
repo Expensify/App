@@ -14,7 +14,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as Policy from '@userActions/Policy';
 import ROUTES from '@src/ROUTES';
+import CONST from '@src/CONST';
 
 function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
@@ -22,25 +24,38 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
+    const {autoSync, syncPeople, autoCreateVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const qboSyncToggleSettings = [
         {
             title: translate('workspace.qbo.advancedConfig.autoSync'),
             subTitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
-            isActive: true,
-            onToggle: () => {},
+            isActive: Boolean(autoSync),
+            onToggle: () => Policy.updatePolicyConnectionConfig(
+                policyID,
+                CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC,
+                !autoSync,
+            ),
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subTitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
-            isActive: true,
-            onToggle: () => {},
+            isActive: Boolean(syncPeople),
+            onToggle: () => Policy.updatePolicyConnectionConfig(
+                policyID,
+                CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE,
+                !syncPeople,
+            ),
         },
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
             subTitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
-            isActive: true,
-            onToggle: () => {},
+            isActive: Boolean(autoCreateVendor),
+            onToggle: () => Policy.updatePolicyConnectionConfig(
+                policyID,
+                CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR,
+                !autoCreateVendor,
+            ),
         },
     ];
 
