@@ -1,4 +1,4 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type {CheckboxWithLabelProps} from '@components/CheckboxWithLabel';
@@ -6,14 +6,14 @@ import Text from '@components/Text';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 
-type CheckboxWithLabelStory = ComponentStory<typeof CheckboxWithLabel>;
+type CheckboxWithLabelStory = StoryFn<typeof CheckboxWithLabel>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof CheckboxWithLabel> = {
+const story: Meta<typeof CheckboxWithLabel> = {
     title: 'Components/CheckboxWithLabel',
     component: CheckboxWithLabel,
 };
