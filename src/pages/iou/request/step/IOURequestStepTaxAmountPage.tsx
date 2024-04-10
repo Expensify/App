@@ -41,8 +41,8 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWit
     const transactionTaxAmount = TransactionUtils.getAmount(transaction);
     const transactionTaxCode = transaction?.taxCode ?? '';
     const defaultTaxValue = taxRates?.defaultValue;
-    const editingTaxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode]?.value : taxRates?.defaultValue) ?? '';
     const moneyRequestTaxPercentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
+    const editingTaxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode]?.value : moneyRequestTaxPercentage) ?? '';
     const taxPercentage = isEditing ? editingTaxPercentage : moneyRequestTaxPercentage;
     return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transactionTaxAmount));
 }
