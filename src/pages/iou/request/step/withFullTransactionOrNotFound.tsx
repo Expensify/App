@@ -63,7 +63,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
                 const transactionID = route.params.transactionID ?? 0;
                 const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
-                if (userAction === CONST.IOU.ACTION.CREATE) {
+                if(userAction === CONST.IOU.ACTION.CREATE || userAction === CONST.IOU.ACTION.MOVE ||  userAction === CONST.IOU.ACTION.CATEGORIZE || userAction === CONST.IOU.ACTION.SHARE) {
                     return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
                 }
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
