@@ -1213,22 +1213,22 @@ describe('OptionsListUtils', () => {
             Engineering: {
                 enabled: false,
                 name: 'Engineering',
-                accountID: null,
+                accountID: undefined,
             },
             Medical: {
                 enabled: true,
                 name: 'Medical',
-                accountID: null,
+                accountID: undefined,
             },
             Accounting: {
                 enabled: true,
                 name: 'Accounting',
-                accountID: null,
+                accountID: undefined,
             },
             HR: {
                 enabled: true,
                 name: 'HR',
-                accountID: null,
+                accountID: undefined,
             },
         };
         const smallResultList: OptionsListUtils.CategorySection[] = [
@@ -1291,57 +1291,57 @@ describe('OptionsListUtils', () => {
             Engineering: {
                 enabled: false,
                 name: 'Engineering',
-                accountID: null,
+                accountID: undefined,
             },
             Medical: {
                 enabled: true,
                 name: 'Medical',
-                accountID: null,
+                accountID: undefined,
             },
             Accounting: {
                 enabled: true,
                 name: 'Accounting',
-                accountID: null,
+                accountID: undefined,
             },
             HR: {
                 enabled: true,
                 name: 'HR',
-                accountID: null,
+                accountID: undefined,
             },
             Food: {
                 enabled: true,
                 name: 'Food',
-                accountID: null,
+                accountID: undefined,
             },
             Traveling: {
                 enabled: false,
                 name: 'Traveling',
-                accountID: null,
+                accountID: undefined,
             },
             Cleaning: {
                 enabled: true,
                 name: 'Cleaning',
-                accountID: null,
+                accountID: undefined,
             },
             Software: {
                 enabled: true,
                 name: 'Software',
-                accountID: null,
+                accountID: undefined,
             },
             OfficeSupplies: {
                 enabled: false,
                 name: 'Office Supplies',
-                accountID: null,
+                accountID: undefined,
             },
             Taxes: {
                 enabled: true,
                 name: 'Taxes',
-                accountID: null,
+                accountID: undefined,
             },
             Benefits: {
                 enabled: true,
                 name: 'Benefits',
-                accountID: null,
+                accountID: undefined,
             },
         };
         const largeResultList: OptionsListUtils.CategorySection[] = [
