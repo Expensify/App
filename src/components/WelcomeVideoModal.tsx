@@ -1,10 +1,12 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Button from './Button';
@@ -27,26 +29,22 @@ type VideoLoadedEventType = {
     };
 };
 
-type VideoPlaybackStatusEventType = {
-    isLoaded: boolean;
-};
-
 type VideoStatus = 'video' | 'animation';
 
-type OnboardingWelcomeVideoProps = {
-    onClose?: () => void;
+type WelcomeVideoModalProps = {
     children: React.ReactNode;
-};
+    onClose?: () => void;
+}
 
-function WelcomeVideoModal({onClose, children}: OnboardingWelcomeVideoProps) {
+function WelcomeVideoModal({children, onClose}: WelcomeVideoModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isModalVisible, setIsModalVisible] = useState(true);
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
     const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
-    const [isVideoLoaded, setIsVideoLoaded] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
     useEffect(() => {
@@ -56,15 +54,14 @@ function WelcomeVideoModal({onClose, children}: OnboardingWelcomeVideoProps) {
 
         if (isOffline) {
             setWelcomeVideoStatus('animation');
-        } else if (!isOffline && isVideoLoaded) {
+        } else if (!isOffline) {
             setWelcomeVideoStatus('video');
             setIsWelcomeVideoStatusLocked(true);
         }
-    }, [isOffline, isVideoLoaded, isWelcomeVideoStatusLocked]);
+    }, [isOffline, isWelcomeVideoStatusLocked]);
 
     const closeModal = useCallback(() => {
         setIsModalVisible(false);
-
         onClose?.();
     }, [onClose]);
 
@@ -79,10 +76,6 @@ function WelcomeVideoModal({onClose, children}: OnboardingWelcomeVideoProps) {
             setVideoAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
         }
     };
-
-    const setVideoStatus = useCallback((event: VideoPlaybackStatusEventType) => {
-        setIsVideoLoaded(event.isLoaded);
-    }, []);
 
     const getWelcomeVideo = () => {
         const aspectRatio = videoAspectRatio || VIDEO_ASPECT_RATIO;
@@ -103,7 +96,6 @@ function WelcomeVideoModal({onClose, children}: OnboardingWelcomeVideoProps) {
                         url={CONST.WELCOME_VIDEO_URL}
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                         onVideoLoaded={setAspectRatio}
-                        onPlaybackStatusUpdate={setVideoStatus}
                         controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY}
                         shouldUseControlsBottomMargin={false}
                         shouldPlay
@@ -114,6 +106,7 @@ function WelcomeVideoModal({onClose, children}: OnboardingWelcomeVideoProps) {
                         <Lottie
                             source={LottieAnimations.Hands}
                             style={styles.h100}
+                            webStyle={isSmallScreenWidth ? styles.h100 : undefined}
                             autoPlay
                             loop
                         />
@@ -131,6 +124,8 @@ function WelcomeVideoModal({onClose, children}: OnboardingWelcomeVideoProps) {
                     type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                     onClose={closeModal}
                     innerContainerStyle={{
+                        boxShadow: 'none',
+                        borderRadius: 16,
                         paddingBottom: 20,
                         paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING,
                         ...(shouldUseNarrowLayout
@@ -143,19 +138,23 @@ function WelcomeVideoModal({onClose, children}: OnboardingWelcomeVideoProps) {
                             : {}),
                     }}
                 >
-                    <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                        <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
-                        <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
-                            <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>{children}</View>
-                            <Button
-                                large
-                                success
-                                pressOnEnter
-                                onPress={closeModal}
-                                text={translate('onboarding.welcomeVideo.button')}
-                            />
+                    <GestureHandlerRootView>
+                        <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
+                            <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
+                            <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
+                                <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                    {children}
+                                </View>
+                                <Button
+                                    large
+                                    success
+                                    pressOnEnter
+                                    onPress={closeModal}
+                                    text={translate('onboarding.welcomeVideo.button')}
+                                />
+                            </View>
                         </View>
-                    </View>
+                    </GestureHandlerRootView>
                 </Modal>
             )}
         </SafeAreaConsumer>

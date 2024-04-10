@@ -15,7 +15,7 @@ function OnboardingWelcomeVideo() {
 
     return (
         <WelcomeVideoModal onClose={onClose}>
-            <Text style={styles.textHeroSmall}>{translate('onboarding.welcomeVideo.title')}</Text>
+            <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.welcomeVideo.title')}</Text>
             <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
         </WelcomeVideoModal>
     );

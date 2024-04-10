@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +33,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isFullScreenRef} = useFullScreenContext();
     const scrollRef = useRef<FlatList>(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -76,6 +78,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
         ({viewableItems}: UpdatePageProps) => {
+            if (isFullScreenRef.current) {
+                return;
+            }
+
             Keyboard.dismiss();
 
             // Since we can have only one item in view at a time, we can use the first item in the array
@@ -95,12 +101,16 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onNavigate(entry.item);
             }
         },
-        [onNavigate],
+        [isFullScreenRef, onNavigate],
     );
 
     /** Increments or decrements the index to get another selected item */
     const cycleThroughAttachments = useCallback(
         (deltaSlide: number) => {
+            if (isFullScreenRef.current) {
+                return;
+            }
+
             const nextIndex = page + deltaSlide;
             const nextItem = attachments[nextIndex];
 
@@ -110,7 +120,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, canUseTouchScreen, page],
+        [attachments, canUseTouchScreen, isFullScreenRef, page],
     );
 
     const extractItemKey = useCallback(
@@ -145,7 +155,12 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onLayout={({nativeEvent}) => setContainerWidth(PixelRatio.roundToNearestPixel(nativeEvent.layout.width))}
+            onLayout={({nativeEvent}) => {
+                if (isFullScreenRef.current) {
+                    return;
+                }
+                setContainerWidth(PixelRatio.roundToNearestPixel(nativeEvent.layout.width));
+            }}
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
         >

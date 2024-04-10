@@ -134,10 +134,10 @@ function HeaderWithBackButton({
                 styles.headerBar,
                 isCentralPaneSettings && styles.headerBarDesktopHeight,
                 shouldShowBorderBottom && styles.borderBottom,
-                shouldShowBackButton && styles.pl2,
                 // progressBarPercentage can be 0 which would
                 // be falsey, hence using !== undefined explicitly
-                progressBarPercentage !== undefined && styles.pl2,
+                progressBarPercentage !== undefined && styles.pl0,
+                shouldShowBackButton && [styles.pl2, styles.pr2],
                 shouldOverlay && StyleSheet.absoluteFillObject,
                 style,
             ]}

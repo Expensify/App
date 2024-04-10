@@ -1,13 +1,15 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import Button from '@components/Button';
+import {withOnyx} from 'react-native-onyx';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import OfflineIndicator from '@components/OfflineIndicator';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -18,8 +20,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps} from './types';
 
 type ValuesType<T> = T[keyof T];
 type SelectedPurposeType = ValuesType<typeof CONST.ONBOARDING_CHOICES> | undefined;
@@ -33,21 +38,22 @@ const menuIcons = {
     [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
 };
 
-type BaseOnboardingPurposeProps = {
-    /* Whether to use native styles tailored for native devices */
-    shouldUseNativeStyles: boolean;
-
-    /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
-    shouldEnableMaxHeight: boolean;
-};
-
-function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [selectedPurpose, setSelectedPurpose] = useState<SelectedPurposeType>(undefined);
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const [error, setError] = useState(false);
     const theme = useTheme();
+
+    const PurposeFooterInstance = <OfflineIndicator />;
+
+    useEffect(() => {
+        setSelectedPurpose(onboardingPurposeSelected ?? undefined);
+    }, [onboardingPurposeSelected]);
+
+    const errorMessage = error ? 'onboarding.purpose.error' : '';
 
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
 
@@ -76,10 +82,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
 
         Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
 
+        Navigation.dismissModal();
         // Only navigate to concierge chat when central pane is visible
         // Otherwise stay on the chats screen.
         if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.ROOT);
+            Navigation.navigate(ROUTES.HOME);
         } else {
             Report.navigateToConciergeChat();
         }
@@ -107,7 +114,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
             rightComponent: selectedCheckboxIcon,
             shouldShowRightComponent: isSelected,
             onPress: () => {
-                setSelectedPurpose(choice);
+                Welcome.setOnboardingPurposeSelected(choice);
+                setError(false);
             },
         };
     });
@@ -123,10 +131,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
                             progressBarPercentage={66.6}
                         />
                     </View>
-                    <ScrollView style={[styles.flex1, styles.flexGrow1, styles.mt5, !shouldUseNarrowLayout && styles.mb5, paddingHorizontal]}>
+                    <ScrollView style={[styles.flex1, styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, paddingHorizontal]}>
                         <View style={styles.flex1}>
                             <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                                <Text style={styles.textHeroSmall}>{translate('onboarding.purpose.title')} </Text>
+                                <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.purpose.title')} </Text>
                             </View>
                             <MenuItemList
                                 menuItems={menuItems}
@@ -134,13 +142,21 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
                             />
                         </View>
                     </ScrollView>
-                    <Button
-                        large
-                        success
-                        onPress={completeEngagement}
-                        isDisabled={!selectedPurpose}
-                        text={translate('common.continue')}
-                        style={[styles.mb5, paddingHorizontal]}
+                    <FormAlertWithSubmitButton
+                        enabledWhenOffline
+                        footerContent={isSmallScreenWidth && PurposeFooterInstance}
+                        buttonText={translate('common.continue')}
+                        onSubmit={() => {
+                            if (!selectedPurpose) {
+                                setError(true);
+                                return;
+                            }
+                            setError(false);
+                            completeEngagement();
+                        }}
+                        message={errorMessage}
+                        isAlertVisible={error || Boolean(errorMessage)}
+                        containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
                     />
                 </View>
             )}
@@ -149,6 +165,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: B
 }
 
 BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
-export default BaseOnboardingPurpose;
 
-export type {BaseOnboardingPurposeProps};
+export default withOnyx<BaseOnboardingPurposeProps, BaseOnboardingPurposeOnyxProps>({
+    onboardingPurposeSelected: {
+        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+    },
+})(BaseOnboardingPurpose);
+
+export type {BaseOnboardingPurposeProps, SelectedPurposeType};

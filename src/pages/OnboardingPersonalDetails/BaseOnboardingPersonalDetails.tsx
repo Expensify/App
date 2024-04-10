@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -13,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -31,15 +33,16 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
 
-    const saveAndNavigate = useCallback((values: FormOnyxValues<'displayNameForm'>) => {
+    const saveAndNavigate = useCallback((values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
         PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
     }, []);
 
-    const validate = (values: FormOnyxValues<'displayNameForm'>) => {
+    const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
         const errors = {};
 
         // First we validate the first name field
@@ -48,6 +51,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         }
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
+        } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'firstName', ['common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}]);
         }
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
@@ -59,6 +64,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         }
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
+        } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            ErrorUtils.addErrorMessage(errors, 'lastName', ['common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}]);
         }
         if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.containsReservedWord');
@@ -66,6 +73,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
         return errors;
     };
+
+    const PersonalDetailsFooterInstance = <OfflineIndicator />;
 
     return (
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
@@ -79,8 +88,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 behavior="padding"
             >
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mt5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
-                    formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
+                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
+                    formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
+                    footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
                     validate={validate}
                     onSubmit={saveAndNavigate}
                     submitButtonText={translate('common.continue')}
@@ -91,8 +101,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     shouldTrimValues={false}
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={styles.textHeroSmall}>{translate('onboarding.welcome')} </Text>
-                        <Text style={styles.textHeroSmall}>{translate('onboarding.whatsYourName')}</Text>
+                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.welcome')} </Text>
+                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whatsYourName')}</Text>
                     </View>
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -103,6 +113,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                             aria-label={translate('common.firstName')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserPersonalDetails?.firstName}
+                            shouldSaveDraft
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                             autoFocus
@@ -117,6 +128,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                             aria-label={translate('common.lastName')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserPersonalDetails?.lastName}
+                            shouldSaveDraft
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
                         />

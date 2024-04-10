@@ -66,4 +66,4 @@ function assertDeployProductionJobExecuted(workflowResult: Step[], didExecute = 
     });
 }
 
-export {assertDeployStagingJobExecuted, assertDeployProductionJobExecuted};
+export default {assertDeployStagingJobExecuted, assertDeployProductionJobExecuted};

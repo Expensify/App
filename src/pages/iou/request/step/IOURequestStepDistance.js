@@ -84,7 +84,7 @@ function IOURequestStepDistance({
     const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isCreatingNewRequest = Navigation.getActiveRoute().includes('start');
+    const isCreatingNewRequest = !(backTo || isEditing);
 
     useEffect(() => {
         MapboxToken.init();
@@ -135,7 +135,7 @@ function IOURequestStepDistance({
         // to the confirm step.
         if (report.reportID) {
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
         }
 
@@ -187,7 +187,7 @@ function IOURequestStepDistance({
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || isLoading) {
+        if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
@@ -198,11 +198,11 @@ function IOURequestStepDistance({
             const oldAddresses = _.mapObject(oldWaypoints, (waypoint) => _.pick(waypoint, 'address'));
             const addresses = _.mapObject(waypoints, (waypoint) => _.pick(waypoint, 'address'));
             if (_.isEqual(oldAddresses, addresses)) {
-                Navigation.dismissModal(report.reportID);
+                Navigation.dismissModal();
                 return;
             }
             IOU.updateMoneyRequestDistance(transaction.transactionID, report.reportID, waypoints);
-            Navigation.dismissModal(report.reportID);
+            Navigation.dismissModal();
             return;
         }
 
