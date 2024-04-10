@@ -22,7 +22,7 @@ function BottomTabNavigator() {
     const activeRoute = useNavigationState(getTopmostCentralPaneRoute);
 
     return (
-        <ActiveRouteContext.Provider value={activeRoute?.name ?? ''}>
+        <ActiveRouteContext.Provider value={activeRoute}>
             <Tab.Navigator screenOptions={screenOptions}>
                 <Tab.Screen
                     name={SCREENS.HOME}
