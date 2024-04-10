@@ -906,10 +906,24 @@ function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Check if Report is an invoice room
+ */
+function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
+}
+
+/**
+ * Check if Report is an invoice report
+ */
+function isInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+    return report?.type === CONST.REPORT.TYPE.INVOICE;
+}
+
+/**
  * Whether the provided report is a chat room
  */
 function isChatRoom(report: OnyxEntry<Report>): boolean {
-    return isUserCreatedPolicyRoom(report) || isDefaultRoom(report);
+    return isUserCreatedPolicyRoom(report) || isDefaultRoom(report) || isInvoiceRoom(report);
 }
 
 /**
@@ -5898,20 +5912,6 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
     return isChatRoom(report) && !isThread(report);
 }
 
-/**
- * Check if Report is an invoice room
- */
-function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
-}
-
-/**
- * Check if Report is an invoice report
- */
-function isInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
-    return report?.type === CONST.REPORT.TYPE.INVOICE;
-}
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5929,6 +5929,8 @@ export {
     isAdminsOnlyPostingRoom,
     isAnnounceRoom,
     isUserCreatedPolicyRoom,
+    isInvoiceRoom,
+    isInvoiceReport,
     isChatRoom,
     getChatRoomSubtitle,
     getParentNavigationSubtitle,
@@ -6148,8 +6150,6 @@ export {
     buildParticipantsFromAccountIDs,
     canReportBeMentionedWithinPolicy,
     getAllHeldTransactions,
-    isInvoiceRoom,
-    isInvoiceReport,
 };
 
 export type {
