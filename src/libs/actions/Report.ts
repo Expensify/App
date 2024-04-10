@@ -2920,7 +2920,7 @@ function completeOnboarding(properties: {
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currTask.reportID}`,
                 value: {
                     [subtitleCommentAction.reportActionID ?? '']: subtitleCommentAction as ReportAction,
                     [instructionCommentAction.reportActionID ?? '']: instructionCommentAction as ReportAction,
@@ -2940,7 +2940,6 @@ function completeOnboarding(properties: {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {[textCommentAction.reportActionID ?? '']: textCommentAction as ReportAction, [videoCommentAction.reportActionID ?? '']: videoCommentAction as ReportAction},
         },
-        ...tasksForOptimisticData,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
@@ -2962,7 +2961,7 @@ function completeOnboarding(properties: {
         data: JSON.stringify([{type: 'message', ...textMessage}, {type: 'video', ...data.video, ...videoMessage}, ...tasksForParameters]),
     };
 
-    API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData});
+    API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {});
 }
 
 /**
@@ -3036,11 +3035,6 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.ONBO
             value: {[reportCommentAction.reportActionID ?? '']: {pendingAction: null}},
         },
     ];
-
-    console.log({
-        optimisticData,
-        successData,
-    });
 
     API.write(WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL, parameters, {
         optimisticData,
