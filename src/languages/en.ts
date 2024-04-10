@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -1817,11 +1818,13 @@ export default {
             reimburse: 'Reimbursements',
             categories: 'Categories',
             tags: 'Tags',
+            reportFields: 'Report Fields',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
             travel: 'Travel',
             members: 'Members',
+            accounting: 'Accounting',
             plan: 'Plan',
             profile: 'Profile',
             bankAccount: 'Bank account',
@@ -1846,6 +1849,29 @@ export default {
             distanceRates: 'Distance rates',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+        },
+        qbo: {
+            import: 'Import',
+            importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
+            classes: 'Classes',
+            accounts: 'Chart of accounts',
+            locations: 'Locations',
+            taxes: 'Taxes',
+            customers: 'Customers/Projects',
+            imported: 'Imported',
+            displayedAs: 'Displayed as',
+            notImported: 'Not imported',
+            importedAsTags: 'Imported, displayed as tags',
+            importedAsReportFields: 'Imported, displayed as report fields',
+            accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
+            accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
+            accountsSwitchDescription: 'New categories imported from QuickBooks Online to Expensify will be either enabled or disabled by default.',
+            classesDescription: 'Choose whether to import classes, and see where classes are displayed.',
+            customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
+            locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
+            taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            locationsAdditionalDescription:
+                'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
         },
         type: {
             free: 'Free',
@@ -2045,6 +2071,41 @@ export default {
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
             invalidRateError: 'Please enter a valid rate',
             lowRateError: 'Rate must be greater than 0',
+        },
+        accounting: {
+            title: 'Connections',
+            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments and keep your finances in sync.',
+            qbo: 'Quickbooks Online',
+            xero: 'Xero',
+            setup: 'Set up',
+            lastSync: 'Last synced just now',
+            import: 'Import',
+            export: 'Export',
+            advanced: 'Advanced',
+            other: 'Other integrations',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: 'Disconnect integration',
+            disconnectPrompt: 'Are you sure you want to disconnect this integration?',
+            enterCredentials: 'Enter your credentials',
+            connections: {
+                syncStageName: (stage: PolicyConnectionSyncStage) => {
+                    switch (stage) {
+                        case 'quickbooksOnlineImportCustomers':
+                            return 'Importing customers';
+                        case 'quickbooksOnlineImportEmployees':
+                            return 'Importing employees';
+                        case 'quickbooksOnlineImportAccounts':
+                            return 'Importing accounts';
+                        case 'quickbooksOnlineImportClasses':
+                            return 'Importing classes';
+
+                        default: {
+                            return `Translation missing for stage: ${stage}`;
+                        }
+                    }
+                },
+            },
         },
         bills: {
             manageYourBills: 'Manage your bills',
