@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -16,12 +17,14 @@ import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 
-function QuickbooksTaxesPage({policy}: WithPolicyProps) {
+function QuickbooksClassesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const {syncClasses, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const isSwitchOn = Boolean(syncClasses && syncClasses !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isReportFieldsSelected = syncClasses === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <FeatureEnabledAccessOrNotFoundWrapper
@@ -31,24 +34,24 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     shouldEnableMaxHeight
-                    testID={QuickbooksTaxesPage.displayName}
+                    testID={QuickbooksClassesPage.displayName}
                 >
-                    <HeaderWithBackButton title={translate('workspace.qbo.taxes')} />
+                    <HeaderWithBackButton title={translate('workspace.qbo.classes')} />
                     <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.qbo.taxesDescription')}</Text>
+                        <Text style={styles.pb5}>{translate('workspace.qbo.classesDescription')}</Text>
                         <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <View style={styles.flex1}>
                                 <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
                             </View>
-                            <OfflineWithFeedback pendingAction={pendingFields?.syncTaxes}>
+                            <OfflineWithFeedback pendingAction={pendingFields?.syncClasses}>
                                 <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                     <Switch
-                                        accessibilityLabel={translate('workspace.qbo.taxes')}
+                                        accessibilityLabel={translate('workspace.qbo.classes')}
                                         isOn={isSwitchOn}
                                         onToggle={() =>
                                             Policy.updatePolicyConnectionConfig(
                                                 policyID,
-                                                CONST.QUICK_BOOKS_IMPORTS.SYNC_TAXES,
+                                                CONST.QUICK_BOOKS_CONFIG.SYNC_CLASSES,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }
@@ -56,6 +59,16 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                                 </View>
                             </OfflineWithFeedback>
                         </View>
+                        {isSwitchOn && (
+                            <OfflineWithFeedback>
+                                <MenuItemWithTopDescription
+                                    interactive={false}
+                                    title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
+                                    description={translate('workspace.qbo.displayedAs')}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                />
+                            </OfflineWithFeedback>
+                        )}
                     </ScrollView>
                 </ScreenWrapper>
             </FeatureEnabledAccessOrNotFoundWrapper>
@@ -63,6 +76,6 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksTaxesPage.displayName = 'QuickbooksTaxesPage';
+QuickbooksClassesPage.displayName = 'QuickbooksClassesPage';
 
-export default withPolicy(QuickbooksTaxesPage);
+export default withPolicy(QuickbooksClassesPage);

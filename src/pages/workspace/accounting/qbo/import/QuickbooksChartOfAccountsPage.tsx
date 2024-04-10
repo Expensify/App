@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -17,13 +16,13 @@ import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 
-function QuickbooksCustomersPage({policy}: WithPolicyProps) {
+function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncCustomers, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncCustomers && syncCustomers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isReportFieldsSelected = syncCustomers === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+    const {enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const isSwitchOn = Boolean(enableNewCategories && enableNewCategories !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <FeatureEnabledAccessOrNotFoundWrapper
@@ -33,24 +32,24 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     shouldEnableMaxHeight
-                    testID={QuickbooksCustomersPage.displayName}
+                    testID={QuickbooksChartOfAccountsPage.displayName}
                 >
-                    <HeaderWithBackButton title={translate('workspace.qbo.customers')} />
+                    <HeaderWithBackButton title={translate('workspace.qbo.accounts')} />
                     <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.qbo.customersDescription')}</Text>
-                        <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <Text style={styles.pb5}>{translate('workspace.qbo.accountsDescription')}</Text>
+                        <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <View style={styles.flex1}>
-                                <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
+                                <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
                             </View>
-                            <OfflineWithFeedback pendingAction={pendingFields?.syncCustomers}>
+                            <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
                                 <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                     <Switch
-                                        accessibilityLabel={translate('workspace.qbo.customers')}
+                                        accessibilityLabel={translate('workspace.qbo.accounts')}
                                         isOn={isSwitchOn}
                                         onToggle={() =>
                                             Policy.updatePolicyConnectionConfig(
                                                 policyID,
-                                                CONST.QUICK_BOOKS_IMPORTS.SYNC_CUSTOMERS,
+                                                CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }
@@ -58,16 +57,9 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                                 </View>
                             </OfflineWithFeedback>
                         </View>
-                        {isSwitchOn && (
-                            <OfflineWithFeedback>
-                                <MenuItemWithTopDescription
-                                    interactive={false}
-                                    title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                                    description={translate('workspace.qbo.displayedAs')}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                />
-                            </OfflineWithFeedback>
-                        )}
+                        <View style={styles.flex1}>
+                            <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.accountsSwitchDescription')}</Text>
+                        </View>
                     </ScrollView>
                 </ScreenWrapper>
             </FeatureEnabledAccessOrNotFoundWrapper>
@@ -75,6 +67,6 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksCustomersPage.displayName = 'QuickbooksCustomersPage';
+QuickbooksChartOfAccountsPage.displayName = 'QuickbooksChartOfAccountsPage';
 
-export default withPolicy(QuickbooksCustomersPage);
+export default withPolicy(QuickbooksChartOfAccountsPage);
