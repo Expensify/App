@@ -233,6 +233,21 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.markAsRead',
+        icon: Expensicons.Mail,
+        successIcon: Expensicons.Checkmark,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.readNewestAction(reportID);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editAction',
         icon: Expensicons.Pencil,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
@@ -262,21 +277,6 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // No popover to hide, call editAction immediately
             editAction();
-        },
-        getDescription: () => {},
-    },
-    {
-        isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.markAsRead',
-        icon: Expensicons.Mail,
-        successIcon: Expensicons.Checkmark,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
-        onPress: (closePopover, {reportID}) => {
-            Report.readNewestAction(reportID);
-            if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
-            }
         },
         getDescription: () => {},
     },
