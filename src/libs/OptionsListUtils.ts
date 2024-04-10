@@ -157,6 +157,9 @@ type GetOptionsConfig = {
     includeSelectedOptions?: boolean;
     includeTaxRates?: boolean;
     taxRates?: TaxRatesWithDefault;
+    includePolicyReportFieldOptions?: boolean;
+    policyReportFieldOptions?: string[];
+    recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
@@ -166,7 +169,7 @@ type MemberForList = {
     keyForList: string;
     isSelected: boolean;
     isDisabled: boolean;
-    accountID?: number | null;
+    accountID?: number;
     login: string;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
@@ -184,6 +187,7 @@ type GetOptions = {
     categoryOptions: CategoryTreeSection[];
     tagOptions: CategorySection[];
     taxRatesOptions: CategorySection[];
+    policyReportFieldOptions?: CategorySection[] | null;
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
@@ -353,7 +357,7 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 /**
  * Get the participant option for a report.
  */
-function getParticipantsOption(participant: ReportUtils.OptionData, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
+function getParticipantsOption(participant: ReportUtils.OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
@@ -640,21 +644,22 @@ function createOption(
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false} = config ?? {};
     const result: ReportUtils.OptionData = {
         text: undefined,
-        alternateText: null,
+        alternateText: undefined,
         pendingAction: undefined,
         allReportErrors: undefined,
         brickRoadIndicator: null,
         icons: undefined,
         tooltipText: null,
         ownerAccountID: undefined,
-        subtitle: null,
+        subtitle: undefined,
         participantsList: undefined,
         accountID: 0,
-        login: null,
+        login: undefined,
         reportID: '',
-        phoneNumber: null,
-        keyForList: null,
-        searchText: null,
+        phoneNumber: undefined,
+        hasDraftComment: false,
+        keyForList: undefined,
+        searchText: undefined,
         isDefaultRoom: false,
         isPinned: false,
         isWaitingOnBankAccount: false,
@@ -1105,7 +1110,7 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Option[] {
+function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>, selectedOptions?: SelectedTagOption[]): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
@@ -1115,6 +1120,7 @@ function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Optio
             searchText: tag.name,
             tooltipText: cleanedName,
             isDisabled: !tag.enabled,
+            isSelected: selectedOptions?.some((selectedTag) => selectedTag.name === tag.name),
         };
     });
 }
@@ -1146,7 +1152,7 @@ function getTagListSections(
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getTagsOptions(selectedTagOptions),
+            data: getTagsOptions(selectedTagOptions, selectedOptions),
         });
 
         return tagSections;
@@ -1159,7 +1165,7 @@ function getTagListSections(
             // "Search" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(searchTags),
+            data: getTagsOptions(searchTags, selectedOptions),
         });
 
         return tagSections;
@@ -1170,7 +1176,7 @@ function getTagListSections(
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            data: getTagsOptions(enabledTags),
+            data: getTagsOptions(enabledTags, selectedOptions),
         });
 
         return tagSections;
@@ -1195,7 +1201,7 @@ function getTagListSections(
             // "Selected" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(selectedTagOptions),
+            data: getTagsOptions(selectedTagOptions, selectedOptions),
         });
     }
 
@@ -1206,7 +1212,7 @@ function getTagListSections(
             // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
-            data: getTagsOptions(cutRecentlyUsedTags),
+            data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
     }
 
@@ -1214,7 +1220,7 @@ function getTagListSections(
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        data: getTagsOptions(filteredTags),
+        data: getTagsOptions(filteredTags, selectedOptions),
     });
 
     return tagSections;
@@ -1227,6 +1233,81 @@ function hasEnabledTags(policyTagList: Array<PolicyTagList[keyof PolicyTagList]>
     const policyTagValueList = policyTagList.map(({tags}) => Object.values(tags)).flat();
 
     return hasEnabledOptions(policyTagValueList);
+}
+
+/**
+ * Transforms the provided report field options into option objects.
+ *
+ * @param reportFieldOptions - an initial report field options array
+ */
+function getReportFieldOptions(reportFieldOptions: string[]): Option[] {
+    return reportFieldOptions.map((name) => ({
+        text: name,
+        keyForList: name,
+        searchText: name,
+        tooltipText: name,
+        isDisabled: false,
+    }));
+}
+
+/**
+ * Build the section list for report field options
+ */
+function getReportFieldOptionsSection(options: string[], recentlyUsedOptions: string[], selectedOptions: Array<Partial<ReportUtils.OptionData>>, searchInputValue: string) {
+    const reportFieldOptionsSections = [];
+    const selectedOptionKeys = selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o);
+    let indexOffset = 0;
+
+    if (searchInputValue) {
+        const searchOptions = options.filter((option) => option.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        reportFieldOptionsSections.push({
+            // "Search" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getReportFieldOptions(searchOptions),
+        });
+
+        return reportFieldOptionsSections;
+    }
+
+    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((recentlyUsedOption) => !selectedOptionKeys.includes(recentlyUsedOption));
+    const filteredOptions = options.filter((option) => !selectedOptionKeys.includes(option));
+
+    if (selectedOptionKeys.length) {
+        reportFieldOptionsSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getReportFieldOptions(selectedOptionKeys),
+        });
+
+        indexOffset += selectedOptionKeys.length;
+    }
+
+    if (filteredRecentlyUsedOptions.length > 0) {
+        reportFieldOptionsSections.push({
+            // "Recent" section
+            title: Localize.translateLocal('common.recent'),
+            shouldShow: true,
+            indexOffset,
+            data: getReportFieldOptions(filteredRecentlyUsedOptions),
+        });
+
+        indexOffset += filteredRecentlyUsedOptions.length;
+    }
+
+    reportFieldOptionsSections.push({
+        // "All" section when items amount more than the threshold
+        title: Localize.translateLocal('common.all'),
+        shouldShow: true,
+        indexOffset,
+        data: getReportFieldOptions(filteredOptions),
+    });
+
+    return reportFieldOptionsSections;
 }
 
 /**
@@ -1454,6 +1535,9 @@ function getOptions(
         includeTaxRates,
         taxRates,
         includeSelfDM = false,
+        includePolicyReportFieldOptions = false,
+        policyReportFieldOptions = [],
+        recentlyUsedPolicyReportFieldOptions = [],
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1495,6 +1579,20 @@ function getOptions(
             categoryOptions: [],
             tagOptions: [],
             taxRatesOptions,
+        };
+    }
+
+    if (includePolicyReportFieldOptions) {
+        const transformedPolicyReportFieldOptions = getReportFieldOptionsSection(policyReportFieldOptions, recentlyUsedPolicyReportFieldOptions, selectedOptions, searchInputValue);
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
+            policyReportFieldOptions: transformedPolicyReportFieldOptions,
         };
     }
 
@@ -1881,6 +1979,9 @@ function getFilteredOptions(
     includeTaxRates = false,
     taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
     includeSelfDM = false,
+    includePolicyReportFieldOptions = false,
+    policyReportFieldOptions: string[] = [],
+    recentlyUsedPolicyReportFieldOptions: string[] = [],
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -1905,6 +2006,9 @@ function getFilteredOptions(
             includeTaxRates,
             taxRates,
             includeSelfDM,
+            includePolicyReportFieldOptions,
+            policyReportFieldOptions,
+            recentlyUsedPolicyReportFieldOptions,
         },
     );
 }
