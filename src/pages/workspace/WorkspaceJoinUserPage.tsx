@@ -39,7 +39,7 @@ function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
     }, []);
 
     useEffect(() => {
-        if (!policy || isUnmounted.current || isJoinLinkUsed) {
+        if (isUnmounted.current || isJoinLinkUsed) {
             return;
         }
         if (!isEmptyObject(policy)) {
