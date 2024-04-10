@@ -1945,7 +1945,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.29.0):
+  - RNScreens (3.30.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1963,9 +1963,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.29.0)
+    - RNScreens/common (= 3.30.1)
     - Yoga
-  - RNScreens/common (3.29.0):
+  - RNScreens/common (3.30.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2571,7 +2571,7 @@ SPEC CHECKSUMS:
   RNPermissions: 8990fc2c10da3640938e6db1647cb6416095b729
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 605409e0d0ced6f2e194ae585fedc2f8a1935bf2
-  RNScreens: f7b8bb892b4957f6f91e5dfd9a191e7f13ce8baa
+  RNScreens: 65a936f4e227b91e4a8e2a7d4c4607355bfefda0
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: db32cfcad0a221fd175e0882eff7bcba7690380a
