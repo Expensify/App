@@ -2,24 +2,19 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
-import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
@@ -62,12 +57,6 @@ const propTypes = {
 
     /** Transaction that stores the request data */
     transaction: transactionPropTypes,
-
-    /** Indicates whether the app is loading initial data */
-    isLoadingReportData: PropTypes.bool,
-
-    /** Is the window width narrow, like on a mobile device */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -77,7 +66,6 @@ const defaultProps = {
     policyTags: {},
     parentReportActions: {},
     transaction: {},
-    isLoadingReportData: true,
 };
 
 function EditRequestPage({report, route, policy, policyCategories, policyTags, parentReportActions, transaction}) {
@@ -98,22 +86,10 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
     // A flag for showing the tags page
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists)), [isPolicyExpenseChat, policyTagLists, transactionTag]);
 
-    const reportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID);
-
-    // For small screen, we don't call openReport API when we go to a sub report page by deeplink
-    // So we need to call openReport here for small screen
-    useEffect(() => {
-        if (!isSmallScreenWidth || (!_.isEmpty(report) && !_.isEmpty(reportAction) && !_.isEmpty(transaction))) {
-            return;
-        }
-        Report.openReport(route.params.threadReportID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth, route.params.threadReportID]);
-
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
         // Do not dismiss the modal, when a current user can edit this property of the money request.
-        if (isDataLoading || ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, fieldToEdit)) {
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, fieldToEdit)) {
             return;
         }
 
@@ -121,7 +97,7 @@ function EditRequestPage({report, route, policy, policyCategories, policyTags, p
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [parentReportAction, fieldToEdit, transaction, isDataLoading]);
+    }, [parentReportAction, fieldToEdit]);
 
     const saveTag = useCallback(
         ({tag: newTag}) => {
@@ -179,13 +155,9 @@ EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
-    withWindowDimensions,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file

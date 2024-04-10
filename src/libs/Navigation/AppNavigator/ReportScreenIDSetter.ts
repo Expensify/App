@@ -3,11 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
-<<<<<<< HEAD
-import Navigation from '@libs/Navigation/Navigation';
-=======
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
->>>>>>> main
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, Report, ReportMetadata} from '@src/types/onyx';
@@ -48,13 +44,6 @@ const getLastAccessedReportID = (
     policyID?: string,
     policyMemberAccountIDs?: number[],
 ): string | undefined => {
-    const currentRoute = Navigation.getActiveRoute();
-    const {reportID} = ReportUtils.parseReportRouteParams(currentRoute);
-
-    if (reportID) {
-        return reportID;
-    }
-
     const lastReport = ReportUtils.findLastAccessedReport(
         reports,
         ignoreDefaultRooms,
