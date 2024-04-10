@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {handleOnyxUpdateGap} from './OnyxUpdateManager';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
@@ -142,10 +143,15 @@ function doesClientNeedToBeUpdated(previousUpdateID = 0): boolean {
     return lastUpdateIDAppliedToClient < previousUpdateID;
 }
 
-function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer) {
+function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, shouldRunSync = false) {
     const previousUpdateID = Number(updates.previousUpdateID) || 0;
     if (!doesClientNeedToBeUpdated(previousUpdateID)) {
         apply(updates);
+        return;
+    }
+
+    if (shouldRunSync) {
+        handleOnyxUpdateGap(updates);
         return;
     }
 
