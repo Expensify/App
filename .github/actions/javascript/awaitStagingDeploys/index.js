@@ -12754,9 +12754,13 @@ function promiseDoWhile(condition, action) {
         console.info('[promiseWhile] promiseDoWhile() condition', condition);
         const actionResult = action?.();
         console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
+        if (!actionResult) {
+            resolve();
+            return;
+        }
         actionResult
-            ?.then(() => promiseWhile(condition, action))
-            .then(() => resolve())
+            .then(() => promiseWhile(condition, action))
+            .then(resolve)
             .catch(reject);
     });
 }
