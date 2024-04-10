@@ -2,7 +2,7 @@ import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {InteractionManager, Linking, NativeModules} from 'react-native';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
@@ -175,8 +175,8 @@ function signOut() {
 /**
  * Checks if the account is an anonymous account.
  */
-function isAnonymousUser(): boolean {
-    return session.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+function isAnonymousUser(sessionParam?: OnyxEntry<Session>): boolean {
+    return (sessionParam?.authTokenType ?? session.authTokenType) === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 }
 
 function hasStashedSession(): boolean {

@@ -864,11 +864,17 @@ const CONST = {
             RIGHT: 'right',
         },
         POPOVER_MENU_PADDING: 8,
+        RESTORE_FOCUS_TYPE: {
+            DEFAULT: 'default',
+            DELETE: 'delete',
+            PRESERVE: 'preserve',
+        },
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
         CHAT_RENDER: 'chat_render',
+        OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
