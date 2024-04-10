@@ -23,7 +23,6 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldBanner from './HoldBanner';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import {ReceiptScan} from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
@@ -186,8 +185,15 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 />
                 {isPending && (
                     <MoneyRequestHeaderStatusBar
-                        title={translate('iou.pending')}
-                        description={translate('iou.transactionPendingText')}
+                        title={
+                            <Icon
+                                src={Expensicons.CreditCardHourglass}
+                                height={variables.iconSizeExtraSmall}
+                                width={variables.iconSizeExtraSmall}
+                                fill={theme.textSupporting}
+                            />
+                        }
+                        description={translate('iou.transactionPendingDescription')}
                         shouldShowBorderBottom={!isScanning}
                     />
                 )}
@@ -195,7 +201,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     <MoneyRequestHeaderStatusBar
                         title={
                             <Icon
-                                src={ReceiptScan}
+                                src={Expensicons.ReceiptScan}
                                 height={variables.iconSizeExtraSmall}
                                 width={variables.iconSizeExtraSmall}
                                 fill={theme.textSupporting}

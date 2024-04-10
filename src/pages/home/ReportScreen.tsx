@@ -323,7 +323,7 @@ function ReportScreen({
         />
     );
 
-    if (isSingleTransactionView) {
+    if (true) {
         headerView = (
             <MoneyRequestHeader
                 report={report}
@@ -334,16 +334,16 @@ function ReportScreen({
     }
 
     const transactionThreadReportID = useMemo(() => ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? []), [reportActions]);
-    if (ReportUtils.isMoneyRequestReport(report)) {
-        headerView = (
-            <MoneyReportHeader
-                report={report}
-                policy={policy}
-                transactionThreadReportID={transactionThreadReportID}
-                reportActions={reportActions}
-            />
-        );
-    }
+    // if (ReportUtils.isMoneyRequestReport(report)) {
+    //     headerView = (
+    //         <MoneyReportHeader
+    //             report={report}
+    //             policy={policy}
+    //             transactionThreadReportID={transactionThreadReportID}
+    //             reportActions={reportActions}
+    //         />
+    //     );
+    // }
 
     /**
      * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
@@ -603,6 +603,7 @@ function ReportScreen({
         );
     }
 
+    console.log('REPORT SCREEN');
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>

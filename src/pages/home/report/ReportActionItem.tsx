@@ -832,6 +832,7 @@ function ReportActionItem({
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedToAccountIDs.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
         : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
+
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}

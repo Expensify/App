@@ -185,7 +185,6 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
-    Onyx.merge('transactions_8811441407757684730', {cardID: 1, merchant: 'Google', hasEReceipt: true, status: 'Pending'});
 
     const sortedVisibleReportActions = useMemo(
         () =>
@@ -196,6 +195,7 @@ function ReportActionsList({
             ),
         [sortedReportActions, isOffline],
     );
+
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
     const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;
