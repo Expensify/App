@@ -1872,13 +1872,6 @@ export default {
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             locationsAdditionalDescription:
                 'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
-        },
-        type: {
-            free: 'Free',
-            control: 'Control',
-            collect: 'Collect',
-        },
-        qbo: {
             export: 'Export',
             exportAs: 'Export as',
             exportDescription: 'Configure how data in Expensify gets exported to QuickBooks Online.',
@@ -1907,6 +1900,11 @@ export default {
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
             exportVendorBillDescription:
                 'We’ll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we’ll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).',
+        },
+        type: {
+            free: 'Free',
+            control: 'Control',
+            collect: 'Collect',
         },
         categories: {
             deleteCategories: 'Delete categories',
