@@ -1,4 +1,5 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
@@ -133,7 +134,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         filename?: string;
 
         /** Used during the creation flow before the transaction is saved to the server */
-        iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+        iouRequestType?: IOURequestType;
 
         /** The original merchant name */
         merchant: string;
