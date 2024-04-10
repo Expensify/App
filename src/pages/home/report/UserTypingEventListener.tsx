@@ -49,14 +49,14 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
         } else {
             const topmostReportId = Navigation.getTopmostReportId();
 
-            if (topmostReportId !== report.reportID && didSubscribeToReportTypingEvents.current) {
+            if (topmostReportId !== reportID && didSubscribeToReportTypingEvents.current) {
                 didSubscribeToReportTypingEvents.current = false;
                 InteractionManager.runAfterInteractions(() => {
-                    Report.unsubscribeFromReportChannel(report.reportID);
+                    Report.unsubscribeFromReportChannel(reportID);
                 });
             }
         }
-    }, [isFocused, report.reportID, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route]);
+    }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route]);
 
     return null;
 }
