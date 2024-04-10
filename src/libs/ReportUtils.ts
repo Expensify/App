@@ -2876,9 +2876,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             ReportActionsUtils.isApprovedOrSubmittedReportAction(parentReportAction)
                 ? ReportActionsUtils.getReportActionMessageText(parentReportAction)
                 : parser.htmlToText(
-                      (parentReportAction?.message?.[0]?.html ?? '').replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, function (match, openTag, content, closeTag) {
-                          content = Str.removeSMSDomain(content);
-                          return openTag + content + closeTag;
+                      (parentReportAction?.message?.[0]?.html ?? '').replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag, content, closeTag) => {
+                          const innerContent = Str.removeSMSDomain(content);
+                          return openTag + innerContent + closeTag;
                       }),
                   )
         ).replace(/(\r\n|\n|\r)/gm, ' ');
