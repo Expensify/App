@@ -163,7 +163,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                       },
                   ]),
         ],
-        [styles.sectionMenuItemTopDescription, styles.popoverMenuIcon, translate, isSyncInProgress, theme.spinner, overflowMenu, threeDotsMenuPosition, policyID],
+        [styles.sectionMenuItemTopDescription, styles.popoverMenuIcon, translate, waitForNavigate, isSyncInProgress, theme.spinner, overflowMenu, threeDotsMenuPosition, policyID],
     );
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
