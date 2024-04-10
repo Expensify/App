@@ -1,9 +1,10 @@
 import Str from 'expensify-common/lib/str';
 import type {ComponentType, ForwardedRef, ForwardRefExoticComponent, PropsWithoutRef, ReactNode, RefAttributes} from 'react';
 import React, {createContext, forwardRef, useContext} from 'react';
+import type {OnyxValue} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {OnyxKey, OnyxValue} from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 // Provider types
