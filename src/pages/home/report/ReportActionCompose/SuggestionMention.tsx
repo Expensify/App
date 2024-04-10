@@ -255,11 +255,7 @@ function SuggestionMention(
         (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
             const filteredRoomMentions: Mention[] = [];
             Object.values(reportBatch ?? {}).forEach((report) => {
-                if (report?.policyID !== policyID) {
-                    return;
-                }
-                if (!ReportUtils.isGroupPolicy(report) || !isValidRoomName(report?.reportName ?? '')) {
-                    // checking validity of room name removes Policy Expense Chats
+                if (!ReportUtils.canReportBeMentionedWithinPolicy(report, policyID ?? '')) {
                     return;
                 }
                 if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {
