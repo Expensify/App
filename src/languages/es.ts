@@ -1899,6 +1899,25 @@ export default {
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             locationsAdditionalDescription:
                 'Los lugares son importados como Etiquegas. Esto limita a exportar los informes de gastos como Factura del Proveedor o Cheques a Quicbooks Online. Para desbloquear estas opciones de exportación desactiva la importación de Lugares o cambia al Plan Control para exportar Lugares como Campos de Informes.',
+            advancedConfig: {
+                advanced: 'Advanced',
+                autoSync: 'Auto-Sync',
+                autoSyncDescription: 'Changes made in Quickbooks will automatically be reflected in Expensify.',
+                inviteEmployees: 'Invite Employees',
+                inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite them to this workspace.',
+                createEntities: 'Automatically Create Entities',
+                createEntitiesDescription:
+                    'Expensify will automatically create a vendor in Quickbooks, if one does not exist. Expensify will also automatically create a customer when exporting invoices.',
+                reimbursedReports: 'Sync Reimbursed Reports',
+                reimbursedReportsDescription: 'Any time report is reimbursed using Expensify ACH, the corresponding bill payment will be created in the Quickbooks accounts below.',
+                qboAccount: 'Quickbooks Account',
+                collectionAccount: 'Invoice Collection Account',
+                collectionAccountDescription: 'Once invoices have been Paid, the payment will appear in the account configured below.',
+                accountSelectDescription:
+                    "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
+                invoiceAccountSelectDescription:
+                    'If you are exporting Invoices from Expensify to Quickbooks Online, this is the account the Invoice will appear against once marked as Paid.',
+            },
         },
         type: {
             free: 'Gratis',
