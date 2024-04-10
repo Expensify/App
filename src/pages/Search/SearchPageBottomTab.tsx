@@ -1,20 +1,16 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TabSelector from '@components/TabSelector/TabSelector';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as Expensicons from '@src/components/Icon/Expensicons';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import SearchResults from './SearchResults';
 
 type SearchMenuItem = {
     title: string;
@@ -25,8 +21,6 @@ type SearchMenuItem = {
 function SearchPageBottomTab() {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const waitForNavigate = useWaitForNavigation();
     const activeRoute = useActiveRoute();
     const currentQuery = activeRoute?.params?.query;
 
