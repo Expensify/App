@@ -2,11 +2,13 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +60,7 @@ function ReportActionItemParentAction({
     const {isSmallScreenWidth} = useWindowDimensions();
     const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -103,7 +106,12 @@ function ReportActionItemParentAction({
                 >
                     <ThreadDivider ancestor={ancestor} />
                     <ReportActionItem
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))}
+                        onPress={() => {
+                            const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '');
+                            Navigation.navigate(
+                                ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', isVisibleAction && !isOffline ? ancestor.reportAction.reportActionID : undefined),
+                            );
+                        }}
                         parentReportAction={parentReportAction}
                         report={ancestor.report}
                         reportActions={reportActions}
