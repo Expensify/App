@@ -2516,128 +2516,6 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 /** Invites people to a room */
 function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     const report = currentReportData?.[reportID];
-
-    if (!report) {
-        return;
-    }
-
-    const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
-    const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
-    const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
-        (accountID): accountID is number => typeof accountID === 'number',
-    );
-    const visibleMemberAccountIDsAfterInvitation = [...new Set([...(report?.visibleChatMemberAccountIDs ?? []), ...inviteeAccountIDs])].filter(
-        (accountID): accountID is number => typeof accountID === 'number',
-    );
-
-    const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(newLogins, newAccountIDs);
-    const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participantAccountIDs: participantAccountIDsAfterInvitation,
-                visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
-                pendingChatMembers,
-            },
-        },
-        ...newPersonalDetailsOnyxData.optimisticData,
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                pendingChatMembers: report?.pendingChatMembers ?? null,
-            },
-        },
-        ...newPersonalDetailsOnyxData.finallyData,
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participantAccountIDs: report.participantAccountIDs,
-                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
-                pendingChatMembers: report?.pendingChatMembers ?? null,
-            },
-        },
-        ...newPersonalDetailsOnyxData.finallyData,
-    ];
-
-    const parameters: InviteToRoomParams = {
-        reportID,
-        inviteeEmails,
-    };
-
-    API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
-}
-
-function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
-    const participants: Participants = {};
-    const memberRoles: Record<number, string> = {};
-    accountIDList.forEach((accountID) => {
-        memberRoles[accountID] = role;
-        participants[accountID] = {role};
-    });
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants,
-            },
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, {reportID, memberRoles: JSON.stringify(memberRoles)}, {optimisticData});
-}
-
-function removeFromGroupChat(reportID: string, accountIDList: number[]) {
-    const removeParticipantsData: Record<number, null> = {};
-    const currentParticipants = ReportUtils.getParticipants(reportID);
-    const participantAccountIDs = [];
-    const visibleChatMemberAccountIDs = [];
-    for (const accountIDKey in currentParticipants) {
-        if (Object.hasOwn(currentParticipants, accountIDKey)) {
-            const participantAccountID = Number(accountIDKey);
-            const participant = currentParticipants[participantAccountID];
-            if (!accountIDList.includes(participantAccountID)) {
-                participantAccountIDs.push(participantAccountID);
-                if (!participant.hidden) {
-                    visibleChatMemberAccountIDs.push(participantAccountID);
-                }
-            }
-        }
-    }
-
-    accountIDList.forEach((accountID) => {
-        removeParticipantsData[accountID] = null;
-    });
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants: removeParticipantsData,
-                participantAccountIDs,
-                visibleChatMemberAccountIDs,
-            },
-        },
-    ];
-    API.write(WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT, {reportID, accountIDList: accountIDList.join()}, {optimisticData});
-}
-
-/** Invites people to a group chat */
-function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
-    const report = currentReportData?.[reportID];
     if (!report) {
         return;
     }
@@ -2711,13 +2589,85 @@ function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedE
         ...newPersonalDetailsOnyxData.finallyData,
     ];
 
-    const parameters: InviteToGroupChatParams = {
+    if (ReportUtils.isGroupChat(report)) {
+        const parameters: InviteToGroupChatParams = {
+            reportID,
+            inviteeEmails,
+            accountIDList: newAccountIDs.join(),
+        };
+
+        API.write(WRITE_COMMANDS.INVITE_TO_GROUP_CHAT, parameters, {optimisticData, successData, failureData});
+        return;
+    }
+
+    const parameters: InviteToRoomParams = {
         reportID,
         inviteeEmails,
-        accountIDList: newAccountIDs.join(),
     };
 
-    API.write(WRITE_COMMANDS.INVITE_TO_GROUP_CHAT, parameters, {optimisticData, successData, failureData});
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
+    API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
+}
+
+function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
+    const participants: Participants = {};
+    const memberRoles: Record<number, string> = {};
+    accountIDList.forEach((accountID) => {
+        memberRoles[accountID] = role;
+        participants[accountID] = {role};
+    });
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participants,
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, {reportID, memberRoles: JSON.stringify(memberRoles)}, {optimisticData});
+}
+
+function removeFromGroupChat(reportID: string, accountIDList: number[]) {
+    const removeParticipantsData: Record<number, null> = {};
+    const currentParticipants = ReportUtils.getParticipants(reportID);
+    const participantAccountIDs = [];
+    const visibleChatMemberAccountIDs = [];
+    for (const accountIDKey in currentParticipants) {
+        if (Object.hasOwn(currentParticipants, accountIDKey)) {
+            const participantAccountID = Number(accountIDKey);
+            const participant = currentParticipants[participantAccountID];
+            if (!accountIDList.includes(participantAccountID)) {
+                participantAccountIDs.push(participantAccountID);
+                if (!participant.hidden) {
+                    visibleChatMemberAccountIDs.push(participantAccountID);
+                }
+            }
+        }
+    }
+
+    accountIDList.forEach((accountID) => {
+        removeParticipantsData[accountID] = null;
+    });
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participants: removeParticipantsData,
+                participantAccountIDs,
+                visibleChatMemberAccountIDs,
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT, {reportID, accountIDList: accountIDList.join()}, {optimisticData});
+}
+
+/** Invites people to a group chat */
+function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+    inviteToRoom(reportID, inviteeEmailsToAccountIDs);
 }
 
 /** Removes people from a room
