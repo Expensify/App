@@ -107,7 +107,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                             >
                                 <View style={[styles.mt2, styles.mh5]}>
                                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text>{translate('workspace.categories.enableCategory')}</Text>
+                                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.enableCategory')}</Text>
                                         <Switch
                                             isOn={policyCategory.enabled}
                                             accessibilityLabel={translate('workspace.categories.enableCategory')}
@@ -116,12 +116,14 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                                     </View>
                                 </View>
                             </OfflineWithFeedback>
-                            <MenuItemWithTopDescription
-                                title={policyCategory.name}
-                                description={translate(`workspace.categories.categoryName`)}
-                                onPress={navigateToEditCategory}
-                                shouldShowRightIcon
-                            />
+                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
+                                <MenuItemWithTopDescription
+                                    title={policyCategory.name}
+                                    description={translate(`workspace.categories.categoryName`)}
+                                    onPress={navigateToEditCategory}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
                         </View>
                     </ScreenWrapper>
                 </FeatureEnabledAccessOrNotFoundWrapper>
