@@ -141,12 +141,12 @@ type QBOConnectionData = {
     vendors: Vendor[];
 };
 
-type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
+type IntegrationEntityMap = (typeof CONST.INTEGRATION_ENTITY_MAP_TYPES)[keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES];
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
  */
-type QBOConnectionConfig = {
+type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     realmId: string;
     companyName: string;
     autoSync: {
@@ -166,14 +166,18 @@ type QBOConnectionConfig = {
     syncClasses: IntegrationEntityMap;
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
+    syncAccounts: IntegrationEntityMap;
+    syncTaxes: IntegrationEntityMap;
     exportDate: string;
     lastConfigurationTime: number;
     syncTax: boolean;
-    enableNewCategories: boolean;
+    enableNewCategories: IntegrationEntityMap;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
     export: {
         exporter: string;
     };
-};
+}>;
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
@@ -457,6 +461,7 @@ export type {
     TaxRate,
     TaxRates,
     TaxRatesWithDefault,
+    IntegrationEntityMap,
     PolicyFeatureName,
     PendingJoinRequestPolicy,
     PolicyConnectionSyncStage,

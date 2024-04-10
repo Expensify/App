@@ -1,65 +1,46 @@
-import lodashGet from 'lodash/get';
-import lodashIsEmpty from 'lodash/isEmpty';
-import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import categoryPropTypes from '@components/categoryPropTypes';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import tagPropTypes from '@components/tagPropTypes';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
-import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
-import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
-
-    /** Onyx Props */
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    transaction: transactionPropTypes,
-
+type IOURequestStepMerchantOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: transactionPropTypes,
+    splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The policy of the report */
-    policy: policyPropTypes.policy,
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Collection of categories attached to a policy */
-    policyCategories: PropTypes.objectOf(categoryPropTypes),
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
     /** Collection of tags attached to a policy */
-    policyTags: tagPropTypes,
-
-    /** The report currently being looked at */
-    report: reportPropTypes,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
 };
 
-const defaultProps = {
-    transaction: {},
-    splitDraftTransaction: {},
-    policy: null,
-    policyTags: null,
-    policyCategories: null,
-    report: {},
-};
+type IOURequestStepMerchantProps = IOURequestStepMerchantOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT>;
 
 function IOURequestStepMerchant({
     route: {
@@ -71,7 +52,7 @@ function IOURequestStepMerchant({
     policyTags,
     policyCategories,
     report,
-}) {
+}: IOURequestStepMerchantProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -79,22 +60,19 @@ function IOURequestStepMerchant({
 
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
-    const {merchant} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
+    const merchant = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const isMerchantRequired = ReportUtils.isGroupPolicy(report) || _.some(transaction.participants, (participant) => Boolean(participant.isPolicyExpenseChat));
+
+    const isMerchantRequired = ReportUtils.isGroupPolicy(report) || transaction?.participants?.some((participant) => Boolean(participant.isPolicyExpenseChat));
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
-    /**
-     * @param {Object} value
-     * @param {String} value.moneyRequestMerchant
-     */
     const validate = useCallback(
-        (value) => {
-            const errors = {};
+        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
 
-            if (isMerchantRequired && _.isEmpty(value.moneyRequestMerchant)) {
+            if (isMerchantRequired && !value.moneyRequestMerchant) {
                 errors.moneyRequestMerchant = 'common.error.fieldRequired';
             }
 
@@ -103,12 +81,8 @@ function IOURequestStepMerchant({
         [isMerchantRequired],
     );
 
-    /**
-     * @param {Object} value
-     * @param {String} value.moneyRequestMerchant
-     */
-    const updateMerchant = (value) => {
-        const newMerchant = value.moneyRequestMerchant.trim();
+    const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+        const newMerchant = value.moneyRequestMerchant?.trim();
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
@@ -123,7 +97,7 @@ function IOURequestStepMerchant({
             navigateBack();
             return;
         }
-        IOU.setMoneyRequestMerchant(transactionID, newMerchant, !isEditing);
+        IOU.setMoneyRequestMerchant(transactionID, newMerchant ?? '', !isEditing);
         if (isEditing) {
             // When creating new money requests newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
             IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
@@ -164,28 +138,26 @@ function IOURequestStepMerchant({
     );
 }
 
-IOURequestStepMerchant.propTypes = propTypes;
-IOURequestStepMerchant.defaultProps = defaultProps;
 IOURequestStepMerchant.displayName = 'IOURequestStepMerchant';
 
-export default compose(
-    withWritableReportOrNotFound,
-    withFullTransactionOrNotFound,
-    withOnyx({
-        splitDraftTransaction: {
-            key: ({route}) => {
-                const transactionID = lodashGet(route, 'params.transactionID', 0);
-                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+export default withWritableReportOrNotFound(
+    withFullTransactionOrNotFound(
+        withOnyx<IOURequestStepMerchantProps, IOURequestStepMerchantOnyxProps>({
+            splitDraftTransaction: {
+                key: ({route}) => {
+                    const transactionID = route.params.transactionID ?? 0;
+                    return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+                },
             },
-        },
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-        },
-        policyCategories: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
-        },
-        policyTags: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-        },
-    }),
-)(IOURequestStepMerchant);
+            policy: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+            },
+            policyCategories: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+            },
+            policyTags: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+            },
+        })(IOURequestStepMerchant),
+    ),
+);

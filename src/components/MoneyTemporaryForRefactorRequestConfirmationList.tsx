@@ -209,13 +209,17 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
+<<<<<<< HEAD:src/components/MoneyTemporaryForRefactorRequestConfirmationList.tsx
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
+=======
+    const {canUseViolations} = usePermissions();
+
+>>>>>>> main:src/components/MoneyTemporaryForRefactorRequestConfirmationList.js
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
-    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
     const {unit, rate, currency} = mileageRate ?? {
         unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
@@ -703,7 +707,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && canEditDistance}
+                    shouldShowRightIcon={!isReadOnly}
                     title={isMerchantEmpty ? '' : iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
@@ -720,7 +724,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         )
                     }
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    disabled={didConfirm || !canEditDistance}
+                    disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
             ),
