@@ -126,7 +126,7 @@ function ReportActionItemMessageEdit(
 
     useEffect(() => {
         const parser = new ExpensiMark();
-        const originalMessage = parser.htmlToMarkdown(action.message?.[0].html ?? '');
+        const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
         if (
             ReportActionsUtils.isDeletedAction(action) ||
             Boolean(action.message && draftMessage === originalMessage) ||
