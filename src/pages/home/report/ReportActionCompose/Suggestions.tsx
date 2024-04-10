@@ -50,7 +50,7 @@ type SuggestionProps = {
     /** If current composer is connected with report from group policy */  
     isGroupPolicyReport: boolean;
 
-    /** policy ID connected to current composer */
+    /** The policyID of the report connected to current composer */
     policyID?: string;
 };
 
