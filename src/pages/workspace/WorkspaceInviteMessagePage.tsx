@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -73,6 +73,8 @@ function WorkspaceInviteMessagePage({
 
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const welcomeNoteSubject = useMemo(() => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`, [policy?.name, currentUserPersonalDetails?.displayName]);
+
     const getDefaultWelcomeNote = () =>
         // workspaceInviteMessageDraft can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -102,15 +104,7 @@ function WorkspaceInviteMessagePage({
     const sendInvitation = () => {
         Keyboard.dismiss();
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        Policy.addMembersToWorkspace(
-            invitedEmailsToAccountIDsDraft ?? {},
-            translate('workspace.inviteMessage.welcomeNote', {
-                workspaceName: policy?.name ?? '',
-                inviterDisplayName: currentUserPersonalDetails?.displayName ?? '',
-                inviteMessage: welcomeNote ?? '',
-            }),
-            route.params.policyID,
-        );
+        Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID);
         debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.

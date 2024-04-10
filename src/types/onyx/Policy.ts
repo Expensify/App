@@ -437,11 +437,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
-
-        /** The welcomeNote of user  */
-        welcomeNote?: {
-            user: string;
-        };
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
