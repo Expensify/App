@@ -12,7 +12,6 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -52,8 +51,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
     const currentUserAccountID = Number(session?.accountID);
@@ -79,8 +78,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 roleBadge = (
                     <Badge
                         text={translate('common.admin')}
-                        textStyles={[styles.textStrong]}
-                        badgeStyles={[styles.justifyContentCenter, styles.badgeSmall]}
+                        textStyles={styles.textStrong}
+                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
                     />
                 );
             }
@@ -189,7 +188,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             return;
         }
 
-        return <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('groupChat.groupMembersListTitle')}</Text>;
+        return <Text style={[styles.pl5, styles.mb4, styles.mt6, styles.textSupporting]}>{translate('groupChat.groupMembersListTitle')}</Text>;
     }, [styles, translate, isGroupChat]);
 
     const customListHeader = useMemo(() => {
@@ -200,7 +199,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
                 <View>
-                    <Text style={[styles.searchInputStyle, styles.ml3]}>{translate('common.member')}</Text>
+                    <Text style={[styles.searchInputStyle, isCurrentUserAdmin ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
                 </View>
                 <View style={[StyleUtils.getMinimumWidth(60)]}>
                     <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
@@ -208,8 +207,12 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             </View>
         );
 
-        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
-    }, [styles, StyleUtils, translate, isGroupChat]);
+        if (isCurrentUserAdmin) {
+            return header;
+        }
+
+        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5]}>{header}</View>;
+    }, [styles, translate, isGroupChat, isCurrentUserAdmin, StyleUtils]);
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
@@ -285,14 +288,11 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             ReportUtils.isPolicyExpenseChat(report) ||
             ReportUtils.isChatThread(report) ||
             ReportUtils.isTaskReport(report) ||
-            ReportUtils.isMoneyRequestReport(report)
+            ReportUtils.isMoneyRequestReport(report) ||
+            isGroupChat
         ) {
             return translate('common.members');
         }
-        if (isGroupChat) {
-            return translate('common.everyone');
-        }
-
         return translate('common.details');
     }, [report, translate, isGroupChat]);
     return (
@@ -305,16 +305,12 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
                 <HeaderWithBackButton
                     title={headerTitle}
-                    subtitle={isGroupChat ? translate('common.members') : ''}
-                    icon={isGroupChat ? Illustrations.ReceiptWrangler : undefined}
                     onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
                     shouldShowBackButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     subtitleOnTop={isGroupChat}
-                >
-                    {!isSmallScreenWidth && headerButtons}
-                </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                />
+                <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
                     danger
                     title={translate('workspace.people.removeMembersTitle')}
@@ -346,7 +342,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         showScrollIndicator
                         textInputRef={textInputRef}
                         customListHeader={customListHeader}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        listHeaderWrapperStyle={[styles.ph9]}
                     />
                 </View>
             </FullPageNotFoundView>

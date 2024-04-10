@@ -19,7 +19,7 @@ function ChatActionsBar({report}: ChatActionsBarProps) {
     const isPinned = !!report.isPinned;
     return (
         <View style={[styles.flexRow, styles.ph3, styles.mb5]}>
-            <View style={[styles.flex1, styles.ph1]}>
+            <View style={[styles.flex1, styles.pr3]}>
                 <ConfirmModal
                     danger
                     title={translate('common.leaveChat')}
@@ -48,7 +48,7 @@ function ChatActionsBar({report}: ChatActionsBarProps) {
                     text={translate('common.leave')}
                 />
             </View>
-            <View style={[styles.flex1, styles.ph3]}>
+            <View style={[styles.flex1]}>
                 <Button
                     onPress={() => Report.togglePinnedState(report.reportID, isPinned)}
                     icon={Expensicons.Pin}
