@@ -24,6 +24,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS
     | typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT
     | typeof SCREENS.MONEY_REQUEST.STEP_TAG
+    | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
+    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE;
 
 type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;

@@ -15,7 +15,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags} from '@src/
 type SelectedTagOption = {
     name: string;
     enabled: boolean;
-    accountID: number | null;
+    accountID: number | undefined;
 };
 
 type TagPickerOnyxProps = {
@@ -69,7 +69,7 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
             {
                 name: selectedTag,
                 enabled: true,
-                accountID: null,
+                accountID: undefined,
             },
         ];
     }, [selectedTag]);

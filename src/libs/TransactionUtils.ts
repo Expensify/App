@@ -56,13 +56,14 @@ function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
     return Boolean(transaction?.receipt?.source);
 }
 
-function getRequestType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
+function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     if (isDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
     if (isScanRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.SCAN;
     }
+
     return CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
@@ -460,6 +461,7 @@ function getHeaderTitleTranslationKey(transaction: OnyxEntry<Transaction>): Tran
         [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
         [CONST.IOU.REQUEST_TYPE.SCAN]: 'tabSelector.scan',
     };
+
     return headerTitles[getRequestType(transaction)];
 }
 
@@ -541,7 +543,11 @@ function getWaypointIndex(key: string): number {
 /**
  * Filters the waypoints which are valid and returns those
  */
-function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = false): WaypointCollection {
+function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false): WaypointCollection {
+    if (!waypoints) {
+        return {};
+    }
+
     const sortedIndexes = Object.keys(waypoints)
         .map(getWaypointIndex)
         .sort((a, b) => a - b);

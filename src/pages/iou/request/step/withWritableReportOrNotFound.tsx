@@ -20,6 +20,8 @@ type WithWritableReportOrNotFoundOnyxProps = {
 type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
     | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
+    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
+    | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_TAG
     | typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS
@@ -56,7 +58,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
     return withOnyx<TProps & RefAttributes<TRef>, WithWritableReportOrNotFoundOnyxProps>({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '0'}`,
         },
     })(forwardRef(WithWritableReportOrNotFound));
 }
