@@ -35,6 +35,7 @@ type NewChatConfirmPageOnyxProps = {
 type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
+    const optimisticReportID = useRef<string>(ReportUtils.generateReportID());
     const fileRef = useRef<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -91,7 +92,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
-        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current);
+        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current, optimisticReportID.current);
     };
 
     const navigateBack = () => {
@@ -112,12 +113,15 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar()}
+                    source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         fileRef.current = image;
                         Report.setGroupDraft({avatarUri: image?.uri ?? ''});
                     }}
-                    onImageRemoved={() => Report.setGroupDraft({avatarUri: null})}
+                    onImageRemoved={() => {
+                        fileRef.current = undefined;
+                        Report.setGroupDraft({avatarUri: null});
+                    }}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
                     disableViewPhoto
@@ -131,8 +135,9 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 shouldShowRightIcon
                 shouldCheckActionAllowedOnPress={false}
                 description={translate('groupConfirmPage.groupName')}
+                wrapperStyle={[styles.ph4]}
             />
-            <View style={[styles.ph1, styles.flex1]}>
+            <View style={[styles.flex1, styles.mt3]}>
                 <SelectionList
                     canSelectMultiple
                     sections={[{title: translate('common.members'), data: sections}]}

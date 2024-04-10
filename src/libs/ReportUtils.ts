@@ -3827,6 +3827,7 @@ function buildOptimisticChatReport(
     parentReportID = '',
     description = '',
     avatarUrl = '',
+    optimisticReportID = '',
 ): OptimisticChatReport {
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
@@ -3862,7 +3863,7 @@ function buildOptimisticChatReport(
         // For group chats we need to have participants object as we are migrating away from `participantAccountIDs` and `visibleChatMemberAccountIDs`. See https://github.com/Expensify/App/issues/34692
         participants,
         policyID,
-        reportID: generateReportID(),
+        reportID: optimisticReportID || generateReportID(),
         reportName,
         stateNum: 0,
         statusNum: 0,
@@ -3873,7 +3874,7 @@ function buildOptimisticChatReport(
     };
 }
 
-function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportName: string, avatarUri: string) {
+function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportName: string, avatarUri: string, optimisticReportID?: string) {
     return buildOptimisticChatReport(
         participantAccountIDs,
         reportName,
@@ -3889,6 +3890,7 @@ function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportN
         undefined,
         undefined,
         avatarUri,
+        optimisticReportID,
     );
 }
 
