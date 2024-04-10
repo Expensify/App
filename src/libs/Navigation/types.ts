@@ -59,6 +59,7 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
@@ -220,12 +221,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
         accountID: string;
-        backTo: Routes;
-    };
-    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
-        policyID: string;
-        accountID: string;
-        backTo: Routes;
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
         policyID: string;
@@ -244,6 +239,24 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_LOCATIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CLASSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CUSTOMERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_TAXES]: {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
@@ -347,12 +360,6 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: string;
-        transactionID: string;
-        reportID: string;
-    };
     [SCREENS.MONEY_REQUEST.CURRENCY]: {
         iouType: string;
         reportID: string;
@@ -378,10 +385,12 @@ type MoneyRequestNavigatorParamList = {
         action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
+        reportActionID: string;
         reportID: string;
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -395,6 +404,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -434,6 +444,14 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.RECEIPT]: {
         iouType: string;
         reportID: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        pageIndex?: string;
+        backTo?: string;
     };
 };
 
@@ -491,8 +509,9 @@ type AddPersonalBankAccountNavigatorParamList = {
 
 type ReimbursementAccountNavigatorParamList = {
     [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: {
-        stepToOpen: string;
-        policyID: string;
+        stepToOpen?: string;
+        backTo?: Routes;
+        policyID?: string;
     };
 };
 
@@ -609,6 +628,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
@@ -623,6 +645,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
         policyID: string;
     };
 };
