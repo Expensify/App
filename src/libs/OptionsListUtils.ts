@@ -2267,6 +2267,7 @@ function filterOptions(options: Options, searchInputValue: string): Options {
                 if (item.subtitle) {
                     values.push(item.subtitle);
                 }
+                values = values.concat(getParticipantsLoginsArray(item));
             } else {
                 values = values.concat(getParticipantsLoginsArray(item));
             }
