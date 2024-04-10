@@ -2262,20 +2262,17 @@ function filterOptions(options: Options, searchInputValue: string): Options {
                 if (item.alternateText) {
                     values.push(item.alternateText);
                 }
-                values = values.concat(getParticipantsLoginsArray(item));
             } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
                 if (item.subtitle) {
                     values.push(item.subtitle);
                 }
-                values = values.concat(getParticipantsLoginsArray(item));
-            } else {
-                values = values.concat(getParticipantsLoginsArray(item));
             }
+            values = values.concat(getParticipantsLoginsArray(item));
 
             return uniqFast(values);
         });
         const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) =>
-            uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login?.replace(emailRegex, '') ?? '']),
+            uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
         );
 
         return {

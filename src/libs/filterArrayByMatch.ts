@@ -106,7 +106,7 @@ function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string
             }
         }
 
-        if (itemRank >= MATCH_RANK.MATCHES) {
+        if (itemRank >= MATCH_RANK.MATCHES + 1) {
             filteredItems.push(item);
         }
     }
