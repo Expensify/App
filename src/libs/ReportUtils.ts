@@ -1728,11 +1728,12 @@ function getParticipantAccountIDs(reportID: string) {
 }
 
 function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
+    const finalParticipants: Participants = {};
     return accountIDs.reduce((participants, accountID) => {
         // eslint-disable-next-line no-param-reassign
         participants[accountID] = {hidden: false};
         return participants;
-    }, {});
+    }, finalParticipants);
 }
 
 /**
