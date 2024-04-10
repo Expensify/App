@@ -1,4 +1,4 @@
-import type { PolicyConnectionName } from "@src/types/onyx/Policy";
+import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 
 type RemovePolicyConnectionParams = {
     policyID: string;

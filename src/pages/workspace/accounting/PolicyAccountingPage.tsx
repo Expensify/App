@@ -1,5 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,20 +19,18 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 // import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
-import type { Policy, PolicyConnectionSyncProgress } from '@src/types/onyx';
-import type { WithPolicyAndFullscreenLoadingProps } from '@pages/workspace/withPolicyAndFullscreenLoading';
-import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { removePolicyConnection } from '@libs/actions/connections';
+import ROUTES from '@src/ROUTES';
+import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 
 type PolicyAccountingPageOnyxProps = {
     /** From Onyx */
@@ -38,10 +38,11 @@ type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
 };
 
-type PolicyAccountingPageProps = WithPolicyAndFullscreenLoadingProps & PolicyAccountingPageOnyxProps & {
-    /** Policy values needed in the component */
-    policy: Policy;
-};
+type PolicyAccountingPageProps = WithPolicyAndFullscreenLoadingProps &
+    PolicyAccountingPageOnyxProps & {
+        /** Policy values needed in the component */
+        policy: Policy;
+    };
 
 function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
     const theme = useTheme();
@@ -58,6 +59,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     console.log('PolicyAccountingPage connectionSyncProgress', connectionSyncProgress);
     console.log('PolicyAccountingPage policyIsConnectedToAccountingSystem', policyIsConnectedToAccountingSystem);
     console.log('PolicyAccountingPage policy.connections', policy.connections);
+    console.log('PolicyAccountingPage isSyncInProgress', isSyncInProgress);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -77,21 +79,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         [translate],
     );
 
-    const menuItems: MenuItemProps[] = useMemo(
-        () =>  {
-            if (!policyIsConnectedToAccountingSystem) {
-                return [
-                    {
-                        icon: Expensicons.QBOSquare,
-                        iconType: 'avatar',
-                        interactive: false,
-                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        shouldShowRightComponent: true,
-                        title: translate('workspace.accounting.qbo'),
-                        rightComponent: <ConnectToQuickbooksOnlineButton policyID={policyID} />,
-                    },
-                ];
-            }
+    const menuItems: MenuItemProps[] = useMemo(() => {
+        if (!policyIsConnectedToAccountingSystem) {
             return [
                 {
                     icon: Expensicons.QBOSquare,
@@ -100,61 +89,85 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     wrapperStyle: [styles.sectionMenuItemTopDescription],
                     shouldShowRightComponent: true,
                     title: translate('workspace.accounting.qbo'),
-                    description: isSyncInProgress ? translate('workspace.accounting.connections.syncStageName', 'quickbooksOnlineImportCustomers') : translate('workspace.accounting.lastSync'),
-                    rightComponent: isSyncInProgress ? (
-                        <ActivityIndicator
-                            style={[styles.popoverMenuIcon]}
-                            color={theme.spinner}
-                        />
-                    ) : (
-                        <View ref={threeDotsMenuContainerRef}>
-                            <ThreeDotsMenu
-                                onIconPress={() => {
-                                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                        setThreeDotsMenuPosition({
-                                            horizontal: x + width,
-                                            vertical: y + height,
-                                        });
-                                    });
-                                }}
-                                menuItems={overflowMenu}
-                                anchorPosition={threeDotsMenuPosition}
-                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                            />
-                        </View>
-                    ),
+                    rightComponent: <ConnectToQuickbooksOnlineButton policyID={policyID} />,
                 },
-                ...(policyIsConnectedToAccountingSystem
-                    ? []
-                    : [
-                          {
-                              icon: Expensicons.Pencil,
-                              iconRight: Expensicons.ArrowRight,
-                              shouldShowRightIcon: true,
-                              title: translate('workspace.accounting.import'),
-                              wrapperStyle: [styles.sectionMenuItemTopDescription],
-                              onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
-                          },
-                          {
-                              icon: Expensicons.Send,
-                              iconRight: Expensicons.ArrowRight,
-                              shouldShowRightIcon: true,
-                              title: translate('workspace.accounting.export'),
-                              wrapperStyle: [styles.sectionMenuItemTopDescription],
-                              onPress: () => {},
-                          },
-                          {
-                              icon: Expensicons.Gear,
-                              iconRight: Expensicons.ArrowRight,
-                              shouldShowRightIcon: true,
-                              title: translate('workspace.accounting.advanced'),
-                              wrapperStyle: [styles.sectionMenuItemTopDescription],
-                              onPress: () => {},
-                          },
-                      ]),
             ];
-            
-        }, [isSyncInProgress, overflowMenu, policyID, policyIsConnectedToAccountingSystem, styles.popoverMenuIcon, styles.sectionMenuItemTopDescription, theme.spinner, threeDotsMenuPosition, translate]);
+        }
+        return [
+            {
+                icon: Expensicons.QBOSquare,
+                iconType: 'avatar',
+                interactive: false,
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                shouldShowRightComponent: true,
+                title: translate('workspace.accounting.qbo'),
+                description: isSyncInProgress
+                    ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
+                    : translate('workspace.accounting.lastSync'),
+                rightComponent: isSyncInProgress ? (
+                    <ActivityIndicator
+                        style={[styles.popoverMenuIcon]}
+                        color={theme.spinner}
+                    />
+                ) : (
+                    <View ref={threeDotsMenuContainerRef}>
+                        <ThreeDotsMenu
+                            onIconPress={() => {
+                                threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                                    setThreeDotsMenuPosition({
+                                        horizontal: x + width,
+                                        vertical: y + height,
+                                    });
+                                });
+                            }}
+                            menuItems={overflowMenu}
+                            anchorPosition={threeDotsMenuPosition}
+                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                        />
+                    </View>
+                ),
+            },
+            ...(policyIsConnectedToAccountingSystem
+                ? []
+                : [
+                      {
+                          icon: Expensicons.Pencil,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.import'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
+                      },
+                      {
+                          icon: Expensicons.Send,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.export'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: () => {},
+                      },
+                      {
+                          icon: Expensicons.Gear,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.advanced'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: () => {},
+                      },
+                  ]),
+        ];
+    }, [
+        connectionSyncProgress?.stageInProgress,
+        isSyncInProgress,
+        overflowMenu,
+        policyID,
+        policyIsConnectedToAccountingSystem,
+        styles.popoverMenuIcon,
+        styles.sectionMenuItemTopDescription,
+        theme.spinner,
+        threeDotsMenuPosition,
+        translate,
+    ]);
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
