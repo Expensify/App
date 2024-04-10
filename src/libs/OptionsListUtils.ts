@@ -169,7 +169,7 @@ type MemberForList = {
     keyForList: string;
     isSelected: boolean;
     isDisabled: boolean;
-    accountID?: number | null;
+    accountID?: number;
     login: string;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
@@ -357,7 +357,7 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 /**
  * Get the participant option for a report.
  */
-function getParticipantsOption(participant: ReportUtils.OptionData, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
+function getParticipantsOption(participant: ReportUtils.OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
@@ -644,21 +644,22 @@ function createOption(
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false} = config ?? {};
     const result: ReportUtils.OptionData = {
         text: undefined,
-        alternateText: null,
+        alternateText: undefined,
         pendingAction: undefined,
         allReportErrors: undefined,
         brickRoadIndicator: null,
         icons: undefined,
         tooltipText: null,
         ownerAccountID: undefined,
-        subtitle: null,
+        subtitle: undefined,
         participantsList: undefined,
         accountID: 0,
-        login: null,
+        login: undefined,
         reportID: '',
-        phoneNumber: null,
-        keyForList: null,
-        searchText: null,
+        phoneNumber: undefined,
+        hasDraftComment: false,
+        keyForList: undefined,
+        searchText: undefined,
         isDefaultRoom: false,
         isPinned: false,
         isWaitingOnBankAccount: false,
