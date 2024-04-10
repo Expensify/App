@@ -85,7 +85,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                 <OfflineWithFeedback>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
-                        title="Croissant Co payroll Account"
+                        title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoPayrollAccount')}
                         description={translate('workspace.qbo.advancedConfig.qboAccount')}
                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
@@ -108,7 +108,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                 />
 
                 <MenuItem
-                    title="Croissant Co payroll Account"
+                    title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoPayrollAccount')}
                     shouldShowRightIcon
                     shouldShowBasicTitle
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
