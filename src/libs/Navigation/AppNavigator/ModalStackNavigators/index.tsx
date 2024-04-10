@@ -260,10 +260,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => require('../../../../pages/settings/ExitSurvey/ExitSurveyReasonPage').default as React.ComponentType,
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: () => require('../../../../pages/settings/ExitSurvey/ExitSurveyResponsePage').default as React.ComponentType,
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require('../../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_ADVANCED]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksAdvancedPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksAccountSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_ADVANCED]: () => require('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksAdvancedPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR]: () => require('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: () =>
-        require('../../../../pages/workspace/accounting/qbo/QuickbooksInvoiceAccountSelectPage').default as React.ComponentType,
+        require('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksInvoiceAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_IMPORT]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksImportPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksChartOfAccountsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CUSTOMERS]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksCustomersPage').default as React.ComponentType,
