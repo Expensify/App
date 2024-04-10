@@ -649,6 +649,7 @@ export default {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
+        sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `seguimiento ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -2155,6 +2156,7 @@ export default {
             unlockVBACopy: '¡Todo listo para recibir pagos por transferencia o con tarjeta!',
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
+            sendFrom: 'Enviado desde',
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',

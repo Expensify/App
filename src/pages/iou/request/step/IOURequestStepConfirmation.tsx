@@ -89,6 +89,9 @@ function IOURequestStepConfirmation({
         if (iouType === CONST.IOU.TYPE.SEND) {
             return translate('common.send');
         }
+        if (iouType === CONST.IOU.TYPE.INVOICE) {
+            return translate('workspace.invoices.sendInvoice');
+        }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate]);
 
@@ -96,6 +99,11 @@ function IOURequestStepConfirmation({
         () =>
             transaction?.participants?.map((participant) => {
                 const participantAccountID = participant.accountID ?? 0;
+
+                if (participant.policyID && iouType === CONST.IOU.TYPE.INVOICE) {
+                    return participant;
+                }
+
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }),
         [transaction?.participants, personalDetails],

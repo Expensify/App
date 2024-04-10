@@ -653,6 +653,7 @@ export default {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
+        sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -2127,6 +2128,7 @@ export default {
             unlockVBACopy: "You're all set to accept payments by ACH or credit card!",
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
+            sendFrom: 'Send from',
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',

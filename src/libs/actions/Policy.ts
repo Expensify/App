@@ -261,6 +261,14 @@ Onyx.connect({
     },
 });
 
+let activePolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (value) => {
+        activePolicyID = value;
+    },
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -284,6 +292,16 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
         return {};
     }
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+}
+
+/**
+ * Returns the primary policy for the user
+ */
+function getPrimaryPolicy(): Policy | undefined {
+    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+    const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? ''];
+
+    return primaryPolicy ?? activeAdminWorkspaces[0];
 }
 
 /**
@@ -5075,6 +5093,7 @@ export {
     updatePolicyDistanceRateValue,
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
+    getPrimaryPolicy,
 };
 
 export type {NewCustomUnit};

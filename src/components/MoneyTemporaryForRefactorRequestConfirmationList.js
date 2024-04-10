@@ -25,6 +25,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
@@ -39,6 +40,7 @@ import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import * as Expensicons from './Icon/Expensicons';
+import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
@@ -172,6 +174,9 @@ const propTypes = {
 
     /** Transaction that represents the money request */
     transaction: transactionPropTypes,
+
+    /** The list of all policies */
+    allPolicies: PropTypes.objectOf(policyPropTypes),
 };
 
 const defaultProps = {
@@ -249,6 +254,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
+    allPolicies,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -258,6 +264,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
+    const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
     const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
@@ -279,6 +286,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend;
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+
+    const senderWorkspace = useMemo(() => {
+        const senderWorkspaceParticipant = _.find(pickedParticipants, (pickedParticipant) => pickedParticipant.policyID);
+        return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant.policyID}`];
+    }, [allPolicies, pickedParticipants]);
+
+    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.getActiveAdminWorkspaces(allPolicies).length > 0, [allPolicies]);
 
     // A flag for showing the tags field
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
@@ -400,7 +414,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const splitOrRequestOptions = useMemo(() => {
         let text;
-        if (isTypeTrackExpense) {
+        if (isTypeInvoice) {
+            text = translate('iou.sendInvoice', {amount: formattedAmount});
+        } else if (isTypeTrackExpense) {
             text = translate('iou.trackExpense');
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.split');
@@ -684,6 +700,29 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
     const classifiedFields = [
+        {
+            item: (
+                <MenuItem
+                    key={translate('workspace.invoices.sendFrom')}
+                    shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
+                    title={lodashGet(senderWorkspace, 'name')}
+                    icon={lodashGet(senderWorkspace, 'avatar') || getDefaultWorkspaceAvatar(lodashGet(senderWorkspace, 'name'))}
+                    iconType={CONST.ICON_TYPE_WORKSPACE}
+                    description={translate('workspace.common.workspace')}
+                    label={translate('workspace.invoices.sendFrom')}
+                    isLabelHoverable={false}
+                    interactive={!isReadOnly && canUpdateSenderWorkspace}
+                    onPress={() => {
+                        // Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm || !canUpdateSenderWorkspace}
+                />
+            ),
+            shouldShow: isTypeInvoice,
+            isSupplementary: false,
+        },
         {
             item: (
                 <MenuItemWithTopDescription
@@ -1052,6 +1091,9 @@ export default compose(
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
+        allPolicies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);

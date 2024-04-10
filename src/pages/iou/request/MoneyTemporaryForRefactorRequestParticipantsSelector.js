@@ -20,6 +20,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as Policy from '@userActions/Policy';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -94,6 +95,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+
+    const shouldShowReferralBanner = !dismissedReferralBanners[referralContentType] && iouType !== CONST.IOU.TYPE.INVOICE;
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
@@ -194,13 +197,26 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      */
     const addSingleParticipant = useCallback(
         (option) => {
-            onParticipantsAdded([
+            const newParticipants = [
                 {
                     ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
                     selected: true,
                     iouType,
                 },
-            ]);
+            ];
+
+            if (iouType === CONST.IOU.TYPE.INVOICE) {
+                // TODO: update the logic if we create from existing invoice room
+                const primaryPolicy = Policy.getPrimaryPolicy();
+
+                newParticipants.push({
+                    policyID: primaryPolicy.id,
+                    selected: false,
+                    iouType,
+                });
+            }
+
+            onParticipantsAdded(newParticipants);
             onFinish();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
@@ -267,7 +283,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouType !== CONST.IOU.TYPE.SEND;
+    const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.INVOICE].includes(iouType);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -289,7 +305,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const footerContent = useMemo(
         () => (
             <View>
-                {!dismissedReferralBanners[referralContentType] && (
+                {shouldShowReferralBanner && (
                     <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
                         <ReferralProgramCTA referralContentType={referralContentType} />
                     </View>

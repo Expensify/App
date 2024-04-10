@@ -787,6 +787,7 @@ const CONST = {
             EXPENSE: 'expense',
             IOU: 'iou',
             TASK: 'task',
+            INVOICE: 'invoice',
         },
         CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
@@ -1411,6 +1412,7 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
             TRACK_EXPENSE: 'track-expense',
+            INVOICE: 'invoice',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',
