@@ -25,7 +25,7 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
     const isFocused = useIsFocused();
     const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
     useEffect(() => {
-        // Ensures the optimistic report is created successfully
+        // Ensures any optimistic report that is being created (ex: a thread report) gets created and initialized successfully before subscribing
         if (route?.params?.reportID !== reportID) {
             return;
         }
