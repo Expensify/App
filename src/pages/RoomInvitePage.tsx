@@ -56,7 +56,7 @@ function RoomInvitePage({betas, report, policies, isSearchingForReports}: RoomIn
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
-    }, [setSearchTerm]);
+    }, []);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
