@@ -2945,6 +2945,7 @@ function completeOnboarding(properties: {
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: engagementChoice},
         },
+        ...tasksForOptimisticData,
     ];
     const successData: OnyxUpdate[] = [
         {
@@ -2958,7 +2959,7 @@ function completeOnboarding(properties: {
         engagementChoice,
         firstName,
         lastName,
-        data: JSON.stringify([{type: 'message', ...textMessage}, {type: 'video', ...data.video, ...videoMessage}, ...tasksForParameters]),
+        guidedSetupData: JSON.stringify([{type: 'message', ...textMessage}, {type: 'video', ...data.video, ...videoMessage}, ...tasksForParameters]),
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {});
