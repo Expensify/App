@@ -46,7 +46,7 @@ function isExpensifyCard(cardID?: number) {
  * @returns boolean if the cardID is in the cardList from ONYX. Includes Expensify Cards.
  */
 function isCorporateCard(cardID: number) {
-    return true;
+    return !!allCards[cardID];
 }
 
 /**
