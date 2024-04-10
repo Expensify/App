@@ -2700,7 +2700,11 @@ function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedE
             value: {
                 participantAccountIDs: report.participantAccountIDs,
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
-                participants: report.participants,
+                participants: inviteeAccountIDs.reduce((revertedParticipants: Record<number, null>, accountID) => {
+                    // eslint-disable-next-line no-param-reassign
+                    revertedParticipants[accountID] = null;
+                    return revertedParticipants;
+                }, {}),
                 pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
