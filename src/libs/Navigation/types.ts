@@ -324,9 +324,11 @@ type ParticipantsNavigatorParamList = {
     [SCREENS.REPORT_PARTICIPANTS.ROOT]: {reportID: string};
     [SCREENS.REPORT_PARTICIPANTS.INVITE]: {reportID: string};
     [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
+        reportID: string;
         accountID: string;
     };
     [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
+        reportID: string;
         accountID: string;
     };
 };
