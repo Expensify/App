@@ -1964,11 +1964,7 @@ function getReimbursementDeQueuedActionMessage(
     const currency = originalMessage?.currency;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
-        let payerOrApproverName = report?.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant(report?.managerID, true);
-        if (!isLHNPreview) {
-            payerOrApproverName = '';
-        }
-        payerOrApproverName = payerOrApproverName ? `${payerOrApproverName}:` : payerOrApproverName;
+        const payerOrApproverName = report?.managerID === currentUserAccountID || !isLHNPreview ? '' : getDisplayNameForParticipant(report?.managerID, true);
         return Localize.translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
