@@ -12,7 +12,7 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 }
 
 export default {
-    bottomTabHeight: 80,
+    bottomTabHeight: 72,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
@@ -47,6 +47,7 @@ export default {
     avatarSizeSmallSubscript: 12,
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
+    breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
     fontSizeOnlyEmojis: 30,
     fontSizeOnlyEmojisHeight: 35,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
@@ -58,10 +59,11 @@ export default {
     fontSizeHero: 36,
     fontSizeHeroXL: 72,
     fontSizeh1: 19,
+    fontSizeh2: 19,
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: 32,
-    fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
+    fontSizeNormalHeight: getValueUsingPixelRatio(21, 28),
     fontSizeEReceiptLarge: 44,
     fontSizeSignInHeroLarge: 48,
     fontSizeSignInHeroMedium: 38,
@@ -81,6 +83,7 @@ export default {
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 120,
     iconBottomBar: 24,
+    sidebarAvatarSize: 28,
     iconHeader: 48,
     emojiSize: 20,
     emojiLineHeight: 28,
@@ -106,7 +109,8 @@ export default {
     lineHeightXLarge: getValueUsingPixelRatio(20, 24),
     lineHeightXXLarge: getValueUsingPixelRatio(27, 32),
     lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
-    lineHeightSizeh1: getValueUsingPixelRatio(23, 28),
+    lineHeightSizeh1: getValueUsingPixelRatio(28, 32),
+    lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,
@@ -121,6 +125,8 @@ export default {
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
+    emptyLHNIconHeight: 16,
     emptyWorkspaceIconWidth: 84,
     emptyWorkspaceIconHeight: 84,
     modalTopIconWidth: 200,
@@ -165,7 +171,7 @@ export default {
     addBankAccountLeftSpacing: 3,
     eReceiptThumbnailSmallBreakpoint: 110,
     eReceiptThumbnailMediumBreakpoint: 335,
-    eReceiptThumnailCenterReceiptBreakpoint: 200,
+    eReceiptThumbnailCenterReceiptBreakpoint: 200,
     eReceiptIconHeight: 100,
     eReceiptIconWidth: 72,
     eReceiptEmptyIconWidth: 76,
@@ -196,6 +202,8 @@ export default {
     oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
+    onboardingModalWidth: 500,
+    welcomeVideoDelay: 500,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -203,6 +211,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
+    purposeMenuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
 
@@ -216,5 +225,8 @@ export default {
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
-    workspaceProfileName: 20,
+
+    mushroomTopHatWidth: 138,
+    mushroomTopHatHeight: 128,
+    bankButtonMargin: 23,
 } as const;

@@ -59,8 +59,8 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,
-        isEditing,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     return (
@@ -77,7 +77,6 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
             <AddressForm
                 inputKeys={inputKeys}
                 shouldSaveDraft={!isEditing}
-                translate={translate}
                 defaultValues={defaultValues}
                 streetTranslationKey="common.streetAddress"
             />

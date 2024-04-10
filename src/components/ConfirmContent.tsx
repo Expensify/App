@@ -4,13 +4,17 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
+import ImageSVG from './ImageSVG';
 import Text from './Text';
 
 type ConfirmContentProps = {
@@ -64,6 +68,9 @@ type ConfirmContentProps = {
 
     /** Styles for icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
+
+    /** Image to display with content */
+    image?: IconAsset;
 };
 
 function ConfirmContent({
@@ -84,79 +91,97 @@ function ConfirmContent({
     promptStyles,
     contentStyles,
     iconAdditionalStyles,
+    image,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const StyleUtils = useStyleUtils();
 
     const isCentered = shouldCenterContent;
 
     return (
-        <View style={[styles.m5, contentStyles]}>
-            <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
-                {typeof iconSource === 'function' && (
-                    <View style={[styles.flexRow, styles.mb3]}>
-                        <Icon
-                            src={iconSource}
-                            fill={theme.icon}
-                            width={variables.appModalAppIconSize}
-                            height={variables.appModalAppIconSize}
-                            additionalStyles={iconAdditionalStyles}
-                        />
-                    </View>
-                )}
-                <View style={[styles.flexRow, isCentered ? {} : styles.mb4]}>
-                    <Header
-                        title={title}
-                        textStyles={titleStyles}
-                    />
-                </View>
-                {typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
-            </View>
-
-            {shouldStackButtons ? (
-                <>
-                    <Button
-                        success={success}
-                        danger={danger}
-                        style={[styles.mt4]}
-                        onPress={onConfirm}
-                        pressOnEnter
-                        text={confirmText || translate('common.yes')}
-                        isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
-                    />
-                    {shouldShowCancelButton && (
-                        <Button
-                            style={[styles.mt3, styles.noSelect]}
-                            onPress={onCancel}
-                            text={cancelText || translate('common.no')}
-                        />
-                    )}
-                </>
-            ) : (
-                <View style={[styles.flexRow, styles.gap4]}>
-                    {shouldShowCancelButton && (
-                        <Button
-                            style={[styles.noSelect, styles.flex1]}
-                            onPress={onCancel}
-                            text={cancelText || translate('common.no')}
-                            medium
-                        />
-                    )}
-                    <Button
-                        success={success}
-                        danger={danger}
-                        style={[styles.flex1]}
-                        onPress={onConfirm}
-                        pressOnEnter
-                        text={confirmText || translate('common.yes')}
-                        isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
-                        medium
+        <>
+            {!!image && (
+                <View style={[StyleUtils.getBackgroundColorStyle(colors.pink800)]}>
+                    <ImageSVG
+                        contentFit="contain"
+                        src={image}
+                        height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
+                        width={CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        style={styles.alignSelfCenter}
                     />
                 </View>
             )}
-        </View>
+
+            <View style={[styles.m5, contentStyles]}>
+                <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
+                    {typeof iconSource === 'function' && (
+                        <View style={[styles.flexRow, styles.mb3]}>
+                            <Icon
+                                src={iconSource}
+                                fill={theme.icon}
+                                width={variables.appModalAppIconSize}
+                                height={variables.appModalAppIconSize}
+                                additionalStyles={iconAdditionalStyles}
+                            />
+                        </View>
+                    )}
+                    <View style={[styles.flexRow, isCentered ? {} : styles.mb4]}>
+                        <Header
+                            title={title}
+                            textStyles={titleStyles}
+                        />
+                    </View>
+                    {typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
+                </View>
+
+                {shouldStackButtons ? (
+                    <>
+                        <Button
+                            success={success}
+                            danger={danger}
+                            style={[styles.mt4]}
+                            onPress={onConfirm}
+                            pressOnEnter
+                            large
+                            text={confirmText || translate('common.yes')}
+                            isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
+                        />
+                        {shouldShowCancelButton && (
+                            <Button
+                                style={[styles.mt3, styles.noSelect]}
+                                onPress={onCancel}
+                                large
+                                text={cancelText || translate('common.no')}
+                            />
+                        )}
+                    </>
+                ) : (
+                    <View style={[styles.flexRow, styles.gap4]}>
+                        {shouldShowCancelButton && (
+                            <Button
+                                style={[styles.noSelect, styles.flex1]}
+                                onPress={onCancel}
+                                text={cancelText || translate('common.no')}
+                                medium
+                            />
+                        )}
+                        <Button
+                            success={success}
+                            danger={danger}
+                            style={[styles.flex1]}
+                            onPress={onConfirm}
+                            pressOnEnter
+                            text={confirmText || translate('common.yes')}
+                            isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
+                            medium
+                        />
+                    </View>
+                )}
+            </View>
+        </>
     );
 }
 

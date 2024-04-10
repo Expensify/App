@@ -17,7 +17,7 @@ type RequestMoneyParams = {
     createdChatReportActionID: string;
     createdIOUReportActionID: string;
     reportPreviewReportActionID: string;
-    receipt: Receipt;
+    receipt?: Receipt;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
     tag?: string;
@@ -25,6 +25,8 @@ type RequestMoneyParams = {
     taxAmount: number;
     billable?: boolean;
     gpsPoints?: string;
+    transactionThreadReportID: string;
+    createdReportActionIDForThread: string;
 };
 
 export default RequestMoneyParams;

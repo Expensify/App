@@ -3,11 +3,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {ValueSelectorModalProps} from './types';
 
-function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips = true}: ValueSelectorModalProps) {
+function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips = true, onBackdropPress}: ValueSelectorModalProps) {
     const styles = useThemeStyles();
 
     const sections = useMemo(
@@ -23,12 +24,13 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            onBackdropPress={onBackdropPress}
         >
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID="ValueSelectorModal"
+                testID={ValueSelectorModal.displayName}
             >
                 <HeaderWithBackButton
                     title={label}
@@ -40,6 +42,7 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
                     initiallyFocusedOptionKey={selectedItem?.value}
                     shouldStopPropagation
                     shouldShowTooltips={shouldShowTooltips}
+                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

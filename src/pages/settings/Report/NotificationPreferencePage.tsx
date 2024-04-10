@@ -4,6 +4,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
@@ -17,7 +18,7 @@ type NotificationPreferencePageProps = WithReportOrNotFoundProps & StackScreenPr
 
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const {translate} = useLocalize();
-    const shouldDisableNotificationPreferences = ReportUtils.isArchivedRoom(report);
+    const shouldDisableNotificationPreferences = ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report);
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
         .filter((pref) => pref !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)
         .map((preference) => ({
@@ -39,6 +40,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
                 />
                 <SelectionList
                     sections={[{data: notificationPreferenceOptions}]}
+                    ListItem={RadioListItem}
                     onSelectRow={(option) =>
                         report && ReportActions.updateNotificationPreference(report.reportID, report.notificationPreference, option.value, true, undefined, undefined, report)
                     }

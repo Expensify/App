@@ -184,4 +184,23 @@ describe('ReportUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() => ReportUtils.getTransactionDetails(transaction, 'yyyy-MM-dd'));
     });
+
+    test('[ReportUtils] getIOUReportActionDisplayMessage on 1k policies', async () => {
+        const reportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {
+                IOUReportID: '1',
+                IOUTransactionID: '1',
+                amount: 100,
+                participantAccountID: 1,
+                currency: CONST.CURRENCY.USD,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+            },
+        };
+
+        await waitForBatchedUpdates();
+        await measureFunction(() => ReportUtils.getIOUReportActionDisplayMessage(reportAction));
+    });
 });

@@ -63,8 +63,8 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
-        isEditing,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     return (
@@ -81,7 +81,6 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
             <AddressForm
                 inputKeys={INPUT_KEYS}
                 shouldSaveDraft={!isEditing}
-                translate={translate}
                 defaultValues={defaultValues}
                 streetTranslationKey="common.companyAddress"
             />

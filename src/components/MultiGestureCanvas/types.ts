@@ -24,6 +24,9 @@ type OnScaleChangedCallback = (zoomScale: number) => void;
 /** Triggered when the canvas is tapped (single tap) */
 type OnTapCallback = () => void;
 
+/** Triggered when the swipe down gesture on canvas occurs  */
+type OnSwipeDownCallback = () => void;
+
 /** Types used of variables used within the MultiGestureCanvas component and it's hooks */
 type MultiGestureCanvasVariables = {
     canvasSize: CanvasSize;
@@ -32,6 +35,7 @@ type MultiGestureCanvasVariables = {
     minContentScale: number;
     maxContentScale: number;
     shouldDisableTransformationGestures: SharedValue<boolean>;
+    isSwipingDownToClose: SharedValue<boolean>;
     zoomScale: SharedValue<number>;
     totalScale: SharedValue<number>;
     pinchScale: SharedValue<number>;
@@ -45,6 +49,7 @@ type MultiGestureCanvasVariables = {
     reset: (animated: boolean, callback: () => void) => void;
     onTap: OnTapCallback | undefined;
     onScaleChanged: OnScaleChangedCallback | undefined;
+    onSwipeDown: OnSwipeDownCallback | undefined;
 };
 
-export type {CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, OnTapCallback, MultiGestureCanvasVariables};
+export type {CanvasSize, ContentSize, ZoomRange, OnScaleChangedCallback, OnTapCallback, MultiGestureCanvasVariables, OnSwipeDownCallback};

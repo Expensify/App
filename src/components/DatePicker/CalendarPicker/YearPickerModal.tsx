@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -30,10 +31,10 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const {sections, headerMessage} = useMemo(() => {
-        const yearsList = searchText === '' ? years : years.filter((year) => year.text.includes(searchText));
+        const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
         return {
             headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
-            sections: [{data: yearsList, indexOffset: 0}],
+            sections: [{data: yearsList.sort((a, b) => b.value - a.value)}],
         };
     }, [years, searchText, translate]);
 
@@ -64,7 +65,6 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    shouldDelayFocus
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}
                     textInputMaxLength={4}
@@ -78,6 +78,8 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     initiallyFocusedOptionKey={currentYear.toString()}
                     showScrollIndicator
                     shouldStopPropagation
+                    shouldUseDynamicMaxToRenderPerBatch
+                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

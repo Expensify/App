@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
@@ -35,13 +36,20 @@ export default () => {
             if (!value) {
                 return;
             }
+            // This key is shared across clients, thus every client/tab will have a copy and try to execute this method.
+            // It is very important to only process the missing onyx updates from leader client otherwise requests we'll execute
+            // several duplicated requests that are not controlled by the SequentialQueue.
+            if (!ActiveClientManager.isClientTheLeader()) {
+                return;
+            }
 
             // Since we used the same key that used to store another object, let's confirm that the current object is
             // following the new format before we proceed. If it isn't, then let's clear the object in Onyx.
             if (
                 !(typeof value === 'object' && !!value) ||
                 !('type' in value) ||
-                (!(value.type === CONST.ONYX_UPDATE_TYPES.HTTPS && value.request && value.response) && !(value.type === CONST.ONYX_UPDATE_TYPES.PUSHER && value.updates))
+                (!(value.type === CONST.ONYX_UPDATE_TYPES.HTTPS && value.request && value.response) &&
+                    !((value.type === CONST.ONYX_UPDATE_TYPES.PUSHER || value.type === CONST.ONYX_UPDATE_TYPES.AIRSHIP) && value.updates))
             ) {
                 console.debug('[OnyxUpdateManager] Invalid format found for updates, cleaning and unpausing the queue');
                 Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
@@ -81,7 +89,7 @@ export default () => {
                     previousUpdateIDFromServer,
                     lastUpdateIDAppliedToClient,
                 });
-                canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, lastUpdateIDFromServer);
+                canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer);
             }
 
             canUnpauseQueuePromise.finally(() => {

@@ -40,8 +40,8 @@ function isEmailPublicDomain(email: string): boolean {
 function validateNumber(values: string): string {
     const parsedPhoneNumber = parsePhoneNumber(values);
 
-    if (parsedPhoneNumber.possible && Str.isValidPhone(values.slice(0))) {
-        return parsedPhoneNumber.number?.e164 + CONST.SMS.DOMAIN;
+    if (parsedPhoneNumber.possible && Str.isValidE164Phone(values.slice(0))) {
+        return `${parsedPhoneNumber.number?.e164}${CONST.SMS.DOMAIN}`;
     }
 
     return '';

@@ -36,6 +36,9 @@ type BankInfoOnyxProps = {
 type BankInfoProps = BankInfoOnyxProps & {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
+
+    /** Current Policy ID */
+    policyID: string;
 };
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
@@ -43,7 +46,7 @@ const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual, Confir
 const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
-function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken, onBackButtonPress}: BankInfoProps) {
+function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken, onBackButtonPress, policyID}: BankInfoProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -57,15 +60,20 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
     const submit = useCallback(() => {
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             BankAccounts.connectBankAccountManually(
                 bankAccountID,
-                values[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER],
-                values[BANK_INFO_STEP_KEYS.ROUTING_NUMBER],
-                values[BANK_INFO_STEP_KEYS.PLAID_MASK],
+                {
+                    [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: values[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
+                    [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: values[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
+                    [BANK_INFO_STEP_KEYS.BANK_NAME]: values[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: values[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: values[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_MASK]: values[BANK_INFO_STEP_KEYS.PLAID_MASK] ?? '',
+                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: values[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
+                },
                 policyID,
             );
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
@@ -77,6 +85,8 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                     [BANK_INFO_STEP_KEYS.BANK_NAME]: values[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: values[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: values[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_MASK]: values[BANK_INFO_STEP_KEYS.PLAID_MASK] ?? '',
+                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: values[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
                 },
                 policyID,
             );
@@ -109,12 +119,13 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                     [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
                     [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
-                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: '',
+                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: false,
                     [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
                 };
                 ReimbursementAccountUtils.updateReimbursementAccountDraft(bankAccountData);
+                ReimbursementAccountUtils.hideBankAccountErrors();
                 BankAccounts.setBankAccountSubStep(null);
             }
         } else {
@@ -127,7 +138,6 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
             testID={BankInfo.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 shouldShowBackButton

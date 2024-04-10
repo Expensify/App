@@ -1,7 +1,9 @@
 package com.expensify.chat
 
+import android.app.ActivityManager
 import android.content.res.Configuration
 import android.database.CursorWindow
+import android.os.Process
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
 import com.facebook.react.PackageList
@@ -13,6 +15,7 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.soloader.SoLoader
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.oblador.performance.RNPerformance
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
@@ -39,6 +42,12 @@ class MainApplication : MultiDexApplication(), ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+
+        RNPerformance.getInstance().mark("appCreationStart", false);
+
+        if (isOnfidoProcess()) {
+            return
+        }
 
         SoLoader.init(this,  /* native exopackage */false)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
@@ -72,5 +81,14 @@ class MainApplication : MultiDexApplication(), ReactApplication {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
+    }
+
+    private fun isOnfidoProcess(): Boolean {
+        val pid = Process.myPid()
+        val manager = this.getSystemService(ACTIVITY_SERVICE) as ActivityManager
+
+        return manager.runningAppProcesses.any {
+            it.pid == pid && it.processName.endsWith(":onfido_process")
+        }
     }
 }
