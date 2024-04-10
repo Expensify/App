@@ -70,7 +70,7 @@ Onyx.connect({
  * @returns BrickRoad for the policy passed as a param
  */
 const getBrickRoadForPolicy = (report: Report): BrickRoad => {
-    const reportActions = reportActionsByReport?.[report.reportID];
+    const reportActions = reportActionsByReport?.[report.reportID] ?? {};
     const reportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     const doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
     if (doesReportContainErrors) {

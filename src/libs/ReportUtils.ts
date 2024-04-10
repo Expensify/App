@@ -5722,8 +5722,8 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
  * Checks if report contains actions with errors
  */
 function hasActionsWithErrors(reportID: string): boolean {
-    const reportActions = reportActionsByReport?.[reportID];
-    return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
+    const reportActions = reportActionsByReport?.[reportID ?? ''] ?? {};
+    return Object.values(reportActions).some((action) => !isEmptyObject(action.errors));
 }
 
 /**
