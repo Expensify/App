@@ -7,40 +7,30 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOU from '@libs/actions/IOU';
-import compose from '@libs/compose';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import StepScreenWrapper from './StepScreenWrapper';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type Props = {
+type IOURequestStepRateOnyxProps = {
     /** Object of last selected rates for the policies */
-    lastSelectedDistanceRates: Record<string, string>;
+    lastSelectedDistanceRates: OnyxEntry<Record<string, string>>;
 
     /** Policy details */
     policy: OnyxEntry<Policy>;
 
-    /** The route object passed to this screen */
-    route: {
-        /** The params passed to this screen */
-        params: {
-            /** The route to go back to */
-            backTo: Route;
-
-            /** The ID of the transaction being configured */
-            transactionID: string;
-        };
-    };
-
     /** Mileage rates */
     rates: Record<string, MileageRate>;
 };
+
+type IOURequestStepRateProps = IOURequestStepRateOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_RATE>;
 
 function IOURequestStepRate({
     policy,
@@ -49,23 +39,23 @@ function IOURequestStepRate({
     },
     lastSelectedDistanceRates = {},
     rates,
-}: Props) {
+}: IOURequestStepRateProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
 
-    const lastSelectedRate = lastSelectedDistanceRates[policy?.id ?? '0'] ?? rates[0]?.customUnitRateID;
+    const lastSelectedRateID = lastSelectedDistanceRates?.[policy?.id ?? '0'] ?? rates[0]?.customUnitRateID ?? '';
 
     const sections = Object.values(rates).map((rate) => ({
         text: rate.name ?? '',
         alternateText: DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit),
         keyForList: rate.name ?? '',
         value: rate.customUnitRateID,
-        isSelected: lastSelectedRate ? lastSelectedRate === rate.customUnitRateID : Boolean(rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE),
+        isSelected: lastSelectedRateID ? lastSelectedRateID === rate.customUnitRateID : Boolean(rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE),
     }));
 
     const unit = (Object.values(rates)[0]?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
 
-    const initiallyFocusedOption = rates[lastSelectedRate]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
+    const initiallyFocusedOption = rates[lastSelectedRateID]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
 
     function selectDistanceRate(customUnitRateID: string) {
         IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '');
@@ -93,23 +83,17 @@ function IOURequestStepRate({
 
 IOURequestStepRate.displayName = 'IOURequestStepRate';
 
-export default compose(
-    withWritableReportOrNotFound,
-    withOnyx({
-        // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
-        policy: {
-            // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-        },
-        // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
-        lastSelectedDistanceRates: {
-            key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-        },
-        rates: {
-            // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
-            selector: DistanceRequestUtils.getMileageRates,
-        },
-    }),
-    // @ts-expect-error TODO: fix when withWritableReportOrNotFound will be migrated to TS
-)(IOURequestStepRate);
+const IOURequestStepRateWithOnyx = withOnyx<IOURequestStepRateProps, IOURequestStepRateOnyxProps>({
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+    },
+    lastSelectedDistanceRates: {
+        key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+    },
+    rates: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`,
+        selector: DistanceRequestUtils.getMileageRates,
+    },
+})(IOURequestStepRate);
+
+export default withWritableReportOrNotFound(IOURequestStepRateWithOnyx);
