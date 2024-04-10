@@ -3,6 +3,7 @@ import dateAdd from 'date-fns/add';
 import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
+import type {ValueOf} from 'type-fest';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
@@ -4334,7 +4335,8 @@ const CONST = {
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
+type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 
-export type {Country};
+export type {Country, IOUType};
 
 export default CONST;

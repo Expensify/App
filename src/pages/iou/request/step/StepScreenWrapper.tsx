@@ -1,8 +1,9 @@
 import React from 'react';
-import type {PropsWithChildren} from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {ScreenWrapperChildrenProps} from '@components/ScreenWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -29,6 +30,9 @@ type StepScreenWrapperProps = {
 
     /** Whether or not to include safe area padding */
     includeSafeAreaPaddingBottom?: boolean;
+
+    /** Returns a function as a child to pass insets to or a node to render without insets */
+    children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
 };
 
 function StepScreenWrapper({
@@ -40,11 +44,11 @@ function StepScreenWrapper({
     shouldShowWrapper,
     shouldShowNotFoundPage,
     includeSafeAreaPaddingBottom,
-}: PropsWithChildren<StepScreenWrapperProps>) {
+}: StepScreenWrapperProps) {
     const styles = useThemeStyles();
 
     if (!shouldShowWrapper) {
-        return <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>{children}</FullPageNotFoundView>;
+        return <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>{children as ReactNode}</FullPageNotFoundView>;
     }
 
     return (
