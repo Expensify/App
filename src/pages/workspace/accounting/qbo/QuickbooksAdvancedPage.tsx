@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SpacerView from '@components/SpacerView';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,25 +19,26 @@ import ROUTES from '@src/ROUTES';
 function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
+    const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
 
     const qboSyncToggleSettings = [
         {
-            title: 'Auto-Sync',
-            subTitle: 'Changes made in Quickbooks will automatically be reflected in Expensify.',
+            title: translate('workspace.qbo.advancedConfig.autoSync'),
+            subTitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: true,
             onToggle: () => {},
         },
         {
-            title: 'Invite Employees',
-            subTitle: 'Import Quickbooks Online employee records and invite them to this workspace.',
+            title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
+            subTitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             isActive: true,
             onToggle: () => {},
         },
         {
-            title: 'Automatically Create Entities',
-            subTitle: 'Expensify will automatically create a vendor in Quickbooks, if one does not exist. Expensify will also automatically create a customer when exporting invoices.',
+            title: translate('workspace.qbo.advancedConfig.createEntities'),
+            subTitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: true,
             onToggle: () => {},
         },
@@ -48,7 +50,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
             shouldEnableMaxHeight
             testID={QuickbooksAdvancedPage.displayName}
         >
-            <HeaderWithBackButton title="Advanced" />
+            <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
 
             <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
                 {qboSyncToggleSettings.map((item) => (
@@ -74,8 +76,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
                 <View style={styles.mv3}>
                     <ToggleSettingOptionRow
-                        title="Sync Reimbursed Reports"
-                        subtitle="Any time report is reimbursed using Expensify ACH, the corresponding bill payment will be created in the Quickbooks accounts below."
+                        title={translate('workspace.qbo.advancedConfig.reimbursedReports')}
+                        subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
                         isActive
                         onToggle={() => {}}
                     />
@@ -84,7 +86,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title="Croissant Co payroll Account"
-                        description="Quickbooks Account"
+                        description={translate('workspace.qbo.advancedConfig.qboAccount')}
                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
                     />
@@ -98,8 +100,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                 </View>
 
                 <MenuItem
-                    title="Invoice Collection Account"
-                    description="Once invoices have been Paid, the payment will appear in the account configured below."
+                    title={translate('workspace.qbo.advancedConfig.collectionAccount')}
+                    description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
                     descriptionTextStyle={[styles.pr9]}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     interactive={false}
