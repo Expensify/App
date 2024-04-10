@@ -72,7 +72,7 @@ function IOURequestStepScan({
     const theme = useTheme();
     const styles = useThemeStyles();
     const device = useCameraDevice('back', {
-        physicalDevices: ['wide-angle-camera'],
+        physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
     const hasFlash = device != null && device.hasFlash;
