@@ -13,7 +13,7 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 
-type CustomSelectorTypes = ValueOf<typeof CONST.QBO_ONLINE_ACCOUNT_SELECTOR_OPTIONS>;
+type CustomSelectorTypes = ValueOf<typeof CONST.QBO_SELECTOR_OPTIONS>;
 
 type SelectorType = {
     value: CustomSelectorTypes;
@@ -26,13 +26,13 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [selectedAccount, setSelectedAccount] = useState('Croissant Co Payroll Account');
+    const [selectedAccount, setSelectedAccount] = useState<CustomSelectorTypes>(CONST.QBO_SELECTOR_OPTIONS.CROISSANT_CO_PAYROLL_ACCOUNT);
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
-            Object.entries(CONST.QBO_ONLINE_ACCOUNT_SELECTOR_OPTIONS).map(([key, value]) => ({
+            Object.entries(CONST.QBO_SELECTOR_OPTIONS).map(([key, value]) => ({
                 value,
-                text: value,
+                text: translate(`workspace.qbo.advancedConfig.croissantCo.${value}`),
                 keyForList: key,
                 isSelected: selectedAccount === value,
             })),
