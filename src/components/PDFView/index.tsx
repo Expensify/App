@@ -37,7 +37,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
                 return;
             }
             setIsKeyboardOpen(isKBOpen);
-            onToggleKeyboard?.(isKeyboardOpen);
+            onToggleKeyboard?.(isKBOpen);
         },
         [isKeyboardOpen, isSmallScreenWidth, onToggleKeyboard],
     );
