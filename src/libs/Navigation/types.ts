@@ -242,6 +242,24 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_LOCATIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CLASSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CUSTOMERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_TAXES]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
@@ -336,12 +354,6 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: string;
-        transactionID: string;
-        reportID: string;
-    };
     [SCREENS.MONEY_REQUEST.CURRENCY]: {
         iouType: string;
         reportID: string;
@@ -367,6 +379,7 @@ type MoneyRequestNavigatorParamList = {
         action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
+        reportActionID: string;
         reportID: string;
         backTo: Routes;
     };
@@ -449,6 +462,14 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         action: ValueOf<typeof CONST.IOU.ACTION>;
     };
+    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        pageIndex?: string;
+        backTo?: string;
+    };
 };
 
 type NewTaskNavigatorParamList = {
@@ -505,8 +526,9 @@ type AddPersonalBankAccountNavigatorParamList = {
 
 type ReimbursementAccountNavigatorParamList = {
     [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: {
-        stepToOpen: string;
-        policyID: string;
+        stepToOpen?: string;
+        backTo?: Routes;
+        policyID?: string;
     };
 };
 
@@ -623,6 +645,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
@@ -637,6 +662,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
         policyID: string;
     };
 };

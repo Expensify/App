@@ -40,7 +40,9 @@ type WorkspacePolicyOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type WorkspaceMemberDetailsPageProps = WithPolicyAndFullscreenLoadingProps & WorkspacePolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
+type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
+    WorkspacePolicyOnyxProps &
+    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
 function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
