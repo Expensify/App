@@ -27,12 +27,24 @@ Onyx.connect({
     callback: (value) => (lastUpdateIDAppliedToClient = value),
 });
 
+let isLoadingApp = false;
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (value) => {
+        isLoadingApp = value ?? false;
+    },
+});
+
 export default () => {
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     Onyx.connect({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value) => {
-            if (!value) {
+            // When the OpenApp command hasn't finished yet, we should not process any updates.
+            if (!value || isLoadingApp) {
+                if (isLoadingApp) {
+                    console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hans't finished yet.`);
+                }
                 return;
             }
 
