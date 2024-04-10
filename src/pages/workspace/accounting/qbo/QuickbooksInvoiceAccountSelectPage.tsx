@@ -26,7 +26,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [selectedAccount, setSelectedAccount] = useState<CustomSelectorTypes>(CONST.QBO_SELECTOR_OPTIONS.CROISSANT_CO_PAYROLL_ACCOUNT);
+    const [selectedAccount, setSelectedAccount] = useState<CustomSelectorTypes>(CONST.QBO_SELECTOR_OPTIONS.CROISSANT_CO_MONEY_IN_CLEARING);
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>

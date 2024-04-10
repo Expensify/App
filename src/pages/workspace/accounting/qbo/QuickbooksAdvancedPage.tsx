@@ -108,7 +108,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                 />
 
                 <MenuItem
-                    title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoPayrollAccount')}
+                    title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoMoneyInClearing')}
                     shouldShowRightIcon
                     shouldShowBasicTitle
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
