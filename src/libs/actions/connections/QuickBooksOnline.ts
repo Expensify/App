@@ -1,11 +1,9 @@
 import {getCommandURL} from '@libs/ApiUtils';
-import CONFIG from '@src/CONFIG';
 
 function getQuickBooksOnlineSetupLink(policyID: string) {
-    const callbackPath = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}/workspace/${policyID}/accounting`;
-    const otherParams = new URLSearchParams({callbackPath, policyID}).toString();
-    const commandURL = getCommandURL({command: 'ConnectPolicyToQuickbooksOnline'});
-    return `${commandURL}&${otherParams}`;
+    const otherParams = new URLSearchParams({policyID}).toString();
+    const commandUrl = `${getCommandURL({command: 'ConnectPolicyToQuickbooksOnline'})}&${otherParams}`;
+    return commandUrl;
 }
 
 // More action functions will be added later

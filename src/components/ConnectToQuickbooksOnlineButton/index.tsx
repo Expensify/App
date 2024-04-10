@@ -9,11 +9,10 @@ import type {ConnectToQuickbooksOnlineButtonProps} from './types';
 function ConnectToQuickbooksOnlineButton({policyID}: ConnectToQuickbooksOnlineButtonProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-
     return (
         <Button
             onPress={() => {
-                Link.openLink(`${environmentURL}${getQuickBooksOnlineSetupLink(policyID)}`, environmentURL, false);
+                Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL, false);
             }}
             text={translate('workspace.accounting.setup')}
         />
