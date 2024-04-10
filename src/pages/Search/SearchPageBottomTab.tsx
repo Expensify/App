@@ -5,8 +5,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import ROUTES from '@src/ROUTES';
