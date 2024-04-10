@@ -5753,6 +5753,20 @@ function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject):
     return {};
 }
 
+/**
+ * Check if Report is an invoice room
+ */
+function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
+}
+
+/**
+ * Check if Report is an invoice report
+ */
+function isInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+    return report?.type === CONST.REPORT.TYPE.INVOICE;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -5979,6 +5993,8 @@ export {
     hasActionsWithErrors,
     getGroupChatName,
     getOutstandingChildRequest,
+    isInvoiceRoom,
+    isInvoiceReport
 };
 
 export type {
