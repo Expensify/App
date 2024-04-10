@@ -1806,14 +1806,13 @@ export default {
     },
     travel: {
         header: 'My trips',
-        title: 'Book or manage your trips',
+        title: 'Book and manage your trips',
         subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
-        bookOrManage: 'Book or manage',
         features: {
             saveMoney: 'Save money on your bookings',
-            alerts: 'Get real time alerts if your travel plans change',
+            alerts: 'Get realtime updates and alerts',
         },
-        bookTravel: 'Book Travel',
+        bookTravel: 'Book travel',
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Please read the Terms & Conditions for travel',
