@@ -26,44 +26,52 @@ Onyx.connect({
     },
 });
 
+function getLastUpdateIDAppliedToClient(): Promise<number> {
+    return new Promise((resolve) => {
+        Onyx.connect({
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (value) => resolve(value ?? 0),
+        });
+    });
+}
+
 /**
  * Setup reportComment push notification callbacks.
  */
 export default function subscribeToReportCommentPushNotifications() {
-    PushNotification.onReceived(
-        PushNotification.TYPE.REPORT_COMMENT,
-        ({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}) =>
-            new Promise((resolve) => {
-                Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
+    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}) => {
+        Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
-                if (!ActiveClientManager.isClientTheLeader()) {
-                    Log.info('[PushNotification] received report comment notification, but ignoring it since this is not the active client');
-                    resolve();
-                    return;
-                }
+        if (!ActiveClientManager.isClientTheLeader()) {
+            Log.info('[PushNotification] received report comment notification, but ignoring it since this is not the active client');
+            return Promise.resolve();
+        }
 
-                if (!onyxData || !lastUpdateID || !previousUpdateID) {
-                    Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-                    resolve();
-                    return;
-                }
+        if (!onyxData || !lastUpdateID || !previousUpdateID) {
+            Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+            return Promise.resolve();
+        }
 
-                Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-                const updates: OnyxUpdatesFromServer = {
-                    type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
-                    lastUpdateID,
-                    previousUpdateID,
-                    updates: [
-                        {
-                            eventType: 'eventType',
-                            data: onyxData,
-                        },
-                    ],
-                };
-                applyOnyxUpdatesReliably(updates, true);
-                resolve();
-            }),
-    );
+        Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+        const updates: OnyxUpdatesFromServer = {
+            type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+            lastUpdateID,
+            previousUpdateID,
+            updates: [
+                {
+                    eventType: 'eventType',
+                    data: onyxData,
+                },
+            ],
+        };
+
+        /**
+         * When this callback runs in the background on Android (via Headless JS), no other Onyx.connect callbacks will run. This means that
+         * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
+         * and pass it as a param
+         */
+        return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, true, lastUpdateIDAppliedToClient));
+    });
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID}) => {
