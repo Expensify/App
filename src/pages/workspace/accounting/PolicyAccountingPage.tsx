@@ -1,8 +1,7 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-// import ConnectToQuickbooksOnlineButton from './qboConnectionButton';
-import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -22,40 +21,39 @@ import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type { OnyxEntry } from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
+import type { Policy, PolicyConnectionSyncProgress } from '@src/types/onyx';
+import type { WithPolicyAndFullscreenLoadingProps } from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import ONYXKEYS from '@src/ONYXKEYS';
 
-function PolicyAccountingPage({policy}: WithPolicyProps) {
+type PolicyAccountingPageOnyxProps = {
+    /** From Onyx */
+    /** Bank account attached to free plan */
+    connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
+};
+
+type PolicyAccountingPageProps = WithPolicyAndFullscreenLoadingProps & PolicyAccountingPageOnyxProps & {
+    /** Policy values needed in the component */
+    policy: OnyxEntry<Policy>;
+};
+
+function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    // const {environmentURL} = useEnvironment();
     // const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
-
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-
-    // TODO
-    const [policyIsConnectedToAccountingSystem, setPolicyIsConnectedToAccountingSystem] = useState(false);
-
-    // TODO
-    const [isSyncInProgress, setIsSyncInProgress] = useState(false);
-
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
+    const isSyncInProgress = connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
 
     const policyID = policy?.id ?? '';
-
-    // TODO remove
-    // fake a QBO connection sync
-    const openQBOsync = useCallback(() => {
-        setIsSyncInProgress(true);
-        setTimeout(() => setIsSyncInProgress(false), 5000);
-        setPolicyIsConnectedToAccountingSystem(true);
-    }, []);
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(
         () => [
@@ -66,23 +64,10 @@ function PolicyAccountingPage({policy}: WithPolicyProps) {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: translate('workspace.accounting.qbo'),
-                rightComponent: (
-                    // TODO use ConnectToQuickbooksOnlineButton instead
-                    // <ConnectToQuickbooksOnlineButton
-                    //     policyID={policyID}
-                    //     environmentURL={environmentURL}
-                    // />
-
-                    <Button
-                        onPress={openQBOsync}
-                        text={translate('workspace.accounting.setup')}
-                        style={styles.justifyContentCenter}
-                        small
-                    />
-                ),
+                rightComponent: <ConnectToQuickbooksOnlineButton policyID={policyID} />,
             },
         ],
-        [styles.sectionMenuItemTopDescription, translate, openQBOsync, styles.justifyContentCenter],
+        [styles.sectionMenuItemTopDescription, translate, isSyncInProgress, styles.justifyContentCenter],
     );
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
@@ -237,4 +222,10 @@ function PolicyAccountingPage({policy}: WithPolicyProps) {
 
 PolicyAccountingPage.displayName = 'PolicyAccountingPage';
 
-export default withPolicy(PolicyAccountingPage);
+export default withPolicyAndFullscreenLoading(
+    withOnyx<PolicyAccountingPageProps, PolicyAccountingPageOnyxProps>({
+        connectionSyncProgress: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${props.route.params.policyID}`,
+        },
+    })(PolicyAccountingPage),
+);

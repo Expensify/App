@@ -1589,11 +1589,6 @@ const CONST = {
             GENERAL_SETTINGS: 'generalSettings',
         },
         CONNECTIONS: {
-            SYNC_STATUS: {
-                STARTING: 'starting',
-                FINISHED: 'finished',
-                PROGRESS: 'progress',
-            },
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -1608,6 +1603,7 @@ const CONST = {
                 QBO_PROCESSING: 'quickbooksOnlineImportProcessing',
                 QBO_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
                 QBO_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+                JOB_DONE: 'jobDone',
             },
         },
     },
