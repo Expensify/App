@@ -52,7 +52,7 @@ export default function subscribeToReportCommentPushNotifications() {
                     },
                 ],
             };
-            applyOnyxUpdatesReliably(updates);
+            applyOnyxUpdatesReliably(updates, true);
         } else {
             Log.hmmm("[PushNotification] Didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
         }
