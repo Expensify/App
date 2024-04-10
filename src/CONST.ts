@@ -1216,7 +1216,10 @@ const CONST = {
     },
     QUICK_BOOKS_ONLINE: 'quickbooksOnline',
 
-    QUICK_BOOKS_IMPORTS: {
+    QUICK_BOOKS_CONFIG: {
+        AUTO_SYNC: 'autoSync',
+        SYNCE_PEOPLE: 'syncPeople',
+        AUTO_CREATE_VENDOR: 'autoCreateVendor',
         SYNC_CLASSES: 'syncClasses',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CUSTOMERS: 'syncCustomers',
