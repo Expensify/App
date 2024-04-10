@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import * as OnyxUpdates from '@libs/actions/OnyxUpdates';
+import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,7 +52,7 @@ export default function subscribeToReportCommentPushNotifications() {
                     },
                 ],
             };
-            OnyxUpdates.applyOnyxUpdatesReliably(updates);
+            applyOnyxUpdatesReliably(updates);
         } else {
             Log.hmmm("[PushNotification] Didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
         }
