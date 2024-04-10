@@ -1,50 +1,54 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {ScreenWrapperChildrenProps} from '@components/ScreenWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import callOrReturn from '@src/types/utils/callOrReturn';
 
-const propTypes = {
-    /** The things to display inside the screenwrapper */
-    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
-
+type StepScreenWrapperProps = {
     /** The title to show in the header (should be translated already) */
-    headerTitle: PropTypes.string.isRequired,
+    headerTitle: string;
 
     /** A function triggered when the back button is pressed */
-    onBackButtonPress: PropTypes.func.isRequired,
+    onBackButtonPress: () => void;
 
     /** A function triggered when the entry transition is ended. Useful for auto-focusing elements. */
-    onEntryTransitionEnd: PropTypes.func,
+    onEntryTransitionEnd?: () => void;
 
     /** Whether or not the wrapper should be shown (sometimes screens can be embedded inside another screen that already is using a wrapper) */
-    shouldShowWrapper: PropTypes.bool.isRequired,
+    shouldShowWrapper: boolean;
 
     /** Whether or not to display not found page */
-    shouldShowNotFoundPage: PropTypes.bool,
+    shouldShowNotFoundPage?: boolean;
 
     /** An ID used for unit testing */
-    testID: PropTypes.string.isRequired,
+    testID: string;
 
     /** Whether or not to include safe area padding */
-    includeSafeAreaPaddingBottom: PropTypes.bool,
+    includeSafeAreaPaddingBottom?: boolean;
+
+    /** Returns a function as a child to pass insets to or a node to render without insets */
+    children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
 };
 
-const defaultProps = {
-    onEntryTransitionEnd: () => {},
-    includeSafeAreaPaddingBottom: false,
-    shouldShowNotFoundPage: false,
-};
-
-function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper, shouldShowNotFoundPage, includeSafeAreaPaddingBottom}) {
+function StepScreenWrapper({
+    testID,
+    headerTitle,
+    onBackButtonPress,
+    onEntryTransitionEnd,
+    children,
+    shouldShowWrapper,
+    shouldShowNotFoundPage,
+    includeSafeAreaPaddingBottom,
+}: StepScreenWrapperProps) {
     const styles = useThemeStyles();
 
     if (!shouldShowWrapper) {
-        return <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>{children}</FullPageNotFoundView>;
+        return <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>{children as ReactNode}</FullPageNotFoundView>;
     }
 
     return (
@@ -62,14 +66,8 @@ function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTrans
                             onBackButtonPress={onBackButtonPress}
                         />
                         {
-                            // If props.children is a function, call it to provide the insets to the children.
-                            _.isFunction(children)
-                                ? children({
-                                      insets,
-                                      safeAreaPaddingBottomStyle,
-                                      didScreenTransitionEnd,
-                                  })
-                                : children
+                            // If props.children is a function, call it to provide the insets to the children
+                            callOrReturn(children, {insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd})
                         }
                     </View>
                 </FullPageNotFoundView>
@@ -77,9 +75,5 @@ function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTrans
         </ScreenWrapper>
     );
 }
-
-StepScreenWrapper.displayName = 'StepScreenWrapper';
-StepScreenWrapper.propTypes = propTypes;
-StepScreenWrapper.defaultProps = defaultProps;
 
 export default StepScreenWrapper;
