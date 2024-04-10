@@ -106,7 +106,7 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
 }
 
 /**
- * Determines whether the application is being launched for the first time by a hybrid app user, 
+ * Determines whether the application is being launched for the first time by a hybrid app user,
  * and executes corresponding callback functions.
  */
 function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRunsOrNotInHybridApp}: HasOpenedForTheFirstTimeFromHybridAppProps) {

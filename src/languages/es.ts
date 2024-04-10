@@ -1322,7 +1322,7 @@ export default {
         explanationModal: {
             title: 'Bienvenido a Expensify',
             description1: 'Recibir pagos es tan fácil como mandar un mensaje',
-            description2: 'Para volver a Expensify Classic, simplemente haz click en tu foto de perfil > Ir a Expensify Classic.'
+            description2: 'Para volver a Expensify Classic, simplemente haz click en tu foto de perfil > Ir a Expensify Classic.',
         },
         welcomeVideo: {
             title: 'Bienvenido a Expensify',

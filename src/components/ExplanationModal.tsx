@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
 import ROUTES from '@src/ROUTES';
-import variables from '@styles/variables';
 import Text from './Text';
 import WelcomeVideoModal from './WelcomeVideoModal';
 
@@ -22,16 +22,17 @@ function ExplanationModal() {
     }, []);
 
     const onClose = () => {
-         // Small delay purely due to design considerations.
+        // Small delay purely due to design considerations.
+        Navigation.goBack();
         setTimeout(() => {
-            Navigation.goBack();
-         if (shouldNavigateToOnboarding) {
+            if (!shouldNavigateToOnboarding) {
+                return;
+            }
             // Uncomment once Stage 1 Onboarding Flow is ready
             // Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS)
-            Navigation.navigate(ROUTES.ONBOARD)
-        }
-        }, variables.welcomeVideoDelay); 
-    }
+            Navigation.navigate(ROUTES.ONBOARD);
+        }, variables.welcomeVideoDelay);
+    };
 
     return (
         <WelcomeVideoModal onClose={onClose}>

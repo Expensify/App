@@ -34,7 +34,7 @@ type VideoStatus = 'video' | 'animation';
 type WelcomeVideoModalProps = {
     children: React.ReactNode;
     onClose?: () => void;
-}
+};
 
 function WelcomeVideoModal({children, onClose}: WelcomeVideoModalProps) {
     const {translate} = useLocalize();
@@ -142,9 +142,7 @@ function WelcomeVideoModal({children, onClose}: WelcomeVideoModalProps) {
                         <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
                             <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
                             <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
-                                <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
-                                    {children}
-                                </View>
+                                <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>{children}</View>
                                 <Button
                                     large
                                     success
