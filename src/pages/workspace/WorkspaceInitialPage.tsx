@@ -43,7 +43,7 @@ type WorkspaceMenuItem = {
     icon: IconAsset;
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    routeName?: ValueOf<typeof SCREENS.WORKSPACE>;
+    routeName?: ValueOf<typeof SCREENS.WORKSPACE> | ValueOf<typeof SCREENS.WORKSPACE.ACCOUNTING>;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -204,10 +204,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
             // brickRoadIndicator should be set when API will be ready
             brickRoadIndicator: undefined,
-            routeName: SCREENS.WORKSPACE.ACCOUNTING,
+            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
         });
     }
 
