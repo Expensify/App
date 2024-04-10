@@ -2871,10 +2871,16 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
+        const parser = new ExpensiMark();
         const parentReportActionMessage = (
             ReportActionsUtils.isApprovedOrSubmittedReportAction(parentReportAction)
                 ? ReportActionsUtils.getReportActionMessageText(parentReportAction)
-                : parentReportAction?.message?.[0]?.text ?? ''
+                : parser.htmlToText(
+                      (parentReportAction?.message?.[0]?.html ?? '').replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, function (match, openTag, content, closeTag) {
+                          content = Str.removeSMSDomain(content);
+                          return openTag + content + closeTag;
+                      }),
+                  )
         ).replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
