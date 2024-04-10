@@ -105,3 +105,5 @@ function StateSelector(
 StateSelector.displayName = 'StateSelector';
 
 export default React.forwardRef(StateSelector);
+
+export type {State};
