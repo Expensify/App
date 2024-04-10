@@ -130,7 +130,7 @@ function createTaskAndNavigate(
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
-    const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport?.reportAction?.message?.[0].text ?? '');
+    const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport?.reportAction?.message?.[0]?.text ?? '');
     const optimisticParentReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
@@ -191,16 +191,12 @@ function createTaskAndNavigate(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: {
-                errorFields: {
-                    createTask: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
-                },
-            },
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
-            value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
+            value: null,
         },
     ];
 
@@ -360,6 +356,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    Report.notifyNewAction(taskReportID, currentUserAccountID);
 }
 
 /**
@@ -427,6 +424,7 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     };
 
     API.write(WRITE_COMMANDS.REOPEN_TASK, parameters, {optimisticData, successData, failureData});
+    Report.notifyNewAction(taskReportID, currentUserAccountID);
 }
 
 function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
@@ -502,6 +500,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     };
 
     API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
+    Report.notifyNewAction(report.reportID, currentUserAccountID);
 }
 
 function editTaskAssignee(
@@ -602,6 +601,7 @@ function editTaskAssignee(
     };
 
     API.write(WRITE_COMMANDS.EDIT_TASK_ASSIGNEE, parameters, {optimisticData, successData, failureData});
+    Report.notifyNewAction(report.reportID, currentUserAccountID);
 }
 
 /**
@@ -655,11 +655,11 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
 function setAssigneeValue(
     assigneeEmail: string,
     assigneeAccountID: number,
-    shareToReportID: string,
-    chatReport: OnyxEntry<OnyxTypes.Report>,
+    shareToReportID?: string,
+    chatReport?: OnyxEntry<OnyxTypes.Report>,
     isCurrentUser = false,
-): OnyxEntry<OnyxTypes.Report> {
-    let report = chatReport;
+): OnyxEntry<OnyxTypes.Report> | undefined {
+    let report: OnyxEntry<OnyxTypes.Report> | undefined = chatReport;
     if (!isCurrentUser) {
         // Check for the chatReport by participants IDs
         if (!report) {
@@ -725,7 +725,7 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID: string, chatReport: OnyxEntry<OnyxTypes.Report>, accountID = 0) {
+function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<OnyxTypes.Report>, accountID = 0) {
     clearOutTaskInfo();
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
@@ -946,6 +946,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     };
 
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
+    Report.notifyNewAction(report.reportID, currentUserAccountID);
 
     if (shouldDeleteTaskReport) {
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReport?.reportID ?? ''));

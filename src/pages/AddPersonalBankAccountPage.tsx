@@ -13,7 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 
 type AddPersonalBankAccountPageWithOnyxProps = {
@@ -51,7 +50,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 PaymentMethods.continueSetup(onSuccessFallbackRoute);
             } else {
-                Navigation.goBack(ROUTES.SETTINGS_WALLET);
+                Navigation.goBack();
             }
         },
         [personalBankAccount],
@@ -80,7 +79,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
                 />
             ) : (
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT}
+                    formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
                     isSubmitButtonVisible={Boolean(selectedPlaidAccountId)}
                     submitButtonText={translate('common.saveAndContinue')}
                     scrollContextEnabled

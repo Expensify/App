@@ -1,13 +1,13 @@
-import core from '@actions/core';
-import github from '@actions/github';
-import ActionUtils from '@github/libs/ActionUtils';
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import {getJSONInput} from '@github/libs/ActionUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 
 async function run() {
     try {
         const inputTag = core.getInput('TAG', {required: true});
-        const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
+        const isProductionDeploy = getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
         const deployEnv = isProductionDeploy ? 'production' : 'staging';
 
         console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
