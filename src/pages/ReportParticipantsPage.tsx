@@ -62,7 +62,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        ReportUtils.getParticipantAccountIDs(report.reportID).forEach((accountID) => {
+        const chatParticipants = isGroupChat ? ReportUtils.getParticipantAccountIDs(report.reportID) : ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
+        chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];
             if (!details) {
@@ -70,6 +71,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 return;
             }
 
+            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             const isSelected = selectedMembers.includes(accountID);
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
@@ -91,6 +93,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
+                pendingAction: pendingChatMember?.pendingAction,
                 icons: [
                     {
                         source: UserUtils.getAvatar(details?.avatar, accountID),
@@ -103,9 +106,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         });
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
-
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, styles]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, styles, isGroupChat]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 

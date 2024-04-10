@@ -465,6 +465,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
             value: {
+                participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
                 participantAccountIDs,
                 visibleChatMemberAccountIDs: participantAccountIDs,
                 pendingChatMembers,
@@ -476,6 +477,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
         value: {
+            participants: announceReport?.participants,
             participantAccountIDs: announceReport?.participantAccountIDs,
             visibleChatMemberAccountIDs: announceReport?.visibleChatMemberAccountIDs,
             pendingChatMembers: announceReport?.pendingChatMembers ?? null,

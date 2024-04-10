@@ -1727,6 +1727,14 @@ function getParticipantAccountIDs(reportID: string) {
     return accountIDStrings.map((accountID) => Number(accountID));
 }
 
+function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
+    return accountIDs.reduce((participants, accountID) => {
+        // eslint-disable-next-line no-param-reassign
+        participants[accountID] = {hidden: false};
+        return participants;
+    }, {});
+}
+
 /**
  * Returns the report name if the report is a group chat
  */
@@ -6025,6 +6033,7 @@ export {
     getParticipantAccountIDs,
     getParticipants,
     isGroupChatAdmin,
+    buildParticipantsFromAccountIDs,
 };
 
 export type {
