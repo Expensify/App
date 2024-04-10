@@ -668,16 +668,10 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING]: {
         policyID: string;
     };
 };
