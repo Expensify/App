@@ -134,14 +134,14 @@ function doesClientNeedToBeUpdated(previousUpdateID = 0, clientLastUpdateID = 0)
         return false;
     }
 
-    const clientUpdateID = clientLastUpdateID || lastUpdateIDAppliedToClient;
+    const lastUpdateIDFromClient = clientLastUpdateID || lastUpdateIDAppliedToClient;
 
-    // If we don't have any value in clientUpdateID, this is the first time we're receiving anything, so we need to do a last reconnectApp
-    if (!clientUpdateID) {
+    // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
+    if (!lastUpdateIDFromClient) {
         return true;
     }
 
-    return clientUpdateID < previousUpdateID;
+    return lastUpdateIDFromClient < previousUpdateID;
 }
 
 // eslint-disable-next-line import/prefer-default-export
