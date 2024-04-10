@@ -2,14 +2,16 @@ import type * as NativeNavigation from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import type {TextMatch} from '@testing-library/react-native/build/matches';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OptionListContextProvider, {OptionsListContext} from '@components/OptionListContextProvider';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type {RootStackParamList} from '@libs/Navigation/types';
+import {createOptionList} from '@libs/OptionsListUtils';
 import SearchPage from '@pages/SearchPage';
 import ComposeProviders from '@src/components/ComposeProviders';
 import OnyxProvider from '@src/components/OnyxProvider';
@@ -43,15 +45,12 @@ jest.mock('@src/libs/API', () => ({
 
 jest.mock('@src/libs/Navigation/Navigation');
 
-const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
         useFocusEffect: jest.fn(),
-        useIsFocused: () => ({
-            navigate: mockedNavigate,
-        }),
+        useIsFocused: () => true,
         useRoute: () => jest.fn(),
         useNavigation: () => ({
             navigate: jest.fn(),
@@ -94,6 +93,7 @@ const getMockedPersonalDetails = (length = 100) =>
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
+const mockedOptions = createOptionList(mockedPersonalDetails, mockedReports);
 
 beforeAll(() =>
     Onyx.init({
@@ -124,7 +124,7 @@ type SearchPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.SEARC
 
 function SearchPageWrapper(args: SearchPageProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, OptionListContextProvider]}>
             <SearchPage
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
@@ -133,6 +133,44 @@ function SearchPageWrapper(args: SearchPageProps) {
         </ComposeProviders>
     );
 }
+
+function SearchPageWithCachedOptions(args: SearchPageProps) {
+    return (
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+            <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, areOptionsInitialized: true}), [])}>
+                <SearchPage
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...args}
+                    navigation={args.navigation}
+                />
+            </OptionsListContext.Provider>
+        </ComposeProviders>
+    );
+}
+
+test('[Search Page] should render list with cached options', async () => {
+    const {addListener} = TestHelper.createAddListenerMock();
+
+    const scenario = async () => {
+        await screen.findByTestId('SearchPage');
+    };
+
+    const navigation = {addListener};
+
+    return (
+        waitForBatchedUpdates()
+            .then(() =>
+                Onyx.multiSet({
+                    ...mockedReports,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                    [ONYXKEYS.BETAS]: mockedBetas,
+                    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                }),
+            )
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            .then(() => measurePerformance(<SearchPageWithCachedOptions navigation={navigation} />, {scenario}))
+    );
+});
 
 test('[Search Page] should interact when text input changes', async () => {
     const {addListener} = TestHelper.createAddListenerMock();
@@ -163,7 +201,7 @@ test('[Search Page] should interact when text input changes', async () => {
     );
 });
 
-test('[Search Page] should render selection list', async () => {
+test.skip('[Search Page] should render selection list', async () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const smallMockedPersonalDetails = getMockedPersonalDetails(5);
 

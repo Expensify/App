@@ -1,4 +1,5 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
@@ -102,6 +103,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
+        /** The transaction tax amount */
+        taxAmount?: number;
+
+        /** The transaction tax code */
+        taxCode?: string;
+
         /** Whether the request is billable */
         billable?: boolean;
 
@@ -127,7 +134,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         filename?: string;
 
         /** Used during the creation flow before the transaction is saved to the server */
-        iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+        iouRequestType?: IOURequestType;
 
         /** The original merchant name */
         merchant: string;
@@ -176,9 +183,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction tax rate */
         taxRate?: TaxRate;
-
-        /** Tax amount */
-        taxAmount?: number;
 
         /** Card Transactions */
 
