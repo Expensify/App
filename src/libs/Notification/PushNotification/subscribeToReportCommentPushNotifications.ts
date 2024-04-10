@@ -30,35 +30,40 @@ Onyx.connect({
  * Setup reportComment push notification callbacks.
  */
 export default function subscribeToReportCommentPushNotifications() {
-    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}) => {
-        if (!ActiveClientManager.isClientTheLeader()) {
-            Log.info('[PushNotification] received report comment notification, but ignoring it since this is not the active client');
-            return Promise.resolve();
-        }
+    PushNotification.onReceived(
+        PushNotification.TYPE.REPORT_COMMENT,
+        ({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}) =>
+            new Promise((resolve) => {
+                Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
-        Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
+                if (!ActiveClientManager.isClientTheLeader()) {
+                    Log.info('[PushNotification] received report comment notification, but ignoring it since this is not the active client');
+                    resolve();
+                    return;
+                }
 
-        if (onyxData && lastUpdateID && previousUpdateID) {
-            Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+                if (!onyxData || !lastUpdateID || !previousUpdateID) {
+                    Log.hmmm("[PushNotification] didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+                    resolve();
+                    return;
+                }
 
-            const updates: OnyxUpdatesFromServer = {
-                type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
-                lastUpdateID,
-                previousUpdateID,
-                updates: [
-                    {
-                        eventType: 'eventType',
-                        data: onyxData,
-                    },
-                ],
-            };
-            applyOnyxUpdatesReliably(updates, true);
-        } else {
-            Log.hmmm("[PushNotification] Didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-        }
-
-        return Promise.resolve();
-    });
+                Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
+                const updates: OnyxUpdatesFromServer = {
+                    type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+                    lastUpdateID,
+                    previousUpdateID,
+                    updates: [
+                        {
+                            eventType: 'eventType',
+                            data: onyxData,
+                        },
+                    ],
+                };
+                applyOnyxUpdatesReliably(updates, true);
+                resolve();
+            }),
+    );
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID}) => {
