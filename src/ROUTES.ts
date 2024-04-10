@@ -1,6 +1,7 @@
-import type {IsEqual, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
+import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -739,20 +740,20 @@ export default ROUTES;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
 
+/**
+ * Represents all routes in the app as a union of literal strings.
+ * */
 type AllRoutes = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
-type RouteIsPlainString = IsEqual<AllRoutes, string>;
+type RoutesValidationError =
+    'Error: RoutesValidationError implies that one or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
-/**
- * Represents all routes in the app as a union of literal strings.
- *
- * If this type resolves to `never`, it implies that one or more routes defined within `ROUTES` have not correctly used
- * `as const` in their `getRoute` function return value.
- */
-type Route = RouteIsPlainString extends true ? never : AllRoutes;
+type RouteIsPlainString = AssertTypesNotEqual<string, AllRoutes, RoutesValidationError>;
+
+// type Route = RouteIsPlainString extends true ? never : AllRoutes;
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {Route, HybridAppRoute, AllRoutes};
+export type {RouteIsPlainString, HybridAppRoute, AllRoutes};
