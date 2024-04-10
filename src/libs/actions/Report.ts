@@ -29,6 +29,7 @@ import type {
     OpenRoomMembersPageParams,
     ReadNewestActionParams,
     RemoveEmojiReactionParams,
+    RemoveFromGroupChatParams,
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
     SearchForReportsParams,
@@ -2630,41 +2631,6 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
     API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, {reportID, memberRoles: JSON.stringify(memberRoles)}, {optimisticData});
 }
 
-function removeFromGroupChat(reportID: string, accountIDList: number[]) {
-    const removeParticipantsData: Record<number, null> = {};
-    const currentParticipants = ReportUtils.getParticipants(reportID);
-    const participantAccountIDs = [];
-    const visibleChatMemberAccountIDs = [];
-    for (const accountIDKey in currentParticipants) {
-        if (Object.hasOwn(currentParticipants, accountIDKey)) {
-            const participantAccountID = Number(accountIDKey);
-            const participant = currentParticipants[participantAccountID];
-            if (!accountIDList.includes(participantAccountID)) {
-                participantAccountIDs.push(participantAccountID);
-                if (!participant.hidden) {
-                    visibleChatMemberAccountIDs.push(participantAccountID);
-                }
-            }
-        }
-    }
-
-    accountIDList.forEach((accountID) => {
-        removeParticipantsData[accountID] = null;
-    });
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants: removeParticipantsData,
-                participantAccountIDs,
-                visibleChatMemberAccountIDs,
-            },
-        },
-    ];
-    API.write(WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT, {reportID, accountIDList: accountIDList.join()}, {optimisticData});
-}
-
 /** Invites people to a group chat */
 function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     inviteToRoom(reportID, inviteeEmailsToAccountIDs);
@@ -2675,9 +2641,30 @@ function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedE
  */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = currentReportData?.[reportID];
+    if (!report) {
+        return;
+    }
 
-    const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
-    const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
+    const removeParticipantsData: Record<number, null> = {};
+    const currentParticipants = ReportUtils.getParticipants(reportID);
+    const participantAccountIDsAfterRemoval = [];
+    const visibleChatMemberAccountIDsAfterRemoval = [];
+    for (const accountIDKey in currentParticipants) {
+        if (Object.hasOwn(currentParticipants, accountIDKey)) {
+            const participantAccountID = Number(accountIDKey);
+            const participant = currentParticipants[participantAccountID];
+            if (!targetAccountIDs.includes(participantAccountID)) {
+                participantAccountIDsAfterRemoval.push(participantAccountID);
+                if (!participant.hidden) {
+                    visibleChatMemberAccountIDsAfterRemoval.push(participantAccountID);
+                }
+            }
+        }
+    }
+
+    targetAccountIDs.forEach((accountID) => {
+        removeParticipantsData[accountID] = null;
+    });
     const pendingChatMembers = ReportUtils.getPendingChatMembers(targetAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const optimisticData: OnyxUpdate[] = [
@@ -2707,6 +2694,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                participants: removeParticipantsData,
                 participantAccountIDs: participantAccountIDsAfterRemoval,
                 visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
                 pendingChatMembers: report?.pendingChatMembers ?? null,
@@ -2714,12 +2702,26 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
         },
     ];
 
+    if (ReportUtils.isGroupChat(report)) {
+        const parameters: RemoveFromGroupChatParams = {
+            reportID,
+            accountIDList: targetAccountIDs.join(),
+        };
+        API.write(WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT, parameters, {optimisticData});
+        return;
+    }
+
     const parameters: RemoveFromRoomParams = {
         reportID,
         targetAccountIDs,
     };
 
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.REMOVE_FROM_ROOM, parameters, {optimisticData, failureData, successData});
+}
+
+function removeFromGroupChat(reportID: string, accountIDList: number[]) {
+    removeFromRoom(reportID, accountIDList);
 }
 
 function setLastOpenedPublicRoom(reportID: string) {
