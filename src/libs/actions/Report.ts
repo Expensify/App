@@ -726,6 +726,11 @@ function openReport(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: settledPersonalDetails,
         });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: settledPersonalDetails,
+        });
 
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
@@ -1939,16 +1944,6 @@ function deleteReport(reportID: string) {
 
     Onyx.multiSet(onyxData);
 
-    // Clear the optimistic personal detail
-    const participantPersonalDetails: OnyxCollection<PersonalDetails> = {};
-    report?.participantAccountIDs?.forEach((accountID) => {
-        if (!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
-            return;
-        }
-        participantPersonalDetails[accountID] = null;
-    });
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantPersonalDetails);
-
     // Delete linked IOU report
     if (report?.iouReportID) {
         deleteReport(report.iouReportID);
@@ -2900,7 +2895,7 @@ function completeOnboarding(properties: {
         return [
             ...acc,
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${currTask.reportID}`,
                 value: {
                     ...currTask,
@@ -2966,9 +2961,6 @@ function completeOnboarding(properties: {
         lastName,
         data: JSON.stringify([{type: 'message', ...textMessage}, {type: 'video', ...data.video, ...videoMessage}, ...tasksForParameters]),
     };
-
-    // console.log('-------------------------------------');
-    // console.log(JSON.stringify({...parameters, data: JSON.parse(parameters.data)}, ' ', 2));
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData});
 }
