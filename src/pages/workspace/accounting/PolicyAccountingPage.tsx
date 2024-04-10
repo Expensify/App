@@ -28,7 +28,7 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function WorkspaceAccountingPage({policy}: WithPolicyProps) {
+function PolicyAccountingPage({policy}: WithPolicyProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -189,7 +189,7 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
                 >
                     <ScreenWrapper
-                        testID={WorkspaceAccountingPage.displayName}
+                        testID={PolicyAccountingPage.displayName}
                         includeSafeAreaPaddingBottom={false}
                         shouldShowOfflineIndicatorInWideScreen
                     >
@@ -235,6 +235,6 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     );
 }
 
-WorkspaceAccountingPage.displayName = 'WorkspaceAccountingPage';
+PolicyAccountingPage.displayName = 'PolicyAccountingPage';
 
-export default withPolicy(WorkspaceAccountingPage);
+export default withPolicy(PolicyAccountingPage);
