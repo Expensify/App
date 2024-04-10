@@ -1,7 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import Badge from '@components/Badge';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SelectCircle from '@components/SelectCircle';
@@ -102,13 +101,6 @@ function InviteMemberListItem({
                                     item.alternateText ? styles.mb1 : null,
                                 ]}
                             />
-                            {!!item.badgeText && (
-                                <Badge
-                                    text={item.badgeText}
-                                    textStyles={[styles.textStrong]}
-                                    badgeStyles={[styles.justifyContentCenter, styles.badgeSmall, item.alternateText ? styles.mb1 : undefined]}
-                                />
-                            )}
                         </View>
                         {!!item.alternateText && (
                             <TextWithTooltip

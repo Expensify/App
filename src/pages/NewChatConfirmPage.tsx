@@ -23,6 +23,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import useStyleUtils from '@hooks/useStyleUtils';
+import Badge from '@components/Badge';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
@@ -39,6 +41,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     const fileRef = useRef<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const personalData = useCurrentUserPersonalDetails();
     const participantAccountIDs = (newGroupDraft?.participants ?? []).map((participant) => participant.accountID);
     const selectedOptions = useMemo((): Participant[] => {
@@ -66,13 +69,17 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                         isDisabled: isAdmin,
                         accountID,
                         icons: selectedOption?.icons,
-                        badgeText: isAdmin ? translate('common.admin') : '',
                         alternateText: selectedOption?.login ?? '',
+                        rightElement: isAdmin ? (<Badge
+                            text={translate('common.admin')}
+                            textStyles={styles.textStrong}
+                            badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
+                        />) : undefined,
                     };
                     return section;
                 })
                 .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
-        [selectedOptions, personalData.accountID, translate],
+        [selectedOptions, personalData.accountID, translate, StyleUtils],
     );
 
     /**
