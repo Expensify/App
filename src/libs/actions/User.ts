@@ -605,12 +605,12 @@ function subscribeToUserEvents() {
         playSoundForMessageType(pushJSON);
 
         return SequentialQueue.getCurrentRequest().then(() => {
-            // If we don't have the currentUserAccountID (user is logged out) or this is not the 
+            // If we don't have the currentUserAccountID (user is logged out) or this is not the
             // main client we don't want to update Onyx with data from Pusher
             if (currentUserAccountID === -1) {
                 return;
             }
-            if(!ActiveClientManager.isClientTheLeader()) {
+            if (!ActiveClientManager.isClientTheLeader()) {
                 Log.info('[Pusher] Received updates, but ignoring it since this is not the active client');
                 return;
             }
