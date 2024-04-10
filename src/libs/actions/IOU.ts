@@ -2399,6 +2399,7 @@ function trackExpense(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints?: GPSPoint,
+    validWaypoints?: WaypointCollection,
 ) {
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
@@ -2461,6 +2462,7 @@ function trackExpense(
         gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
     };
 
     API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
