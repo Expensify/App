@@ -2976,6 +2976,9 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     if (isArchivedRoom(report)) {
         return report?.oldPolicyName ?? '';
     }
+    if (isInvoiceRoom(report)) {
+        return Localize.translateLocal('workspace.common.invoices');
+    }
     return getPolicyName(report);
 }
 
