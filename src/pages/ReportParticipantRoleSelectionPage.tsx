@@ -15,9 +15,9 @@ import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
-import NotFoundPage from './ErrorPage/NotFoundPage';
 
 type ReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
 

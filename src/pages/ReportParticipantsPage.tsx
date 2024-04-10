@@ -158,11 +158,14 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         setRemoveMembersConfirmModalVisible(false);
     };
 
-    const changeUserRole = useCallback((role: ValueOf<typeof CONST.REPORT.ROLE>) => {
-        const accountIDsToUpdate = selectedMembers.filter((id) => report.participants?.[id].role !== role);
-        Report.updateGroupChatMemberRoles(report.reportID, accountIDsToUpdate, role);
-        setSelectedMembers([]);
-    }, [report, selectedMembers]);
+    const changeUserRole = useCallback(
+        (role: ValueOf<typeof CONST.REPORT.ROLE>) => {
+            const accountIDsToUpdate = selectedMembers.filter((id) => report.participants?.[id].role !== role);
+            Report.updateGroupChatMemberRoles(report.reportID, accountIDsToUpdate, role);
+            setSelectedMembers([]);
+        },
+        [report, selectedMembers],
+    );
 
     /**
      * Toggle user from the selectedMembers list
