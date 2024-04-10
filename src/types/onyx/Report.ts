@@ -83,6 +83,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The policy name to use for an archived report */
         oldPolicyName?: string;
 
+        /** The policy avatar to use for an archived report */
+        oldPolicyAvatar?: string;
+
         /** Whether the report has parent access */
         hasParentAccess?: boolean;
 

@@ -1656,10 +1656,8 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxCo
  */
 function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): Icon {
     const workspaceName = getPolicyName(report, false, policy);
-    const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
-        ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
-        : getDefaultWorkspaceAvatar(workspaceName);
-
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar || report?.oldPolicyAvatar || getDefaultWorkspaceAvatar(workspaceName);
     const workspaceIcon: Icon = {
         source: policyExpenseChatAvatarSource ?? '',
         type: CONST.ICON_TYPE_WORKSPACE,
