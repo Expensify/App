@@ -2859,7 +2859,7 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
         return ReportActionsUtils.getReportActionMessageText(reportAction);
     }
     if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
-        return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID) as OnyxEntry<Report>, false);
+        return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
     }
     return reportAction?.message?.[0]?.text ?? '';
 }
