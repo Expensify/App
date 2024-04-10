@@ -100,7 +100,7 @@ function IOURequestStepParticipants({
             }
 
             IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
-            IOU.setCustomUnitRateID(transactionID, reportID);
+            IOU.setCustomUnitRateID(transactionID, val[0].reportID);
 
             numberOfParticipants.current = val.length;
 
