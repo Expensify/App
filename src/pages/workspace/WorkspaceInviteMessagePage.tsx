@@ -73,7 +73,10 @@ function WorkspaceInviteMessagePage({
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const welcomeNoteSubject = useMemo(() => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`, [policy?.name, currentUserPersonalDetails?.displayName]);
+    const welcomeNoteSubject = useMemo(
+        () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
+        [policy?.name, currentUserPersonalDetails?.displayName],
+    );
 
     const getDefaultWelcomeNote = () =>
         // workspaceInviteMessageDraft can be an empty string
