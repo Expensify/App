@@ -172,7 +172,7 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
         parentReportID: string | undefined;
 
-        /** Whether report is from group policy */ 
+        /** Whether report is from group policy */
         isGroupPolicyReport: boolean;
 
         /** policy ID of the report */

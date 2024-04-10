@@ -47,7 +47,7 @@ type SuggestionProps = {
     /** The height of the composer */
     composerHeight?: number;
 
-    /** If current composer is connected with report from group policy */  
+    /** If current composer is connected with report from group policy */
     isGroupPolicyReport: boolean;
 
     /** The policyID of the report connected to current composer */
