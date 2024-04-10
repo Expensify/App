@@ -79,7 +79,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     return section;
                 })
                 .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
-        [selectedOptions, personalData.accountID, translate, StyleUtils],
+        [selectedOptions, personalData.accountID, translate, StyleUtils, styles],
     );
 
     /**
