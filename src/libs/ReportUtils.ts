@@ -5264,7 +5264,7 @@ function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
     const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
 
     // Build participants list for IOU/expense reports
-    if (isMoneyRequestReport(report)) {
+    if (isMoneyRequestReport(report) || isInvoiceRoom(report)) {
         const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...visibleChatMemberAccountIDs].filter(Boolean) as number[];
         const onlyUnique = [...new Set([...onlyTruthyValues])];
         return onlyUnique;
