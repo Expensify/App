@@ -25,15 +25,15 @@ type TaskHeaderActionButtonProps = TaskHeaderActionButtonOnyxProps & {
 function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
+    const {isExecuting, singleExecution} = useContext(MenuItemGroupContext) ?? {};
 
     const onPressAction = () => {
         const onPress = () => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report));
-        if (!singleExecution || !waitForNavigate) {
+        if (!singleExecution) {
             onPress();
             return;
         }
-        singleExecution(waitForNavigate(onPress))();
+        singleExecution(onPress)();
     };
 
     return (
