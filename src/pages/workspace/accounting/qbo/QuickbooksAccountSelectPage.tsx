@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -23,6 +24,7 @@ type SelectorType = {
 
 function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const [selectedAccount, setSelectedAccount] = useState('Croissant Co Payroll Account');
 
@@ -58,13 +60,10 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
             shouldEnableMaxHeight
             testID={QuickbooksAccountSelectPage.displayName}
         >
-            <HeaderWithBackButton title="QuickBooks Account" />
+            <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboAccount')} />
 
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>
-                    As you&apos;ve enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we&apos;ll create the payment in
-                    QuickBooks.
-                </Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.accountSelectDescription')}</Text>
             </View>
             <ScrollView>{showQBOOnlineSelectorOptions()}</ScrollView>
         </ScreenWrapper>
