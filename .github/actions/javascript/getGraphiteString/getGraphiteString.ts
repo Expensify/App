@@ -1,49 +1,49 @@
 import * as core from '@actions/core';
-import * as github from '@actions/github';
 import fs from 'fs';
 
 const run = () => {
     // Prefix path to the graphite metric
     const GRAPHITE_PATH = 'reassure';
+    const PR_NUMBER = core.getInput('PR_NUMBER', {required: true});
 
-    let regressionOutput;
-    try {
-        regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
-    } catch (err) {
-        // Handle errors that occur during file reading or parsing
-        if (err instanceof Error) {
-            console.error('Error while parsing output.json:', err.message);
-            core.setFailed(err);
+    // Read the contents of the file, the file is in the JSONL format
+    const regressionFile = fs.readFileSync('.reassure/baseline.perf', 'utf8');
+
+    // Split file contents by newline to get individual JSON entries
+    const regressionEntries = regressionFile.split('\n');
+
+    // Initialize string to store Graphite metrics
+    let graphiteString = '';
+
+    // Iterate over each entry
+    regressionEntries.forEach((entry) => {
+        // Skip empty lines
+        if (entry.trim() === '') {
+            return;
         }
-    }
 
-    const creationDate = regressionOutput.metadata.current.creationDate;
-    const timestampInMili = new Date(creationDate).getTime();
+        try {
+            const current = JSON.parse(entry);
 
-    // Graphite accepts timestamp in seconds
-    const timestamp = Math.floor(timestampInMili / 1000);
+            // Extract timestamp, Graphite accepts timestamp in seconds
+            const timestamp = current.metadata?.creationDate ? Math.floor(new Date(current.metadata.creationDate).getTime() / 1000) : '';
 
-    // Get PR number from the github context
-    const prNumber = github.context.payload.pull_request?.number;
+            if (current.name && current.meanDuration && current.meanCount && timestamp) {
+                const formattedName = current.name.split(' ').join('-');
 
-    // We need to combine all tests from the 4 buckets
-    const reassureTests = [...regressionOutput.meaningless, ...regressionOutput.significant, ...regressionOutput.countChanged, ...regressionOutput.added];
+                const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
+                const renderCountString = `${GRAPHITE_PATH}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
+                const renderPRNumberString = `${GRAPHITE_PATH}.${formattedName}.prNumber ${PR_NUMBER} ${timestamp}`;
 
-    // Map through every test and create string for meanDuration and meanCount
-    // eslint-disable-next-line rulesdir/prefer-underscore-method
-    const graphiteString = reassureTests
-        .map((test) => {
-            const current = test.current;
-            // Graphite doesn't accept metrics name with space, we replace spaces with "-"
-            const formattedName = current.name.split(' ').join('-');
-
-            const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
-            const renderCountString = `${GRAPHITE_PATH}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
-            const renderPRNumberString = `${GRAPHITE_PATH}.${formattedName}.prNumber ${prNumber} ${timestamp}`;
-
-            return `${renderDurationString}\n${renderCountString}\n${renderPRNumberString}`;
-        })
-        .join('\n');
+                // Concatenate Graphite strings
+                graphiteString += `${renderDurationString}\n${renderCountString}\n${renderPRNumberString}\n`;
+            }
+        } catch (e) {
+            const error = new Error('Error parsing baseline.perf JSON file');
+            console.error(error.message);
+            core.setFailed(error);
+        }
+    });
 
     // Set generated graphite string to the github variable
     core.setOutput('GRAPHITE_STRING', graphiteString);

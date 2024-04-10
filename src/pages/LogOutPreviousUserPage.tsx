@@ -63,7 +63,15 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
             const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
             SessionActions.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
         }
+        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialURL]);
+
+    useEffect(() => {
         const exitTo = route.params.exitTo as Route | null;
+        const sessionEmail = session?.email;
+        const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
+        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
         // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
         // which is already called when AuthScreens mounts.
@@ -75,8 +83,6 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
                 Navigation.navigate(exitUrl);
             });
         }
-
-        // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
