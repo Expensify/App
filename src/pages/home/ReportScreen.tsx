@@ -30,8 +30,6 @@ import Timing from '@libs/actions/Timing';
 import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
-import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
-import type {ReportWithoutHasDraft} from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -79,7 +77,7 @@ type ReportScreenOnyxPropsWithoutParentReportAction = {
     sortedAllReportActions: OnyxTypes.ReportAction[];
 
     /** The report currently being looked at */
-    report: OnyxEntry<ReportWithoutHasDraft>;
+    report: OnyxEntry<OnyxTypes.Report>;
 
     /** The report metadata loading states */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
@@ -283,6 +281,10 @@ function ReportScreen({
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isEmptyChat = useMemo((): boolean => reportActions.length === 0, [reportActions]);
     const isOptimisticDelete = report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+    const isLinkedMessageAvailable = useMemo(
+        (): boolean => sortedAllReportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)) > -1,
+        [sortedAllReportActions, reportActionIDFromRoute],
+    );
 
     // If there's a non-404 error for the report we should show it instead of blocking the screen
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
@@ -331,11 +333,14 @@ function ReportScreen({
         );
     }
 
+    const transactionThreadReportID = useMemo(() => ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? []), [reportActions]);
     if (ReportUtils.isMoneyRequestReport(report)) {
         headerView = (
             <MoneyReportHeader
                 report={report}
                 policy={policy}
+                transactionThreadReportID={transactionThreadReportID}
+                reportActions={reportActions}
             />
         );
     }
@@ -351,11 +356,12 @@ function ReportScreen({
 
     const isLoading = !ReportUtils.isValidReportIDFromPath(reportIDFromRoute) || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
-        isLinkingToMessage ||
-        !isCurrentReportLoadedFromOnyx ||
-        (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
-        isLoading ||
-        (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions);
+        !isLinkedMessageAvailable &&
+        (isLinkingToMessage ||
+            !isCurrentReportLoadedFromOnyx ||
+            (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
+            isLoading ||
+            (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions));
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
@@ -580,7 +586,7 @@ function ReportScreen({
             return false;
         }
         const action = sortedAllReportActions.find((item) => item.reportActionID === reportActionIDFromRoute);
-        return action && ReportActionsUtils.isDeletedAction(action);
+        return action && !ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID);
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
     if (isLinkedReportActionDeleted ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
@@ -654,7 +660,7 @@ function ReportScreen({
                                         isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
                                         isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
                                         isReadyForCommentLinking={!shouldShowSkeleton}
-                                        transactionThreadReportID={ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? [])}
+                                        transactionThreadReportID={transactionThreadReportID}
                                     />
                                 )}
 
@@ -703,7 +709,6 @@ export default withCurrentReportID(
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
                 allowStaleData: true,
-                selector: reportWithoutHasDraftSelector,
             },
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,

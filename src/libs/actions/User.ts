@@ -2,6 +2,7 @@ import {isBefore} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
     AddNewContactMethodParams,
@@ -583,6 +584,11 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
+        // If this is not the main client, we shouldn't process any data received from pusher.
+        if (!ActiveClientManager.isClientTheLeader()) {
+            Log.info('[Pusher] Received updates, but ignoring it since this is not the active client');
+            return;
+        }
         // The data for the update is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
         // Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         const updates = {
@@ -599,8 +605,13 @@ function subscribeToUserEvents() {
         playSoundForMessageType(pushJSON);
 
         return SequentialQueue.getCurrentRequest().then(() => {
-            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
+            // If we don't have the currentUserAccountID (user is logged out) or this is not the
+            // main client we don't want to update Onyx with data from Pusher
             if (currentUserAccountID === -1) {
+                return;
+            }
+            if (!ActiveClientManager.isClientTheLeader()) {
+                Log.info('[Pusher] Received updates, but ignoring it since this is not the active client');
                 return;
             }
 
