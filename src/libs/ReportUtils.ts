@@ -5112,6 +5112,10 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
+    if (isInvoiceRoom(report)) {
+        return true;
+    }
+
     return false;
 }
 
