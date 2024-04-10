@@ -134,7 +134,7 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
     return tagArray.join(CONST.COLON).replace(/:*$/, '');
 }
 
-function isMovingTransactionFromTrackExpense(action: ValueOf<typeof CONST.IOU.ACTION>) {
+function isMovingTransactionFromTrackExpense(action?: ValueOf<typeof CONST.IOU.ACTION>) {
     if (action === CONST.IOU.ACTION.MOVE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
         return true;
     }
