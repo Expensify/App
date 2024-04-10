@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -1314,6 +1315,29 @@ export default {
         loginForm: 'Login form',
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
+    onboarding: {
+        welcome: 'Welcome!',
+        welcomeVideo: {
+            title: 'Welcome to Expensify',
+            description: 'Getting paid is as easy as sending a message.',
+            button: "Let's go",
+        },
+        whatsYourName: "What's your name?",
+        purpose: {
+            title: 'What do you want to do today?',
+            error: 'Please make a selection before continuing',
+            [CONST.ONBOARDING_CHOICES.TRACK]: 'Track business spend for taxes',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget personal spend',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: "I'm just looking around",
+        },
+        error: {
+            requiredFirstName: 'Please input your first name to continue',
+            requiredLastName: 'Please input your last name to continue',
+        },
+    },
     personalDetails: {
         error: {
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
@@ -1799,6 +1823,7 @@ export default {
             invoices: 'Invoices',
             travel: 'Travel',
             members: 'Members',
+            accounting: 'Accounting',
             plan: 'Plan',
             profile: 'Profile',
             bankAccount: 'Bank account',
@@ -1892,9 +1917,13 @@ export default {
                 subtitle: 'Set up custom fields for spend.',
             },
             connections: {
-                title: 'Connections',
+                title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+        },
+        reportFields: {
+            delete: 'Delete field',
+            deleteConfirmation: 'Are you sure that you want to delete this field?',
         },
         tags: {
             tagName: 'Tag name',
@@ -2019,6 +2048,41 @@ export default {
             invalidRateError: 'Please enter a valid rate',
             lowRateError: 'Rate must be greater than 0',
         },
+        accounting: {
+            title: 'Connections',
+            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments and keep your finances in sync.',
+            qbo: 'Quickbooks Online',
+            xero: 'Xero',
+            setup: 'Set up',
+            lastSync: 'Last synced just now',
+            import: 'Import',
+            export: 'Export',
+            advanced: 'Advanced',
+            other: 'Other integrations',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: 'Disconnect integration',
+            disconnectPrompt: 'Are you sure you want to disconnect this integration?',
+            enterCredentials: 'Enter your credentials',
+            connections: {
+                syncStageName: (stage: PolicyConnectionSyncStage) => {
+                    switch (stage) {
+                        case 'quickbooksOnlineImportCustomers':
+                            return 'Importing customers';
+                        case 'quickbooksOnlineImportEmployees':
+                            return 'Importing employees';
+                        case 'quickbooksOnlineImportAccounts':
+                            return 'Importing accounts';
+                        case 'quickbooksOnlineImportClasses':
+                            return 'Importing classes';
+
+                        default: {
+                            return `Translation missing for stage: ${stage}`;
+                        }
+                    }
+                },
+            },
+        },
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
@@ -2078,8 +2142,6 @@ export default {
             disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
             enableRate: 'Enable rate',
             status: 'Status',
-            enabled: 'Enabled',
-            disabled: 'Disabled',
             unit: 'Unit',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',

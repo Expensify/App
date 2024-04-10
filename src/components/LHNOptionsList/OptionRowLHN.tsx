@@ -20,6 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -27,7 +28,7 @@ import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}}: OptionRowLHNProps) {
+function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -123,6 +124,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     <PressableWithSecondaryInteraction
                         ref={popoverAnchor}
                         onPress={(event) => {
+                            Performance.markStart(CONST.TIMING.OPEN_REPORT);
+
                             event?.preventDefault();
                             // Enable Composer to focus on clicking the same chat after opening the context menu.
                             ReportActionComposeFocusManager.focus();
@@ -248,7 +251,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     />
                                 </View>
                             )}
-                            {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
+                            {hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}

@@ -59,6 +59,7 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
 
 type WorkspaceSwitcherNavigatorParamList = {
@@ -220,12 +221,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
         accountID: string;
-        backTo: Routes;
-    };
-    [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
-        policyID: string;
-        accountID: string;
-        backTo: Routes;
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
         policyID: string;
@@ -382,6 +377,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -395,6 +391,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -491,8 +488,9 @@ type AddPersonalBankAccountNavigatorParamList = {
 
 type ReimbursementAccountNavigatorParamList = {
     [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: {
-        stepToOpen: string;
-        policyID: string;
+        stepToOpen?: string;
+        backTo?: Routes;
+        policyID?: string;
     };
 };
 
@@ -609,6 +607,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
@@ -632,6 +633,16 @@ type FullScreenNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACES_CENTRAL_PANE]: NavigatorScreenParams<WorkspacesCentralPaneNavigatorParamList>;
+};
+
+type OnboardingModalNavigatorParamList = {
+    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
+    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
+    [SCREENS.ONBOARDING.PURPOSE]: undefined;
+};
+
+type WelcomeVideoModalNavigatorParamList = {
+    [SCREENS.WELCOME_VIDEO.ROOT]: undefined;
 };
 
 type BottomTabNavigatorParamList = {
@@ -693,6 +704,8 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
+    [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
+    [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [SCREENS.TRANSACTION_RECEIPT]: {
         reportID: string;
@@ -730,6 +743,8 @@ export type {
     BottomTabNavigatorParamList,
     LeftModalNavigatorParamList,
     RightModalNavigatorParamList,
+    OnboardingModalNavigatorParamList,
+    WelcomeVideoModalNavigatorParamList,
     PublicScreensParamList,
     MoneyRequestNavigatorParamList,
     SplitDetailsNavigatorParamList,

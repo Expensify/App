@@ -29,6 +29,7 @@ const SCREENS = {
         WORKSPACES: 'Settings_Workspaces',
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
+        SAVE_THE_WORLD: 'Settings_TeachersUnite',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
@@ -127,6 +128,9 @@ const SCREENS = {
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
     },
+    ONBOARDING_MODAL: {
+        ONBOARDING: 'Onboarding',
+    },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
@@ -209,6 +213,7 @@ const SCREENS = {
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
+        ACCOUNTING: 'Workspace_Accounting',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CATEGORIES: 'Workspace_Categories',
@@ -242,7 +247,6 @@ const SCREENS = {
         CATEGORIES_SETTINGS: 'Categories_Settings',
         MORE_FEATURES: 'Workspace_More_Features',
         MEMBER_DETAILS: 'Workspace_Member_Details',
-        MEMBER_DETAILS_ROLE_SELECTION: 'Workspace_Member_Details_Role_Selection',
         OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
         OWNER_CHANGE_SUCCESS: 'Workspace_Owner_Change_Success',
         OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
@@ -272,10 +276,19 @@ const SCREENS = {
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
     },
 
+    ONBOARDING: {
+        PERSONAL_DETAILS: 'Onboarding_Personal_Details',
+        PURPOSE: 'Onboarding_Purpose',
+    },
+
     ONBOARD_ENGAGEMENT: {
         ROOT: 'Onboard_Engagement_Root',
         MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
         EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
+    },
+
+    WELCOME_VIDEO: {
+        ROOT: 'Welcome_Video_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
