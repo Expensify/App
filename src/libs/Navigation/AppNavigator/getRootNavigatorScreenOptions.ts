@@ -5,6 +5,7 @@ import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
+import getModalPresentationStyle from './getModalPresentationStyle';
 
 type GetOnboardingModalNavigatorOptions = (shouldUseNarrowLayout: boolean) => StackNavigationOptions;
 
@@ -35,7 +36,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         rightModalNavigator: {
             ...commonScreenOptions,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
-            presentation: 'transparentModal',
+            presentation: getModalPresentationStyle(),
 
             // We want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
@@ -67,7 +68,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         leftModalNavigator: {
             ...commonScreenOptions,
             cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
-            presentation: 'transparentModal',
+            presentation: getModalPresentationStyle(),
             gestureDirection: 'horizontal-inverted',
 
             // We want pop in LHP since there are some flows that would work weird otherwise
