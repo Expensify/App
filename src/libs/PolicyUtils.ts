@@ -8,9 +8,7 @@ import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, Polic
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
-import Navigation, {navigationRef} from './Navigation/Navigation';
-import type {RootStackParamList, State} from './Navigation/types';
+import Navigation from './Navigation/Navigation';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -310,51 +308,43 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, feature
     return Boolean(policy?.[featureName]);
 }
 
-/**
- *  Get the currently selected policy ID stored in the navigation state.
- */
-function getPolicyIDFromNavigationState() {
-    return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
-}
-
 export {
-    getActivePolicies,
-    hasAccountingConnections,
-    hasPolicyMemberError,
-    hasPolicyError,
-    hasPolicyErrorFields,
-    hasCustomUnitsError,
-    getNumericValue,
-    getUnitRateValue,
-    getPolicyBrickRoadIndicatorStatus,
-    shouldShowPolicy,
-    isExpensifyTeam,
-    isInstantSubmitEnabled,
-    isFreeGroupPolicy,
-    isPolicyAdmin,
-    isTaxTrackingEnabled,
-    isSubmitAndClose,
-    getMemberAccountIDsForWorkspace,
-    getIneligibleInvitees,
-    getTagLists,
-    getTagListName,
-    getSortedTagKeys,
     canEditTaxRate,
-    getTagList,
+    extractPolicyIDFromPath,
+    getActivePolicies,
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
-    isPendingDeletePolicy,
-    isPolicyMember,
-    isPaidGroupPolicy,
-    extractPolicyIDFromPath,
+    getIneligibleInvitees,
+    getMemberAccountIDsForWorkspace,
+    getNumericValue,
     getPathWithoutPolicyID,
+    getPolicyBrickRoadIndicatorStatus,
     getPolicyMembersByIdWithoutCurrentUser,
-    goBackFromInvalidPolicy,
-    isPolicyFeatureEnabled,
-    hasTaxRateError,
+    getSortedTagKeys,
+    getTagList,
+    getTagListName,
+    getTagLists,
     getTaxByID,
+    getUnitRateValue,
+    goBackFromInvalidPolicy,
+    hasAccountingConnections,
+    hasCustomUnitsError,
     hasPolicyCategoriesError,
-    getPolicyIDFromNavigationState,
+    hasPolicyError,
+    hasPolicyErrorFields,
+    hasPolicyMemberError,
+    hasTaxRateError,
+    isExpensifyTeam,
+    isFreeGroupPolicy,
+    isInstantSubmitEnabled,
+    isPaidGroupPolicy,
+    isPendingDeletePolicy,
+    isPolicyAdmin,
+    isPolicyFeatureEnabled,
+    isPolicyMember,
+    isSubmitAndClose,
+    isTaxTrackingEnabled,
+    shouldShowPolicy,
 };
 
 export type {MemberEmailsToAccountIDs};
