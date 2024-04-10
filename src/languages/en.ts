@@ -634,6 +634,7 @@ export default {
         routePending: 'Route pending...',
         receiptScanning: 'Receipt scanning…',
         receiptScanInProgress: 'Receipt scan in progress.',
+        receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
         receiptMissingDetails: 'Receipt missing details',
         missingAmount: 'Missing amount',
         missingMerchant: 'Missing merchant',

@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as HeaderUtils from '@libs/HeaderUtils';
@@ -10,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,8 +26,6 @@ import * as Expensicons from './Icon/Expensicons';
 import {ReceiptScan} from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
-import variables from '@styles/variables';
-import theme from '@styles/theme';
 
 type MoneyRequestHeaderOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -58,6 +58,7 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
 
 function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy}: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
@@ -192,8 +193,15 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 )}
                 {isScanning && (
                     <MoneyRequestHeaderStatusBar
-                        title={translate('iou.receiptStatusTitle')}
-                        description={translate('iou.receiptStatusText')}
+                        title={
+                            <Icon
+                                src={ReceiptScan}
+                                height={variables.iconSizeExtraSmall}
+                                width={variables.iconSizeExtraSmall}
+                                fill={theme.textSupporting}
+                            />
+                        }
+                        description={translate('iou.receiptScanInProgressDescription')}
                         shouldShowBorderBottom
                     />
                 )}
@@ -217,19 +225,6 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 />
             )}
         </>
-    );
-}
-
-function ScanningReceiptHeaderTitle() {
-    return (
-        <View>
-            <Icon
-                src={ReceiptScan}
-                height={variables.iconSizeExtraSmall}
-                width={variables.iconSizeExtraSmall}
-                fill={theme.}
-            />
-        </View>
     );
 }
 

@@ -630,6 +630,7 @@ export default {
         routePending: 'Ruta pendiente...',
         receiptScanning: 'Escaneo en curso…',
         receiptScanInProgress: 'Escaneo en curso…',
+        receiptScanInProgressDescription: 'Escaneo en curso.',
         receiptMissingDetails: 'Recibo con campos vacíos',
         missingAmount: 'Falta importe',
         missingMerchant: 'Falta comerciante',
