@@ -258,11 +258,6 @@ const ROUTES = {
         getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
             `r/${reportID}/split/${reportActionID}/edit/${field}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
     },
-    EDIT_SPLIT_BILL_CURRENCY: {
-        route: 'r/:reportID/split/:reportActionID/edit/currency',
-        getRoute: (reportID: string, reportActionID: string, currency: string, backTo: string) =>
-            `r/${reportID}/split/${reportActionID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
-    },
     TASK_TITLE: {
         route: 'r/:reportID/title',
         getRoute: (reportID: string) => `r/${reportID}/title` as const,
@@ -294,10 +289,6 @@ const ROUTES = {
     MONEY_REQUEST_PARTICIPANTS: {
         route: ':iouType/new/participants/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
-    },
-    MONEY_REQUEST_CURRENCY: {
-        route: ':iouType/new/currency/:reportID?',
-        getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}` as const,
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':iouType/edit/reason/:transactionID?',

@@ -360,12 +360,6 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.CURRENCY]: {
-        iouType: string;
-        reportID: string;
-        currency: string;
-        backTo: Routes;
-    };
     [SCREENS.MONEY_REQUEST.STEP_DATE]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
@@ -402,6 +396,8 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        reportActionID: string;
+        tagIndex: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -443,6 +439,11 @@ type MoneyRequestNavigatorParamList = {
     };
     [SCREENS.MONEY_REQUEST.RECEIPT]: {
         iouType: string;
+        reportID: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
@@ -500,7 +501,6 @@ type SplitDetailsNavigatorParamList = {
         currency: string;
         tagIndex: string;
     };
-    [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: undefined;
 };
 
 type AddPersonalBankAccountNavigatorParamList = {
@@ -534,7 +534,6 @@ type EditRequestNavigatorParamList = {
         field: string;
         threadReportID: string;
     };
-    [SCREENS.EDIT_REQUEST.CURRENCY]: undefined;
 };
 
 type SignInNavigatorParamList = {
