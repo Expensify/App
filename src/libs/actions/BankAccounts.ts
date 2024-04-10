@@ -236,7 +236,6 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
             },
         ],
         failureData: [
-            // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
