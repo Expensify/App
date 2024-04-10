@@ -360,12 +360,6 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.CURRENCY]: {
-        iouType: string;
-        reportID: string;
-        currency: string;
-        backTo: Routes;
-    };
     [SCREENS.MONEY_REQUEST.STEP_DATE]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
