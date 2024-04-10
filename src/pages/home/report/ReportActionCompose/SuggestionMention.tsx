@@ -299,7 +299,7 @@ function SuggestionMention(
              * because in other case calculateEmojiSuggestion will have an old calculation value
              * of suggestion instead of current one
              */
-            calculateMentionSuggestion(e.nativeEvent.selection.end)
+            calculateMentionSuggestion(e.nativeEvent.selection.end);
         },
         [calculateMentionSuggestion],
     );
