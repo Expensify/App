@@ -12,15 +12,15 @@ import * as OnyxUpdates from './OnyxUpdates';
  * @param shouldRunSync
  * @returns
  */
-export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, shouldRunSync = false) {
+export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, shouldRunSync = false, clientLastUpdateID = 0) {
     const previousUpdateID = Number(updates.previousUpdateID) || 0;
-    if (!OnyxUpdates.doesClientNeedToBeUpdated(previousUpdateID)) {
+    if (!OnyxUpdates.doesClientNeedToBeUpdated(previousUpdateID, clientLastUpdateID)) {
         OnyxUpdates.apply(updates);
         return;
     }
 
     if (shouldRunSync) {
-        handleOnyxUpdateGap(updates);
+        handleOnyxUpdateGap(updates, clientLastUpdateID);
         return;
     }
 

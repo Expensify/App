@@ -38,7 +38,13 @@ Onyx.connect({
     },
 });
 
-function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>) {
+/**
+ *
+ * @param onyxUpdatesFromServer
+ * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
+ * @returns
+ */
+function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID = 0) {
     // When the OpenApp command hasn't finished yet, we should not process any updates.
     if (!onyxUpdatesFromServer || isLoadingApp) {
         if (isLoadingApp) {
@@ -70,6 +76,7 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
     const updateParams = onyxUpdatesFromServer;
     const lastUpdateIDFromServer = onyxUpdatesFromServer.lastUpdateID;
     const previousUpdateIDFromServer = onyxUpdatesFromServer.previousUpdateID;
+    const lastUpdateIDFromClient = clientLastUpdateID || lastUpdateIDAppliedToClient;
 
     // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
     // we need to perform one of the 2 possible cases:
@@ -86,20 +93,20 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
     let canUnpauseQueuePromise;
 
     // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
-    if (!lastUpdateIDAppliedToClient) {
+    if (!lastUpdateIDFromClient) {
         Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
 
         // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
         canUnpauseQueuePromise = App.finalReconnectAppAfterActivatingReliableUpdates();
     } else {
         // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
-        console.debug(`[OnyxUpdateManager] Client is behind the server by ${Number(previousUpdateIDFromServer) - lastUpdateIDAppliedToClient} so fetching incremental updates`);
+        console.debug(`[OnyxUpdateManager] Client is behind the server by ${Number(previousUpdateIDFromServer) - lastUpdateIDFromClient} so fetching incremental updates`);
         Log.info('Gap detected in update IDs from server so fetching incremental updates', true, {
             lastUpdateIDFromServer,
             previousUpdateIDFromServer,
-            lastUpdateIDAppliedToClient,
+            lastUpdateIDFromClient,
         });
-        canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDAppliedToClient, previousUpdateIDFromServer);
+        canUnpauseQueuePromise = App.getMissingOnyxUpdates(lastUpdateIDFromClient, previousUpdateIDFromServer);
     }
 
     canUnpauseQueuePromise.finally(() => {
@@ -115,7 +122,7 @@ export default () => {
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     Onyx.connect({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
-        callback: handleOnyxUpdateGap,
+        callback: (value) => handleOnyxUpdateGap(value),
     });
 };
 
