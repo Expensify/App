@@ -463,6 +463,7 @@ export type {
     IntegrationEntityMap,
     PolicyFeatureName,
     PendingJoinRequestPolicy,
+    PolicyConnectionName,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
 };
