@@ -47,6 +47,9 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
     const personalDetails = usePersonalDetails();
     const prevReports = usePrevious(reports);
 
+    /**
+     * This effect is used to update the options list when a report is updated.
+     */
     useEffect(() => {
         // there is no need to update the options if the options are not initialized
         if (!areOptionsInitialized.current) {
@@ -74,19 +77,16 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports]);
 
+    /**
+     * This effect is used to add a new report option to the list of options when a new report is added to the collection.
+     */
     useEffect(() => {
         if (!areOptionsInitialized.current || !reports) {
             return;
         }
         const missingReportId = Object.keys(reports).find((key) => prevReports && !(key in prevReports));
-
-        if (!missingReportId || !reports[missingReportId]) {
-            return;
-        }
-
-        const report = reports[missingReportId];
-
-        if (!report) {
+        const report = missingReportId ? reports[missingReportId] : null;
+        if (!missingReportId || !report) {
             return;
         }
 
@@ -99,6 +99,9 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports]);
 
+    /**
+     * This effect is used to update the options list when personal details change.
+     */
     useEffect(() => {
         // there is no need to update the options if the options are not initialized
         if (!areOptionsInitialized.current) {
