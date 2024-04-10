@@ -1955,6 +1955,23 @@ function getIcons(
         return [groupChatIcon];
     }
 
+    if (isInvoiceRoom(report)) {
+        const workspaceIcon = getWorkspaceIcon(report, policy);
+
+        const receiverPolicyID = Object.values(report.participants ?? {})?.find((participant) => participant.type === 'policy')?.policyID ?? '';
+        const receiverPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`];
+        const isWorkspaceToWorkspace = !!receiverPolicyID && receiverPolicy;
+        const icons = [];
+
+        if (isWorkspaceToWorkspace) {
+            icons.push(getWorkspaceIcon(report, receiverPolicy));
+        } else {
+            icons.push(...getIconsForParticipants(report?.participantAccountIDs ?? [], personalDetails));
+        }
+
+        return [workspaceIcon, ...icons];
+    }
+
     return getIconsForParticipants(report?.participantAccountIDs ?? [], personalDetails);
 }
 
