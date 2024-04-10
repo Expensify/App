@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-import core from '@actions/core';
+import * as core from '@actions/core';
 import {context} from '@actions/github';
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
@@ -42,8 +42,8 @@ async function commentPR(PR: number, message: string) {
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
 async function run() {
-    const prList = ActionUtils.getJSONInput('PR_LIST', {required: true}).map((num: string) => Number.parseInt(num, 10));
-    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
+    const prList = (ActionUtils.getJSONInput('PR_LIST', {required: true}) as string[]).map((num) => Number.parseInt(num, 10));
+    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true}) as boolean;
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
     const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}) as PlatformResult);
