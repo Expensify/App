@@ -27,7 +27,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
-import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import Performance from '@libs/Performance';
@@ -275,7 +274,7 @@ function ReportScreen({
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
     }
     const [isComposerFocus, setIsComposerFocus] = useState(false);
-    const shouldAdjustScrollView = useMemo(() => Browser.isMobileSafari() && isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
+    const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
     const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
 
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);

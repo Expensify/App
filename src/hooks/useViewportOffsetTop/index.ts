@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
+import * as Browser from '@libs/Browser';
 import addViewportResizeListener from '@libs/VisualViewport';
 
 /**
@@ -15,7 +16,7 @@ export default function useViewportOffsetTop(shouldAdjustScrollView = false): nu
                 targetOffsetTop = event.target.offsetTop;
             }
 
-            if (shouldAdjustScrollView && window.visualViewport) {
+            if (Browser.isMobileSafari() && shouldAdjustScrollView && window.visualViewport) {
                 const clientHeight = document.body.clientHeight;
                 const adjustScrollY = Math.round(clientHeight - window.visualViewport.height);
                 if (cachedDefaultOffsetTop.current === 0) {
