@@ -332,8 +332,8 @@ function SuggestionMention(
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
             }
 
-            const shouldDisplayMenetionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
-            if (!isCursorBeforeTheMention && prefixType === '#' && shouldDisplayMenetionsSuggestions) {
+            const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
+            if (!isCursorBeforeTheMention && prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
                 // filter reports by room name and current policy
                 const filteredRoomMentions = getRoomMentionOptions(prefix, reports);
                 nextState.suggestedMentions = filteredRoomMentions;

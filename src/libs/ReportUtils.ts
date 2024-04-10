@@ -5752,8 +5752,8 @@ function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject):
     return {};
 }
 
-function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyId: string): boolean {
-    if (report?.policyID !== policyId) {
+function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: string): boolean {
+    if (report?.policyID !== policyID) {
         return false;
     }
 
