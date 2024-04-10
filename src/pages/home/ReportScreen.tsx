@@ -383,15 +383,21 @@ function ReportScreen({
     }, [reportIDFromRoute, reportActionIDFromRoute]);
 
     useEffect(() => {
-        if (!report.reportID || !isFocused) {
+        if (!report.reportID) {
             return;
         }
-        Report.updateLastVisitTime(report.reportID);
 
         if (report?.errorFields?.notFound) {
             Report.clearReportNotFoundErrors(report.reportID);
         }
-    }, [report.reportID, isFocused, report?.errorFields?.notFound]);
+    }, [report?.errorFields?.notFound, report.reportID]);
+
+    useEffect(() => {
+        if (!report.reportID || !isFocused) {
+            return;
+        }
+        Report.updateLastVisitTime(report.reportID);
+    }, [report.reportID, isFocused]);
 
     const fetchReportIfNeeded = useCallback(() => {
         // Report ID will be empty when the reports collection is empty.
