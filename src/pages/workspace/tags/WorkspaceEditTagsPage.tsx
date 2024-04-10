@@ -81,7 +81,7 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
                                     inputID={INPUT_IDS.POLICY_TAGS_NAME}
                                     label={translate(`workspace.tags.customTagName`)}
                                     accessibilityLabel={translate(`workspace.tags.customTagName`)}
-                                    defaultValue={taglistName}
+                                    defaultValue={PolicyUtils.getCleanedTagName(taglistName)}
                                     role={CONST.ROLE.PRESENTATION}
                                     ref={inputCallbackRef}
                                 />
