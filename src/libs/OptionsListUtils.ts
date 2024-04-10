@@ -2247,39 +2247,35 @@ function filterOptions(options: Options, searchInputValue: string): Options {
         return keys;
     };
     const matchResults = searchTerms.reduceRight((items, term) => {
-        const recentReports = filterArrayByMatch(items.recentReports, term, {
-            keys: [
-                (item) => {
-                    let keys: string[] = [];
-                    if (item.text) {
-                        keys.push(item.text);
-                    }
+        const recentReports = filterArrayByMatch(items.recentReports, term, (item) => {
+            let values: string[] = [];
+            if (item.text) {
+                values.push(item.text);
+            }
 
-                    if (item.login) {
-                        keys.push(item.login);
-                        keys.push(item.login.replace(emailRegex, ''));
-                    }
+            if (item.login) {
+                values.push(item.login);
+                values.push(item.login.replace(emailRegex, ''));
+            }
 
-                    if (item.isThread) {
-                        if (item.alternateText) {
-                            keys.push(item.alternateText);
-                        }
-                        keys = keys.concat(getParticipantsLoginsArray(item));
-                    } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
-                        if (item.subtitle) {
-                            keys.push(item.subtitle);
-                        }
-                    } else {
-                        keys = keys.concat(getParticipantsLoginsArray(item));
-                    }
+            if (item.isThread) {
+                if (item.alternateText) {
+                    values.push(item.alternateText);
+                }
+                values = values.concat(getParticipantsLoginsArray(item));
+            } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
+                if (item.subtitle) {
+                    values.push(item.subtitle);
+                }
+            } else {
+                values = values.concat(getParticipantsLoginsArray(item));
+            }
 
-                    return uniqFast(keys);
-                },
-            ],
+            return uniqFast(values);
         });
-        const personalDetails = filterArrayByMatch(items.personalDetails, term, {
-            keys: [(item) => item.participantsList?.[0]?.displayName ?? '', 'login', (item) => item.login?.replace(emailRegex, '') ?? ''],
-        });
+        const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) =>
+            uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login?.replace(emailRegex, '') ?? '']),
+        );
 
         return {
             recentReports: recentReports ?? [],
