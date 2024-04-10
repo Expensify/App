@@ -29,7 +29,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
     /**
      * On small screens notify parent that the keyboard has opened or closed.
      *
-     * @param isKeyboardOpen True if keyboard is open
+     * @param isKBOpen True if keyboard is open
      */
     const toggleKeyboardOnSmallScreens = useCallback(
         (isKBOpen: boolean) => {
@@ -39,7 +39,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
             setIsKeyboardOpen(isKBOpen);
             onToggleKeyboard?.(isKBOpen);
         },
-        [isKeyboardOpen, isSmallScreenWidth, onToggleKeyboard],
+        [isSmallScreenWidth, onToggleKeyboard],
     );
 
     /**
