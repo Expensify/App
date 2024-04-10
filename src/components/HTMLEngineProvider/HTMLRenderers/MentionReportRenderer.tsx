@@ -30,11 +30,13 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReportID: strin
     let reportID: string | undefined;
     let mentionDisplayText: string;
 
+    // get mention details based on reportID from tag attribute
     if (!isEmpty(htmlAttributeReportID)) {
         const report = reports?.['report_'.concat(htmlAttributeReportID)];
 
         reportID = report?.reportID ?? undefined;
         mentionDisplayText = report?.reportName ?? report?.displayName ?? htmlAttributeReportID;
+    // get mention details from name inside tnode
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
 
@@ -52,7 +54,7 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReportID: strin
     return {reportID, mentionDisplayText};
 };
 
-function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaultRendererProps}: MentionRoomRendererProps) {
+function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defaultRendererProps}: MentionRoomRendererProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
@@ -96,12 +98,8 @@ function MentionRoomRenderer({style, tnode, TDefaultRenderer, reports, ...defaul
     );
 }
 
-MentionRoomRenderer.displayName = 'MentionRoomRenderer';
+MentionReportRenderer.displayName = 'MentionReportRenderer';
 
-/**
- * This function narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
- * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
- */
 const chatReportSelector = (report: OnyxEntry<Report>): Report =>
     (report && {
         reportID: report.reportID,
@@ -115,4 +113,4 @@ export default withOnyx<MentionRoomRendererProps, RoomMentionOnyxProps>({
         key: ONYXKEYS.COLLECTION.REPORT,
         selector: chatReportSelector,
     },
-})(MentionRoomRenderer);
+})(MentionReportRenderer);
