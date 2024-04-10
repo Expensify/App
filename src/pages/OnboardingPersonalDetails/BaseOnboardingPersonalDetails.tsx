@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useTheme from '@hooks/useTheme';
@@ -35,6 +36,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const saveAndNavigate = useCallback((values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
         PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
@@ -107,6 +109,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
+                            ref={inputCallbackRef}
                             inputID={INPUT_IDS.FIRST_NAME}
                             name="fname"
                             label={translate('common.firstName')}
@@ -116,7 +119,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                             shouldSaveDraft
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
-                            autoFocus
                         />
                     </View>
                     <View>
