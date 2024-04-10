@@ -1,16 +1,16 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React, {useState} from 'react';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
-type TextInputStory = ComponentStory<typeof TextInput>;
+type TextInputStory = StoryFn<typeof TextInput>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof TextInput> = {
+const story: Meta<typeof TextInput> = {
     title: 'Components/TextInput',
     component: TextInput,
 };
