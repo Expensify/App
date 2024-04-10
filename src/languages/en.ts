@@ -1810,7 +1810,7 @@ export default {
         subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
         features: {
             saveMoney: 'Save money on your bookings',
-            alerts: 'Get realtime updates and alerts',
+            alerts: 'Get real time updates and alerts',
         },
         bookTravel: 'Book travel',
         termsAndConditions: {
