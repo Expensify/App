@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -23,6 +24,7 @@ type SelectorType = {
 
 function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const [selectedAccount, setSelectedAccount] = useState('Croissant Co Payroll Account');
 
@@ -58,12 +60,10 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
             shouldEnableMaxHeight
             testID={QuickbooksInvoiceAccountSelectPage.displayName}
         >
-            <HeaderWithBackButton title="Invoice Collection Account" />
+            <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.collectionAccount')} />
 
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>
-                    If you are exporting Invoices from Expensify to Quickbooks Online, this is the account the Invoice will appear against once marked as Paid.
-                </Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectDescription')}</Text>
             </View>
             <ScrollView>{showQBOOnlineSelectorOptions()}</ScrollView>
         </ScreenWrapper>
