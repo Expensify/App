@@ -76,7 +76,7 @@ function IOURequestStepParticipants({
             return;
         }
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
-    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, iouAction])
+    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, iouAction]);
 
     const updateRouteParams = useCallback(() => {
         const navigationState = navigation.getState();

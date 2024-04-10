@@ -2681,7 +2681,7 @@ function requestMoney(
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
-    const isMovingTransactionFromTrackExpense = action === CONST.IOU.ACTION.MOVE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE;
+    const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
     const {
         payerAccountID,
@@ -2813,7 +2813,7 @@ function requestMoney(
     }
 
     if (action === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? ''))
+        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? ''));
     } else {
         Navigation.dismissModal(activeReportID);
     }
