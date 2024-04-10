@@ -71,11 +71,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 text: translate('workspace.accounting.disconnect'),
                 onSelected: () => {
                     setIsDisconnectModalOpen(true);
-                    removePolicyConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO);
                 },
             },
         ],
-        [translate, policyID],
+        [translate],
     );
 
     const menuItems: MenuItemProps[] = useMemo(
@@ -212,7 +211,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                         <ConfirmModal
                             title={translate('workspace.accounting.disconnectTitle')}
                             isVisible={isDisconnectModalOpen}
-                            onConfirm={() => {}}
+                            onConfirm={() => {
+                                removePolicyConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO);
+                                setIsDisconnectModalOpen(false);
+                            }}
                             onCancel={() => setIsDisconnectModalOpen(false)}
                             prompt={translate('workspace.accounting.disconnectPrompt')}
                             confirmText={translate('workspace.accounting.disconnect')}
