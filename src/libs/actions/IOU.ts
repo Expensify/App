@@ -322,7 +322,7 @@ function clearMoneyRequest(transactionID: string) {
 /**
  * Update money request-related pages IOU type params
  */
-function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase>['routes'] | NavigationPartialRoute[], newIouType: string, tab: string) {
+function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase>['routes'] | NavigationPartialRoute[], newIouType: string, tab?: string) {
     routes.forEach((route) => {
         const tabList = [CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN] as string[];
         if (!route.name.startsWith('Money_Request_') && !tabList.includes(route.name)) {

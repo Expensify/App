@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import type * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
@@ -38,7 +39,7 @@ type TagPickerProps = TagPickerOnyxProps & {
     tagListName: string;
 
     /** Callback to submit the selected tag */
-    onSubmit: () => void;
+    onSubmit: (selectedTag: Partial<ReportUtils.OptionData>) => void;
 
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
