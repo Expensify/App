@@ -305,7 +305,7 @@ function BaseVideoPlayer({
                                 )}
                             </PressableWithoutFeedback>
                             {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-                            {isLoading && <AttachmentOfflineIndicator isPreview={isPreview} />}
+                            {isLoading && !isBuffering && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}
