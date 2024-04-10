@@ -149,6 +149,7 @@ function MoneyRequestView({
     const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    const canEditRate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RATE);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
@@ -291,12 +292,12 @@ function MoneyRequestView({
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
                     title={rateToDisplay}
-                    // TODO: https://github.com/Expensify/App/issues/36987 make it interactive and show right icon when EditRatePage is ready
-                    interactive={false}
-                    shouldShowRightIcon={false}
+                    interactive={canEditRate}
+                    shouldShowRightIcon={canEditRate}
                     titleStyle={styles.flex1}
-                    // TODO: https://github.com/Expensify/App/issues/36987 Add route for editing rate
-                    onPress={() => {}}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                    }
                 />
             </OfflineWithFeedback>
         </>

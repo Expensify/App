@@ -633,9 +633,15 @@ function getEnabledTaxRateCount(options: TaxRates) {
 /**
  * Check if the customUnitRateID has a value default for P2P distance requests
  */
-
 function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+}
+
+/**
+ * Check if the customUnitRateID has a value default for P2P distance requests
+ */
+function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
+    return transaction?.comment?.customUnit?.customUnitRateID?.toString();
 }
 
 /**
@@ -710,6 +716,7 @@ export {
     getRecentTransactions,
     hasViolation,
     isCustomUnitRateIDForP2P,
+    getRateID,
 };
 
 export type {TransactionChanges};

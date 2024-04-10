@@ -441,9 +441,9 @@ function setCustomUnitRateID(transactionID: string, reportID: string) {
 }
 
 /** Update transaction distance rate */
-function updateDistanceRequestRate(transactionID: string, rateID: string, policyID: string) {
+function updateDistanceRequestRate(transactionID: string, rateID: string, policyID: string, isDraft: boolean) {
     Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: rateID});
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
 }
 
 /** Reset money request info from the store with its initial value */
