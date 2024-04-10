@@ -43,6 +43,7 @@ export default () => {
         callback: (value) => {
             // When the OpenApp command hasn't finished yet, we should not process any updates.
             if (!value || isLoadingApp) {
+                console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hans't finished yet.`);
                 return;
             }
             // This key is shared across clients, thus every client/tab will have a copy and try to execute this method.
