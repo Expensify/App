@@ -61,7 +61,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-                [SCREENS.SEARCH]: ROUTES.SEARCH,
+                [SCREENS.SEARCH.CENTRAL_PANE]: ROUTES.SEARCH.route,
             },
         },
         [SCREENS.NOT_FOUND]: '*',
@@ -591,6 +591,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: {
                     screens: {
                         [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
+                    screens: {
+                        [SCREENS.SEARCH.REPORT]: ROUTES.SEARCH_REPORT.route,
                     },
                 },
             },

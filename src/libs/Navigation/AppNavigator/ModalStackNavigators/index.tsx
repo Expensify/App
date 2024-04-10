@@ -23,6 +23,7 @@ import type {
     ReportSettingsNavigatorParamList,
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
+    SearchReportParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     SplitDetailsNavigatorParamList,
@@ -147,6 +148,10 @@ const RoomInviteModalStackNavigator = createModalStackNavigator<RoomInviteNaviga
 
 const SearchModalStackNavigator = createModalStackNavigator<FindNavigatorParamList>({
     [SCREENS.FIND_ROOT]: () => require('../../../../pages/SearchPage').default as React.ComponentType,
+});
+
+const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
+    [SCREENS.SEARCH.REPORT]: () => require('../../../../pages/home/ReportScreen').default as React.ComponentType,
 });
 
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
@@ -342,4 +347,5 @@ export {
     WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
     WorkspaceSettingsModalStackNavigator,
+    SearchReportModalStackNavigator,
 };

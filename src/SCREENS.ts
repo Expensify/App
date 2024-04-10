@@ -13,8 +13,6 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     ALL_SETTINGS: 'AllSettings',
-    SEARCH: 'Search',
-    SEARCH_BOTTOM_TAB: 'SearchBottomTab',
     REPORT: 'Report',
     PROFILE_AVATAR: 'ProfileAvatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
@@ -25,6 +23,11 @@ const SCREENS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
+    SEARCH: {
+        CENTRAL_PANE: 'Search_Central_Pane',
+        REPORT: 'Search_Report',
+        BOTTOM_TAB: 'Search_Bottom_Tab',
+    },
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -127,6 +130,7 @@ const SCREENS = {
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
+        SEARCH_REPORT: 'Search_Report',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',

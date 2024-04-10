@@ -3194,11 +3194,19 @@ const CONST = {
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
+        SEARCH: 'search',
     },
     TAB_REQUEST: {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
+    },
+    TAB_SEARCH: {
+        ALL: 'all',
+        SENT: 'sent',
+        DRAFTS: 'drafts',
+        WAITING_ON_YOU: 'waitingOnYou',
+        FINISHED: 'finished',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 

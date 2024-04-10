@@ -60,7 +60,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         const routes = reduceCentralPaneRoutes(state.routes);
 
         const lastRoute = routes[routes.length - 1];
-        const isLastRouteSearchRoute = getTopmostCentralPaneRoute({routes: [lastRoute]} as State<RootStackParamList>)?.name === SCREENS.SEARCH;
+        const isLastRouteSearchRoute = getTopmostCentralPaneRoute({routes: [lastRoute]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
         const firstRoute = routes[0];
 

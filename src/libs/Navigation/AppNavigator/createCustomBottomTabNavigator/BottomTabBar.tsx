@@ -56,8 +56,8 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
         const topmostCentralPaneRoute = getTopmostCentralPaneRoute(state);
 
-        if (topmostCentralPaneRoute && topmostCentralPaneRoute.name === SCREENS.SEARCH) {
-            return SCREENS.SEARCH;
+        if (topmostCentralPaneRoute && topmostCentralPaneRoute.name === SCREENS.SEARCH.CENTRAL_PANE) {
+            return SCREENS.SEARCH.CENTRAL_PANE;
         }
 
         const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
@@ -92,7 +92,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     onPress={() => {
-                        Navigation.navigate(ROUTES.SEARCH);
+                        Navigation.navigate(ROUTES.SEARCH.getRoute('all'));
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}
@@ -102,7 +102,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     <View>
                         <Icon
                             src={Expensicons.ReceiptSearch}
-                            fill={currentTabName === SCREENS.SEARCH ? theme.iconMenu : theme.icon}
+                            fill={currentTabName === SCREENS.SEARCH.CENTRAL_PANE ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
