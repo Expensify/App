@@ -28,7 +28,7 @@ Onyx.connect({
     callback: (value) => (lastUpdateIDAppliedToClient = value),
 });
 
-let isLoadingApp: boolean | null = false;
+let isLoadingApp = false;
 Onyx.connect({
     key: ONYXKEYS.IS_LOADING_APP,
     callback: (value) => {
