@@ -57,7 +57,6 @@ function SuggestionMention(
 
     // Used to store the selection index of the last inserted mention
     const suggestionInsertionIndexRef = useRef<number | null>(null);
-    const calculateMentionSuggestionRef = useRef<(selectionEnd: number) => void>();
 
     // Used to detect if the selection has changed since the last suggestion insertion
     // If so, we reset the suggestionInsertionIndexRef
@@ -268,14 +267,10 @@ function SuggestionMention(
     );
 
     useEffect(() => {
-        calculateMentionSuggestionRef.current = calculateMentionSuggestion;
-    }, [calculateMentionSuggestion]);
-
-    useEffect(() => {
         if (!isComposerFocused) {
             return;
         }
-        calculateMentionSuggestionRef.current?.(selection.end);
+        calculateMentionSuggestion(selection.end);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFocused]);
 
@@ -304,14 +299,9 @@ function SuggestionMention(
              * because in other case calculateEmojiSuggestion will have an old calculation value
              * of suggestion instead of current one
              */
-            const selectionEnd = e.nativeEvent.selection.end;
-            // On iOS, onSelectionChange is called before onChangeText, so it's possible we calculate the mention suggestion with a new selection value but with an old composer value
-            // We use setTimeout to delay the calculation so both selection and value is matched correctly
-            setTimeout(() => {
-                calculateMentionSuggestionRef.current?.(selectionEnd);
-            }, 1);
+            calculateMentionSuggestion(e.nativeEvent.selection.end)
         },
-        [],
+        [calculateMentionSuggestion],
     );
 
     useImperativeHandle(
