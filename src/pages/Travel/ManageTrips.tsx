@@ -32,8 +32,8 @@ function ManageTrips() {
                     menuItems={tripsFeatures}
                     title={translate('travel.title')}
                     subtitle={translate('travel.subtitle')}
-                    ctaText={translate('travel.bookOrManage')}
-                    ctaAccessibilityLabel={translate('travel.bookOrManage')}
+                    ctaText={translate('travel.bookTravel')}
+                    ctaAccessibilityLabel={translate('travel.bookTravel')}
                     onCtaPress={() => {}}
                     illustration={LottieAnimations.Plane}
                     illustrationStyle={styles.travelIllustrationStyle}

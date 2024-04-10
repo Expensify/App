@@ -1833,12 +1833,11 @@ export default {
     },
     travel: {
         header: 'Mis viajes',
-        title: 'Reserva o gestiona tus viajes',
+        title: 'Reserva y gestiona tus viajes',
         subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos tus gastos de negocio en un solo lugar.',
-        bookOrManage: 'Reservar o gestionar',
         features: {
             saveMoney: 'Ahorra dinero en tus reservas',
-            alerts: 'Recibe alertas en tiempo real si cambian tus planes de viaje',
+            alerts: 'Obtén actualizaciones y alertas en tiempo real',
         },
         bookTravel: 'Reservar viajes',
     },
