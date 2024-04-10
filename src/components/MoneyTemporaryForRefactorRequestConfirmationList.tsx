@@ -209,13 +209,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-<<<<<<< HEAD:src/components/MoneyTemporaryForRefactorRequestConfirmationList.tsx
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
-=======
     const {canUseViolations} = usePermissions();
 
->>>>>>> main:src/components/MoneyTemporaryForRefactorRequestConfirmationList.js
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
