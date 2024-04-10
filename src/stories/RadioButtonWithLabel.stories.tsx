@@ -1,16 +1,16 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import type {RadioButtonWithLabelProps} from '@components/RadioButtonWithLabel';
 
-type RadioButtonWithLabelStory = ComponentStory<typeof RadioButtonWithLabel>;
+type RadioButtonWithLabelStory = StoryFn<typeof RadioButtonWithLabel>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof RadioButtonWithLabel> = {
+const story: Meta<typeof RadioButtonWithLabel> = {
     title: 'Components/RadioButtonWithLabel',
     component: RadioButtonWithLabel,
 };
