@@ -33,8 +33,9 @@ export default function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}) => {
         if (!ActiveClientManager.isClientTheLeader()) {
             Log.info('[PushNotification] received report comment notification, but ignoring it since this is not the active client');
-            return;
+            return Promise.resolve();
         }
+
         Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
         if (onyxData && lastUpdateID && previousUpdateID) {
@@ -55,6 +56,8 @@ export default function subscribeToReportCommentPushNotifications() {
         } else {
             Log.hmmm("[PushNotification] Didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
         }
+
+        return Promise.resolve();
     });
 
     // Open correct report when push notification is clicked
@@ -96,5 +99,7 @@ export default function subscribeToReportCommentPushNotifications() {
                     }
                 });
             });
+
+        return Promise.resolve();
     });
 }
