@@ -1900,6 +1900,15 @@ export default {
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
             exportVendorBillDescription:
                 'We’ll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we’ll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).',
+            check: 'Check',
+            journalEntry: 'Journal Entry',
+            optionBelow: 'Choose an option below:',
+            outOfPocketTaxEnabledDescription:
+                'Note: QuickBooks Online doesn’t support a field for tax on Journal Entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.',
+            outOfPocketTaxEnabledError: 'Journal entry is not available when taxes enabled. please select a different export option.',
+            outOfPocketLocationEnabledError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
+            outOfPocketLocationEnabledDescription:
+                'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations from, this this export option is unavailable.',
         },
         type: {
             free: 'Free',

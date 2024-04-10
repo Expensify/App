@@ -268,6 +268,7 @@ const SCREENS = {
         QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Online_Export_Preferred_Exporter',
         QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Preferred_Exporter_Select',
         QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses',
+        QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Select',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
     },
 

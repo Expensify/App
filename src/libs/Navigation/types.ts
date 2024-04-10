@@ -271,6 +271,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARD_EXPENSE]: {
         policyID: string;
     };

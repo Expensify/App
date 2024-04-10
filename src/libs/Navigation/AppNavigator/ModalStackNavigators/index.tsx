@@ -259,6 +259,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('../../../../pages/workspace/accounting/qbo/QuickbooksInvoiceAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: () =>
         require('../../../../pages/workspace/accounting/qbo/QuickbooksOutOfPocketExpenseConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/QuickbooksOutOfPocketExpenseEntitySelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARD_EXPENSE]: () =>
         require('../../../../pages/workspace/accounting/qbo/QuickbooksCompanyCardExpenseConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: () =>
