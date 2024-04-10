@@ -5041,8 +5041,15 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
  * `domain` - Nobody can leave (it's auto-shared with domain members)
  * `dm` - Nobody can leave (it's auto-shared with users)
  * `private` - Anybody can leave (though you can only be invited to join)
+ * `invoice` - Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
 function canLeaveRoom(report: OnyxEntry<Report>, isPolicyMember: boolean): boolean {
+    if (report?.chatType === CONST.REPORT.CHAT_TYPE.INVOICE) {
+        const isAdmin = !!Object.entries(report.participants ?? {}).find(([participantID, {role}]) => Number(participantID) === currentUserAccountID && role !== CONST.POLICY.ROLE.ADMIN);
+
+        return report.managerID !== currentUserAccountID && report.ownerAccountID !== currentUserAccountID && !isAdmin;
+    }
+
     if (!report?.visibility) {
         if (
             report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS ||
