@@ -32,6 +32,7 @@ Onyx.connect({
 export default function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}) => {
         if (!ActiveClientManager.isClientTheLeader()) {
+            Log.info(`[PushNotification] received report comment notification, but ignoring it since this is not the active client`);
             return;
         }
         Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
