@@ -36,7 +36,7 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReportID: strin
 
         reportID = report?.reportID ?? undefined;
         mentionDisplayText = report?.reportName ?? report?.displayName ?? htmlAttributeReportID;
-    // get mention details from name inside tnode
+        // get mention details from name inside tnode
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
 
