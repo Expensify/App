@@ -46,23 +46,13 @@ function ShareCodePage({report}: ShareCodePageProps) {
                 shouldShowBackButton
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
-                <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph5]}>
-                    {/* 
+                 {/* 
+                    Right now QR code download button is not shown anymore
                     This is a temporary measure because right now it's broken because of the Fabric update.
                     We need to wait for react-native v0.74 to be released so react-native-view-shot gets fixed.
                     
                     Please see https://github.com/Expensify/App/issues/40110 to see if it can be re-enabled.
-
-                    <QRShareWithDownload
-                        ref={qrCodeRef}
-                        url={url}
-                        title={title}
-                        subtitle={subtitle}
-                        logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
-                        logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                        logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
-                    /> */}
-                </View>
+                */}
 
                 <View style={themeStyles.mt9}>
                     <ContextMenuItem
@@ -74,16 +64,6 @@ function ShareCodePage({report}: ShareCodePageProps) {
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}
                     />
-
-                    {/* {isNative && (
-                        <MenuItem
-                            isAnonymousAction
-                            title={translate('common.download')}
-                            icon={Expensicons.Download}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            onPress={() => qrCodeRef.current?.download?.()}
-                        />
-                    )} */}
 
                     <MenuItem
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
