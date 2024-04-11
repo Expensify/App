@@ -4313,7 +4313,7 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
  * @param recipient - The user receiving the money
  */
 function getSendMoneyParams(
-    report: OnyxTypes.Report,
+    report: OnyxEntry<OnyxTypes.Report> | EmptyObject,
     amount: number,
     currency: string,
     comment: string,
