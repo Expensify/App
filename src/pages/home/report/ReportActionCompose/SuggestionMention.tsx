@@ -295,8 +295,8 @@ function SuggestionMention(
     const onSelectionChange = useCallback(
         (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
             /**
-             * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
-             * because in other case calculateEmojiSuggestion will have an old calculation value
+             * we pass here e.nativeEvent.selection.end directly to calculateMentionSuggestion
+             * because in other case calculateMentionSuggestion will have an old calculation value
              * of suggestion instead of current one
              */
             calculateMentionSuggestion(e.nativeEvent.selection.end);
