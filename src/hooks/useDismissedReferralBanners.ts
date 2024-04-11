@@ -1,6 +1,7 @@
-import {useAccount} from '@components/OnyxProvider';
+import {useOnyx} from 'react-native-onyx';
 import * as User from '@userActions/User';
 import type CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type UseDismissedReferralBannersProps = {
     referralContentType:
@@ -11,7 +12,7 @@ type UseDismissedReferralBannersProps = {
 };
 
 function useDismissedReferralBanners({referralContentType}: UseDismissedReferralBannersProps): {isDismissed: boolean; setAsDismissed: () => void} {
-    const {dismissedReferralBanners} = useAccount();
+    const [dismissedReferralBanners] = useOnyx(ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS);
     const isDismissed = dismissedReferralBanners?.[referralContentType] ?? false;
 
     const setAsDismissed = () => {
