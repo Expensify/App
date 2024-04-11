@@ -2861,7 +2861,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         switchInactive: {
-            backgroundColor: theme.appBG,
+            backgroundColor: theme.icon,
         },
 
         switchThumb: {
