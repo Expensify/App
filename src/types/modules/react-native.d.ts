@@ -244,11 +244,24 @@ declare module 'react-native' {
         onKeyUpCapture?: KeyboardEventHandler;
     }
 
+    // Extracted from react-native-web, packages/react-native-web/src/exports/View/types.js
+    type LayoutEvent = {
+        nativeEvent: {
+            layout: LayoutValue;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            target: any;
+        };
+        timeStamp: number;
+    };
+    interface LayoutProps {
+        onLayout?: (e: LayoutEvent) => void;
+    }
+
     /**
      * Shared props
      * Extracted from react-native-web, packages/react-native-web/src/exports/View/types.js
      */
-    interface WebSharedProps extends AccessibilityProps, PointerProps, ResponderProps, FocusProps, KeyboardProps {
+    interface WebSharedProps extends AccessibilityProps, PointerProps, ResponderProps, FocusProps, KeyboardProps, LayoutProps {
         dataSet?: Record<string, unknown>;
         href?: string;
         hrefAttrs?: {

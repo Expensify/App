@@ -1,8 +1,8 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import {Animated} from 'react-native';
+import type {LayoutEvent} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import TooltipRenderedOnPageBody from '@components/Tooltip/TooltipRenderedOnPageBody';
 import TooltipSense from '@components/Tooltip/TooltipSense';
@@ -257,7 +257,7 @@ function Tooltip(
                         >
                             {React.cloneElement(children as React.ReactElement, {
                                 onMouseEnter: updateTargetPositionOnMouseEnter,
-                                onLayout: (e: LayoutChangeEvent) => {
+                                onLayout: (e: LayoutEvent) => {
                                     if (!shouldRenderWithoutHover) {
                                         return;
                                     }
