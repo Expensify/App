@@ -199,13 +199,11 @@ Onyx.connect({
 
 let sessionEmail = '';
 let sessionAccountID = 0;
-let sessionAuthToken = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionEmail = val?.email ?? '';
         sessionAccountID = val?.accountID ?? -1;
-        sessionAuthToken = val?.authToken ?? '';
     },
 });
 
@@ -1064,7 +1062,6 @@ function leaveWorkspace(policyID: string) {
     const params: LeavePolicyParams = {
         policyID,
         email: sessionEmail,
-        authToken: sessionAuthToken,
     };
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
 }
