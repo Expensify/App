@@ -19,12 +19,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps} from './types';
 
 type ValuesType<T> = T[keyof T];
@@ -47,6 +47,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const [error, setError] = useState(false);
     const theme = useTheme();
+
+    useDisableModalDismissOnEscape();
 
     const PurposeFooterInstance = <OfflineIndicator />;
 
@@ -81,7 +83,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             return;
         }
 
-        Modal.setDisableDismissOnEscape(false);
         Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
 
         Navigation.dismissModal();
