@@ -161,14 +161,16 @@ NetworkStore.onReconnection(flush);
 
 function push(request: OnyxRequest) {
     // identify and handle any existing requests that conflict with the new one
-    const requests = [...PersistedRequests.getAll(), request];
-    const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = request;
+    const requests = PersistedRequests.getAll();
+    let hasConflict = false;
+    const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequestOnConflict} = request;
     if (getConflictingRequests) {
         // Get all the requests, potentially including the one we're adding, which will always be at the end of the array
-        const potentiallyConflictingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
+        // const potentiallyConflictingRequests = shouldIncludeCurrentRequestOnConflict ? requests : requests.slice(0, requests.length - 1);
 
         // Identify conflicting requests according to logic bound to the new request
-        const conflictingRequests = getConflictingRequests(potentiallyConflictingRequests);
+        const conflictingRequests = getConflictingRequests(requests);
+        hasConflict = conflictingRequests.length > 0;
 
         // Delete the conflicting requests
         PersistedRequests.bulkRemove(conflictingRequests);
@@ -184,10 +186,12 @@ function push(request: OnyxRequest) {
     // Don't try to serialize conflict resolution functions
     delete request.getConflictingRequests;
     delete request.handleConflictingRequest;
-    delete request.shouldIncludeCurrentRequest;
+    delete request.shouldIncludeCurrentRequestOnConflict;
 
     // Add request to Persisted Requests so that it can be retried if it fails
-    PersistedRequests.save(request);
+    if (!hasConflict || !shouldIncludeCurrentRequestOnConflict) {
+        PersistedRequests.save(request);
+    }
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {

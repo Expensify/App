@@ -21,10 +21,10 @@ function save(requestToPersist: Request) {
     // const requests = [...persistedRequests, requestToPersist];
     //
     // // identify and handle any existing requests that conflict with the new one
-    // const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = requestToPersist;
+    // const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequestOnConflict} = requestToPersist;
     // if (getConflictingRequests) {
     //     // Get all the requests, potentially including the one we're adding, which will always be at the end of the array
-    //     const potentiallyConflictingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
+    //     const potentiallyConflictingRequests = shouldIncludeCurrentRequestOnConflict ? requests : requests.slice(0, requests.length - 1);
     //
     //     // Identify conflicting requests according to logic bound to the new request
     //     const conflictingRequests = getConflictingRequests(potentiallyConflictingRequests);
@@ -45,7 +45,7 @@ function save(requestToPersist: Request) {
     // persistedRequests = requests.map((request) => {
     //     delete request.getConflictingRequests;
     //     delete request.handleConflictingRequest;
-    //     delete request.shouldIncludeCurrentRequest;
+    //     delete request.shouldIncludeCurrentRequestOnConflict;
     //     return request;
     // });
 

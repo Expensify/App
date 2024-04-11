@@ -42,7 +42,7 @@ type RequestConflictResolver = {
      *
      * @example - In DeleteComment, if you're deleting an optimistic comment, you'd want to cancel the optimistic AddComment call AND the DeleteComment call.
      * */
-    shouldIncludeCurrentRequest?: boolean;
+    shouldIncludeCurrentRequestOnConflict?: boolean;
 
     /**
      * Callback to handle a single conflicting request.
