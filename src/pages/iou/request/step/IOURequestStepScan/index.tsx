@@ -2,9 +2,9 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
-import {withOnyx, OnyxEntry} from 'react-native-onyx';
-import _ from 'underscore';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
+import _ from 'underscore';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -18,9 +18,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {
-    WithCurrentUserPersonalDetailsProps,
-} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
@@ -39,18 +37,17 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {PersonalDetailsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
-import {PersonalDetailsList} from "@src/types/onyx";
 
 type IOURequestStepScanOnyxProps = {
-
     /** Whether the confirmation step should be skipped */
     skipConfirmation: PropTypes.bool;
 
@@ -58,7 +55,9 @@ type IOURequestStepScanOnyxProps = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type IOURequestStepScanProps = IOURequestStepScanOnyxProps & WithCurrentUserPersonalDetailsProps & WithPolicyProps &
+type IOURequestStepScanProps = IOURequestStepScanOnyxProps &
+    WithCurrentUserPersonalDetailsProps &
+    WithPolicyProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -579,7 +578,7 @@ const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequest
 })(IOURequestStepScan);
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanOnyxProps)
+const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanOnyxProps);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails);
 // eslint-disable-next-line rulesdir/no-negated-variables
