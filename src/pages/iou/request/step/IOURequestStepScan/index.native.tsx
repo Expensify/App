@@ -228,7 +228,18 @@ function IOURequestStepScan({
                 receipt.source = source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.startSplitBill(participants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, '', '', '', receipt, reportID);
+                    IOU.startSplitBill({
+                        participants: participants,
+                        currentUserLogin: currentUserPersonalDetails?.login ? '',
+                        currentUserAccountID: currentUserPersonalDetails?.accountID ? '',
+                        comment: '',
+                        receipt: receipt,
+                        existingSplitChatReportID: reportID ?? 0,
+                        billable: false,
+                        category: '',
+                        tag: '',
+                        currency: transaction?.currency ?? 'USD',
+                    });
                     return;
                 }
                 IOU.requestMoney(
