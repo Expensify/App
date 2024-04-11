@@ -6,7 +6,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
-import {ViolationName} from './TransactionViolation';
+import type {ViolationName} from './TransactionViolation';
 
 type Waypoint = {
     /** The name associated with the address of the waypoint */
