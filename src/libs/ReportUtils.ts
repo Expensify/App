@@ -418,7 +418,7 @@ type OptionData = {
     notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
     name?: string | null;
-    isSelfDM?: boolean | null;
+    isSelfDM?: boolean;
     reportID?: string;
     enabled?: boolean;
     data?: Partial<TaxRate>;
