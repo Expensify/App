@@ -62,7 +62,6 @@ function Badge({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const textColorStyles = success || error ? styles.textWhite : undefined;
     const Wrapper = pressable ? PressableWithoutFeedback : View;
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
@@ -98,7 +97,7 @@ function Badge({
                 </View>
             )}
             <Text
-                style={[styles.badgeText, styles.textStrong, textColorStyles, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                style={[styles.badgeText, styles.textStrong, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
                 numberOfLines={1}
             >
                 {text}

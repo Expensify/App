@@ -598,6 +598,7 @@ function MenuItem(
                                         <Badge
                                             text={badgeText}
                                             badgeStyles={badgeStyle}
+                                            error
                                         />
                                     )}
                                     {/* Since subtitle can be of type number, we should allow 0 to be shown */}
