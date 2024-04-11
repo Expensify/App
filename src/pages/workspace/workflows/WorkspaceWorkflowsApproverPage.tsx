@@ -12,8 +12,6 @@ import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
@@ -49,8 +47,6 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
     const policyName = policy?.name ?? '';
     const [searchTerm, setSearchTerm] = useState('');
     const {isOffline} = useNetwork();
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const isDeletedPolicyMember = useCallback(
         (policyMember: PolicyMember) => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
@@ -108,7 +104,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
             }
         });
         return [policyMemberDetails, approverDetails];
-    }, [personalDetails, policyMembers, translate, policy?.approver, StyleUtils, isDeletedPolicyMember, policy?.owner, styles]);
+    }, [personalDetails, policyMembers, translate, policy?.approver, isDeletedPolicyMember, policy?.owner]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];

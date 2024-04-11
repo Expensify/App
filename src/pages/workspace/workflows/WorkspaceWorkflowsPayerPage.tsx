@@ -12,8 +12,6 @@ import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
@@ -47,8 +45,6 @@ type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
 function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const policyName = policy?.name ?? '';
     const {isOffline} = useNetwork();
 
@@ -110,7 +106,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policyMembers, translate, policy?.achAccount?.reimburser, isDeletedPolicyMember, policy?.owner, styles, StyleUtils, policy?.pendingFields?.reimburser]);
+    }, [personalDetails, policyMembers, translate, policy?.achAccount?.reimburser, isDeletedPolicyMember, policy?.owner, policy?.pendingFields?.reimburser]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
