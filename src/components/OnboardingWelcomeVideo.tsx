@@ -1,6 +1,7 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
@@ -134,22 +135,24 @@ function OnboardingWelcomeVideo() {
                             : {}),
                     }}
                 >
-                    <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                        <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
-                        <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
-                            <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
-                                <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.welcomeVideo.title')}</Text>
-                                <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
+                    <GestureHandlerRootView>
+                        <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
+                            <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
+                            <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
+                                <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                    <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.welcomeVideo.title')}</Text>
+                                    <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
+                                </View>
+                                <Button
+                                    large
+                                    success
+                                    pressOnEnter
+                                    onPress={closeModal}
+                                    text={translate('onboarding.welcomeVideo.button')}
+                                />
                             </View>
-                            <Button
-                                large
-                                success
-                                pressOnEnter
-                                onPress={closeModal}
-                                text={translate('onboarding.welcomeVideo.button')}
-                            />
                         </View>
-                    </View>
+                    </GestureHandlerRootView>
                 </Modal>
             )}
         </SafeAreaConsumer>
