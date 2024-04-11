@@ -72,7 +72,7 @@ function IOURequestStepConfirmation({
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipants, setSelectedParticipants] = useState<Participant[]>([]);
-    
+
     const [receiptFile, setReceiptFile] = useState<Receipt>();
 
     const receiptFilename = transaction?.filename;
@@ -249,7 +249,18 @@ function IOURequestStepConfirmation({
                 Object.keys(transaction?.comment?.waypoints ?? {}).length ? TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true) : undefined,
             );
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, transactionTaxCode, transactionTaxAmount, policy, policyTags, policyCategories, selectedParticipants],
+        [
+            report,
+            transaction,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            transactionTaxCode,
+            transactionTaxAmount,
+            policy,
+            policyTags,
+            policyCategories,
+            selectedParticipants,
+        ],
     );
 
     const createDistanceRequest = useCallback(
