@@ -221,14 +221,15 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
         ? DistanceRequestUtils.getRateForP2P(policy?.outputCurrency ?? CONST.CURRENCY.USD)
-        : mileageRates?.[customUnitRateID];
-
-    const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
+        : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
 
     const {unit, rate} = mileageRate ?? {
         unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
         rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * 100,
     };
+
+    const prevRate = usePrevious(rate);
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate);
 
     const currency = (mileageRate as MileageRate)?.currency ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
