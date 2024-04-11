@@ -182,7 +182,20 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isChatThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session, isSelfDM, isDefaultRoom, activeChatMembers?.length]);
+    }, [
+        isArchivedRoom,
+        participants.length,
+        isChatThread,
+        isMoneyRequestReport,
+        report,
+        isGroupDMChat,
+        isPolicyMember,
+        isUserCreatedPolicyRoom,
+        session,
+        isSelfDM,
+        isDefaultRoom,
+        activeChatMembers?.length,
+    ]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
