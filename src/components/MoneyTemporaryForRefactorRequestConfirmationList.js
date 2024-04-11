@@ -253,13 +253,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
+    const {canUseViolations} = usePermissions();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
-    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isTypeSplit);
 
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
@@ -741,7 +740,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && canEditDistance}
+                    shouldShowRightIcon={!isReadOnly}
                     title={isMerchantEmpty ? '' : iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
@@ -752,7 +751,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         )
                     }
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    disabled={didConfirm || !canEditDistance}
+                    disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
             ),
