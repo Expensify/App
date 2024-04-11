@@ -379,23 +379,24 @@ type CustomIcon = {
 
 type OptionData = {
     text?: string;
-    alternateText?: string | null;
+    alternateText?: string;
     allReportErrors?: Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
     customIcon?: CustomIcon;
-    subtitle?: string | null;
-    login?: string | null;
-    accountID?: number | null;
+    subtitle?: string;
+    login?: string;
+    accountID?: number;
     pronouns?: string;
     status?: Status | null;
-    phoneNumber?: string | null;
+    phoneNumber?: string;
     isUnread?: boolean | null;
     isUnreadWithMention?: boolean | null;
-    keyForList?: string | null;
-    searchText?: string | null;
+    hasDraftComment?: boolean | null;
+    keyForList?: string;
+    searchText?: string;
     isIOUReportOwner?: boolean | null;
     isArchivedRoom?: boolean | null;
     shouldShowSubscript?: boolean | null;
