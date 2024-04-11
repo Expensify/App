@@ -1235,9 +1235,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
         {
             getConflictingRequests: (persistedRequests) => {
                 const conflictingCommands = (
-                    isDeletedParentAction
-                        ? [WRITE_COMMANDS.UPDATE_COMMENT]
-                        : [WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.UPDATE_COMMENT, WRITE_COMMANDS.DELETE_COMMENT]
+                    isDeletedParentAction ? [WRITE_COMMANDS.UPDATE_COMMENT] : [WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.UPDATE_COMMENT]
                 ) as string[];
                 return persistedRequests.filter((request) => conflictingCommands.includes(request.command) && request.data?.reportActionID === reportActionID);
             },
