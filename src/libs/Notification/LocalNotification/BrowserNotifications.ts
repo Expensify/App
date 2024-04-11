@@ -101,7 +101,7 @@ export default {
         const plainTextPerson = person?.map((f) => f.text).join() ?? '';
 
         // Specifically target the comment part of the message
-        const plainTextMessage = message?.find((f) => f.type === 'COMMENT')?.text ?? '';
+        const plainTextMessage = message?.find((f) => f?.type === 'COMMENT')?.text ?? '';
 
         if (isChatRoom) {
             const roomName = ReportUtils.getReportName(report);

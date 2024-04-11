@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as OnyxUpdates from '@libs/actions/OnyxUpdates';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
@@ -30,6 +31,10 @@ Onyx.connect({
  */
 export default function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}) => {
+        if (!ActiveClientManager.isClientTheLeader()) {
+            Log.info('[PushNotification] received report comment notification, but ignoring it since this is not the active client');
+            return;
+        }
         Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
         if (onyxData && lastUpdateID && previousUpdateID) {

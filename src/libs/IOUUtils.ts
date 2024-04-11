@@ -3,11 +3,12 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
+import type {IOURequestType} from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
 
-function navigateToStartMoneyRequestStep(requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
     // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.DISTANCE:
