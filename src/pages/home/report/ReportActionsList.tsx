@@ -6,7 +6,6 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
@@ -163,25 +162,6 @@ function ReportActionsList({
 
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
-
-    Onyx.merge('cardList', {
-        4: {
-            bank: 'Expensify Card',
-            lastFourPAN: 3458,
-        },
-    });
-    Onyx.merge('transactions_1629978965702689190', {
-        amount: 1000,
-        currency: 'USD',
-        cardID: 4,
-        modifiedMerchant: null,
-        merchant: 'Test ECard Transaction',
-        mccGroup: 'Airlines',
-        hasEReceipt: true,
-        receipt: {},
-        reimbursable: false,
-        status: 'Pending',
-    });
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {

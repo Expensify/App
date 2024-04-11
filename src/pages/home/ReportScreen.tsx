@@ -323,8 +323,6 @@ function ReportScreen({
         />
     );
 
-    console.warn('ReportUtils.isMoneyRequest(report)  ', ReportUtils.isMoneyRequest(report));
-
     if (isSingleTransactionView) {
         headerView = (
             <MoneyRequestHeader
