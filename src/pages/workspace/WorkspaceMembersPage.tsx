@@ -352,13 +352,7 @@ function WorkspaceMembersPage({
 
             let roleBadge = null;
             if (isOwner || isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={isOwner ? translate('common.owner') : translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
             }
 
             result.push({

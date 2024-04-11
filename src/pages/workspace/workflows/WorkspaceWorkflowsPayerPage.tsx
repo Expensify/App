@@ -79,13 +79,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                 return;
             }
 
-            const roleBadge = (
-                <Badge
-                    text={isOwner ? translate('common.owner') : translate('common.admin')}
-                    textStyles={styles.textStrong}
-                    badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
-                />
-            );
+            const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
 
             const isAuthorizedPayer = policy?.achAccount?.reimburser === details?.login;
 

@@ -60,13 +60,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     const isAdmin = personalData.accountID === accountID;
                     let roleBadge = null;
                     if (isAdmin) {
-                        roleBadge = (
-                            <Badge
-                                text={translate('common.admin')}
-                                textStyles={styles.textStrong}
-                                badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, styles.activeItemBadge]}
-                            />
-                        );
+                        roleBadge = <Badge text={translate('common.admin')} />;
                     }
 
                     const section: ListItem = {

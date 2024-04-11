@@ -78,13 +78,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
 
             let roleBadge = null;
             if (isOwner || isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={isOwner ? translate('common.owner') : translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
-                    />
-                );
+                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
             }
 
             const formattedMember = {
