@@ -89,6 +89,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
     useFocusEffect(
         useCallback(() => {
+            setSelectedDistanceRates([]);
             fetchDistanceRates();
         }, [fetchDistanceRates]),
     );

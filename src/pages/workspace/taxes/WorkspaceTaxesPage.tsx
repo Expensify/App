@@ -62,6 +62,7 @@ function WorkspaceTaxesPage({
 
     useFocusEffect(
         useCallback(() => {
+            setSelectedTaxesIDs([]);
             fetchTaxes();
         }, [fetchTaxes]),
     );

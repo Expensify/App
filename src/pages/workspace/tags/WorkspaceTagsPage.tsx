@@ -79,6 +79,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
 
     useFocusEffect(
         useCallback(() => {
+            setSelectedTags({});
             fetchTags();
         }, [fetchTags]),
     );

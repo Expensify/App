@@ -72,6 +72,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
 
     useFocusEffect(
         useCallback(() => {
+            setSelectedCategories({});
             fetchCategories();
         }, [fetchCategories]),
     );
