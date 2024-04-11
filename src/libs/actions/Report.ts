@@ -2399,13 +2399,13 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             }),
     );
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
-    const isChatThread = ReportUtils.isChatThread(report);
+    const isChatThread = ReportUtils.isChatThread(currentReport);
     if (lastAccessedReportID) {
         // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
         if (!isChatThread) {
             Navigation.goBack();
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? ''));
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
@@ -2414,7 +2414,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             if (!isChatThread) {
                 Navigation.goBack();
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID));
         }
     }
 }
