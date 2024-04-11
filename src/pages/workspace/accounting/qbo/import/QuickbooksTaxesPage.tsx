@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,16 +11,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
-import type { WithPolicyProps } from '@pages/workspace/withPolicy';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 
-function QuickbooksTaxesPage({ policy }: WithPolicyProps) {
-    const { translate } = useLocalize();
+function QuickbooksTaxesPage({policy}: WithPolicyProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const { syncTaxes, pendingFields } = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isSwitchOn = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
