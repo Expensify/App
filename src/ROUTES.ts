@@ -742,13 +742,12 @@ type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => in
 
 /**
  * Represents all routes in the app as a union of literal strings.
- * */
+ */
 type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
-type RoutesValidationError =
-    'Error: RoutesValidationError implies that one or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
+type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
