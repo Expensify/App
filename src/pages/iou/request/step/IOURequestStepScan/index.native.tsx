@@ -1,15 +1,16 @@
 import {useFocusEffect} from '@react-navigation/core';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, NativeModules, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
+import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -17,51 +18,33 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import IOURequestStepRoutePropTypes from '@pages/iou/request/step/IOURequestStepRoutePropTypes';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as CameraPermission from './CameraPermission';
+import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
+import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
+import type IOURequestStepOnyxProps from './types';
 
 const {CheckPDFDocument} = NativeModules;
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
-
-    /* Onyx Props */
-    /** The report that the transaction belongs to */
-    report: reportPropTypes,
-
-    /** Information about the logged in user's account */
-    user: PropTypes.shape({
-        /** Whether user muted all sounds in the application */
-        isMutedAllSounds: PropTypes.bool,
-    }),
-
-    /** The transaction (or draft transaction) being changed */
-    transaction: transactionPropTypes,
-};
-
-const defaultProps = {
-    report: {},
-    user: {},
-    transaction: {},
-};
+type IOURequestStepScanProps = IOURequestStepOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
+        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        transaction: OnyxEntry<OnyxTypes.Transaction>;
+    };
 
 function IOURequestStepScan({
     report,
@@ -69,8 +52,8 @@ function IOURequestStepScan({
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
-    transaction: {isFromGlobalCreate},
-}) {
+    transaction,
+}: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const device = useCameraDevice('back', {
@@ -78,9 +61,9 @@ function IOURequestStepScan({
     });
 
     const hasFlash = device != null && device.hasFlash;
-    const camera = useRef(null);
+    const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
-    const [cameraPermissionStatus, setCameraPermissionStatus] = useState(undefined);
+    const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
 
     const {translate} = useLocalize();
@@ -88,8 +71,8 @@ function IOURequestStepScan({
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
-        CameraPermission.requestCameraPermission()
-            .then((status) => {
+        CameraPermission.requestCameraPermission?.()
+            .then((status: string) => {
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
@@ -110,7 +93,7 @@ function IOURequestStepScan({
         transform: [{translateX: focusIndicatorPosition.value.x}, {translateY: focusIndicatorPosition.value.y}, {scale: focusIndicatorScale.value}],
     }));
 
-    const focusCamera = (point) => {
+    const focusCamera = (point: Point) => {
         if (!camera.current) {
             return;
         }
@@ -124,8 +107,8 @@ function IOURequestStepScan({
     };
 
     const tapGesture = Gesture.Tap()
-        .enabled(device && device.supportsFocus)
-        .onStart((ev) => {
+        .enabled(device?.supportsFocus ?? false)
+        .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
             focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
@@ -140,7 +123,7 @@ function IOURequestStepScan({
         useCallback(() => {
             setDidCapturePhoto(false);
             const refreshCameraPermissionStatus = () => {
-                CameraPermission.getCameraPermissionStatus()
+                CameraPermission?.getCameraPermissionStatus?.()
                     .then(setCameraPermissionStatus)
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
@@ -165,30 +148,30 @@ function IOURequestStepScan({
         }, []),
     );
 
-    const validateReceipt = (file) =>
-        new Promise((resolve) => {
-            CheckPDFDocument.checkPdf(file.uri, (isCorrect) => {
-                const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-                if (!isCorrect) {
+    const validateReceipt = (file: FileObject) =>
+        new Promise(() => {
+            CheckPDFDocument.checkPdf(file.uri, (isCorrect: boolean) => {
+                const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+                if (
+                    !isCorrect ||
+                    !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                        fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
+                    )
+                ) {
                     Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-                    resolve(false);
+                    return false;
                 }
 
-                if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
-                    Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-                    resolve(false);
-                }
-
-                if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                     Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
-                    resolve(false);
+                    return false;
                 }
 
-                if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                     Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-                    resolve(false);
+                    return false;
                 }
-                resolve(true);
+                return true;
             });
         });
 
@@ -203,7 +186,7 @@ function IOURequestStepScan({
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
-        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -211,33 +194,34 @@ function IOURequestStepScan({
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
         IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-    }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
+    }, [iouType, report, reportID, transactionID, transaction?.isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
-        (file, source) => {
+        (file: FileObject, source: string) => {
             Navigation.dismissModal();
-            IOU.replaceReceipt(transactionID, file, source);
+            IOU.replaceReceipt(transactionID, file as File, source);
         },
         [transactionID],
     );
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
-     * @param {Object} file
      */
-    const setReceiptAndNavigate = (file) => {
+    const setReceiptAndNavigate = (file: FileObject) => {
         validateReceipt(file).then((res) => {
             if (!res) {
                 return;
             }
+
             // Store the receipt on the transaction object in Onyx
             // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
             // So, let us also save the file type in receipt for later use during blob fetch
-            IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT, file.type);
+            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
 
             if (action === CONST.IOU.ACTION.EDIT) {
-                updateScanAndNavigate(file, file.uri);
+                updateScanAndNavigate(file, file?.uri ?? '');
                 return;
             }
 
@@ -257,19 +241,18 @@ function IOURequestStepScan({
 
         if (!camera.current) {
             showCameraAlert();
-            return;
         }
 
         if (didCapturePhoto) {
             return;
         }
 
-        return camera.current
-            .takePhoto({
+        camera?.current
+            ?.takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !user.isMutedAllSounds,
+                enableShutterSound: !user?.isMutedAllSounds,
             })
-            .then((photo) => {
+            .then((photo: PhotoFile) => {
                 // Store the receipt on the transaction object in Onyx
                 const source = `file://${photo.path}`;
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
@@ -284,12 +267,12 @@ function IOURequestStepScan({
                 setDidCapturePhoto(true);
                 navigateToConfirmationStep();
             })
-            .catch((error) => {
+            .catch((error: string) => {
                 setDidCapturePhoto(false);
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
+    }, [cameraPermissionStatus, didCapturePhoto, flash, hasFlash, user?.isMutedAllSounds, translate, transactionID, action, navigateToConfirmationStep, updateScanAndNavigate]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -342,6 +325,7 @@ function IOURequestStepScan({
                             <NavigationAwareCamera
                                 ref={camera}
                                 device={device}
+                                // @ts-expect-error The HOC are not migrated to TypeScript yet
                                 style={[styles.flex1]}
                                 zoom={device.neutralZoom}
                                 photo
@@ -354,7 +338,7 @@ function IOURequestStepScan({
                 </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker shouldHideCameraOption>
+                <AttachmentPicker>
                     {({openPicker}) => (
                         <PressableWithFeedback
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -409,16 +393,17 @@ function IOURequestStepScan({
     );
 }
 
-IOURequestStepScan.defaultProps = defaultProps;
-IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default compose(
-    withWritableReportOrNotFound,
-    withFullTransactionOrNotFound,
-    withOnyx({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    }),
-)(IOURequestStepScan);
+const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequestStepOnyxProps>({
+    user: {
+        key: ONYXKEYS.USER,
+    },
+})(IOURequestStepScan);
+
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanOnyxProps);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
+
+export default IOURequestStepScanWithFullTransactionOrNotFound;
