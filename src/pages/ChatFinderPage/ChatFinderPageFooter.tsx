@@ -4,7 +4,7 @@ import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-function SearchPageFooter() {
+function ChatFinderPageFooter() {
     const themeStyles = useThemeStyles();
 
     return (
@@ -14,6 +14,6 @@ function SearchPageFooter() {
     );
 }
 
-SearchPageFooter.displayName = 'SearchPageFooter';
+ChatFinderPageFooter.displayName = 'ChatFinderPageFooter';
 
-export default SearchPageFooter;
+export default ChatFinderPageFooter;

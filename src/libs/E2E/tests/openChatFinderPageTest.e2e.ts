@@ -9,7 +9,7 @@ import ROUTES from '@src/ROUTES';
 
 const test = () => {
     // check for login (if already logged in the action will simply resolve)
-    console.debug('[E2E] Logging in for search');
+    console.debug('[E2E] Logging in for chat finding');
 
     E2ELogin().then((neededLogin: boolean): Promise<Response> | undefined => {
         if (neededLogin) {
@@ -19,12 +19,12 @@ const test = () => {
             );
         }
 
-        console.debug('[E2E] Logged in, getting search metrics and submitting them…');
+        console.debug('[E2E] Logged in, getting chat finding metrics and submitting them…');
 
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
-                console.debug(`[E2E] Sidebar loaded, navigating to search route…`);
-                Navigation.navigate(ROUTES.SEARCH);
+                console.debug(`[E2E] Sidebar loaded, navigating to chat finder route…`);
+                Navigation.navigate(ROUTES.CHAT_FINDER);
                 return;
             }
 
@@ -36,7 +36,7 @@ const test = () => {
             console.debug(`[E2E] Submitting!`);
             E2EClient.submitTestResults({
                 branch: Config.E2E_BRANCH,
-                name: 'Open Search Page TTI',
+                name: 'Open Chat Finder Page TTI',
                 duration: entry.duration,
             })
                 .then(() => {
