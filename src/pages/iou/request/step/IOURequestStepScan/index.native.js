@@ -167,7 +167,7 @@ function IOURequestStepScan({
 
     const validateReceipt = (file) =>
         new Promise((resolve) => {
-            CheckPDFDocument.checkPdf(file.uri.replace(/^file:/, ''), (isCorrect) => {
+            CheckPDFDocument.checkPdf(file.uri, (isCorrect) => {
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
                 if (!isCorrect) {
                     Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));

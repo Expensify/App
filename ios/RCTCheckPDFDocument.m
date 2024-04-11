@@ -7,7 +7,6 @@
 
 #import <Foundation/Foundation.h>
 #import "RCTCheckPDFDocument.h"
-#import <CoreGraphics/CoreGraphics.h>
 
 @implementation RCTCheckPDFDocument
 
@@ -18,9 +17,7 @@ RCT_EXPORT_METHOD(checkPdf:(NSString *)fileurl callback: (RCTResponseSenderBlock
   NSURL *url = [NSURL URLWithString:fileurl];
   NSFileManager *fileManager = [NSFileManager defaultManager];
       NSData *ns = [NSData dataWithContentsOfURL:url];
-      BOOL fileExists = [fileManager fileExistsAtPath:[url path]];
-      BOOL isPDF = NO;
-      if ([ns length] >= 1024) 
+      if ([ns length] >= 1024)
       {
           uint8_t pdfBytes[] = { 0x25, 0x50, 0x44, 0x46 };
           NSData *pdfHeader = [NSData dataWithBytes:pdfBytes length:4];

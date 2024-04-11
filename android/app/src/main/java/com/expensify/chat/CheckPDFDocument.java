@@ -1,18 +1,10 @@
 package com.expensify.chat;
 
-import com.itextpdf.kernel.pdf.PdfReader;
-import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.HashMap;
 import com.facebook.react.bridge.Callback;
-import android.util.Log;
+
 
 
 
@@ -29,8 +21,9 @@ public class CheckPDFDocument extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void checkPdf(String name, Callback callback) {
-        if (PdfUtils.isPdfCorrupted(name)) {
+    public void checkPdf(String uri, Callback callback) {
+        String path = uri.replaceFirst("^file:", "");
+        if (PdfUtils.isPdfCorrupted(path)) {
             // Handle the case where the PDF file is corrupted
             callback.invoke(false);
         } else {

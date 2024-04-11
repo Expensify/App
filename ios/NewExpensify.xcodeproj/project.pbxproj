@@ -32,6 +32,7 @@
 		7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		7041848626A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
+		7609ABFD2BC8051700FC006F /* RCTCheckPDFDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 7609ABFC2BC8051700FC006F /* RCTCheckPDFDocument.m */; };
 		7F5E81F06BCCF61AD02CEA06 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD444BEDDB0AF1745B39049 /* ExpoModulesProvider.swift */; };
 		7F9DD8DA2B2A445B005E3AFA /* ExpError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F9DD8D92B2A445B005E3AFA /* ExpError.swift */; };
 		7FD73C9E2B23CE9500420AF3 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */; };
@@ -40,7 +41,7 @@
 		BDB853621F354EBB84E619C2 /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */; };
 		DD79042B2792E76D004484B4 /* RCTBootSplash.mm in Sources */ = {isa = PBXBuildFile; fileRef = DD79042A2792E76D004484B4 /* RCTBootSplash.mm */; };
 		DDCB2E57F334C143AC462B43 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D20D83B0E39BA6D21761E72 /* ExpoModulesProvider.swift */; };
-		E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */; };
 		EEAE4F8907465429AA5B5520 /* libPods-NewExpensify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AEFE6CD54912D427D19133C7 /* libPods-NewExpensify.a */; };
@@ -117,6 +118,8 @@
 		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = NewExpensify/RCTStartupTimer.h; sourceTree = "<group>"; };
 		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
 		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
+		7609ABFB2BC8044100FC006F /* RCTCheckPDFDocument.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTCheckPDFDocument.h; sourceTree = "<group>"; };
+		7609ABFC2BC8051700FC006F /* RCTCheckPDFDocument.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTCheckPDFDocument.m; sourceTree = "<group>"; };
 		76BE68DA894BB75DDFE278DC /* Pods-NewExpensify.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
 		7B318CF669A0F7FE948D5CED /* Pods-NewExpensify.debugadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debugadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debugadhoc.xcconfig"; sourceTree = "<group>"; };
 		7F9DD8D92B2A445B005E3AFA /* ExpError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpError.swift; sourceTree = "<group>"; };
@@ -174,9 +177,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				383643682B6D4AE2005BB9AE /* DeviceCheck.framework in Frameworks */,
-				E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */,
+				E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */,
 				976CCB5F8C921482E6AEAE71 /* libPods-NewExpensify.a in Frameworks */,
-				E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */,
+				E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */,
 				EEAE4F8907465429AA5B5520 /* libPods-NewExpensify.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -277,8 +280,8 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				76C3A4C02BBE9D6900BAAB9B /* RCTCheckPDFDocument.m */,
-				76C3A4BF2BBE9B6A00BAAB9B /* RCTCheckPDFDocument.h */,
+				7609ABFC2BC8051700FC006F /* RCTCheckPDFDocument.m */,
+				7609ABFB2BC8044100FC006F /* RCTCheckPDFDocument.h */,
 				374FB8D528A133A7000D84EF /* OriginImageRequestHandler.h */,
 				374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */,
 				F0C450E92705020500FD2970 /* colors.json */,
@@ -867,6 +870,7 @@
 				0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */,
 				374FB8D728A133FE000D84EF /* OriginImageRequestHandler.mm in Sources */,
 				7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */,
+				7609ABFD2BC8051700FC006F /* RCTCheckPDFDocument.m in Sources */,
 				DD79042B2792E76D004484B4 /* RCTBootSplash.mm in Sources */,
 				0CDA8E34287DD650004ECBEC /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
