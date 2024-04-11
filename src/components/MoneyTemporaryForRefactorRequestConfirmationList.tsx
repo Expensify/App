@@ -31,7 +31,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AllRoutes} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -121,7 +121,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     isReadOnly?: boolean;
 
     /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute?: AllRoutes;
+    bankAccountRoute?: Route;
 
     /** The policyID of the request */
     policyID?: string;
