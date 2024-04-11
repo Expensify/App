@@ -33,7 +33,6 @@ function SignInPageLayout(
         shouldShowWelcomeText = false,
         navigateFocus = () => {},
         children,
-        isSAMLEnabled = false,
     }: SignInPageLayoutProps,
     ref: ForwardedRef<SignInPageLayoutRef>,
 ) {
@@ -79,7 +78,7 @@ function SignInPageLayout(
 
     const scrollViewStyles = useMemo(() => scrollViewContentContainerStyles(styles), [styles]);
 
-    const backgroundImageHeight = Math.max(isSAMLEnabled ? variables.signInSAMLContentMinHeight : variables.signInContentMinHeight, containerHeight);
+    const backgroundImageHeight = Math.max(variables.signInContentMinHeight, containerHeight);
 
     return (
         <View style={containerStyles}>

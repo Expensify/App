@@ -25,10 +25,6 @@ type SignInPageLayoutProps = {
     customHeroBody?: string;
 
     navigateFocus?: () => void;
-
-    /** Whether to use the default minimun content height or the recommened one
-     *  for login with SAML at the login page */
-    isSAMLEnabled?: boolean;
 };
 
 type SignInPageLayoutRef = {

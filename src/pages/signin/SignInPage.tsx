@@ -61,7 +61,6 @@ type RenderOption = {
     shouldInitiateSAMLLogin: boolean;
     shouldShowWelcomeHeader: boolean;
     shouldShowWelcomeText: boolean;
-    isSAMLEnabled: boolean;
 };
 
 type GetRenderOptionsParams = {
@@ -93,7 +92,7 @@ function getRenderOptions({
     shouldShowAnotherLoginPageOpenedMessage,
 }: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
-    const isSAMLEnabled = !!account?.isSAMLEnabled;
+    const isSAMLEnabled = true; //!!account?.isSAMLEnabled;
     const isSAMLRequired = !!account?.isSAMLRequired;
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
 
@@ -124,7 +123,6 @@ function getRenderOptions({
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
-        isSAMLEnabled,
     };
 }
 
@@ -183,7 +181,6 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
-        isSAMLEnabled,
     } = getRenderOptions({
         hasLogin: !!credentials?.login,
         hasValidateCode: !!credentials?.validateCode,
@@ -263,7 +260,6 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
                 shouldShowWelcomeText={shouldShowWelcomeText}
                 ref={signInPageLayoutRef}
                 navigateFocus={navigateFocus}
-                isSAMLEnabled={isSAMLEnabled}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
              so that password managers can access the values. Conditionally rendering this component will break this feature. */}
