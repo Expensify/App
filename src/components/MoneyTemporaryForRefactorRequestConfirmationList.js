@@ -284,6 +284,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     // A flag for showing tax rate
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
+    const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
@@ -864,7 +865,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={`${taxRates.name}${taxRateTitle}`}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={canModifyTaxFields}
                     title={taxRateTitle}
                     description={taxRates.name}
                     style={[styles.moneyRequestMenuItem]}
@@ -875,7 +876,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         )
                     }
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={canModifyTaxFields}
                 />
             ),
             shouldShow: shouldShowTax,
@@ -885,7 +886,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={`${taxRates.name}${formattedTaxAmount}`}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={canModifyTaxFields}
                     title={formattedTaxAmount}
                     description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
@@ -896,7 +897,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         )
                     }
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={canModifyTaxFields}
                 />
             ),
             shouldShow: shouldShowTax,

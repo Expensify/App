@@ -576,6 +576,7 @@ function MoneyRequestConfirmationList({
         );
     }, [isReadOnly, iouType, bankAccountRoute, iouCurrencyCode, policyID, selectedParticipants.length, confirm, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
 
+    const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
     const {
         image: receiptImage,
         thumbnail: receiptThumbnail,
@@ -821,7 +822,7 @@ function MoneyRequestConfirmationList({
 
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
+                            shouldShowRightIcon={canModifyTaxFields}
                             title={taxRateTitle}
                             description={taxRates?.name}
                             style={styles.moneyRequestMenuItem}
@@ -838,13 +839,13 @@ function MoneyRequestConfirmationList({
                                 )
                             }
                             disabled={didConfirm}
-                            interactive={!isReadOnly}
+                            interactive={canModifyTaxFields}
                         />
                     )}
 
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly}
+                            shouldShowRightIcon={canModifyTaxFields}
                             title={formattedTaxAmount}
                             description={taxRates?.name}
                             style={styles.moneyRequestMenuItem}
@@ -861,7 +862,7 @@ function MoneyRequestConfirmationList({
                                 )
                             }
                             disabled={didConfirm}
-                            interactive={!isReadOnly}
+                            interactive={canModifyTaxFields}
                         />
                     )}
 
