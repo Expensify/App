@@ -1740,8 +1740,8 @@ describe('actions/IOU', () => {
                                         expect.objectContaining({
                                             total: 20000,
                                             cachedTotal: '$200.00',
-                                            lastMessageHtml: 'requested $200.00',
-                                            lastMessageText: 'requested $200.00',
+                                            lastMessageHtml: 'submitted $200.00',
+                                            lastMessageText: 'submitted $200.00',
                                         }),
                                     );
                                     expect(updatedChatReport).toEqual(
@@ -1894,8 +1894,8 @@ describe('actions/IOU', () => {
                                         expect.objectContaining({
                                             total: 10000,
                                             cachedTotal: '$100.00',
-                                            lastMessageHtml: `requested $${amount / 100}.00 for ${comment}`,
-                                            lastMessageText: `requested $${amount / 100}.00 for ${comment}`,
+                                            lastMessageHtml: `submitted $${amount / 100}.00 for ${comment}`,
+                                            lastMessageText: `submitted $${amount / 100}.00 for ${comment}`,
                                         }),
                                     );
                                     expect(updatedChatReport).toEqual(
