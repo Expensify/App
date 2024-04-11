@@ -1,25 +1,24 @@
 PODS:
-  - Airship (16.12.1):
-    - Airship/Automation (= 16.12.1)
-    - Airship/Basement (= 16.12.1)
-    - Airship/Core (= 16.12.1)
-    - Airship/ExtendedActions (= 16.12.1)
-    - Airship/MessageCenter (= 16.12.1)
-  - Airship/Automation (16.12.1):
+  - Airship (17.7.3):
+    - Airship/Automation (= 17.7.3)
+    - Airship/Basement (= 17.7.3)
+    - Airship/Core (= 17.7.3)
+    - Airship/FeatureFlags (= 17.7.3)
+    - Airship/MessageCenter (= 17.7.3)
+    - Airship/PreferenceCenter (= 17.7.3)
+  - Airship/Automation (17.7.3):
     - Airship/Core
-  - Airship/Basement (16.12.1)
-  - Airship/Core (16.12.1):
+  - Airship/Basement (17.7.3)
+  - Airship/Core (17.7.3):
     - Airship/Basement
-  - Airship/ExtendedActions (16.12.1):
+  - Airship/FeatureFlags (17.7.3):
     - Airship/Core
-  - Airship/MessageCenter (16.12.1):
+  - Airship/MessageCenter (17.7.3):
     - Airship/Core
-  - Airship/PreferenceCenter (16.12.1):
+  - Airship/PreferenceCenter (17.7.3):
     - Airship/Core
-  - AirshipFrameworkProxy (2.1.1):
-    - Airship (= 16.12.1)
-    - Airship/MessageCenter (= 16.12.1)
-    - Airship/PreferenceCenter (= 16.12.1)
+  - AirshipFrameworkProxy (5.1.1):
+    - Airship (= 17.7.3)
   - AirshipServiceExtension (17.8.0)
   - AppAuth (1.6.2):
     - AppAuth/Core (= 1.6.2)
@@ -1162,8 +1161,8 @@ PODS:
   - React-Mapbuffer (0.73.4):
     - glog
     - React-debug
-  - react-native-airship (15.3.1):
-    - AirshipFrameworkProxy (= 2.1.1)
+  - react-native-airship (17.2.1):
+    - AirshipFrameworkProxy (= 5.1.1)
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2438,8 +2437,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: 2f4510b497a8200780752a5e0304a9072bfffb6d
-  AirshipFrameworkProxy: ea1b6c665c798637b93c465b5e505be3011f1d9d
+  Airship: 5a6d3f8a982398940b0d48423bb9b8736717c123
+  AirshipFrameworkProxy: 7255f4ed9836dc2920f2f1ea5657ced4cee8a35c
   AirshipServiceExtension: 0a5fb14c3fd1879355ab05a81d10f64512a4f79c
   AppAuth: 3bb1d1cd9340bd09f5ed189fb00b1cc28e1e8570
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
@@ -2508,7 +2507,7 @@ SPEC CHECKSUMS:
   React-jsitracing: e8a2dafb9878dbcad02b6b2b88e66267fb427b74
   React-logger: 0a57b68dd2aec7ff738195f081f0520724b35dab
   React-Mapbuffer: 63913773ed7f96b814a2521e13e6d010282096ad
-  react-native-airship: 2ed75ff2278f11ff1c1ab08ed68f5bf02727b971
+  react-native-airship: 6ab7a7974d53f92b0c46548fc198f797fdbf371f
   react-native-blob-util: a3ee23cfdde79c769c138d505670055de233b07a
   react-native-cameraroll: 95ce0d1a7d2d1fe55bf627ab806b64de6c3e69e9
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
