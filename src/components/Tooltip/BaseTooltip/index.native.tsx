@@ -14,21 +14,19 @@ import callOrReturn from '@src/types/utils/callOrReturn';
 
 // We can't use the common component for the Tooltip as Web implementation uses DOM specific method
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function Tooltip(
-    {
-        children,
-        numberOfLines = CONST.TOOLTIP_MAX_LINES,
-        maxWidth = variables.sideBarWidth,
-        text = '',
-        renderTooltipContent,
-        renderTooltipContentKey = [],
-        shiftHorizontal = 0,
-        shiftVertical = 0,
-        shouldForceRenderingBelow = false,
-        wrapperStyle = {},
-        isAlwaysOn = false,
-    }: TooltipProps,
-) {
+function Tooltip({
+    children,
+    numberOfLines = CONST.TOOLTIP_MAX_LINES,
+    maxWidth = variables.sideBarWidth,
+    text = '',
+    renderTooltipContent,
+    renderTooltipContentKey = [],
+    shiftHorizontal = 0,
+    shiftVertical = 0,
+    shouldForceRenderingBelow = false,
+    wrapperStyle = {},
+    shouldRenderWithoutHover = false,
+}: TooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -135,7 +133,7 @@ function Tooltip(
     }, [hideTooltip]);
 
     // Skip the tooltip and return the children if the text is empty
-    if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || !isAlwaysOn) {
+    if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || !shouldRenderWithoutHover) {
         return children;
     }
 

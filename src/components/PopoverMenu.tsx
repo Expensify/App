@@ -217,7 +217,8 @@ function PopoverMenu({
                         shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
                         disabled={item.disabled}
                         shouldRenderTooltip={item.shouldRenderTooltip}
-                        isTooltipAlwaysOn={item.isTooltipAlwaysOn}
+                        shouldRenderTooltipWithoutHover={item.shouldRenderTooltipWithoutHover}
+                        shouldForceRenderingLeftTooltip={item.shouldForceRenderingLeftTooltip}
                         tooltipWrapperStyle={item.tooltipWrapperStyle}
                         renderTooltipContent={item.renderTooltipContent}
                     />

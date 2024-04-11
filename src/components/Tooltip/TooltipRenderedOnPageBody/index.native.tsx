@@ -1,11 +1,11 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import Text from '@components/Text';
+import type TooltipProps from '@components/Tooltip/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import Log from '@libs/Log';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
-import type TooltipProps from '@components/Tooltip/types';
 
 type TooltipRenderedOnPageBodyProps = {
     /** Window width */

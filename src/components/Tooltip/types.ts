@@ -31,9 +31,14 @@ type TooltipProps = ChildrenProps & {
 
     shouldForceRenderingBelow?: boolean;
 
+    /** Additional styles for tooltip wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
 
-    isAlwaysOn?: boolean;
+    /** Whether to show the tooltip immediately without hovering over the wrapped component */
+    shouldRenderWithoutHover?: boolean;
+
+    /** Whether to left align the tooltip relative to wrapped component */
+    shouldForceRenderingLeft?: boolean;
 };
 
 type TooltipExtendedProps = TooltipProps & {

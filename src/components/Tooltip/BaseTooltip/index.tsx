@@ -69,7 +69,8 @@ function Tooltip(
         shiftVertical = 0,
         shouldForceRenderingBelow = false,
         wrapperStyle = {},
-        isAlwaysOn = false,
+        shouldRenderWithoutHover = false,
+        shouldForceRenderingLeft = false,
     }: TooltipProps,
     ref: ForwardedRef<BoundsObserver>,
 ) {
@@ -199,29 +200,30 @@ function Tooltip(
         [children, updateTargetAndMousePosition],
     );
 
-    // Skip the tooltip and return the children if the text is empty,
-    // we don't have a render function or the device does not support hovering
-    if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || !hasHoverSupport) {
-        return children;
-    }
-
     const additionalChildrenProps = useMemo(
         () =>
-            isAlwaysOn
+            shouldRenderWithoutHover
                 ? {
                       ref: childrenRef,
                       onLayout: () => {
-                          updateTargetPositionOnMouseEnter({
+                          const childrenRect = childrenRef.current?.getBoundingClientRect();
+                          updateTargetAndMousePosition({
                               currentTarget: childrenRef.current,
-                              clientX: childrenRef.current?.getBoundingClientRect().left,
-                              clientY: childrenRef.current?.getBoundingClientRect().top,
+                              clientX: childrenRect?.left ?? 0,
+                              clientY: childrenRect?.top ?? 0,
                           } as MouseEvent);
                           showTooltip();
                       },
                   }
                 : {},
-        [isAlwaysOn, updateTargetPositionOnMouseEnter, showTooltip],
+        [shouldRenderWithoutHover, updateTargetAndMousePosition, showTooltip],
     );
+
+    // Skip the tooltip and return the children if the text is empty,
+    // we don't have a render function or the device does not support hovering
+    if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || !hasHoverSupport) {
+        return children;
+    }
 
     return (
         <>
@@ -244,6 +246,7 @@ function Tooltip(
                     key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                     shouldForceRenderingBelow={shouldForceRenderingBelow}
                     wrapperStyle={wrapperStyle}
+                    shouldForceRenderingLeft={shouldForceRenderingLeft}
                 />
             )}
 
