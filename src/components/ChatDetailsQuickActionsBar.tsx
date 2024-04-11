@@ -18,7 +18,7 @@ function ChatDetailsQuickActionsBar({report}: ChatDetailsQuickActionsBarProps) {
     const {translate} = useLocalize();
     const isPinned = !!report.isPinned;
     return (
-        <View style={[styles.flexRow, styles.ph3, styles.mb5]}>
+        <View style={[styles.flexRow, styles.ph5, styles.mb5]}>
             <View style={[styles.flex1, styles.pr3]}>
                 <ConfirmModal
                     danger
