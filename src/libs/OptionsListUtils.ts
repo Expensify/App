@@ -565,7 +565,7 @@ function getAlternateText(
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    let reportID = report?.reportID ?? '';
+    const reportID = report?.reportID ?? '';
     let reportActions = allSortedReportActions[reportID];
     const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, allReportActions[reportID]);
     if (transactionThreadReportID) {
