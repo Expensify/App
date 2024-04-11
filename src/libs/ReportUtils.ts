@@ -3098,13 +3098,27 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
 function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
+    const isAttachmentOnly = file && !text;
+    const isTextOnly = text && !file;
+
+    let htmlForNewComment;
+    let textForNewComment;
+    if (isAttachmentOnly) {
+        htmlForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+        textForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+    } else if (isTextOnly) {
+        htmlForNewComment = commentText;
+        textForNewComment = parser.htmlToText(htmlForNewComment);
+    } else {
+        htmlForNewComment = `${commentText}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
+        textForNewComment = `${commentText}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
+    }
+
     const isAttachment = !text && file !== undefined;
-    const attachmentInfo = isAttachment ? file : {};
-    const htmlForNewComment = isAttachment ? CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML : commentText;
+    const attachmentInfo = file ?? {};
     const accountID = actorAccountID ?? currentUserAccountID;
 
     // Remove HTML from text when applying optimistic offline comment
-    const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT : parser.htmlToText(htmlForNewComment);
     return {
         commentText,
         reportAction: {
@@ -3123,7 +3137,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject,
             created: DateUtils.getDBTimeWithSkew(),
             message: [
                 {
-                    translationKey: isAttachment ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
+                    translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     html: htmlForNewComment,
                     text: textForNewComment,
