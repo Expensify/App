@@ -2975,6 +2975,24 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
 }
 
 /**
+ * Get the title for an invoice room.
+ */
+function getInvoicesChatName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string {
+    const policyName = getPolicyName(report, false, policy);
+    let receiverName = '';
+
+    if (report?.invoiceReceiverAccountID) {
+        receiverName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[report.invoiceReceiverAccountID]);
+    }
+
+    if (report?.invoiceReceiverPolicyID) {
+        receiverName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiverPolicyID}`]);
+    }
+
+    return `${receiverName} & ${policyName}`;
+}
+
+/**
  * Get the title for a report.
  */
 function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): string {
@@ -3043,6 +3061,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true);
+    }
+
+    if (isInvoiceRoom(report)) {
+        formattedName = getInvoicesChatName(report, policy);
     }
 
     if (formattedName) {
@@ -5999,6 +6021,7 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
+    getInvoicesChatName,
     getReportName,
     getReport,
     getReportNotificationPreference,
