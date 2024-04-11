@@ -53,13 +53,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const isSyncInProgress = connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
+    const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
     const policyIsConnectedToAccountingSystem = Object.keys(policy.connections ?? {}).length > 0;
     const policyID = policy.id ?? '';
-    console.log('PolicyAccountingPage connectionSyncProgress', connectionSyncProgress);
-    console.log('PolicyAccountingPage policyIsConnectedToAccountingSystem', policyIsConnectedToAccountingSystem);
-    console.log('PolicyAccountingPage policy.connections', policy.connections);
-    console.log('PolicyAccountingPage isSyncInProgress', isSyncInProgress);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -80,7 +76,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     );
 
     const menuItems: MenuItemProps[] = useMemo(() => {
-        if (!policyIsConnectedToAccountingSystem) {
+        if (!policyIsConnectedToAccountingSystem && !isSyncInProgress) {
             return [
                 {
                     icon: Expensicons.QBOSquare,
@@ -128,8 +124,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 ),
             },
             ...(policyIsConnectedToAccountingSystem
-                ? []
-                : [
+                ? [
                       {
                           icon: Expensicons.Pencil,
                           iconRight: Expensicons.ArrowRight,
@@ -154,7 +149,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: () => {},
                       },
-                  ]),
+                  ]
+                : []),
         ];
     }, [
         connectionSyncProgress?.stageInProgress,

@@ -2,8 +2,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 
 function getQuickBooksOnlineSetupLink(policyID: string) {
     const otherParams = new URLSearchParams({policyID}).toString();
-    const commandUrl = `${getCommandURL({command: 'ConnectPolicyToQuickbooksOnline'})}&${otherParams}`;
-    return commandUrl;
+    return `${getCommandURL({command: 'ConnectPolicyToQuickbooksOnline'})}&${otherParams}`;
 }
 
 // More action functions will be added later
