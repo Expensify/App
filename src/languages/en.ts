@@ -720,6 +720,8 @@ export default {
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
         requestOnHold: 'This request was put on hold. Review the comments for next steps.',
+        requestDuplicate: 'This request has the same details as another one. Review the duplicated to remove the hold.',
+        reviewDuplicates: 'Review duplicates',
         confirmApprove: 'Confirm what to approve',
         confirmApprovalAmount: 'Approve the entire report total or only the amount not on hold.',
         confirmPay: 'Confirm what to pay',
