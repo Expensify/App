@@ -231,8 +231,7 @@ function Composer(
     );
 
     /**
-     * Check the current scrollHeight of the textarea (minus any padding) and
-     * divide by line height to get the total number of rows for the textarea.
+     * Check the current text input width and update the state with the new width.
      */
     const updateTextInputWidth = useCallback(() => {
         if (!textInput.current) {
