@@ -44,4 +44,19 @@ describe('SequentialQueue', () => {
         expect(handleConflictingRequest).toHaveBeenCalledWith(request);
         expect(handleConflictingRequest).toHaveBeenCalledTimes(1);
     });
+
+    it('a request should never conflict with itself', () => {
+        PersistedRequests.remove(request);
+        expect(PersistedRequests.getAll().length).toBe(0);
+
+        let newRequest: Request = {...request, getConflictingRequests: (requests: Request[]) => requests};
+        SequentialQueue.push(newRequest);
+        expect(PersistedRequests.getAll().length).toBe(1);
+
+        PersistedRequests.remove(newRequest);
+        expect(PersistedRequests.getAll().length).toBe(0);
+
+        SequentialQueue.push({...request, getConflictingRequests: (requests: Request[]) => requests, shouldIncludeCurrentRequest: true});
+        expect(PersistedRequests.getAll().length).toBe(1);
+    });
 });
