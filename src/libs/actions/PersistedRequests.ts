@@ -18,39 +18,39 @@ function clear() {
 }
 
 function save(requestToPersist: Request) {
-    const requests = [...persistedRequests, requestToPersist];
+    // const requests = [...persistedRequests, requestToPersist];
+    //
+    // // identify and handle any existing requests that conflict with the new one
+    // const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = requestToPersist;
+    // if (getConflictingRequests) {
+    //     // Get all the requests, potentially including the one we're adding, which will always be at the end of the array
+    //     const potentiallyConflictingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
+    //
+    //     // Identify conflicting requests according to logic bound to the new request
+    //     const conflictingRequests = getConflictingRequests(potentiallyConflictingRequests);
+    //
+    //     conflictingRequests.forEach((conflictingRequest) => {
+    //         // delete the conflicting request
+    //         const index = requests.findIndex((req) => req === conflictingRequest);
+    //         if (index !== -1) {
+    //             requests.splice(index, 1);
+    //         }
+    //
+    //         // Allow the new request to perform any additional cleanup for a cancelled request
+    //         handleConflictingRequest?.(conflictingRequest);
+    //     });
+    // }
+    //
+    // // Don't try to serialize conflict resolution functions
+    // persistedRequests = requests.map((request) => {
+    //     delete request.getConflictingRequests;
+    //     delete request.handleConflictingRequest;
+    //     delete request.shouldIncludeCurrentRequest;
+    //     return request;
+    // });
 
-    // identify and handle any existing requests that conflict with the new one
-    const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = requestToPersist;
-    if (getConflictingRequests) {
-        // Get all the requests, potentially including the one we're adding, which will always be at the end of the array
-        const potentiallyConflictingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
-
-        // Identify conflicting requests according to logic bound to the new request
-        const conflictingRequests = getConflictingRequests(potentiallyConflictingRequests);
-
-        conflictingRequests.forEach((conflictingRequest) => {
-            // delete the conflicting request
-            const index = requests.findIndex((req) => req === conflictingRequest);
-            if (index !== -1) {
-                requests.splice(index, 1);
-            }
-
-            // Allow the new request to perform any additional cleanup for a cancelled request
-            handleConflictingRequest?.(conflictingRequest);
-        });
-    }
-
-    // Don't try to serialize conflict resolution functions
-    persistedRequests = requests.map((request) => {
-        delete request.getConflictingRequests;
-        delete request.handleConflictingRequest;
-        delete request.shouldIncludeCurrentRequest;
-        return request;
-    });
-
-    // Save the updated set of requests
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
+    persistedRequests.push(requestToPersist);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
 function remove(requestToRemove: Request) {
@@ -68,6 +68,15 @@ function remove(requestToRemove: Request) {
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
+function bulkRemove(requestsToRemove: Request[]) {
+    if (requestsToRemove.length === 0) {
+        return;
+    }
+    const requests = persistedRequests.filter((request) => !requestsToRemove.includes(request));
+    persistedRequests = requests;
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
+}
+
 function update(oldRequestIndex: number, newRequest: Request) {
     const requests = [...persistedRequests];
     requests.splice(oldRequestIndex, 1, newRequest);
@@ -79,4 +88,4 @@ function getAll(): Request[] {
     return persistedRequests;
 }
 
-export {clear, save, getAll, remove, update};
+export {clear, save, getAll, remove, bulkRemove, update};

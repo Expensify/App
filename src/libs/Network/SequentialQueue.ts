@@ -160,6 +160,32 @@ function isRunning(): boolean {
 NetworkStore.onReconnection(flush);
 
 function push(request: OnyxRequest) {
+    // identify and handle any existing requests that conflict with the new one
+    const requests = [...PersistedRequests.getAll(), request];
+    const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = request;
+    if (getConflictingRequests) {
+        // Get all the requests, potentially including the one we're adding, which will always be at the end of the array
+        const potentiallyConflictingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
+
+        // Identify conflicting requests according to logic bound to the new request
+        const conflictingRequests = getConflictingRequests(potentiallyConflictingRequests);
+
+        // Delete the conflicting requests
+        PersistedRequests.bulkRemove(conflictingRequests);
+
+        // Allow the new request to perform any additional cleanup for a cancelled request
+        if (handleConflictingRequest) {
+            for (const conflictingRequest of conflictingRequests) {
+                handleConflictingRequest(conflictingRequest);
+            }
+        }
+    }
+
+    // Don't try to serialize conflict resolution functions
+    delete request.getConflictingRequests;
+    delete request.handleConflictingRequest;
+    delete request.shouldIncludeCurrentRequest;
+
     // Add request to Persisted Requests so that it can be retried if it fails
     PersistedRequests.save(request);
 
