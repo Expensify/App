@@ -114,14 +114,14 @@ function IOURequestStepDistance({
         setShouldShowAtLeastTwoDifferentWaypointsError(false);
     }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoading, isLoadingRoute, nonEmptyWaypointsCount, transaction]);
 
+    // This effect runs when the component is mounted and unmounted. It's purpose is to be able to properly
+    // discard changes if the user cancels out of making any changes. This is accomplished by backing up the
+    // original transaction, letting the user modify the current transaction, and then if the user ever
+    // cancels out of the modal without saving changes, the original transaction is restored from the backup.
     useEffect(() => {
         if (isCreatingNewRequest) {
             return () => {};
         }
-        // This effect runs when the component is mounted and unmounted. It's purpose is to be able to properly
-        // discard changes if the user cancels out of making any changes. This is accomplished by backing up the
-        // original transaction, letting the user modify the current transaction, and then if the user ever
-        // cancels out of the modal without saving changes, the original transaction is restored from the backup.
 
         // On mount, create the backup transaction.
         TransactionEdit.createBackupTransaction(transaction);
