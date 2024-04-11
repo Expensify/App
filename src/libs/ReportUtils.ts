@@ -1745,7 +1745,7 @@ function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = f
     if (reportID) {
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
         const reportName = allReports?.[reportKey]?.reportName;
-        if (reportName && reportName.length > 0) {
+        if (reportName) {
             return reportName;
         }
     }
@@ -4890,8 +4890,8 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
     }
 
     const reportParticipants = report.participants ?? {};
-    const participant = reportParticipants[accountID] ?? {};
-    return participant.role === CONST.REPORT.ROLE.ADMIN;
+    const participant = reportParticipants[accountID];
+    return participant?.role === CONST.REPORT.ROLE.ADMIN;
 }
 
 /**

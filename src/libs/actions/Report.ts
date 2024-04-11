@@ -36,6 +36,8 @@ import type {
     SetNameValuePairParams,
     TogglePinnedChatParams,
     UpdateCommentParams,
+    UpdateGroupChatMemberRolesParams,
+    UpdateGroupChatNameParams,
     UpdatePolicyRoomNameParams,
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
@@ -564,8 +566,8 @@ function updateGroupChatName(reportID: string, reportName: string) {
             value: {reportName},
         },
     ];
-
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, {reportName, reportID}, {optimisticData});
+    const parameters: UpdateGroupChatNameParams = {reportName, reportID};
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, parameters, {optimisticData});
 }
 
 function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
@@ -577,7 +579,8 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             value: {avatarUrl: file?.uri ?? ''},
         },
     ];
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, {file, reportID}, {optimisticData});
+    const parameters: UpdateGroupChatAvatarParams = {file, reportID};
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData});
 }
 
 /**
@@ -2633,8 +2636,8 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
             },
         },
     ];
-
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, {reportID, memberRoles: JSON.stringify(memberRoles)}, {optimisticData});
+    const parameters: UpdateGroupChatMemberRolesParams = {reportID, memberRoles: JSON.stringify(memberRoles)};
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData});
 }
 
 /** Invites people to a group chat */
