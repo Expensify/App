@@ -163,7 +163,7 @@ function isRunning(): boolean {
 NetworkStore.onReconnection(flush);
 
 function push(request: OnyxRequest) {
-    // identify and handle any existing requests that conflict with the new one
+    // identify and handle any existing requests that conflict with the new one, ignoring the one that's currently processing if there is one
     const requests = PersistedRequests.getAll().filter((persistedRequest) => persistedRequest !== currentRequest);
     let hasConflict = false;
     const {getConflictingRequests, handleConflictingRequest, shouldSkipThisRequestOnConflict} = request;
@@ -189,7 +189,7 @@ function push(request: OnyxRequest) {
     delete request.shouldSkipThisRequestOnConflict;
 
     // Add request to Persisted Requests so that it can be retried if it fails
-    if (!(hasConflict && shouldSkipThisRequestOnConflict)) {
+    if (!(hasConflict && (shouldSkipThisRequestOnConflict?.() ?? false))) {
         PersistedRequests.save(request);
     }
 

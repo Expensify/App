@@ -56,7 +56,7 @@ describe('SequentialQueue', () => {
         const newRequest = {
             command: 'ThingA',
             getConflictingRequests: (requests: Request[]) => requests,
-            shouldSkipThisRequestOnConflict: true,
+            shouldSkipThisRequestOnConflict: () => true,
         };
         SequentialQueue.push(newRequest);
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -73,7 +73,7 @@ describe('SequentialQueue', () => {
         PersistedRequests.remove(newRequest);
         expect(PersistedRequests.getAll().length).toBe(0);
 
-        SequentialQueue.push({...request, getConflictingRequests: (requests: Request[]) => requests, shouldSkipThisRequestOnConflict: true});
+        SequentialQueue.push({...request, getConflictingRequests: (requests: Request[]) => requests, shouldSkipThisRequestOnConflict: () => true});
         expect(PersistedRequests.getAll().length).toBe(1);
     });
 
@@ -92,7 +92,7 @@ describe('SequentialQueue', () => {
         const newRequest = {
             command: 'ThingA',
             getConflictingRequests: (requests: Request[]) => requests,
-            shouldSkipThisRequestOnConflict: true,
+            shouldSkipThisRequestOnConflict: () => true,
         };
         SequentialQueue.push(newRequest);
 
