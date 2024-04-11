@@ -335,7 +335,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency ?? '');
-    }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
+    }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency, transactionID]);
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
@@ -343,11 +343,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
         if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount) {
-            return IOU.setMoneyRequestTaxAmount(transaction?.transactionID, transaction?.taxAmount, true);
+            return IOU.setMoneyRequestTaxAmount(transactionID, transaction?.taxAmount, true);
         }
 
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [taxRates?.defaultValue, transaction, previousTransactionAmount]);
+    }, [taxRates?.defaultValue, transaction, previousTransactionAmount, transactionID]);
 
     /**
      * Returns the participants with amount
@@ -475,7 +475,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? 'USD', translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant(transactionID, distanceMerchant, true);
-    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
+    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transactionID]);
 
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
@@ -484,7 +484,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             return;
         }
         IOU.setMoneyRequestCategory(transactionID, enabledCategories[0].name);
-    }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
+    }, [iouCategory, shouldShowCategories, policyCategories, isCategoryRequired, transactionID]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
@@ -500,7 +500,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transactionID, updatedTagsString);
         }
-    }, [policyTagLists, transaction, policyTags, canUseViolations]);
+    }, [policyTagLists, transaction, policyTags, canUseViolations, transactionID]);
 
     /**
      */
