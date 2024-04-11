@@ -16,7 +16,7 @@ type ProfileAvatarWithIndicatorOnyxProps = {
 
 type ProfileAvatarWithIndicatorProps = ProfileAvatarWithIndicatorOnyxProps & {
     /** Whether the avatar is selected */
-    isSelected: boolean;
+    isSelected?: boolean;
 };
 
 function ProfileAvatarWithIndicator({isLoading = true, isSelected = false}: ProfileAvatarWithIndicatorProps) {
@@ -24,7 +24,7 @@ function ProfileAvatarWithIndicator({isLoading = true, isSelected = false}: Prof
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     return (
-        <OfflineWithFeedback pendingAction={currentUserPersonalDetails.pendingFields?.avatar ?? null}>
+        <OfflineWithFeedback pendingAction={currentUserPersonalDetails.pendingFields?.avatar}>
             <View style={[isSelected && styles.selectedAvatarBorder]}>
                 <AvatarWithIndicator
                     source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
