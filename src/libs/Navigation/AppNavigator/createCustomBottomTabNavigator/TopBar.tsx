@@ -17,19 +17,21 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Session as SessionType} from '@src/types/onyx';
 
 type TopBarOnyxProps = {
     policy: OnyxEntry<Policy>;
+    session: OnyxEntry<Pick<SessionType, 'authTokenType'>>;
 };
 
 // eslint-disable-next-line react/no-unused-prop-types
 type TopBarProps = {activeWorkspaceID?: string} & TopBarOnyxProps;
 
-function TopBar({policy}: TopBarProps) {
+function TopBar({policy, session}: TopBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const isAnonymousUser = Session.isAnonymousUser(session);
 
     const headerBreadcrumb = policy?.name
         ? {type: CONST.BREADCRUMB_TYPE.STRONG, text: policy.name}
@@ -57,7 +59,7 @@ function TopBar({policy}: TopBarProps) {
                         />
                     </View>
                 </View>
-                {Session.isAnonymousUser() ? (
+                {isAnonymousUser ? (
                     <SignInButton />
                 ) : (
                     <Tooltip text={translate('common.search')}>
@@ -83,5 +85,9 @@ TopBar.displayName = 'TopBar';
 export default withOnyx<TopBarProps, TopBarOnyxProps>({
     policy: {
         key: ({activeWorkspaceID}) => `${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+        selector: (session) => session && {authTokenType: session.authTokenType},
     },
 })(TopBar);
