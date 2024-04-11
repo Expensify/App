@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
-import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as Session from './Session';
 
@@ -41,12 +41,6 @@ let allPersonalDetails: OnyxEntry<PersonalDetailsList> = null;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
-});
-
-let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails> = null;
-Onyx.connect({
-    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    callback: (val) => (privatePersonalDetails = val),
 });
 
 function updatePronouns(pronouns: string) {
@@ -241,43 +235,6 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
 }
 
 /**
- * Fetches additional personal data like legal name, date of birth, address
- */
-function openPersonalDetails() {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS, {}, {optimisticData, successData, failureData});
-}
-
-/**
  * Fetches public profile info about a given user.
  * The API will only return the accountID, displayName, and avatar for the user
  * but the profile page will use other info (e.g. contact methods and pronouns) if they are already available in Onyx
@@ -446,18 +403,9 @@ function clearAvatarErrors() {
     });
 }
 
-/**
- * Get private personal details value
- */
-function getPrivatePersonalDetails(): OnyxEntry<PrivatePersonalDetails> {
-    return privatePersonalDetails;
-}
-
 export {
     clearAvatarErrors,
     deleteAvatar,
-    getPrivatePersonalDetails,
-    openPersonalDetails,
     openPublicProfilePage,
     updateAddress,
     updateAutomaticTimezone,

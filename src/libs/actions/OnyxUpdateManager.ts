@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
@@ -33,6 +34,12 @@ export default () => {
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value) => {
             if (!value) {
+                return;
+            }
+            // This key is shared across clients, thus every client/tab will have a copy and try to execute this method.
+            // It is very important to only process the missing onyx updates from leader client otherwise requests we'll execute
+            // several duplicated requests that are not controlled by the SequentialQueue.
+            if (!ActiveClientManager.isClientTheLeader()) {
                 return;
             }
 

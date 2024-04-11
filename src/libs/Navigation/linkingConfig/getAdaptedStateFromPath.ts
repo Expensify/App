@@ -312,7 +312,9 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             metainfo,
         };
     }
-    if (bottomTabNavigator) {
+
+    // We need to make sure that this if only handles states where we deeplink to the bottom tab directly
+    if (bottomTabNavigator && bottomTabNavigator.state) {
         // Routes
         // - found bottom tab
         // - matching central pane on desktop layout
