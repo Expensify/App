@@ -26,7 +26,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AllRoutes} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -122,7 +122,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     isReadOnly?: boolean;
 
     /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute?: AllRoutes;
+    bankAccountRoute?: Route;
 
     /** The policyID of the request */
     policyID?: string;
@@ -223,13 +223,12 @@ function MoneyRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
+    const {canUseViolations} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
-    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isSplitBill);
 
     const isSplitWithScan = isSplitBill && isScanRequest;
 
@@ -719,7 +718,7 @@ function MoneyRequestConfirmationList({
                     )}
                     {isDistanceRequest && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly && canEditDistance}
+                            shouldShowRightIcon={!isReadOnly}
                             title={iouMerchant}
                             description={translate('common.distance')}
                             style={styles.moneyRequestMenuItem}
@@ -735,7 +734,7 @@ function MoneyRequestConfirmationList({
                                     ),
                                 )
                             }
-                            disabled={didConfirm || !canEditDistance}
+                            disabled={didConfirm}
                             interactive={!isReadOnly}
                         />
                     )}
