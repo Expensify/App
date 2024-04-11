@@ -18,7 +18,8 @@ let isReadyPromise = new Promise((resolve) => {
 resolveIsReadyPromise?.();
 
 let isSequentialQueueRunning = false;
-let currentRequest: Promise<void> | null = null;
+let currentRequest: OnyxRequest | null = null;
+let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
 
 /**
@@ -67,7 +68,8 @@ function process(): Promise<void> {
     const requestToProcess = persistedRequests[0];
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
-    currentRequest = Request.processWithMiddleware(requestToProcess, true)
+    currentRequest = requestToProcess;
+    currentRequestPromise = Request.processWithMiddleware(requestToProcess, true)
         .then((response) => {
             // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
             // that gap needs resolved before the queue can continue.
@@ -96,7 +98,7 @@ function process(): Promise<void> {
                 });
         });
 
-    return currentRequest;
+    return currentRequestPromise;
 }
 
 function flush() {
@@ -131,6 +133,7 @@ function flush() {
                 isSequentialQueueRunning = false;
                 resolveIsReadyPromise?.();
                 currentRequest = null;
+                currentRequestPromise = null;
                 flushOnyxUpdatesQueue();
             });
         },
@@ -161,7 +164,7 @@ NetworkStore.onReconnection(flush);
 
 function push(request: OnyxRequest) {
     // identify and handle any existing requests that conflict with the new one
-    const requests = PersistedRequests.getAll();
+    const requests = PersistedRequests.getAll().filter((persistedRequest) => persistedRequest !== currentRequest);
     let hasConflict = false;
     const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequestOnConflict} = request;
     if (getConflictingRequests) {
@@ -208,10 +211,10 @@ function push(request: OnyxRequest) {
 }
 
 function getCurrentRequest(): Promise<void> {
-    if (currentRequest === null) {
+    if (currentRequestPromise === null) {
         return Promise.resolve();
     }
-    return currentRequest;
+    return currentRequestPromise;
 }
 
 /**

@@ -1,7 +1,10 @@
+import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '@userActions/PersistedRequests';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import type Request from '../../src/types/onyx/Request';
 import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const request: Request = {
     command: 'OpenReport',
@@ -10,6 +13,12 @@ const request: Request = {
 };
 
 describe('SequentialQueue', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
     beforeEach(() => {
         PersistedRequests.save(request);
 
@@ -17,8 +26,10 @@ describe('SequentialQueue', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
     });
 
-    afterEach(() => {
-        PersistedRequests.clear();
+    afterEach(async () => {
+        await PersistedRequests.clear();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
     });
 
     it('saves a request without conflicts', () => {
@@ -66,15 +77,25 @@ describe('SequentialQueue', () => {
         expect(PersistedRequests.getAll().length).toBe(1);
     });
 
-    it('should always ignore any requests that have already been sent', () => {
+    it('should always ignore any requests that have already been sent', async () => {
         expect(PersistedRequests.getAll().length).toBe(1);
         SequentialQueue.flush();
+
+        // Wait for the queue to start processing (this is async because it uses an Onyx.connect callback, but don't wait for all async activity to finish
+        // We want to test the case where we try to synchronously add a request to the queue while there's another one still processing
+        await new Promise(process.nextTick);
+
+        // Ensure the first request is still processing
+        expect(PersistedRequests.getAll().length).toBe(1);
+
         const newRequest = {
             command: 'ThingA',
             getConflictingRequests: (requests: Request[]) => requests,
             shouldIncludeCurrentRequestOnConflict: true,
         };
         SequentialQueue.push(newRequest);
+
+        // Verify that we ignored the conflict with any request that's already processing
         expect(PersistedRequests.getAll().length).toBe(2);
     });
 });
