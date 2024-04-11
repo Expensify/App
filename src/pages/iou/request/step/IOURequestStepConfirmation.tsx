@@ -57,7 +57,7 @@ function IOURequestStepConfirmation({
     policyCategories,
     report,
     route: {
-        params: {iouType, reportID, transactionID, action: iouAction},
+        params: {iouType, reportID, transactionID, action},
     },
     transaction,
 }: IOURequestStepConfirmationProps) {
@@ -80,10 +80,10 @@ function IOURequestStepConfirmation({
     const requestType = TransactionUtils.getRequestType(transaction);
 
     const headerTitle = useMemo(() => {
-        if (iouAction === CONST.IOU.ACTION.CATEGORIZE) {
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
         }
-        if (iouAction === CONST.IOU.ACTION.MOVE) {
+        if (action === CONST.IOU.ACTION.MOVE) {
             return translate('iou.request');
         }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -96,7 +96,7 @@ function IOURequestStepConfirmation({
             return translate('common.send');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate, iouAction]);
+    }, [iouType, transaction, translate, action]);
 
     const participants = useMemo(
         () =>
@@ -155,22 +155,22 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction?.participantsAutoAssigned) {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, undefined, iouAction));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, undefined, action));
             return;
         }
-        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, iouAction);
-    }, [transaction, iouType, requestType, transactionID, reportID, iouAction]);
+        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
+    }, [transaction, iouType, requestType, transactionID, reportID, action]);
 
     const navigateToAddReceipt = useCallback(() => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(iouAction, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-    }, [iouType, transactionID, reportID, iouAction]);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+    }, [iouType, transactionID, reportID, action]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        if ([CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(iouAction)) {
+        if (IOUUtils.isMovingTransactionFromTrackExpense(action)) {
             return;
         }
 
@@ -181,7 +181,7 @@ function IOURequestStepConfirmation({
         };
 
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
-    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, iouAction]);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
@@ -209,7 +209,7 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 gpsPoints,
-                iouAction,
+                action,
                 transaction.actionableWhisperReportActionID,
                 transaction.linkedTrackedExpenseReportAction,
                 transaction.linkedTrackedExpenseReportID,
@@ -225,7 +225,7 @@ function IOURequestStepConfirmation({
             policy,
             policyTags,
             policyCategories,
-            iouAction,
+            action,
         ],
     );
 
@@ -544,7 +544,7 @@ function IOURequestStepConfirmation({
                             iouCreated={transaction?.created}
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                             shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
-                            iouAction={iouAction}
+                            action={action}
                         />
                     </View>
                 </View>

@@ -35,7 +35,7 @@ type IOURef = IOUValueType | null;
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID, action: iouAction},
+        params: {iouType, reportID, transactionID, action},
     },
     transaction,
 }: IOURequestStepParticipantsProps) {
@@ -47,10 +47,10 @@ function IOURequestStepParticipants({
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const headerTitle = useMemo(() => {
-        if (iouAction === CONST.IOU.ACTION.CATEGORIZE) {
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
         }
-        if (iouAction === CONST.IOU.ACTION.MOVE) {
+        if (action === CONST.IOU.ACTION.MOVE) {
             return translate('iou.request');
         }
         if (isSplitRequest) {
@@ -60,7 +60,7 @@ function IOURequestStepParticipants({
             return translate('common.send');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate, isSplitRequest, iouAction]);
+    }, [iouType, transaction, translate, isSplitRequest, action]);
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -72,11 +72,11 @@ function IOURequestStepParticipants({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        if ([CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(iouAction)) {
+        if (IOUUtils.isMovingTransactionFromTrackExpense(action)) {
             return;
         }
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
-    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, iouAction]);
+    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]);
 
     const updateRouteParams = useCallback(() => {
         const navigationState = navigation.getState();
@@ -143,23 +143,23 @@ function IOURequestStepParticipants({
                 nextStepIOUType = CONST.IOU.TYPE.SEND;
             }
 
-            const isCategorizing = iouAction === CONST.IOU.ACTION.CATEGORIZE;
+            const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
 
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
-            const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouAction, nextStepIOUType, transactionID, selectedReportID.current || reportID);
+            const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, nextStepIOUType, transactionID, selectedReportID.current || reportID);
             if (isCategorizing) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouAction, nextStepIOUType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, nextStepIOUType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
             } else {
                 Navigation.navigate(iouConfirmationPageRoute);
             }
         },
-        [iouType, transactionID, reportID, iouAction],
+        [iouType, transactionID, reportID, action],
     );
 
     const navigateBack = useCallback(() => {
-        IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, iouAction);
-    }, [iouRequestType, iouType, transactionID, reportID, iouAction]);
+        IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
+    }, [iouRequestType, iouType, transactionID, reportID, action]);
 
     return (
         <StepScreenWrapper
@@ -177,7 +177,7 @@ function IOURequestStepParticipants({
                     iouType={iouType}
                     iouRequestType={iouRequestType}
                     didScreenTransitionEnd={didScreenTransitionEnd}
-                    iouAction={iouAction}
+                    action={action}
                 />
             )}
         </StepScreenWrapper>

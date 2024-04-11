@@ -162,7 +162,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     reportActionID?: string;
 
-    iouAction?: ValueOf<typeof CONST.IOU.ACTION>;
+    action?: ValueOf<typeof CONST.IOU.ACTION>;
 };
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
@@ -208,7 +208,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     onToggleBillable,
     hasSmartScanFailed,
     reportActionID,
-    iouAction = CONST.IOU.ACTION.CREATE,
+    action = CONST.IOU.ACTION.CREATE,
 }: MoneyRequestConfirmationListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -661,7 +661,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             return;
                         }
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouAction, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
@@ -685,7 +685,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     onPress={() => {
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                iouAction,
+                                action,
                                 iouType,
                                 transaction?.transactionID ?? '',
                                 reportID,
@@ -715,7 +715,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     onPress={() =>
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
-                                iouAction,
+                                action,
                                 iouType,
                                 transaction?.transactionID ?? '',
                                 reportID,
@@ -743,7 +743,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     onPress={() => {
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
-                                iouAction,
+                                action,
                                 iouType,
                                 transaction?.transactionID ?? '',
                                 reportID,
@@ -773,7 +773,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(iouAction, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     disabled={didConfirm}
@@ -796,7 +796,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     onPress={() =>
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                iouAction,
+                                action,
                                 iouType,
                                 transaction?.transactionID ?? '',
                                 reportID,
@@ -812,7 +812,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 />
             ),
             shouldShow: shouldShowCategories,
-            isSupplementary: iouAction === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
+            isSupplementary: action === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
         },
         ...policyTagLists.map(({name, required}, index) => {
             const isTagRequired = required === undefined ? false : canUseViolations && required;

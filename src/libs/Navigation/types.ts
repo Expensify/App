@@ -442,6 +442,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;

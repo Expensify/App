@@ -68,7 +68,7 @@ const propTypes = {
     didScreenTransitionEnd: PropTypes.bool,
 
     /** The action of the IOU, i.e. create, split, move */
-    iouAction: PropTypes.oneOf(_.values(CONST.IOU.ACTION)),
+    action: PropTypes.oneOf(_.values(CONST.IOU.ACTION)),
 };
 
 const defaultProps = {
@@ -77,7 +77,7 @@ const defaultProps = {
     betas: [],
     dismissedReferralBanners: {},
     didScreenTransitionEnd: false,
-    iouAction: CONST.IOU.ACTION.CREATE,
+    action: CONST.IOU.ACTION.CREATE,
 };
 
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
@@ -90,7 +90,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     iouRequestType,
     dismissedReferralBanners,
     didScreenTransitionEnd,
-    iouAction,
+    action,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -132,9 +132,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
             // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to request money from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.TYPE.REQUEST && iouAction !== CONST.IOU.ACTION.MOVE,
+            iouType === CONST.IOU.TYPE.REQUEST && action !== CONST.IOU.ACTION.MOVE,
 
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(iouAction),
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
             false,
             {},
             [],
@@ -167,7 +167,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             shouldShow: !_.isEmpty(chatOptions.recentReports),
         });
 
-        if (![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(iouAction)) {
+        if (![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action)) {
             newSections.push({
                 title: translate('common.contacts'),
                 data: chatOptions.personalDetails,
@@ -195,7 +195,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         debouncedSearchTerm,
         participants,
         iouType,
-        iouAction,
+        action,
         canUseP2PDistanceRequests,
         iouRequestType,
         maxParticipantsReached,
@@ -287,7 +287,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
     const isAllowedToSplit =
         (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
-        (iouType !== CONST.IOU.TYPE.SEND || iouType !== CONST.IOU.TYPE.TRACK_EXPENSE || ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(iouAction));
+        (iouType !== CONST.IOU.TYPE.SEND || iouType !== CONST.IOU.TYPE.TRACK_EXPENSE || ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(action));
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -395,7 +395,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
     const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
 
-    if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(iouAction) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
+    if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
         return renderEmptyWorkspaceView();
     }
 
