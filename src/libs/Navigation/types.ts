@@ -397,7 +397,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
         reportActionID: string;
-        tagIndex: string;
+        orderWeight: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
