@@ -21,7 +21,6 @@ function Composer(
         isComposerFullSize = false,
         setIsFullComposerAvailable = () => {},
         autoFocus = false,
-        isFullComposerAvailable = false,
         style,
         // On native layers we like to have the Text Input not focused so the
         // user can read new chats without the keyboard in the way of the view.
@@ -80,7 +79,6 @@ function Composer(
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
             autoFocus={autoFocus}
-            isFullComposerAvailable={isFullComposerAvailable}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}

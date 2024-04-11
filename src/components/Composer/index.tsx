@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -126,7 +125,6 @@ function Composer(
             return;
         }
         const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
-
         if (shouldCalculateCaretPosition) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
@@ -236,24 +234,22 @@ function Composer(
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
-    const updateNumberOfLines = useCallback(() => {
+    const updateTextInputWidth = useCallback(() => {
         if (!textInput.current) {
             return;
         }
-
-        const textInputHeight = textInput.current.clientHeight;
+        const textInputHeight = textInput.current.style.height;
         // we reset the height to 0 to get the correct scrollHeight
         textInput.current.style.height = '0';
         const computedStyle = window.getComputedStyle(textInput.current);
         setTextInputWidth(computedStyle.width);
-        // updateIsFullComposerAvailable({isFullComposerAvailable, setIsFullComposerAvailable}, textInputHeight >= 70 ? 3 : 1);
-        textInput.current.style.height = 'auto';
+        textInput.current.style.height = textInputHeight;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, maxLines, isFullComposerAvailable, setIsFullComposerAvailable, windowWidth]);
 
     useEffect(() => {
-        updateNumberOfLines();
-    }, [updateNumberOfLines]);
+        updateTextInputWidth();
+    }, [updateTextInputWidth]);
 
     useEffect(() => {
         if (!textInput.current) {
@@ -370,6 +366,7 @@ function Composer(
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
+                onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
