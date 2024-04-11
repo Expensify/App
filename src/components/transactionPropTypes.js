@@ -93,4 +93,7 @@ export default PropTypes.shape({
 
     /** Server side errors keyed by microtime */
     errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
+
+    /** Whether the original input should be shown */
+    shouldShowOriginalAmount: PropTypes.bool,
 });

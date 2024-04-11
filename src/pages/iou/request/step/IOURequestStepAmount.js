@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -39,6 +40,9 @@ const propTypes = {
 
     /** The draft transaction object being modified in Onyx */
     draftTransaction: transactionPropTypes,
+
+    /** Whether the user input should be kept or not */
+    shouldKeepUserInput: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -46,6 +50,7 @@ const defaultProps = {
     transaction: {},
     splitDraftTransaction: {},
     draftTransaction: {},
+    shouldKeepUserInput: false,
 };
 
 function IOURequestStepAmount({
@@ -56,6 +61,7 @@ function IOURequestStepAmount({
     transaction,
     splitDraftTransaction,
     draftTransaction,
+    shouldKeepUserInput,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
@@ -125,7 +131,7 @@ function IOURequestStepAmount({
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true);
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true, shouldKeepUserInput);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -183,6 +189,7 @@ function IOURequestStepAmount({
                 currency={currency}
                 amount={Math.abs(transactionAmount)}
                 ref={(e) => (textInput.current = e)}
+                shouldKeepUserInput={transaction.shouldShowOriginalAmount}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}

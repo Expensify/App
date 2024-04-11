@@ -215,6 +215,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates transaction loading */
         isLoading?: boolean;
+
+        /** Whether the user input should be kept */
+        shouldShowOriginalAmount?: boolean;
     },
     keyof Comment
 >;
