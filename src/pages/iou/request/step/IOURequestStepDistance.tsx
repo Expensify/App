@@ -128,7 +128,7 @@ function IOURequestStepDistance({
             if (transactionWasSaved.current) {
                 return;
             }
-            TransactionEdit.restoreOriginalTransactionFromBackup(lodashGet(transaction, 'transactionID', ''), action === CONST.IOU.ACTION.CREATE);
+            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '', action === CONST.IOU.ACTION.CREATE);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
