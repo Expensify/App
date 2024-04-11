@@ -1,4 +1,4 @@
-import type {ComponentMeta} from '@storybook/react';
+import type {Meta} from '@storybook/react';
 import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
 import SelectionList from '@components/SelectionList';
@@ -16,7 +16,7 @@ const SelectionListWithNavigation = withNavigationFallback(SelectionList);
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof SelectionList> = {
+const story: Meta<typeof SelectionList> = {
     title: 'Components/SelectionList',
     component: SelectionList,
 };

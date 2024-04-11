@@ -44,25 +44,25 @@ Onyx.connect({
 });
 
 function updatePronouns(pronouns: string) {
-    if (currentUserAccountID) {
-        const parameters: UpdatePronounsParams = {pronouns};
-
-        API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            pronouns,
-                        },
-                    },
-                },
-            ],
-        });
+    if (!currentUserAccountID) {
+        return;
     }
 
-    Navigation.goBack();
+    const parameters: UpdatePronounsParams = {pronouns};
+
+    API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        pronouns,
+                    },
+                },
+            },
+        ],
+    });
 }
 
 function updateDisplayName(firstName: string, lastName: string) {
