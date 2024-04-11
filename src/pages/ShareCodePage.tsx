@@ -79,7 +79,8 @@ function ShareCodePage({report}: ShareCodePageProps) {
                     {/* 
                     This is a temporary measure because right now it's broken because of the Fabric update.
                     We need to wait for react-native v0.74 to be released so react-native-view-shot gets fixed.
-                    
+                    Please see https://github.com/Expensify/App/issues/40110 to see if it can be re-enabled.
+
                     <QRShareWithDownload
                         ref={qrCodeRef}
                         url={url}
