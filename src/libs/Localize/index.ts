@@ -123,7 +123,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
             }
             const countParam = phraseParameters.find((param: unknown) => !!(param as Record<string, number>).count) as Record<string, number>;
             const count = countParam ? countParam.count : undefined;
-            
+
             if (typeof result === 'object' && count !== undefined) {
                 const pluralRules = new Intl.PluralRules(language);
                 const pluralForm = pluralRules.select(count);
@@ -146,19 +146,6 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
                 return null;
             }
         }
-
-        if (typeof translatedPhrase === 'string') {
-            cacheForLocale?.set(phraseKey, translatedPhrase);
-            return translatedPhrase;
-        }
-
-        if (Array.isArray(translatedPhrase)) {
-            const translatedString = translatedPhrase[0] as string;
-            cacheForLocale?.set(phraseKey, translatedString);
-            return translatedString;
-        }
-
-        return null;
     }
 
     if (!fallbackLanguage) {
