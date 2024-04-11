@@ -3610,12 +3610,12 @@ const CONST = {
             tasks: [
                 {
                     title: 'Create a workspace',
-                    subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more. ',
+                    subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more.',
                     message:
                         'Here’s how to create a workspace:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Click <strong>Workspaces</string> > <strong>New workspace</strong>.\n' +
+                        '2. Click <strong>Workspaces</strong> > <strong>New workspace</strong>.\n' +
                         '\n' +
                         'Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.',
                 },
@@ -3683,7 +3683,7 @@ const CONST = {
             tasks: [
                 {
                     title: 'Create a workspace',
-                    subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more. ',
+                    subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more.',
                     message:
                         'Here’s how to create a workspace:\n' +
                         '\n' +
@@ -3712,7 +3712,7 @@ const CONST = {
                         '4. Enable and disable default categories.\n' +
                         '5. Click <strong>Add categories</strong> to make your own.\n' +
                         '\n' +
-                        'For more controls like requiring a category for every expense, click Settings. ',
+                        'For more controls like requiring a category for every expense, click Settings.',
                 },
                 {
                     title: 'Add expense approvals',
@@ -3726,7 +3726,7 @@ const CONST = {
                         '4. Enable <strong>Workflows</strong>.\n' +
                         '5. In Workflows, enable <strong>Add approvals</strong>.\n' +
                         '\n' +
-                        'You’ll be set as the expense approver. You can change this to any admin once you invite your team. ',
+                        'You’ll be set as the expense approver. You can change this to any admin once you invite your team.',
                 },
                 {
                     title: 'Invite your team',
@@ -3785,7 +3785,7 @@ const CONST = {
                     message:
                         'Here’s how to start a chat:\n' +
                         '\n' +
-                        '1. rClick the green + button.\n' +
+                        '1. Click the green + button.\n' +
                         '2. Choose <strong>Start chat</strong>.\n' +
                         '3. Enter emails or phone numbers.\n' +
                         '\n' +
