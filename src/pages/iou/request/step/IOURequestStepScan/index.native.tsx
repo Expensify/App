@@ -43,6 +43,7 @@ import {PersonalDetailsList, Report} from '@src/types/onyx';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
+import {Receipt} from "@src/types/onyx/Transaction";
 
 type IOURequestStepScanOnyxProps = {
     /** The user */
@@ -223,7 +224,7 @@ function IOURequestStepScan({
             });
 
             if (shouldSkipConfirmation) {
-                const receipt = file;
+                const receipt: Receipt = file;
                 receipt.source = source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -275,7 +276,7 @@ function IOURequestStepScan({
             return;
         }
 
-        navigateToConfirmationStep(file, file.uri);
+        navigateToConfirmationStep(file, file.uri ?? '');
     };
 
     const capturePhoto = useCallback(() => {

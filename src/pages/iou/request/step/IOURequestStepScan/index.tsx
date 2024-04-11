@@ -45,6 +45,7 @@ import {PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
+import {Receipt} from "@src/types/onyx/Transaction";
 
 type IOURequestStepScanOnyxProps = {
     /** Personal details of all users */
@@ -251,7 +252,7 @@ function IOURequestStepScan({
             });
 
             if (shouldSkipConfirmation) {
-                const receipt = file;
+                const receipt: Receipt = file;
                 receipt.source = source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
