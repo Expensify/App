@@ -25,7 +25,7 @@ import SafeAreaConsumer from './SafeAreaConsumer';
 import TestToolsModal from './TestToolsModal';
 import withNavigationFallback from './withNavigationFallback';
 
-type ChildrenProps = {
+type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
         paddingBottom?: DimensionValue;
@@ -35,7 +35,7 @@ type ChildrenProps = {
 
 type ScreenWrapperProps = {
     /** Returns a function as a child to pass insets to or a node to render without insets */
-    children: ReactNode | React.FC<ChildrenProps>;
+    children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
 
     /** A unique ID to find the screen wrapper in tests */
     testID: string;
@@ -281,3 +281,4 @@ function ScreenWrapper(
 ScreenWrapper.displayName = 'ScreenWrapper';
 
 export default withNavigationFallback(forwardRef(ScreenWrapper));
+export type {ScreenWrapperChildrenProps};
