@@ -32,14 +32,13 @@ import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {PersonalDetailsList, Report} from '@src/types/onyx';
+import {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
@@ -51,11 +50,13 @@ type IOURequestStepScanOnyxProps = {
 
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<Policy>;
 };
 
 type IOURequestStepScanProps = IOURequestStepScanOnyxProps &
     WithCurrentUserPersonalDetailsProps &
-    WithPolicyProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -455,7 +456,7 @@ function IOURequestStepScan({
 
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequestStepOnyxProps>({
+const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequestStepScanOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
     },

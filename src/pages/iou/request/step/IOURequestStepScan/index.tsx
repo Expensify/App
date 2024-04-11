@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
@@ -33,7 +32,6 @@ import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDrag
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -41,7 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {PersonalDetailsList, Report} from '@src/types/onyx';
+import {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
@@ -50,11 +48,13 @@ import {Receipt} from "@src/types/onyx/Transaction";
 type IOURequestStepScanOnyxProps = {
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<Policy>;
 };
 
 type IOURequestStepScanProps = IOURequestStepScanOnyxProps &
     WithCurrentUserPersonalDetailsProps &
-    WithPolicyProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -573,7 +573,7 @@ function IOURequestStepScan({
 
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequestStepOnyxProps>({
+const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequestStepScanOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
     },
