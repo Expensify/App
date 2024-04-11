@@ -11,6 +11,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -48,77 +51,86 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     ];
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={QuickbooksAdvancedPage.displayName}
-        >
-            <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
-
-            <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                {qboSyncToggleSettings.map((item) => (
-                    <View
-                        style={styles.mv3}
-                        key={item.title}
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+                >
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        shouldEnableMaxHeight
+                        testID={QuickbooksAdvancedPage.displayName}
                     >
-                        <ToggleSettingOptionRow
-                            title={item.title}
-                            subtitle={item.subTitle}
-                            isActive={item.isActive}
-                            onToggle={item.onToggle}
-                        />
-                    </View>
-                ))}
+                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
 
-                <View style={styles.mv3}>
-                    <SpacerView
-                        shouldShow
-                        style={[styles.chatItemComposeBoxColor]}
-                    />
-                </View>
+                        <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
+                            {qboSyncToggleSettings.map((item) => (
+                                <View
+                                    style={styles.mv3}
+                                    key={item.title}
+                                >
+                                    <ToggleSettingOptionRow
+                                        title={item.title}
+                                        subtitle={item.subTitle}
+                                        isActive={item.isActive}
+                                        onToggle={item.onToggle}
+                                    />
+                                </View>
+                            ))}
 
-                <View style={styles.mv3}>
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.qbo.advancedConfig.reimbursedReports')}
-                        subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
-                        isActive={Boolean(reimbursementAccountID)}
-                        onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, !reimbursementAccountID)}
-                    />
-                </View>
-                <OfflineWithFeedback>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoPayrollAccount')}
-                        description={translate('workspace.qbo.advancedConfig.qboAccount')}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                        onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                    />
-                </OfflineWithFeedback>
+                            <View style={styles.mv3}>
+                                <SpacerView
+                                    shouldShow
+                                    style={[styles.chatItemComposeBoxColor]}
+                                />
+                            </View>
 
-                <View style={styles.mv3}>
-                    <SpacerView
-                        shouldShow
-                        style={[styles.chatItemComposeBoxColor]}
-                    />
-                </View>
+                            <View style={styles.mv3}>
+                                <ToggleSettingOptionRow
+                                    title={translate('workspace.qbo.advancedConfig.reimbursedReports')}
+                                    subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
+                                    isActive={Boolean(reimbursementAccountID)}
+                                    onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, !reimbursementAccountID)}
+                                />
+                            </View>
+                            <OfflineWithFeedback>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoPayrollAccount')}
+                                    description={translate('workspace.qbo.advancedConfig.qboAccount')}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                    onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
+                                />
+                            </OfflineWithFeedback>
 
-                <MenuItem
-                    title={translate('workspace.qbo.advancedConfig.collectionAccount')}
-                    description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
-                    descriptionTextStyle={[styles.pr9]}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    interactive={false}
-                />
+                            <View style={styles.mv3}>
+                                <SpacerView
+                                    shouldShow
+                                    style={[styles.chatItemComposeBoxColor]}
+                                />
+                            </View>
 
-                <MenuItem
-                    title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoMoneyInClearing')}
-                    shouldShowRightIcon
-                    shouldShowBasicTitle
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                />
-            </ScrollView>
-        </ScreenWrapper>
+                            <MenuItem
+                                title={translate('workspace.qbo.advancedConfig.collectionAccount')}
+                                description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
+                                descriptionTextStyle={[styles.pr9]}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                interactive={false}
+                            />
+
+                            <MenuItem
+                                title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoMoneyInClearing')}
+                                shouldShowRightIcon
+                                shouldShowBasicTitle
+                                wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
+                            />
+                        </ScrollView>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
+            </PaidPolicyAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 
