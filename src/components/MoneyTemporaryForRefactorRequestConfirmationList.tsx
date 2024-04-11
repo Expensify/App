@@ -660,9 +660,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -684,13 +682,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.description')}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                action,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
+                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     style={[styles.moneyRequestMenuItem]}
@@ -714,13 +706,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
-                                action,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         )
                     }
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -742,13 +728,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
-                                action,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
+                            ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     disabled={didConfirm}
@@ -772,9 +752,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -795,13 +773,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     numberOfLinesTitle={2}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                action,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
+                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         )
                     }
                     style={[styles.moneyRequestMenuItem]}

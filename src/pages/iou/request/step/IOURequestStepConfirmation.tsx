@@ -215,18 +215,7 @@ function IOURequestStepConfirmation({
                 transaction.linkedTrackedExpenseReportID,
             );
         },
-        [
-            report,
-            transaction,
-            transactionTaxCode,
-            transactionTaxAmount,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            policy,
-            policyTags,
-            policyCategories,
-            action,
-        ],
+        [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
     );
 
     const trackExpense = useCallback(
