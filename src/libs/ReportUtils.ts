@@ -3173,7 +3173,14 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
  * @param text - Text of the comment
  * @param parentReportID - Report ID of the parent report
  */
-function buildOptimisticTaskCommentReportAction(taskReportID: string, taskTitle: string, taskAssigneeAccountID: number, text: string, parentReportID: string): OptimisticReportAction {
+function buildOptimisticTaskCommentReportAction(
+    taskReportID: string,
+    taskTitle: string,
+    taskAssigneeAccountID: number,
+    text: string,
+    parentReportID: string,
+    actorAccountID?: number,
+): OptimisticReportAction {
     const reportAction = buildOptimisticAddCommentReportAction(text);
     if (reportAction.reportAction.message?.[0]) {
         reportAction.reportAction.message[0].taskReportID = taskReportID;
@@ -3192,6 +3199,9 @@ function buildOptimisticTaskCommentReportAction(taskReportID: string, taskTitle:
     reportAction.reportAction.childManagerAccountID = taskAssigneeAccountID;
     reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS_NUM.OPEN;
     reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
+    if (actorAccountID) {
+        reportAction.reportAction.actorAccountID = actorAccountID;
+    }
 
     return reportAction;
 }
@@ -4178,6 +4188,7 @@ function buildOptimisticTaskReport(
     title?: string,
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
+    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ): OptimisticTaskReport {
     // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
     const participantsAccountIDs = assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [];
@@ -4195,7 +4206,7 @@ function buildOptimisticTaskReport(
         policyID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        notificationPreference,
         lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
