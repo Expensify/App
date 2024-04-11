@@ -2,7 +2,6 @@ import React, {useCallback} from 'react';
 import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -61,10 +60,11 @@ function Badge({
 }: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const Wrapper = pressable ? PressableWithoutFeedback : View;
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+
+    const iconColor = StyleUtils.getIconColorStyle(success, error);
 
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
         ({pressed}) => [
@@ -92,7 +92,7 @@ function Badge({
                         width={variables.iconSizeExtraSmall}
                         height={variables.iconSizeExtraSmall}
                         src={icon}
-                        fill={theme.icon}
+                        fill={iconColor}
                     />
                 </View>
             )}

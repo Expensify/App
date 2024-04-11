@@ -1262,6 +1262,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return {};
     },
 
+    getIconColorStyle: (isSuccess: boolean, isError: boolean): string => {
+        if (isSuccess) {
+            return theme.iconSuccessFill;
+        }
+        if (isError) {
+            return theme.iconDangerFill;
+        }
+        return theme.icon;
+    },
+
     /**
      * Generate a style for the background color of the button, based on its current state.
      *
