@@ -87,7 +87,6 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_TAG]: () => require('../../../../pages/iou/request/step/IOURequestStepTag').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: () => require('../../../../pages/iou/request/step/IOURequestStepWaypoint').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: () => require('../../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.CURRENCY]: () => require('../../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.HOLD]: () => require('../../../../pages/iou/HoldReasonPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
@@ -100,7 +99,6 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
     [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: () => require('../../../../pages/EditSplitBillPage').default as React.ComponentType,
-    [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: () => require('../../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
 });
 
 const DetailsModalStackNavigator = createModalStackNavigator<DetailsNavigatorParamList>({
@@ -260,6 +258,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => require('../../../../pages/settings/ExitSurvey/ExitSurveyReasonPage').default as React.ComponentType,
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: () => require('../../../../pages/settings/ExitSurvey/ExitSurveyResponsePage').default as React.ComponentType,
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require('../../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_IMPORT]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksImportPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksChartOfAccountsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CUSTOMERS]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksCustomersPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_TAXES]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksTaxesPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_LOCATIONS]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksLocationsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CLASSES]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksClassesPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
@@ -267,6 +271,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAX_NAME]: () => require('../../../../pages/workspace/taxes/NamePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAX_VALUE]: () => require('../../../../pages/workspace/taxes/ValuePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAX_CREATE]: () => require('../../../../pages/workspace/taxes/WorkspaceCreateTaxPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
@@ -291,7 +296,6 @@ const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigator
 
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
     [SCREENS.EDIT_REQUEST.ROOT]: () => require('../../../../pages/EditRequestPage').default as React.ComponentType,
-    [SCREENS.EDIT_REQUEST.CURRENCY]: () => require('../../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
     [SCREENS.EDIT_REQUEST.REPORT_FIELD]: () => require('../../../../pages/EditReportFieldPage').default as React.ComponentType,
 });
 
