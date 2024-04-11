@@ -1,9 +1,10 @@
 import Str from 'expensify-common/lib/str';
 import type {ComponentType, ForwardedRef, ForwardRefExoticComponent, PropsWithoutRef, ReactNode, RefAttributes} from 'react';
 import React, {createContext, forwardRef, useContext} from 'react';
+import type {OnyxValue} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {OnyxKey, OnyxValue, OnyxValues} from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 // Provider types
@@ -32,11 +33,11 @@ type CreateOnyxContext<TOnyxKey extends OnyxKey> = [
     WithOnyxKey<TOnyxKey>,
     ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>,
     React.Context<OnyxValue<TOnyxKey>>,
-    () => OnyxValues[TOnyxKey],
+    () => NonNullable<OnyxValue<TOnyxKey>>,
 ];
 
 export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxContext<TOnyxKey> => {
-    const Context = createContext<OnyxValue<TOnyxKey>>(null);
+    const Context = createContext<OnyxValue<TOnyxKey>>(null as OnyxValue<TOnyxKey>);
     function Provider(props: ProviderPropsWithOnyx<TOnyxKey>): ReactNode {
         return <Context.Provider value={props[onyxKeyName]}>{props.children}</Context.Provider>;
     }
@@ -86,7 +87,7 @@ export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxCont
         if (value === null) {
             throw new Error(`useOnyxContext must be used within a OnyxProvider [key: ${onyxKeyName}]`);
         }
-        return value;
+        return value as NonNullable<OnyxValue<TOnyxKey>>;
     };
 
     return [withOnyxKey, ProviderWithOnyx, Context, useOnyxContext];

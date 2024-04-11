@@ -19,7 +19,7 @@ import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import switchPolicyID from './switchPolicyID';
-import type {State, StateOrRoute, SwitchPolicyIDParams} from './types';
+import type {NavigationStateRoute, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -94,7 +94,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
 function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
     switch (url) {
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
-            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
         default:
             return url;
     }
@@ -235,17 +235,21 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
 }
 
 /**
- * Close the full screen modal.
+ * Reset the navigation state to Home page
  */
-function closeFullScreen() {
+function resetToHome() {
     const rootState = navigationRef.getRootState();
+    const bottomTabKey = rootState.routes.find((item: NavigationStateRoute) => item.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR)?.state?.key;
+    if (bottomTabKey) {
+        navigationRef.dispatch({...StackActions.popToTop(), target: bottomTabKey});
+    }
     navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
 }
 
 /**
  * Update route params for the specified route.
  */
-function setParams(params: Record<string, unknown>, routeKey: string) {
+function setParams(params: Record<string, unknown>, routeKey = '') {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
@@ -347,6 +351,14 @@ function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
     return switchPolicyID(navigationRef.current, params);
 }
 
+/** Check if the modal is being displayed */
+function isDisplayedInModal() {
+    const state = navigationRef?.current?.getRootState();
+    const lastRoute = state?.routes?.at(-1);
+    const lastRouteName = lastRoute?.name;
+    return lastRouteName === NAVIGATORS.LEFT_MODAL_NAVIGATOR || lastRouteName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -364,8 +376,9 @@ export default {
     getTopmostReportActionId,
     waitForProtectedRoutes,
     parseHybridAppUrl,
-    closeFullScreen,
     navigateWithSwitchPolicyID,
+    resetToHome,
+    isDisplayedInModal,
 };
 
 export {navigationRef};

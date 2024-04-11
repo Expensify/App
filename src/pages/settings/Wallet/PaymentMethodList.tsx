@@ -358,7 +358,6 @@ function PaymentMethodList({
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             isDisabled={isLoadingPaymentMethods || isFormOffline}
                             style={[styles.mh4, styles.buttonCTA]}
-                            iconStyles={[styles.buttonCTAIcon]}
                             key="addPaymentMethodButton"
                             success
                             shouldShowRightIcon

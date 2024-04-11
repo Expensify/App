@@ -2,10 +2,14 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
+import * as CurrencyUtils from './CurrencyUtils';
+import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError} from './PolicyUtils';
+import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 
@@ -80,6 +84,7 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyM
     const errorCheckingMethods: CheckingMethod[] = [
         () => Object.values(cleanPolicies).some(hasPolicyError),
         () => Object.values(cleanPolicies).some(hasCustomUnitsError),
+        () => Object.values(cleanPolicies).some(hasTaxRateError),
         () => Object.values(cleanAllPolicyMembers).some(hasPolicyMemberError),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
     ];
@@ -89,8 +94,9 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyM
 
 function hasWorkspaceSettingsRBR(policy: Policy) {
     const policyMemberError = allPolicyMembers ? hasPolicyMemberError(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]) : false;
+    const taxRateError = hasTaxRateError(policy);
 
-    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError;
+    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
 }
 
 function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
@@ -189,10 +195,96 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
             return;
         }
 
-        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report);
+        // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
+        // setting it Unread so we add additional condition here to avoid read workspace indicator from being bold.
+        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     });
 
     return workspacesUnreadStatuses;
+}
+
+/**
+ * @param unit Unit
+ * @returns translation key for the unit
+ */
+function getUnitTranslationKey(unit: Unit): TranslationPaths {
+    const unitTranslationKeysStrategy: Record<Unit, TranslationPaths> = {
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: 'common.kilometers',
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: 'common.miles',
+    };
+
+    return unitTranslationKeysStrategy[unit];
+}
+
+/**
+ * @param error workspace change owner error
+ * @param translate translation function
+ * @param policy policy object
+ * @param accountLogin account login/email
+ * @returns ownership change checks page display text's
+ */
+function getOwnershipChecksDisplayText(
+    error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
+    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+    policy: OnyxEntry<Policy>,
+    accountLogin: string | undefined,
+) {
+    let title;
+    let text;
+    let buttonText;
+
+    const changeOwner = policy?.errorFields?.changeOwner;
+    const subscription = changeOwner?.subscription as unknown as {ownerUserCount: number; totalUserCount: number};
+    const ownerOwesAmount = changeOwner?.ownerOwesAmount as unknown as {ownerEmail: string; amount: number; currency: string};
+
+    switch (error) {
+        case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
+            title = translate('workspace.changeOwner.amountOwedTitle');
+            text = translate('workspace.changeOwner.amountOwedText');
+            buttonText = translate('workspace.changeOwner.amountOwedButtonText');
+            break;
+        case CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT:
+            title = translate('workspace.changeOwner.ownerOwesAmountTitle');
+            text = translate('workspace.changeOwner.ownerOwesAmountText', {
+                email: ownerOwesAmount?.ownerEmail,
+                amount: CurrencyUtils.convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
+            });
+            buttonText = translate('workspace.changeOwner.ownerOwesAmountButtonText');
+            break;
+        case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
+            title = translate('workspace.changeOwner.subscriptionTitle');
+            text = translate('workspace.changeOwner.subscriptionText', {
+                usersCount: subscription?.ownerUserCount,
+                finalCount: subscription?.totalUserCount,
+            });
+            buttonText = translate('workspace.changeOwner.subscriptionButtonText');
+            break;
+        case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
+            title = translate('workspace.changeOwner.duplicateSubscriptionTitle');
+            text = translate('workspace.changeOwner.duplicateSubscriptionText', {
+                email: changeOwner?.duplicateSubscription,
+                workspaceName: policy?.name,
+            });
+            buttonText = translate('workspace.changeOwner.duplicateSubscriptionButtonText');
+            break;
+        case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:
+            title = translate('workspace.changeOwner.hasFailedSettlementsTitle');
+            text = translate('workspace.changeOwner.hasFailedSettlementsText', {email: accountLogin});
+            buttonText = translate('workspace.changeOwner.hasFailedSettlementsButtonText');
+            break;
+        case CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE:
+            title = translate('workspace.changeOwner.failedToClearBalanceTitle');
+            text = translate('workspace.changeOwner.failedToClearBalanceText');
+            buttonText = translate('workspace.changeOwner.failedToClearBalanceButtonText');
+            break;
+        default:
+            title = '';
+            text = '';
+            buttonText = '';
+            break;
+    }
+
+    return {title, text, buttonText};
 }
 
 export {
@@ -203,5 +295,7 @@ export {
     checkIfWorkspaceSettingsTabHasRBR,
     hasWorkspaceSettingsRBR,
     getChatTabBrickRoad,
+    getUnitTranslationKey,
+    getOwnershipChecksDisplayText,
 };
 export type {BrickRoad};

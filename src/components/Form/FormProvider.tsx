@@ -1,5 +1,5 @@
 import lodashIsEqual from 'lodash/isEqual';
-import type {ForwardedRef, MutableRefObject, ReactNode} from 'react';
+import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -18,7 +18,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import type {FormInputErrors, FormOnyxValues, FormProps, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
+import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -66,16 +66,15 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
         /** Should validate function be called when the value of the input is changed */
         shouldValidateOnChange?: boolean;
 
+        /** Whether to remove invisible characters from strings before validation and submission */
+        shouldTrimValues?: boolean;
+
         /** Styles that will be applied to the submit button only */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
         /** Whether to apply flex to the submit button */
         submitFlexEnabled?: boolean;
     };
-
-type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
-    resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
-};
 
 function FormProvider(
     {
@@ -89,6 +88,7 @@ function FormProvider(
         enabledWhenOffline = false,
         draftValues,
         onSubmit,
+        shouldTrimValues = true,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
@@ -102,7 +102,7 @@ function FormProvider(
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
-            const trimmedStringValues = ValidationUtils.prepareValues(values);
+            const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(values) : values;
 
             if (shouldClearServerError) {
                 FormActions.clearErrors(formID);
@@ -158,7 +158,7 @@ function FormProvider(
 
             return touchedInputErrors;
         },
-        [errors, formID, validate],
+        [errors, formID, validate, shouldTrimValues],
     );
 
     // When locales change from another session of the same account,
@@ -170,7 +170,7 @@ function FormProvider(
         }
 
         // Prepare validation values
-        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+        const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
 
         // Validate in order to make sure the correct error translations are displayed,
         // making sure to not clear server errors if they exist
@@ -195,7 +195,7 @@ function FormProvider(
         }
 
         // Prepare values before submitting
-        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+        const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
 
         // Touches all form inputs, so we can validate the entire form
         Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
@@ -211,7 +211,7 @@ function FormProvider(
         }
 
         onSubmit(trimmedStringValues);
-    }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate]);
+    }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
 
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {
@@ -393,4 +393,6 @@ export default withOnyx<FormProviderProps, FormProviderOnyxProps>({
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
         key: (props) => `${props.formID}Draft` as any,
     },
-})(forwardRef(FormProvider)) as <TFormID extends OnyxFormKey>(props: Omit<FormProviderProps<TFormID>, keyof FormProviderOnyxProps>) => ReactNode;
+})(forwardRef(FormProvider)) as <TFormID extends OnyxFormKey>(props: Omit<FormProviderProps<TFormID> & RefAttributes<FormRef>, keyof FormProviderOnyxProps>) => ReactNode;
+
+export type {FormProviderProps};

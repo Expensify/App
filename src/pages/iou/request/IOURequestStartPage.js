@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -77,9 +78,11 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
+        [CONST.IOU.TYPE.TRACK_EXPENSE]: translate('iou.trackExpense'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);
+    const {canUseP2PDistanceRequests} = usePermissions(iouType);
     const isFromGlobalCreate = _.isEmpty(report.reportID);
 
     useFocusEffect(
@@ -102,12 +105,13 @@ function IOURequestStartPage({
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.initMoneyRequest(reportID, isFromGlobalCreate, transactionRequestType.current);
-    }, [transaction, reportID, iouType, isFromGlobalCreate]);
+        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
+    }, [transaction, policy, reportID, iouType, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
+
+    const shouldDisplayDistanceRequest = canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
     const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, policy, iouType);
@@ -124,10 +128,10 @@ function IOURequestStartPage({
             if (iouType === CONST.IOU.TYPE.SPLIT && transaction.isFromGlobalCreate) {
                 IOU.updateMoneyRequestTypeParams(navigation.getState().routes, CONST.IOU.TYPE.REQUEST, newIouType);
             }
-            IOU.initMoneyRequest(reportID, isFromGlobalCreate, newIouType);
+            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction.isFromGlobalCreate],
+        [policy, previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction.isFromGlobalCreate],
     );
 
     if (!transaction.transactionID) {
@@ -155,16 +159,20 @@ function IOURequestStartPage({
                                 title={tabTitles[iouType]}
                                 onBackButtonPress={navigateBack}
                             />
-                            <OnyxTabNavigator
-                                id={CONST.TAB.IOU_REQUEST_TYPE}
-                                selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
-                                onTabSelected={resetIOUTypeIfChanged}
-                                tabBar={TabSelector}
-                            >
-                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
-                                <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
-                                {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
-                            </OnyxTabNavigator>
+                            {iouType !== CONST.IOU.TYPE.SEND ? (
+                                <OnyxTabNavigator
+                                    id={CONST.TAB.IOU_REQUEST_TYPE}
+                                    selectedTab={selectedTab || CONST.IOU.REQUEST_TYPE.SCAN}
+                                    onTabSelected={resetIOUTypeIfChanged}
+                                    tabBar={TabSelector}
+                                >
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
+                                    {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
+                                </OnyxTabNavigator>
+                            ) : (
+                                <IOURequestStepAmount route={route} />
+                            )}
                         </View>
                     </DragAndDropProvider>
                 </FullPageNotFoundView>

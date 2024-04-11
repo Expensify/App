@@ -14,6 +14,9 @@ type SwitchProps = {
 
     /** Accessibility label for the switch */
     accessibilityLabel: string;
+
+    /** Whether the switch is disabled */
+    disabled?: boolean;
 };
 
 const OFFSET_X = {
@@ -21,7 +24,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
     const styles = useThemeStyles();
     const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
 
@@ -35,6 +38,7 @@ function Switch({isOn, onToggle, accessibilityLabel}: SwitchProps) {
 
     return (
         <PressableWithFeedback
+            disabled={disabled}
             style={[styles.switchTrack, !isOn && styles.switchInactive]}
             onPress={() => onToggle(!isOn)}
             onLongPress={() => onToggle(!isOn)}

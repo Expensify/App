@@ -85,7 +85,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I verified any copy / text shown in the product is localized by adding it to `src/languages/*` files and using the [translation method](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60)
       - [ ] If any non-english text was added/modified, I verified the translation was requested/reviewed in #expensify-open-source and it was approved by an internal Expensify engineer. Link to Slack message:
     - [ ] I verified all numbers, amounts, dates and phone numbers shown in the product are using the [localization methods](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60-L68)
-    - [ ] I verified any copy / text that was added to the app is grammatically correct in English. It adheres to proper capitalization guidelines (note: only the first word of header/labels should be capitalized), and is approved by marketing by adding the `Waiting for Copy` label for a copy review on the original GH to get the correct copy.
+    - [ ] I verified any copy / text that was added to the app is grammatically correct in English. It adheres to proper capitalization guidelines (note: only the first word of header/labels should be capitalized), and is either coming verbatim from figma or has been approved by marketing (in order to get marketing approval, ask the Bug Zero team member to add the Waiting for copy label to the issue)
     - [ ] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
@@ -103,9 +103,9 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [ ] If the PR modifies a component or page that can be accessed by a direct deeplink, I verified that the code functions as expected when the deeplink is used - from a logged in and logged out account.
-- [ ] If the PR modifies the form input styles:
+- [ ] If the PR modifies the UI (e.g. new buttons, new UI components, changing the padding/spacing/sizing, moving components, etc) or modifies the form input styles:
     - [ ] I verified that all the inputs inside a form are aligned with each other.
-    - [ ] I added `Design` label so the design team can review the changes.
+    - [ ] I added `Design` label and/or tagged `@Expensify/design` so the design team can review the changes.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 

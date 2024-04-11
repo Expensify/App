@@ -1,9 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, ScrollView, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {InteractionManager, Keyboard, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -13,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -28,31 +29,30 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {LoginList, SecurityGroup, Session as TSession} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
-type ContactMethodDetailsPageOnyxProps = {
-    /** Login list for the user that is signed in */
-    loginList: OnyxEntry<LoginList>;
+const policiesSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'id' | 'ownerAccountID' | 'owner'> => ({
+    id: policy?.id ?? '',
+    ownerAccountID: policy?.ownerAccountID,
+    owner: policy?.owner ?? '',
+});
 
-    /** Current user session */
-    session: OnyxEntry<TSession>;
+type ContactMethodDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
-    /** User's security group IDs by domain */
-    myDomainSecurityGroups: OnyxEntry<Record<string, string>>;
+function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
+    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
+    const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
+    const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
+    const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+    const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
 
-    /** All of the user's security groups and their settings */
-    securityGroups: OnyxCollection<SecurityGroup>;
+    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult, policiesResult);
 
-    /** Indicated whether the report data is loading */
-    isLoadingReportData: OnyxEntry<boolean>;
-};
-
-type ContactMethodDetailsPageProps = ContactMethodDetailsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
-
-function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, securityGroups, isLoadingReportData = true, route}: ContactMethodDetailsPageProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
     const themeStyles = useThemeStyles();
@@ -88,8 +88,8 @@ function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, s
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        User.setContactMethodAsDefault(contactMethod);
-    }, [contactMethod]);
+        User.setContactMethodAsDefault(contactMethod, policies);
+    }, [contactMethod, policies]);
 
     /**
      * Checks if the user is allowed to change their default contact method. This should only be allowed if:
@@ -168,7 +168,7 @@ function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, s
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod]);
 
-    if (isLoadingReportData && isEmptyObject(loginList)) {
+    if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
     }
 
@@ -286,20 +286,4 @@ function ContactMethodDetailsPage({loginList, session, myDomainSecurityGroups, s
 
 ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
 
-export default withOnyx<ContactMethodDetailsPageProps, ContactMethodDetailsPageOnyxProps>({
-    loginList: {
-        key: ONYXKEYS.LOGIN_LIST,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    myDomainSecurityGroups: {
-        key: ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS,
-    },
-    securityGroups: {
-        key: `${ONYXKEYS.COLLECTION.SECURITY_GROUP}`,
-    },
-    isLoadingReportData: {
-        key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
-    },
-})(ContactMethodDetailsPage);
+export default ContactMethodDetailsPage;

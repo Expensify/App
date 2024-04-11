@@ -1,14 +1,16 @@
 import React, {useRef} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import {useSession} from '@components/OnyxProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,12 +30,15 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
     const {isSmallScreenWidth} = useWindowDimensions();
+    const session = useSession();
 
     const policyName = policy?.name ?? '';
     const id = policy?.id ?? '';
+    const adminEmail = session?.email ?? '';
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
 
-    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_PROFILE.getRoute(id)}`;
+    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(id, adminEmail)}`;
+
     return (
         <ScreenWrapper
             testID={WorkspaceProfileSharePage.displayName}

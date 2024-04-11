@@ -1,4 +1,5 @@
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
+import type {PhotoIdentifier} from '@react-native-camera-roll/camera-roll';
 import RNFetchBlob from 'react-native-blob-util';
 import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
@@ -29,16 +30,16 @@ function downloadFile(fileUrl: string, fileName: string) {
  * Download the image to photo lib in iOS
  */
 function downloadImage(fileUrl: string) {
-    return CameraRoll.save(fileUrl);
+    return CameraRoll.saveAsset(fileUrl);
 }
 
 /**
  * Download the video to photo lib in iOS
  */
-function downloadVideo(fileUrl: string, fileName: string): Promise<string> {
+function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifier> {
     return new Promise((resolve, reject) => {
         let documentPathUri: string | null = null;
-        let cameraRollUri: string | null = null;
+        let cameraRollAsset: PhotoIdentifier;
 
         // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
         downloadFile(fileUrl, fileName)
@@ -47,20 +48,17 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<string> {
                 if (!documentPathUri) {
                     throw new Error('Error downloading video');
                 }
-                return CameraRoll.save(documentPathUri);
+                return CameraRoll.saveAsset(documentPathUri);
             })
             .then((attachment) => {
-                cameraRollUri = attachment;
+                cameraRollAsset = attachment;
                 if (!documentPathUri) {
                     throw new Error('Error downloading video');
                 }
                 return RNFetchBlob.fs.unlink(documentPathUri);
             })
             .then(() => {
-                if (!cameraRollUri) {
-                    throw new Error('Error downloading video');
-                }
-                resolve(cameraRollUri);
+                resolve(cameraRollAsset);
             })
             .catch((err) => reject(err));
     });
@@ -73,6 +71,7 @@ const fileDownload: FileDownload = (fileUrl, fileName, successMessage) =>
     new Promise((resolve) => {
         let fileDownloadPromise;
         const fileType = FileUtils.getFileType(fileUrl);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
         const attachmentName = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(fileUrl));
 
         switch (fileType) {

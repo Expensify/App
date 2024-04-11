@@ -2,10 +2,112 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
+import {getSortedTagKeys} from '@libs/PolicyUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
+
+/**
+ * Calculates tag out of policy and missing tag violations for the given transaction
+ */
+function getTagViolationsForSingleLevelTags(
+    updatedTransaction: Transaction,
+    transactionViolations: TransactionViolation[],
+    policyRequiresTags: boolean,
+    policyTagList: PolicyTagList,
+): TransactionViolation[] {
+    const policyTagKeys = Object.keys(policyTagList);
+    const policyTagListName = policyTagKeys[0];
+    const policyTags = policyTagList[policyTagListName]?.tags;
+    const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
+    const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
+    const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
+    let newTransactionViolations = [...transactionViolations];
+
+    // Add 'tagOutOfPolicy' violation if tag is not in policy
+    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
+    }
+
+    // Remove 'tagOutOfPolicy' violation if tag is in policy
+    if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
+        newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
+    }
+
+    // Remove 'missingTag' violation if tag is valid according to policy
+    if (hasMissingTagViolation && isTagInPolicy) {
+        newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_TAG});
+    }
+
+    // Add 'missingTag violation' if tag is required and not set
+    if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
+        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION});
+    }
+    return newTransactionViolations;
+}
+
+/**
+ * Calculates some tag levels required and missing tag violations for the given transaction
+ */
+function getTagViolationsForMultiLevelTags(
+    updatedTransaction: Transaction,
+    transactionViolations: TransactionViolation[],
+    policyRequiresTags: boolean,
+    policyTagList: PolicyTagList,
+): TransactionViolation[] {
+    const policyTagKeys = getSortedTagKeys(policyTagList);
+    const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
+    let newTransactionViolations = [...transactionViolations];
+    newTransactionViolations = newTransactionViolations.filter(
+        (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+    );
+
+    // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we puth SOME_TAG_LEVELS_REQUIRED in Onyx.
+    // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
+    const errorIndexes = [];
+    for (let i = 0; i < policyTagKeys.length; i++) {
+        const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
+        const isTagSelected = Boolean(selectedTags[i]);
+        if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags[0] === ''))) {
+            errorIndexes.push(i);
+        }
+    }
+    if (errorIndexes.length !== 0) {
+        newTransactionViolations.push({
+            name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {
+                errorIndexes,
+            },
+        });
+    } else {
+        let hasInvalidTag = false;
+        for (let i = 0; i < policyTagKeys.length; i++) {
+            const selectedTag = selectedTags[i];
+            const tags = policyTagList[policyTagKeys[i]].tags;
+            const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && Boolean(tag.enabled));
+            if (!isTagInPolicy) {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {
+                        tagName: policyTagKeys[i],
+                    },
+                });
+                hasInvalidTag = true;
+                break;
+            }
+        }
+        if (!hasInvalidTag) {
+            newTransactionViolations = reject(newTransactionViolations, {
+                name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+            });
+        }
+    }
+    return newTransactionViolations;
+}
 
 const ViolationsUtils = {
     /**
@@ -20,8 +122,18 @@ const ViolationsUtils = {
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
     ): OnyxUpdate {
+        const isPartialTransaction = TransactionUtils.isPartialMerchant(TransactionUtils.getMerchant(updatedTransaction)) && TransactionUtils.isAmountMissing(updatedTransaction);
+        if (isPartialTransaction) {
+            return {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
+                value: transactionViolations,
+            };
+        }
+
         let newTransactionViolations = [...transactionViolations];
 
+        // Calculate client-side category violations
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
@@ -30,7 +142,7 @@ const ViolationsUtils = {
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
-                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation'});
+                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
@@ -45,40 +157,16 @@ const ViolationsUtils = {
 
             // Add 'missingCategory' violation if category is required and not set
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
-                newTransactionViolations.push({name: 'missingCategory', type: 'violation'});
+                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION});
             }
         }
 
+        // Calculate client-side tag violations
         if (policyRequiresTags) {
-            const policyTagKeys = Object.keys(policyTagList);
-
-            // At the moment, we only return violations for tags for workspaces with single-level tags
-            if (policyTagKeys.length === 1) {
-                const policyTagListName = policyTagKeys[0];
-                const policyTags = policyTagList[policyTagListName]?.tags;
-                const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
-                const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
-                const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
-
-                // Add 'tagOutOfPolicy' violation if tag is not in policy
-                if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
-                    newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: 'violation'});
-                }
-
-                // Remove 'tagOutOfPolicy' violation if tag is in policy
-                if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
-                }
-
-                // Remove 'missingTag' violation if tag is valid according to policy
-                if (hasMissingTagViolation && isTagInPolicy) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_TAG});
-                }
-                // Add 'missingTag violation' if tag is required and not set
-                if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
-                    newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
-                }
-            }
+            newTransactionViolations =
+                Object.keys(policyTagList).length === 1
+                    ? getTagViolationsForSingleLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList)
+                    : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList);
         }
 
         return {
@@ -181,7 +269,7 @@ const ViolationsUtils = {
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed');
             case 'someTagLevelsRequired':
-                return translate('violations.someTagLevelsRequired');
+                return translate('violations.someTagLevelsRequired', {tagName});
             case 'tagOutOfPolicy':
                 return translate('violations.tagOutOfPolicy', {tagName});
             case 'taxAmountChanged':

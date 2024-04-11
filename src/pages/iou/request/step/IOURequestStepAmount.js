@@ -1,17 +1,17 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import {getRequestType} from '@libs/TransactionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {getRequestType} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
@@ -34,44 +34,28 @@ const propTypes = {
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 
-    /** The policy of the report */
-    policy: PropTypes.shape({
-        /**
-         * Whether or not the policy has tax tracking enabled
-         *
-         * @deprecated - use tax.trackingEnabled instead
-         */
-        isTaxTrackingEnabled: PropTypes.bool,
+    /** The draft transaction that holds data to be persisted on the current transaction */
+    splitDraftTransaction: transactionPropTypes,
 
-        /** Whether or not the policy has tax tracking enabled */
-        tax: PropTypes.shape({
-            trackingEnabled: PropTypes.bool,
-        }),
-
-        /** Collection of tax rates attached to a policy */
-        taxRates: taxPropTypes,
-    }),
+    /** The draft transaction object being modified in Onyx */
+    draftTransaction: transactionPropTypes,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
-    policy: {},
-};
-
-const getTaxAmount = (transaction, defaultTaxValue, amount) => {
-    const percentage = (transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue) || '';
-    return TransactionUtils.calculateTaxAmount(percentage, amount);
+    splitDraftTransaction: {},
+    draftTransaction: {},
 };
 
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {iouType, reportID, transactionID, backTo, action},
     },
     transaction,
-    transaction: {currency},
-    policy,
+    splitDraftTransaction,
+    draftTransaction,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
@@ -79,10 +63,11 @@ function IOURequestStepAmount({
     const isSaveButtonPressed = useRef(false);
     const originalCurrency = useRef(null);
     const iouRequestType = getRequestType(transaction);
-
-    const taxRates = lodashGet(policy, 'taxRates', {});
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
-    const isTaxTrackingEnabled = isPolicyExpenseChat && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const isEditingSplitBill = isEditing && isSplitBill;
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
+    const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction);
 
     useFocusEffect(
         useCallback(() => {
@@ -97,6 +82,19 @@ function IOURequestStepAmount({
     );
 
     useEffect(() => {
+        if (isEditing) {
+            // A temporary solution to not prevent users from editing the currency
+            // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
+            // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
+            TransactionEdit.createBackupTransaction(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
+
+            return () => {
+                if (isSaveButtonPressed.current) {
+                    return;
+                }
+                TransactionEdit.removeBackupTransaction(transaction.transactionID || '');
+            };
+        }
         if (transaction.originalCurrency) {
             originalCurrency.current = transaction.originalCurrency;
         } else {
@@ -117,7 +115,7 @@ function IOURequestStepAmount({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
     };
 
     /**
@@ -126,12 +124,6 @@ function IOURequestStepAmount({
     const navigateToNextPage = ({amount}) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
-
-        if ((iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) && isTaxTrackingEnabled) {
-            const taxAmount = getTaxAmount(transaction, taxRates.defaultValue, amountInSmallestCurrencyUnits);
-            const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
-            IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
-        }
 
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true);
 
@@ -145,7 +137,7 @@ function IOURequestStepAmount({
         // to the confirm step.
         if (report.reportID) {
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
         }
 
@@ -154,21 +146,45 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
+    const saveAmountAndCurrency = ({amount}) => {
+        if (!isEditing) {
+            navigateToNextPage({amount});
+            return;
+        }
+
+        const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+
+        // If the value hasn't changed, don't request to save changes on the server and just close the modal
+        if (newAmount === TransactionUtils.getAmount(transaction) && currency === TransactionUtils.getCurrency(transaction)) {
+            Navigation.dismissModal();
+            return;
+        }
+
+        if (isSplitBill) {
+            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency});
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        IOU.updateMoneyRequestAmountAndCurrency(transactionID, reportID, currency, newAmount);
+        Navigation.dismissModal();
+    };
+
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepAmount.displayName}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={Boolean(backTo || isEditing)}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={Boolean(backTo)}
+                isEditing={Boolean(backTo || isEditing)}
                 currency={currency}
-                amount={transaction.amount}
+                amount={Math.abs(transactionAmount)}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
-                onSubmitButtonPress={navigateToNextPage}
+                onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
             />
         </StepScreenWrapper>
@@ -183,8 +199,17 @@ export default compose(
     withWritableReportOrNotFound,
     withFullTransactionOrNotFound,
     withOnyx({
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        splitDraftTransaction: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+            },
+        },
+        draftTransaction: {
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+            },
         },
     }),
 )(IOURequestStepAmount);

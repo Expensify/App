@@ -23,6 +23,7 @@ type OriginalMessageActionName =
     | 'TASKCOMPLETED'
     | 'TASKEDITED'
     | 'TASKREOPENED'
+    | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
@@ -33,6 +34,11 @@ type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '
 
 type OriginalMessageHold = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLD;
+    originalMessage: unknown;
+};
+
+type OriginalMessageHoldComment = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT;
     originalMessage: unknown;
 };
 
@@ -219,6 +225,17 @@ type OriginalMessagePolicyChangeLog = {
     originalMessage: ChangeLog;
 };
 
+type OriginalMessageJoinPolicyChangeLog = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
+    originalMessage: {
+        choice: string;
+        email: string;
+        inviterEmail: string;
+        lastModified: string;
+        policyID: string;
+    };
+};
+
 type OriginalMessageRoomChangeLog = {
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
     originalMessage: ChangeLog;
@@ -251,6 +268,10 @@ type OriginalMessageModifiedExpense = {
         category?: string;
         oldTag?: string;
         tag?: string;
+        oldTaxAmount?: number;
+        taxAmount?: number;
+        oldTaxRate?: string;
+        taxRate?: string;
         oldBillable?: string;
         billable?: string;
     };
@@ -258,7 +279,9 @@ type OriginalMessageModifiedExpense = {
 
 type OriginalMessageReimbursementQueued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
-    originalMessage: unknown;
+    originalMessage: {
+        paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    };
 };
 
 type OriginalMessageReimbursementDequeued = {
@@ -287,6 +310,7 @@ type OriginalMessage =
     | OriginalMessageClosed
     | OriginalMessageCreated
     | OriginalMessageHold
+    | OriginalMessageHoldComment
     | OriginalMessageUnHold
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList
@@ -294,6 +318,7 @@ type OriginalMessage =
     | OriginalMessageRoomChangeLog
     | OriginalMessagePolicyChangeLog
     | OriginalMessagePolicyTask
+    | OriginalMessageJoinPolicyChangeLog
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
@@ -315,6 +340,7 @@ export type {
     OriginalMessageCreated,
     OriginalMessageRenamed,
     OriginalMessageAddComment,
+    OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageChronosOOOList,
     OriginalMessageSource,

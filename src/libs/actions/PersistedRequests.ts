@@ -18,17 +18,38 @@ function clear() {
 }
 
 function save(requestToPersist: Request) {
-    const requests = [...persistedRequests];
-    const existingRequestIndex = requests.findIndex((request) => request.data?.idempotencyKey && request.data?.idempotencyKey === requestToPersist.data?.idempotencyKey);
-    if (existingRequestIndex > -1) {
-        // Merge the new request into the existing one, keeping its place in the queue
-        requests.splice(existingRequestIndex, 1, requestToPersist);
-    } else {
-        // If not, push the new request to the end of the queue
-        requests.push(requestToPersist);
-    }
-    persistedRequests = requests;
+    const requests = [...persistedRequests, requestToPersist];
 
+    // identify and handle any existing requests that conflict with the new one
+    const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequest} = requestToPersist;
+    if (getConflictingRequests) {
+        // Get all the requests, potentially including the one we're adding, which will always be at the end of the array
+        const potentiallyConflictingRequests = shouldIncludeCurrentRequest ? requests : requests.slice(0, requests.length - 1);
+
+        // Identify conflicting requests according to logic bound to the new request
+        const conflictingRequests = getConflictingRequests(potentiallyConflictingRequests);
+
+        conflictingRequests.forEach((conflictingRequest) => {
+            // delete the conflicting request
+            const index = requests.findIndex((req) => req === conflictingRequest);
+            if (index !== -1) {
+                requests.splice(index, 1);
+            }
+
+            // Allow the new request to perform any additional cleanup for a cancelled request
+            handleConflictingRequest?.(conflictingRequest);
+        });
+    }
+
+    // Don't try to serialize conflict resolution functions
+    persistedRequests = requests.map((request) => {
+        delete request.getConflictingRequests;
+        delete request.handleConflictingRequest;
+        delete request.shouldIncludeCurrentRequest;
+        return request;
+    });
+
+    // Save the updated set of requests
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 

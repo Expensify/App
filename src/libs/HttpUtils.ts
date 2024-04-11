@@ -39,7 +39,7 @@ const addSkewList: string[] = [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, SIDE_EF
 /**
  * Regex to get API command from the command
  */
-const APICommandRegex = /[?&]command=([^&]+)/;
+const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.

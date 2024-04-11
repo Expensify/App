@@ -1,10 +1,12 @@
 import React, {useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -42,87 +44,92 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
     return (
-        <ScrollView
-            style={styles.pt0}
-            contentContainerStyle={styles.flexGrow1}
-        >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
-            <MenuItemWithTopDescription
-                description={translate('personalInfoStep.legalName')}
-                title={`${values[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${values[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`}
-                shouldShowRightIcon
-                onPress={() => {
-                    onMove(PERSONAL_INFO_STEP_INDEXES.LEGAL_NAME);
-                }}
-            />
-            <MenuItemWithTopDescription
-                description={translate('common.dob')}
-                title={values[PERSONAL_INFO_STEP_KEYS.DOB]}
-                shouldShowRightIcon
-                onPress={() => {
-                    onMove(PERSONAL_INFO_STEP_INDEXES.DATE_OF_BIRTH);
-                }}
-            />
-            <MenuItemWithTopDescription
-                description={translate('personalInfoStep.last4SSN')}
-                title={values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4]}
-                shouldShowRightIcon
-                onPress={() => {
-                    onMove(PERSONAL_INFO_STEP_INDEXES.SSN);
-                }}
-            />
-            <MenuItemWithTopDescription
-                description={translate('personalInfoStep.address')}
-                title={`${values[PERSONAL_INFO_STEP_KEYS.STREET]}, ${values[PERSONAL_INFO_STEP_KEYS.CITY]}, ${values[PERSONAL_INFO_STEP_KEYS.STATE]} ${
-                    values[PERSONAL_INFO_STEP_KEYS.ZIP_CODE]
-                }`}
-                shouldShowRightIcon
-                onPress={() => {
-                    onMove(PERSONAL_INFO_STEP_INDEXES.ADDRESS);
-                }}
-            />
-
-            <Text style={[styles.mt3, styles.ph5, styles.textMicroSupporting]}>
-                {`${translate('personalInfoStep.byAddingThisBankAccount')} `}
-                <TextLink
-                    href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}
-                    style={[styles.textMicro]}
+        <SafeAreaConsumer>
+            {({safeAreaPaddingBottomStyle}) => (
+                <ScrollView
+                    style={styles.pt0}
+                    contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}
                 >
-                    {translate('onfidoStep.facialScan')}
-                </TextLink>
-                {', '}
-                <TextLink
-                    href={CONST.ONFIDO_PRIVACY_POLICY_URL}
-                    style={[styles.textMicro]}
-                >
-                    {translate('common.privacy')}
-                </TextLink>
-                {` ${translate('common.and')} `}
-                <TextLink
-                    href={CONST.ONFIDO_TERMS_OF_SERVICE_URL}
-                    style={[styles.textMicro]}
-                >
-                    {translate('common.termsOfService')}
-                </TextLink>
-            </Text>
-            <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
-                {error && error.length > 0 && (
-                    <DotIndicatorMessage
-                        textStyles={[styles.formError]}
-                        type="error"
-                        messages={{error}}
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
+                    <MenuItemWithTopDescription
+                        description={translate('personalInfoStep.legalName')}
+                        title={`${values[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${values[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(PERSONAL_INFO_STEP_INDEXES.LEGAL_NAME);
+                        }}
                     />
-                )}
-                <Button
-                    isDisabled={isOffline}
-                    success
-                    isLoading={isLoading}
-                    style={[styles.w100]}
-                    onPress={onNext}
-                    text={translate('common.confirm')}
-                />
-            </View>
-        </ScrollView>
+                    <MenuItemWithTopDescription
+                        description={translate('common.dob')}
+                        title={values[PERSONAL_INFO_STEP_KEYS.DOB]}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(PERSONAL_INFO_STEP_INDEXES.DATE_OF_BIRTH);
+                        }}
+                    />
+                    <MenuItemWithTopDescription
+                        description={translate('personalInfoStep.last4SSN')}
+                        title={values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4]}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(PERSONAL_INFO_STEP_INDEXES.SSN);
+                        }}
+                    />
+                    <MenuItemWithTopDescription
+                        description={translate('personalInfoStep.address')}
+                        title={`${values[PERSONAL_INFO_STEP_KEYS.STREET]}, ${values[PERSONAL_INFO_STEP_KEYS.CITY]}, ${values[PERSONAL_INFO_STEP_KEYS.STATE]} ${
+                            values[PERSONAL_INFO_STEP_KEYS.ZIP_CODE]
+                        }`}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(PERSONAL_INFO_STEP_INDEXES.ADDRESS);
+                        }}
+                    />
+
+                    <Text style={[styles.mt3, styles.ph5, styles.textMicroSupporting]}>
+                        {`${translate('personalInfoStep.byAddingThisBankAccount')} `}
+                        <TextLink
+                            href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}
+                            style={[styles.textMicro]}
+                        >
+                            {translate('onfidoStep.facialScan')}
+                        </TextLink>
+                        {', '}
+                        <TextLink
+                            href={CONST.ONFIDO_PRIVACY_POLICY_URL}
+                            style={[styles.textMicro]}
+                        >
+                            {translate('common.privacy')}
+                        </TextLink>
+                        {` ${translate('common.and')} `}
+                        <TextLink
+                            href={CONST.ONFIDO_TERMS_OF_SERVICE_URL}
+                            style={[styles.textMicro]}
+                        >
+                            {translate('common.termsOfService')}
+                        </TextLink>
+                    </Text>
+                    <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
+                        {error && error.length > 0 && (
+                            <DotIndicatorMessage
+                                textStyles={[styles.formError]}
+                                type="error"
+                                messages={{error}}
+                            />
+                        )}
+                        <Button
+                            isDisabled={isOffline}
+                            success
+                            large
+                            isLoading={isLoading}
+                            style={[styles.w100]}
+                            onPress={onNext}
+                            text={translate('common.confirm')}
+                        />
+                    </View>
+                </ScrollView>
+            )}
+        </SafeAreaConsumer>
     );
 }
 

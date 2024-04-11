@@ -13,6 +13,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -115,6 +116,7 @@ function AttachmentPickerWithMenuItems({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
+    const {canUseTrackExpense} = usePermissions();
 
     /**
      * Returns the list of IOU Options
@@ -124,24 +126,29 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: translate('iou.splitBill'),
-                onSelected: () => IOU.startMoneyRequest_temporaryForRefactor(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: translate('iou.requestMoney'),
-                onSelected: () => IOU.startMoneyRequest_temporaryForRefactor(CONST.IOU.TYPE.REQUEST, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: translate('iou.sendMoney'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID ?? ''),
+            },
+            [CONST.IOU.TYPE.TRACK_EXPENSE]: {
+                icon: Expensicons.DocumentPlus,
+                text: translate('iou.trackExpense'),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, report?.reportID ?? ''),
             },
         };
 
-        return ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
+        return ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], canUseTrackExpense).map((option) => ({
             ...options[option],
         }));
-    }, [report, policy, reportParticipantIDs, translate]);
+    }, [translate, report, policy, reportParticipantIDs, canUseTrackExpense]);
 
     /**
      * Determines if we can show the task option
@@ -155,7 +162,7 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
-                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID, report),
             },
         ];
     }, [report, reportID, translate]);
@@ -185,7 +192,6 @@ function AttachmentPickerWithMenuItems({
 
     return (
         <AttachmentPicker>
-            {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();

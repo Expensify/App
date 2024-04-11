@@ -4,7 +4,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
-import type {PolicyReportField} from './PolicyReportField';
+import type {PolicyReportField} from './Policy';
 
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
 
@@ -17,6 +17,12 @@ type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
 }>;
 
+/** The pending member of report */
+type PendingChatMember = {
+    accountID: string;
+    pendingAction: OnyxCommon.PendingAction;
+};
+
 type Participant = {
     hidden: boolean;
     role?: 'admin' | 'member';
@@ -26,6 +32,9 @@ type Participants = Record<number, Participant>;
 
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
+        /** The URL of the Group Chat report custom avatar */
+        avatarUrl?: string;
+
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -123,7 +132,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         parentReportID?: string;
         parentReportActionID?: string;
         isOptimisticReport?: boolean;
-        hasDraft?: boolean;
         managerID?: number;
         lastVisibleActionLastModified?: string;
         displayName?: string;
@@ -135,6 +143,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         participantAccountIDs?: number[];
         visibleChatMemberAccountIDs?: number[];
         total?: number;
+        unheldTotal?: number;
         currency?: string;
         errors?: OnyxCommon.Errors;
         managerEmail?: string;
@@ -170,8 +179,13 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         isLoadingPrivateNotes?: boolean;
         selected?: boolean;
 
-        /** If the report contains reportFields, save the field id and its value */
-        reportFields?: Record<string, PolicyReportField>;
+        /** Pending members of the report */
+        pendingChatMembers?: PendingChatMember[];
+
+        /** The ID of the single transaction thread report associated with this report, if one exists */
+        transactionThreadReportID?: string;
+
+        fieldList?: Record<string, PolicyReportField>;
     },
     PolicyReportField['fieldID']
 >;
@@ -180,4 +194,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants};

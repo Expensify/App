@@ -90,6 +90,7 @@ type ReportArchiveReasonsMergedParams = {
 type ReportArchiveReasonsRemovedFromPolicyParams = {
     displayName: string;
     policyName: string;
+    shouldUseYou?: boolean;
 };
 
 type ReportArchiveReasonsPolicyDeletedParams = {
@@ -110,13 +111,13 @@ type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
-type SplitAmountParams = {amount: number};
+type SplitAmountParams = {amount: string};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
 type AmountEachParams = {amount: string};
 
-type PayerOwesAmountParams = {payer: string; amount: number | string};
+type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
 type PayerOwesParams = {payer: string};
 
@@ -210,8 +211,6 @@ type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisp
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
-type TagSelectionParams = {tagName: string};
-
 type WalletProgramParams = {walletProgram: string};
 
 type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
@@ -296,6 +295,8 @@ type LogSizeParams = {size: number};
 
 type HeldRequestParams = {comment: string};
 
+type DistanceRateOperationsParams = {count: number};
+
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
@@ -314,6 +315,7 @@ export type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
+    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
@@ -361,7 +363,6 @@ export type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,

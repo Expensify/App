@@ -3,21 +3,22 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
+import type {IOURequestType} from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
 
-function navigateToStartMoneyRequestStep(requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
     // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.DISTANCE:
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             break;
         case CONST.IOU.REQUEST_TYPE.SCAN:
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             break;
         default:
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             break;
     }
 }
@@ -104,7 +105,7 @@ function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
  * Checks if the iou type is one of request, send, or split.
  */
 function isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.TYPE.REQUEST, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.SEND];
+    const moneyRequestType: string[] = [CONST.IOU.TYPE.REQUEST, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.TRACK_EXPENSE];
     return moneyRequestType.includes(iouType);
 }
 

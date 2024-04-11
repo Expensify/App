@@ -55,8 +55,8 @@
 }
 
 @font-face {
-    font-family: Noto Color Emoji;
-    src: url('/fonts/NotoColorEmoji-Regular.woff2') format('woff2'),  url('/fonts/NotoColorEmoji-Regular.woff') format('woff');
+    font-family: Windows Segoe UI Emoji;
+    src: url('/fonts/seguiemj.ttf');
 }
 
 * {

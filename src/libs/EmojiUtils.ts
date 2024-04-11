@@ -13,7 +13,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
-type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
+type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
+type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
 
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
@@ -37,7 +38,10 @@ const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 
 const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
-const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): string => {
+const getEmojiName = (emoji: Emoji, lang: Locale = CONST.LOCALES.DEFAULT): string => {
+    if (!emoji) {
+        return '';
+    }
     if (lang === CONST.LOCALES.DEFAULT) {
         return emoji.name;
     }
@@ -152,7 +156,7 @@ function containsOnlyEmojis(message: string): boolean {
 /**
  * Get the header emojis with their code, icon and index
  */
-function getHeaderEmojis(emojis: PickerEmojis): HeaderIndice[] {
+function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndice[] {
     const headerIndices: HeaderIndice[] = [];
     emojis.forEach((emoji, index) => {
         if (!('header' in emoji)) {
@@ -242,9 +246,10 @@ function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji
 /**
  * Given an emoji item object, return an emoji code based on its type.
  */
-const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: number): string => {
+const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: OnyxEntry<number | string>): string => {
     const {code, types} = item;
-    if (types?.[preferredSkinToneIndex]) {
+
+    if (typeof preferredSkinToneIndex === 'number' && types?.[preferredSkinToneIndex]) {
         return types[preferredSkinToneIndex];
     }
 
@@ -305,7 +310,7 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
-function replaceEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require('./EmojiTrie').default;
 
@@ -345,9 +350,9 @@ function replaceEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEF
 
             // Set the cursor to the end of the last replaced Emoji. Note that we position after
             // the extra space, if we added one.
-            cursorPosition = newText.indexOf(emoji) + emojiReplacement.length;
+            cursorPosition = newText.indexOf(emoji) + (emojiReplacement?.length ?? 0);
 
-            newText = newText.replace(emoji, emojiReplacement);
+            newText = newText.replace(emoji, emojiReplacement ?? '');
         }
     }
 
@@ -369,7 +374,7 @@ function replaceEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEF
 /**
  * Find all emojis in a text and replace them with their code.
  */
-function replaceAndExtractEmojis(text: string, preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
@@ -550,7 +555,7 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
 /**
  * Given an emoji code, returns an base emoji code without skin tone
  */
-const getRemovedSkinToneEmoji = (emoji: string) => emoji.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
+const getRemovedSkinToneEmoji = (emoji?: string) => emoji?.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
 
 function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     const spacersIndexes: number[] = [];
@@ -563,6 +568,8 @@ function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     });
     return spacersIndexes;
 }
+
+export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
 
 export {
     findEmojiByName,

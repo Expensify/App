@@ -7,6 +7,7 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
@@ -14,11 +15,11 @@ import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -49,9 +50,6 @@ const propTypes = {
         }),
     ),
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
-
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -60,33 +58,26 @@ const propTypes = {
 
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
-
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     dismissedReferralBanners: {},
     participants: [],
     safeAreaPaddingBottomStyle: {},
-    reports: {},
     betas: [],
     isDistanceRequest: false,
-    isSearchingForReports: false,
 };
 
 function MoneyRequestParticipantsSelector({
     betas,
     dismissedReferralBanners,
     participants,
-    reports,
     navigateToRequest,
     navigateToSplit,
     onAddParticipants,
     safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
-    isSearchingForReports,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -94,6 +85,8 @@ function MoneyRequestParticipantsSelector({
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
+    const {canUseP2PDistanceRequests} = usePermissions(iouType);
+    const {options, areOptionsInitialized} = useOptionsList();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -102,8 +95,8 @@ function MoneyRequestParticipantsSelector({
 
     const newChatOptions = useMemo(() => {
         const chatOptions = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports,
+            options.personalDetails,
             betas,
             searchTerm,
             participants,
@@ -113,8 +106,7 @@ function MoneyRequestParticipantsSelector({
             // sees the option to request money from their admin on their own Workspace Chat.
             iouType === CONST.IOU.TYPE.REQUEST,
 
-            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            !isDistanceRequest,
+            canUseP2PDistanceRequests || !isDistanceRequest,
             false,
             {},
             [],
@@ -123,7 +115,7 @@ function MoneyRequestParticipantsSelector({
             [],
             // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
             // This functionality is being built here: https://github.com/Expensify/App/issues/23291
-            !isDistanceRequest,
+            canUseP2PDistanceRequests || !isDistanceRequest,
             true,
         );
         return {
@@ -131,7 +123,7 @@ function MoneyRequestParticipantsSelector({
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         };
-    }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest]);
+    }, [options.reports, options.personalDetails, betas, searchTerm, participants, iouType, canUseP2PDistanceRequests, isDistanceRequest]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -140,7 +132,6 @@ function MoneyRequestParticipantsSelector({
      */
     const sections = useMemo(() => {
         const newSections = [];
-        let indexOffset = 0;
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             searchTerm,
@@ -148,12 +139,10 @@ function MoneyRequestParticipantsSelector({
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
             maxParticipantsReached,
-            indexOffset,
             personalDetails,
             true,
         );
         newSections.push(formatResults.section);
-        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return newSections;
@@ -163,17 +152,13 @@ function MoneyRequestParticipantsSelector({
             title: translate('common.recents'),
             data: newChatOptions.recentReports,
             shouldShow: !_.isEmpty(newChatOptions.recentReports),
-            indexOffset,
         });
-        indexOffset += newChatOptions.recentReports.length;
 
         newSections.push({
             title: translate('common.contacts'),
             data: newChatOptions.personalDetails,
             shouldShow: !_.isEmpty(newChatOptions.personalDetails),
-            indexOffset,
         });
-        indexOffset += newChatOptions.personalDetails.length;
 
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
@@ -183,7 +168,6 @@ function MoneyRequestParticipantsSelector({
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
-                indexOffset,
             });
         }
 
@@ -195,25 +179,28 @@ function MoneyRequestParticipantsSelector({
      *
      * @param {Object} option
      */
-    const addSingleParticipant = (option) => {
-        if (participants.length) {
-            return;
-        }
-        onAddParticipants(
-            [
-                {
-                    accountID: option.accountID,
-                    login: option.login,
-                    isPolicyExpenseChat: option.isPolicyExpenseChat,
-                    reportID: option.reportID,
-                    selected: true,
-                    searchText: option.searchText,
-                },
-            ],
-            false,
-        );
-        navigateToRequest();
-    };
+    const addSingleParticipant = useCallback(
+        (option) => {
+            if (participants.length) {
+                return;
+            }
+            onAddParticipants(
+                [
+                    {
+                        accountID: option.accountID,
+                        login: option.login,
+                        isPolicyExpenseChat: option.isPolicyExpenseChat,
+                        reportID: option.reportID,
+                        selected: true,
+                        searchText: option.searchText,
+                    },
+                ],
+                false,
+            );
+            navigateToRequest();
+        },
+        [navigateToRequest, onAddParticipants, participants.length],
+    );
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -272,15 +259,27 @@ function MoneyRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to show error message if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = !isDistanceRequest && iouType !== CONST.IOU.TYPE.SEND;
 
-    const handleConfirmSelection = useCallback(() => {
-        if (shouldShowSplitBillErrorMessage) {
-            return;
-        }
+    // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
+    const isAllowedToSplit = (canUseP2PDistanceRequests || !isDistanceRequest) && (iouType !== CONST.IOU.TYPE.SEND || iouType !== CONST.IOU.TYPE.TRACK_EXPENSE);
 
-        navigateToSplit();
-    }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
+    const handleConfirmSelection = useCallback(
+        (keyEvent, option) => {
+            const shouldAddSingleParticipant = option && !participants.length;
+
+            if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
+                return;
+            }
+
+            if (shouldAddSingleParticipant) {
+                addSingleParticipant(option);
+                return;
+            }
+
+            navigateToSplit();
+        },
+        [shouldShowSplitBillErrorMessage, navigateToSplit, addSingleParticipant, participants.length],
+    );
 
     const footerContent = useMemo(
         () => (
@@ -305,6 +304,7 @@ function MoneyRequestParticipantsSelector({
                         text={translate('iou.addToSplit')}
                         onPress={handleConfirmSelection}
                         pressOnEnter
+                        large
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
@@ -358,7 +358,7 @@ function MoneyRequestParticipantsSelector({
                 onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
-                showLoadingPlaceholder={isSearchingForReports}
+                showLoadingPlaceholder={!areOptionsInitialized}
                 rightHandSideComponent={itemRightSideComponent}
             />
         </View>
@@ -371,17 +371,9 @@ MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default withOnyx({
     dismissedReferralBanners: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (data) => data.dismissedReferralBanners || {},
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
+        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
     },
     betas: {
         key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
     },
 })(MoneyRequestParticipantsSelector);

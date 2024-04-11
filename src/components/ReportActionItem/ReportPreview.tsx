@@ -1,13 +1,15 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RenderHTML from '@components/RenderHTML';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -19,7 +21,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -30,7 +31,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Session, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -44,14 +45,14 @@ type ReportPreviewOnyxProps = {
     /** Active IOU Report for current report */
     iouReport: OnyxEntry<Report>;
 
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-
     /** All the transactions, used to update ReportPreview label and status */
     transactions: OnyxCollection<Transaction>;
 
     /** All of the transaction violations */
     transactionViolations: OnyxCollection<TransactionViolations>;
+
+    /** The user's wallet account */
+    userWallet: OnyxEntry<UserWallet>;
 };
 
 type ReportPreviewProps = ReportPreviewOnyxProps & {
@@ -85,7 +86,6 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
 
 function ReportPreview({
     iouReport,
-    session,
     policy,
     iouReportID,
     policyID,
@@ -99,6 +99,7 @@ function ReportPreview({
     isHovered = false,
     isWhisper = false,
     checkIfContextMenuActive = () => {},
+    userWallet,
 }: ReportPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -118,46 +119,37 @@ function ReportPreview({
     );
 
     const managerID = iouReport?.managerID ?? 0;
-    const isCurrentUserManager = managerID === session?.accountID;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
-    const policyType = policy?.type;
-    const isAutoReimbursable = ReportUtils.canBeAutoReimbursed(iouReport, policy);
 
     const iouSettled = ReportUtils.isSettled(iouReportID);
-    const iouCanceled = ReportUtils.isArchivedRoom(chatReport);
     const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(action);
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
-    const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(iouReport);
+    const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
-    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(iouReport);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
-    const hasErrors = hasMissingSmartscanFields || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasErrors = hasMissingSmartscanFields || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations)) || ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
 
-    let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
+    const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
+
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
     }
-    const previewSubtitle =
-        // Formatted merchant can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        formattedMerchant ||
-        translate('iou.requestCount', {
-            count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
-            scanningReceipts: numberOfScanningReceipts,
-            pendingReceipts: numberOfPendingRequests,
-        });
 
-    const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
+    const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0;
+    const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -196,53 +188,62 @@ function ReportPreview({
         if (isScanning) {
             return translate('common.receipt');
         }
-        const payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+        let payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         if (isApproved) {
             return translate('iou.managerApproved', {manager: payerOrApproverName});
         }
-        const managerName = isPolicyExpenseChat && !hasNonReimbursableTransactions ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
-        let paymentVerb: TranslationPaths = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
+        let paymentVerb: TranslationPaths = 'iou.payerOwes';
         if (iouSettled || iouReport?.isWaitingOnBankAccount) {
             paymentVerb = 'iou.payerPaid';
+        } else if (hasNonReimbursableTransactions) {
+            paymentVerb = 'iou.payerSpent';
+            payerOrApproverName = ReportUtils.getDisplayNameForParticipant(chatReport?.ownerAccountID, true);
         }
-        return translate(paymentVerb, {payer: managerName});
+        return translate(paymentVerb, {payer: payerOrApproverName});
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
 
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
-    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPaidGroupPolicy
-        ? // In a paid group policy, the admin approver can pay the report directly by skipping the approval step
-          isPolicyAdmin && (isApproved || isCurrentUserManager)
-        : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
-    const isOnInstantSubmitPolicy = PolicyUtils.isInstantSubmitEnabled(policy);
-    const isOnSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraftExpenseReport && !iouSettled && !iouReport?.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable,
-        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, iouReport],
-    );
-    const shouldShowApproveButton = useMemo(() => {
-        if (!isPaidGroupPolicy) {
-            return false;
-        }
-        if (isOnInstantSubmitPolicy && isOnSubmitAndClosePolicy) {
-            return false;
-        }
-        return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
-    }, [isPaidGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, isOnInstantSubmitPolicy, isOnSubmitAndClosePolicy, iouSettled]);
+    const shouldShowPayButton = useMemo(() => IOU.canIOUBePaid(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
+
+    const shouldShowApproveButton = useMemo(() => IOU.canApproveIOU(iouReport, chatReport, policy), [iouReport, chatReport, policy]);
+
+    const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
+
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+
+    const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
+    const shouldShowRBR = !iouSettled && hasErrors;
 
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
      - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
-     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant is shown;
+     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant or description is shown;
 
      * There is an edge case when there is only one distance request with a pending route and amount = 0.
-       In this case, we don't want to show the merchant because it says: "Pending route...", which is already displayed in the amount field.
+       In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
-    const shouldShowSingleRequestMerchant = numberOfRequests === 1 && !!formattedMerchant && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
-    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchant || numberOfRequests > 1);
+    const shouldShowSingleRequestMerchantOrDescription =
+        numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
+    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
+
+    const {isSupportTextHtml, supportText} = useMemo(() => {
+        if (formattedMerchant) {
+            return {isSupportTextHtml: false, supportText: formattedMerchant};
+        }
+        if (formattedDescription ?? moneyRequestComment) {
+            const parsedSubtitle = new ExpensiMark().replace(formattedDescription ?? moneyRequestComment);
+            return {isSupportTextHtml: !!parsedSubtitle, supportText: parsedSubtitle ? `<muted-text>${parsedSubtitle}</muted-text>` : ''};
+        }
+        return {
+            isSupportTextHtml: false,
+            supportText: translate('iou.requestCount', {
+                count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+                scanningReceipts: numberOfScanningReceipts,
+                pendingReceipts: numberOfPendingRequests,
+            }),
+        };
+    }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
     return (
         <OfflineWithFeedback
@@ -258,6 +259,7 @@ function ReportPreview({
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                    shouldUseHapticsOnLongPress
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role="button"
                     accessibilityLabel={translate('iou.viewDetails')}
@@ -277,10 +279,17 @@ function ReportPreview({
                                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                             <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewMessage()}</Text>
                                         </View>
-                                        {!iouSettled && hasErrors && (
+                                        {shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
                                                 fill={theme.danger}
+                                            />
+                                        )}
+
+                                        {!shouldShowRBR && shouldPromptUserToAddBankAccount && (
+                                            <Icon
+                                                src={Expensicons.DotIndicator}
+                                                fill={theme.success}
                                             />
                                         )}
                                     </View>
@@ -298,10 +307,14 @@ function ReportPreview({
                                                 )}
                                             </View>
                                         </View>
-                                        {shouldShowSubtitle && (
+                                        {shouldShowSubtitle && supportText && (
                                             <View style={styles.flexRow}>
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                                    {isSupportTextHtml ? (
+                                                        <RenderHTML html={supportText} />
+                                                    ) : (
+                                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
+                                                    )}
                                                 </View>
                                             </View>
                                         )}
@@ -318,6 +331,7 @@ function ReportPreview({
                                         addBankAccountRoute={bankAccountRoute}
                                         shouldHidePaymentOptions={!shouldShowPayButton}
                                         shouldShowApproveButton={shouldShowApproveButton}
+                                        shouldDisableApproveButton={shouldDisableApproveButton}
                                         kycWallAnchorAlignment={{
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -335,6 +349,7 @@ function ReportPreview({
                                         success={isWaitingForSubmissionFromCurrentUser}
                                         text={translate('common.submit')}
                                         onPress={() => iouReport && IOU.submitReport(iouReport)}
+                                        isDisabled={shouldDisableSubmitButton}
                                     />
                                 )}
                             </View>
@@ -358,13 +373,13 @@ export default withOnyx<ReportPreviewProps, ReportPreviewOnyxProps>({
     iouReport: {
         key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
     },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
     transactions: {
         key: ONYXKEYS.COLLECTION.TRANSACTION,
     },
     transactionViolations: {
         key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    },
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
     },
 })(ReportPreview);

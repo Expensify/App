@@ -14,7 +14,7 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {CentralPaneNavigatorParamList, RootStackParamList} from '@libs/Navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
@@ -23,8 +23,9 @@ import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import TestToolsModal from './TestToolsModal';
+import withNavigationFallback from './withNavigationFallback';
 
-type ChildrenProps = {
+type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
         paddingBottom?: DimensionValue;
@@ -34,7 +35,7 @@ type ChildrenProps = {
 
 type ScreenWrapperProps = {
     /** Returns a function as a child to pass insets to or a node to render without insets */
-    children: ReactNode | React.FC<ChildrenProps>;
+    children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
 
     /** A unique ID to find the screen wrapper in tests */
     testID: string;
@@ -92,7 +93,7 @@ type ScreenWrapperProps = {
      *
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
-    navigation?: StackNavigationProp<RootStackParamList>;
+    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<CentralPaneNavigatorParamList>;
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
@@ -148,7 +149,6 @@ function ScreenWrapper(
 
     const panResponder = useRef(
         PanResponder.create({
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
             onPanResponderRelease: toggleTestToolsModal,
         }),
@@ -156,7 +156,6 @@ function ScreenWrapper(
 
     const keyboardDissmissPanResponder = useRef(
         PanResponder.create({
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
                 const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && isKeyboardShown && Browser.isMobile();
@@ -232,7 +231,7 @@ function ScreenWrapper(
                         ref={ref}
                         style={[styles.flex1, {minHeight}]}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...(isDevelopment ? panResponder.panHandlers : {})}
+                        {...panResponder.panHandlers}
                         testID={testID}
                     >
                         <View
@@ -250,7 +249,7 @@ function ScreenWrapper(
                                     enabled={shouldEnablePickerAvoiding}
                                 >
                                     <HeaderGap styles={headerGapStyles} />
-                                    {isDevelopment && <TestToolsModal />}
+                                    <TestToolsModal />
                                     {isDevelopment && <CustomDevMenu />}
                                     {
                                         // If props.children is a function, call it to provide the insets to the children.
@@ -281,4 +280,5 @@ function ScreenWrapper(
 
 ScreenWrapper.displayName = 'ScreenWrapper';
 
-export default forwardRef(ScreenWrapper);
+export default withNavigationFallback(forwardRef(ScreenWrapper));
+export type {ScreenWrapperChildrenProps};

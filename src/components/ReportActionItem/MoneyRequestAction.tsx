@@ -8,12 +8,11 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -82,7 +81,8 @@ function MoneyRequestAction({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const isSplitBillAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+    const isSplitBillAction = ReportActionsUtils.isSplitBillAction(action);
+    const isTrackExpenseAction = ReportActionsUtils.isTrackExpenseAction(action);
 
     const onMoneyRequestPreviewPressed = () => {
         if (isSplitBillAction) {
@@ -91,15 +91,7 @@ function MoneyRequestAction({
             return;
         }
 
-        // If the childReportID is not present, we need to create a new thread
-        const childReportID = action?.childReportID;
-        if (!childReportID) {
-            const thread = ReportUtils.buildTransactionThread(action, requestReportID);
-            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
-            Report.openReport(thread.reportID, userLogins, thread, action.reportActionID);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
-            return;
-        }
+        const childReportID = action?.childReportID ?? '0';
         Report.openReport(childReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
@@ -118,14 +110,24 @@ function MoneyRequestAction({
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
     }
 
-    return isDeletedParentAction || isReversedTransaction ? (
-        <RenderHTML html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`} />
-    ) : (
+    if (isDeletedParentAction || isReversedTransaction) {
+        let message: TranslationPaths;
+        if (isReversedTransaction) {
+            message = 'parentReportAction.reversedTransaction';
+        } else if (isTrackExpenseAction) {
+            message = 'parentReportAction.deletedExpense';
+        } else {
+            message = 'parentReportAction.deletedRequest';
+        }
+        return <RenderHTML html={`<comment>${translate(message)}</comment>`} />;
+    }
+    return (
         <MoneyRequestPreview
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}
             isBillSplit={isSplitBillAction}
+            isTrackExpense={isTrackExpenseAction}
             action={action}
             contextMenuAnchor={contextMenuAnchor}
             checkIfContextMenuActive={checkIfContextMenuActive}

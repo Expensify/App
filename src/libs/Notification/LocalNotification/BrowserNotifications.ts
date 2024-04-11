@@ -44,7 +44,15 @@ function canUseBrowserNotifications(): Promise<boolean> {
  * @param icon Path to icon
  * @param data extra data to attach to the notification
  */
-function push(title: string, body = '', icon: string | ImageSourcePropType = '', data: LocalNotificationData = {}, onClick: LocalNotificationClickHandler = () => {}, silent = false) {
+function push(
+    title: string,
+    body = '',
+    icon: string | ImageSourcePropType = '',
+    data: LocalNotificationData = {},
+    onClick: LocalNotificationClickHandler = () => {},
+    silent = false,
+    tag = '',
+) {
     canUseBrowserNotifications().then((canUseNotifications) => {
         if (!canUseNotifications) {
             return;
@@ -57,6 +65,7 @@ function push(title: string, body = '', icon: string | ImageSourcePropType = '',
             icon: String(icon),
             data,
             silent,
+            tag,
         });
         notificationCache[notificationID].onclick = () => {
             onClick();
@@ -92,7 +101,7 @@ export default {
         const plainTextPerson = person?.map((f) => f.text).join() ?? '';
 
         // Specifically target the comment part of the message
-        const plainTextMessage = message?.find((f) => f.type === 'COMMENT')?.text ?? '';
+        const plainTextMessage = message?.find((f) => f?.type === 'COMMENT')?.text ?? '';
 
         if (isChatRoom) {
             const roomName = ReportUtils.getReportName(report);
@@ -124,9 +133,17 @@ export default {
      * Create a notification to indicate that an update is available.
      */
     pushUpdateAvailableNotification() {
-        push('Update available', 'A new version of this app is available!', '', {}, () => {
-            AppUpdate.triggerUpdateAvailable();
-        });
+        push(
+            'Update available',
+            'A new version of this app is available!',
+            '',
+            {},
+            () => {
+                AppUpdate.triggerUpdateAvailable();
+            },
+            false,
+            'UpdateAvailable',
+        );
     },
 
     /**

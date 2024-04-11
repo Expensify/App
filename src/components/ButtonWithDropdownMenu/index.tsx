@@ -8,7 +8,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -32,6 +31,7 @@ function ButtonWithDropdownMenu<IValueType>({
     options,
     onOptionSelected,
     enterKeyEventListenerPriority = 0,
+    wrapperStyle,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -66,7 +66,7 @@ function ButtonWithDropdownMenu<IValueType>({
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
 
     return (
-        <View>
+        <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, style]}>
                     <Button
@@ -75,7 +75,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         ref={buttonRef}
                         onPress={(event) => onPress(event, selectedItem.value)}
                         text={customText ?? selectedItem.text}
-                        isDisabled={isDisabled}
+                        isDisabled={isDisabled || !!selectedItem.disabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
@@ -99,12 +99,12 @@ function ButtonWithDropdownMenu<IValueType>({
                     >
                         <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                             <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
-                            <View style={[styles.dropDownButtonArrowContain]}>
+                            <View style={[isButtonSizeLarge ? styles.dropDownLargeButtonArrowContain : styles.dropDownMediumButtonArrowContain]}>
                                 <Icon
+                                    medium={isButtonSizeLarge}
+                                    small={!isButtonSizeLarge}
                                     src={Expensicons.DownArrow}
                                     fill={success ? theme.buttonSuccessText : theme.icon}
-                                    width={variables.iconSizeSmall}
-                                    height={variables.iconSizeSmall}
                                 />
                             </View>
                         </View>
@@ -115,7 +115,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     success={success}
                     ref={buttonRef}
                     pressOnEnter={pressOnEnter}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabled || !!options[0].disabled}
                     style={[styles.w100, style]}
                     isLoading={isLoading}
                     text={selectedItem.text}

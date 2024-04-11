@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -62,7 +63,7 @@ function TermsAndConditionsLabel() {
     return (
         <Text>
             {translate('common.iAcceptThe')}
-            <TextLink href="https://use.expensify.com/achterms">{`${translate('completeVerificationStep.termsAndConditions')}`}</TextLink>
+            <TextLink href={CONST.ACH_TERMS_URL}>{`${translate('completeVerificationStep.termsAndConditions')}`}</TextLink>
         </Text>
     );
 }

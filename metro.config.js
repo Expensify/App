@@ -7,7 +7,7 @@ require('dotenv').config();
 const defaultConfig = getDefaultConfig(__dirname);
 
 const isE2ETesting = process.env.E2E_TESTING === 'true';
-const e2eSourceExts = ['e2e.js', 'e2e.ts'];
+const e2eSourceExts = ['e2e.js', 'e2e.ts', 'e2e.tsx'];
 
 /**
  * Metro configuration

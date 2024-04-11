@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useContext, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
+import _ from 'underscore';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -15,6 +16,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -74,6 +76,88 @@ function IOURequestStepScan({
     const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
     const cameraRef = useRef(null);
+    const trackRef = useRef(null);
+    const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
+
+    const getScreenshotTimeoutRef = useRef(null);
+
+    const [videoConstraints, setVideoConstraints] = useState(null);
+    const tabIndex = 1;
+    const isTabActive = useTabNavigatorFocus({tabIndex});
+
+    /**
+     * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
+     * The last deviceId is of regular len camera.
+     */
+    const requestCameraPermission = useCallback(() => {
+        if (!_.isEmpty(videoConstraints) || !Browser.isMobile()) {
+            return;
+        }
+
+        const defaultConstraints = {facingMode: {exact: 'environment'}};
+        navigator.mediaDevices
+            .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
+            .then((stream) => {
+                setCameraPermissionState('granted');
+                _.forEach(stream.getTracks(), (track) => track.stop());
+                // Only Safari 17+ supports zoom constraint
+                if (Browser.isMobileSafari() && stream.getTracks().length > 0) {
+                    const deviceId = _.chain(stream.getTracks())
+                        .map((track) => track.getSettings())
+                        .find((setting) => setting.zoom === 1)
+                        .get('deviceId')
+                        .value();
+                    if (deviceId) {
+                        setVideoConstraints({deviceId});
+                        return;
+                    }
+                }
+                if (!navigator.mediaDevices.enumerateDevices) {
+                    setVideoConstraints(defaultConstraints);
+                    return;
+                }
+                navigator.mediaDevices.enumerateDevices().then((devices) => {
+                    const lastBackDeviceId = _.chain(devices)
+                        .filter((item) => item.kind === 'videoinput')
+                        .last()
+                        .get('deviceId', '')
+                        .value();
+
+                    if (!lastBackDeviceId) {
+                        setVideoConstraints(defaultConstraints);
+                        return;
+                    }
+                    setVideoConstraints({deviceId: lastBackDeviceId});
+                });
+            })
+            .catch(() => {
+                setVideoConstraints(defaultConstraints);
+                setCameraPermissionState('denied');
+            });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (!Browser.isMobile() || !isTabActive) {
+            return;
+        }
+        navigator.permissions
+            .query({name: 'camera'})
+            .then((permissionState) => {
+                setCameraPermissionState(permissionState.state);
+                if (permissionState.state === 'granted') {
+                    requestCameraPermission();
+                }
+            })
+            .catch(() => {
+                setCameraPermissionState('denied');
+            })
+            .finally(() => {
+                setIsQueriedPermissionState(true);
+            });
+        // We only want to get the camera permission status when the component is mounted
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isTabActive]);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -122,7 +206,7 @@ function IOURequestStepScan({
         }
 
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
-        if (isFromGlobalCreate) {
+        if (isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -130,7 +214,7 @@ function IOURequestStepScan({
         // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
         IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
@@ -162,11 +246,25 @@ function IOURequestStepScan({
         navigateToConfirmationStep();
     };
 
-    const capturePhoto = useCallback(() => {
-        if (!cameraRef.current.getScreenshot) {
+    const setupCameraPermissionsAndCapabilities = (stream) => {
+        setCameraPermissionState('granted');
+
+        const [track] = stream.getVideoTracks();
+        const capabilities = track.getCapabilities();
+        if (capabilities.torch) {
+            trackRef.current = track;
+        }
+        setIsTorchAvailable(!!capabilities.torch);
+    };
+
+    const getScreenshot = useCallback(() => {
+        if (!cameraRef.current) {
+            requestCameraPermission();
             return;
         }
+
         const imageBase64 = cameraRef.current.getScreenshot();
+
         const filename = `receipt_${Date.now()}.png`;
         const file = FileUtils.base64ToFile(imageBase64, filename);
         const source = URL.createObjectURL(file);
@@ -178,7 +276,34 @@ function IOURequestStepScan({
         }
 
         navigateToConfirmationStep();
-    }, [cameraRef, action, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
+    }, [action, transactionID, updateScanAndNavigate, navigateToConfirmationStep, requestCameraPermission]);
+
+    const clearTorchConstraints = useCallback(() => {
+        if (!trackRef.current) {
+            return;
+        }
+        trackRef.current.applyConstraints({
+            advanced: [{torch: false}],
+        });
+    }, []);
+
+    const capturePhoto = useCallback(() => {
+        if (trackRef.current && isFlashLightOn) {
+            trackRef.current
+                .applyConstraints({
+                    advanced: [{torch: true}],
+                })
+                .then(() => {
+                    getScreenshotTimeoutRef.current = setTimeout(() => {
+                        getScreenshot();
+                        clearTorchConstraints();
+                    }, 2000);
+                });
+            return;
+        }
+
+        getScreenshot();
+    }, [isFlashLightOn, getScreenshot, clearTorchConstraints]);
 
     const panResponder = useRef(
         PanResponder.create({
@@ -186,17 +311,27 @@ function IOURequestStepScan({
         }),
     ).current;
 
+    useEffect(
+        () => () => {
+            if (!getScreenshotTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(getScreenshotTimeoutRef.current);
+        },
+        [],
+    );
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
-                {(cameraPermissionState === 'prompt' || !cameraPermissionState) && (
+                {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && _.isEmpty(videoConstraints))) && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
                         color={theme.textSupporting}
                     />
                 )}
-                {cameraPermissionState === 'denied' && (
+                {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
                     <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
                         <Icon
                             src={Hand}
@@ -206,20 +341,28 @@ function IOURequestStepScan({
                         />
                         <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                         <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
+                        <Button
+                            medium
+                            success
+                            text={translate('common.continue')}
+                            accessibilityLabel={translate('common.continue')}
+                            style={[styles.p9, styles.pt5]}
+                            onPress={capturePhoto}
+                        />
                     </View>
                 )}
-                <NavigationAwareCamera
-                    onUserMedia={() => setCameraPermissionState('granted')}
-                    onUserMediaError={() => setCameraPermissionState('denied')}
-                    style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
-                    ref={cameraRef}
-                    screenshotFormat="image/png"
-                    videoConstraints={{facingMode: {exact: 'environment'}}}
-                    torchOn={isFlashLightOn}
-                    onTorchAvailability={setIsTorchAvailable}
-                    forceScreenshotSourceSize
-                    cameraTabIndex={1}
-                />
+                {cameraPermissionState === 'granted' && !_.isEmpty(videoConstraints) && (
+                    <NavigationAwareCamera
+                        onUserMedia={setupCameraPermissionsAndCapabilities}
+                        onUserMediaError={() => setCameraPermissionState('denied')}
+                        style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
+                        ref={cameraRef}
+                        screenshotFormat="image/png"
+                        videoConstraints={videoConstraints}
+                        forceScreenshotSourceSize
+                        cameraTabIndex={tabIndex}
+                    />
+                )}
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>

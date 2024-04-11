@@ -8,8 +8,8 @@ import createOnyxContext from './createOnyxContext';
 const [withNetwork, NetworkProvider, NetworkContext] = createOnyxContext(ONYXKEYS.NETWORK);
 const [withPersonalDetails, PersonalDetailsProvider, , usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
 const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
-const [withReportActionsDrafts, ReportActionsDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
-const [withBlockedFromConcierge, BlockedFromConciergeProvider] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
+const [withReportActionsDrafts, ReportActionsDraftsProvider, , useReportActionsDrafts] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
+const [withBlockedFromConcierge, BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [withBetas, BetasProvider, BetasContext, useBetas] = createOnyxContext(ONYXKEYS.BETAS);
 const [withReportCommentDrafts, ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
 const [withPreferredTheme, PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
@@ -66,5 +66,7 @@ export {
     useFrequentlyUsedEmojis,
     withPreferredEmojiSkinTone,
     PreferredEmojiSkinToneContext,
+    useBlockedFromConcierge,
+    useReportActionsDrafts,
     useSession,
 };

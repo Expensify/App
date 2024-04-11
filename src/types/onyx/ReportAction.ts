@@ -2,6 +2,8 @@ import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Decision, Reaction} from './OriginalMessage';
@@ -70,6 +72,9 @@ type Message = {
 
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+
+    /** The time this report action was deleted */
+    deleted?: string;
 };
 
 type ImageMetadata = {
@@ -134,10 +139,10 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     created: string;
 
     /** report action message */
-    message?: Message[];
+    message?: Array<Message | undefined>;
 
     /** report action message */
-    previousMessage?: Message[];
+    previousMessage?: Array<Message | undefined>;
 
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
@@ -198,6 +203,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
 
+    /** Error associated with the report action */
+    error?: string;
+
     /** Whether the report action is attachment */
     isAttachment?: boolean;
 
@@ -224,5 +232,7 @@ type ReportAction = ReportActionBase & OriginalMessage;
 
 type ReportActions = Record<string, ReportAction>;
 
+type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
+
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet};

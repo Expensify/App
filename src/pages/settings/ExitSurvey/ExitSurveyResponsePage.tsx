@@ -8,6 +8,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -43,6 +44,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
     const {keyboardHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const {top: safeAreaInsetsTop} = useSafeAreaInsets();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const {reason, backTo} = route.params;
     const {isOffline} = useNetwork({
@@ -98,7 +100,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
         <ScreenWrapper testID={ExitSurveyResponsePage.displayName}>
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
@@ -132,6 +134,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                                     return;
                                 }
                                 updateMultilineInputRange(el);
+                                inputCallbackRef(el);
                             }}
                             containerStyles={[baseResponseInputContainerStyle, StyleUtils.getMaximumHeight(responseInputMaxHeight)]}
                             shouldSaveDraft

@@ -17,12 +17,17 @@ type ImageOnLoadEvent = {
     };
 };
 
-type ImageOwnProps = {
-    /** Styles for the Image */
-    style?: StyleProp<ImageStyle>;
-
+type BaseImageProps = {
     /** The static asset or URI source of the image */
     source: ExpoImageSource | Omit<ImageURISource, 'cache'> | ImageRequireSource | undefined;
+
+    /** Event for when the image is fully loaded and returns the natural dimensions of the image */
+    onLoad?: (event: ImageOnLoadEvent) => void;
+};
+
+type ImageOwnProps = BaseImageProps & {
+    /** Styles for the Image */
+    style?: StyleProp<ImageStyle>;
 
     /** Should an auth token be included in the image request */
     isAuthTokenRequired?: boolean;
@@ -39,13 +44,10 @@ type ImageOwnProps = {
     /** Error handler */
     onError?: () => void;
 
-    /** Event for when the image is fully loaded and returns the natural dimensions of the image */
-    onLoad?: (event: ImageOnLoadEvent) => void;
-
     /** Progress events while the image is downloading */
     onProgress?: () => void;
 };
 
 type ImageProps = ImageOnyxProps & ImageOwnProps;
 
-export type {ImageOwnProps, ImageOnyxProps, ImageProps, ExpoImageSource, ImageOnLoadEvent};
+export type {BaseImageProps, ImageOwnProps, ImageOnyxProps, ImageProps, ExpoImageSource, ImageOnLoadEvent};

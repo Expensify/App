@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -20,13 +21,13 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
+    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    HeldRequestParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -68,7 +69,6 @@ import type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,
@@ -145,6 +145,7 @@ export default {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         chats: 'Chats',
+        group: 'Group',
         profile: 'Profile',
         referral: 'Referral',
         payments: 'Payments',
@@ -225,6 +226,7 @@ export default {
             acceptTerms: 'You must accept the Terms of Service to continue',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
+            requestModified: 'This request is being modified by another member.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
             characterLimitExceedCounter: ({length, limit}) => `Character limit exceeded (${length}/${limit})`,
             dateInvalid: 'Please select a valid date',
@@ -312,6 +314,13 @@ export default {
         update: 'Update',
         member: 'Member',
         role: 'Role',
+        currency: 'Currency',
+        emptyLHN: {
+            title: 'Woohoo! All caught up.',
+            subtitleText1: 'Find a chat using the',
+            subtitleText2: 'button above, or create something using the',
+            subtitleText3: 'button below.',
+        },
     },
     location: {
         useCurrent: 'Use current location',
@@ -337,9 +346,10 @@ export default {
         sizeExceeded: 'Attachment size is larger than 24 MB limit.',
         attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
-        wrongFileType: 'Attachment is the wrong type',
+        wrongFileType: 'Invalid file type',
         notAllowedExtension: 'This file type is not allowed',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
+        protectedPDFNotSupported: 'Password-protected PDF is not supported',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -461,9 +471,14 @@ export default {
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
-        editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}?`,
+        editAction: ({action}: EditActionParams) =>
+            `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'}`,
+        deleteAction: ({action}: DeleteActionParams) =>
+            `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'}`,
+        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
+            `Are you sure you want to delete this ${
+                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'
+            }?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
@@ -502,13 +517,15 @@ export default {
             send: 'send money',
             split: 'split a bill',
             request: 'request money',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'track-expense': 'track an expense',
         },
     },
     reportAction: {
         asCopilot: 'as copilot for',
     },
     mentionSuggestions: {
-        hereAlternateText: 'Notify everyone online in this room',
+        hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -518,14 +535,15 @@ export default {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) =>
-            `This workspace chat is no longer active because ${displayName} closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `This chat is no longer active because ${displayName} closed their account.`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
-            `This workspace chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}: ReportArchiveReasonsRemovedFromPolicyParams) =>
-            `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
+            `This chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
+            shouldUseYou
+                ? `This chat is no longer active because <strong>you</strong> are no longer a member of the ${policyName} workspace.`
+                : `This chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsPolicyDeletedParams) =>
-            `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
+            `This chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
     writeCapabilityPage: {
         label: 'Who can post',
@@ -575,6 +593,20 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
     },
+    quickAction: {
+        scanReceipt: 'Scan Receipt',
+        recordDistance: 'Record Distance',
+        requestMoney: 'Request Money',
+        splitBill: 'Split Bill',
+        splitScan: 'Split Receipt',
+        splitDistance: 'Split Distance',
+        trackManual: 'Track Expense',
+        trackScan: 'Track Receipt',
+        trackDistance: 'Track Distance',
+        sendMoney: 'Send Money',
+        assignTask: 'Assign Task',
+        shortcut: 'Shortcut',
+    },
     iou: {
         amount: 'Amount',
         taxAmount: 'Tax amount',
@@ -591,6 +623,7 @@ export default {
         participants: 'Participants',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
+        trackExpense: 'Track expense',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
@@ -602,6 +635,8 @@ export default {
         routePending: 'Route pending...',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
+        missingAmount: 'Missing amount',
+        missingMerchant: 'Missing merchant',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
@@ -620,10 +655,11 @@ export default {
         finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
+        trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} each`,
-        payerOwesAmount: ({payer, amount}: PayerOwesAmountParams) => `${payer} owes ${amount}`,
+        payerOwesAmount: ({payer, amount, comment}: PayerOwesAmountParams) => `${payer} owes ${amount}${comment ? ` for ${comment}` : ''}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer ? `${payer} ` : ''}paid ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} paid: `,
@@ -651,9 +687,10 @@ export default {
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
             `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'request'}`,
+        threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
-        tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money.`,
-        categorySelection: 'Select a category to add additional organization to your money.',
+        tagSelection: 'Select a tag to better organize your spend.',
+        categorySelection: 'Select a category to better organize your spend.',
         error: {
             invalidCategoryLength: 'The length of the category chosen exceeds the maximum allowed (255). Please choose a different or shorten the category name first.',
             invalidAmount: 'Please enter a valid amount before continuing.',
@@ -677,7 +714,7 @@ export default {
         hold: 'Hold',
         holdRequest: 'Hold request',
         unholdRequest: 'Unhold request',
-        heldRequest: ({comment}: HeldRequestParams) => `held this request with the comment: ${comment}`,
+        heldRequest: 'held this request',
         unheldRequest: 'unheld this request',
         explainHold: "Explain why you're holding this request.",
         reason: 'Reason',
@@ -855,6 +892,11 @@ export default {
             submitBug: 'submit a bug',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
             resetAndRefresh: 'Reset and refresh',
+            clientSideLogging: 'Client side logging',
+            noLogsToShare: 'No logs to share',
+            useProfiling: 'Use profiling',
+            profileTrace: 'Profile trace',
+            releaseOptions: 'Release options',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -863,9 +905,11 @@ export default {
             execute: 'Execute',
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
+            logs: 'Logs',
         },
         security: 'Security',
         signOut: 'Sign out',
+        restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign-out.",
         versionLetter: 'v',
         readTheTermsAndPrivacy: {
@@ -1010,6 +1054,11 @@ export default {
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
         walletActivationFailed: 'Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.',
+        addYourBankAccount: 'Add your bank account.',
+        addBankAccountBody: "Let's connect your bank account to Expensify so it’s easier than ever to send and receive payments directly in the app.",
+        chooseYourBankAccount: 'Choose your bank account.',
+        chooseAccountBody: 'Make sure that you select the right one.',
+        confirmYourBankAccount: 'Confirm your bank account.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -1065,6 +1114,19 @@ export default {
                 other: 'th',
             },
         },
+    },
+    workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'The delayed submission parameter could not be changed. Please try again or contact support.',
+        autoReportingFrequencyErrorMessage: 'The submission frequency could not be changed. Please try again or contact support.',
+        monthlyOffsetErrorMessage: 'The monthly frequency could not be changed. Please try again or contact support.',
+    },
+    workflowsApprovalPage: {
+        genericErrorMessage: 'The approver could not be changed. Please try again or contact support.',
+    },
+    workflowsPayerPage: {
+        title: 'Authorized payer',
+        genericErrorMessage: 'The authorized payer could not be changed. Please try again.',
+        admins: 'Admins',
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
@@ -1161,6 +1223,9 @@ export default {
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom decription for the room.',
     },
+    groupConfirmPage: {
+        groupName: 'Group name',
+    },
     languagePage: {
         language: 'Language',
         languages: {
@@ -1250,6 +1315,29 @@ export default {
         loginForm: 'Login form',
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
+    onboarding: {
+        welcome: 'Welcome!',
+        welcomeVideo: {
+            title: 'Welcome to Expensify',
+            description: 'Getting paid is as easy as sending a message.',
+            button: "Let's go",
+        },
+        whatsYourName: "What's your name?",
+        purpose: {
+            title: 'What do you want to do today?',
+            error: 'Please make a selection before continuing',
+            [CONST.ONBOARDING_CHOICES.TRACK]: 'Track business spend for taxes',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget personal spend',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: "I'm just looking around",
+        },
+        error: {
+            requiredFirstName: 'Please input your first name to continue',
+            requiredLastName: 'Please input your last name to continue',
+        },
+    },
     personalDetails: {
         error: {
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
@@ -1299,7 +1387,7 @@ export default {
     },
     newChatPage: {
         createChat: 'Create chat',
-        createGroup: 'Create group',
+        startGroup: 'Start group',
         addToGroup: 'Add to group',
     },
     yearPickerPage: {
@@ -1729,10 +1817,14 @@ export default {
             settings: 'Settings',
             reimburse: 'Reimbursements',
             categories: 'Categories',
+            tags: 'Tags',
+            reportFields: 'Report Fields',
+            taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
             travel: 'Travel',
             members: 'Members',
+            accounting: 'Accounting',
             plan: 'Plan',
             profile: 'Profile',
             bankAccount: 'Bank account',
@@ -1740,6 +1832,7 @@ export default {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
+            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             unavailable: 'Unavailable workspace',
@@ -1751,6 +1844,34 @@ export default {
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
+            moreFeatures: 'More features',
+            requested: 'Requested',
+            distanceRates: 'Distance rates',
+            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
+                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+        },
+        qbo: {
+            import: 'Import',
+            importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
+            classes: 'Classes',
+            accounts: 'Chart of accounts',
+            locations: 'Locations',
+            taxes: 'Taxes',
+            customers: 'Customers/Projects',
+            imported: 'Imported',
+            displayedAs: 'Displayed as',
+            notImported: 'Not imported',
+            importedAsTags: 'Imported, displayed as tags',
+            importedAsReportFields: 'Imported, displayed as report fields',
+            accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
+            accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
+            accountsSwitchDescription: 'New categories imported from QuickBooks Online to Expensify will be either enabled or disabled by default.',
+            classesDescription: 'Choose whether to import classes, and see where classes are displayed.',
+            customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
+            locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
+            taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            locationsAdditionalDescription:
+                'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
         },
         type: {
             free: 'Free',
@@ -1758,15 +1879,125 @@ export default {
             collect: 'Collect',
         },
         categories: {
+            deleteCategories: 'Delete categories',
+            deleteCategoriesPrompt: 'Are you sure you want to delete these categories?',
+            deleteCategory: 'Delete category',
+            deleteCategoryPrompt: 'Are you sure you want to delete this category?',
+            disableCategories: 'Disable categories',
+            disableCategory: 'Disable category',
+            enableCategories: 'Enable categories',
+            enableCategory: 'Enable category',
+            deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all spend',
-            enableCategory: 'Enable category',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
             },
-            genericFailureMessage: 'An error occurred while updating the category, please try again.',
+            updateFailureMessage: 'An error occurred while updating the category, please try again.',
+            createFailureMessage: 'An error occurred while creating the category, please try again.',
+            addCategory: 'Add category',
+            editCategory: 'Edit category',
+            categoryRequiredError: 'Category name is required.',
+            existingCategoryError: 'A category with this name already exists.',
+            invalidCategoryName: 'Invalid category name.',
+        },
+        moreFeatures: {
+            spendSection: {
+                title: 'Spend',
+                subtitle: 'Enable optional functionality that helps you scale your team.',
+            },
+            organizeSection: {
+                title: 'Organize',
+                subtitle: 'Group and analyze spend, record every tax paid.',
+            },
+            integrateSection: {
+                title: 'Integrate',
+                subtitle: 'Connect Expensify to popular financial products.',
+            },
+            distanceRates: {
+                title: 'Distance rates',
+                subtitle: 'Add, update and enforce rates.',
+            },
+            workflows: {
+                title: 'Workflows',
+                subtitle: 'Configure how spend is approved and paid.',
+            },
+            categories: {
+                title: 'Categories',
+                subtitle: 'Track and organize spend.',
+            },
+            tags: {
+                title: 'Tags',
+                subtitle: 'Add additional ways to classify spend.',
+            },
+            taxes: {
+                title: 'Taxes',
+                subtitle: 'Document and reclaim eligible taxes.',
+            },
+            reportFields: {
+                title: 'Report fields',
+                subtitle: 'Set up custom fields for spend.',
+            },
+            connections: {
+                title: 'Accounting',
+                subtitle: 'Sync your chart of accounts and more.',
+            },
+        },
+        reportFields: {
+            delete: 'Delete field',
+            deleteConfirmation: 'Are you sure that you want to delete this field?',
+        },
+        tags: {
+            tagName: 'Tag name',
+            requiresTag: 'Members must tag all spend',
+            customTagName: 'Custom tag name',
+            enableTag: 'Enable tag',
+            enableTags: 'Enable tags',
+            disableTag: 'Disable tag',
+            disableTags: 'Disable tags',
+            addTag: 'Add tag',
+            editTag: 'Edit tag',
+            subtitle: 'Tags add more detailed ways to classify costs.',
+            emptyTags: {
+                title: "You haven't created any tags",
+                subtitle: 'Add a tag to track projects, locations, departments, and more.',
+            },
+            deleteTag: 'Delete tag',
+            deleteTags: 'Delete tags',
+            deleteTagConfirmation: 'Are you sure that you want to delete this tag?',
+            deleteTagsConfirmation: 'Are you sure that you want to delete these tags?',
+            deleteFailureMessage: 'An error occurred while deleting the tag, please try again.',
+            tagRequiredError: 'Tag name is required.',
+            existingTagError: 'A tag with this name already exists.',
+            genericFailureMessage: 'An error occurred while updating the tag, please try again.',
+        },
+        taxes: {
+            subtitle: 'Add tax names, rates, and set defaults.',
+            addRate: 'Add rate',
+            workspaceDefault: 'Workspace currency default',
+            foreignDefault: 'Foreign currency default',
+            customTaxName: 'Custom tax name',
+            value: 'Value',
+            errors: {
+                taxRateAlreadyExists: 'This tax name is already in use.',
+                valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
+                customNameRequired: 'Custom tax name is required.',
+                deleteFailureMessage: 'An error occurred while deleting the tax rate. Please try again or ask Concierge for help.',
+                updateFailureMessage: 'An error occurred while updating the tax rate. Please try again or ask Concierge for help.',
+                createFailureMessage: 'An error occurred while creating the tax rate. Please try again or ask Concierge for help.',
+            },
+            deleteTaxConfirmation: 'Are you sure you want to delete this tax?',
+            deleteMultipleTaxConfirmation: ({taxAmount}) => `Are you sure you want to delete ${taxAmount} taxes?`,
+            actions: {
+                delete: 'Delete rate',
+                deleteMultiple: 'Delete rates',
+                disable: 'Disable rate',
+                disableMultiple: 'Disable rates',
+                enable: 'Enable rate',
+                enableMultiple: 'Enable rates',
+            },
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -1793,10 +2024,13 @@ export default {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
             removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
+            removeMemberButtonTitle: 'Remove from workspace',
+            removeMemberPrompt: ({memberName}) => `Are you sure you want to remove ${memberName}`,
+            removeMemberTitle: 'Remove member',
+            transferOwner: 'Transfer owner',
             makeMember: 'Make member',
             makeAdmin: 'Make admin',
             selectAll: 'Select all',
-            selected: ({selectedNumber}) => `${selectedNumber} selected`,
             error: {
                 genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
@@ -1829,8 +2063,6 @@ export default {
             trackDistanceRate: 'Rate',
             trackDistanceUnit: 'Unit',
             trackDistanceChooseUnit: 'Choose a default unit to track.',
-            kilometers: 'Kilometers',
-            miles: 'Miles',
             unlockNextDayReimbursements: 'Unlock next-day reimbursements',
             captureNoVBACopyBeforeEmail: 'Ask your workspace members to forward receipts to ',
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
@@ -1839,6 +2071,41 @@ export default {
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
             invalidRateError: 'Please enter a valid rate',
             lowRateError: 'Rate must be greater than 0',
+        },
+        accounting: {
+            title: 'Connections',
+            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments and keep your finances in sync.',
+            qbo: 'Quickbooks Online',
+            xero: 'Xero',
+            setup: 'Set up',
+            lastSync: 'Last synced just now',
+            import: 'Import',
+            export: 'Export',
+            advanced: 'Advanced',
+            other: 'Other integrations',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: 'Disconnect integration',
+            disconnectPrompt: 'Are you sure you want to disconnect this integration?',
+            enterCredentials: 'Enter your credentials',
+            connections: {
+                syncStageName: (stage: PolicyConnectionSyncStage) => {
+                    switch (stage) {
+                        case 'quickbooksOnlineImportCustomers':
+                            return 'Importing customers';
+                        case 'quickbooksOnlineImportEmployees':
+                            return 'Importing employees';
+                        case 'quickbooksOnlineImportAccounts':
+                            return 'Importing accounts';
+                        case 'quickbooksOnlineImportClasses':
+                            return 'Importing classes';
+
+                        default: {
+                            return `Translation missing for stage: ${stage}`;
+                        }
+                    }
+                },
+            },
         },
         bills: {
             manageYourBills: 'Manage your bills',
@@ -1886,8 +2153,23 @@ export default {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+        },
+        distanceRates: {
+            oopsNotSoFast: 'Oops! Not so fast...',
+            workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
+            distance: 'Distance',
+            centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
+            rate: 'Rate',
+            addRate: 'Add rate',
+            deleteRates: ({count}: DistanceRateOperationsParams) => `Delete ${Str.pluralize('rate', 'rates', count)}`,
+            enableRates: ({count}: DistanceRateOperationsParams) => `Enable ${Str.pluralize('rate', 'rates', count)}`,
+            disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
+            enableRate: 'Enable rate',
+            status: 'Status',
+            unit: 'Unit',
+            defaultCategory: 'Default category',
+            deleteDistanceRate: 'Delete distance rate',
+            areYouSureDelete: ({count}: DistanceRateOperationsParams) => `Are you sure you want to delete ${Str.pluralize('this rate', 'these rates', count)}?`,
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -1926,6 +2208,49 @@ export default {
             workspaceCurrency: 'Workspace currency',
             updateCurrencyPrompt: 'It looks like your Workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
             updateToUSD: 'Update to USD',
+        },
+        changeOwner: {
+            changeOwnerPageTitle: 'Transfer owner',
+            addPaymentCardTitle: 'Enter your payment card to transfer ownership',
+            addPaymentCardButtonText: 'Accept terms & add payment card',
+            addPaymentCardReadAndAcceptTextPart1: 'Read and accept',
+            addPaymentCardReadAndAcceptTextPart2: 'policy to add your card',
+            addPaymentCardTerms: 'terms',
+            addPaymentCardPrivacy: 'privacy',
+            addPaymentCardAnd: '&',
+            addPaymentCardPciCompliant: 'PCI-DSS compliant',
+            addPaymentCardBankLevelEncrypt: 'Bank level encryption',
+            addPaymentCardRedundant: 'Redundant infrastructure',
+            addPaymentCardLearnMore: 'Learn more about our',
+            addPaymentCardSecurity: 'security',
+            amountOwedTitle: 'Outstanding balance',
+            amountOwedButtonText: 'OK',
+            amountOwedText: 'This account has an outstanding balance from a previous month.\n\nDo you want to clear balance and take over billing of this workspace?',
+            ownerOwesAmountTitle: 'Outstanding balance',
+            ownerOwesAmountButtonText: 'Transfer balance',
+            ownerOwesAmountText: ({email, amount}) =>
+                `The account owning this workspace (${email}) has an outstanding balance from a previous month.\n\nDo you want to transfer this amount (${amount}) in order to take over billing for this workspace? Your payment card will be charged immediately.`,
+            subscriptionTitle: 'Take over annual subscription',
+            subscriptionButtonText: 'Transfer subscription',
+            subscriptionText: ({usersCount, finalCount}) =>
+                `Taking over this workspace will merge its associated annual subscription with your current subscription. This will increase your subscription size by ${usersCount} users making your new subscription size ${finalCount}. Would you like to continue?`,
+            duplicateSubscriptionTitle: 'Duplicate subscription alert',
+            duplicateSubscriptionButtonText: 'Continue',
+            duplicateSubscriptionText: ({email, workspaceName}) =>
+                `It looks like you may be trying to take over billing for ${email}'s workspaces, but to do that, you need to be an admin on all their workspaces first.\n\nClick "Continue" if you only want to take over billing for the workspace ${workspaceName}.\n\nIf you want to take over billing for their entire subscription, please have them add you as an admin to all their workspaces first before taking over billing.`,
+            hasFailedSettlementsTitle: 'Cannot transfer ownership',
+            hasFailedSettlementsButtonText: 'Got it',
+            hasFailedSettlementsText: ({email}) =>
+                `You cannot take over billing because ${email} has an overdue expensify Expensify Card settlement. Please advise them to reach out to concierge@expensify.com to resolve the issue. Then, you can take over billing for this workspace.`,
+            failedToClearBalanceTitle: 'Failed to clear balance',
+            failedToClearBalanceButtonText: 'OK',
+            failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
+            successTitle: 'Woohoo! All set.',
+            successDescription: "You're now the owner of this workspace.",
+            errorTitle: 'Oops! Not so fast...',
+            errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
+            errorDescriptionPartTwo: 'reach out to Concierge',
+            errorDescriptionPartThree: 'for help.',
         },
     },
     getAssistancePage: {
@@ -2184,13 +2509,16 @@ export default {
         viewAttachment: 'View attachment',
     },
     parentReportAction: {
+        deletedReport: '[Deleted report]',
         deletedMessage: '[Deleted message]',
         deletedRequest: '[Deleted request]',
+        deletedExpense: '[Deleted expense]',
         reversedTransaction: '[Reversed transaction]',
         deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
+        thread: 'Thread',
         replies: 'Replies',
         reply: 'Reply',
         from: 'From',
@@ -2226,6 +2554,10 @@ export default {
     actionableMentionWhisperOptions: {
         invite: 'Invite them',
         nothing: 'Do nothing',
+    },
+    actionableMentionJoinWorkspaceOptions: {
+        accept: 'Accept',
+        decline: 'Decline',
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',
@@ -2387,7 +2719,7 @@ export default {
             return '';
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
-        someTagLevelsRequired: 'Missing tag',
+        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams) => `Missing ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,

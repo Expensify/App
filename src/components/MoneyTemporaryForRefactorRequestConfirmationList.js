@@ -1,13 +1,16 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
+import Str from 'expensify-common/lib/str';
+import {isUndefined} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -19,6 +22,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -32,13 +36,15 @@ import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
+import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import * as Expensicons from './Icon/Expensicons';
-import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
+import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
+import ReceiptImage from './ReceiptImage';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
@@ -200,6 +206,11 @@ const defaultProps = {
     isPolicyExpenseChat: false,
 };
 
+const getTaxAmount = (transaction, defaultTaxValue) => {
+    const percentage = (transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue) || '';
+    return TransactionUtils.calculateTaxAmount(percentage, transaction.amount);
+};
+
 function MoneyTemporaryForRefactorRequestConfirmationList({
     bankAccountRoute,
     canModifyParticipants,
@@ -247,6 +258,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
+    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
 
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
@@ -262,8 +274,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // Do not hide fields in case of send money request
     const shouldShowAllFields = isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || isEditingSplitBill;
 
-    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
-    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest;
+    const shouldShowDate = (shouldShowSmartScanFields || isDistanceRequest) && !isTypeSend;
+    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend;
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
@@ -271,7 +283,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
     // A flag for showing tax rate
-    const shouldShowTax = isPolicyExpenseChat && policy && lodashGet(policy, 'tax.trackingEnabled', policy.isTaxTrackingEnabled);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
@@ -286,9 +298,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
 
-    const defaultTaxKey = taxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
-    const taxRateTitle = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
+    const taxRateTitle = TransactionUtils.getDefaultTaxName(taxRates, transaction);
+
+    const previousTransactionAmount = usePrevious(transaction.amount);
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
@@ -297,6 +309,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const [merchantError, setMerchantError] = useState(false);
+
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+
+    const navigateBack = () => {
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID));
+    };
 
     const shouldDisplayFieldError = useMemo(() => {
         if (!isEditingSplitBill) {
@@ -310,7 +328,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
     const isCategoryRequired = canUseViolations && lodashGet(policy, 'requiresCategory', false);
-    const isTagRequired = canUseViolations && lodashGet(policy, 'requiresTag', false);
 
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
@@ -350,6 +367,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestAmount_temporaryForRefactor(transaction.transactionID, amount, currency);
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
 
+    // Calculate and set tax amount in transaction draft
+    useEffect(() => {
+        const taxAmount = getTaxAmount(transaction, taxRates.defaultValue);
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
+
+        if (transaction.taxAmount && previousTransactionAmount === transaction.amount) {
+            return IOU.setMoneyRequestTaxAmount(transaction.transactionID, transaction.taxAmount, true);
+        }
+
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
+    }, [taxRates.defaultValue, transaction, previousTransactionAmount]);
+
     /**
      * Returns the participants with amount
      * @param {Array} participants
@@ -370,7 +399,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const splitOrRequestOptions = useMemo(() => {
         let text;
-        if (isTypeSplit && iouAmount === 0) {
+        if (isTypeTrackExpense) {
+            text = translate('iou.trackExpense');
+        } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.split');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
             text = translate('iou.request');
@@ -387,7 +418,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 value: iouType,
             },
         ];
-    }, [isTypeSplit, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
+    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount]);
 
     const selectedParticipants = useMemo(() => _.filter(pickedParticipants, (participant) => participant.selected), [pickedParticipants]);
     const personalDetailsOfPayee = useMemo(() => payeePersonalDetails || currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
@@ -422,26 +453,23 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     title: translate('moneyRequestConfirmationList.paidBy'),
                     data: [formattedPayeeOption],
                     shouldShow: true,
-                    indexOffset: 0,
                     isDisabled: shouldDisablePaidBySection,
                 },
                 {
                     title: translate('moneyRequestConfirmationList.splitWith'),
                     data: formattedParticipantsList,
                     shouldShow: true,
-                    indexOffset: 1,
                 },
             );
         } else {
             const formattedSelectedParticipants = _.map(selectedParticipants, (participant) => ({
                 ...participant,
-                isDisabled: !participant.isPolicyExpenseChat && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                isDisabled: !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID),
             }));
             sections.push({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
                 shouldShow: true,
-                indexOffset: 0,
             });
         }
         return sections;
@@ -481,6 +509,31 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestMerchant(transaction.transactionID, distanceMerchant, true);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
+    // Auto select the category if there is only one enabled category and it is required
+    useEffect(() => {
+        const enabledCategories = _.filter(policyCategories, (category) => category.enabled);
+        if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
+            return;
+        }
+        IOU.setMoneyRequestCategory(transaction.transactionID, enabledCategories[0].name);
+    }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
+
+    // Auto select the tag if there is only one enabled tag and it is required
+    useEffect(() => {
+        let updatedTagsString = TransactionUtils.getTag(transaction);
+        policyTagLists.forEach((tagList, index) => {
+            const enabledTags = _.filter(tagList.tags, (tag) => tag.enabled);
+            const isTagListRequired = isUndefined(tagList.required) ? false : tagList.required && canUseViolations;
+            if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
+                return;
+            }
+            updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags[0] ? enabledTags[0].name : '', index);
+        });
+        if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
+            IOU.setMoneyRequestTag(transaction.transactionID, updatedTagsString);
+        }
+    }, [policyTagLists, transaction, policyTags, canUseViolations]);
+
     /**
      * @param {Object} option
      */
@@ -501,6 +554,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      */
     const navigateToReportOrUserDetail = (option) => {
         const activeRoute = Navigation.getActiveRouteWithoutParams();
+
+        if (option.isSelfDM) {
+            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
+            return;
+        }
 
         if (option.accountID) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
@@ -582,7 +640,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
-                addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}
                 policyID={policyID}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
@@ -641,7 +699,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -680,13 +740,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly && isTypeRequest}
-                    title={iouMerchant}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={isMerchantEmpty ? '' : iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    disabled={didConfirm || !isTypeRequest}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        )
+                    }
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
             ),
@@ -763,28 +828,38 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             shouldShow: shouldShowCategories,
             isSupplementary: !isCategoryRequired,
         },
-        ..._.map(policyTagLists, ({name}, index) => ({
-            item: (
-                <MenuItemWithTopDescription
-                    key={name}
-                    shouldShowRightIcon={!isReadOnly}
-                    title={TransactionUtils.getTagForDisplay(transaction, index)}
-                    description={name}
-                    numberOfLinesTitle={2}
-                    onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, index, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        )
-                    }
-                    style={[styles.moneyRequestMenuItem]}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    rightLabel={isTagRequired ? translate('common.required') : ''}
-                />
-            ),
-            shouldShow: shouldShowTags,
-            isSupplementary: !isTagRequired,
-        })),
+        ..._.map(policyTagLists, ({name, required}, index) => {
+            const isTagRequired = isUndefined(required) ? false : canUseViolations && required;
+            return {
+                item: (
+                    <MenuItemWithTopDescription
+                        key={name}
+                        shouldShowRightIcon={!isReadOnly}
+                        title={TransactionUtils.getTagForDisplay(transaction, index)}
+                        description={name}
+                        numberOfLinesTitle={2}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                    CONST.IOU.ACTION.CREATE,
+                                    iouType,
+                                    index,
+                                    transaction.transactionID,
+                                    reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
+                            )
+                        }
+                        style={[styles.moneyRequestMenuItem]}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                        rightLabel={isTagRequired ? translate('common.required') : ''}
+                    />
+                ),
+                shouldShow: shouldShowTags,
+                isSupplementary: !isTagRequired,
+            };
+        }),
         {
             item: (
                 <MenuItemWithTopDescription
@@ -794,7 +869,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={taxRates.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        )
+                    }
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -808,10 +887,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     key={`${taxRates.name}${formattedTaxAmount}`}
                     shouldShowRightIcon={!isReadOnly}
                     title={formattedTaxAmount}
-                    description={taxRates.name}
+                    description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() =>
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        )
+                    }
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -845,7 +928,39 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         (supplementaryField) => supplementaryField.item,
     );
 
-    const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
+    const {
+        image: receiptImage,
+        thumbnail: receiptThumbnail,
+        isThumbnail,
+        fileExtension,
+        isLocalFile,
+    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
+
+    const receiptThumbnailContent = useMemo(
+        () =>
+            isLocalFile && Str.isPDF(receiptFilename) ? (
+                <PDFThumbnail
+                    previewSourceURL={receiptImage}
+                    style={styles.moneyRequestImage}
+                    // We don't support scaning password protected PDF receipt
+                    enabled={!isAttachmentInvalid}
+                    onPassword={() => setIsAttachmentInvalid(true)}
+                />
+            ) : (
+                <ReceiptImage
+                    style={styles.moneyRequestImage}
+                    isThumbnail={isThumbnail}
+                    source={receiptThumbnail || receiptImage}
+                    // AuthToken is required when retrieving the image from the server
+                    // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
+                    // So if we have a thumbnail, it means we're retrieving the image from the server
+                    isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
+                    fileExtension={fileExtension}
+                />
+            ),
+        [isLocalFile, receiptFilename, receiptImage, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, receiptThumbnail, fileExtension],
+    );
+
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -870,29 +985,20 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
-            {receiptImage || receiptThumbnail ? (
-                <Image
-                    style={styles.moneyRequestImage}
-                    source={{uri: receiptThumbnail || receiptImage}}
-                    // AuthToken is required when retrieving the image from the server
-                    // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
-                    // So if we have a thumbnail, it means we're retrieving the image from the server
-                    isAuthTokenRequired={!_.isEmpty(receiptThumbnail)}
-                />
-            ) : (
-                // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-                PolicyUtils.isPaidGroupPolicy(policy) &&
-                !isDistanceRequest &&
-                iouType === CONST.IOU.TYPE.REQUEST && (
-                    <ReceiptEmptyState
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                            )
-                        }
-                    />
-                )
-            )}
+            {receiptImage || receiptThumbnail
+                ? receiptThumbnailContent
+                : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                  PolicyUtils.isPaidGroupPolicy(policy) &&
+                  !isDistanceRequest &&
+                  iouType === CONST.IOU.TYPE.REQUEST && (
+                      <ReceiptEmptyState
+                          onPress={() =>
+                              Navigation.navigate(
+                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                              )
+                          }
+                      />
+                  )}
             {primaryFields}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
@@ -910,6 +1016,15 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 </View>
             )}
             {shouldShowAllFields && supplementaryFields}
+            <ConfirmModal
+                title={translate('attachmentPicker.wrongFileType')}
+                onConfirm={navigateBack}
+                onCancel={navigateBack}
+                isVisible={isAttachmentInvalid}
+                prompt={translate('attachmentPicker.protectedPDFNotSupported')}
+                confirmText={translate('common.close')}
+                shouldShowCancelButton={false}
+            />
         </OptionsSelector>
     );
 }

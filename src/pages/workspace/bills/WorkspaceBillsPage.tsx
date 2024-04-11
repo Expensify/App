@@ -4,14 +4,14 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceBillsNoVBAView from './WorkspaceBillsNoVBAView';
 import WorkspaceBillsVBAView from './WorkspaceBillsVBAView';
 
-type WorkspaceBillsPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.BILLS>;
+type WorkspaceBillsPageProps = StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.BILLS>;
 
 function WorkspaceBillsPage({route}: WorkspaceBillsPageProps) {
     const {translate} = useLocalize();
