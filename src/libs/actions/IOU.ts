@@ -2523,6 +2523,10 @@ const getConvertTrackedExpenseInformation = (
 
 function convertTrackedExpenseToRequest(
     payerAccountID: number,
+    amount: number,
+    currency: string,
+    comment: string,
+    created: string,
     chatReportID: string,
     transactionID: string,
     actionableWhisperReportActionID: string,
@@ -2556,6 +2560,10 @@ function convertTrackedExpenseToRequest(
     failureData?.push(...moveTransactionFailureData);
 
     const parameters = {
+        amount,
+        currency,
+        comment,
+        created,
         payerAccountID,
         chatReportID,
         transactionID,
@@ -2739,6 +2747,10 @@ function requestMoney(
 
             convertTrackedExpenseToRequest(
                 payerAccountID,
+                amount,
+                currency,
+                comment,
+                currentCreated,
                 chatReport.reportID,
                 transaction.transactionID,
                 actionableWhisperReportActionID,
