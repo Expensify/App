@@ -64,15 +64,6 @@ type IOURequestStepScanProps = IOURequestStepScanOnyxProps & WithCurrentUserPers
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
-
-        /** Whether the confirmation step should be skipped */
-        skipConfirmation: PropTypes.bool,
-
-        /** Personal details of all users */
-        personalDetails: personalDetailsPropType,
-
-        /** The personal details of the current user */
-        ...withCurrentUserPersonalDetailsPropTypes,
     };
 
 function IOURequestStepScan({
