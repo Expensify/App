@@ -51,14 +51,18 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
             <ScrollView style={[themeStyles.flex1, themeStyles.pt2]}>
                 <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
                     <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph9]}>
-                        <QRShareWithDownload
+                        {/* 
+                            This is a temporary measure because right now it's broken because of the Fabric update.
+                            We need to wait for react-native v0.74 to be released so react-native-view-shot gets fixed.
+
+                            <QRShareWithDownload
                             ref={qrCodeRef}
                             url={url}
                             title={policyName}
                             logo={(policy?.avatar ? policy.avatar : expensifyLogo) as ImageSourcePropType}
                             logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                             logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
-                        />
+                        /> */}
                     </View>
 
                     <View style={[themeStyles.mt3, themeStyles.ph4]}>
@@ -72,7 +76,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                             shouldLimitWidth={false}
                             wrapperStyle={themeStyles.sectionMenuItemTopDescription}
                         />
-                        {shouldAllowDownloadQRCode && (
+                        {/* {shouldAllowDownloadQRCode && (
                             <MenuItem
                                 isAnonymousAction
                                 title={translate('common.download')}
@@ -80,7 +84,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                                 onPress={() => qrCodeRef.current?.download?.()}
                                 wrapperStyle={themeStyles.sectionMenuItemTopDescription}
                             />
-                        )}
+                        )} */}
                     </View>
                 </View>
             </ScrollView>
