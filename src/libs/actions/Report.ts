@@ -2707,7 +2707,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             reportID,
             accountIDList: targetAccountIDs.join(),
         };
-        API.write(WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT, parameters, {optimisticData});
+        API.write(WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT, parameters, {optimisticData, failureData, successData});
         return;
     }
 
