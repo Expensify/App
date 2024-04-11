@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/core';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -40,7 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {PersonalDetailsList} from '@src/types/onyx';
+import {PersonalDetailsList, Report} from '@src/types/onyx';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
@@ -48,9 +47,6 @@ import type IOURequestStepOnyxProps from './types';
 type IOURequestStepScanOnyxProps = {
     /** The user */
     user: OnyxEntry<OnyxTypes.User>;
-
-    /** Whether the confirmation step should be skipped */
-    skipConfirmation: boolean;
 
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -62,6 +58,9 @@ type IOURequestStepScanProps = IOURequestStepScanOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+        /** Whether the confirmation step should be skipped */
+        skipConfirmation: boolean;
     };
 
 function IOURequestStepScan({
@@ -234,8 +233,8 @@ function IOURequestStepScan({
                 IOU.requestMoney(
                     report,
                     0,
-                    transaction.currency,
-                    transaction.created,
+                    transaction?.currency ?? 'USD',
+                    transaction?.created ?? '',
                     '',
                     currentUserPersonalDetails.login,
                     currentUserPersonalDetails.accountID,
