@@ -43,7 +43,23 @@ type WorkspaceMenuItem = {
     icon: IconAsset;
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    routeName?: ValueOf<typeof SCREENS.WORKSPACE> | ValueOf<typeof SCREENS.WORKSPACE.ACCOUNTING>;
+    routeName?:
+        | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
+        | typeof SCREENS.WORKSPACE.INITIAL
+        | typeof SCREENS.WORKSPACE.CARD
+        | typeof SCREENS.WORKSPACE.REIMBURSE
+        | typeof SCREENS.WORKSPACE.BILLS
+        | typeof SCREENS.WORKSPACE.INVOICES
+        | typeof SCREENS.WORKSPACE.TRAVEL
+        | typeof SCREENS.WORKSPACE.DISTANCE_RATES
+        | typeof SCREENS.WORKSPACE.WORKFLOWS
+        | typeof SCREENS.WORKSPACE.CATEGORIES
+        | typeof SCREENS.WORKSPACE.TAGS
+        | typeof SCREENS.WORKSPACE.TAXES
+        | typeof SCREENS.WORKSPACE.ACCOUNTING
+        | typeof SCREENS.WORKSPACE.MORE_FEATURES
+        | typeof SCREENS.WORKSPACE.PROFILE
+        | typeof SCREENS.WORKSPACE.MEMBERS;
 };
 
 type WorkspaceInitialPageOnyxProps = {

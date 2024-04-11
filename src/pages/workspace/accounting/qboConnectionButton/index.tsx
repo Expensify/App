@@ -3,7 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getQuickBooksOnlineSetupLink from '@libs/actions/connections/getQuickBooksOnlineSetupLink';
+import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectToQuickbooksOnlineButtonOnyxProps, ConnectToQuickbooksOnlineButtonProps} from './types';

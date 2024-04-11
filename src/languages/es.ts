@@ -2143,9 +2143,6 @@ export default {
             invalidRateError: 'Por favor, introduce una tarifa válida',
             lowRateError: 'La tarifa debe ser mayor que 0',
         },
-        accounting: {
-            setup: 'Wait for the translation here -> https://github.com/Expensify/App/pull/38283/files#r1543793379',
-        },
         bills: {
             manageYourBills: 'Gestiona tus facturas',
             askYourVendorsBeforeEmail: 'Pide a tus proveedores que envíen sus facturas a ',
