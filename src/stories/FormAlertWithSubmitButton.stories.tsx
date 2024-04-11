@@ -1,16 +1,16 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import type {FormAlertWithSubmitButtonProps} from '@components/FormAlertWithSubmitButton';
 
-type FormAlertWithSubmitButtonStory = ComponentStory<typeof FormAlertWithSubmitButton>;
+type FormAlertWithSubmitButtonStory = StoryFn<typeof FormAlertWithSubmitButton>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof FormAlertWithSubmitButton> = {
+const story: Meta<typeof FormAlertWithSubmitButton> = {
     title: 'Components/FormAlertWithSubmitButton',
     component: FormAlertWithSubmitButton,
 };

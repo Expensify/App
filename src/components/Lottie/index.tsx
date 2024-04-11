@@ -25,7 +25,7 @@ function Lottie({source, webStyle, ...props}: Props, ref: ForwardedRef<LottieVie
     // using the fallback in case of a Lottie error or appState.isBackground to prevent
     // memory leak, see issue: https://github.com/Expensify/App/issues/36645
     if (isError || appState.isBackground) {
-        return <View style={aspectRatioStyle} />;
+        return <View style={[aspectRatioStyle, props.style]} />;
     }
 
     return (
