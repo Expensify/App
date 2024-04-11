@@ -1,8 +1,10 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -15,20 +17,25 @@ type ParentNavigationSubtitleProps = {
     /** parent Report ID */
     parentReportID?: string;
 
+    /** parent Report Action ID */
+    parentReportActionID?: string;
+
     /** PressableWithoutFeedack additional styles */
     pressableStyles?: StyleProp<ViewStyle>;
 };
 
-function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportID = '', pressableStyles}: ParentNavigationSubtitleProps) {
+function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportActionID, parentReportID = '', pressableStyles}: ParentNavigationSubtitleProps) {
     const styles = useThemeStyles();
     const {workspaceName, reportName} = parentNavigationSubtitleData;
-
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
     return (
         <PressableWithoutFeedback
             onPress={() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
+                const parentAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '');
+                const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? '');
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, isVisibleAction && !isOffline ? parentReportActionID : undefined));
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
             role={CONST.ROLE.LINK}
