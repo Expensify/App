@@ -1571,6 +1571,25 @@ const styles = (theme: ThemeColors) =>
                 right: 0,
             } satisfies ViewStyle),
 
+        onboardingNavigatorOuterView: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
+                height: shouldUseNarrowLayout ? 732 : '100%',
+                maxHeight: '100%',
+                borderRadius: shouldUseNarrowLayout ? 16 : 0,
+                overflow: 'hidden',
+            } satisfies ViewStyle),
+
+        welcomeVideoNarrowLayout: {
+            width: variables.onboardingModalWidth,
+        },
+
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -1798,6 +1817,19 @@ const styles = (theme: ThemeColors) =>
                 bottom: 0,
                 right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
+                opacity: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, variables.overlayOpacity],
+                    extrapolate: 'clamp',
+                }),
+            } satisfies ViewStyle),
+
+        nativeOverlayStyles: (current: OverlayStylesParams) =>
+            ({
+                position: 'absolute',
+                backgroundColor: theme.overlay,
+                width: '100%',
+                height: '100%',
                 opacity: current.progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
@@ -4029,6 +4061,18 @@ const styles = (theme: ThemeColors) =>
             zIndex: -1,
         },
 
+        purposeMenuItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 8,
+            paddingHorizontal: 8,
+            alignItems: 'center',
+            marginBottom: 8,
+        },
+
+        purposeMenuItemSelected: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
         willChangeTransform: {
             willChange: 'transform',
         },
@@ -4206,6 +4250,11 @@ const styles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
+        },
+
+        onboardingVideoPlayer: {
+            borderRadius: 12,
+            backgroundColor: theme.highlightBG,
         },
 
         sidebarStatusAvatarContainer: {
@@ -4480,6 +4529,26 @@ const styles = (theme: ThemeColors) =>
 
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
+        },
+
+        headerProgressBarContainer: {
+            position: 'absolute',
+            width: '100%',
+            zIndex: -1,
+        },
+
+        headerProgressBar: {
+            width: variables.componentSizeMedium,
+            height: variables.iconSizeXXXSmall,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.border,
+            alignSelf: 'center',
+        },
+
+        headerProgressBarFill: {
+            borderRadius: variables.componentBorderRadiusRounded,
+            height: '100%',
+            backgroundColor: theme.success,
         },
 
         interactiveStepHeaderContainer: {
