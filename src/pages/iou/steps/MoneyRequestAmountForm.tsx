@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/core';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -8,6 +9,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import ScrollView from '@components/ScrollView';
 import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
@@ -97,6 +99,9 @@ function MoneyRequestAmountForm(
     const [formError, setFormError] = useState<MaybePhraseKey>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
+    const isFocused = useIsFocused();
+    const wasFocused = usePrevious(isFocused);
+
     const [selection, setSelection] = useState({
         start: selectedAmountAsString.length,
         end: selectedAmountAsString.length,
@@ -116,6 +121,11 @@ function MoneyRequestAmountForm(
         }
 
         event.preventDefault();
+        setSelection({
+            start: selection.end,
+            end: selection.end,
+        });
+
         if (!textInput.current) {
             return;
         }
@@ -190,6 +200,18 @@ function MoneyRequestAmountForm(
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setNewAmount]);
+
+    // Removes text selection if user visits currency selector with selection and comes back
+    useEffect(() => {
+        if (!isFocused || wasFocused) {
+            return;
+        }
+
+        setSelection({
+            start: selection.end,
+            end: selection.end,
+        });
+    }, [selection.end, isFocused, selection, wasFocused]);
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
