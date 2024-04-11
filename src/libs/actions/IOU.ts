@@ -312,6 +312,18 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
     });
 }
 
+function createDraftTransaction(transaction: OnyxTypes.Transaction) {
+    if (!transaction) {
+        return;
+    }
+
+    const newTransaction = {
+        ...transaction,
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
+}
+
 function clearMoneyRequest(transactionID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
@@ -5861,4 +5873,5 @@ export {
     trackExpense,
     canIOUBePaid,
     canApproveIOU,
+    createDraftTransaction,
 };
