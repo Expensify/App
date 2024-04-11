@@ -1,6 +1,7 @@
 import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
@@ -38,18 +39,17 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
-import type {PersonalDetailsList, Policy} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';;
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
 type IOURequestStepScanOnyxProps = {
     /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
     /** The policy which the user has access to and which the report is tied to */
-    policy: OnyxEntry<Policy>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Whether the confirmation step should be skipped */
     skipConfirmation: OnyxEntry<boolean>;

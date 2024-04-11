@@ -38,7 +38,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
@@ -48,10 +47,10 @@ type IOURequestStepScanOnyxProps = {
     user: OnyxEntry<OnyxTypes.User>;
 
     /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
     /** The policy which the user has access to and which the report is tied to */
-    policy: OnyxEntry<Policy>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Whether the confirmation step should be skipped */
     skipConfirmation: OnyxEntry<boolean>;
