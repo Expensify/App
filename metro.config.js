@@ -11,7 +11,7 @@ const e2eSourceExts = ['e2e.js', 'e2e.ts'];
 
 /**
  * Metro configuration
- * https://facebook.github.io/metro/docs/configuration
+ * https://reactnative.dev/docs/metro
  *
  * @type {import('metro-config').MetroConfig}
  */

@@ -1,0 +1,13 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownUtils.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownUtils.java
+index 0eb3c64..2237317 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownUtils.java
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownUtils.java
+@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
+ import com.facebook.infer.annotation.Assertions;
+ import com.facebook.infer.annotation.ThreadConfined;
+ import com.facebook.react.bridge.UiThreadUtil;
+-import com.facebook.react.views.text.CustomLineHeightSpan;
++import com.facebook.react.views.text.internal.span.CustomLineHeightSpan;
+ import com.facebook.soloader.SoLoader;
+ 
+ import org.json.JSONArray;

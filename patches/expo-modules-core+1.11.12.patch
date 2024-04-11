@@ -1,0 +1,13 @@
+diff --git a/node_modules/expo-modules-core/ios/JSI/EXJavaScriptRuntime.mm b/node_modules/expo-modules-core/ios/JSI/EXJavaScriptRuntime.mm
+index 1cb9b1e..3b42b94 100644
+--- a/node_modules/expo-modules-core/ios/JSI/EXJavaScriptRuntime.mm
++++ b/node_modules/expo-modules-core/ios/JSI/EXJavaScriptRuntime.mm
+@@ -28,7 +28,7 @@
+  */
+ class SyncCallInvoker : public react::CallInvoker {
+ public:
+-  void invokeAsync(std::function<void()> &&func) override {
++  void invokeAsync(std::function<void()> &&func) noexcept override {
+     func();
+   }
+ 
