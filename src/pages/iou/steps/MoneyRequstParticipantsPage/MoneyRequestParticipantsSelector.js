@@ -73,8 +73,8 @@ function MoneyRequestParticipantsSelector({betas, participants, navigateToReques
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
-    const {canUseP2PDistanceRequests} = usePermissions();
     const {options, areOptionsInitialized} = useOptionsList({shouldInitialize: didScreenTransitionEnd});
+    const {canUseP2PDistanceRequests} = usePermissions(iouType);
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -247,7 +247,9 @@ function MoneyRequestParticipantsSelector({betas, participants, navigateToReques
     // the app from crashing on native when you try to do this, we'll going to show error message if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = (canUseP2PDistanceRequests || !isDistanceRequest) && iouType !== CONST.IOU.TYPE.SEND;
+
+    // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
+    const isAllowedToSplit = (canUseP2PDistanceRequests || !isDistanceRequest) && (iouType !== CONST.IOU.TYPE.SEND || iouType !== CONST.IOU.TYPE.TRACK_EXPENSE);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {

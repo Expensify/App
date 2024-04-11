@@ -249,7 +249,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouType !== CONST.IOU.TYPE.SEND;
+
+    // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
+    const isAllowedToSplit =
+        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && (iouType !== CONST.IOU.TYPE.SEND || iouType !== CONST.IOU.TYPE.TRACK_EXPENSE);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -370,7 +373,6 @@ export default withOnyx({
         MoneyTemporaryForRefactorRequestParticipantsSelector,
         (prevProps, nextProps) =>
             _.isEqual(prevProps.participants, nextProps.participants) &&
-            prevProps.didScreenTransitionEnd === nextProps.didScreenTransitionEnd &&
             prevProps.iouRequestType === nextProps.iouRequestType &&
             prevProps.iouType === nextProps.iouType &&
             _.isEqual(prevProps.betas, nextProps.betas),

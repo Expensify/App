@@ -3,10 +3,12 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {IOURequestType} from './actions/IOU';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -45,22 +47,23 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
-function isScanRequest(transaction: Transaction): boolean {
+function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the request creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
     return Boolean(transaction?.receipt?.source);
 }
 
-function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
+function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     if (isDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
     if (isScanRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.SCAN;
     }
+
     return CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
@@ -96,6 +99,7 @@ function buildOptimisticTransaction(
     tag = '',
     billable = false,
     pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
+    reimbursable = true,
 ): Transaction {
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -124,6 +128,7 @@ function buildOptimisticTransaction(
         category,
         tag,
         billable,
+        reimbursable,
     };
 }
 
@@ -450,12 +455,13 @@ function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CO
 /**
  * Returns the translation key to use for the header title
  */
-function getHeaderTitleTranslationKey(transaction: Transaction): string {
-    const headerTitles = {
+function getHeaderTitleTranslationKey(transaction: OnyxEntry<Transaction>): TranslationPaths {
+    const headerTitles: Record<IOURequestType, TranslationPaths> = {
         [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
         [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
         [CONST.IOU.REQUEST_TYPE.SCAN]: 'tabSelector.scan',
     };
+
     return headerTitles[getRequestType(transaction)];
 }
 
@@ -537,7 +543,11 @@ function getWaypointIndex(key: string): number {
 /**
  * Filters the waypoints which are valid and returns those
  */
-function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = false): WaypointCollection {
+function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeIndexes = false): WaypointCollection {
+    if (!waypoints) {
+        return {};
+    }
+
     const sortedIndexes = Object.keys(waypoints)
         .map(getWaypointIndex)
         .sort((a, b) => a - b);
