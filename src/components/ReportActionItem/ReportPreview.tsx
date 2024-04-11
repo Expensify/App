@@ -129,7 +129,7 @@ function ReportPreview({
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
