@@ -83,9 +83,8 @@ describe('SequentialQueue', () => {
 
         // Wait for the queue to start processing (this is async because it uses an Onyx.connect callback, but don't wait for all async activity to finish
         // We want to test the case where we try to synchronously add a request to the queue while there's another one still processing
-        await new Promise(() => {
-            process.nextTick(() => {});
-        });
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        await new Promise(process.nextTick);
 
         // Ensure the first request is still processing
         expect(PersistedRequests.getAll().length).toBe(1);
