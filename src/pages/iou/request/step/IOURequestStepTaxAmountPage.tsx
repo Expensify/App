@@ -6,6 +6,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {CurrentMoney} from '@pages/iou/steps/MoneyRequestAmountForm';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
@@ -14,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagList, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -22,6 +23,10 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepTaxAmountPageOnyxProps = {
     policy: OnyxEntry<Policy>;
+    policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** Collection of tag list on a policy */
+    policyTags: OnyxEntry<PolicyTagList>;
 };
 
 type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
@@ -29,28 +34,37 @@ type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
         transaction: OnyxEntry<Transaction>;
     };
 
-function getTaxAmount(transaction: OnyxEntry<Transaction>, defaultTaxValue: string | undefined): number | undefined {
+function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWithDefault | undefined, isEditing: boolean): number | undefined {
     if (!transaction?.amount) {
         return;
     }
-    const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
-    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(percentage, transaction?.amount));
+    const transactionTaxAmount = TransactionUtils.getAmount(transaction);
+    const transactionTaxCode = transaction?.taxCode ?? '';
+    const defaultTaxValue = taxRates?.defaultValue;
+    const editingTaxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode]?.value : taxRates?.defaultValue) ?? '';
+    const moneyRequestTaxPercentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
+    const taxPercentage = isEditing ? editingTaxPercentage : moneyRequestTaxPercentage;
+    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transactionTaxAmount));
 }
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
+        params: {action, iouType, reportID, transactionID, backTo, currency: selectedCurrency},
     },
     transaction,
     report,
     policy,
+    policyTags,
+    policyCategories,
 }: IOURequestStepTaxAmountPageProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>();
-    const isEditing = Navigation.getActiveRoute().includes('taxAmount');
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     const focusTimeoutRef = useRef<NodeJS.Timeout>();
-    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transaction?.currency;
+
+    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
     const taxRates = policy?.taxRates;
 
     useFocusEffect(
@@ -88,6 +102,17 @@ function IOURequestStepTaxAmountPage({
 
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
+
+        if (isEditing) {
+            if (amountInSmallestCurrencyUnits === TransactionUtils.getTaxAmount(transaction, false)) {
+                navigateBack();
+                return;
+            }
+            IOU.updateMoneyRequestTaxAmount(transactionID, report?.reportID ?? '', amountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
+            navigateBack();
+            return;
+        }
+
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -118,14 +143,14 @@ function IOURequestStepTaxAmountPage({
             headerTitle={translate('iou.taxAmount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepTaxAmountPage.displayName}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={Boolean(backTo || isEditing)}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={isEditing}
+                isEditing={Boolean(backTo || isEditing)}
                 currency={currency}
-                amount={transaction?.taxAmount}
-                taxAmount={getTaxAmount(transaction, taxRates?.defaultValue)}
+                amount={transactionDetails?.taxAmount}
+                taxAmount={getTaxAmount(transaction, taxRates, Boolean(backTo || isEditing))}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
@@ -139,6 +164,12 @@ IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
 const IOURequestStepTaxAmountPageWithOnyx = withOnyx<IOURequestStepTaxAmountPageProps, IOURequestStepTaxAmountPageOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+    },
+    policyCategories: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+    },
+    policyTags: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
     },
 })(IOURequestStepTaxAmountPage);
 
