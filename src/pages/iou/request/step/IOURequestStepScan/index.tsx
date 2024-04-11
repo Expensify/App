@@ -18,8 +18,9 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import transactionPropTypes from '@components/transactionPropTypes';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {
+    WithCurrentUserPersonalDetailsProps,
+} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
@@ -35,9 +36,7 @@ import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDrag
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
-import reportPropTypes from '@pages/reportPropTypes';
-import {policyPropTypes} from '@pages/workspace/withPolicy';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,25 +47,18 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
+import {PersonalDetailsList} from "@src/types/onyx";
 
 type IOURequestStepScanOnyxProps = {
-    /** The policy of the report */
-    ...policyPropTypes;
-
-    /** The transaction (or draft transaction) being changed */
-    transaction: transactionPropTypes;
 
     /** Whether the confirmation step should be skipped */
     skipConfirmation: PropTypes.bool;
 
     /** Personal details of all users */
-    personalDetails: personalDetailsPropType;
-
-    /** The personal details of the current user */
-    ...withCurrentUserPersonalDetailsPropTypes;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type IOURequestStepScanProps = IOURequestStepScanOnyxProps &
+type IOURequestStepScanProps = IOURequestStepScanOnyxProps & WithCurrentUserPersonalDetailsProps & WithPolicyProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;

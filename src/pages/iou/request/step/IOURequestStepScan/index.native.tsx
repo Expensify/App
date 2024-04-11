@@ -19,7 +19,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {
+    WithCurrentUserPersonalDetailsProps,
+} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,30 +44,23 @@ import type * as OnyxTypes from '@src/types/onyx';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
-import transactionPropTypes from "@components/transactionPropTypes";
 import PropTypes from "prop-types";
+import {WithPolicyProps} from "@pages/workspace/withPolicy";
+import {PersonalDetailsList} from "@src/types/onyx";
 
 type IOURequestStepScanOnyxProps = {
     /** The user */
     user: OnyxEntry<OnyxTypes.User>;
 
-    /** The policy of the report */
-    ...policyPropTypes;
-
-    /** The transaction (or draft transaction) being changed */
-    transaction: transactionPropTypes;
-
     /** Whether the confirmation step should be skipped */
     skipConfirmation: PropTypes.bool;
 
     /** Personal details of all users */
-    personalDetails: personalDetailsPropType;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** The personal details of the current user */
-    ...withCurrentUserPersonalDetailsPropTypes;
 };
 
-type IOURequestStepScanProps = IOURequestStepScanOnyxProps &
+type IOURequestStepScanProps = IOURequestStepScanOnyxProps & WithCurrentUserPersonalDetailsProps & WithPolicyProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
