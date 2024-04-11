@@ -1220,6 +1220,8 @@ const CONST = {
         AUTO_SYNC: 'autoSync',
         SYNCE_PEOPLE: 'syncPeople',
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        COLLECTION_ACCOUNT_ID: 'collectionAccountID',
         SYNC_CLASSES: 'syncClasses',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CUSTOMERS: 'syncCustomers',
