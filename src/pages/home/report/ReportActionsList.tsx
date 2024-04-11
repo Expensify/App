@@ -164,6 +164,25 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
 
+    Onyx.merge('cardList', {
+        4: {
+            bank: 'Expensify Card',
+            lastFourPAN: 3458,
+        },
+    });
+    Onyx.merge('transactions_1629978965702689190', {
+        amount: 1000,
+        currency: 'USD',
+        cardID: 4,
+        modifiedMerchant: null,
+        merchant: 'Test ECard Transaction',
+        mccGroup: 'Airlines',
+        hasEReceipt: true,
+        receipt: {},
+        reimbursable: false,
+        status: 'Pending',
+    });
+
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
             setIsVisible(Visibility.isVisible());

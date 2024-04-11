@@ -165,6 +165,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         });
     }
 
+    console.log('MONEY REQUEST HEADER');
+
     return (
         <>
             <View style={[styles.pl0]}>

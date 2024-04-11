@@ -67,6 +67,7 @@ function MoneyRequestPreviewContent({
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const parser = new ExpensiMark();
 
+    console.warn('TRANSACTION ', transaction);
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
     const ownerAccountID = iouReport?.ownerAccountID ?? -1;

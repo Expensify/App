@@ -1282,6 +1282,7 @@ function isTrackExpenseReport(report: OnyxEntry<Report>): boolean {
  */
 function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
+    console.log('REPORT ', report);
     return isIOURequest(report) || isExpenseRequest(report);
 }
 

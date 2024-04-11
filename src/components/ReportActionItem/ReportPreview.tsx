@@ -228,7 +228,8 @@ function ReportPreview({
     const shouldShowSingleRequestMerchantOrDescription =
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
-    const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && transactionsWithReceipts.length === 1;
+    const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && allTransactions.length === 1;
+    const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && allTransactions.length === 1;
 
     const {isSupportTextHtml, supportText} = useMemo(() => {
         if (formattedMerchant) {
@@ -319,6 +320,17 @@ function ReportPreview({
                                                         <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
                                                     )}
                                                 </View>
+                                            </View>
+                                        )}
+                                        {shouldShowScanningSubtitle && (
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                                                <Icon
+                                                    src={Expensicons.ReceiptScan}
+                                                    height={variables.iconSizeExtraSmall}
+                                                    width={variables.iconSizeExtraSmall}
+                                                    fill={theme.textSupporting}
+                                                />
+                                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>{translate('iou.receiptScanInProgress')}</Text>
                                             </View>
                                         )}
                                         {shouldShowPendingSubtitle && (
