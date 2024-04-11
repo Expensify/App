@@ -188,6 +188,10 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         transactionThreadReportID?: string;
 
         fieldList?: Record<string, PolicyReportField>;
+
+        // TODO: Confirm
+        invoiceReceiverAccountID?: number;
+        invoiceReceiverPolicyID?: string;
     },
     PolicyReportField['fieldID']
 >;
