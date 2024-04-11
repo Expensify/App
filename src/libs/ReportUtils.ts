@@ -2365,19 +2365,16 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
         return true;
     }
 
-    // TODO: Uncomment this line when BE starts working properly (Editing Track Expense)
-    if (reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
-        return true;
-    }
+    const allowedReportActionType: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.CREATE];
 
-    if (reportAction.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+    if (!allowedReportActionType.includes(reportAction.originalMessage.type)) {
         return false;
     }
 
     const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
 
     if (!moneyRequestReportID) {
-        return false;
+        return reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
     }
 
     const moneyRequestReport = getReport(String(moneyRequestReportID));
