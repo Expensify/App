@@ -2378,7 +2378,8 @@ function getCurrentUserAccountID(): number {
     return currentUserAccountID;
 }
 
-function navigateToMostRecentReport(reportID: string, isChatThread: boolean) {
+function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
+    const reportID = currentReport?.reportID;
     const sortedReportsByLastRead = ReportUtils.sortReportsByLastRead(Object.values(allReports ?? {}) as Report[], reportMetadata);
 
     // We want to filter out the current report, hidden reports and empty chats
@@ -2398,7 +2399,7 @@ function navigateToMostRecentReport(reportID: string, isChatThread: boolean) {
             }),
     );
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
-
+    const isChatThread = ReportUtils.isChatThread(report);
     if (lastAccessedReportID) {
         // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
         if (!isChatThread) {
@@ -2419,6 +2420,12 @@ function navigateToMostRecentReport(reportID: string, isChatThread: boolean) {
 }
 
 function leaveGroupChat(reportID: string) {
+    const report = ReportUtils.getReport(reportID);
+    if (!report) {
+        Log.warn('Attempting to leave Group Chat that does not existing locally');
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -2426,7 +2433,7 @@ function leaveGroupChat(reportID: string) {
             value: null,
         },
     ];
-    navigateToMostRecentReport(reportID, false);
+    navigateToMostRecentReport(report);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData});
 }
 
@@ -2510,8 +2517,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     };
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
-
-    navigateToMostRecentReport(reportID, isChatThread);
+    navigateToMostRecentReport(report);
 }
 
 /** Invites people to a room */
@@ -2545,7 +2551,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 
     const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(newLogins, newAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
     const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
@@ -2647,20 +2653,22 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
 
     const removeParticipantsData: Record<number, null> = {};
     const currentParticipants = ReportUtils.getParticipants(reportID);
-    const participantAccountIDsAfterRemoval = [];
-    const visibleChatMemberAccountIDsAfterRemoval = [];
-    for (const accountIDKey in currentParticipants) {
-        if (Object.hasOwn(currentParticipants, accountIDKey)) {
-            const participantAccountID = Number(accountIDKey);
-            const participant = currentParticipants[participantAccountID];
-            if (!targetAccountIDs.includes(participantAccountID)) {
-                participantAccountIDsAfterRemoval.push(participantAccountID);
-                if (!participant.hidden) {
-                    visibleChatMemberAccountIDsAfterRemoval.push(participantAccountID);
-                }
+    if (!currentParticipants) {
+        return;
+    }
+
+    const currentParticipantAccountIDs = ReportUtils.getParticipantAccountIDs(reportID);
+    const participantAccountIDsAfterRemoval: number[] = [];
+    const visibleChatMemberAccountIDsAfterRemoval: number[] = [];
+    currentParticipantAccountIDs.forEach((participantAccountID: number) => {
+        const participant = currentParticipants[participantAccountID];
+        if (!targetAccountIDs.includes(participantAccountID)) {
+            participantAccountIDsAfterRemoval.push(participantAccountID);
+            if (!participant.hidden) {
+                visibleChatMemberAccountIDsAfterRemoval.push(participantAccountID);
             }
         }
-    }
+    });
 
     targetAccountIDs.forEach((accountID) => {
         removeParticipantsData[accountID] = null;
@@ -3159,7 +3167,7 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function setGroupDraft(newGroupDraft: NewGroupChatDraft) {
+function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 

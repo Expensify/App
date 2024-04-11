@@ -1232,7 +1232,7 @@ export default {
     },
     groupChat: {
         groupMembersListTitle: 'Directorio de todos los miembros del grupo.',
-        defaultReportName: ({displayName}) => `Chat de group de ${displayName}`,
+        defaultReportName: ({displayName}: {displayName: string}) => `Chat de group de ${displayName}`,
     },
     languagePage: {
         language: 'Idioma',
@@ -2059,7 +2059,7 @@ export default {
             removeMembersTitle: 'Eliminar miembros',
             removeMemberButtonTitle: 'Quitar del espacio de trabajo',
             removeMemberGroupButtonTitle: 'Quitar del grupo',
-            removeMemberPrompt: ({memberName}) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
+            removeMemberPrompt: ({memberName}: {memberName: string}) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
             makeMember: 'Hacer miembro',

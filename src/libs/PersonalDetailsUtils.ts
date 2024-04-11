@@ -10,6 +10,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
+import Log from './Log';
 
 type FirstAndLastName = {
     firstName: string;
@@ -123,6 +124,9 @@ function getLoginsByAccountIDs(accountIDs: number[]): string[] {
     }, []);
 }
 
+/**
+ * Provided a set of invited logins and optimistic accountIDs. Returns the ones which are not known to the user i.e. they do not exist in the personalDetailsList.
+ */
 function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
     const newAccountIDs: number[] = [];
     const newLogins: string[] = [];
@@ -138,32 +142,27 @@ function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
 }
 
 /**
- * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored
- *
- * @param logins Array of user logins
- * @param accountIDs Array of user accountIDs
- * @returns Object with optimisticData, successData and failureData (object of personal details objects)
+ * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored. These users might be brand new or unknown.
+ * They will have an "optimistic" accountID that must be cleaned up later.
  */
-function getNewPersonalDetailsOnyxData(newLogins: string[], newAccountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAccountIDs: number[]): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
     newLogins.forEach((login, index) => {
         const accountID = newAccountIDs[index];
-        if (allPersonalDetails && Object.keys(allPersonalDetails?.[accountID] ?? {}).length === 0) {
-            personalDetailsNew[accountID] = {
-                login,
-                accountID,
-                avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: LocalePhoneNumber.formatPhoneNumber(login),
-            };
+        personalDetailsNew[accountID] = {
+            login,
+            accountID,
+            avatar: UserUtils.getDefaultAvatarURL(accountID),
+            displayName: LocalePhoneNumber.formatPhoneNumber(login),
+        };
 
-            /**
-             * Cleanup the optimistic user to ensure it does not permanently persist.
-             * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
-             */
-            personalDetailsCleanup[accountID] = null;
-        }
+        /**
+         * Cleanup the optimistic user to ensure it does not permanently persist.
+         * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
+         */
+        personalDetailsCleanup[accountID] = null;
     });
 
     const optimisticData: OnyxUpdate[] = [
@@ -311,7 +310,7 @@ export {
     getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
-    getNewPersonalDetailsOnyxData,
+    getPersonalDetailsOnyxDataForOptimisticUsers,
     getFormattedAddress,
     getFormattedStreet,
     getStreetLines,

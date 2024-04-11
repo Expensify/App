@@ -7,7 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ChatActionsBar from '@components/ChatActionsBar';
+import ChatDetailsQuickActionsBar from '@components/ChatDetailsQuickActionsBar';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -226,7 +226,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             isUsingDefaultAvatar={!report.avatarUrl}
             size={CONST.AVATAR_SIZE.XLARGE}
             avatarStyle={styles.avatarXLarge}
-            disableViewPhoto
+            shouldDisableViewPhoto
             onImageRemoved={() => {
                 // Calling this without a file will remove the avatar
                 Report.updateGroupChatAvatar(report.reportID ?? '');
@@ -242,7 +242,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     );
 
-    const reportName = isGroupChat ? ReportUtils.getGroupChatName(undefined, true, report.reportID ?? '') : ReportUtils.getReportName(report);
+    const reportName = useMemo(() => isGroupChat ? ReportUtils.getGroupChatName(undefined, true, report.reportID ?? '') : ReportUtils.getReportName(report), [report, isGroupChat]);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -313,7 +313,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         </OfflineWithFeedback>
                     )}
-                    {isGroupChat && <ChatActionsBar report={report} />}
+                    {isGroupChat && <ChatDetailsQuickActionsBar report={report} />}
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;

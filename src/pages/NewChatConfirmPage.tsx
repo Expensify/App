@@ -131,7 +131,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     }}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
-                    disableViewPhoto
+                    shouldDisableViewPhoto
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                 />

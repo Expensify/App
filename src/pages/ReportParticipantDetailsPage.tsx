@@ -56,10 +56,6 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const displayName = details.displayName ?? '';
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
-    const askForConfirmationToRemove = () => {
-        setIsRemoveMemberConfirmModalVisible(true);
-    };
-
     const removeUser = useCallback(() => {
         setIsRemoveMemberConfirmModalVisible(false);
         Report.removeFromGroupChat(report?.reportID, [accountID]);
@@ -101,7 +97,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                         <>
                             <Button
                                 text={translate('workspace.people.removeMemberGroupButtonTitle')}
-                                onPress={askForConfirmationToRemove}
+                                onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
                                 medium
                                 isDisabled={isSelectedMemberCurrentUser}
                                 icon={Expensicons.RemoveMembers}

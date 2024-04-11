@@ -23,10 +23,10 @@ type HeaderProps = {
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Whether to show the subtitle on the top or bottom */
-    subtitleOnTop?: boolean;
+    shouldShowSubtitleOnTop?: boolean;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false, subtitleOnTop = false}: HeaderProps) {
+function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false, shouldShowSubtitleOnTop = false}: HeaderProps) {
     const styles = useThemeStyles();
     const renderedSubtitle = useMemo(
         () => (
@@ -49,7 +49,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
     return (
         <View style={[styles.flex1, styles.flexRow, containerStyles]}>
             <View style={styles.mw100}>
-                {subtitleOnTop && renderedSubtitle}
+                {shouldShowSubtitleOnTop && renderedSubtitle}
                 {typeof title === 'string'
                     ? Boolean(title) && (
                           <Text
@@ -60,7 +60,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
                           </Text>
                       )
                     : title}
-                {!subtitleOnTop && renderedSubtitle}
+                {!shouldShowSubtitleOnTop && renderedSubtitle}
             </View>
             {shouldShowEnvironmentBadge && <EnvironmentBadge />}
         </View>

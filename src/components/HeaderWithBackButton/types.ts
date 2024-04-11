@@ -132,7 +132,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     style?: StyleProp<ViewStyle>;
 
     /** Flips the subtitle with the title */
-    subtitleOnTop?: boolean;
+    shouldShowSubtitleOnTop?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

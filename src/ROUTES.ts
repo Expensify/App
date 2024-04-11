@@ -232,11 +232,11 @@ const ROUTES = {
     },
     REPORT_PARTICIPANTS_DETAILS: {
         route: 'r/:reportID/participants/:accountID',
-        getRoute: (reportID: string, accountID: number) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}`),
+        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}`,
     },
     REPORT_PARTICIPANTS_ROLE_SELECTION: {
         route: 'r/:reportID/participants/:accountID/role',
-        getRoute: (reportID: string, accountID: number) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}/role`),
+        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}/role`,
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',

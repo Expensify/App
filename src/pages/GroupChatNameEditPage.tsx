@@ -20,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
-import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -45,9 +44,9 @@ function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPagePro
             return ReportUtils.getParticipantAccountIDs(reportID);
         }
 
-        return (groupChatDraft?.participants ?? []).map((participant: SelectedParticipant) => participant.accountID);
+        return (groupChatDraft?.participants ?? []).map((participant) => participant.accountID);
     }, [groupChatDraft, reportID]);
-    const existingReportName = ReportUtils.getGroupChatName(participantAccountIDs, false, reportID);
+    const existingReportName = useMemo(() => ReportUtils.getGroupChatName(participantAccountIDs, false, reportID), [participantAccountIDs, reportID]);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 

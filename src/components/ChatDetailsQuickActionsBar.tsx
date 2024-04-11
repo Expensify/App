@@ -8,11 +8,11 @@ import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import * as Expensicons from './Icon/Expensicons';
 
-type ChatActionsBarProps = {
+type ChatDetailsQuickActionsBarProps = {
     report: OnyxReportType;
 };
 
-function ChatActionsBar({report}: ChatActionsBarProps) {
+function ChatDetailsQuickActionsBar({report}: ChatDetailsQuickActionsBarProps) {
     const styles = useThemeStyles();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -60,6 +60,6 @@ function ChatActionsBar({report}: ChatActionsBarProps) {
     );
 }
 
-ChatActionsBar.displayName = 'ChatActionsBar';
+ChatDetailsQuickActionsBar.displayName = 'ChatDetailsQuickActionsBar';
 
-export default ChatActionsBar;
+export default ChatDetailsQuickActionsBar;
