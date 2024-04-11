@@ -168,9 +168,6 @@ function push(request: OnyxRequest) {
     let hasConflict = false;
     const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequestOnConflict} = request;
     if (getConflictingRequests) {
-        // Get all the requests, potentially including the one we're adding, which will always be at the end of the array
-        // const potentiallyConflictingRequests = shouldIncludeCurrentRequestOnConflict ? requests : requests.slice(0, requests.length - 1);
-
         // Identify conflicting requests according to logic bound to the new request
         const conflictingRequests = getConflictingRequests(requests);
         hasConflict = conflictingRequests.length > 0;

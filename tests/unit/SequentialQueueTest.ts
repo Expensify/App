@@ -66,7 +66,7 @@ describe('SequentialQueue', () => {
         PersistedRequests.remove(request);
         expect(PersistedRequests.getAll().length).toBe(0);
 
-        let newRequest: Request = {...request, getConflictingRequests: (requests: Request[]) => requests};
+        const newRequest: Request = {...request, getConflictingRequests: (requests: Request[]) => requests};
         SequentialQueue.push(newRequest);
         expect(PersistedRequests.getAll().length).toBe(1);
 
