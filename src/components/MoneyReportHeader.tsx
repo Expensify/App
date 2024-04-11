@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -13,7 +13,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, { Route } from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -83,6 +83,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
+    const navigateBackToAfterDelete = useRef<Route>();
+
     const cancelPayment = useCallback(() => {
         if (!chatReport) {
             return;
@@ -136,10 +138,10 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         if (requestParentReportAction) {
             const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-                IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
-                return;
+                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
+            } else {
+                navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
             }
-            IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
         }
 
         setIsDeleteRequestModalVisible(false);
@@ -292,6 +294,12 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}
+                onModalHide={() => {
+                    if (!navigateBackToAfterDelete.current) {
+                        return;
+                    }
+                    Navigation.goBack(navigateBackToAfterDelete.current)
+                }}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
