@@ -270,7 +270,6 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
                                                 parentReportID={report.parentReportID}
-                                                parentReportActionID={report.parentReportActionID}
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
