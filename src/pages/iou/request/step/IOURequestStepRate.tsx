@@ -10,19 +10,18 @@ import * as IOU from '@libs/actions/IOU';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepRateOnyxProps = {
-    /** Object of last selected rates for the policies */
-    lastSelectedDistanceRates: OnyxEntry<Record<string, string>>;
-
     /** Policy details */
     policy: OnyxEntry<Policy>;
 
@@ -30,20 +29,28 @@ type IOURequestStepRateOnyxProps = {
     rates: Record<string, MileageRate>;
 };
 
-type IOURequestStepRateProps = IOURequestStepRateOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_RATE>;
+type IOURequestStepRateProps = IOURequestStepRateOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_RATE> & {
+        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        transaction: OnyxEntry<Transaction>;
+    };
 
 function IOURequestStepRate({
     policy,
     route: {
         params: {backTo, transactionID},
     },
-    lastSelectedDistanceRates = {},
+    transaction,
     rates,
 }: IOURequestStepRateProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
 
-    const lastSelectedRateID = lastSelectedDistanceRates?.[policy?.id ?? '0'] ?? rates[0]?.customUnitRateID ?? '';
+    const lastSelectedRateID = TransactionUtils.getRateID(transaction) ?? '';
+
+    const navigateBack = () => {
+        Navigation.goBack(backTo);
+    };
 
     const sections = Object.values(rates).map((rate) => {
         const rateForDisplay = DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
@@ -63,13 +70,13 @@ function IOURequestStepRate({
 
     function selectDistanceRate(customUnitRateID: string) {
         IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '');
-        Navigation.goBack(backTo);
+        navigateBack();
     }
 
     return (
         <StepScreenWrapper
             headerTitle={translate('common.rate')}
-            onBackButtonPress={() => Navigation.goBack(backTo)}
+            onBackButtonPress={navigateBack}
             shouldShowWrapper={Boolean(backTo)}
             testID="rate"
         >
@@ -91,13 +98,15 @@ const IOURequestStepRateWithOnyx = withOnyx<IOURequestStepRateProps, IOURequestS
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
     },
-    lastSelectedDistanceRates: {
-        key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-    },
     rates: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`,
         selector: DistanceRequestUtils.getMileageRates,
     },
 })(IOURequestStepRate);
 
-export default withWritableReportOrNotFound(IOURequestStepRateWithOnyx);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepRateWithOnyx);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepRateWithWritableReportOrNotFound);
+
+export default IOURequestStepRateWithFullTransactionOrNotFound;

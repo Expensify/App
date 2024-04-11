@@ -639,6 +639,13 @@ function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean 
 }
 
 /**
+ * Check if the customUnitRateID has a value default for P2P distance requests
+ */
+function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
+    return transaction?.comment?.customUnit?.customUnitRateID?.toString();
+}
+
+/**
  * Gets the default tax name
  */
 function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction?: Transaction) {
@@ -710,6 +717,7 @@ export {
     getRecentTransactions,
     hasViolation,
     isCustomUnitRateIDForP2P,
+    getRateID,
 };
 
 export type {TransactionChanges};
