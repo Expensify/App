@@ -25,4 +25,12 @@ describe('PersistedRequests', () => {
         PersistedRequests.remove(request);
         expect(PersistedRequests.getAll().length).toBe(0);
     });
+
+    it('bulk remove requests from the PersistedRequests array', () => {
+        const newRequest: Request = {...request};
+        PersistedRequests.save(newRequest);
+        expect(PersistedRequests.getAll().length).toBe(2);
+        PersistedRequests.bulkRemove([request, newRequest]);
+        expect(PersistedRequests.getAll().length).toBe(0);
+    });
 });
