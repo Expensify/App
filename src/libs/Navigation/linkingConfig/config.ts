@@ -61,6 +61,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
+                [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
             },
         },
         [SCREENS.NOT_FOUND]: '*',
@@ -262,6 +263,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
+                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
+                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
+                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
+                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CUSTOMERS]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.route},
+                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_LOCATIONS]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.route},
+                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_TAXES]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
                         },
@@ -306,9 +313,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
-                        },
-                        [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE_SELECTION]: {
-                            path: ROUTES.WORKSPACE_MEMBER_ROLE_SELECTION.route,
                         },
                         [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
                             path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,
@@ -401,12 +405,21 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAX_EDIT]: {
                             path: ROUTES.WORKSPACE_TAX_EDIT.route,
+                            parse: {
+                                taxID: (taxID: string) => decodeURIComponent(taxID),
+                            },
                         },
                         [SCREENS.WORKSPACE.TAX_NAME]: {
                             path: ROUTES.WORKSPACE_TAX_NAME.route,
+                            parse: {
+                                taxID: (taxID: string) => decodeURIComponent(taxID),
+                            },
                         },
                         [SCREENS.WORKSPACE.TAX_VALUE]: {
                             path: ROUTES.WORKSPACE_TAX_VALUE.route,
+                            parse: {
+                                taxID: (taxID: string) => decodeURIComponent(taxID),
+                            },
                         },
                     },
                 },
@@ -487,7 +500,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
                     screens: {
-                        [SCREENS.SAVE_THE_WORLD.ROOT]: ROUTES.TEACHERS_UNITE,
                         [SCREENS.I_KNOW_A_TEACHER]: ROUTES.I_KNOW_A_TEACHER,
                         [SCREENS.INTRO_SCHOOL_PRINCIPAL]: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                         [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
@@ -649,6 +661,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBERS]: {
                             path: ROUTES.WORKSPACE_MEMBERS.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING]: {
+                            path: ROUTES.WORKSPACE_ACCOUNTING.route,
                         },
                         [SCREENS.WORKSPACE.CATEGORIES]: {
                             path: ROUTES.WORKSPACE_CATEGORIES.route,

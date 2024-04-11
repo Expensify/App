@@ -874,6 +874,7 @@ const CONST = {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
         CHAT_RENDER: 'chat_render',
+        OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
@@ -1197,6 +1198,24 @@ const CONST = {
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
+    },
+
+    INTEGRATION_ENTITY_MAP_TYPES: {
+        DEFAULT: 'DEFAULT',
+        NONE: 'NONE',
+        TAG: 'TAG',
+        REPORT_FIELD: 'REPORT_FIELD',
+        NOT_IMPORTED: 'NOT_IMPORTED',
+        IMPORTED: 'IMPORTED',
+    },
+    QUICK_BOOKS_ONLINE: 'quickbooksOnline',
+
+    QUICK_BOOKS_IMPORTS: {
+        SYNC_CLASSES: 'syncClasses',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_CUSTOMERS: 'syncCustomers',
+        SYNC_LOCATIONS: 'syncLocations',
+        SYNC_TAXES: 'syncTaxes',
     },
 
     ACCOUNT_ID: {
@@ -1568,6 +1587,28 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
+        },
+        CONNECTIONS: {
+            SYNC_STATUS: {
+                STARTING: 'starting',
+                FINISHED: 'finished',
+                PROGRESS: 'progress',
+            },
+            NAME: {
+                // Here we will add other connections names when we add support for them
+                QBO: 'quickbooksOnline',
+            },
+            SYNC_STAGE_NAME: {
+                STARTING_IMPORT: 'startingImport',
+                QBO_CUSTOMERS: 'quickbooksOnlineImportCustomers',
+                QBO_EMPLOYEES: 'quickbooksOnlineImportEmployees',
+                QBO_ACCOUNTS: 'quickbooksOnlineImportAccounts',
+                QBO_CLASSES: 'quickbooksOnlineImportClasses',
+                QBO_LOCATIONS: 'quickbooksOnlineImportLocations',
+                QBO_PROCESSING: 'quickbooksOnlineImportProcessing',
+                QBO_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
+                QBO_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+            },
         },
     },
 

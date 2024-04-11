@@ -586,7 +586,7 @@ function ReportScreen({
             return false;
         }
         const action = sortedAllReportActions.find((item) => item.reportActionID === reportActionIDFromRoute);
-        return action && ReportActionsUtils.isDeletedAction(action);
+        return action && !ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID);
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
     if (isLinkedReportActionDeleted ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
