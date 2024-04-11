@@ -47,7 +47,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
-    const hasAccountingConnection = policy?.areConnectionsEnabled && !!policy?.connections;
+    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !!policy?.connections;
 
     const spendItems: Item[] = [
         {
@@ -77,7 +77,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.FolderOpen,
             titleTranslationKey: 'workspace.moreFeatures.categories.title',
             subtitleTranslationKey: 'workspace.moreFeatures.categories.subtitle',
-            isActive: policy?.areCategoriesEnabled ?? false,
+            isActive: (policy?.areCategoriesEnabled ?? false) || hasAccountingConnection,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
@@ -88,7 +88,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Tag,
             titleTranslationKey: 'workspace.moreFeatures.tags.title',
             subtitleTranslationKey: 'workspace.moreFeatures.tags.subtitle',
-            isActive: policy?.areTagsEnabled ?? false,
+            isActive: (policy?.areTagsEnabled ?? false) || hasAccountingConnection,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
@@ -99,8 +99,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Coins,
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
-            isActive: policy?.tax?.trackingEnabled ?? false,
-            disabled: hasAccountingConnection,
+            isActive: (policy?.tax?.trackingEnabled ?? false) || !!policy?.connections?.quickbooksOnline.config.syncTax,
+            disabled: policy?.connections?.quickbooksOnline.config.syncTax,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
