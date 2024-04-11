@@ -92,8 +92,6 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
                     style={[
                         styles.chatItemPDFAttachmentLoading,
                         StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
                     ]}
                 >
                     <ActivityIndicator

@@ -2171,9 +2171,8 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusNormal,
-            textAlign: 'center',
-            verticalAlign: 'middle',
-            opacity: 1,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
         },
 
         sidebarVisible: {
