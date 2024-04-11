@@ -240,7 +240,7 @@ function IOURequestStepConfirmation({
                 return;
             }
             IOU.createDistanceRequest(
-                report ?? {},
+                report,
                 selectedParticipants[0],
                 trimmedComment,
                 transaction.created,
@@ -438,12 +438,12 @@ function IOURequestStepConfirmation({
             }
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                IOU.sendMoneyElsewhere(report ?? {}, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
+                IOU.sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
                 return;
             }
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                IOU.sendMoneyWithWallet(report ?? {}, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
+                IOU.sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
             }
         },
         [transaction?.amount, transaction?.comment, transaction?.currency, participants, currentUserPersonalDetails.accountID, report],

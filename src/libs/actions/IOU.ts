@@ -1491,7 +1491,7 @@ function getTrackExpenseInformation(
 
 /** Requests money based on a distance (e.g. mileage from a map) */
 function createDistanceRequest(
-    report: OnyxTypes.Report | EmptyObject,
+    report: OnyxEntry<OnyxTypes.Report>,
     participant: Participant,
     comment: string,
     created: string,
@@ -4768,7 +4768,7 @@ function getPayMoneyRequestParams(
  * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyElsewhere(report: OnyxTypes.Report | EmptyObject, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
+function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
@@ -4782,7 +4782,7 @@ function sendMoneyElsewhere(report: OnyxTypes.Report | EmptyObject, amount: numb
  * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyWithWallet(report: OnyxTypes.Report | EmptyObject, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | ReportUtils.OptionData) {
+function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | ReportUtils.OptionData) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
 
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
