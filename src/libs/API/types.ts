@@ -324,6 +324,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REOPEN_TASK]: Parameters.ReopenTaskParams;
     [WRITE_COMMANDS.COMPLETE_TASK]: Parameters.CompleteTaskParams;
     [WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL]: Parameters.CompleteEngagementModalParams;
+    [WRITE_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
