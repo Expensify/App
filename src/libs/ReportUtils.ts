@@ -3268,6 +3268,29 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
     return result.trim().length ? result : formula;
 }
 
+/** Builds an optimistic Invoice report with a randomly generated reportID */
+function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, receiverAccountID: number, receiverName: string, total: number, currency: string): OptimisticExpenseReport {
+    const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
+
+    return {
+        reportID: generateReportID(),
+        chatReportID,
+        policyID,
+        type: CONST.REPORT.TYPE.INVOICE,
+        ownerAccountID: currentUserAccountID,
+        managerID: receiverAccountID,
+        currency,
+        // We don’t translate reportName because the server response is always in English
+        reportName: `${receiverName} owes ${formattedTotal}`,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        total,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
+    };
+}
+
 /**
  * Builds an optimistic Expense report with a randomly generated reportID
  *
@@ -5979,6 +6002,7 @@ export {
     hasActionsWithErrors,
     getGroupChatName,
     getOutstandingChildRequest,
+    buildOptimisticInvoiceReport,
 };
 
 export type {

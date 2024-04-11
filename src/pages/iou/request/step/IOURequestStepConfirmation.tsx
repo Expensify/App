@@ -341,6 +341,12 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            if (iouType === CONST.IOU.TYPE.INVOICE) {
+                // TODO: check if we need to navigate to the report
+                IOU.sendInvoice(currentUserPersonalDetails.accountID, transaction, report, receiptFile);
+                return;
+            }
+
             if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
                 if (receiptFile && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.

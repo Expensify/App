@@ -291,7 +291,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant.policyID}`];
     }, [allPolicies, pickedParticipants]);
 
-    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.getActiveAdminWorkspaces(allPolicies).length > 0, [allPolicies]);
+    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.getActiveAdminWorkspaces(allPolicies).length > 0 && transaction.isFromGlobalCreate, [allPolicies]);
 
     // A flag for showing the tags field
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
