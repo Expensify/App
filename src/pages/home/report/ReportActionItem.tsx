@@ -187,7 +187,7 @@ function ReportActionItem({
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
     const textInputRef = useRef<TextInput & HTMLTextAreaElement>();
-    const popoverAnchorRef = useRef<ReportActionContextMenu.ContextMenuAnchor>(null);
+    const popoverAnchorRef = useRef<Exclude<ReportActionContextMenu.ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
@@ -197,8 +197,8 @@ function ReportActionItem({
     const reportScrollManager = useReportScrollManager();
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.hoverComponentBG],
+        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
@@ -277,7 +277,7 @@ function ReportActionItem({
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
-    const latestDecision = action.message?.[0].moderationDecision?.decision ?? '';
+    const latestDecision = action.message?.[0]?.moderationDecision?.decision ?? '';
     useEffect(() => {
         if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
             return;
@@ -366,9 +366,10 @@ function ReportActionItem({
             anchor: popoverAnchorRef.current,
             report,
             action,
+            transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
         }),
-        [report, action, toggleContextMenuFromActiveReportAction],
+        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport],
     );
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
@@ -532,7 +533,7 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT) {
-            children = <ReportActionItemBasicMessage message={action.message?.[0].text ?? ''} />;
+            children = <ReportActionItemBasicMessage message={action.message?.[0]?.text ?? ''} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
         } else {

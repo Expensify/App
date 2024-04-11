@@ -1,5 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
+import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -598,9 +599,9 @@ export default {
         sendMoney: 'Enviar Dinero',
         assignTask: 'Assignar Tarea',
         shortcut: 'Acceso Directo',
-        trackManual: 'Seguimiento de Gastos',
-        trackScan: 'Seguimiento de Recibo',
-        trackDistance: 'Seguimiento de Distancia',
+        trackManual: 'Crear Gasto',
+        trackScan: 'Crear Recibo',
+        trackDistance: 'Crear Gasto por desplazamiento',
     },
     iou: {
         amount: 'Importe',
@@ -1052,6 +1053,11 @@ export default {
         expensifyCard: 'Tarjeta Expensify',
         walletActivationPending: 'Estamos revisando su información, por favor vuelve en unos minutos.',
         walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
+        addYourBankAccount: 'Añadir tu cuenta bancaria.',
+        addBankAccountBody: 'Conectemos tu cuenta bancaria a Expensify para que sea más fácil que nunca enviar y recibir pagos directamente en la aplicación.',
+        chooseYourBankAccount: 'Elige tu cuenta bancaria.',
+        chooseAccountBody: 'Asegúrese de elegir el adecuado.',
+        confirmYourBankAccount: 'Confirma tu cuenta bancaria.',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -1310,6 +1316,29 @@ export default {
         cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Por favor, intenta iniciar sesión de nuevo.',
         loginForm: 'Formulario de inicio de sesión',
         notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
+    },
+    onboarding: {
+        welcome: '¡Bienvenido!',
+        welcomeVideo: {
+            title: 'Bienvenido a Expensify',
+            description: 'Cobrar es tan fácil como enviar un mensaje.',
+            button: 'Vámonos',
+        },
+        whatsYourName: '¿Cómo te llamas?',
+        purpose: {
+            title: '¿Qué quieres hacer hoy?',
+            error: 'Por favor, haga una selección antes de continuar.',
+            [CONST.ONBOARDING_CHOICES.TRACK]: 'Seguimiento fiscal de los gastos de las empresas',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar los gastos personales',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide cuentas con tus amigos',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Sólo estoy mirando',
+        },
+        error: {
+            requiredFirstName: 'Introduce tu nombre para continuar',
+            requiredLastName: 'Introduce tu apellido para continuar',
+        },
     },
     personalDetails: {
         error: {
@@ -1816,11 +1845,13 @@ export default {
             reimburse: 'Reembolsos',
             categories: 'Categorías',
             tags: 'Etiquetas',
+            reportFields: 'Campos de informe',
             taxes: 'Impuestos',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
             members: 'Miembros',
+            accounting: 'Contabilidad',
             plan: 'Plan',
             profile: 'Perfil',
             bankAccount: 'Cuenta bancaria',
@@ -1845,6 +1876,29 @@ export default {
             distanceRates: 'Tasas de distancia',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+        },
+        qbo: {
+            import: 'Importación',
+            importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
+            classes: 'Clases',
+            accounts: 'Plan de cuentas',
+            locations: 'Lugares',
+            taxes: 'Impuestos',
+            customers: 'Clientes/Proyectos',
+            imported: 'Importado',
+            displayedAs: 'Mostrado como',
+            notImported: 'No importado',
+            importedAsTags: 'Importado, mostrado como etiqueta',
+            importedAsReportFields: 'Importado, mostrado como campo de informe',
+            accountsDescription: 'Los planes de cuentas se importan como categorías cuando está conectado con una integración de contaduría, esto no se puede desactivar.',
+            accountsSwitchTitle: 'Habilita el plan de cuentas recien importado',
+            accountsSwitchDescription: 'Las nuevas categorías importadas desde QuickBooks Online a Expensify serán activadas o desactivadas por defecto.',
+            classesDescription: 'Elige si quieres importar las clases y donde las clases son mostradas.',
+            customersDescription: 'Elige si queres importar clientes/proyectos y donde los clientes/proyectos son mostrados.',
+            locationsDescription: 'Elige si quieres importar lugares y donde los lugares son mostrados.',
+            taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
+            locationsAdditionalDescription:
+                'Los lugares son importados como Etiquegas. Esto limita a exportar los informes de gastos como Factura del Proveedor o Cheques a Quicbooks Online. Para desbloquear estas opciones de exportación desactiva la importación de Lugares o cambia al Plan Control para exportar Lugares como Campos de Informes.',
         },
         type: {
             free: 'Gratis',
@@ -1914,9 +1968,13 @@ export default {
                 subtitle: 'Configura campos personalizados para los gastos.',
             },
             connections: {
-                title: 'Conexión',
+                title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+        },
+        reportFields: {
+            delete: 'Eliminar campos',
+            deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -2008,6 +2066,41 @@ export default {
             addedWithPrimary: 'Se agregaron algunos usuarios con sus nombres de usuario principales.',
             invitedBySecondaryLogin: ({secondaryLogin}) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
+        },
+        accounting: {
+            title: 'Conexiones',
+            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos y mantener tus finanzas sincronizadas.',
+            qbo: 'Quickbooks Online',
+            xero: 'Xero',
+            setup: 'Configurar',
+            lastSync: 'Recién sincronizado',
+            import: 'Importar',
+            export: 'Exportar',
+            advanced: 'Avanzado',
+            other: 'Otras integraciones',
+            syncNow: 'Sincronizar ahora',
+            disconnect: 'Desconectar',
+            disconnectTitle: 'Desconectar integración',
+            disconnectPrompt: '¿Estás seguro de que deseas desconectar esta intregración?',
+            enterCredentials: 'Ingresa tus credenciales',
+            connections: {
+                syncStageName: (stage: PolicyConnectionSyncStage) => {
+                    switch (stage) {
+                        case 'quickbooksOnlineImportCustomers':
+                            return 'Importando clientes';
+                        case 'quickbooksOnlineImportEmployees':
+                            return 'Importing employees';
+                        case 'quickbooksOnlineImportAccounts':
+                            return 'Importing accounts';
+                        case 'quickbooksOnlineImportClasses':
+                            return 'Importing classes';
+
+                        default: {
+                            return `Translation missing for stage: ${stage}`;
+                        }
+                    }
+                },
+            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
@@ -2101,8 +2194,6 @@ export default {
             disableRates: ({count}: DistanceRateOperationsParams) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,
             enableRate: 'Activar tasa',
             status: 'Estado',
-            enabled: 'Activada',
-            disabled: 'Desactivada',
             unit: 'Unidad',
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
