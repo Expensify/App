@@ -41,7 +41,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
                 keyForList: key,
                 isSelected: selectedAccount === value,
             })),
-        [selectedAccount],
+        [selectedAccount, translate],
     );
 
     const showQBOOnlineSelectorOptions = useCallback(
