@@ -283,9 +283,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER_SELECT]: {
-        policyID: string;
-    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
