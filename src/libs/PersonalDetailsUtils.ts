@@ -9,8 +9,8 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
-import * as UserUtils from './UserUtils';
 import Log from './Log';
+import * as UserUtils from './UserUtils';
 
 type FirstAndLastName = {
     firstName: string;

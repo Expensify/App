@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -12,6 +13,7 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,8 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import useStyleUtils from '@hooks/useStyleUtils';
-import Badge from '@components/Badge';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
@@ -70,11 +70,13 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                         accountID,
                         icons: selectedOption?.icons,
                         alternateText: selectedOption?.login ?? '',
-                        rightElement: isAdmin ? (<Badge
-                            text={translate('common.admin')}
-                            textStyles={styles.textStrong}
-                            badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
-                        />) : undefined,
+                        rightElement: isAdmin ? (
+                            <Badge
+                                text={translate('common.admin')}
+                                textStyles={styles.textStrong}
+                                badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
+                            />
+                        ) : undefined,
                     };
                     return section;
                 })
