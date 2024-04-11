@@ -36,7 +36,7 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
             }
 
             setShowModal(true);
-            setHasError(status === RESULTS.DENIED);
+            setHasError(status === RESULTS.BLOCKED);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
