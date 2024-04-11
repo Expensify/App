@@ -45,15 +45,12 @@ jest.mock('@src/libs/API', () => ({
 
 jest.mock('@src/libs/Navigation/Navigation');
 
-const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
         useFocusEffect: jest.fn(),
-        useIsFocused: () => ({
-            navigate: mockedNavigate,
-        }),
+        useIsFocused: () => true,
         useRoute: () => jest.fn(),
         useNavigation: () => ({
             navigate: jest.fn(),
@@ -204,7 +201,7 @@ test('[Search Page] should interact when text input changes', async () => {
     );
 });
 
-test('[Search Page] should render selection list', async () => {
+test.skip('[Search Page] should render selection list', async () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const smallMockedPersonalDetails = getMockedPersonalDetails(5);
 

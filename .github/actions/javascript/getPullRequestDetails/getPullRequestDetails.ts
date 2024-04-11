@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import ActionUtils from '@github/libs/ActionUtils';
+import {getJSONInput} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -11,10 +11,11 @@ const DEFAULT_PAYLOAD = {
     repo: CONST.APP_REPO,
 };
 
-const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
+const pullRequestNumber = getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
 const user = core.getInput('USER', {required: true});
 
 if (pullRequestNumber) {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
     console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
 }
 
@@ -48,7 +49,7 @@ GithubUtils.octokit.pulls
     .get({
         ...DEFAULT_PAYLOAD,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        pull_number: pullRequestNumber,
+        pull_number: pullRequestNumber as number,
     })
     .then(({data: PR}) => {
         if (!isEmptyObject(PR)) {

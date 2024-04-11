@@ -126,9 +126,12 @@ function Composer(
      *  Adds the cursor position to the selection change event.
      */
     const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+        if (!isRendered) {
+            return;
+        }
         const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
 
-        if (shouldCalculateCaretPosition && isRendered) {
+        if (shouldCalculateCaretPosition) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
                 setValueBeforeCaret(webEvent.target.value.slice(0, webEvent.nativeEvent.selection.start));
@@ -385,13 +388,20 @@ function Composer(
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
-                    ReportActionComposeFocusManager.onComposerFocus(() => {
-                        if (!textInput.current) {
-                            return;
-                        }
+                    if (isReportActionCompose) {
+                        ReportActionComposeFocusManager.onComposerFocus(null);
+                    } else {
+                        // While a user edits a comment, if they open the LHN menu, we want to ensure that
+                        // the focus returns to the message edit composer after they click on a menu item (e.g. mark as read).
+                        // To achieve this, we re-assign the focus callback here.
+                        ReportActionComposeFocusManager.onComposerFocus(() => {
+                            if (!textInput.current) {
+                                return;
+                            }
 
-                        textInput.current.focus();
-                    });
+                            textInput.current.focus();
+                        });
+                    }
 
                     props.onFocus?.(e);
                 }}

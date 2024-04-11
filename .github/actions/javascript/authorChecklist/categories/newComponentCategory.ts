@@ -1,4 +1,4 @@
-import github from '@actions/github';
+import * as github from '@actions/github';
 import {parse} from '@babel/parser';
 import traverse from '@babel/traverse';
 import CONST from '@github/libs/CONST';

@@ -136,6 +136,7 @@ const WRITE_COMMANDS = {
     COMPLETE_ENGAGEMENT_MODAL: 'CompleteEngagementModal',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
     SET_REPORT_FIELD: 'Report_SetFields',
+    DELETE_REPORT_FIELD: 'RemoveReportField',
     SET_REPORT_NAME: 'RenameReport',
     COMPLETE_SPLIT_BILL: 'CompleteSplitBill',
     UPDATE_MONEY_REQUEST_DATE: 'UpdateMoneyRequestDate',
@@ -184,6 +185,7 @@ const WRITE_COMMANDS = {
     ACCEPT_JOIN_REQUEST: 'AcceptJoinRequest',
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
+    UPDATE_POLICY_CONNECTION_CONFIG: 'UpdatePolicyConnectionConfig',
     SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
     DELETE_POLICY_TAXES: 'DeletePolicyTaxes',
     UPDATE_POLICY_TAX_VALUE: 'UpdatePolicyTaxValue',
@@ -324,6 +326,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
+    [WRITE_COMMANDS.DELETE_REPORT_FIELD]: Parameters.DeleteReportFieldParams;
     [WRITE_COMMANDS.COMPLETE_SPLIT_BILL]: Parameters.CompleteSplitBillParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT]: Parameters.UpdateMoneyRequestParams;
@@ -387,6 +390,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RENAME_POLICY_TAX]: Parameters.RenamePolicyTaxParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG]: Parameters.UpdatePolicyConnectionConfigParams;
     [WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE]: Parameters.UpdatePolicyDistanceRateValueParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED]: Parameters.SetPolicyDistanceRatesEnabledParams;
     [WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES]: Parameters.DeletePolicyDistanceRatesParams;

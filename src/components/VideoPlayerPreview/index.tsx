@@ -78,7 +78,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                 <>
                     <VideoPlayer
                         url={videoUrl}
-                        onOpenInModalButtonPress={onShowModalPress}
                         onVideoLoaded={onVideoLoaded as (event: VideoReadyForDisplayEvent) => void}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls

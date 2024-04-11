@@ -1,4 +1,5 @@
 import type Onyx from 'react-native-onyx';
+import type {Writable} from 'type-fest';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 /**
@@ -9,7 +10,7 @@ import waitForBatchedUpdates from './waitForBatchedUpdates';
  * This is a convinience function, which wraps the onyxInstance's
  * functions, to for the promises to resolve.
  */
-function wrapOnyxWithWaitForBatchedUpdates(onyxInstance: typeof Onyx) {
+function wrapOnyxWithWaitForBatchedUpdates(onyxInstance: Writable<typeof Onyx>) {
     const multiSetImpl = onyxInstance.multiSet;
     // eslint-disable-next-line no-param-reassign
     onyxInstance.multiSet = (...args) => multiSetImpl(...args).then((result) => waitForBatchedUpdates().then(() => result));

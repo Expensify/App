@@ -9,8 +9,6 @@ import type {RootStackParamList} from './types';
 
 /**
  * Dismisses the last modal stack if there is any
- *
- * @param targetReportID - The reportID to navigate to after dismissing the modal
  */
 function dismissModal(navigationRef: NavigationContainerRef<RootStackParamList>) {
     if (!navigationRef.isReady()) {
@@ -23,6 +21,7 @@ function dismissModal(navigationRef: NavigationContainerRef<RootStackParamList>)
         case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
         case NAVIGATORS.LEFT_MODAL_NAVIGATOR:
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
+        case NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:
         case SCREENS.TRANSACTION_RECEIPT:

@@ -223,13 +223,12 @@ function MoneyRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
+    const {canUseViolations} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
-    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isSplitBill);
 
     const isSplitWithScan = isSplitBill && isScanRequest;
 
@@ -719,7 +718,7 @@ function MoneyRequestConfirmationList({
                     )}
                     {isDistanceRequest && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly && canEditDistance}
+                            shouldShowRightIcon={!isReadOnly}
                             title={iouMerchant}
                             description={translate('common.distance')}
                             style={styles.moneyRequestMenuItem}
@@ -735,7 +734,7 @@ function MoneyRequestConfirmationList({
                                     ),
                                 )
                             }
-                            disabled={didConfirm || !canEditDistance}
+                            disabled={didConfirm}
                             interactive={!isReadOnly}
                         />
                     )}
@@ -829,7 +828,13 @@ function MoneyRequestConfirmationList({
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
+                                        CONST.IOU.ACTION.CREATE,
+                                        iouType,
+                                        transaction?.transactionID ?? '',
+                                        reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
                                 )
                             }
                             disabled={didConfirm}
@@ -846,7 +851,13 @@ function MoneyRequestConfirmationList({
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
+                                        CONST.IOU.ACTION.CREATE,
+                                        iouType,
+                                        transaction?.transactionID ?? '',
+                                        reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
                                 )
                             }
                             disabled={didConfirm}
