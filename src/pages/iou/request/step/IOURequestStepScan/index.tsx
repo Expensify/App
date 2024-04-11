@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
@@ -105,7 +104,7 @@ function IOURequestStepScan({
     const shouldSkipConfirmation =
         skipConfirmation &&
         !ReportUtils.isArchivedRoom(report) &&
-        !(ReportUtils.isPolicyExpenseChat(reportID) && (lodashGet(policy, 'requiresCategory', false) || lodashGet(policy, 'requiresTag', false)));
+        !(ReportUtils.isPolicyExpenseChat(reportID) && (policy?.requiresCategory ?? false || policy?.requiresTag ?? false));
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
@@ -247,7 +246,7 @@ function IOURequestStepScan({
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = _.map(selectedParticipants, (participant) => {
-                const participantAccountID = lodashGet(participant, 'accountID', 0);
+                const participantAccountID = participant?.accountID ?? 0;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
 
@@ -571,7 +570,7 @@ const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequest
     },
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = lodashGet(route, 'params.transactionID', 0);
+            const transactionID = route.params.transactionID ?? 0;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },
