@@ -37,6 +37,7 @@ function ProfileAvatarWithIndicator({isLoading = true, isSelected = false}: Prof
 }
 
 ProfileAvatarWithIndicator.displayName = 'ProfileAvatarWithIndicator';
+
 export default withOnyx<ProfileAvatarWithIndicatorProps, ProfileAvatarWithIndicatorOnyxProps>({
     isLoading: {
         key: ONYXKEYS.IS_LOADING_APP,
