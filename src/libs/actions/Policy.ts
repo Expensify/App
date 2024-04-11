@@ -1287,7 +1287,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLoginsFromInvitedUsers(logins, accountIDs);
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
 
     const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
