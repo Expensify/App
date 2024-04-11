@@ -257,11 +257,11 @@ function IOURequestStepScan({
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.startSplitBill({
-                        participants: participants,
-                        currentUserLogin: currentUserPersonalDetails?.login ? '',
-                        currentUserAccountID: currentUserPersonalDetails?.accountID ? '',
+                        participants,
+                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? 0,
                         comment: '',
-                        receipt: receipt,
+                        receipt,
                         existingSplitChatReportID: reportID ?? 0,
                         billable: false,
                         category: '',
