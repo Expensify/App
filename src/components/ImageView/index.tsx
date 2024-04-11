@@ -213,7 +213,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                     onLoad={imageLoad}
                     onError={onError}
                 />
-                {((isLoading && !isOffline) || zoomScale === 0) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                {((isLoading && !isOffline) || (!isLoading && zoomScale === 0)) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                 {isLoading && <AttachmentOfflineIndicator />}
             </View>
         );
