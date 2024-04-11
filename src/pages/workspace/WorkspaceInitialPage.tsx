@@ -56,7 +56,6 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.CATEGORIES
         | typeof SCREENS.WORKSPACE.TAGS
         | typeof SCREENS.WORKSPACE.TAXES
-        | typeof SCREENS.WORKSPACE.ACCOUNTING
         | typeof SCREENS.WORKSPACE.MORE_FEATURES
         | typeof SCREENS.WORKSPACE.PROFILE
         | typeof SCREENS.WORKSPACE.MEMBERS;
