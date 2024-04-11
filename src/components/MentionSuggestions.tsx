@@ -12,14 +12,14 @@ import Avatar from './Avatar';
 import Text from './Text';
 
 type Mention = {
-    /** Display name of the user */
+    /** Display name of the mention */
     text: string;
 
-    /** The formatted email/phone number of the user */
+    /** The formatted text of the mention */
     alternateText: string;
 
-    /** Email/phone number of the user */
-    login?: string;
+    /** handle of the mention */
+    handle?: string;
 
     /** Array of icons of the user. If present, we use the first element of this array. For room suggestions, the icons are not used */
     icons?: Icon[];

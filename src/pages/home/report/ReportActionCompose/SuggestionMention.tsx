@@ -110,9 +110,9 @@ function SuggestionMention(
         (mention: Mention, mentionType: string): string => {
             if (mentionType === '#') {
                 // room mention case
-                return mention.login ?? '';
+                return mention.handle ?? '';
             }
-            return mention.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${formatLoginPrivateDomain(mention.login, mention.login)}`;
+            return mention.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${formatLoginPrivateDomain(mention.handle, mention.handle)}`;
         },
         [formatLoginPrivateDomain],
     );
@@ -261,7 +261,7 @@ function SuggestionMention(
                 if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {
                     filteredRoomMentions.push({
                         text: report.reportName,
-                        login: report.reportName,
+                        handle: report.reportName,
                         alternateText: report.reportName,
                     });
                 }
