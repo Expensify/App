@@ -1,6 +1,7 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useRef, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {Animated} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import TooltipRenderedOnPageBody from '@components/Tooltip/TooltipRenderedOnPageBody';
@@ -96,7 +97,6 @@ function Tooltip(
     const prevText = usePrevious(text);
 
     const target = useRef<HTMLElement | null>(null);
-    const childrenRef = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
     const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
@@ -200,28 +200,19 @@ function Tooltip(
         [children, updateTargetAndMousePosition],
     );
 
-    const additionalChildrenProps = useMemo(
-        () =>
-            shouldRenderWithoutHover
-                ? {
-                      ref: childrenRef,
-                      onLayout: () => {
-                          const childrenRect = childrenRef.current?.getBoundingClientRect();
-                          updateTargetAndMousePosition({
-                              currentTarget: childrenRef.current,
-                              clientX: childrenRect?.left ?? 0,
-                              clientY: childrenRect?.top ?? 0,
-                          } as MouseEvent);
-                          showTooltip();
-                      },
-                  }
-                : {},
-        [shouldRenderWithoutHover, updateTargetAndMousePosition, showTooltip],
-    );
+    useEffect(() => {
+        if (!shouldRenderWithoutHover) {
+            return;
+        }
+        const intervalID = setInterval(hideTooltip, 5000);
+        return () => {
+            clearInterval(intervalID);
+        };
+    }, [shouldRenderWithoutHover, hideTooltip]);
 
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
-    if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || !hasHoverSupport) {
+    if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || (!shouldRenderWithoutHover && !hasHoverSupport)) {
         return children;
     }
 
@@ -266,7 +257,18 @@ function Tooltip(
                         >
                             {React.cloneElement(children as React.ReactElement, {
                                 onMouseEnter: updateTargetPositionOnMouseEnter,
-                                ...additionalChildrenProps,
+                                onLayout: (e: LayoutChangeEvent) => {
+                                    if (!shouldRenderWithoutHover) {
+                                        return;
+                                    }
+                                    const childrenRect = e.nativeEvent.target?.getBoundingClientRect();
+                                    updateTargetAndMousePosition({
+                                        currentTarget: e.nativeEvent.target,
+                                        clientX: childrenRect?.left ?? 0,
+                                        clientY: childrenRect?.top ?? 0,
+                                    } as MouseEvent);
+                                    showTooltip();
+                                },
                             })}
                         </Hoverable>
                     </BoundsObserver>

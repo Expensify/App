@@ -255,7 +255,7 @@ type MenuItemBaseProps = {
     shouldRenderTooltip?: boolean;
 
     /** Whether to align the tooltip left */
-    shouldForceRenderingLeftTooltip?: boolean;
+    shouldForceRenderingTooltipLeft?: boolean;
 
     /** Whether to show the tooltip immediately without hovering over */
     shouldRenderTooltipWithoutHover?: boolean;
@@ -339,7 +339,7 @@ function MenuItem(
         shouldPutLeftPaddingWhenNoIcon = false,
         shouldRenderTooltip = false,
         shouldRenderTooltipWithoutHover = false,
-        shouldForceRenderingLeftTooltip = false,
+        shouldForceRenderingTooltipLeft = false,
         tooltipWrapperStyle = {},
         renderTooltipContent,
     }: MenuItemProps,
@@ -446,11 +446,12 @@ function MenuItem(
             )}
             <Tooltip
                 shouldRender={shouldRenderTooltip}
-                shouldForceRenderingLeft={shouldForceRenderingLeftTooltip}
+                shouldForceRenderingLeft={shouldForceRenderingTooltipLeft}
                 shouldRenderWithoutHover={shouldRenderTooltipWithoutHover}
                 renderTooltipContent={renderTooltipContent}
                 wrapperStyle={tooltipWrapperStyle}
-                shiftHorizontal={styles.ph5.paddingHorizontal}
+                shiftHorizontal={styles.popoverMenuItem.paddingHorizontal}
+                shiftVertical={styles.popoverMenuItem.paddingVertical / 2}
             >
                 <View>
                     <Hoverable>

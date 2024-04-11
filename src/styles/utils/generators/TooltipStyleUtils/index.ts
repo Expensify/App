@@ -3,13 +3,14 @@ import {Animated, StyleSheet} from 'react-native';
 import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
+import type StyleUtilGenerator from '@styles/utils/generators/types';
+// eslint-disable-next-line no-restricted-imports
 import positioning from '@styles/utils/positioning';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 // eslint-disable-next-line no-restricted-imports
 import titleBarHeight from '@styles/utils/titleBarHeight';
 import variables from '@styles/variables';
-import type StyleUtilGenerator from './types';
 
 /** This defines the proximity with the edge of the window in which tooltips should not be displayed.
  * If a tooltip is too close to the edge of the screen, we'll shift it towards the center. */

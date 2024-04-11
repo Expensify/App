@@ -1,39 +1,13 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText, View as RNView} from 'react-native';
 import Text from '@components/Text';
-import type TooltipProps from '@components/Tooltip/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import Log from '@libs/Log';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
-
-type TooltipRenderedOnPageBodyProps = {
-    /** Window width */
-    windowWidth: number;
-
-    /** Tooltip Animation value */
-    animation: Animated.Value;
-
-    /** The distance between the left side of the wrapper view and the left side of the window */
-    xOffset: number;
-
-    /** The distance between the top of the wrapper view and the top of the window */
-    yOffset: number;
-
-    /** The width of the tooltip's target */
-    targetWidth: number;
-
-    /** The height of the tooltip's target */
-    targetHeight: number;
-
-    /** Any additional amount to manually adjust the horizontal position of the tooltip.
-    A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
-    shiftHorizontal?: number;
-
-    /** Any additional amount to manually adjust the vertical position of the tooltip.
-    A positive value shifts the tooltip down, and a negative value shifts it up. */
-    shiftVertical?: number;
-} & Pick<TooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle'>;
+import type {TooltipRenderedOnPageBodyProps} from './types';
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
@@ -54,6 +28,7 @@ function TooltipRenderedOnPageBody({
     maxWidth = 0,
     renderTooltipContent,
     shouldForceRenderingBelow = false,
+    shouldForceRenderingLeft = false,
     wrapperStyle = {},
 }: TooltipRenderedOnPageBodyProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
@@ -62,8 +37,9 @@ function TooltipRenderedOnPageBody({
     const [contentMeasuredWidth, setContentMeasuredWidth] = useState<number>();
     // The height of tooltip's wrapper.
     const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState<number>();
-    const contentRef = useRef<HTMLDivElement>(null);
-    const rootWrapper = useRef<HTMLDivElement>(null);
+    const textContentRef = useRef<RNText>(null);
+    const viewContentRef = useRef<RNView>(null);
+    const rootWrapper = useRef<RNView>(null);
 
     const StyleUtils = useStyleUtils();
 
@@ -90,6 +66,7 @@ function TooltipRenderedOnPageBody({
                 manualShiftHorizontal: shiftHorizontal,
                 manualShiftVertical: shiftVertical,
                 shouldForceRenderingBelow,
+                shouldForceRenderingLeft,
                 wrapperStyle,
             }),
         [
@@ -106,44 +83,45 @@ function TooltipRenderedOnPageBody({
             shiftHorizontal,
             shiftVertical,
             shouldForceRenderingBelow,
+            shouldForceRenderingLeft,
             wrapperStyle,
         ],
     );
 
-    let content;
-    if (renderTooltipContent) {
-        content = (
-            <View
-                ref={viewRef(contentRef)}
-                onLayout={({nativeEvent}) => {
-                    setContentMeasuredWidth(nativeEvent.layout.width);
-                }}
-            >
-                {renderTooltipContent()}
-            </View>
-        );
-    } else {
-        content = (
-            <Text
-                numberOfLines={numberOfLines}
-                style={textStyle}
-            >
+    useEffect(() => {
+        if (!textContentRef.current && !viewContentRef.current) {
+            return;
+        }
+        textContentRef.current?.measure((x, y, width) => setContentMeasuredWidth(width));
+        viewContentRef.current?.measure((x, y, width) => setContentMeasuredWidth(width));
+    }, []);
+
+    const content = useMemo(
+        () =>
+            renderTooltipContent ? (
+                <View ref={viewRef(viewContentRef)}>{renderTooltipContent()}</View>
+            ) : (
                 <Text
+                    ref={textRef(textContentRef)}
+                    numberOfLines={numberOfLines}
                     style={textStyle}
-                    ref={textRef(contentRef)}
                 >
-                    {text}
+                    <Text style={textStyle}>{text}</Text>
                 </Text>
-            </Text>
-        );
-    }
+            ),
+        [renderTooltipContent, textStyle, text, numberOfLines],
+    );
 
     return (
         <Animated.View
             ref={viewRef(rootWrapper)}
-            style={[rootWrapperStyle, animationStyle, {position: 'absolute'}]}
-            onLayout={({nativeEvent}) => {
-                setWrapperMeasuredHeight(nativeEvent.layout.height);
+            style={[rootWrapperStyle, animationStyle]}
+            onLayout={(e) => {
+                const {height} = e.nativeEvent.layout;
+                if (height === wrapperMeasuredHeight) {
+                    return;
+                }
+                setWrapperMeasuredHeight(height);
             }}
         >
             {content}

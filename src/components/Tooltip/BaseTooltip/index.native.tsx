@@ -12,21 +12,24 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
 
-// We can't use the common component for the Tooltip as Web implementation uses DOM specific method
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function Tooltip({
-    children,
-    numberOfLines = CONST.TOOLTIP_MAX_LINES,
-    maxWidth = variables.sideBarWidth,
-    text = '',
-    renderTooltipContent,
-    renderTooltipContentKey = [],
-    shiftHorizontal = 0,
-    shiftVertical = 0,
-    shouldForceRenderingBelow = false,
-    wrapperStyle = {},
-    shouldRenderWithoutHover = false,
-}: TooltipProps) {
+function Tooltip(
+    {
+        children,
+        numberOfLines = CONST.TOOLTIP_MAX_LINES,
+        maxWidth = variables.sideBarWidth,
+        text = '',
+        renderTooltipContent,
+        renderTooltipContentKey = [],
+        shiftHorizontal = 0,
+        shiftVertical = 0,
+        shouldForceRenderingBelow = false,
+        wrapperStyle = {},
+        shouldRenderWithoutHover = false,
+        shouldForceRenderingLeft = false,
+    }: TooltipProps,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ref: unknown,
+) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -47,8 +50,6 @@ function Tooltip({
     const animation = useRef(new Animated.Value(0));
     const isAnimationCanceled = useRef(false);
     const prevText = usePrevious(text);
-
-    const target = useRef<HTMLElement | null>(null);
 
     /**
      * Display the tooltip in an animation.
@@ -93,9 +94,6 @@ function Tooltip({
         if (bounds.width === 0) {
             setIsRendered(false);
         }
-        if (!target.current) {
-            return;
-        }
         setWrapperWidth(bounds.width);
         setWrapperHeight(bounds.height);
         setXOffset(bounds.x);
@@ -132,7 +130,8 @@ function Tooltip({
         };
     }, [hideTooltip]);
 
-    // Skip the tooltip and return the children if the text is empty
+    // Skip the tooltip and return the children if the text is empty.
+    // Only render tooltip if shouldRenderWithoutHover because hover event is DOM-specific.
     if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || !shouldRenderWithoutHover) {
         return children;
     }
@@ -157,6 +156,7 @@ function Tooltip({
                     // This prevents flickering/moving while remaining performant.
                     key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                     shouldForceRenderingBelow={shouldForceRenderingBelow}
+                    shouldForceRenderingLeft={shouldForceRenderingLeft}
                     wrapperStyle={wrapperStyle}
                 />
             )}
