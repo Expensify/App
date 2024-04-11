@@ -191,15 +191,18 @@ function BaseVideoPlayer({
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading]);
 
+    const isCurrentlyURLSetRef = useRef<boolean>();
+    isCurrentlyURLSetRef.current = isCurrentlyURLSet;
+
     useEffect(
         () => () => {
-            if (!isCurrentlyURLSet) {
+            if (!isCurrentlyURLSetRef.current) {
                 return;
             }
 
             resetVideoPlayerData();
         },
-        [resetVideoPlayerData, isCurrentlyURLSet],
+        [resetVideoPlayerData],
     );
     // update shared video elements
     useEffect(() => {
