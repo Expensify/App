@@ -1,13 +1,10 @@
 import React, {useEffect, useMemo} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,15 +15,9 @@ import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption, PaymentType} from './ButtonWithDropdownMenu/types';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 import {useSession} from './OnyxProvider';
-
-type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
-
-type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
 
 type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
 
@@ -153,6 +144,7 @@ function SettlementButton({
     const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
     const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
     const paymentButtonOptions = useMemo(() => {
+        const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
@@ -165,67 +157,43 @@ function SettlementButton({
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
-            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
-                text: translate('iou.settlePersonalBank', {formattedAmount}),
-                icon: Expensicons.Bank,
-                value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-            },
-            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
-                text: translate('iou.settleBusinessBank', {formattedAmount}),
-                icon: Expensicons.Bank,
-                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-            },
-            [CONST.PAYMENT_METHODS.DEBIT_CARD]: {
-                text: translate('iou.settleDebitCard', {formattedAmount}),
-                icon: Expensicons.CreditCard,
-                value: CONST.PAYMENT_METHODS.DEBIT_CARD,
-            },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', {formattedAmount}),
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
-        
-        const buttonOptions = [];
         const approveButtonOption = {
             text: translate('iou.approve'),
             icon: Expensicons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
-    
+        const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
+
         // Only show the Approve button if the user cannot pay the request
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
             return [approveButtonOption];
         }
-    
+
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
         // If the user has previously chosen a specific payment option or paid for some request or expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
-    
-        if ((isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) || 
-            (!isExpenseReport && bankAccountList !== null && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
-        ) {
-            buttonOptions.push(
-                paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT],
-                paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT],
-                paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]
-            );
+        if (canUseWallet) {
+            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-    
         if (isExpenseReport && shouldShowPaywithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
-    
+
         if (shouldShowApproveButton) {
             buttonOptions.push(approveButtonOption);
         }
-    
+
         // Put the preferred payment method to the front of the array, so it's shown as default
         if (paymentMethod) {
             return buttonOptions.sort((method) => (method.value === paymentMethod ? -1 : 0));
@@ -234,35 +202,6 @@ function SettlementButton({
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
-    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (
-            iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ||
-            iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA ||
-            iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
-            iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ||
-            iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD
-        ) {
-            triggerKYCFlow(event, iouPaymentType);
-            BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
-            return;
-        }
-
-        if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-            if (confirmApproval) {
-                confirmApproval();
-            } else {
-                IOU.approveMoneyRequest(iouReport ?? {});
-            }
-            return;
-        }
-
-        playSound(SOUNDS.DONE);
-        onPress(iouPaymentType);
-    };
-
-    const savePreferredPaymentMethod = (id: string, value: PaymentMethodType) => {
-        IOU.savePreferredPaymentMethod(id, value);
-    };
 
     return (
         <KYCWall
@@ -276,24 +215,19 @@ function SettlementButton({
             iouReport={iouReport}
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
-        >
-            {(triggerKYCFlow, buttonRef) => (
-                <ButtonWithDropdownMenu<PaymentType>
-                    success
-                    buttonRef={buttonRef}
-                    isDisabled={isDisabled}
-                    isLoading={isLoading}
-                    onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
-                    pressOnEnter={pressOnEnter}
-                    options={paymentButtonOptions}
-                    onOptionSelected={(option) => savePreferredPaymentMethod(policyID, option.value)}
-                    style={style}
-                    buttonSize={buttonSize}
-                    anchorAlignment={paymentMethodDropdownAnchorAlignment}
-                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                />
-            )}
-        </KYCWall>
+            paymentButtonOptions={paymentButtonOptions}
+            buttonConfig={{
+                size: buttonSize,
+                isDisabled,
+                isLoading,
+                style,
+                paymentMethodDropdownAnchorAlignment,
+                enterKeyEventListenerPriority,
+                pressOnEnter,
+                confirmApproval
+            }}
+            policyID={policyID}
+        />
     );
 }
 

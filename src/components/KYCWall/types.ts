@@ -1,5 +1,6 @@
 import type {RefObject} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+
+import type {GestureResponderEvent, View, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -8,6 +9,9 @@ import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ButtonSizeValue} from '@src/styles/utils/types';
+import type {DropdownOption, PaymentType} from './ButtonWithDropdownMenu/types';
 
 type Source = ValueOf<typeof CONST.KYC_WALL_SOURCE>;
 
@@ -63,7 +67,22 @@ type KYCWallProps = {
     onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void;
 
     /** Children to build the KYC */
-    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View>) => void;
+    children?: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View>) => void;
+
+    paymentButtonOptions: Array<DropdownOption<PaymentType>>;
+
+    buttonConfig: {
+        size: ButtonSizeValue;
+        isDisabled?: boolean;
+        isLoading?: boolean;
+        style?: StyleProp<ViewStyle>;
+        paymentMethodDropdownAnchorAlignment?: AnchorAlignment;
+        enterKeyEventListenerPriority?: number;
+        pressOnEnter?: boolean;
+        confirmApproval?: () => void | undefined;
+    };
+    /** The policyID of the report we are paying */
+    policyID: string;
 };
 
 export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source};
