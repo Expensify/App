@@ -94,8 +94,6 @@ function getOrderedReportIDs(
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
-        const hasErrors = Object.keys(allReportErrors).length !== 0;
-        const hasBrickError = hasErrors || doesReportHaveViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         const hasErrorsOtherThanFailedReceipt = doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage');
         const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
