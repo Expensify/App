@@ -236,7 +236,7 @@ function IOURequestStepConfirmation({
 
     const createDistanceRequest = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string) => {
-            if (!report || !transaction) {
+            if (!transaction) {
                 return;
             }
             IOU.createDistanceRequest(
@@ -433,7 +433,7 @@ function IOURequestStepConfirmation({
 
             const participant = participants?.[0];
 
-            if (!participant || !report || !transaction?.amount || !currency) {
+            if (!participant || !transaction?.amount || !currency) {
                 return;
             }
 
