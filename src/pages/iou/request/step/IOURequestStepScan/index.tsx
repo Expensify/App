@@ -42,7 +42,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import type IOURequestStepOnyxProps from './types';
 import {Receipt} from "@src/types/onyx/Transaction";
 
 type IOURequestStepScanOnyxProps = {
@@ -51,6 +50,9 @@ type IOURequestStepScanOnyxProps = {
 
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<Policy>;
+
+    /** Whether the confirmation step should be skipped */
+    skipConfirmation: OnyxEntry<boolean>;
 };
 
 type IOURequestStepScanProps = IOURequestStepScanOnyxProps &
@@ -58,9 +60,6 @@ type IOURequestStepScanProps = IOURequestStepScanOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
-
-        /** Whether the confirmation step should be skipped */
-        skipConfirmation: boolean;
     };
 
 function IOURequestStepScan({
