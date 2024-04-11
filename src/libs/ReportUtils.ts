@@ -212,7 +212,19 @@ type OptimisticApprovedReportAction = Pick<
 
 type OptimisticSubmittedReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'adminAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachment'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
 >;
 
 type OptimisticHoldReportAction = Pick<
@@ -421,7 +433,7 @@ type OptionData = {
     notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
     name?: string | null;
-    isSelfDM?: boolean | null;
+    isSelfDM?: boolean;
     reportID?: string;
     enabled?: boolean;
     data?: Partial<TaxRate>;
@@ -1308,7 +1320,7 @@ function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | stri
  */
 function isOneTransactionReport(reportID: string): boolean {
     const reportActions = reportActionsByReport?.[reportID] ?? ([] as ReportAction[]);
-    return ReportActionsUtils.getOneTransactionThreadReportID(reportActions) !== null;
+    return ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions) !== null;
 }
 
 /**
@@ -1316,7 +1328,7 @@ function isOneTransactionReport(reportID: string): boolean {
  */
 function isOneTransactionThread(reportID: string, parentReportID: string): boolean {
     const parentReportActions = reportActionsByReport?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? ([] as ReportAction[]);
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReportActions);
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReportID, parentReportActions);
     return reportID === transactionThreadReportID;
 }
 
@@ -1959,13 +1971,17 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 /**
  * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
  */
-function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>, report: OnyxEntry<Report> | EmptyObject): string {
+function getReimbursementDeQueuedActionMessage(
+    reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>,
+    report: OnyxEntry<Report> | EmptyObject,
+    isLHNPreview = false,
+): string {
     const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
-        const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false) : getDisplayNameForParticipant(report?.managerID) ?? '';
+        const payerOrApproverName = report?.managerID === currentUserAccountID || !isLHNPreview ? '' : getDisplayNameForParticipant(report?.managerID, true);
         return Localize.translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
@@ -3564,7 +3580,7 @@ function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: stri
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticSubmittedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticSubmittedReportAction {
+function buildOptimisticSubmittedReportAction(amount: number, currency: string, expenseReportID: string, adminAccountID: number | undefined): OptimisticSubmittedReportAction {
     const originalMessage = {
         amount,
         currency,
@@ -3574,6 +3590,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
         actorAccountID: currentUserAccountID,
+        adminAccountID,
         automatic: false,
         avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
@@ -5069,7 +5086,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
 function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAction>): string | undefined {
     const reportActions = reportActionsByReport?.[reportID];
     const currentReportAction = reportActions?.[reportAction?.reportActionID ?? ''] ?? null;
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? ([] as ReportAction[]));
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? ([] as ReportAction[]));
     if (transactionThreadReportID !== null) {
         return Object.keys(currentReportAction ?? {}).length === 0 ? transactionThreadReportID : reportID;
     }
@@ -5781,6 +5798,19 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
 }
 
+function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report> | undefined): number | undefined {
+    switch (reportAction?.actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW:
+            return iouReport ? iouReport.managerID : reportAction?.actorAccountID;
+
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
+            return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
+
+        default:
+            return reportAction?.actorAccountID;
+    }
+}
+
 function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>, reportActionID: string): void {
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
     const reportActions = ReportActionsUtils.getAllReportActions(reportID);
@@ -6054,6 +6084,7 @@ export {
     isTrackExpenseReport,
     hasActionsWithErrors,
     createDraftTransactionAndNavigateToParticipantSelector,
+    getReportActionActorAccountID,
     getGroupChatName,
     getOutstandingChildRequest,
 };
