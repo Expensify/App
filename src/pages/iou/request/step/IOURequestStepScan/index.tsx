@@ -39,7 +39,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';;
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
