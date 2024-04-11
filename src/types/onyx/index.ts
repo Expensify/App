@@ -6,7 +6,7 @@ import type Beta from './Beta';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
 import type {CardList} from './Card';
-import type Log from './Console';
+import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -35,7 +35,7 @@ import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetai
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type {PolicyMembers} from './PolicyMember';
@@ -117,6 +117,7 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyConnectionSyncProgress,
     PolicyMember,
     PolicyMembers,
     PolicyOwnershipChangeChecks,
@@ -175,4 +176,5 @@ export type {
     NewGroupChatDraft,
     Log,
     PolicyJoinMember,
+    CapturedLogs,
 };
