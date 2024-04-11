@@ -27,25 +27,31 @@ describe('SequentialQueue', () => {
     });
 
     it('save a new request with conflict resolution', () => {
+        expect(PersistedRequests.getAll().length).toBe(1);
         const handleConflictingRequest = jest.fn();
         const newRequest = {
             command: 'ThingA',
             getConflictingRequests: (requests: Request[]) => requests,
             handleConflictingRequest,
         };
-        const secondRequest = {
-            command: 'ThingB',
-            getConflictingRequests: (requests: Request[]) => requests,
-            shouldIncludeCurrentRequest: true,
-        };
         SequentialQueue.push(newRequest);
-        SequentialQueue.push(secondRequest);
         expect(PersistedRequests.getAll().length).toBe(1);
         expect(handleConflictingRequest).toHaveBeenCalledWith(request);
         expect(handleConflictingRequest).toHaveBeenCalledTimes(1);
     });
 
-    it('a request should never conflict with itself', () => {
+    it('save a new request with conflict resolution and cancelling out new request', () => {
+        expect(PersistedRequests.getAll().length).toBe(1);
+        const newRequest = {
+            command: 'ThingA',
+            getConflictingRequests: (requests: Request[]) => requests,
+            shouldIncludeCurrentRequest: true,
+        };
+        SequentialQueue.push(newRequest);
+        expect(PersistedRequests.getAll().length).toBe(0);
+    });
+
+    it('a request should never conflict with itself if there are no other queued requests', () => {
         PersistedRequests.remove(request);
         expect(PersistedRequests.getAll().length).toBe(0);
 
@@ -58,5 +64,17 @@ describe('SequentialQueue', () => {
 
         SequentialQueue.push({...request, getConflictingRequests: (requests: Request[]) => requests, shouldIncludeCurrentRequest: true});
         expect(PersistedRequests.getAll().length).toBe(1);
+    });
+
+    it('should always ignore any requests that have already been sent', () => {
+        expect(PersistedRequests.getAll().length).toBe(1);
+        SequentialQueue.flush();
+        const newRequest = {
+            command: 'ThingA',
+            getConflictingRequests: (requests: Request[]) => requests,
+            shouldIncludeCurrentRequest: true,
+        };
+        SequentialQueue.push(newRequest);
+        expect(PersistedRequests.getAll().length).toBe(2);
     });
 });
