@@ -67,9 +67,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             {
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
-                onSelected: () => {
-                    setIsDisconnectModalOpen(true);
-                },
+                onSelected: () => setIsDisconnectModalOpen(true),
             },
         ],
         [translate],

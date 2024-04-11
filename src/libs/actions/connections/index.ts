@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import {RemovePolicyConnectionParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -36,7 +37,11 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
         //     },
         // },
     ];
-    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, {policyID, connectionName}, {optimisticData, failureData});
+    const parameters: RemovePolicyConnectionParams = {
+        policyID,
+        connectionName,
+    };
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData, failureData});
 }
 
 function updatePolicyConnectionConfig(policyID: string, settingName: ValueOf<typeof CONST.QUICK_BOOKS_IMPORTS>, settingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>) {

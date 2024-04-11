@@ -9,6 +9,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
@@ -21,11 +22,9 @@ type ConnectToQuickbooksOnlineButtonOnyxProps = {
 const renderLoading = () => <FullScreenLoadingIndicator />;
 
 function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbooksOnlineButtonProps & ConnectToQuickbooksOnlineButtonOnyxProps) {
-    const [isWebViewOpen, setWebViewOpen] = useState<boolean>(false);
-    const [isQuickbooksOnlineReady, setIsQuickbooksOnlineReady] = useState<boolean>(false);
+    const [isWebViewOpen, setWebViewOpen] = useState(false);
+    const [isQuickbooksOnlineReady, setIsQuickbooksOnlineReady] = useState(false);
     const {translate} = useLocalize();
-    const webViewRef = useRef<WebView>(null);
-    const authToken = session?.authToken ?? null;
 
     const handleNavigationStateChange = useCallback(({url, loading}: WebViewNavigation) => {
         if (loading || !url.startsWith('https://accounts.intuit.com/app/sign-in')) {
@@ -39,6 +38,7 @@ function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbook
             <Button
                 onPress={() => setWebViewOpen(true)}
                 text={translate('workspace.accounting.setup')}
+                small
             />
             {isWebViewOpen && (
                 <FullPageOfflineBlockingView>
@@ -49,15 +49,14 @@ function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbook
                         }}
                         fullscreen
                         isVisible
-                        type="centered"
+                        type={CONST.MODAL.MODAL_TYPE.CENTERED}
                     >
                         {!isQuickbooksOnlineReady && <FullScreenLoadingIndicator />}
                         <WebView
-                            ref={webViewRef}
                             source={{
                                 uri: getQuickBooksOnlineSetupLink(policyID),
                                 headers: {
-                                    Cookie: `authToken=${authToken}`,
+                                    Cookie: `authToken=${session?.authToken}`,
                                 },
                             }}
                             incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
