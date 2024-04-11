@@ -332,7 +332,10 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                     </PressableWithFeedback>
                 </View>
             ) : (
-                <View style={[styles.mv3]}>
+                <View
+                    style={[styles.mv3]}
+                    testID="no-2FA-validate-code-form"
+                >
                     <MagicCodeInput
                         autoComplete={autoComplete}
                         ref={(magicCodeInput) => {
