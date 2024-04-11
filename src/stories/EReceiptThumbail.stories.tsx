@@ -1,18 +1,18 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import {View} from 'react-native';
 import type {EReceiptThumbnailOnyxProps, EReceiptThumbnailProps} from '@components/EReceiptThumbnail';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 
-type EReceiptThumbnailStory = ComponentStory<typeof EReceiptThumbnail>;
+type EReceiptThumbnailStory = StoryFn<typeof EReceiptThumbnail>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof EReceiptThumbnail> = {
+const story: Meta<typeof EReceiptThumbnail> = {
     title: 'Components/EReceiptThumbnail',
     component: EReceiptThumbnail,
 };

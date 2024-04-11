@@ -139,10 +139,10 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     created: string;
 
     /** report action message */
-    message?: Message[];
+    message?: Array<Message | undefined>;
 
     /** report action message */
-    previousMessage?: Message[];
+    previousMessage?: Array<Message | undefined>;
 
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
