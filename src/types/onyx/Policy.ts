@@ -448,6 +448,7 @@ type PolicyConnectionSyncProgress = {
     stageInProgress: PolicyConnectionSyncStage;
     connectionName: PolicyConnectionName;
 };
+type PolicyConnectionSyncProgressList = Record<string, PolicyConnectionSyncProgress>;
 
 export default Policy;
 
@@ -466,4 +467,5 @@ export type {
     PendingJoinRequestPolicy,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
+    PolicyConnectionSyncProgressList,
 };
