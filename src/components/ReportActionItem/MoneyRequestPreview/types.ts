@@ -62,7 +62,7 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
     /** True if the IOU Preview card is hovered */
     isHovered?: boolean;
 
-    /** Whether or not an IOU report contains money requests in a different currency
+    /** Whether or not an IOU report contains expenses in a different currency
      * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
      */
     shouldShowPendingConversionMessage?: boolean;

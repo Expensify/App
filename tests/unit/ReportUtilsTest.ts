@@ -538,7 +538,7 @@ describe('ReportUtils', () => {
             });
         });
 
-        describe('return only money request and track expense options if', () => {
+        describe('return only submit expense and track expense options if', () => {
             it("it is an expense report tied to user's own policy expense chat", () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}102`, {
                     reportID: '102',
@@ -658,9 +658,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND)).toBe(true);
             });
-        });
 
-        describe('return multiple money request options and the track expense option if', () => {
             it("it is user's own policy expense chat", () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),

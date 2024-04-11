@@ -2639,7 +2639,7 @@ function getReportPreviewMessage(
 
             const transactionDetails = getTransactionDetails(linkedTransaction);
             const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
-            return Localize.translateLocal('iou.expensedAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
+            return Localize.translateLocal('iou.submittedAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
         }
     }
 
@@ -2723,7 +2723,7 @@ function getReportPreviewMessage(
 
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName = lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant(lastActorID, !isPreviewMessageForParentChatReport) : '';
-        return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.expensedAmount', {formattedAmount: amountToDisplay, comment})}`;
+        return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.submittedAmount', {formattedAmount: amountToDisplay, comment})}`;
     }
 
     if (containsNonReimbursable) {
@@ -3708,7 +3708,7 @@ function updateReportPreview(iouReport: OnyxEntry<Report>, reportPreviewAction: 
                   ...previousTransactions,
               }
             : recentReceiptTransactions,
-        // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
+        // As soon as we add a transaction without a receipt to the report, it will have ready expenses,
         // so we remove the whisper
         whisperedToAccountIDs: hasReceipt ? reportPreviewAction?.whisperedToAccountIDs : [],
     };
@@ -5307,7 +5307,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     } else if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
         translationKey = 'iou.trackedAmount';
     } else {
-        translationKey = 'iou.expensedAmount';
+        translationKey = 'iou.submittedAmount';
     }
     return Localize.translateLocal(translationKey, {
         formattedAmount,

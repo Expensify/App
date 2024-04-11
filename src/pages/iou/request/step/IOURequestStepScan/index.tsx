@@ -40,7 +40,7 @@ import type IOURequestStepOnyxProps from './types';
 
 type IOURequestStepScanProps = IOURequestStepOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        /** Holds data related to Expense view state, rather than the underlying Expense data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 

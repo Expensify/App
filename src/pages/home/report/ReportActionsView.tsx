@@ -145,7 +145,7 @@ function ReportActionsView({
         // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-        // Filter out the money request actions because we don't want to show any preview actions for one-transaction reports
+        // Filter out the expense actions because we don't want to show any preview actions for one-transaction reports
         const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
             const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
             return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !ReportActionsUtils.isSentMoneyReportAction(action);
@@ -444,7 +444,7 @@ function ReportActionsView({
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
-    // and we also generate an expense action if the number of expenses in reportActions is less than the total number of money requests
+    // and we also generate an expense action if the number of expenses in reportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {

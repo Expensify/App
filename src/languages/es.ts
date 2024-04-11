@@ -650,7 +650,7 @@ export default {
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
-        expensedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `seguimiento ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -1253,19 +1253,6 @@ export default {
             },
         },
         chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
-    },
-    signInPage: {
-        expensifyDotCash: 'Nuevo Expensify',
-        theCode: 'el código',
-        openJobs: 'trabajos disponibles',
-        heroHeading: 'Dividir cuentas\ny chatear con amigos.',
-        heroDescription: {
-            phrase1: 'El dinero habla. Y ahora que el chat y los pagos están en un solo lugar, también es fácil. Tus pagos te llegan tan rápido como puedes hacer llegar tu mensaje',
-            phrase2: 'Nuevo Expensify es de código abierto. Vista',
-            phrase3: 'el código',
-            phrase4: 'Vista',
-            phrase5: 'vacantes',
-        },
     },
     termsOfUse: {
         phrase1: 'Al iniciar sesión, estás accediendo a los',

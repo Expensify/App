@@ -773,7 +773,7 @@ function isMessageDeleted(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 /**
- * Returns the number of money requests associated with a report preview
+ * Returns the number of expenses associated with a report preview
  */
 function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>): number {
     return reportPreviewAction?.childMoneyRequestCount ?? 0;

@@ -64,7 +64,7 @@ type MoneyRequestConfirmationListOnyxProps = {
     /** The session of the logged in user */
     session: OnyxEntry<OnyxTypes.Session>;
 
-    /** Unit and rate used for if the money request is a distance request */
+    /** Unit and rate used for if the expense is a distance expense */
     mileageRate: OnyxEntry<DefaultMileageRate>;
 };
 

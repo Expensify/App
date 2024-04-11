@@ -92,7 +92,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
 }
 
 /**
- * Returns whether or not an IOU report contains money requests in a different currency
+ * Returns whether or not an IOU report contains expenses in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  */
 function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
