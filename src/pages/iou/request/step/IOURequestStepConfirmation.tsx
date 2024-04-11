@@ -97,7 +97,7 @@ function IOURequestStepConfirmation({
             transaction?.participants?.map((participant) => {
                 const participantAccountID = participant.accountID ?? 0;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
-            }),
+            }) ?? [],
         [transaction?.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
