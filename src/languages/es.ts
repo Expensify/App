@@ -602,6 +602,10 @@ export default {
         trackManual: 'Seguimiento de Gastos',
         trackScan: 'Seguimiento de Recibo',
         trackDistance: 'Seguimiento de Distancia',
+        tooltip: {
+            title: 'Quick action! ',
+            subtitle: 'Just a tap away.',
+        },
     },
     iou: {
         amount: 'Importe',

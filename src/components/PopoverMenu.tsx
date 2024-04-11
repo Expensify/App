@@ -216,6 +216,10 @@ function PopoverMenu({
                         floatRightAvatarSize={item.floatRightAvatarSize}
                         shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
                         disabled={item.disabled}
+                        shouldRenderTooltip={item.shouldRenderTooltip}
+                        isTooltipAlwaysOn={item.isTooltipAlwaysOn}
+                        tooltipWrapperStyle={item.tooltipWrapperStyle}
+                        renderTooltipContent={item.renderTooltipContent}
                     />
                 ))}
             </View>

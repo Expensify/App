@@ -9,6 +9,7 @@ import type {SvgProps} from 'react-native-svg';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -149,6 +150,16 @@ function FloatingActionButtonAndPopover(
         // Policy is needed as a dependency in order to update the shortcut details when the workspace changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy]);
+
+    const renderQuickActionTooltip = useCallback(
+        () => (
+            <Text>
+                <Text style={styles.quickActionTooltipTitle}>{translate('quickAction.tooltip.title')}</Text>
+                <Text style={styles.quickActionTooltipSubtitle}>{translate('quickAction.tooltip.subtitle')}</Text>
+            </Text>
+        ),
+        [styles.quickActionTooltipTitle, styles.quickActionTooltipSubtitle, translate],
+    );
 
     const quickActionTitle = useMemo(() => {
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
@@ -341,6 +352,10 @@ function FloatingActionButtonAndPopover(
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
+                                  shouldRenderTooltip: true,
+                                  isTooltipAlwaysOn: true,
+                                  renderTooltipContent: renderQuickActionTooltip,
+                                  tooltipWrapperStyle: styles.quickActionTooltipWrapper,
                               },
                           ]
                         : []),

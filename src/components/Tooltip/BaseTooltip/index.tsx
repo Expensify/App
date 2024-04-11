@@ -1,6 +1,6 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import TooltipRenderedOnPageBody from '@components/Tooltip/TooltipRenderedOnPageBody';
@@ -68,6 +68,8 @@ function Tooltip(
         shiftHorizontal = 0,
         shiftVertical = 0,
         shouldForceRenderingBelow = false,
+        wrapperStyle = {},
+        isAlwaysOn = false,
     }: TooltipProps,
     ref: ForwardedRef<BoundsObserver>,
 ) {
@@ -93,6 +95,7 @@ function Tooltip(
     const prevText = usePrevious(text);
 
     const target = useRef<HTMLElement | null>(null);
+    const childrenRef = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
     const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
@@ -202,6 +205,24 @@ function Tooltip(
         return children;
     }
 
+    const additionalChildrenProps = useMemo(
+        () =>
+            (isAlwaysOn
+                ? {
+                      ref: childrenRef,
+                      onLayout: () => {
+                          updateTargetPositionOnMouseEnter({
+                              currentTarget: childrenRef.current,
+                              clientX: childrenRef.current?.getBoundingClientRect().left,
+                              clientY: childrenRef.current?.getBoundingClientRect().top,
+                          } as MouseEvent);
+                          showTooltip();
+                      },
+                  }
+                : {}),
+        [isAlwaysOn, updateTargetPositionOnMouseEnter, showTooltip],
+    );
+
     return (
         <>
             {isRendered && (
@@ -222,6 +243,7 @@ function Tooltip(
                     // This prevents flickering/moving while remaining performant.
                     key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                     shouldForceRenderingBelow={shouldForceRenderingBelow}
+                    wrapperStyle={wrapperStyle}
                 />
             )}
 
@@ -241,6 +263,7 @@ function Tooltip(
                         >
                             {React.cloneElement(children as React.ReactElement, {
                                 onMouseEnter: updateTargetPositionOnMouseEnter,
+                                ...additionalChildrenProps,
                             })}
                         </Hoverable>
                     </BoundsObserver>

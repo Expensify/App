@@ -1,5 +1,5 @@
-import type {TextStyle, View, ViewStyle} from 'react-native';
-import {Animated} from 'react-native';
+import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import {Animated, StyleSheet} from 'react-native';
 import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -119,6 +119,7 @@ type TooltipParams = {
     manualShiftHorizontal?: number;
     manualShiftVertical?: number;
     shouldForceRenderingBelow?: boolean;
+    wrapperStyle: StyleProp<ViewStyle>;
 };
 
 type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles};
@@ -159,7 +160,9 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         manualShiftHorizontal = 0,
         manualShiftVertical = 0,
         shouldForceRenderingBelow = false,
+        wrapperStyle = {},
     }) => {
+        const customWrapperStyle = StyleSheet.flatten(wrapperStyle);
         const tooltipVerticalPadding = spacing.pv1;
 
         // We calculate tooltip width based on the tooltip's content width
@@ -274,6 +277,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 maxWidth,
                 top: rootWrapperTop,
                 left: rootWrapperLeft,
+                ...customWrapperStyle,
 
                 // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
                 ...styles.userSelectNone,
@@ -302,7 +306,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 borderTopWidth: POINTER_HEIGHT,
                 borderLeftColor: theme.transparent,
                 borderRightColor: theme.transparent,
-                borderTopColor: theme.heading,
+                borderTopColor: customWrapperStyle.backgroundColor ?? theme.heading,
                 ...pointerAdditionalStyle,
             },
         };

@@ -3667,6 +3667,19 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        quickActionTooltipWrapper: {
+            backgroundColor: colors.green100,
+        },
+
+        quickActionTooltipTitle: {
+            color: colors.green500,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        quickActionTooltipSubtitle: {
+            color: theme.tooltipPrimaryText,
+        },
+
         quickReactionsContainer: {
             gap: 12,
             flexDirection: 'row',

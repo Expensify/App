@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type TooltipProps = ChildrenProps & {
@@ -29,6 +30,10 @@ type TooltipProps = ChildrenProps & {
     shouldHandleScroll?: boolean;
 
     shouldForceRenderingBelow?: boolean;
+
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    isAlwaysOn?: boolean;
 };
 
 type TooltipExtendedProps = TooltipProps & {

@@ -6,7 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import Log from '@libs/Log';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
-import type TooltipProps from './types';
+import type TooltipProps from '@components/Tooltip/types';
 
 type TooltipRenderedOnPageBodyProps = {
     /** Window width */
@@ -34,7 +34,7 @@ type TooltipRenderedOnPageBodyProps = {
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical?: number;
-} & Pick<TooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow'>;
+} & Pick<TooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle'>;
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
@@ -55,6 +55,7 @@ function TooltipRenderedOnPageBody({
     maxWidth = 0,
     renderTooltipContent,
     shouldForceRenderingBelow = false,
+    wrapperStyle = {},
 }: TooltipRenderedOnPageBodyProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -97,6 +98,7 @@ function TooltipRenderedOnPageBody({
                 manualShiftHorizontal: shiftHorizontal,
                 manualShiftVertical: shiftVertical,
                 shouldForceRenderingBelow,
+                wrapperStyle,
             }),
         [
             StyleUtils,
@@ -112,6 +114,7 @@ function TooltipRenderedOnPageBody({
             shiftHorizontal,
             shiftVertical,
             shouldForceRenderingBelow,
+            wrapperStyle,
         ],
     );
 

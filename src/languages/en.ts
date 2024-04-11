@@ -606,6 +606,10 @@ export default {
         trackManual: 'Track Manual',
         trackScan: 'Track Scan',
         trackDistance: 'Track Distance',
+        tooltip: {
+            title: 'Quick action! ',
+            subtitle: 'Just a tap away.',
+        },
     },
     iou: {
         amount: 'Amount',
