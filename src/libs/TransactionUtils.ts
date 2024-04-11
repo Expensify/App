@@ -633,7 +633,6 @@ function getEnabledTaxRateCount(options: TaxRates) {
 /**
  * Check if the customUnitRateID has a value default for P2P distance requests
  */
-
 function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
