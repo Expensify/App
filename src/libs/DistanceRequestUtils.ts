@@ -244,7 +244,7 @@ function getDistanceFromMerchant(merchant: string | undefined, unit: Unit): numb
     if (!distance) {
         return 0;
     }
-
+    // we need to convert the distance back to meters (it's saved in kilometers or miles in merchant) to pass it to getDistanceForDisplay
     return unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? distance / METERS_TO_KM : distance / METERS_TO_MILES;
 }
 

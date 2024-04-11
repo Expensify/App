@@ -50,13 +50,17 @@ function IOURequestStepRate({
     const currentRateID = TransactionUtils.getRateID(transaction) ?? '';
     const initiallyFocusedOption = rates[currentRateID]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
 
-    const sections = Object.values(rates).map((rate) => ({
-        text: rate.name ?? '',
-        alternateText: DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit),
-        keyForList: rate.name ?? '',
-        value: rate.customUnitRateID,
-        isSelected: currentRateID ? currentRateID === rate.customUnitRateID : Boolean(rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE),
-    }));
+    const sections = Object.values(rates).map((rate) => {
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
+
+        return {
+            text: rate.name ?? rateForDisplay,
+            alternateText: rate.name ? rateForDisplay : '',
+            keyForList: rate.customUnitRateID,
+            value: rate.customUnitRateID,
+            isSelected: currentRateID ? currentRateID === rate.customUnitRateID : Boolean(rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE),
+        };
+    });
 
     const unit = (Object.values(rates)[0]?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
 
