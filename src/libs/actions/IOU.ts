@@ -1508,8 +1508,8 @@ function createDistanceRequest(
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
-    const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
 
     const optimisticReceipt: Receipt = {
@@ -1569,7 +1569,7 @@ function createDistanceRequest(
     };
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
-    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
+    Navigation.dismissModal(isMoneyRequestReport ? report?.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, userAccountID);
 }
 
@@ -4332,11 +4332,8 @@ function getSendMoneyParams(
         idempotencyKey: Str.guid(),
     });
 
-    let chatReport = report.reportID ? report : null;
+    let chatReport = report?.reportID ? report : ReportUtils.getChatByParticipants([recipientAccountID]);;
     let isNewChat = false;
-    if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([recipientAccountID]);
-    }
     if (!chatReport) {
         chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID]);
         isNewChat = true;
