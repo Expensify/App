@@ -42,7 +42,7 @@ function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
         if (isUnmounted.current || isJoinLinkUsed) {
             return;
         }
-        if (!isEmptyObject(policy)) {
+        if (!isEmptyObject(policy) && !policy?.isJoinRequestPending) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack(undefined, false, true);
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? ''));
