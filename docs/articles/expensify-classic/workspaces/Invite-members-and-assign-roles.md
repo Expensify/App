@@ -50,12 +50,9 @@ If you’re inviting multiple people who will be assigned the same role, you can
 
 7. Select a role for the new member. The following table shows the permissions available for each role:
 
-|                           | Employee                         | Auditor | Workspace Admin | 
-|---------------------------|----------------------------------|---------|-----------------|
-| Submit reports            |  Yes                             |  Yes    |  Yes            |
-| Comment on reports        |  Yes                             |  Yes    |  Yes            |
-| Approve workspace reports |  Only reports submitted to them  |  Yes    |  Yes            |
-| Edit workspace settings   |  No                              |  No     |  Yes            |
+| Employee                                                  | Auditor                                                   | Workspace Admin                                              | 
+|-----------------------------------------------------------|-----------------------------------------------------------|--------------------------------------------------------------|
+|  <ul><li>[x] Submit their own reports</li><li>[x] Approve reports submitted to them</li><li>[ ] View all workspace reports </li><li>[ ] Approve all workspace reports </li><li>[ ] Edit workspace settings</li></ul> |  <ul><li>[x] Submit their own reports</li><li>[x] Approve reports submitted to them</li><li>[x] View all workspace reports </li><li>[ ] Approve all workspace reports </li><li>[ ] Edit workspace settings</li></ul> | <ul><li>[x] Submit their own reports</li><li>[x] Approve reports submitted to them</li><li>[x] View all workspace reports </li><li>[x] Approve all workspace reports </li><li>[x] Edit workspace settings</li></ul> |
 
 8. If your workspace uses Advanced Approvals, select “Approves to.” This determines who the member’s reports must be approved by, if applicable. If “no one” is selected, then if the member submits a report, anyone with the Auditor or Workspace Admin role can approve their reports. 
 9. Add a personal message, if desired. This message will appear in the invitation email or message.
