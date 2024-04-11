@@ -188,7 +188,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
         return '';
     }
 
-    return Object.values(policyTagList).find((policy) => policy.orderWeight === orderWeight)?.name ?? '';
+    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight)?.name ?? '';
 }
 /**
  * Gets all tag lists of a policy
