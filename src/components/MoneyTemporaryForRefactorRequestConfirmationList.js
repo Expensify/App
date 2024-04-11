@@ -713,7 +713,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     isLabelHoverable={false}
                     interactive={!isReadOnly && canUpdateSenderWorkspace}
                     onPress={() => {
-                        // Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}

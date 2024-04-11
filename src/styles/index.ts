@@ -3003,6 +3003,16 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
+        roundCheckmarkWrapper: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: 24,
+            width: 24,
+            borderRadius: 12,
+            borderColor: theme.borderLighter,
+            borderWidth: 1,
+        },
+
         codeWordWrapper: {
             ...codeStyles.codeWordWrapper,
         },
