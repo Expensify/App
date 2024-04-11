@@ -15,8 +15,8 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy';
-import ROUTES from '@src/ROUTES';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
@@ -24,38 +24,26 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
-    const {autoSync, syncPeople, autoCreateVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {autoSync, syncPeople, autoCreateVendor, reimbursementAccountID} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const qboSyncToggleSettings = [
         {
             title: translate('workspace.qbo.advancedConfig.autoSync'),
             subTitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: Boolean(autoSync),
-            onToggle: () => Policy.updatePolicyConnectionConfig(
-                policyID,
-                CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC,
-                !autoSync,
-            ),
+            onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, !autoSync),
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subTitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             isActive: Boolean(syncPeople),
-            onToggle: () => Policy.updatePolicyConnectionConfig(
-                policyID,
-                CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE,
-                !syncPeople,
-            ),
+            onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE, !syncPeople),
         },
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
             subTitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: Boolean(autoCreateVendor),
-            onToggle: () => Policy.updatePolicyConnectionConfig(
-                policyID,
-                CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR,
-                !autoCreateVendor,
-            ),
+            onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
         },
     ];
 
@@ -93,8 +81,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.qbo.advancedConfig.reimbursedReports')}
                         subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
-                        isActive
-                        onToggle={() => {}}
+                        isActive={Boolean(reimbursementAccountID)}
+                        onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, !reimbursementAccountID)}
                     />
                 </View>
                 <OfflineWithFeedback>
