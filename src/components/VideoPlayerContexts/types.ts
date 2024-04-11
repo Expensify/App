@@ -17,6 +17,7 @@ type PlaybackContext = {
     playVideo: () => void;
     pauseVideo: () => void;
     checkVideoPlaying: (statusCallback: StatusCallback) => void;
+    resetVideoPlayerData: () => void;
 };
 
 type VolumeContext = {

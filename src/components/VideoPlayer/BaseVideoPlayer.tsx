@@ -45,8 +45,18 @@ function BaseVideoPlayer({
     isVideoHovered = false,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
-    const {pauseVideo, playVideo, currentlyPlayingURL, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL, videoResumeTryNumber} =
-        usePlaybackContext();
+    const {
+        pauseVideo,
+        playVideo,
+        currentlyPlayingURL,
+        sharedElement,
+        originalParent,
+        shareVideoPlayerElements,
+        currentVideoPlayerRef,
+        updateCurrentlyPlayingURL,
+        videoResumeTryNumber,
+        resetVideoPlayerData,
+    } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
     const [duration, setDuration] = useState(videoDuration * 1000);
@@ -181,6 +191,19 @@ function BaseVideoPlayer({
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading]);
 
+    // const isCurrentlyURLSetRef = useRef();
+    // isCurrentlyURLSetRef.current = isCurrentlyURLSet;
+
+    useEffect(
+        () => () => {
+            if (!isCurrentlyURLSet) {
+                return;
+            }
+
+            resetVideoPlayerData();
+        },
+        [resetVideoPlayerData, isCurrentlyURLSet],
+    );
     // update shared video elements
     useEffect(() => {
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || isFullScreenRef.current) {
