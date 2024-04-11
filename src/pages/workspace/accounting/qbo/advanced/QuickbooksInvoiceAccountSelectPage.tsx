@@ -9,6 +9,9 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
@@ -27,6 +30,8 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
 
     const [selectedAccount, setSelectedAccount] = useState<CustomSelectorTypes>(CONST.QBO_SELECTOR_OPTIONS.CROISSANT_CO_MONEY_IN_CLEARING);
+
+    const policyID = policy?.id ?? '';
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
@@ -55,18 +60,27 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={QuickbooksInvoiceAccountSelectPage.displayName}
-        >
-            <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.collectionAccount')} />
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
+                <FeatureEnabledAccessOrNotFoundWrapper
+                    policyID={policyID}
+                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+                >
+                    <ScreenWrapper
+                        includeSafeAreaPaddingBottom={false}
+                        shouldEnableMaxHeight
+                        testID={QuickbooksInvoiceAccountSelectPage.displayName}
+                    >
+                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.collectionAccount')} />
 
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectDescription')}</Text>
-            </View>
-            <ScrollView>{showQBOOnlineSelectorOptions()}</ScrollView>
-        </ScreenWrapper>
+                        <View style={[styles.pb2, styles.ph5]}>
+                            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectDescription')}</Text>
+                        </View>
+                        <ScrollView>{showQBOOnlineSelectorOptions()}</ScrollView>
+                    </ScreenWrapper>
+                </FeatureEnabledAccessOrNotFoundWrapper>
+            </PaidPolicyAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 
