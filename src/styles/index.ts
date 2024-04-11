@@ -3972,6 +3972,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: 7,
             fontWeight: FontUtils.fontWeight.bold,
             lineHeight: undefined,
+            color: theme.textLight,
         },
 
         expensifyQrLogo: {
