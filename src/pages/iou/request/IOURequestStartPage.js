@@ -83,7 +83,7 @@ function IOURequestStartPage({
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);
-    const {canUseP2PDistanceRequests} = usePermissions();
+    const {canUseP2PDistanceRequests} = usePermissions(iouType);
     const isFromGlobalCreate = _.isEmpty(report.reportID);
 
     useFocusEffect(
@@ -111,6 +111,7 @@ function IOURequestStartPage({
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
+
     const shouldDisplayDistanceRequest =
         ![CONST.IOU.TYPE.TRACK_EXPENSE, CONST.IOU.TYPE.INVOICE].includes(iouType) && (canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate);
     const shouldDisplayScanRequest = iouType !== CONST.IOU.TYPE.INVOICE;

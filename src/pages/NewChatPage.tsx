@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -25,32 +24,21 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
-type NewChatPageWithOnyxProps = {
-    /** New group chat draft data */
-    newGroupDraft: OnyxEntry<OnyxTypes.NewGroupChatDraft>;
-
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
-    /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: OnyxEntry<OnyxTypes.DismissedReferralBanners>;
-
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: OnyxEntry<boolean>;
-};
-
-type NewChatPageProps = NewChatPageWithOnyxProps & {
+type NewChatPageProps = {
     isGroupChat?: boolean;
 };
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, isSearchingForReports, dismissedReferralBanners, newGroupDraft}: NewChatPageProps) {
+function NewChatPage({isGroupChat}: NewChatPageProps) {
+    const [dismissedReferralBanners] = useOnyx(ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS);
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+
     const {translate} = useLocalize();
 
     const styles = useThemeStyles();
@@ -311,21 +299,4 @@ function NewChatPage({betas, isGroupChat, personalDetails, isSearchingForReports
 
 NewChatPage.displayName = 'NewChatPage';
 
-export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
-    newGroupDraft: {
-        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
-    },
-})(NewChatPage);
+export default NewChatPage;
