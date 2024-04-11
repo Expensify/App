@@ -108,7 +108,7 @@ describe('NetworkTests', () => {
             HttpUtils.xhr = mockedXhr;
 
             // This should first trigger re-authentication and then a Failed to fetch
-            PersonalDetails.openPersonalDetails();
+            PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
             return waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
@@ -119,11 +119,11 @@ describe('NetworkTests', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    // Then we will eventually have 1 call to OpenPersonalDetailsPage and 1 calls to Authenticate
-                    const callsToOpenPersonalDetails = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPersonalDetailsPage');
+                    // Then we will eventually have 1 call to OpenPublicProfilePage and 1 calls to Authenticate
+                    const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
                     const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
 
-                    expect(callsToOpenPersonalDetails.length).toBe(1);
+                    expect(callsToOpenPublicProfilePage.length).toBe(1);
                     expect(callsToAuthenticate.length).toBe(1);
                 });
         });
@@ -143,7 +143,7 @@ describe('NetworkTests', () => {
                 const mockedXhr = jest.fn();
                 mockedXhr
 
-                    // And mock the first call to openPersonalDetails return with an expired session code
+                    // And mock the first call to openPublicProfilePage return with an expired session code
                     .mockImplementationOnce(() =>
                         Promise.resolve({
                             jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
@@ -176,17 +176,17 @@ describe('NetworkTests', () => {
                 // And then make 3 API READ requests in quick succession with an expired authToken and handle the response
                 // It doesn't matter which requests these are really as all the response is mocked we just want to see
                 // that we get re-authenticated
-                PersonalDetails.openPersonalDetails();
-                PersonalDetails.openPersonalDetails();
-                PersonalDetails.openPersonalDetails();
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // We should expect to see the three calls to OpenApp, but only one call to Authenticate.
                 // And we should also see the reconnection callbacks triggered.
-                const callsToOpenPersonalDetails = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPersonalDetailsPage');
+                const callsToopenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
                 const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
-                expect(callsToOpenPersonalDetails.length).toBe(3);
+                expect(callsToopenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectionCallbacksSpy.mock.calls.length).toBe(3);
             });

@@ -5,10 +5,16 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import taxPropTypes from '@components/taxPropTypes';
 import {translatableTextPropTypes} from '@libs/Localize';
-import type {CentralPaneNavigatorParamList, FullScreenNavigatorParamList, SettingsNavigatorParamList, WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
+import type {
+    BottomTabNavigatorParamList,
+    CentralPaneNavigatorParamList,
+    FullScreenNavigatorParamList,
+    ReimbursementAccountNavigatorParamList,
+    SettingsNavigatorParamList,
+    WorkspacesCentralPaneNavigatorParamList,
+} from '@navigation/types';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -16,8 +22,34 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceParamList = WorkspacesCentralPaneNavigatorParamList & FullScreenNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList;
-type PolicyRoute = RouteProp<WorkspaceParamList, ValueOf<typeof SCREENS.WORKSPACE>>;
+type NavigatorsParamList = BottomTabNavigatorParamList &
+    CentralPaneNavigatorParamList &
+    SettingsNavigatorParamList &
+    ReimbursementAccountNavigatorParamList &
+    FullScreenNavigatorParamList &
+    WorkspacesCentralPaneNavigatorParamList;
+
+type PolicyRoute = RouteProp<
+    NavigatorsParamList,
+    | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT
+    | typeof SCREENS.WORKSPACE.INITIAL
+    | typeof SCREENS.WORKSPACE.BILLS
+    | typeof SCREENS.WORKSPACE.MORE_FEATURES
+    | typeof SCREENS.WORKSPACE.MEMBERS
+    | typeof SCREENS.WORKSPACE.INVITE
+    | typeof SCREENS.WORKSPACE.INVITE_MESSAGE
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER
+    | typeof SCREENS.WORKSPACE.WORKFLOWS
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVER
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET
+    | typeof SCREENS.WORKSPACE.TRAVEL
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY
+    | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
+    | typeof SCREENS.WORKSPACE.INVOICES
+    | typeof SCREENS.WORKSPACE.CARD
+    | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
+    | typeof SCREENS.WORKSPACE.TAX_EDIT
+>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
     return route?.params?.policyID ?? '';
