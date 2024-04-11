@@ -228,7 +228,6 @@ function BaseSelectionList<TItem extends ListItem>(
         maxIndex: flattenedSections.allOptions.length - 1,
         isActive: true,
         onFocusedIndexChange: (index: number) => {
-            setFocusedIndex(index);
             scrollToIndex(index, true);
         },
         isFocused,
