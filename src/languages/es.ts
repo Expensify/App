@@ -2102,7 +2102,10 @@ export default {
                             return 'Sincronizando reportes reembolsados y facturas pagadas';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importando tipos de impuestos';
-
+                        case 'quickbooksOnlineCheckConnection':
+                            return 'Revisando conexión a QuickBooks Online';
+                        case 'quickbooksOnlineImportMain':
+                            return 'Importando datos desde QuickBooks Online';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
