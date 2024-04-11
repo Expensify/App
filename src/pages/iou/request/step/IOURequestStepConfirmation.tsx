@@ -84,7 +84,7 @@ function IOURequestStepConfirmation({
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
-    const gpsRequired = transaction.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile;
+    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile;
 
     const headerTitle = useMemo(() => {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
