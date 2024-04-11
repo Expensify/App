@@ -2,7 +2,6 @@ import React, {useCallback, useContext, useEffect, useReducer, useRef, useState}
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
-import _ from 'underscore';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -16,7 +15,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import useTheme from '@hooks/useTheme';
@@ -39,8 +39,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
-import {Receipt} from '@src/types/onyx/Transaction';
+import type {PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
@@ -243,7 +243,7 @@ function IOURequestStepScan({
             // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            const participants = _.map(selectedParticipants, (participant) => {
+            const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? 0;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
@@ -570,7 +570,7 @@ function IOURequestStepScan({
 
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequestStepScanOnyxProps>({
+const IOURequestStepScanWithOnyx = withOnyx<IOURequestStepScanProps, IOURequestStepScanOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
     },
@@ -586,7 +586,7 @@ const IOURequestStepScanOnyxProps = withOnyx<IOURequestStepScanProps, IOURequest
 })(IOURequestStepScan);
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanOnyxProps);
+const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails);
 // eslint-disable-next-line rulesdir/no-negated-variables
