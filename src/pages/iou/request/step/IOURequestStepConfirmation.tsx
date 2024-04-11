@@ -228,6 +228,7 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 gpsPoints,
+                Object.keys(transaction?.comment?.waypoints ?? {}).length ? TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true) : undefined,
             );
         },
         [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, transactionTaxCode, transactionTaxAmount, policy, policyTags, policyCategories],
@@ -235,7 +236,7 @@ function IOURequestStepConfirmation({
 
     const createDistanceRequest = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string) => {
-            if (!report || !transaction) {
+            if (!transaction) {
                 return;
             }
             IOU.createDistanceRequest(
@@ -432,7 +433,7 @@ function IOURequestStepConfirmation({
 
             const participant = participants?.[0];
 
-            if (!participant || !report || !transaction?.amount || !currency) {
+            if (!participant || !transaction?.amount || !currency) {
                 return;
             }
 
