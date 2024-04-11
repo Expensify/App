@@ -207,7 +207,7 @@ function Tooltip(
 
     const additionalChildrenProps = useMemo(
         () =>
-            (isAlwaysOn
+            isAlwaysOn
                 ? {
                       ref: childrenRef,
                       onLayout: () => {
@@ -219,7 +219,7 @@ function Tooltip(
                           showTooltip();
                       },
                   }
-                : {}),
+                : {},
         [isAlwaysOn, updateTargetPositionOnMouseEnter, showTooltip],
     );
 

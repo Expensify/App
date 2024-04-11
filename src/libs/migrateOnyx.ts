@@ -2,6 +2,7 @@ import Log from './Log';
 import CheckForPreviousReportActionID from './migrations/CheckForPreviousReportActionID';
 import KeyReportActionsDraftByReportActionID from './migrations/KeyReportActionsDraftByReportActionID';
 import NVPMigration from './migrations/NVPMigration';
+import PronounsMigration from './migrations/PronounsMigration';
 import RemoveEmptyReportActionsDrafts from './migrations/RemoveEmptyReportActionsDrafts';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 import TransactionBackupsToCollection from './migrations/TransactionBackupsToCollection';
@@ -19,6 +20,7 @@ export default function () {
             TransactionBackupsToCollection,
             RemoveEmptyReportActionsDrafts,
             NVPMigration,
+            PronounsMigration,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
