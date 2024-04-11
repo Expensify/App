@@ -3,6 +3,7 @@ import type {ReactNode} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -38,6 +39,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon}: Confirmed
     const coordinates = route?.geometry?.coordinates ?? [];
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const getMarkerComponent = useCallback(
         (icon: IconAsset): ReactNode => (
@@ -105,7 +107,10 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon}: Confirmed
             styleURL={CONST.MAPBOX.STYLE_URL}
         />
     ) : (
-        <PendingMapView isSmallIcon={isSmallIcon} />
+        <PendingMapView
+            isSmallIcon={isSmallIcon}
+            style={StyleUtils.getBorderRadiusStyle(0)}
+        />
     );
 }
 
