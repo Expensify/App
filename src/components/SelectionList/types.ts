@@ -185,7 +185,7 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
 
 type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
-    sections: Array<SectionListData<TItem, Section<TItem>>> | typeof CONST.EMPTY_ARRAY;
+    sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
@@ -339,11 +339,11 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type ExtendedSectionListData<TItem extends ListItem, TSection extends Section<TItem>> = SectionListData<TItem, TSection> & {
+type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWithIndexOffset<TItem>> = SectionListData<TItem, TSection> & {
     CustomSectionHeader?: ({section}: {section: TSection}) => ReactElement;
 };
 
-type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, Section<TItem>>;
+type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
 export type {
     BaseSelectionListProps,

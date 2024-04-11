@@ -1,9 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -13,8 +11,6 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -54,8 +50,6 @@ type WorkspaceSwitcherPageProps = WorkspaceSwitcherPageOnyxProps;
 const WorkspaceCardCreateAWorkspaceInstance = <WorkspaceCardCreateAWorkspace />;
 
 function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
-    const theme = useTheme();
-    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
@@ -176,44 +170,6 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
     const headerMessage = filteredAndSortedUserWorkspaces.length === 0 ? translate('common.noResultsFound') : '';
     const shouldShowCreateWorkspace = usersWorkspaces.length === 0;
 
-    const renderRightHandSideComponent = useCallback(
-        (item: WorkspaceListItem) => {
-            if (item.isSelected) {
-                return (
-                    <View style={styles.defaultCheckmarkWrapper}>
-                        <Icon
-                            src={Expensicons.Checkmark}
-                            fill={theme.iconSuccessFill}
-                        />
-                    </View>
-                );
-            }
-
-            if (item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                return (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Icon
-                            src={Expensicons.DotIndicator}
-                            fill={theme.danger}
-                        />
-                    </View>
-                );
-            }
-            if (item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-                return (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Icon
-                            src={Expensicons.DotIndicator}
-                            fill={theme.iconSuccessFill}
-                        />
-                    </View>
-                );
-            }
-            return null;
-        },
-        [styles, theme],
-    );
-
     return (
         <ScreenWrapper
             testID={WorkspaceSwitcherPage.displayName}
@@ -225,7 +181,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         title={translate('workspace.switcher.headerTitle')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <SelectionList
+                    <SelectionList<WorkspaceListItem>
                         ListItem={UserListItem}
                         sections={didScreenTransitionEnd ? sections : CONST.EMPTY_ARRAY}
                         onSelectRow={selectPolicy}
@@ -233,7 +189,6 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
-                        rightHandSideComponent={renderRightHandSideComponent}
                         listFooterContent={shouldShowCreateWorkspace ? WorkspaceCardCreateAWorkspaceInstance : null}
                         initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
                         showLoadingPlaceholder

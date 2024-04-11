@@ -2,7 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListRenderItemInfo} from 'react-native';
+import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo} from 'react-native';
 import {View} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
@@ -298,7 +298,7 @@ function BaseSelectionList<TItem extends ListItem>(
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      */
-    const getItemLayout = (data: Array<SectionListDataType<TItem>> | null, flatDataArrayIndex: number) => {
+    const getItemLayout = (data: Array<SectionListData<TItem, SectionWithIndexOffset<TItem>>> | null, flatDataArrayIndex: number) => {
         const targetItem = flattenedSections.itemLayouts[flatDataArrayIndex];
 
         if (!targetItem) {
@@ -320,6 +320,7 @@ function BaseSelectionList<TItem extends ListItem>(
         if (section.CustomSectionHeader) {
             return <section.CustomSectionHeader section={section} />;
         }
+
         if (!section.title || isEmptyObject(section.data)) {
             return null;
         }
@@ -336,7 +337,7 @@ function BaseSelectionList<TItem extends ListItem>(
     };
 
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
-        const normalizedIndex = index + section.indexOffset;
+        const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
@@ -602,7 +603,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
                                     onLayout={onSectionListLayout}
-                                    style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
+                                    style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
                                     ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 />
                                 {children}
