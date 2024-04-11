@@ -475,7 +475,7 @@ function IOURequestStepConfirmation({
                         ]}
                     />
                     {/* @ts-expect-error TODO: Remove this once MoneyRequestConfirmationList (https://github.com/Expensify/App/issues/36130) is migrated to TypeScript. */}
-                    <MoneyRequestConfirmationList 
+                    <MoneyRequestConfirmationList
                         transaction={transaction}
                         hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                         selectedParticipants={participants}
