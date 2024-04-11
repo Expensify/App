@@ -1250,7 +1250,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
                 return persistedRequests.filter((request) => conflictingCommands.includes(request.command) && request.data?.reportActionID === reportActionID);
             },
             handleConflictingRequest: () => Onyx.update(successData),
-            shouldIncludeCurrentRequestOnConflict: !isDeletedParentAction,
+            shouldSkipThisRequestOnConflict: !isDeletedParentAction,
         },
     );
 }

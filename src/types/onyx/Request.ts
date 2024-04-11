@@ -37,12 +37,17 @@ type RequestConflictResolver = {
     getConflictingRequests?: (persistedRequests: Request[]) => Request[];
 
     /**
-     * Should the requests provided to getConflictingRequests include the new request?
-     * This is useful if the new request and an existing request cancel eachother out completely.
+     * If other conflicting requests are found, should the new request still happen?
+     * This is useful if the new request and an existing request cancel each other out completely.
      *
      * @example - In DeleteComment, if you're deleting an optimistic comment, you'd want to cancel the optimistic AddComment call AND the DeleteComment call.
+     *            In this case you'd want shouldSkipThisRequestOnConflict to be true
+     *
+     * @example - If multiple OpenReport commands are queued for the same report offline (and none of them are creating the report optimistically),
+     *            then you'd want to cancel the other OpenReport commands and keep only the last one.
+     *            In this case, you'd want shouldSkipThisRequestOnConflict to be false
      * */
-    shouldIncludeCurrentRequestOnConflict?: boolean;
+    shouldSkipThisRequestOnConflict?: boolean;
 
     /**
      * Callback to handle a single conflicting request.

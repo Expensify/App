@@ -166,7 +166,7 @@ function push(request: OnyxRequest) {
     // identify and handle any existing requests that conflict with the new one
     const requests = PersistedRequests.getAll().filter((persistedRequest) => persistedRequest !== currentRequest);
     let hasConflict = false;
-    const {getConflictingRequests, handleConflictingRequest, shouldIncludeCurrentRequestOnConflict} = request;
+    const {getConflictingRequests, handleConflictingRequest, shouldSkipThisRequestOnConflict} = request;
     if (getConflictingRequests) {
         // Identify conflicting requests according to logic bound to the new request
         const conflictingRequests = getConflictingRequests(requests);
@@ -186,10 +186,10 @@ function push(request: OnyxRequest) {
     // Don't try to serialize conflict resolution functions
     delete request.getConflictingRequests;
     delete request.handleConflictingRequest;
-    delete request.shouldIncludeCurrentRequestOnConflict;
+    delete request.shouldSkipThisRequestOnConflict;
 
     // Add request to Persisted Requests so that it can be retried if it fails
-    if (!hasConflict || !shouldIncludeCurrentRequestOnConflict) {
+    if (!(hasConflict && shouldSkipThisRequestOnConflict)) {
         PersistedRequests.save(request);
     }
 
