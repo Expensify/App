@@ -2099,6 +2099,14 @@ export default {
                             return 'Importing accounts';
                         case 'quickbooksOnlineImportClasses':
                             return 'Importing classes';
+                        case 'quickbooksOnlineImportLocations':
+                            return 'Importing locations';
+                        case 'quickbooksOnlineImportProcessing':
+                            return 'Processing imported data';
+                        case 'quickbooksOnlineSyncBillPayments':
+                            return 'Synchronizing reimbursed reports and Bill Payments';
+                        case 'quickbooksOnlineSyncTaxCodes':
+                            return 'Importing Tax Codes';
 
                         default: {
                             return `Translation missing for stage: ${stage}`;
