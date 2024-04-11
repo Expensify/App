@@ -373,9 +373,9 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
-    let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
+    let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
-    if (text) {
+    if (text && !file) {
         const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
@@ -385,8 +385,16 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = ReportUtils.buildOptimisticAddCommentReportAction('', file);
+        const attachment = ReportUtils.buildOptimisticAddCommentReportAction(text, file);
         attachmentAction = attachment.reportAction;
+    }
+
+    if (text && file) {
+        // When there is both text and a file, the text for the report comment needs to be parsed)
+        reportCommentText = ReportUtils.getParsedComment(text ?? '');
+
+        // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
+        commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
     }
 
     // Always prefer the file as the last action over text
@@ -412,7 +420,9 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
     // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
-    if (text && reportCommentAction?.reportActionID) {
+
+    // Only add the reportCommentAction when there is no file attachment. If there is both a file attachment and text, that will all be contained in the attachmentAction.
+    if (text && reportCommentAction?.reportActionID && !file) {
         optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
     if (file && attachmentAction?.reportActionID) {
