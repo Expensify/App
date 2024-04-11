@@ -1029,7 +1029,10 @@ function leaveWorkspace(policyID: string) {
     const pendingChatMembers = ReportUtils.getPendingChatMembers([sessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     workspaceChats.forEach((report) => {
-        if (ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isReportOwner(report)) {
+        const parentReport = ReportUtils.getRootParentReport(report);
+        const reportToCheckOwner = isEmptyObject(parentReport) ? report : parentReport;
+
+        if (ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isReportOwner(reportToCheckOwner)) {
             return;
         }
 
