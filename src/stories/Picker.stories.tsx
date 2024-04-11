@@ -1,9 +1,9 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React, {useState} from 'react';
 import Picker from '@components/Picker';
 import type {BasePickerProps} from '@components/Picker/types';
 
-type PickerStory = ComponentStory<typeof Picker<string>>;
+type PickerStory = StoryFn<typeof Picker<string>>;
 
 type TemplateProps = Omit<BasePickerProps<string>, 'onInputChange'>;
 
@@ -12,7 +12,7 @@ type TemplateProps = Omit<BasePickerProps<string>, 'onInputChange'>;
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof Picker> = {
+const story: Meta<typeof Picker> = {
     title: 'Components/Picker',
     component: Picker,
 };
