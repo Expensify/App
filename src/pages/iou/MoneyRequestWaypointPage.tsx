@@ -15,7 +15,6 @@ type MoneyRequestWaypointPageProps = StackScreenProps<MoneyRequestNavigatorParam
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that WaypointEditor can subscribe to the transaction.
 function MoneyRequestWaypointPage({transactionID = '', route}: MoneyRequestWaypointPageProps) {
     return (
-        // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound(https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
         <IOURequestStepWaypoint
             // Put the transactionID into the route params so that WaypointEdit behaves the same when creating a new waypoint
             // or editing an existing waypoint.

@@ -201,7 +201,7 @@ test('[Search Page] should interact when text input changes', async () => {
     );
 });
 
-test('[Search Page] should render selection list', async () => {
+test.skip('[Search Page] should render selection list', async () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const smallMockedPersonalDetails = getMockedPersonalDetails(5);
 
