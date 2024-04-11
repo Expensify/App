@@ -48,7 +48,7 @@ import type IOURequestStepOnyxProps from './types';
 
 type IOURequestStepScanOnyxProps = {
     /** Whether the confirmation step should be skipped */
-    skipConfirmation: PropTypes.bool;
+    skipConfirmation: boolean;
 
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -104,7 +104,7 @@ function IOURequestStepScan({
     const shouldSkipConfirmation =
         skipConfirmation &&
         !ReportUtils.isArchivedRoom(report) &&
-        !(ReportUtils.isPolicyExpenseChat(reportID) && (policy?.requiresCategory ?? false || policy?.requiresTag ?? false));
+        !(ReportUtils.isPolicyExpenseChat(reportID) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
@@ -230,7 +230,7 @@ function IOURequestStepScan({
     };
 
     const navigateToConfirmationStep = useCallback(
-        (file, source) => {
+        (file: FileObject, source: string) => {
             if (backTo) {
                 Navigation.goBack(backTo);
                 return;

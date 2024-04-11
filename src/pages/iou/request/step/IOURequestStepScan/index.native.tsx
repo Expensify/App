@@ -33,7 +33,6 @@ import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -51,7 +50,7 @@ type IOURequestStepScanOnyxProps = {
     user: OnyxEntry<OnyxTypes.User>;
 
     /** Whether the confirmation step should be skipped */
-    skipConfirmation: PropTypes.bool;
+    skipConfirmation: boolean;
 
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -94,7 +93,7 @@ function IOURequestStepScan({
     const shouldSkipConfirmation =
         skipConfirmation &&
         !ReportUtils.isArchivedRoom(report) &&
-        !(ReportUtils.isPolicyExpenseChat(reportID) && (policy?.requiresCategory ?? false || policy?.requiresTag ?? false));
+        !(ReportUtils.isPolicyExpenseChat(reportID) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
     const {translate} = useLocalize();
 
@@ -204,7 +203,7 @@ function IOURequestStepScan({
     };
 
     const navigateToConfirmationStep = useCallback(
-        (file, source) => {
+        (file: FileObject, source: string) => {
             if (backTo) {
                 Navigation.goBack(backTo);
                 return;
