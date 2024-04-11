@@ -51,6 +51,9 @@ type ConfirmModalProps = {
     /** Icon to display above the title */
     iconSource?: IconAsset;
 
+    /** Fill color for the Icon */
+    iconFill?: string | false;
+
     /** Icon width */
     iconWidth?: number;
 
@@ -111,6 +114,7 @@ function ConfirmModal({
     image,
     iconWidth,
     iconHeight,
+    iconFill,
     shouldCenterIcon,
     shouldShowDismissIcon,
     titleContainerStyles,
@@ -144,6 +148,7 @@ function ConfirmModal({
                 shouldShowCancelButton={shouldShowCancelButton}
                 shouldCenterContent={shouldCenterContent}
                 iconSource={iconSource}
+                iconFill={iconFill}
                 iconHeight={iconHeight}
                 iconWidth={iconWidth}
                 shouldCenterIcon={shouldCenterIcon}

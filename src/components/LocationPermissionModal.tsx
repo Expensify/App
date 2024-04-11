@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
-import LocationMarker from '@assets/images/receipt-location-marker.svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import ConfirmModal from './ConfirmModal';
+import * as Illustrations from './Icon/Illustrations';
 
 type LocationPermissionModalProps = {
     /** A callback to call when the permission has been granted */
@@ -77,7 +77,8 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
             title={translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle')}
             titleContainerStyles={[styles.mt2, styles.mb0]}
             titleStyles={[styles.textHeadline]}
-            iconSource={LocationMarker}
+            iconSource={Illustrations.ReceiptLocationMarker}
+            iconFill={false}
             iconWidth={140}
             iconHeight={120}
             shouldCenterIcon

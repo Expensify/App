@@ -54,6 +54,9 @@ type ConfirmContentProps = {
     /** Icon to display above the title */
     iconSource?: IconAsset;
 
+    /** Fill color for the Icon */
+    iconFill?: string | false;
+
     /** Icon width */
     iconWidth?: number;
 
@@ -106,6 +109,7 @@ function ConfirmContent({
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
     iconSource,
+    iconFill,
     shouldCenterContent = false,
     shouldStackButtons = true,
     titleStyles,
@@ -160,11 +164,11 @@ function ConfirmContent({
                     </View>
                 )}
                 <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
-                    {typeof iconSource === 'function' && (
+                    {iconSource && (
                         <View style={[shouldCenterIcon ? styles.justifyContentCenter : null, styles.flexRow, styles.mb3]}>
                             <Icon
                                 src={iconSource}
-                                fill={theme.icon}
+                                fill={iconFill === false ? undefined : iconFill ?? theme.icon}
                                 width={iconWidth}
                                 height={iconHeight}
                                 additionalStyles={iconAdditionalStyles}
