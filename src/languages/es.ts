@@ -603,8 +603,8 @@ export default {
         trackScan: 'Crear Recibo',
         trackDistance: 'Crear Gasto por desplazamiento',
         tooltip: {
-            title: 'Quick action! ',
-            subtitle: 'Just a tap away.',
+            title: '¡Acción rápida! ',
+            subtitle: 'A un click.',
         },
     },
     iou: {

@@ -201,7 +201,7 @@ function Tooltip(
     );
 
     useEffect(() => {
-        if (!shouldRenderWithoutHover) {
+        if (!shouldRenderWithoutHover || hasHoverSupport) {
             return;
         }
         const intervalID = setInterval(hideTooltip, 5000);
