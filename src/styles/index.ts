@@ -848,8 +848,19 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        environmentBadge: {
+            minHeight: 12,
+            borderRadius: 14,
+            paddingHorizontal: 7,
+            minWidth: 24,
+        },
+
         badgeSuccess: {
             borderColor: theme.success,
+        },
+
+        badgeEnvironmentSuccess: {
+            backgroundColor: theme.success,
         },
 
         badgeSuccessPressed: {
@@ -866,6 +877,10 @@ const styles = (theme: ThemeColors) =>
 
         badgeDanger: {
             borderColor: theme.danger,
+        },
+
+        badgeEnvironmentDanger: {
+            backgroundColor: theme.danger,
         },
 
         badgeDangerPressed: {
