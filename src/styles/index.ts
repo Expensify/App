@@ -852,7 +852,8 @@ const styles = (theme: ThemeColors) =>
             minHeight: 12,
             borderRadius: 14,
             paddingHorizontal: 7,
-            minWidth: 24,
+            minWidth: 22,
+            borderWidth: 0,
         },
 
         badgeSuccess: {
