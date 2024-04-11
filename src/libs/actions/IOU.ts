@@ -425,7 +425,9 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
     });
 }
 
-/** Set custom unit rateID for the transaction draft */
+/**
+ * Set custom unit rateID for the transaction draft
+ */
 function setCustomUnitRateID(transactionID: string, reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
