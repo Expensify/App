@@ -4961,6 +4961,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
     const parameters: ApproveMoneyRequestParams = {
         reportID: expenseReport.reportID,
         approvedReportActionID: optimisticApprovedReportAction.reportActionID,
+        full,
     };
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
