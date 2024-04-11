@@ -1,5 +1,6 @@
 import type {IsEqual, ValueOf} from 'type-fest';
 import type CONST from './CONST';
+import type {IOURequestType} from './libs/actions/IOU';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -257,11 +258,6 @@ const ROUTES = {
         getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
             `r/${reportID}/split/${reportActionID}/edit/${field}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
     },
-    EDIT_SPLIT_BILL_CURRENCY: {
-        route: 'r/:reportID/split/:reportActionID/edit/currency',
-        getRoute: (reportID: string, reportActionID: string, currency: string, backTo: string) =>
-            `r/${reportID}/split/${reportActionID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
-    },
     TASK_TITLE: {
         route: 'r/:reportID/title',
         getRoute: (reportID: string) => `r/${reportID}/title` as const,
@@ -293,10 +289,6 @@ const ROUTES = {
     MONEY_REQUEST_PARTICIPANTS: {
         route: ':iouType/new/participants/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
-    },
-    MONEY_REQUEST_CURRENCY: {
-        route: ':iouType/new/currency/:reportID?',
-        getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}` as const,
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':iouType/edit/reason/:transactionID?',
@@ -396,7 +388,7 @@ const ROUTES = {
     // straight to those flows without needing to have optimistic transaction and report IDs.
     MONEY_REQUEST_START: {
         route: 'start/:iouType/:iouRequestType',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, iouRequestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) => `start/${iouType}/${iouRequestType}` as const,
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, iouRequestType: IOURequestType) => `start/${iouType}/${iouRequestType}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_DISTANCE: {
         route: ':action/:iouType/start/:transactionID/:reportID/distance',
@@ -696,6 +688,30 @@ const ROUTES = {
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/accounts',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/accounts` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/classes',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/customers',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/locations',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
     },
 } as const;
 
