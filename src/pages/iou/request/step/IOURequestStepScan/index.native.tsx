@@ -39,9 +39,9 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import {Receipt} from "@src/types/onyx/Transaction";
 
 type IOURequestStepScanOnyxProps = {
     /** The user */
@@ -91,9 +91,7 @@ function IOURequestStepScan({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation =
-        skipConfirmation &&
-        !ReportUtils.isArchivedRoom(report) &&
-        !(ReportUtils.isPolicyExpenseChat(reportID) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+        skipConfirmation && !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
     const {translate} = useLocalize();
 
