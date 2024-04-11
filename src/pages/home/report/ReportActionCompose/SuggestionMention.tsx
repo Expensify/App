@@ -266,7 +266,8 @@ function SuggestionMention(
                     });
                 }
             });
-            return filteredRoomMentions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+           
+            return  lodashSortBy(filteredRoomMentions, 'handle').slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         },
         [policyID],
     );
