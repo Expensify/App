@@ -129,6 +129,7 @@ function IOURequestStepCurrency({
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             shouldShowWrapper
             testID={IOURequestStepCurrency.displayName}
+            includeSafeAreaPaddingBottom={false}
         >
             {({didScreenTransitionEnd}) => (
                 <SelectionList
