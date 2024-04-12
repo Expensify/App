@@ -65,7 +65,7 @@ function RoomMembersPage({report, session, policies, isSearchingForReports}: Roo
 
     useEffect(() => {
         setSearchValue(SearchInputManager.searchInput);
-    }, [setSearchValue, isFocusedScreen]);
+    }, [isFocusedScreen]);
 
     useEffect(
         () => () => {
