@@ -15,10 +15,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActions from '@libs/actions/Report';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Log from '@libs/Log';
@@ -42,9 +40,6 @@ import SearchInputManager from './workspace/SearchInputManager';
 
 type RoomMembersPageOnyxProps = {
     session: OnyxEntry<Session>;
-
-    /** Whether or not we are searching for reports on the server */
-    isSearchingForReports: OnyxEntry<boolean>;
 };
 
 type RoomMembersPageProps = WithReportOrNotFoundProps &
@@ -52,12 +47,12 @@ type RoomMembersPageProps = WithReportOrNotFoundProps &
     RoomMembersPageOnyxProps &
     StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_ROOT>;
 
-function RoomMembersPage({report, session, policies, isSearchingForReports}: RoomMembersPageProps) {
+function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
@@ -181,7 +176,7 @@ function RoomMembersPage({report, session, policies, isSearchingForReports}: Roo
             }
 
             // If search value is provided, filter out members that don't match the search value
-            if (debouncedSearchValue.trim()) {
+            if (searchValue.trim()) {
                 let memberDetails = '';
                 if (details.login) {
                     memberDetails += ` ${details.login.toLowerCase()}`;
@@ -199,7 +194,7 @@ function RoomMembersPage({report, session, policies, isSearchingForReports}: Roo
                     memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
                 }
 
-                if (!OptionsListUtils.isSearchStringMatch(debouncedSearchValue.trim(), memberDetails)) {
+                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
                     return;
                 }
             }
@@ -236,12 +231,7 @@ function RoomMembersPage({report, session, policies, isSearchingForReports}: Roo
         return PolicyUtils.isPolicyMember(report.policyID, policies);
     }, [report?.policyID, policies]);
     const data = getMemberOptions();
-    const headerMessage = debouncedSearchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
-
-    useEffect(() => {
-        ReportActions.searchInServer(debouncedSearchValue);
-    }, [debouncedSearchValue]);
-
+    const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -310,7 +300,6 @@ function RoomMembersPage({report, session, policies, isSearchingForReports}: Roo
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             ListItem={UserListItem}
-                            isLoadingNewOptions={!!isSearchingForReports}
                         />
                     </View>
                 </View>
@@ -321,14 +310,4 @@ function RoomMembersPage({report, session, policies, isSearchingForReports}: Roo
 
 RoomMembersPage.displayName = 'RoomMembersPage';
 
-export default withReportOrNotFound()(
-    withCurrentUserPersonalDetails(
-        withOnyx<RoomMembersPageProps, RoomMembersPageOnyxProps>({
-            session: {key: ONYXKEYS.SESSION},
-            isSearchingForReports: {
-                key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-                initWithStoredValues: false,
-            },
-        })(RoomMembersPage),
-    ),
-);
+export default withReportOrNotFound()(withCurrentUserPersonalDetails(withOnyx<RoomMembersPageProps, RoomMembersPageOnyxProps>({session: {key: ONYXKEYS.SESSION}})(RoomMembersPage)));
