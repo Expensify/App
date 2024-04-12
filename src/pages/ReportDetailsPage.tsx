@@ -195,7 +195,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         session,
         isSelfDM,
         isDefaultRoom,
-        activeChatMembers?.length,
+        activeChatMembers.length,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
