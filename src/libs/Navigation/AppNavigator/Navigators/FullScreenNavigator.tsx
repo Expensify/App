@@ -5,9 +5,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import createCustomFullScreenNavigator from '@libs/Navigation/AppNavigator/createCustomFullScreenNavigator';
 import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
+import useModalScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalScreenOptions';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
-import useModalScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalScreenOptions';
 
 const loadWorkspaceInitialPage = () => require('../../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType;
 

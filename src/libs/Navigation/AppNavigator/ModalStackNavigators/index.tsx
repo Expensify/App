@@ -22,14 +22,12 @@ import type {
     ReportSettingsNavigatorParamList,
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
-    SearchNavigatorParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     SplitDetailsNavigatorParamList,
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
-    WorkspaceSwitcherNavigatorParamList,
 } from '@navigation/types';
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
@@ -142,10 +140,6 @@ const RoomInviteModalStackNavigator = createModalStackNavigator<RoomInviteNaviga
     [SCREENS.ROOM_INVITE_ROOT]: () => require('../../../../pages/RoomInvitePage').default as React.ComponentType,
 });
 
-const SearchModalStackNavigator = createModalStackNavigator<SearchNavigatorParamList>({
-    [SCREENS.SEARCH_ROOT]: () => require('../../../../pages/SearchPage').default as React.ComponentType,
-});
-
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
     [SCREENS.NEW_CHAT.ROOT]: () => require('../../../../pages/NewChatSelectorPage').default as React.ComponentType,
     [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: () => require('../../../../pages/NewChatConfirmPage').default as React.ComponentType,
@@ -171,10 +165,6 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_KNOW_A_TEACHER]: () => require('../../../../pages/TeachersUnite/KnowATeacherPage').default as React.ComponentType,
     [SCREENS.INTRO_SCHOOL_PRINCIPAL]: () => require('../../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
     [SCREENS.I_AM_A_TEACHER]: () => require('../../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
-});
-
-const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
-    [SCREENS.WORKSPACE_SWITCHER.ROOT]: () => require('../../../../pages/WorkspaceSwitcherPage').default as React.ComponentType,
 });
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
@@ -318,7 +308,6 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
 export {
     AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
-    OnboardEngagementModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
     FlagCommentStackNavigator,
@@ -326,22 +315,21 @@ export {
     NewChatModalStackNavigator,
     NewTaskModalStackNavigator,
     NewTeachersUniteNavigator,
+    OnboardEngagementModalStackNavigator,
     PrivateNotesModalStackNavigator,
+    ProcessMoneyRequestHoldStackNavigator,
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
-    WorkspaceSwitcherModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
+    ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
-    ReportDescriptionModalStackNavigator,
     RoomInviteModalStackNavigator,
     RoomMembersModalStackNavigator,
-    SearchModalStackNavigator,
     SettingsModalStackNavigator,
     SignInModalStackNavigator,
     SplitDetailsModalStackNavigator,
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
-    ProcessMoneyRequestHoldStackNavigator,
 };

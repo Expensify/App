@@ -116,7 +116,7 @@ afterEach(() => {
     PusherHelper.teardown();
 });
 
-type SearchPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT> & {
+type SearchPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.SEARCH> & {
     betas: OnyxEntry<Beta[]>;
     reports: OnyxCollection<Report>;
     isSearchingForReports: OnyxEntry<boolean>;

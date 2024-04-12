@@ -67,17 +67,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.LEFT_MODAL.SEARCH]: {
-                    screens: {
-                        [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
-                    },
-                },
+                [SCREENS.LEFT_MODAL.SEARCH]: ROUTES.SEARCH,
                 [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
-                    screens: {
-                        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
-                            path: ROUTES.WORKSPACE_SWITCHER,
-                        },
-                    },
+                    path: ROUTES.WORKSPACE_SWITCHER,
                 },
             },
         },

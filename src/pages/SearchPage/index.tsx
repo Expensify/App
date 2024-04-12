@@ -35,7 +35,7 @@ type SearchPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT>;
+type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.SEARCH>;
 
 type Options = OptionsListUtils.Options & {headerMessage: string};
 
