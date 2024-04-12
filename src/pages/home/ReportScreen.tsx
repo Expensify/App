@@ -475,9 +475,11 @@ function ReportScreen({
         const onyxReportID = report.reportID;
         const prevOnyxReportID = prevReport.reportID;
         const wasReportRemoved = !!prevOnyxReportID && prevOnyxReportID === reportIDFromRoute && !onyxReportID;
-        const isRemovalExpectedForReportType = isEmpty(report) && (ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport) || ReportUtils.isPolicyExpenseChat(prevReport) || ReportUtils.isGroupChat(prevReport));
+        const isRemovalExpectedForReportType =
+            isEmpty(report) &&
+            (ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport) || ReportUtils.isPolicyExpenseChat(prevReport) || ReportUtils.isGroupChat(prevReport));
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
-        const isTopLevelPolicyRoomWithNoStatus = !report.statusNum && !prevReport.parentReportID && (prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM);
+        const isTopLevelPolicyRoomWithNoStatus = !report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
 
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
