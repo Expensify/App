@@ -13,9 +13,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {InviteMemberListItemProps} from './types';
+import type {InviteMemberListItemProps, ListItem} from './types';
 
-function InviteMemberListItem({
+function InviteMemberListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -26,7 +26,7 @@ function InviteMemberListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-}: InviteMemberListItemProps) {
+}: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
