@@ -82,7 +82,7 @@ function ValuePage({
                             disablePressOnEnter={false}
                             shouldHideFixErrorsAlert
                             submitFlexEnabled={false}
-                            submitButtonStyles={[styles.mh5]}
+                            submitButtonStyles={[styles.mh5, styles.mt0]}
                         >
                             <InputWrapper
                                 InputComponent={AmountForm}
