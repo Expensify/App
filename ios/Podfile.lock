@@ -1836,7 +1836,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.38):
+  - RNLiveMarkdown (0.1.47):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1854,9 +1854,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.38)
+    - RNLiveMarkdown/common (= 0.1.47)
     - Yoga
-  - RNLiveMarkdown/common (0.1.38):
+  - RNLiveMarkdown/common (0.1.47):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1945,7 +1945,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.29.0):
+  - RNScreens (3.30.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1963,9 +1963,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.29.0)
+    - RNScreens/common (= 3.30.1)
     - Yoga
-  - RNScreens/common (3.29.0):
+  - RNScreens/common (3.30.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2565,13 +2565,13 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 1190c218cdaaf029ee1437076a3fbbc3297d89fb
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 9d974f060d0bd857f7d96fac0e9a1539363baa5e
+  RNLiveMarkdown: f172c7199283dc9d21bccf7e21ea10741fd19e1d
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 3e273e0e867a079ec33df9ee33bb0482434b897d
   RNPermissions: 8990fc2c10da3640938e6db1647cb6416095b729
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 605409e0d0ced6f2e194ae585fedc2f8a1935bf2
-  RNScreens: f7b8bb892b4957f6f91e5dfd9a191e7f13ce8baa
+  RNScreens: 65a936f4e227b91e4a8e2a7d4c4607355bfefda0
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: db32cfcad0a221fd175e0882eff7bcba7690380a
@@ -2582,7 +2582,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 3033e0dd5272d46e97bcb406adea4ae0e6907abf
-  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
+  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
 PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d
 

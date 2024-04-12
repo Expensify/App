@@ -1,6 +1,7 @@
-import type {IsEqual, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
+import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -369,16 +370,16 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/scan/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAG: {
-        route: ':action/:iouType/tag/:tagIndex/:transactionID/:reportID/:reportActionID?',
+        route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
         getRoute: (
             action: ValueOf<typeof CONST.IOU.ACTION>,
             iouType: ValueOf<typeof CONST.IOU.TYPE>,
-            tagIndex: number,
+            orderWeight: number,
             transactionID: string,
             reportID: string,
             backTo = '',
             reportActionID?: string,
-        ) => getUrlWithBackToParam(`${action}/${iouType}/tag/${tagIndex}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
+        ) => getUrlWithBackToParam(`${action}/${iouType}/tag/${orderWeight}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
@@ -731,20 +732,18 @@ export default ROUTES;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
 
-type AllRoutes = {
+/**
+ * Represents all routes in the app as a union of literal strings.
+ */
+type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
-type RouteIsPlainString = IsEqual<AllRoutes, string>;
+type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
-/**
- * Represents all routes in the app as a union of literal strings.
- *
- * If this type resolves to `never`, it implies that one or more routes defined within `ROUTES` have not correctly used
- * `as const` in their `getRoute` function return value.
- */
-type Route = RouteIsPlainString extends true ? never : AllRoutes;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {Route, HybridAppRoute, AllRoutes};
+export type {Route, HybridAppRoute};
