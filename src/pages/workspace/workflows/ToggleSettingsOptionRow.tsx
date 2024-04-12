@@ -34,6 +34,8 @@ type ToggleSettingOptionRowProps = {
     errors?: Errors;
     /** Callback to close the error messages */
     onCloseError?: () => void;
+    /** Whether the toggle should be disabled */
+    disabled?: boolean;
 };
 const ICON_SIZE = 48;
 
@@ -50,6 +52,7 @@ function ToggleSettingOptionRow({
     pendingAction,
     errors,
     onCloseError,
+    disabled = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
 
@@ -105,6 +108,7 @@ function ToggleSettingOptionRow({
                         accessibilityLabel={subtitle}
                         onToggle={onToggle}
                         isOn={isActive}
+                        disabled={disabled}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subTitleView()}
