@@ -1168,6 +1168,12 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
     }
+    if (report.policyID) {
+        const policy = getPolicy(report.policyID);
+        if (!PolicyUtils.isExpensifyTeam(policy.owner) && PolicyUtils.isExpensifyTeam(currentUserPersonalDetails?.login)) {
+            return false;
+        }
+    }
     return ReportActionsUtils.isActionableJoinRequestPending(report.reportID);
 }
 
