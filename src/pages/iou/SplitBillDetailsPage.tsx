@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -85,7 +85,6 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
         merchant: splitMerchant,
         created: splitCreated,
         category: splitCategory,
-        tag: splitTag,
         billable: splitBillable,
     } = ReportUtils.getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
@@ -117,7 +116,6 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
-                            iouTag={splitTag}
                             iouIsBillable={splitBillable}
                             iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}

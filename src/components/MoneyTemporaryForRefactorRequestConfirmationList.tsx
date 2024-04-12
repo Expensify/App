@@ -112,7 +112,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     selectedParticipants: Participant[];
 
     /** Payee of the money request with login */
-    payeePersonalDetails?: OnyxTypes.PersonalDetails;
+    payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails>;
 
     /** Can the participants be modified or not */
     canModifyParticipants?: boolean;
@@ -686,6 +686,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                 transaction?.transactionID ?? '',
                                 reportID,
                                 Navigation.getActiveRouteWithoutParams(),
+                                reportActionID,
                             ),
                         );
                     }}
@@ -797,6 +798,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                 transaction?.transactionID ?? '',
                                 reportID,
                                 Navigation.getActiveRouteWithoutParams(),
+                                reportActionID,
                             ),
                         )
                     }
@@ -829,6 +831,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                     transaction?.transactionID ?? '',
                                     reportID,
                                     Navigation.getActiveRouteWithoutParams(),
+                                    reportActionID,
                                 ),
                             )
                         }
