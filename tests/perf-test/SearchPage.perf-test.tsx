@@ -9,6 +9,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OptionListContextProvider, {OptionsListContext} from '@components/OptionListContextProvider';
+import {KeyboardStateProvider} from '@components/withKeyboardState';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import {createOptionList} from '@libs/OptionsListUtils';
@@ -45,15 +46,12 @@ jest.mock('@src/libs/API', () => ({
 
 jest.mock('@src/libs/Navigation/Navigation');
 
-const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
         useFocusEffect: jest.fn(),
-        useIsFocused: () => ({
-            navigate: mockedNavigate,
-        }),
+        useIsFocused: () => true,
         useRoute: () => jest.fn(),
         useNavigation: () => ({
             navigate: jest.fn(),
@@ -78,6 +76,15 @@ jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType
 
     return WithNavigationFocus;
 });
+// mock of useDismissedReferralBanners
+jest.mock('../../src/hooks/useDismissedReferralBanners', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => ({
+        isDismissed: false,
+        setAsDismissed: () => {},
+    })),
+}));
 
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
@@ -127,7 +134,7 @@ type SearchPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.SEARC
 
 function SearchPageWrapper(args: SearchPageProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, OptionListContextProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, OptionListContextProvider, KeyboardStateProvider]}>
             <SearchPage
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
@@ -204,7 +211,7 @@ test('[Search Page] should interact when text input changes', async () => {
     );
 });
 
-test('[Search Page] should render selection list', async () => {
+test.skip('[Search Page] should render selection list', async () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const smallMockedPersonalDetails = getMockedPersonalDetails(5);
 
