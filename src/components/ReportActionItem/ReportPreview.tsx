@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PaymentWaitingBanner from '@components/PaymentWaitingBanner';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import SettlementButton from '@components/SettlementButton';
@@ -215,6 +216,8 @@ function ReportPreview({
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
 
+    const shouldShowWaitingNote = ReportUtils.isInvoiceAwaitingPayment(iouReport);
+
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
      - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
@@ -350,6 +353,12 @@ function ReportPreview({
                                         text={translate('common.submit')}
                                         onPress={() => iouReport && IOU.submitReport(iouReport)}
                                         isDisabled={shouldDisableSubmitButton}
+                                    />
+                                )}
+                                {shouldShowWaitingNote && (
+                                    <PaymentWaitingBanner
+                                        // TODO: Integrate a getter for the payer name
+                                        payerName=""
                                     />
                                 )}
                             </View>
