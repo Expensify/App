@@ -1320,7 +1320,8 @@ function getReportFieldOptionsSection(options: string[], recentlyUsedOptions: st
  */
 function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined): Record<string, TaxRate> {
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const getModifiedName = (data: TaxRate, code: string) =>
+        `${data.name} (${data.value})${defaultTaxKey === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
