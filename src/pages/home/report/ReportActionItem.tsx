@@ -149,6 +149,9 @@ type ReportActionItemProps = {
 
     /** If this is the first visible report action */
     isFirstVisibleReportActionID: boolean;
+
+    /** IF the thread divider line will be used */
+    usedThreadDividerLine?: boolean;
 } & ReportActionItemOnyxProps;
 
 const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is OnyxTypes.ReportActionBase & OnyxTypes.OriginalMessageIOU =>
@@ -174,6 +177,7 @@ function ReportActionItem({
     transaction,
     onPress = undefined,
     isFirstVisibleReportActionID = false,
+    usedThreadDividerLine = false,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -874,7 +878,12 @@ function ReportActionItem({
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
-                        {shouldDisplayNewMarker && !isFirstVisibleReportActionID && <UnreadActionIndicator reportActionID={action.reportActionID} />}
+                        {shouldDisplayNewMarker &&
+                            (usedThreadDividerLine ? (
+                                !isFirstVisibleReportActionID && <UnreadActionIndicator reportActionID={action.reportActionID} />
+                            ) : (
+                                <UnreadActionIndicator reportActionID={action.reportActionID} />
+                            ))}
                         <MiniReportActionContextMenu
                             reportID={report.reportID}
                             reportActionID={action.reportActionID}

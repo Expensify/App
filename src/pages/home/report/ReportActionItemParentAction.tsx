@@ -47,6 +47,9 @@ type ReportActionItemParentActionProps = {
 
     /** If this is the first visible report action */
     isFirstVisibleReportActionID: boolean;
+
+    /** IF the thread divider line will be used */
+    usedThreadDividerLine?: boolean;
 };
 
 function ReportActionItemParentAction({
@@ -58,6 +61,7 @@ function ReportActionItemParentAction({
     shouldHideThreadDividerLine = false,
     shouldDisplayReplyDivider,
     isFirstVisibleReportActionID = false,
+    usedThreadDividerLine = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -126,6 +130,7 @@ function ReportActionItemParentAction({
                         shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
                         index={index}
                         isFirstVisibleReportActionID={isFirstVisibleReportActionID}
+                        usedThreadDividerLine={usedThreadDividerLine}
                     />
                 </OfflineWithFeedback>
             ))}

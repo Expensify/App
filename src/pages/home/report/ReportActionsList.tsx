@@ -451,6 +451,25 @@ function ReportActionsList({
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
+    const shouldUseThreadDividerLine = useMemo(() => {
+        const topReport = sortedVisibleReportActions[sortedVisibleReportActions.length - 1];
+
+        if (topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return false;
+        }
+
+        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+            const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
+            return !(ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction);
+        }
+
+        if (ReportUtils.isTaskReport(report)) {
+            return !ReportUtils.isCanceledTaskReport(report, parentReportAction);
+        }
+
+        return ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report);
+    }, [parentReportAction, report, sortedVisibleReportActions]);
+
     const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
@@ -536,6 +555,7 @@ function ReportActionsList({
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
                 shouldDisplayReplyDivider={sortedReportActions.length > 1}
                 isFirstVisibleReportActionID={firstVisibleReportActionID === reportAction.reportActionID}
+                usedThreadDividerLine={shouldUseThreadDividerLine}
             />
         ),
         [
@@ -550,6 +570,7 @@ function ReportActionsList({
             shouldDisplayNewMarker,
             sortedReportActions.length,
             firstVisibleReportActionID,
+            shouldUseThreadDividerLine,
         ],
     );
 

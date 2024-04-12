@@ -46,6 +46,9 @@ type ReportActionsListItemRendererProps = {
 
     /** If this is the first visible report action */
     isFirstVisibleReportActionID: boolean;
+
+    /** IF the thread divider line will be used */
+    usedThreadDividerLine?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -62,6 +65,7 @@ function ReportActionsListItemRenderer({
     linkedReportActionID = '',
     shouldDisplayReplyDivider,
     isFirstVisibleReportActionID = false,
+    usedThreadDividerLine = false,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -145,6 +149,7 @@ function ReportActionsListItemRenderer({
             transactionThreadReport={transactionThreadReport}
             index={index}
             isFirstVisibleReportActionID={isFirstVisibleReportActionID}
+            usedThreadDividerLine={usedThreadDividerLine}
         />
     ) : (
         <ReportActionItem
@@ -166,6 +171,7 @@ function ReportActionsListItemRenderer({
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
             isFirstVisibleReportActionID={isFirstVisibleReportActionID}
+            usedThreadDividerLine={usedThreadDividerLine}
         />
     );
 }
