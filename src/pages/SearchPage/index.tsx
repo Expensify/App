@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,7 +49,7 @@ const setPerformanceTimersEnd = () => {
     Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
 };
 
-const SearchPageFooterInstance = <SearchPageFooter />;
+const SerachPageFooterInstance = <SearchPageFooter />;
 
 function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
@@ -72,13 +73,26 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         Report.searchInServer(debouncedSearchValue.trim());
     }, [debouncedSearchValue]);
 
-    const {
-        recentReports,
-        personalDetails: localPersonalDetails,
-        userToInvite,
-        headerMessage,
-    } = useMemo(() => {
-        if (!areOptionsInitialized) {
+    const searchOptions = useMemo(() => {
+        if (!areOptionsInitialized || !isScreenTransitionEnd) {
+            return {
+                recentReports: [],
+                personalDetails: [],
+                userToInvite: null,
+                currentUserOption: null,
+                categoryOptions: [],
+                tagOptions: [],
+                taxRatesOptions: [],
+                headerMessage: '',
+            };
+        }
+        const optionList = OptionsListUtils.getSearchOptions(options, '', betas ?? []);
+        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), '');
+        return {...optionList, headerMessage: header};
+    }, [areOptionsInitialized, betas, isScreenTransitionEnd, options]);
+
+    const filteredOptions = useMemo(() => {
+        if (debouncedSearchValue.trim() === '') {
             return {
                 recentReports: [],
                 personalDetails: [],
@@ -86,10 +100,18 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                 headerMessage: '',
             };
         }
-        const optionList = OptionsListUtils.getSearchOptions(options, debouncedSearchValue.trim(), betas ?? []);
-        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), debouncedSearchValue);
-        return {...optionList, headerMessage: header};
-    }, [areOptionsInitialized, options, debouncedSearchValue, betas]);
+
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, false, debouncedSearchValue);
+        return {
+            recentReports: newOptions.recentReports,
+            personalDetails: newOptions.personalDetails,
+            userToInvite: null,
+            headerMessage: header,
+        };
+    }, [debouncedSearchValue, searchOptions]);
+
+    const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
     const sections = useMemo((): SearchPageSectionList => {
         const newSections: SearchPageSectionList = [];
@@ -108,7 +130,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
             });
         }
 
-        if (userToInvite) {
+        if (!isEmpty(userToInvite)) {
             newSections.push({
                 data: [userToInvite],
                 shouldShow: true,
@@ -135,6 +157,8 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
         setIsScreenTransitionEnd(true);
     };
 
+    const {isDismissed} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND});
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -143,31 +167,25 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
             shouldEnableMaxHeight
             navigation={navigation}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('common.search')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
-                    <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
-                        <SelectionList<OptionData>
-                            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                            ListItem={UserListItem}
-                            textInputValue={searchValue}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputHint={offlineMessage}
-                            onChangeText={setSearchValue}
-                            headerMessage={headerMessage}
-                            headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
-                            onLayout={setPerformanceTimersEnd}
-                            onSelectRow={selectReport}
-                            showLoadingPlaceholder={!areOptionsInitialized}
-                            footerContent={SearchPageFooterInstance}
-                            isLoadingNewOptions={isSearchingForReports ?? undefined}
-                        />
-                    </View>
-                </>
-            )}
+            <HeaderWithBackButton
+                title={translate('common.search')}
+                onBackButtonPress={Navigation.goBack}
+            />
+            <SelectionList<OptionData>
+                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                ListItem={UserListItem}
+                textInputValue={searchValue}
+                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputHint={offlineMessage}
+                onChangeText={setSearchValue}
+                headerMessage={headerMessage}
+                headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
+                onLayout={setPerformanceTimersEnd}
+                onSelectRow={selectReport}
+                showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
+                footerContent={!isDismissed && SerachPageFooterInstance}
+                isLoadingNewOptions={isSearchingForReports ?? undefined}
+            />
         </ScreenWrapper>
     );
 }
