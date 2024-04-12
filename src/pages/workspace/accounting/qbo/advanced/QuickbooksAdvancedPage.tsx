@@ -94,7 +94,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={styles.mv3}
-                                pendingAction={pendingFields?.reimbursementAccountID && pendingFields?.collectionAccountID}
+                                pendingAction={pendingFields?.reimbursementAccountID || pendingFields?.collectionAccountID}
                                 isActive={Boolean(reimbursementAccountID && collectionAccountID)}
                                 onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, bankAccounts?.[0].id ?? '')}
                             />
@@ -124,10 +124,9 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, !collectionAccountID)}
                             />
 
-                            <MenuItem
+                            <MenuItemWithTopDescription
                                 title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoMoneyInClearing')}
                                 shouldShowRightIcon
-                                shouldShowBasicTitle
                                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                 onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
                             />
