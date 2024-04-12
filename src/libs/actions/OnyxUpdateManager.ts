@@ -46,6 +46,7 @@ export default () => {
                 if (isLoadingApp) {
                     console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hans't finished yet.`);
                 }
+                SequentialQueue.unpause();
                 return;
             }
             // This key is shared across clients, thus every client/tab will have a copy and try to execute this method.
