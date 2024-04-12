@@ -121,7 +121,7 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
     // If we got here, that means we are missing some updates on our local storage. To
     // guarantee that we're not fetching more updates before our local data is up to date,
-    // let's stop the sequential queue from running until we we're done catching up.
+    // let's stop the sequential queue from running until we're done catching up.
     SequentialQueue.pause();
 
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
