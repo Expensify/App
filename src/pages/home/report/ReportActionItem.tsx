@@ -400,19 +400,25 @@ function ReportActionItem({
                 {
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
-                    onPress: () => ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID),
+                    onPress: () => {
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                    },
                     isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.share',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
-                    onPress: () => ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.SHARE, action.reportActionID),
+                    onPress: () => {
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                    },
                     isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.nothing',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
-                    onPress: () => Report.dismissTrackExpenseActionableWhisper(report.reportID, action),
+                    onPress: () => {
+                        Report.dismissTrackExpenseActionableWhisper(report.reportID, action);
+                    },
                     isMediumSized: true,
                 },
             ];

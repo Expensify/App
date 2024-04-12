@@ -5835,7 +5835,7 @@ function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, io
 
 function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>, reportActionID: string): void {
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
+    const reportActions = reportActionsByReport?.[reportID] ?? ([] as ReportAction[]);
 
     if (!transaction || !reportActions) {
         return;
@@ -5843,11 +5843,16 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
 
     const linkedTrackedExpenseReportAction = Object.values(reportActions).find((action) => (action.originalMessage as IOUMessage)?.IOUTransactionID === transactionID);
 
+    const transactionAmount = Math.abs(transaction.amount);
+    const transactionCreated = format(new Date(transaction.created), CONST.DATE.FNS_FORMAT_STRING);
+
     IOU.createDraftTransaction({
         ...transaction,
         actionableWhisperReportActionID: reportActionID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID: reportID,
+        amount: transactionAmount,
+        created: transactionCreated,
     } as Transaction);
 
     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, actionName));
