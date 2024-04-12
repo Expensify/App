@@ -17,6 +17,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,7 +57,6 @@ function BaseSelectionList<TItem extends ListItem>(
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
-        isKeyboardShown = false,
         disableKeyboardShortcuts = false,
         children,
         shouldStopPropagation = false,
@@ -88,6 +88,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
+    const {isKeyboardShown} = useKeyboardState();
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -401,18 +402,29 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
+    const prevSelectedOptionsLength = usePrevious(flattenedSections.selectedOptions.length);
+
     useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
-        if (prevTextInputValue === textInputValue || flattenedSections.allOptions.length === 0) {
+        if ((prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) || flattenedSections.allOptions.length === 0) {
             return;
         }
-        // Remove the focus if the search input is empty else focus on the first non disabled item
-        const newSelectedIndex = textInputValue === '' ? -1 : 0;
+        // Remove the focus if the search input is empty or selected options length is changed else focus on the first non disabled item
+        const newSelectedIndex = textInputValue === '' || flattenedSections.selectedOptions.length !== prevSelectedOptionsLength ? -1 : 0;
+
         // reseting the currrent page to 1 when the user types something
         setCurrentPage(1);
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
-    }, [canSelectMultiple, flattenedSections.allOptions.length, prevTextInputValue, textInputValue, updateAndScrollToFocusedIndex]);
+    }, [
+        canSelectMultiple,
+        flattenedSections.allOptions.length,
+        flattenedSections.selectedOptions.length,
+        prevTextInputValue,
+        textInputValue,
+        updateAndScrollToFocusedIndex,
+        prevSelectedOptionsLength,
+    ]);
 
     useEffect(
         () => () => {
