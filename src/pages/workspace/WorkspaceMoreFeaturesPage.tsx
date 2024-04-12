@@ -155,6 +155,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isActive={item.isActive}
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
+                    disabled={item.disabled}
                 />
             </View>
         ),
