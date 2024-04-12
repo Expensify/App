@@ -18,8 +18,8 @@ function clear() {
 }
 
 function save(requestToPersist: Request) {
-    persistedRequests.push(requestToPersist);
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+    const requests = [...persistedRequests, requestToPersist];
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function remove(requestToRemove: Request) {
