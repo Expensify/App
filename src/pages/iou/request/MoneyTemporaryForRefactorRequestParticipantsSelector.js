@@ -114,10 +114,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             return {};
         }
 
-        const newOptions = OptionsListUtils.filterOptions(chatOptions, debouncedSearchTerm, {});
+        const newOptions = OptionsListUtils.filterOptions(chatOptions, debouncedSearchTerm, {canInviteUser: true, betas});
 
         return newOptions;
-    }, [areOptionsInitialized, chatOptions, debouncedSearchTerm, didScreenTransitionEnd]);
+    }, [areOptionsInitialized, betas, chatOptions, debouncedSearchTerm, didScreenTransitionEnd]);
 
     const requestMoneyOptions = debouncedSearchTerm.trim() !== '' ? filteredOptions : chatOptions;
 
