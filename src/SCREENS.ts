@@ -251,7 +251,7 @@ const SCREENS = {
         OWNER_CHANGE_SUCCESS: 'Workspace_Owner_Change_Success',
         OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
         DISTANCE_RATES: 'Distance_Rates',
-        QUICKBOOKS_ONLINE_ADVANCED: 'Workspace_Accounting_Quickbooks_Online_Advanced',
+        QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
         QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
         QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
