@@ -7,6 +7,7 @@ import createCustomFullScreenNavigator from '@libs/Navigation/AppNavigator/creat
 import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
+import useModalScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalScreenOptions';
 
 const loadWorkspaceInitialPage = () => require('../../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType;
 
@@ -36,9 +37,11 @@ function FullScreenNavigator() {
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const workspaceScreenOptions = useModalScreenOptions((screenStyles) => ({cardStyle: screenStyles.navigationScreenCardStyle, headerShown: false}));
+
     return (
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-            <RootStack.Navigator screenOptions={{cardStyle: styles.navigationScreenCardStyle, headerShown: false}}>
+            <RootStack.Navigator screenOptions={workspaceScreenOptions}>
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE.INITIAL}
                     options={screenOptions.homeScreen}
