@@ -3681,12 +3681,12 @@ const styles = (theme: ThemeColors) =>
         quickActionTooltipTitle: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.lineHeightXLarge,
+            fontSize: variables.fontSizeLabel,
             color: colors.green500,
         },
 
         quickActionTooltipSubtitle: {
+            fontSize: variables.fontSizeLabel,
             color: theme.tooltipPrimaryText,
         },
 
