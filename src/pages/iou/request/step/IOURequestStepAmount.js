@@ -177,7 +177,7 @@ function IOURequestStepAmount({
                         currentUserAccountID: currentUserPersonalDetails.accountID || 0,
                         amount: backendAmount,
                         comment: '',
-                        currency: currency,
+                        currency,
                         tag: '',
                         category: '',
                         created: transaction.created,
