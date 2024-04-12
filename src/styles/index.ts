@@ -3675,14 +3675,14 @@ const styles = (theme: ThemeColors) =>
         },
 
         quickActionTooltipWrapper: {
-            backgroundColor: colors.green100,
+            backgroundColor: theme.tooltipHighlightBG,
         },
 
         quickActionTooltipTitle: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
             fontSize: variables.fontSizeLabel,
-            color: colors.green500,
+            color: theme.tooltipHighlightText,
         },
 
         quickActionTooltipSubtitle: {
