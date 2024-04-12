@@ -4,7 +4,7 @@ type SelectedParticipant = {
 };
 
 type NewGroupChatDraft = {
-    participants: SelectedParticipant[] | null;
+    participants: SelectedParticipant[];
     reportName: string | null;
     avatarUri: string | null;
 };
