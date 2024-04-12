@@ -146,6 +146,10 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
                 return null;
             }
         }
+
+        if (typeof translatedPhrase === 'string') {
+            return translatedPhrase;
+        }
     }
 
     if (!fallbackLanguage) {

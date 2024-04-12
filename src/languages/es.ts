@@ -436,16 +436,30 @@ export default {
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Añadir archivo adjunto',
         writeSomething: 'Escribe algo...',
-        conciergePlaceholderOptions: [
-            '¡Pide ayuda!',
-            '¡Pregúntame lo que sea!',
-            '¡Pídeme que te reserve un viaje!',
-            '¡Pregúntame qué puedo hacer!',
-            '¡Pregúntame cómo pagar a la gente!',
-            '¡Pregúntame cómo enviar una factura!',
-            '¡Pregúntame cómo escanear un recibo!',
-            '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!',
-        ],
+        conciergePlaceholderOptions: (option): string => {
+            switch (option) {
+                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.REPORT:
+                    return '¡Pide ayuda!';
+                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.IOU:
+                    return '¡Pregúntame cómo pagar a la gente!';
+                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.CHAT:
+                    return '¡Pídeme que te reserve un viaje!';
+                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.TRAVEL:
+                    return '¡Pídeme que reserve un vuelo!';
+                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.EXPENSES:
+                    return '¡Pregúntame cómo presentar gastos!';
+                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.BILLS:
+                    return '¡Pregúntame cómo pagar facturas!';
+                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.CORPORATE_CARD:
+                    return '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!';
+                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.INVOICES:
+                    return '¡Pregúntame cómo enviar una factura!';
+                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.RECEIPTS:
+                    return '¡Pregúntame cómo escanear un recibo!';
+                default:
+                    return '¡Pide ayuda!';
+            }
+        },
         blockedFromConcierge: 'Comunicación no permitida',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         localTime: ({user, time}: LocalTimeParams) => `Son las ${time} para ${user}`,
