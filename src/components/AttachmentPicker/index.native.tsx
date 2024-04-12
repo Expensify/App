@@ -237,7 +237,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
 
     const validateAndCompleteAttachmentSelection = useCallback(
         (fileData: FileResponse) => {
-            if (fileData.width === -1 || fileData.height === -1) {
+            if (fileData.width === -1 || fileData.height === -1 || (fileData.height === 0 && fileData.width === 0)) {
                 showImageCorruptionAlert();
                 return Promise.resolve();
             }
@@ -283,16 +283,20 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             };
             /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
             if (fileDataName && Str.isImage(fileDataName)) {
-                ImageSize.getSize(fileDataUri).then(({width, height}) => {
-                    fileDataObject.width = width;
-                    fileDataObject.height = height;
-                    validateAndCompleteAttachmentSelection(fileDataObject);
-                });
+                ImageSize.getSize(fileDataUri)
+                    .then(({width, height}) => {
+                        fileDataObject.width = width;
+                        fileDataObject.height = height;
+                        validateAndCompleteAttachmentSelection(fileDataObject);
+                    })
+                    .catch(() => {
+                        showImageCorruptionAlert();
+                    });
             } else {
                 return validateAndCompleteAttachmentSelection(fileDataObject);
             }
         },
-        [validateAndCompleteAttachmentSelection],
+        [validateAndCompleteAttachmentSelection, showImageCorruptionAlert],
     );
 
     /**
