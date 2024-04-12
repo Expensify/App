@@ -1,20 +1,17 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
-import {useBetas, usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
-import type {ListItem, Section} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -34,31 +31,21 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
-type NewChatPageWithOnyxProps = {
-    /** New group chat draft data */
-    newGroupDraft: OnyxEntry<OnyxTypes.NewGroupChatDraft>;
-
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: OnyxEntry<boolean>;
-};
-
-type NewChatPageProps = NewChatPageWithOnyxProps & {
+type NewChatPageProps = {
     isGroupChat?: boolean;
 };
 
-const EMPTY_ARRAY: Array<SectionListData<ListItem, Section<ListItem>>> = [];
-
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function useOptions({isGroupChat, newGroupDraft}: Omit<NewChatPageProps, 'isSearchingForReports'>) {
+function useOptions({isGroupChat}: NewChatPageProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & OptionData>>([]);
-    const betas = useBetas();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const personalData = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
@@ -117,13 +104,14 @@ function useOptions({isGroupChat, newGroupDraft}: Omit<NewChatPageProps, 'isSear
     return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
 }
 
-function NewChatPage({isGroupChat, isSearchingForReports, newGroupDraft}: NewChatPageProps) {
+function NewChatPage({isGroupChat}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {insets} = useStyledSafeAreaInsets();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
     const {
         headerMessage,
@@ -139,10 +127,9 @@ function NewChatPage({isGroupChat, isSearchingForReports, newGroupDraft}: NewCha
         areOptionsInitialized,
     } = useOptions({
         isGroupChat,
-        newGroupDraft,
     });
 
-    const [sections, firstKeyForList] = useMemo((): [OptionsListUtils.CategorySection[], string] => {
+    const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: OptionsListUtils.CategorySection[] = [];
         let firstKey = '';
 
@@ -212,12 +199,12 @@ function NewChatPage({isGroupChat, isSearchingForReports, newGroupDraft}: NewCha
     );
 
     const itemRightSideComponent = useCallback(
-        (item: OptionsListUtils.Option) => {
+        (item: ListItem & OptionsListUtils.Option) => {
             /**
              * Removes a selected option from list if already selected. If not already selected add this option to the list.
              * @param  option
              */
-            function toggleOption(option: OptionsListUtils.Option) {
+            function toggleOption(option: ListItem & Partial<OptionData>) {
                 const isOptionInList = !!option.isSelected;
 
                 let newSelectedOptions;
@@ -306,9 +293,9 @@ function NewChatPage({isGroupChat, isSearchingForReports, newGroupDraft}: NewCha
                 // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                 keyboardVerticalOffset={variables.contentHeaderHeight + (insets?.top ?? 0) + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             >
-                <SelectionList<OptionsListUtils.Option>
+                <SelectionList<OptionsListUtils.Option & ListItem>
                     ListItem={UserListItem}
-                    sections={areOptionsInitialized ? sections : EMPTY_ARRAY}
+                    sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                     textInputValue={searchTerm}
                     textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                     onChangeText={setSearchTerm}
@@ -330,12 +317,4 @@ function NewChatPage({isGroupChat, isSearchingForReports, newGroupDraft}: NewCha
 
 NewChatPage.displayName = 'NewChatPage';
 
-export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
-    newGroupDraft: {
-        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
-    },
-})(NewChatPage);
+export default NewChatPage;

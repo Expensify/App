@@ -20,6 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -123,6 +124,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     <PressableWithSecondaryInteraction
                         ref={popoverAnchor}
                         onPress={(event) => {
+                            Performance.markStart(CONST.TIMING.OPEN_REPORT);
+
                             event?.preventDefault();
                             // Enable Composer to focus on clicking the same chat after opening the context menu.
                             ReportActionComposeFocusManager.focus();

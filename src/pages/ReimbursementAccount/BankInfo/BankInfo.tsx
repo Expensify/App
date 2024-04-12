@@ -31,13 +31,14 @@ type BankInfoOnyxProps = {
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
-
-    policyID: string;
 };
 
 type BankInfoProps = BankInfoOnyxProps & {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
+
+    /** Current Policy ID */
+    policyID: string;
 };
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
