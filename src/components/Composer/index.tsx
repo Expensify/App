@@ -237,12 +237,8 @@ function Composer(
         if (!textInput.current) {
             return;
         }
-        const textInputHeight = textInput.current.style.height;
-        // we reset the height to 0 to get the correct scrollHeight
-        textInput.current.style.height = '0';
         const computedStyle = window.getComputedStyle(textInput.current);
         setTextInputWidth(computedStyle.width);
-        textInput.current.style.height = textInputHeight;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, maxLines, isFullComposerAvailable, setIsFullComposerAvailable, windowWidth]);
 
