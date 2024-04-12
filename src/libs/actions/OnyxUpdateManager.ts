@@ -42,12 +42,12 @@ export default () => {
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value) => {
             // When value is set to null (which we do once we finish processing this method), we can just return early.
-            // Alternatively, if we're isLoadingApp is positive, that means that OpenApp command hasn't finished yet, 
-            // so we should not process any updates that are being set here.
+            // Alternatively, if isLoadingApp is positive, that means that OpenApp command hasn't finished yet, so we
+            // should not process any updates that are being set.
             if (!value || isLoadingApp) {
                 if (isLoadingApp) {
                     // Some of the places that set ONYX_UPDATES_FROM_SERVER also stop the sequential queue. If we reached
-                    // this point, let's unpause it to guarantee that it's still possible to use the app.
+                    // this point, let's unpause it to guarantee the app won't be stuck without executing the queue.
                     SequentialQueue.unpause();
                     console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hans't finished yet.`);
                 }
