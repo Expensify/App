@@ -96,15 +96,20 @@ function subscribeToBackendAndInternetReachability(): () => void {
             })
             .then((isBackendReachable: boolean) => {
                 if (isBackendReachable) {
-                    return Promise.resolve(true);
+                    NetworkActions.setIsBackendReachable(true);
+                    return;
                 }
-                return checkInternetReachability().then((isInternetReachable: boolean) => {
-                    NetworkActions.setIsOffline(!isInternetReachable);
-                    return Promise.resolve(false);
+                checkInternetReachability().then((isInternetReachable: boolean) => {
+                    setOfflineStatus(!isInternetReachable);
+                    NetworkActions.setIsBackendReachable(false);
                 });
             })
-            .then(NetworkActions.setIsBackendReachable)
-            .catch(() => NetworkActions.setIsBackendReachable(false));
+            .catch(() => {
+                checkInternetReachability().then((isInternetReachable: boolean) => {
+                    setOfflineStatus(!isInternetReachable);
+                    NetworkActions.setIsBackendReachable(false);
+                });
+            });
     }, CONST.NETWORK.BACKEND_CHECK_INTERVAL_MS);
 
     return () => {

@@ -11,14 +11,6 @@ export default function checkInternetReachability(): InternetReachabilityCheck {
         method: 'GET',
         cache: 'no-cache',
     })
-        .then((response) => {
-            if (!response.ok) {
-                return Promise.resolve(false);
-            }
-            return response
-                .json()
-                .then((json) => Promise.resolve(json.jsonCode === 204))
-                .catch(() => Promise.resolve(false));
-        })
+        .then((response) => Promise.resolve(response.status === 204))
         .catch(() => Promise.resolve(false));
 }
