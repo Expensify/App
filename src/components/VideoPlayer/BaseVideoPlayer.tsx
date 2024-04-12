@@ -148,6 +148,7 @@ function BaseVideoPlayer({
             if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 isFullScreenRef.current = false;
 
+                // Sync volume updates in full screen mode after leaving it
                 currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
                     if (!('isMuted' in status)) {
                         return;
