@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
@@ -56,7 +56,10 @@ function ToggleSettingOptionRow({
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
 
-    const subTitleView = () => <Text style={[styles.textLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt4 : {...styles.mt1, ...styles.mr5}, styles.textSupporting]}>{subtitle}</Text>;
+    const subTitleView = useMemo(
+        () => <Text style={[styles.textLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt4 : {...styles.mt1, ...styles.mr5}, styles.textSupporting]}>{subtitle}</Text>,
+        [shouldPlaceSubtitleBelowSwitch, styles.mr5, styles.mt1, styles.mt4, styles.textLabel, styles.textSupporting],
+    );
 
     return (
         <OfflineWithFeedback
@@ -90,7 +93,7 @@ function ToggleSettingOptionRow({
                             >
                                 {title}
                             </Text>
-                            {!shouldPlaceSubtitleBelowSwitch && subTitleView()}
+                            {!shouldPlaceSubtitleBelowSwitch && subTitleView}
                         </View>
                     </View>
                     <Switch
@@ -100,7 +103,7 @@ function ToggleSettingOptionRow({
                         disabled={disabled}
                     />
                 </View>
-                {shouldPlaceSubtitleBelowSwitch && subTitleView()}
+                {shouldPlaceSubtitleBelowSwitch && subTitleView}
                 {isActive && subMenuItems}
             </View>
         </OfflineWithFeedback>
