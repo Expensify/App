@@ -2861,7 +2861,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         switchInactive: {
-            backgroundColor: theme.border,
+            backgroundColor: theme.icon,
         },
 
         switchThumb: {
@@ -2870,6 +2870,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 11,
             position: 'absolute',
             left: 4,
+            justifyContent: 'center',
+            alignItems: 'center',
             backgroundColor: theme.appBG,
         },
 
@@ -2887,6 +2889,11 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+
+        toggleSwitchLockIcon: {
+            width: variables.iconSizeExtraSmall,
+            height: variables.iconSizeExtraSmall,
         },
 
         checkedContainer: {
