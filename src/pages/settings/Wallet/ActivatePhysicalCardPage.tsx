@@ -42,7 +42,7 @@ const MAGIC_INPUT_MIN_HEIGHT = 86;
 function ActivatePhysicalCardPage({
     cardList,
     route: {
-        params: {domain = '', cardId = ''},
+        params: {domain = '', cardID = ''},
     },
 }: ActivatePhysicalCardPageProps) {
     const theme = useTheme();
@@ -69,12 +69,15 @@ function ActivatePhysicalCardPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardId));
-    }, [cardId, cardList, domain, physicalCard?.isLoading, physicalCard?.state]);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardID));
+    }, [cardID, cardList, domain, physicalCard?.isLoading, physicalCard?.state]);
 
     useEffect(
         () => () => {
-            CardSettings.clearCardListErrors(physicalCard?.cardID ?? 0);
+            if (!physicalCard?.cardID) {
+                return;
+            }
+            CardSettings.clearCardListErrors(physicalCard?.cardID);
         },
         [physicalCard?.cardID],
     );
@@ -93,8 +96,8 @@ function ActivatePhysicalCardPage({
     const onCodeInput = (text: string) => {
         setFormError('');
 
-        if (cardError) {
-            CardSettings.clearCardListErrors(physicalCard?.cardID ?? 0);
+        if (cardError && physicalCard?.cardID) {
+            CardSettings.clearCardListErrors(physicalCard?.cardID);
         }
 
         setLastFourDigits(text);
@@ -118,7 +121,7 @@ function ActivatePhysicalCardPage({
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardId))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardID))}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}

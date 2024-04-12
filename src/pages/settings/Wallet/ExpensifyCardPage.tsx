@@ -78,22 +78,22 @@ function ExpensifyCardPage({
     privatePersonalDetails,
     loginList,
     route: {
-        params: {domain = '', cardId = ''},
+        params: {domain = '', cardID = ''},
     },
 }: ExpensifyCardPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const shouldDisplayCardDomain = !cardList?.[cardId].nameValuePairs?.issuedBy;
-    const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardId].nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
+    const shouldDisplayCardDomain = !cardList?.[cardID].nameValuePairs?.issuedBy;
+    const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID].nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
         if (shouldDisplayCardDomain) {
             return CardUtils.getDomainCards(cardList)[domain].filter((card) => !card.nameValuePairs?.issuedBy);
         }
-        return [cardList?.[cardId]];
-    }, [shouldDisplayCardDomain, cardList, cardId, domain]);
+        return [cardList?.[cardID]];
+    }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     useEffect(() => {
         setIsNotFound(!cardsToShow);
     }, [cardList, cardsToShow]);
@@ -104,30 +104,30 @@ function ExpensifyCardPage({
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
 
-    const handleRevealDetails = (revealedCardId: number) => {
+    const handleRevealDetails = (revealedcardID: number) => {
         setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({
             ...prevState,
-            [revealedCardId]: true,
+            [revealedcardID]: true,
         }));
         // We can't store the response in Onyx for security reasons.
         // That is why this action is handled manually and the response is stored in a local state
         // Hence eslint disable here.
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-        Card.revealVirtualCardDetails(revealedCardId)
+        Card.revealVirtualCardDetails(revealedcardID)
             .then((value) => {
-                setCardsDetails((prevState: Record<number, TCardDetails | null>) => ({...prevState, [revealedCardId]: value as TCardDetails}));
+                setCardsDetails((prevState: Record<number, TCardDetails | null>) => ({...prevState, [revealedcardID]: value as TCardDetails}));
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
-                    [revealedCardId]: '',
+                    [revealedcardID]: '',
                 }));
             })
             .catch((error) => {
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
-                    [revealedCardId]: error,
+                    [revealedcardID]: error,
                 }));
             })
-            .finally(() => setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [revealedCardId]: false})));
+            .finally(() => setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [revealedcardID]: false})));
     };
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
@@ -249,7 +249,7 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={Expensicons.Flag}
                                             shouldShowRightIcon
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain, cardId))}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain, cardID))}
                                         />
                                     </>
                                 ))}
@@ -269,7 +269,7 @@ function ExpensifyCardPage({
                                                 title={translate('reportCardLostOrDamaged.report')}
                                                 icon={Expensicons.Flag}
                                                 shouldShowRightIcon
-                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain, cardId))}
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain, cardID))}
                                             />
                                         </>
                                     );
@@ -282,7 +282,7 @@ function ExpensifyCardPage({
                             success
                             large
                             style={[styles.w100, styles.p5]}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(domain, cardId))}
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(domain, cardID))}
                             text={translate('activateCardPage.activatePhysicalCard')}
                         />
                     )}

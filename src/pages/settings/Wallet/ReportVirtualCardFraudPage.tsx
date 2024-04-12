@@ -34,7 +34,7 @@ type ReportVirtualCardFraudPageProps = ReportVirtualCardFraudPageOnyxProps & Sta
 
 function ReportVirtualCardFraudPage({
     route: {
-        params: {domain = '', cardId = ''},
+        params: {domain = '', cardID = ''},
     },
     cardList,
     formData,
@@ -42,7 +42,7 @@ function ReportVirtualCardFraudPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const virtualCard = cardList?.[cardId];
+    const virtualCard = cardList?.[cardID];
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard?.errors ?? {});
 
     const prevIsLoading = usePrevious(formData?.isLoading);
@@ -55,8 +55,8 @@ function ReportVirtualCardFraudPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardId));
-    }, [cardId, domain, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardID));
+    }, [cardID, domain, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
 
     if (isEmptyObject(virtualCard)) {
         return <NotFoundPage />;
@@ -66,7 +66,7 @@ function ReportVirtualCardFraudPage({
         <ScreenWrapper testID={ReportVirtualCardFraudPage.displayName}>
             <HeaderWithBackButton
                 title={translate('reportFraudPage.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardId))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardID))}
             />
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>

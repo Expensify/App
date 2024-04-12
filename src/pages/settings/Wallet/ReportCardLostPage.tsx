@@ -76,14 +76,14 @@ function ReportCardLostPage({
     },
     cardList = {},
     route: {
-        params: {domain = '', cardId = ''},
+        params: {domain = '', cardID = ''},
     },
     formData,
 }: ReportCardLostPageProps) {
     const styles = useThemeStyles();
     usePrivatePersonalDetails();
 
-    const physicalCard = cardList?.[cardId];
+    const physicalCard = cardList?.[cardID];
 
     const {translate} = useLocalize();
 
@@ -101,8 +101,8 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardId));
-    }, [domain, formData?.isLoading, prevIsLoading, physicalCard?.errors, cardId]);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardID));
+    }, [domain, formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID]);
 
     useEffect(() => {
         if (formData?.isLoading && isEmptyObject(physicalCard?.errors)) {
