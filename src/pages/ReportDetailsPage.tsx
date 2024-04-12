@@ -80,9 +80,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const participants = useMemo(() => ReportUtils.getVisibleMemberIDs(report), [report]);
-    const activeChatMembers = report?.participantAccountIDs
-        ?.flatMap((accountID) => report.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString()))
-        .filter((member) => !member || member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const activeChatMembers = participants.flatMap((accountID) => {
+        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+    });
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
 
