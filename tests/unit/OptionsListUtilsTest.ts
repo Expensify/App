@@ -325,10 +325,14 @@ describe('OptionsListUtils', () => {
     const POLICY: Policy = {
         id: policyID,
         name: 'Hero Policy',
-        role: 'user',
         type: 'free',
         owner: '',
         outputCurrency: '',
+        employeeList: {
+            'tonystark@expensify.com': {
+                role: 'user',
+            },
+        },
         isPolicyExpenseChatEnabled: false,
     };
 

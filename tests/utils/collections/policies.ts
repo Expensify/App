@@ -17,7 +17,6 @@ export default function createRandomPolicy(index: number): Policy {
         preventSelfApproval: randBoolean(),
         submitsTo: index,
         outputCurrency: randCurrencyCode(),
-        role: rand(Object.values(CONST.POLICY.ROLE)),
         owner: randEmail(),
         ownerAccountID: index,
         avatar: randAvatar(),
