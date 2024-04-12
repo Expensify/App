@@ -199,21 +199,23 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                     Navigation.goBack(backRoute);
                 }}
             />
-            <SelectionList
-                canSelectMultiple
-                sections={sections}
-                ListItem={InviteMemberListItem}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                headerMessage={headerMessage}
-                onSelectRow={toggleOption}
-                onConfirm={inviteUsers}
-                showScrollIndicator
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
-            />
-            <View style={[styles.flexShrink0]}>
+            <View style={[styles.flex1, styles.p1]}>
+                <SelectionList
+                    canSelectMultiple
+                    sections={sections}
+                    ListItem={InviteMemberListItem}
+                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputValue={searchTerm}
+                    onChangeText={setSearchTerm}
+                    headerMessage={headerMessage}
+                    onSelectRow={toggleOption}
+                    onConfirm={inviteUsers}
+                    showScrollIndicator
+                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                />
+            </View>
+            <View style={[styles.flexShrink0, styles.p5]}>
                 <FormAlertWithSubmitButton
                     isDisabled={!selectedOptions.length}
                     buttonText={translate('common.invite')}
