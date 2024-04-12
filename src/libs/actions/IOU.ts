@@ -2560,9 +2560,9 @@ function convertTrackedExpenseToRequest(
     onyxData: OnyxData,
     amount: number,
     currency: string,
-    created: string,
     comment: string,
     merchant: string,
+    created: string,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
