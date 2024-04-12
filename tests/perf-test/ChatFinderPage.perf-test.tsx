@@ -209,4 +209,3 @@ test('[ChatFinderPage] should interact when text input changes', async () => {
             .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
     );
 });
-
