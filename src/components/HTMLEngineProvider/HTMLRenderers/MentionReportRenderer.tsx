@@ -27,7 +27,7 @@ type MentionReportOnyxProps = {
 
 type MentionReportRendererProps = MentionReportOnyxProps & CustomRendererProps<TText | TPhrasing>;
 
-const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').slice(1);
+const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').replace('#', '');
 
 const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEntry<Report> | EmptyObject, reports: OnyxCollection<Report>, tnode: TText | TPhrasing) => {
     let reportID: string | undefined;
@@ -38,7 +38,7 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEnt
         const report = getReport(htmlAttributeReportID);
 
         reportID = report?.reportID ?? undefined;
-        mentionDisplayText = report?.reportName ?? report?.displayName ?? htmlAttributeReportID;
+        mentionDisplayText = removeLeadingLTRAndHash(report?.reportName ?? report?.displayName ?? htmlAttributeReportID);
         // get mention details from name inside tnode
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
