@@ -2547,10 +2547,6 @@ const getConvertTrackedExpenseInformation = (
 
 function convertTrackedExpenseToRequest(
     payerAccountID: number,
-    amount: number,
-    currency: string,
-    comment: string,
-    created: string,
     chatReportID: string,
     transactionID: string,
     actionableWhisperReportActionID: string,
@@ -2562,6 +2558,11 @@ function convertTrackedExpenseToRequest(
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string,
     onyxData: OnyxData,
+    amount: number,
+    currency: string,
+    created: string,
+    comment: string,
+    merchant: string,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -2588,6 +2589,7 @@ function convertTrackedExpenseToRequest(
         currency,
         comment,
         created,
+        merchant,
         payerAccountID,
         chatReportID,
         transactionID,
@@ -2613,6 +2615,16 @@ function categorizeTrackedExpense(
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string,
     onyxData: OnyxData,
+    amount: number,
+    currency: string,
+    comment: string,
+    merchant: string,
+    created: string,
+    category?: string,
+    tag?: string,
+    taxCode = '',
+    taxAmount = 0,
+    billable?: boolean,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -2642,6 +2654,16 @@ function categorizeTrackedExpense(
         moneyRequestCreatedReportActionID,
         actionableWhisperReportActionID,
         modifiedExpenseReportActionID,
+        amount,
+        currency,
+        comment,
+        merchant,
+        category,
+        tag,
+        taxCode,
+        taxAmount,
+        billable,
+        created,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, parameters, {optimisticData, successData, failureData});
@@ -2658,6 +2680,16 @@ function shareTrackedExpense(
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string,
     onyxData: OnyxData,
+    amount: number,
+    currency: string,
+    comment: string,
+    merchant: string,
+    created: string,
+    category?: string,
+    tag?: string,
+    taxCode = '',
+    taxAmount = 0,
+    billable?: boolean,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -2687,6 +2719,16 @@ function shareTrackedExpense(
         moneyRequestCreatedReportActionID,
         actionableWhisperReportActionID,
         modifiedExpenseReportActionID,
+        amount,
+        currency,
+        comment,
+        merchant,
+        created,
+        category,
+        tag,
+        taxCode,
+        taxAmount,
+        billable,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_TRANSACTION, parameters, {optimisticData, successData, failureData});
@@ -2744,7 +2786,7 @@ function requestMoney(
         isMovingTransactionFromTrackExpense ? {} : currentChatReport,
         participant,
         comment,
-        isMovingTransactionFromTrackExpense ? Math.abs(amount) : amount,
+        amount,
         currency,
         currentCreated,
         merchant,
@@ -2771,10 +2813,6 @@ function requestMoney(
 
             convertTrackedExpenseToRequest(
                 payerAccountID,
-                amount,
-                currency,
-                comment,
-                currentCreated,
                 chatReport.reportID,
                 transaction.transactionID,
                 actionableWhisperReportActionID,
@@ -2786,6 +2824,11 @@ function requestMoney(
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID,
                 onyxData,
+                amount,
+                currency,
+                comment,
+                merchant,
+                currentCreated,
             );
             break;
         }
@@ -2804,6 +2847,16 @@ function requestMoney(
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID,
                 onyxData,
+                amount,
+                currency,
+                comment,
+                merchant,
+                currentCreated,
+                category,
+                tag,
+                taxCode,
+                taxAmount,
+                billable,
             );
             break;
         }
@@ -2822,6 +2875,16 @@ function requestMoney(
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID,
                 onyxData,
+                amount,
+                currency,
+                comment,
+                merchant,
+                currentCreated,
+                category,
+                tag,
+                taxCode,
+                taxAmount,
+                billable,
             );
             break;
         }

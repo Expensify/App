@@ -414,7 +414,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+            if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
                 createDistanceRequest(selectedParticipants, trimmedComment);
                 return;
             }
@@ -432,6 +432,7 @@ function IOURequestStepConfirmation({
             report?.reportID,
             trackExpense,
             createDistanceRequest,
+            action,
         ],
     );
 

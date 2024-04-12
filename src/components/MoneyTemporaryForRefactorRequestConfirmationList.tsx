@@ -252,9 +252,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
-
+    const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
     const hasRoute = TransactionUtils.hasRoute(transaction);
-    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate);
+    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(
@@ -456,7 +456,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     }, [selectedParticipants, hasMultipleParticipants, personalDetailsOfPayee]);
 
     useEffect(() => {
-        if (!isDistanceRequest) {
+        if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
             return;
         }
 
@@ -469,7 +469,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? 'USD', translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant(transaction?.transactionID ?? '', distanceMerchant, true);
-    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
+    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction, action, isMovingTransactionFromTrackExpense]);
 
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
@@ -699,7 +699,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={!isReadOnly && !isMovingTransactionFromTrackExpense}
                     title={isMerchantEmpty ? '' : iouMerchant}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
@@ -711,7 +711,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     }
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    // todo: handle edit for transaction while moving from track expense
+                    interactive={!isReadOnly && !isMovingTransactionFromTrackExpense}
                 />
             ),
             shouldShow: isDistanceRequest,
@@ -798,14 +799,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         numberOfLinesTitle={2}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                    CONST.IOU.ACTION.CREATE,
-                                    iouType,
-                                    index,
-                                    transaction?.transactionID ?? '',
-                                    reportID,
-                                    Navigation.getActiveRouteWithoutParams(),
-                                ),
+                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                             )
                         }
                         style={[styles.moneyRequestMenuItem]}
@@ -829,13 +823,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
-                                CONST.IOU.ACTION.CREATE,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
+                            ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         )
                     }
                     disabled={didConfirm}
@@ -856,13 +844,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
-                                CONST.IOU.ACTION.CREATE,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
+                            ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         )
                     }
                     disabled={didConfirm}
@@ -957,9 +939,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
-            {
+            {(!isMovingTransactionFromTrackExpense || !hasRoute) &&
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                receiptImage || receiptThumbnail
+                (receiptImage || receiptThumbnail
                     ? receiptThumbnailContent
                     : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
                       PolicyUtils.isPaidGroupPolicy(policy) &&
@@ -978,8 +960,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                   )
                               }
                           />
-                      )
-            }
+                      ))}
             {primaryFields}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
