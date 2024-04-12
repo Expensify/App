@@ -2861,9 +2861,13 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
             targetChatReportID,
             actorAccountID,
             index + 3,
+            {
+                childVisibleActionCount: 2,
+                childCommenterCount: 1,
+                childLastVisibleActionCreated: DateUtils.getDBTime(),
+                childOldestFourAccountIDs: `${actorAccountID}`,
+            },
         );
-
-        // subtitle message
         const subtitleComment = ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID);
         const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(task.message, undefined, actorAccountID, undefined, false);
 

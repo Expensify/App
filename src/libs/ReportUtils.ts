@@ -140,6 +140,10 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childStatusNum'
     | 'childStateNum'
     | 'errors'
+    | 'childVisibleActionCount'
+    | 'childCommenterCount'
+    | 'childLastVisibleActionCreated'
+    | 'childOldestFourAccountIDs'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {
@@ -3212,6 +3216,12 @@ function buildOptimisticTaskCommentReportAction(
     parentReportID: string,
     actorAccountID?: number,
     createdOffset = 0,
+    repliesConfig?: {
+        childVisibleActionCount?: number;
+        childCommenterCount?: number;
+        childLastVisibleActionCreated?: string;
+        childOldestFourAccountIDs?: string;
+    },
 ): OptimisticReportAction {
     const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset);
     if (reportAction.reportAction.message?.[0]) {
@@ -3231,8 +3241,25 @@ function buildOptimisticTaskCommentReportAction(
     reportAction.reportAction.childManagerAccountID = taskAssigneeAccountID;
     reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS_NUM.OPEN;
     reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
+
     if (actorAccountID) {
         reportAction.reportAction.actorAccountID = actorAccountID;
+    }
+
+    if (repliesConfig?.childVisibleActionCount) {
+        reportAction.reportAction.childVisibleActionCount = repliesConfig.childVisibleActionCount;
+    }
+
+    if (repliesConfig?.childCommenterCount) {
+        reportAction.reportAction.childCommenterCount = repliesConfig.childCommenterCount;
+    }
+
+    if (repliesConfig?.childLastVisibleActionCreated) {
+        reportAction.reportAction.childLastVisibleActionCreated = repliesConfig.childLastVisibleActionCreated;
+    }
+
+    if (repliesConfig?.childOldestFourAccountIDs) {
+        reportAction.reportAction.childOldestFourAccountIDs = repliesConfig.childOldestFourAccountIDs;
     }
 
     return reportAction;
