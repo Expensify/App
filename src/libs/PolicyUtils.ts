@@ -18,7 +18,7 @@ type MemberEmailsToAccountIDs = Record<string, number>;
  * Filter out the active policies, which will exclude policies with pending deletion
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
+function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
     );
@@ -313,6 +313,17 @@ function getPolicyIDFromNavigationState() {
     return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
+/** Return active policies where current user is an admin */
+function getActiveAdminWorkspaces(policies: OnyxCollection<Policy>): Policy[] {
+    const activePolicies = getActivePolicies(policies);
+    return activePolicies.filter((policy) => isPolicyAdmin(policy));
+}
+
+/** Whether the user can send invoice */
+function canSendInvoice(policies: OnyxCollection<Policy>): boolean {
+    return getActiveAdminWorkspaces(policies).length > 0;
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -351,6 +362,8 @@ export {
     getTaxByID,
     hasPolicyCategoriesError,
     getPolicyIDFromNavigationState,
+    getActiveAdminWorkspaces,
+    canSendInvoice,
 };
 
 export type {MemberEmailsToAccountIDs};

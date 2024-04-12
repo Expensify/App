@@ -21,6 +21,7 @@ import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionSt
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as Policy from '@userActions/Policy';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,14 +52,18 @@ const propTypes = {
 
     /** The request type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
+
+    /** ID of the user's active policy */
+    activePolicyID: PropTypes.string,
 };
 
 const defaultProps = {
     participants: [],
     betas: [],
+    activePolicyID: '',
 };
 
-function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, onFinish, onParticipantsAdded, iouType, iouRequestType}) {
+function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, onFinish, onParticipantsAdded, iouType, iouRequestType, activePolicyID}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -75,6 +80,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+
+    const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE;
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
@@ -176,13 +183,25 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
      */
     const addSingleParticipant = useCallback(
         (option) => {
-            onParticipantsAdded([
+            const newParticipants = [
                 {
                     ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
                     selected: true,
                     iouType,
                 },
-            ]);
+            ];
+
+            if (iouType === CONST.IOU.TYPE.INVOICE) {
+                const primaryPolicy = Policy.getPrimaryPolicy(activePolicyID);
+
+                newParticipants.push({
+                    policyID: primaryPolicy.id,
+                    selected: false,
+                    iouType,
+                });
+            }
+
+            onParticipantsAdded(newParticipants);
             onFinish();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
@@ -252,7 +271,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
     const isAllowedToSplit =
-        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && (iouType !== CONST.IOU.TYPE.SEND || iouType !== CONST.IOU.TYPE.TRACK_EXPENSE);
+        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.TRACK_EXPENSE, CONST.IOU.TYPE.INVOICE].includes(iouType);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -278,7 +297,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
 
         return (
             <>
-                {!isDismissed && (
+                {shouldShowReferralBanner && (
                     <ReferralProgramCTA
                         referralContentType={referralContentType}
                         style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
@@ -305,7 +324,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
                 )}
             </>
         );
-    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
+    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate, shouldShowReferralBanner]);
 
     const itemRightSideComponent = useCallback(
         (item) => {
@@ -368,6 +387,9 @@ export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
     },
+    activePolicyID: {
+        key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    },
 })(
     memo(
         MoneyTemporaryForRefactorRequestParticipantsSelector,
@@ -375,6 +397,7 @@ export default withOnyx({
             _.isEqual(prevProps.participants, nextProps.participants) &&
             prevProps.iouRequestType === nextProps.iouRequestType &&
             prevProps.iouType === nextProps.iouType &&
-            _.isEqual(prevProps.betas, nextProps.betas),
+            _.isEqual(prevProps.betas, nextProps.betas) &&
+            prevProps.activePolicyID === nextProps.activePolicyID,
     ),
 );

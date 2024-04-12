@@ -53,6 +53,9 @@ function IOURequestStepParticipants({
         if (iouType === CONST.IOU.TYPE.SEND) {
             return translate('common.send');
         }
+        if (iouType === CONST.IOU.TYPE.INVOICE) {
+            return translate('workspace.invoices.sendInvoice');
+        }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate, isSplitRequest]);
 
@@ -131,6 +134,8 @@ function IOURequestStepParticipants({
                 nextStepIOUType = CONST.IOU.TYPE.SPLIT;
             } else if (iouType === CONST.IOU.TYPE.SEND) {
                 nextStepIOUType = CONST.IOU.TYPE.SEND;
+            } else if (iouType === CONST.IOU.TYPE.INVOICE) {
+                nextStepIOUType = CONST.IOU.TYPE.INVOICE;
             }
 
             IOU.setMoneyRequestTag(transactionID, '');

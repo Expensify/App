@@ -143,6 +143,11 @@ function AttachmentPickerWithMenuItems({
                 text: translate('iou.trackExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, report?.reportID ?? ''),
             },
+            [CONST.IOU.TYPE.INVOICE]: {
+                icon: Expensicons.Invoice,
+                text: translate('workspace.invoices.sendInvoice'),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? ''),
+            },
         };
 
         return ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], canUseTrackExpense).map((option) => ({
