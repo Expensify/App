@@ -119,7 +119,7 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
 function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
-    // Pause the Sequential queue so we don't do any other requests while we're fetching missing onyxUpdates
+    // Unpause the Sequential queue so we go back to processing requests to guarantee we don't make the app unusable
     SequentialQueue.unpause();
 
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in

@@ -49,7 +49,7 @@ export default () => {
             // we don't have base state of the app (reports, policies, etc) setup. If we apply this update,
             // we'll only have them overriten by the openApp response. So let's skip it and return.
             if (isLoadingApp) {
-                // When ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT is set, we pause the queue. Let's unpause
+                // When ONYX_UPDATES_FROM_SERVER is set, we pause the queue. Let's unpause
                 // it so the app is not stuck forever without processing requests.
                 SequentialQueue.unpause();
                 console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hans't finished yet.`);
