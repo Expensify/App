@@ -5805,6 +5805,14 @@ function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject):
     return {};
 }
 
+function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: string): boolean {
+    if (report?.policyID !== policyID) {
+        return false;
+    }
+
+    return isChatRoom(report) && !isThread(report);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -6032,6 +6040,7 @@ export {
     getReportActionActorAccountID,
     getGroupChatName,
     getOutstandingChildRequest,
+    canReportBeMentionedWithinPolicy,
     getAllHeldTransactions,
 };
 

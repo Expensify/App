@@ -479,6 +479,14 @@ type MoneyRequestNavigatorParamList = {
         pageIndex: number;
         backTo: Routes;
     };
+    [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        pageIndex?: string;
+        backTo?: Routes;
+    };
 };
 
 type NewTaskNavigatorParamList = {
