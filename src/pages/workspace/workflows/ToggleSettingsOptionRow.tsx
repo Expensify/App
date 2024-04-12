@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
@@ -52,20 +53,18 @@ function ToggleSettingOptionRow({
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
 
-    const subTitleView = () => {
-        return (
-            <Text
-                style={{
-                    ...styles.textLabel,
-                    ...(shouldPlaceSubtitleBelowSwitch ? styles.mt4 : styles.mt1),
-                    ...(!shouldPlaceSubtitleBelowSwitch && styles.mr5),
-                    ...styles.textSupporting,
-                }}
-            >
-                {subtitle}
-            </Text>
-        );
-    };
+    const subTitleView = () => (
+        <Text
+            style={{
+                ...styles.textLabel,
+                ...(shouldPlaceSubtitleBelowSwitch ? styles.mt4 : styles.mt1),
+                ...(!shouldPlaceSubtitleBelowSwitch && styles.mr5),
+                ...styles.textSupporting,
+            }}
+        >
+            {subtitle}
+        </Text>
+    );
 
     return (
         <OfflineWithFeedback
