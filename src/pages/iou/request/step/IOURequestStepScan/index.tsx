@@ -175,7 +175,7 @@ function IOURequestStepScan({
     };
 
     function validateReceipt(file: FileObject) {
-        return FileUtils.checkIfImageIsCorrupted(file)
+        return FileUtils.validateImageForCorruption(file)
             .then(() => {
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
                 if (

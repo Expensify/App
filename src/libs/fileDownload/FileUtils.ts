@@ -241,18 +241,14 @@ function base64ToFile(base64: string, filename: string): File {
     return file;
 }
 
-function checkIfImageIsCorrupted(file: FileObject) {
+function validateImageForCorruption(file: FileObject): Promise<void> {
+    if (!Str.isImage(file.name ?? '')) {
+        return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
-        if (!Str.isImage(file.name ?? '')) {
-            resolve(true);
-        }
         ImageSize.getSize(file.uri ?? '')
-            .then(() => {
-                resolve(true);
-            })
-            .catch(() => {
-                reject(new Error(`'Error reading file: The file is corrupted`));
-            });
+            .then(() => resolve())
+            .catch(() => reject(new Error('Error reading file: The file is corrupted')));
     });
 }
 
@@ -268,5 +264,5 @@ export {
     appendTimeToFileName,
     readFileAsync,
     base64ToFile,
-    checkIfImageIsCorrupted,
+    validateImageForCorruption,
 };
