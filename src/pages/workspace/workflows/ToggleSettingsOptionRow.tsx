@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
@@ -9,12 +9,18 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type ToggleSettingOptionRowProps = {
+    // Key used internally by React
+    key?: string;
     /** Icon to be shown for the option */
     icon?: IconAsset;
     /** Title of the option */
     title: string;
     /** Subtitle of the option */
     subtitle: string;
+    /** subtitle should show below switch and title */
+    shouldPlaceSubtitleBelowSwitch?: boolean;
+    /** Used to apply styles to the outermost container */
+    wrapperStyle?: ViewStyle;
     /** Whether the option is enabled or not */
     isActive: boolean;
     /** Callback to be called when the switch is toggled */
@@ -30,14 +36,44 @@ type ToggleSettingOptionRowProps = {
 };
 const ICON_SIZE = 48;
 
-function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, isActive, pendingAction, errors, onCloseError}: ToggleSettingOptionRowProps) {
+function ToggleSettingOptionRow({
+    key,
+    icon,
+    title,
+    subtitle,
+    shouldPlaceSubtitleBelowSwitch,
+    wrapperStyle,
+    onToggle,
+    subMenuItems,
+    isActive,
+    pendingAction,
+    errors,
+    onCloseError,
+}: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
+
+    const subTitleView = () => {
+        return (
+            <Text
+                style={{
+                    ...styles.textLabel,
+                    ...(shouldPlaceSubtitleBelowSwitch ? styles.mt4 : styles.mt1),
+                    ...(!shouldPlaceSubtitleBelowSwitch && styles.mr5),
+                    ...styles.textSupporting,
+                }}
+            >
+                {subtitle}
+            </Text>
+        );
+    };
 
     return (
         <OfflineWithFeedback
+            key={key}
             pendingAction={pendingAction}
             errors={errors}
             errorRowStyles={[styles.mt2]}
+            style={[wrapperStyle]}
             onClose={onCloseError}
         >
             <View style={styles.pRelative}>
@@ -56,23 +92,14 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                         <View style={[styles.flexColumn, styles.flex1]}>
                             <Text
                                 style={{
-                                    ...styles.textMicroBold,
+                                    ...(!shouldPlaceSubtitleBelowSwitch && styles.textMicroBold),
                                     ...styles.textNormal,
                                     ...styles.lh20,
                                 }}
                             >
                                 {title}
                             </Text>
-                            <Text
-                                style={{
-                                    ...styles.textLabel,
-                                    ...styles.mt1,
-                                    ...styles.mr5,
-                                    ...styles.textSupporting,
-                                }}
-                            >
-                                {subtitle}
-                            </Text>
+                            {!shouldPlaceSubtitleBelowSwitch && subTitleView()}
                         </View>
                     </View>
                     <Switch
@@ -81,6 +108,7 @@ function ToggleSettingOptionRow({icon, title, subtitle, onToggle, subMenuItems, 
                         isOn={isActive}
                     />
                 </View>
+                {shouldPlaceSubtitleBelowSwitch && subTitleView()}
                 {isActive && subMenuItems}
             </View>
         </OfflineWithFeedback>
