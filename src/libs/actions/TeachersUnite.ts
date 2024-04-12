@@ -93,7 +93,6 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 isPolicyExpenseChatEnabled: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
                 name: policyName,
-                role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
                 outputCurrency: allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,

@@ -28,8 +28,12 @@ describe('libs/NextStepUtils', () => {
             },
             // Required props
             name: 'Policy',
-            role: 'admin',
             type: 'team',
+            employeeList: {
+                [currentUserEmail]: {
+                    role: 'admin',
+                },
+            },
             outputCurrency: CONST.CURRENCY.USD,
             isPolicyExpenseChatEnabled: true,
         };

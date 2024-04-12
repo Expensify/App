@@ -51,9 +51,13 @@ const participantsPersonalDetails: PersonalDetailsList = {
 const policy: Policy = {
     id: '1',
     name: 'Vikings Policy',
-    role: 'user',
     type: 'free',
     owner: '',
+    employeeList: {
+        [currentUserEmail]: {
+            role: 'user',
+        },
+    },
     outputCurrency: '',
     isPolicyExpenseChatEnabled: false,
 };
@@ -435,8 +439,12 @@ describe('ReportUtils', () => {
                     id: '3f54cca8',
                     type: CONST.POLICY.TYPE.TEAM,
                     name: '',
-                    role: 'user',
                     owner: '',
+                    employeeList: {
+                        [currentUserEmail]: {
+                            role: 'user',
+                        },
+                    },
                     outputCurrency: '',
                     isPolicyExpenseChatEnabled: false,
                 };
@@ -617,8 +625,12 @@ describe('ReportUtils', () => {
                     autoReporting: true,
                     autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                     name: '',
-                    role: 'user',
                     owner: '',
+                    employeeList: {
+                        [currentUserEmail]: {
+                            role: 'user',
+                        },
+                    },
                     outputCurrency: '',
                     isPolicyExpenseChatEnabled: false,
                 };

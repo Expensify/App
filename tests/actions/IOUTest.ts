@@ -1678,10 +1678,14 @@ describe('actions/IOU', () => {
                             {amount: 20000, comment: 'Double the amount!'},
                             {
                                 id: '123',
-                                role: 'user',
                                 type: 'free',
                                 name: '',
                                 owner: '',
+                                employeeList: {
+                                    [RORY_EMAIL]: {
+                                        role: 'user',
+                                    },
+                                },
                                 outputCurrency: '',
                                 isPolicyExpenseChatEnabled: false,
                             },
@@ -1833,11 +1837,15 @@ describe('actions/IOU', () => {
                             {amount: 20000, comment: 'Double the amount!'},
                             {
                                 id: '123',
-                                role: 'user',
                                 type: 'free',
                                 name: '',
                                 owner: '',
                                 outputCurrency: '',
+                                employeeList: {
+                                    [RORY_EMAIL]: {
+                                        role: 'user',
+                                    },
+                                },
                                 isPolicyExpenseChatEnabled: false,
                             },
                             {},
@@ -2568,7 +2576,6 @@ describe('actions/IOU', () => {
                     {amount: 20000, comment: 'Double the amount!'},
                     {
                         id: '123',
-                        role: 'user',
                         type: 'free',
                         name: '',
                         owner: '',

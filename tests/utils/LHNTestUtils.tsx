@@ -243,12 +243,15 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
         id,
         name,
         isFromFullPolicy: false,
-        role: 'admin',
         type: 'free',
         owner: 'myuser@gmail.com',
         outputCurrency: 'BRL',
         avatar: '',
-        employeeList: [],
+        employeeList: {
+            'myuser@gmail.com': {
+                role: 'admin',
+            },
+        },
         isPolicyExpenseChatEnabled: true,
         lastModified: '1697323926777105',
         autoReporting: true,
