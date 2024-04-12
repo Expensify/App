@@ -145,11 +145,11 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
 
                 return null;
             }
+
+            return translatedPhrase(...phraseParameters);
         }
 
-        if (typeof translatedPhrase === 'string') {
-            return translatedPhrase;
-        }
+        return translatedPhrase;
     }
 
     if (!fallbackLanguage) {
