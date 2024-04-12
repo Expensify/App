@@ -2823,7 +2823,6 @@ function completeOnboarding(
     },
 ) {
     const targetEmail = CONST.EMAIL.CONCIERGE;
-    const {login = '', firstName = '', lastName = ''} = allPersonalDetails?.[currentUserAccountID] ?? {};
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
