@@ -2788,6 +2788,7 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
+// TODO: Clear region
 // #region completeOnboarding
 function completeOnboarding(properties: {data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>; engagementChoice: ValueOf<typeof CONST.ONBOARDING_CHOICES>}) {
     const {data, engagementChoice} = properties;
