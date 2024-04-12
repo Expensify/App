@@ -2819,27 +2819,28 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
     // Mention message
     const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(`Hey @${login.split('@')[0]} 👋`, undefined, actorAccountID);
     const mentionCommentAction: OptimisticAddCommentReportAction = mentionComment.reportAction;
+    const mentionMessage: AddCommentOrAttachementParams = {
+        reportID: targetChatReportID,
+        reportActionID: mentionCommentAction.reportActionID,
+        reportComment: mentionComment.commentText,
+    };
 
     // Text message
     const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
-    const textCommentText = textComment.commentText;
-
     const textMessage: AddCommentOrAttachementParams = {
         reportID: targetChatReportID,
         reportActionID: textCommentAction.reportActionID,
-        reportComment: textCommentText,
+        reportComment: textComment.commentText,
     };
 
     // Video message
     const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
     const videoCommentAction: OptimisticAddCommentReportAction = videoComment.reportAction;
-    const videoCommentText = videoComment.commentText;
-
     const videoMessage: AddCommentOrAttachementParams = {
         reportID: targetChatReportID,
         reportActionID: videoCommentAction.reportActionID,
-        reportComment: videoCommentText,
+        reportComment: videoComment.commentText,
     };
 
     const tasksData = data.tasks.map((task, index) => {
@@ -2880,22 +2881,17 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
         };
     });
 
-    // tasks
     const tasksForParameters = tasksData.reduce<TaskForParameters[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
-        // subtitle message
         const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
         const subtitleCommentText = subtitleComment.commentText;
-
         const subtitleMessage: TaskMessage = {
             reportID: currentTask.reportID,
             reportActionID: subtitleCommentAction.reportActionID,
             reportComment: subtitleCommentText,
         };
 
-        // instruction message
         const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
         const instructionCommentText = instructionComment.commentText;
-
         const instructionMessage: TaskMessage = {
             reportID: currentTask.reportID,
             reportActionID: instructionCommentAction.reportActionID,
@@ -3005,7 +3001,7 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
         engagementChoice,
         firstName,
         lastName,
-        guidedSetupData: JSON.stringify([{type: 'message', ...textMessage}, {type: 'video', ...data.video, ...videoMessage}, ...tasksForParameters]),
+        guidedSetupData: JSON.stringify([{type: 'message', ...mentionMessage}, {type: 'message', ...textMessage}, {type: 'video', ...data.video, ...videoMessage}, ...tasksForParameters]),
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData});
