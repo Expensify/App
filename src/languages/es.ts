@@ -249,7 +249,6 @@ export default {
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Introducir manualmente',
         message: 'Chatear con ',
-        leaveChat: 'Salir del chat',
         leaveThread: 'Salir del hilo',
         you: 'Tú',
         youAfterPreposition: 'ti',
@@ -1230,7 +1229,8 @@ export default {
     },
     groupChat: {
         groupMembersListTitle: 'Directorio de los miembros del grupo.',
-        lastMemberWarning: '¡Atención! Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los usuarios. ¿Estás seguro de que quieres salir del chat?',
+        lastMemberTitle: '¡Atención!',
+        lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los usuarios. ¿Estás seguro de que quieres salir del chat?',
         defaultReportName: ({displayName}: {displayName: string}) => `Chat de group de ${displayName}`,
     },
     languagePage: {

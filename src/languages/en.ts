@@ -259,8 +259,6 @@ export default {
         cantFindAddress: "Can't find your address? ",
         enterManually: 'Enter it manually',
         message: 'Message ',
-        leaveRoom: 'Leave room',
-        leaveChat: 'Leave chat',
         leaveThread: 'Leave thread',
         you: 'You',
         youAfterPreposition: 'you',
@@ -1229,7 +1227,8 @@ export default {
     },
     groupChat: {
         groupMembersListTitle: 'Directory of all group members.',
-        lastMemberWarning: "Heads up! Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
+        lastMemberTitle: 'Heads up!',
+        lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
         defaultReportName: ({displayName}: {displayName: string}) => `${displayName}'s group chat`,
     },
     languagePage: {

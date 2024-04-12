@@ -22,7 +22,7 @@ function ChatDetailsQuickActionsBar({report}: ChatDetailsQuickActionsBarProps) {
             <View style={[styles.flex1, styles.pr3]}>
                 <ConfirmModal
                     danger
-                    title={translate('common.leaveChat')}
+                    title={translate('groupChat.lastMemberTitle')}
                     isVisible={isLastMemberLeavingGroupModalVisible}
                     onConfirm={() => {
                         setIsLastMemberLeavingGroupModalVisible(false);
@@ -30,8 +30,8 @@ function ChatDetailsQuickActionsBar({report}: ChatDetailsQuickActionsBarProps) {
                     }}
                     onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
                     prompt={translate('groupChat.lastMemberWarning')}
-                    confirmText={translate('common.yes')}
-                    cancelText={translate('common.no')}
+                    confirmText={translate('common.leave')}
+                    cancelText={translate('common.cancel')}
                 />
                 <Button
                     onPress={() => {
