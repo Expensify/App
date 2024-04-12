@@ -2809,29 +2809,19 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
-// TODO: Clear region
-// #region completeOnboarding
 function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>) {
     const targetEmail = CONST.EMAIL.CONCIERGE;
     const {login = '', firstName = '', lastName = ''} = allPersonalDetails?.[currentUserAccountID] ?? {};
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID]);
-    const targetChatReportID = targetChatReport?.reportID ?? '';
-    const targetChatPolicyID = targetChatReport?.policyID ?? '';
+    const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     // Mention message
-    const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(`Hey @${login} 👋`, undefined, actorAccountID);
+    const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(`Hey @${login.split('@')[0]} 👋`, undefined, actorAccountID);
     const mentionCommentAction: OptimisticAddCommentReportAction = mentionComment.reportAction;
-    const mentionCommentText = mentionComment.commentText;
-
-    const mentionMessage: AddCommentOrAttachementParams = {
-        reportID: targetChatReportID,
-        reportActionID: mentionCommentAction.reportActionID,
-        reportComment: mentionCommentText,
-    };
 
     // Text message
-    const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID);
+    const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
     const textCommentText = textComment.commentText;
 
@@ -2842,7 +2832,7 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
     };
 
     // Video message
-    const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID);
+    const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
     const videoCommentAction: OptimisticAddCommentReportAction = videoComment.reportAction;
     const videoCommentText = videoComment.commentText;
 
@@ -2852,7 +2842,7 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
         reportComment: videoCommentText,
     };
 
-    const tasksData = data.tasks.map((task) => {
+    const tasksData = data.tasks.map((task, index) => {
         const currentTask = ReportUtils.buildOptimisticTaskReport(
             actorAccountID,
             undefined,
@@ -2863,7 +2853,15 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
             CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         );
         const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(targetEmail);
-        const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(currentTask.reportID, task.title, 0, `task for ${task.title}`, targetChatReportID, actorAccountID);
+        const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
+            currentTask.reportID,
+            task.title,
+            0,
+            `task for ${task.title}`,
+            targetChatReportID,
+            actorAccountID,
+            index + 3,
+        );
 
         // subtitle message
         const subtitleComment = ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID);
@@ -2927,25 +2925,8 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
     }, []);
 
     const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
-        // subtitle message
         const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
-        const subtitleCommentText = subtitleComment.commentText;
-
-        const subtitleMessage: AddCommentOrAttachementParams = {
-            reportID: currentTask.reportID,
-            reportActionID: subtitleCommentAction.reportActionID,
-            reportComment: subtitleCommentText,
-        };
-
-        // instruction message
         const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
-        const instructionCommentText = instructionComment.commentText;
-
-        const instructionMessage: AddCommentOrAttachementParams = {
-            reportID: currentTask.reportID,
-            reportActionID: instructionCommentAction.reportActionID,
-            reportComment: instructionCommentText,
-        };
 
         return [
             ...acc,
@@ -2953,7 +2934,7 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
                 value: {
-                    [taskReportAction.reportAction.reportActionID ?? '']: taskReportAction.reportAction as ReportAction,
+                    [taskReportAction.reportAction.reportActionID]: taskReportAction.reportAction as ReportAction,
                 },
             },
             {
@@ -2971,24 +2952,12 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
                 },
             },
             {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
-                value: {[taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction},
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
-                value: {
-                    [subtitleMessage.reportID ?? '']: subtitleMessage,
-                    [instructionMessage.reportID ?? '']: instructionMessage,
-                },
-            },
-            {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
-                    [subtitleCommentAction.reportActionID ?? '']: subtitleCommentAction as ReportAction,
-                    [instructionCommentAction.reportActionID ?? '']: instructionCommentAction as ReportAction,
+                    [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
+                    [subtitleCommentAction.reportActionID]: subtitleCommentAction as ReportAction,
+                    [instructionCommentAction.reportActionID]: instructionCommentAction as ReportAction,
                 },
             },
         ];
@@ -3000,9 +2969,6 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
-                [mentionMessage.reportID ?? '']: mentionMessage,
-                [textMessage.reportID ?? '']: textMessage,
-                [videoMessage.reportID ?? '']: videoMessage,
                 lastMentionedTime: DateUtils.getDBTime(),
             },
         },
@@ -3010,9 +2976,9 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [mentionCommentAction.reportActionID ?? '']: mentionCommentAction as ReportAction,
-                [textCommentAction.reportActionID ?? '']: textCommentAction as ReportAction,
-                [videoCommentAction.reportActionID ?? '']: videoCommentAction as ReportAction,
+                [mentionCommentAction.reportActionID]: mentionCommentAction as ReportAction,
+                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
+                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
             },
         },
         {
@@ -3026,9 +2992,9 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [mentionCommentAction.reportActionID ?? '']: {pendingAction: null},
-                [textCommentAction.reportActionID ?? '']: {pendingAction: null},
-                [videoCommentAction.reportActionID ?? '']: {pendingAction: null},
+                [mentionCommentAction.reportActionID]: {pendingAction: null},
+                [textCommentAction.reportActionID]: {pendingAction: null},
+                [videoCommentAction.reportActionID]: {pendingAction: null},
             },
         },
     ];
