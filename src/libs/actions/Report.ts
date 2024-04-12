@@ -2865,9 +2865,7 @@ function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST
 
         // subtitle message
         const subtitleComment = ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID);
-
-        // instruction message
-        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(task.message, undefined, actorAccountID);
+        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(task.message, undefined, actorAccountID, undefined, false);
 
         return {
             currentTask,

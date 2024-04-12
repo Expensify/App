@@ -3053,7 +3053,7 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string): string {
+function getParsedComment(text: string, shouldEscapeText?: boolean): string {
     const parser = new ExpensiMark();
     const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
         const mention = match.substring(1);
@@ -3074,7 +3074,7 @@ function getParsedComment(text: string): string {
         return match;
     });
 
-    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(textWithMention, {shouldEscapeText: !shouldAllowRawHTMLMessages()}) : lodashEscape(text);
+    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(textWithMention, {shouldEscapeText: shouldEscapeText ?? !shouldAllowRawHTMLMessages()}) : lodashEscape(text);
 }
 
 function getReportDescriptionText(report: Report): string {
@@ -3095,9 +3095,9 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return parser.htmlToText(policy.description);
 }
 
-function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number, createdOffset = 0): OptimisticReportAction {
+function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number, createdOffset = 0, shouldEscapeText?: boolean): OptimisticReportAction {
     const parser = new ExpensiMark();
-    const commentText = getParsedComment(text ?? '');
+    const commentText = getParsedComment(text ?? '', shouldEscapeText);
     const isAttachmentOnly = file && !text;
     const isTextOnly = text && !file;
 
