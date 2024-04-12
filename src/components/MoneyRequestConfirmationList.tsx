@@ -168,7 +168,7 @@ const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxV
     return TransactionUtils.calculateTaxAmount(percentage, transaction?.amount ?? 0);
 };
 
-function MoneyTemporaryForRefactorRequestConfirmationList({
+function MoneyRequestConfirmationList({
     transaction = null,
     onSendMoney,
     onConfirm,
@@ -1034,7 +1034,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     );
 }
 
-MoneyTemporaryForRefactorRequestConfirmationList.displayName = 'MoneyTemporaryForRefactorRequestConfirmationList';
+MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
 export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmationListOnyxProps>({
     session: {
@@ -1053,4 +1053,4 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
     },
-})(MoneyTemporaryForRefactorRequestConfirmationList);
+})(MoneyRequestConfirmationList);
