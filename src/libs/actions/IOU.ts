@@ -2821,10 +2821,8 @@ function sendInvoice(
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(invoiceChatReport?.reportID);
-    if (invoiceChatReport?.reportID) {
-        Report.notifyNewAction(invoiceChatReport.reportID, receiver.accountID);
-    }
+    Navigation.dismissModal(optimisticInvoiceRoomID);
+    Report.notifyNewAction(optimisticInvoiceRoomID, receiver.accountID);
 }
 
 /**
