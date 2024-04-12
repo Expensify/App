@@ -2219,7 +2219,7 @@ function formatSectionsFromSearchTerm(
 /**
  * Filters options based on the search input value
  */
-function filterOptions(options: Options, searchInputValue: string): Options {
+function filterOptions(options: Options, searchInputValue: string, {sortByReportTypeInSearch = false}: Partial<GetOptionsConfig>): Options {
     const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
@@ -2263,12 +2263,14 @@ function filterOptions(options: Options, searchInputValue: string): Options {
                 if (item.alternateText) {
                     values.push(item.alternateText);
                 }
+                values = values.concat(getParticipantsLoginsArray(item));
             } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
                 if (item.subtitle) {
                     values.push(item.subtitle);
                 }
+            } else {
+                values = values.concat(getParticipantsLoginsArray(item));
             }
-            values = values.concat(getParticipantsLoginsArray(item));
 
             return uniqFast(values);
         });
@@ -2287,11 +2289,17 @@ function filterOptions(options: Options, searchInputValue: string): Options {
         };
     }, options);
 
-    const recentReports = matchResults.recentReports.concat(matchResults.personalDetails);
+    let {recentReports, personalDetails} = matchResults;
+
+    if (sortByReportTypeInSearch) {
+        recentReports = recentReports.concat(matchResults.personalDetails);
+        personalDetails = [];
+        recentReports = orderOptions(recentReports, searchValue);
+    }
 
     return {
-        personalDetails: [],
-        recentReports: orderOptions(recentReports, searchValue),
+        personalDetails,
+        recentReports,
         userToInvite: null,
         currentUserOption: null,
         categoryOptions: [],

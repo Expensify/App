@@ -80,21 +80,16 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
         Report.searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    /**
-     * Returns the sections needed for the OptionsSelector
-     *
-     * @returns {Array}
-     */
-    const [sections, newChatOptions] = useMemo(() => {
-        const newSections = [];
+    const chatOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return [newSections, {}];
+            return {};
         }
-        const chatOptions = OptionsListUtils.getFilteredOptions(
+
+        return OptionsListUtils.getFilteredOptions(
             options.reports,
             options.personalDetails,
             betas,
-            debouncedSearchTerm,
+            '',
             participants,
             CONST.EXPENSIFY_EMAILS,
 
@@ -112,12 +107,36 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
         );
+    }, [areOptionsInitialized, betas, canUseP2PDistanceRequests, didScreenTransitionEnd, iouRequestType, iouType, options.personalDetails, options.reports, participants]);
+
+    const filteredOptions = useMemo(() => {
+        if (!areOptionsInitialized || !didScreenTransitionEnd || debouncedSearchTerm.trim() === '') {
+            return {};
+        }
+
+        const newOptions = OptionsListUtils.filterOptions(chatOptions, debouncedSearchTerm, {});
+
+        return newOptions;
+    }, [areOptionsInitialized, chatOptions, debouncedSearchTerm, didScreenTransitionEnd]);
+
+    const requestMoneyOptions = debouncedSearchTerm.trim() !== '' ? filteredOptions : chatOptions;
+
+    /**
+     * Returns the sections needed for the OptionsSelector
+     *
+     * @returns {Array}
+     */
+    const [sections, newChatOptions] = useMemo(() => {
+        const newSections = [];
+        if (!areOptionsInitialized || !didScreenTransitionEnd) {
+            return [newSections, {}];
+        }
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
             participants,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
+            requestMoneyOptions.recentReports,
+            requestMoneyOptions.personalDetails,
             maxParticipantsReached,
             personalDetails,
             true,
@@ -131,20 +150,20 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
 
         newSections.push({
             title: translate('common.recents'),
-            data: chatOptions.recentReports,
-            shouldShow: !_.isEmpty(chatOptions.recentReports),
+            data: requestMoneyOptions.recentReports,
+            shouldShow: !_.isEmpty(options.recentReports),
         });
 
         newSections.push({
             title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: !_.isEmpty(chatOptions.personalDetails),
+            data: requestMoneyOptions.personalDetails,
+            shouldShow: !_.isEmpty(options.personalDetails),
         });
 
-        if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
+        if (requestMoneyOptions.userToInvite && !OptionsListUtils.isCurrentUser(requestMoneyOptions.userToInvite)) {
             newSections.push({
                 title: undefined,
-                data: _.map([chatOptions.userToInvite], (participant) => {
+                data: _.map([requestMoneyOptions.userToInvite], (participant) => {
                     const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
@@ -155,18 +174,18 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
         return [newSections, chatOptions];
     }, [
         areOptionsInitialized,
-        options.reports,
-        options.personalDetails,
-        betas,
+        didScreenTransitionEnd,
         debouncedSearchTerm,
         participants,
-        iouType,
-        canUseP2PDistanceRequests,
-        iouRequestType,
+        requestMoneyOptions.recentReports,
+        requestMoneyOptions.personalDetails,
+        requestMoneyOptions.userToInvite,
         maxParticipantsReached,
         personalDetails,
         translate,
-        didScreenTransitionEnd,
+        options.recentReports,
+        options.personalDetails,
+        chatOptions,
     ]);
 
     /**

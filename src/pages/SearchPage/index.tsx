@@ -101,7 +101,7 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true});
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
