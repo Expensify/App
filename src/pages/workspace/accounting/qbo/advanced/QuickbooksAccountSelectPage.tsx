@@ -9,6 +9,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
@@ -54,6 +55,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     const updateMode = useCallback((mode: SelectorType) => {
         // TODO add API call for change
         setSelectedAccount(mode.value);
+        Navigation.goBack();
     }, []);
 
     return (
