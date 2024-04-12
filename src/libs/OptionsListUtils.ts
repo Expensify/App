@@ -39,6 +39,7 @@ import times from '@src/utils/times';
 import Timing from './actions/Timing';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
+import filterArrayByMatch from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -169,7 +170,7 @@ type MemberForList = {
     keyForList: string;
     isSelected: boolean;
     isDisabled: boolean;
-    accountID?: number | null;
+    accountID?: number;
     login: string;
     icons?: OnyxCommon.Icon[];
     pendingAction?: OnyxCommon.PendingAction;
@@ -179,7 +180,7 @@ type MemberForList = {
 type SectionForSearchTerm = {
     section: CategorySection;
 };
-type GetOptions = {
+type Options = {
     recentReports: ReportUtils.OptionData[];
     personalDetails: ReportUtils.OptionData[];
     userToInvite: ReportUtils.OptionData | null;
@@ -357,7 +358,7 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 /**
  * Get the participant option for a report.
  */
-function getParticipantsOption(participant: ReportUtils.OptionData, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
+function getParticipantsOption(participant: ReportUtils.OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
@@ -447,19 +448,20 @@ function getSearchText(
 ): string {
     let searchTerms: string[] = [];
 
-    for (const personalDetail of personalDetailList) {
-        if (personalDetail.login) {
-            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-            // More info https://github.com/Expensify/App/issues/8007
-            searchTerms = searchTerms.concat([
-                PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
-                personalDetail.login,
-                personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
-            ]);
+    if (!isChatRoomOrPolicyExpenseChat) {
+        for (const personalDetail of personalDetailList) {
+            if (personalDetail.login) {
+                // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+                // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+                // More info https://github.com/Expensify/App/issues/8007
+                searchTerms = searchTerms.concat([
+                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
+                    personalDetail.login,
+                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
+                ]);
+            }
         }
     }
-
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
@@ -609,7 +611,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report, true);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '')) {
@@ -644,21 +646,22 @@ function createOption(
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false} = config ?? {};
     const result: ReportUtils.OptionData = {
         text: undefined,
-        alternateText: null,
+        alternateText: undefined,
         pendingAction: undefined,
         allReportErrors: undefined,
         brickRoadIndicator: null,
         icons: undefined,
         tooltipText: null,
         ownerAccountID: undefined,
-        subtitle: null,
+        subtitle: undefined,
         participantsList: undefined,
         accountID: 0,
-        login: null,
+        login: undefined,
         reportID: '',
-        phoneNumber: null,
-        keyForList: null,
-        searchText: null,
+        phoneNumber: undefined,
+        hasDraftComment: false,
+        keyForList: undefined,
+        searchText: undefined,
         isDefaultRoom: false,
         isPinned: false,
         isWaitingOnBankAccount: false,
@@ -1109,7 +1112,7 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Option[] {
+function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>, selectedOptions?: SelectedTagOption[]): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
@@ -1119,6 +1122,7 @@ function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>): Optio
             searchText: tag.name,
             tooltipText: cleanedName,
             isDisabled: !tag.enabled,
+            isSelected: selectedOptions?.some((selectedTag) => selectedTag.name === tag.name),
         };
     });
 }
@@ -1150,7 +1154,7 @@ function getTagListSections(
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getTagsOptions(selectedTagOptions),
+            data: getTagsOptions(selectedTagOptions, selectedOptions),
         });
 
         return tagSections;
@@ -1163,7 +1167,7 @@ function getTagListSections(
             // "Search" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(searchTags),
+            data: getTagsOptions(searchTags, selectedOptions),
         });
 
         return tagSections;
@@ -1174,7 +1178,7 @@ function getTagListSections(
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            data: getTagsOptions(enabledTags),
+            data: getTagsOptions(enabledTags, selectedOptions),
         });
 
         return tagSections;
@@ -1199,7 +1203,7 @@ function getTagListSections(
             // "Selected" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(selectedTagOptions),
+            data: getTagsOptions(selectedTagOptions, selectedOptions),
         });
     }
 
@@ -1210,7 +1214,7 @@ function getTagListSections(
             // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
-            data: getTagsOptions(cutRecentlyUsedTags),
+            data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
     }
 
@@ -1218,7 +1222,7 @@ function getTagListSections(
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        data: getTagsOptions(filteredTags),
+        data: getTagsOptions(filteredTags, selectedOptions),
     });
 
     return tagSections;
@@ -1496,6 +1500,35 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
 }
 
 /**
+ * Options need to be sorted in the specific order
+ * @param options - list of options to be sorted
+ * @param searchValue - search string
+ * @returns a sorted list of options
+ */
+function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined) {
+    return lodashOrderBy(
+        options,
+        [
+            (option) => {
+                if (!!option.isChatRoom || option.isArchivedRoom) {
+                    return 3;
+                }
+                if (!option.login) {
+                    return 2;
+                }
+                if (option.login.toLowerCase() !== searchValue?.toLowerCase()) {
+                    return 1;
+                }
+
+                // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
+                return 0;
+            },
+        ],
+        ['asc'],
+    );
+}
+
+/**
  * filter options based on specific conditions
  */
 function getOptions(
@@ -1537,7 +1570,7 @@ function getOptions(
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
     }: GetOptionsConfig,
-): GetOptions {
+): Options {
     if (includeCategories) {
         const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
 
@@ -1595,7 +1628,7 @@ function getOptions(
     }
 
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
-    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
+    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchInputValue.toLowerCase();
     const topmostReportId = Navigation.getTopmostReportId() ?? '';
 
     // Filter out all the reports that shouldn't be displayed
@@ -1845,26 +1878,7 @@ function getOptions(
         // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
         recentReportOptions.push(...personalDetailsOptions);
         personalDetailsOptions = [];
-        recentReportOptions = lodashOrderBy(
-            recentReportOptions,
-            [
-                (option) => {
-                    if (!!option.isChatRoom || option.isArchivedRoom) {
-                        return 3;
-                    }
-                    if (!option.login) {
-                        return 2;
-                    }
-                    if (option.login.toLowerCase() !== searchValue?.toLowerCase()) {
-                        return 1;
-                    }
-
-                    // When option.login is an exact match with the search value, returning 0 puts it at the top of the option list
-                    return 0;
-                },
-            ],
-            ['asc'],
-        );
+        recentReportOptions = orderOptions(recentReportOptions, searchValue);
     }
 
     return {
@@ -1881,7 +1895,7 @@ function getOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = []): GetOptions {
+function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = []): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getOptions(options, {
@@ -1906,7 +1920,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, searchValue = '', betas: Beta[] = []): GetOptions {
+function getShareLogOptions(options: OptionList, searchValue = '', betas: Beta[] = []): Options {
     return getOptions(options, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -2083,7 +2097,7 @@ function getMemberInviteOptions(
     searchValue = '',
     excludeLogins: string[] = [],
     includeSelectedOptions = false,
-): GetOptions {
+): Options {
     return getOptions(
         {reports: [], personalDetails},
         {
@@ -2202,6 +2216,90 @@ function formatSectionsFromSearchTerm(
     };
 }
 
+/**
+ * Filters options based on the search input value
+ */
+function filterOptions(options: Options, searchInputValue: string): Options {
+    const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
+    const searchTerms = searchValue ? searchValue.split(' ') : [];
+
+    // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+    // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+    const emailRegex = /\.(?=[^\s@]*@)/g;
+
+    const getParticipantsLoginsArray = (item: ReportUtils.OptionData) => {
+        const keys: string[] = [];
+        const visibleChatMemberAccountIDs = item.participantsList ?? [];
+        if (allPersonalDetails) {
+            visibleChatMemberAccountIDs.forEach((participant) => {
+                const login = participant?.login;
+
+                if (participant?.displayName) {
+                    keys.push(participant.displayName);
+                }
+
+                if (login) {
+                    keys.push(login);
+                    keys.push(login.replace(emailRegex, ''));
+                }
+            });
+        }
+
+        return keys;
+    };
+    const matchResults = searchTerms.reduceRight((items, term) => {
+        const recentReports = filterArrayByMatch(items.recentReports, term, (item) => {
+            let values: string[] = [];
+            if (item.text) {
+                values.push(item.text);
+            }
+
+            if (item.login) {
+                values.push(item.login);
+                values.push(item.login.replace(emailRegex, ''));
+            }
+
+            if (item.isThread) {
+                if (item.alternateText) {
+                    values.push(item.alternateText);
+                }
+            } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
+                if (item.subtitle) {
+                    values.push(item.subtitle);
+                }
+            }
+            values = values.concat(getParticipantsLoginsArray(item));
+
+            return uniqFast(values);
+        });
+        const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) =>
+            uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
+        );
+
+        return {
+            recentReports: recentReports ?? [],
+            personalDetails: personalDetails ?? [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
+        };
+    }, options);
+
+    const recentReports = matchResults.recentReports.concat(matchResults.personalDetails);
+
+    return {
+        personalDetails: [],
+        recentReports: orderOptions(recentReports, searchValue),
+        userToInvite: null,
+        currentUserOption: null,
+        categoryOptions: [],
+        tagOptions: [],
+        taxRatesOptions: [],
+    };
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2234,10 +2332,11 @@ export {
     formatSectionsFromSearchTerm,
     transformedTaxRates,
     getShareLogOptions,
+    filterOptions,
     createOptionList,
     createOptionFromReport,
     getReportOption,
     getTaxRatesSection,
 };
 
-export type {MemberForList, CategorySection, CategoryTreeSection, GetOptions, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption};
+export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption};
