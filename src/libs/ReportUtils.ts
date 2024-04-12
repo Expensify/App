@@ -1968,13 +1968,17 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 /**
  * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
  */
-function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>, report: OnyxEntry<Report> | EmptyObject): string {
+function getReimbursementDeQueuedActionMessage(
+    reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>,
+    report: OnyxEntry<Report> | EmptyObject,
+    isLHNPreview = false,
+): string {
     const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
-        const payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false) : getDisplayNameForParticipant(report?.managerID) ?? '';
+        const payerOrApproverName = report?.managerID === currentUserAccountID || !isLHNPreview ? '' : getDisplayNameForParticipant(report?.managerID, true);
         return Localize.translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
     }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
@@ -3098,13 +3102,27 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
 function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
+    const isAttachmentOnly = file && !text;
+    const isTextOnly = text && !file;
+
+    let htmlForNewComment;
+    let textForNewComment;
+    if (isAttachmentOnly) {
+        htmlForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+        textForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+    } else if (isTextOnly) {
+        htmlForNewComment = commentText;
+        textForNewComment = parser.htmlToText(htmlForNewComment);
+    } else {
+        htmlForNewComment = `${commentText}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
+        textForNewComment = `${commentText}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
+    }
+
     const isAttachment = !text && file !== undefined;
-    const attachmentInfo = isAttachment ? file : {};
-    const htmlForNewComment = isAttachment ? CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML : commentText;
+    const attachmentInfo = file ?? {};
     const accountID = actorAccountID ?? currentUserAccountID;
 
     // Remove HTML from text when applying optimistic offline comment
-    const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT : parser.htmlToText(htmlForNewComment);
     return {
         commentText,
         reportAction: {
@@ -3123,7 +3141,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject,
             created: DateUtils.getDBTimeWithSkew(),
             message: [
                 {
-                    translationKey: isAttachment ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
+                    translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     html: htmlForNewComment,
                     text: textForNewComment,
