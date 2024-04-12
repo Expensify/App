@@ -93,6 +93,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={styles.mv3}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={pendingFields?.reimbursementAccountID || pendingFields?.collectionAccountID}
                                 isActive={Boolean(reimbursementAccountID && collectionAccountID)}
                                 onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, bankAccounts?.[0].id ?? '')}
@@ -100,7 +101,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoPayrollAccount')}
+                                title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoPayrollAccount')} // TODO: set to the current selected value
                                 description={translate('workspace.qbo.advancedConfig.qboAccount')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                 onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
@@ -114,7 +115,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                             </View>
 
                             <ToggleSettingOptionRow
-                                title={translate('workspace.qbo.advancedConfig.collectionAccount')}
+                                title={translate('workspace.qbo.advancedConfig.collectionAccount')} // TODO: set to the current selected value
                                 subtitle={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={styles.mv3}
