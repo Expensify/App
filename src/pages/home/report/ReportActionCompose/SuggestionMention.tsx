@@ -272,7 +272,7 @@ function SuggestionMention(
         }
         calculateMentionSuggestion(selection.end);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isComposerFocused]);
+    }, [selection, isComposerFocused]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -292,29 +292,16 @@ function SuggestionMention(
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
 
-    const onSelectionChange = useCallback(
-        (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-            /**
-             * we pass here e.nativeEvent.selection.end directly to calculateMentionSuggestion
-             * because in other case calculateMentionSuggestion will have an old calculation value
-             * of suggestion instead of current one
-             */
-            calculateMentionSuggestion(e.nativeEvent.selection.end);
-        },
-        [calculateMentionSuggestion],
-    );
-
     useImperativeHandle(
         ref,
         () => ({
             resetSuggestions,
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
-            onSelectionChange,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
