@@ -11,6 +11,7 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -241,6 +242,24 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_LOCATIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CLASSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CUSTOMERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_TAXES]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
@@ -331,28 +350,9 @@ type RoomInviteNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
-    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
-        transactionID: string;
-        reportID: string;
-        backTo: string;
-    };
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
         reportID: string;
-    };
-    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: string;
-        transactionID: string;
-        reportID: string;
-    };
-    [SCREENS.MONEY_REQUEST.CURRENCY]: {
-        iouType: string;
-        reportID: string;
-        currency: string;
-        backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_DATE]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -373,6 +373,7 @@ type MoneyRequestNavigatorParamList = {
         action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
+        reportActionID: string;
         reportID: string;
         backTo: Routes;
     };
@@ -389,6 +390,8 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        reportActionID: string;
+        orderWeight: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -422,7 +425,7 @@ type MoneyRequestNavigatorParamList = {
         threadReportID: number;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
-        action: string;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -431,6 +434,58 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.RECEIPT]: {
         iouType: string;
         reportID: string;
+    };
+    [SCREENS.MONEY_REQUEST.CREATE]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        transactionID: string;
+
+        // These are not used in the screen, but are needed for the navigation
+        // for IOURequestStepDistance and IOURequestStepAmount components
+        backTo: never;
+        action: never;
+    };
+    [SCREENS.MONEY_REQUEST.START]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        transactionID: string;
+        iouRequestType: IOURequestType;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        transactionID: string;
+        backTo: Routes;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        pageIndex?: string;
+        backTo?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_SCAN]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        pageIndex: number;
+        backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        pageIndex?: string;
+        backTo?: Routes;
     };
 };
 
@@ -479,7 +534,6 @@ type SplitDetailsNavigatorParamList = {
         currency: string;
         tagIndex: string;
     };
-    [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: undefined;
 };
 
 type AddPersonalBankAccountNavigatorParamList = {
@@ -488,8 +542,9 @@ type AddPersonalBankAccountNavigatorParamList = {
 
 type ReimbursementAccountNavigatorParamList = {
     [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: {
-        stepToOpen: string;
-        policyID: string;
+        stepToOpen?: string;
+        backTo?: Routes;
+        policyID?: string;
     };
 };
 
@@ -512,7 +567,6 @@ type EditRequestNavigatorParamList = {
         field: string;
         threadReportID: string;
     };
-    [SCREENS.EDIT_REQUEST.CURRENCY]: undefined;
 };
 
 type SignInNavigatorParamList = {
@@ -606,6 +660,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
     };
@@ -620,6 +677,9 @@ type WorkspacesCentralPaneNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING]: {
         policyID: string;
     };
 };
