@@ -16,6 +16,7 @@ import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccess
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -29,24 +30,24 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const {autoSync, syncPeople, autoCreateVendor, reimbursementAccountID, collectionAccountID, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const {bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
 
-    const qboSyncToggleSettings = [
+    const qboSyncToggleSettings: ToggleSettingOptionRowProps[] = [
         {
             title: translate('workspace.qbo.advancedConfig.autoSync'),
-            subTitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
+            subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: Boolean(autoSync),
             onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, !autoSync),
             pendingAction: pendingFields?.autoSync,
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
-            subTitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
+            subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             isActive: Boolean(syncPeople),
             onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE, !syncPeople),
             pendingAction: pendingFields?.syncPeople,
         },
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
-            subTitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
+            subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: Boolean(autoCreateVendor),
             onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
             pendingAction: pendingFields?.autoCreateVendor,
@@ -72,7 +73,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 <ToggleSettingOptionRow
                                     key={item.title}
                                     title={item.title}
-                                    subtitle={item.subTitle}
+                                    subtitle={item.subtitle}
                                     shouldPlaceSubtitleBelowSwitch
                                     wrapperStyle={styles.mv3}
                                     isActive={item.isActive}
