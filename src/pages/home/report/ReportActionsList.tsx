@@ -198,6 +198,7 @@ function ReportActionsList({
     const reportActionSize = useRef(sortedVisibleReportActions.length);
     const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
+    hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
     const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -226,7 +227,6 @@ function ReportActionsList({
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-        hasNewestReportActionRef.current = hasNewestReportAction;
     }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID]);
 
     useEffect(() => {
