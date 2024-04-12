@@ -68,7 +68,6 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
                 >
                     <ScreenWrapper
                         includeSafeAreaPaddingBottom={false}
-                        shouldEnableMaxHeight
                         testID={QuickbooksAccountSelectPage.displayName}
                     >
                         <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboAccount')} />
