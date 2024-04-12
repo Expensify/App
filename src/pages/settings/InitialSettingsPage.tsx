@@ -467,7 +467,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             return;
         }
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
-    }, []);
+    }, [getScrollOffset, route]);
 
     return (
         <ScreenWrapper
