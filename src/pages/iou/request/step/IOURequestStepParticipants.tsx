@@ -167,7 +167,7 @@ function IOURequestStepParticipants({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
         >
             {({didScreenTransitionEnd}) => (
                 <MoneyRequestParticipantsSelector
