@@ -104,6 +104,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             newOptions.reports.push(reportOption);
             return newOptions;
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports]);
 
     /**
