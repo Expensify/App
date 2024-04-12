@@ -2907,12 +2907,12 @@ function getInvoicesChatName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     const policyName = getPolicyName(report, false, policy);
     let receiverName = '';
 
-    if (report?.invoiceReceiverAccountID) {
-        receiverName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[report.invoiceReceiverAccountID]);
+    if (report?.invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+        receiverName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[report.invoiceReceiver.accountID]);
     }
 
-    if (report?.invoiceReceiverPolicyID) {
-        receiverName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiverPolicyID}`]);
+    if (report?.invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.POLICY) {
+        receiverName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`]);
     }
 
     return `${receiverName} & ${policyName}`;
