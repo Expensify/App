@@ -104,6 +104,7 @@ function IOURequestStepCurrency({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepCurrency.displayName}
+            includeSafeAreaPaddingBottom={false}
         >
             {({didScreenTransitionEnd}) => (
                 <SelectionList
