@@ -42,7 +42,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {OptimisticAddCommentReportAction, OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticInviteReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -819,8 +819,7 @@ function buildOnyxDataForInvoice(
     isNewChatReport: boolean,
     transactionThreadReport: OptimisticChatReport,
     transactionThreadCreatedReportAction: OptimisticCreatedReportAction,
-    inviteReportAction?: OptimisticAddCommentReportAction,
-    chatBeginningReportAction?: OptimisticAddCommentReportAction,
+    inviteReportAction?: OptimisticInviteReportAction,
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
@@ -861,13 +860,12 @@ function buildOnyxDataForInvoice(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: transaction,
         },
-        isNewChatReport && inviteReportAction && chatBeginningReportAction
+        isNewChatReport && inviteReportAction
             ? {
                   onyxMethod: Onyx.METHOD.SET,
                   key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
                   value: {
                       [inviteReportAction.reportActionID]: inviteReportAction as ReportAction,
-                      [chatBeginningReportAction.reportActionID]: chatBeginningReportAction as ReportAction,
                       [chatCreatedAction.reportActionID]: chatCreatedAction,
                       [reportPreviewAction.reportActionID]: reportPreviewAction,
                   },
@@ -1427,7 +1425,7 @@ function getSendInvoiceInformation(
 
     if (!chatReport) {
         isNewChatReport = true;
-        chatReport = ReportUtils.buildOptimisticChatReport([receiverAccountID], CONST.REPORT.DEFAULT_REPORT_NAME, CONST.REPORT.CHAT_TYPE.INVOICE);
+        chatReport = ReportUtils.buildOptimisticChatReport([receiverAccountID], CONST.REPORT.DEFAULT_REPORT_NAME, CONST.REPORT.CHAT_TYPE.INVOICE, senderWorkspaceID);
     }
 
     // STEP 3: Create a new optimistic invoice report.
@@ -1462,8 +1460,7 @@ function getSendInvoiceInformation(
     const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
 
     // STEP 4: Build optimistic reportActions.
-    let inviteReportAction: OptimisticAddCommentReportAction | undefined;
-    let chatBeginningReportAction: OptimisticAddCommentReportAction | undefined;
+    let inviteReportAction: OptimisticInviteReportAction | undefined;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         ReportUtils.buildOptimisticMoneyRequestEntities(
             optimisticInvoiceReport,
@@ -1480,15 +1477,10 @@ function getSendInvoiceInformation(
             receiptObject,
             false,
         );
-    const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
-
     if (isNewChatReport) {
-        inviteReportAction = ReportUtils.buildOptimisticAddCommentReportAction(`${Localize.translateLocal('workspace.invite.invited')} ${receiver?.displayName}`).reportAction;
-        chatBeginningReportAction = {
-            ...ReportUtils.buildOptimisticAddCommentReportAction(Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoom')).reportAction,
-            whisperedToAccountIDs: [userAccountID],
-        };
+        inviteReportAction = ReportUtils.buildOptimisticInviteReportAction(receiver?.displayName ?? '', receiver.accountID ?? -1);
     }
+    const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
 
     // STEP 4: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForInvoice(
@@ -1505,7 +1497,6 @@ function getSendInvoiceInformation(
         optimisticTransactionThread,
         optimisticCreatedActionForTransactionThread,
         inviteReportAction,
-        chatBeginningReportAction,
         policy,
         policyTagList,
         policyCategories,

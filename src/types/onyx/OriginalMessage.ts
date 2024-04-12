@@ -343,6 +343,7 @@ export type {
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageChronosOOOList,
+    OriginalMessageRoomChangeLog,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
     DecisionName,

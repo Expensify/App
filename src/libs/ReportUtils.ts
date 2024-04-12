@@ -43,6 +43,7 @@ import type {
     OriginalMessageCreated,
     OriginalMessageReimbursementDequeued,
     OriginalMessageRenamed,
+    OriginalMessageRoomChangeLog,
     PaymentMethodType,
     ReimbursementDeQueuedMessage,
 } from '@src/types/onyx/OriginalMessage';
@@ -115,6 +116,8 @@ type SpendBreakdown = {
 };
 
 type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.AvatarSource];
+
+type OptimisticInviteReportAction = ReportActionBase & OriginalMessageRoomChangeLog;
 
 type OptimisticAddCommentReportAction = Pick<
     ReportAction,
@@ -3104,6 +3107,42 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return parser.htmlToText(policy.description);
 }
 
+function buildOptimisticInviteReportAction(invitedUserDisplayName: string, invitedUserID: number): OptimisticInviteReportAction {
+    const text = `${Localize.translateLocal('workspace.invite.invited')} ${invitedUserDisplayName}`;
+    const commentText = getParsedComment(text);
+    const parser = new ExpensiMark();
+
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM,
+        actorAccountID: currentUserAccountID,
+        person: [
+            {
+                style: 'strong',
+                text: allPersonalDetails?.[currentUserAccountID ?? -1]?.displayName ?? currentUserEmail,
+                type: 'TEXT',
+            },
+        ],
+        automatic: false,
+        avatar: allPersonalDetails?.[currentUserAccountID ?? -1]?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                html: commentText,
+                text: parser.htmlToText(commentText),
+            },
+        ],
+        originalMessage: {
+            targetAccountIDs: [invitedUserID],
+        },
+        isFirstItem: false,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        shouldShow: true,
+        isOptimisticAction: true,
+    };
+}
+
 function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
@@ -6067,6 +6106,7 @@ export {
     getGroupChatName,
     getOutstandingChildRequest,
     buildOptimisticInvoiceReport,
+    buildOptimisticInviteReportAction,
     isInvoiceRoom,
 };
 
@@ -6082,4 +6122,5 @@ export type {
     Ancestor,
     OptimisticIOUReportAction,
     TransactionDetails,
+    OptimisticInviteReportAction,
 };
