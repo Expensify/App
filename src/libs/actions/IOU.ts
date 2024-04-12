@@ -236,14 +236,6 @@ Onyx.connect({
     },
 });
 
-let lastSelectedDistanceRates: OnyxEntry<OnyxTypes.LastSelectedDistanceRates> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
-    callback: (value) => {
-        lastSelectedDistanceRates = value;
-    },
-});
-
 let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
@@ -283,22 +275,6 @@ function getPolicy(policyID: string | undefined): OnyxTypes.Policy | EmptyObject
 }
 
 /**
- * Returns custom unit rate ID for the transaction
- */
-function getCustomUnitRateID(reportID: string) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-    const policy = getPolicy(report?.policyID) ?? null;
-
-    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-
-    if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
-        customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID ?? '';
-    }
-    return customUnitRateID;
-}
-
-/**
  * Initialize money request info
  * @param reportID to attach the transaction to
  * @param policy
@@ -320,7 +296,7 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
             waypoint1: {},
         };
         if (!isFromGlobalCreate) {
-            const customUnitRateID = getCustomUnitRateID(reportID);
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID(reportID);
             comment.customUnit = {customUnitRateID};
         }
     }
@@ -460,9 +436,7 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
 /**
  * Set custom unit rateID for the transaction draft
  */
-function setCustomUnitRateID(transactionID: string, reportID: string) {
-    const customUnitRateID = getCustomUnitRateID(reportID);
-
+function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID}}});
 }
 

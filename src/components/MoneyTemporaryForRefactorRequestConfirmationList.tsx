@@ -66,6 +66,12 @@ type MoneyRequestConfirmationListOnyxProps = {
 
     /** Unit and rate used for if the money request is a distance request */
     mileageRates: OnyxEntry<Record<string, MileageRate>>;
+
+    /** Mileage rate default for the policy */
+    defaultMileageRate: OnyxEntry<MileageRate>;
+
+    /** Last selected distance rates */
+    lastSelectedDistanceRates: OnyxEntry<Record<string, string>>;
 };
 
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps & {
@@ -205,6 +211,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     onToggleBillable,
     hasSmartScanFailed,
     reportActionID,
+    defaultMileageRate,
+    lastSelectedDistanceRates,
 }: MoneyRequestConfirmationListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -217,7 +225,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
 
+    const transactionID = transaction?.transactionID ?? '';
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+
+    useEffect(() => {
+        if (customUnitRateID || !canUseP2PDistanceRequests) {
+            return;
+        }
+        if (!customUnitRateID && defaultMileageRate) {
+            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
+            IOU.setCustomUnitRateID(transactionID, rateID);
+        }
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
 
     const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
         ? DistanceRequestUtils.getRateForP2P(policy?.outputCurrency ?? CONST.CURRENCY.USD)
@@ -235,7 +254,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const distance = transaction?.routes?.route0?.distance ?? 0;
     const taxRates = policy?.taxRates ?? null;
-    const transactionID = transaction?.transactionID ?? '';
 
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -1031,11 +1049,18 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     policyTags: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
     },
+    defaultMileageRate: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        selector: DistanceRequestUtils.getDefaultMileageRate,
+    },
     mileageRates: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         selector: DistanceRequestUtils.getMileageRates,
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    },
+    lastSelectedDistanceRates: {
+        key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
     },
 })(MoneyTemporaryForRefactorRequestConfirmationList);
