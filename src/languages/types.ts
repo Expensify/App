@@ -135,6 +135,8 @@ type PayerSettledParams = {amount: number | string};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
+type AwaitingPaymentParams = {payerName: string};
+
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
 
 type AdminCanceledRequestParams = {manager: string; amount: string};
@@ -391,6 +393,7 @@ export type {
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
+    AwaitingPaymentParams,
     WalletProgramParams,
     UsePlusButtonParams,
     WeSentYouMagicSignInLinkParams,

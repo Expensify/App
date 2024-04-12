@@ -7,6 +7,7 @@ import type {
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
+    AwaitingPaymentParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -734,6 +735,7 @@ export default {
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
+        awaitingPayment: ({payerName}: AwaitingPaymentParams) => `A la espera de pago por ${payerName}`,
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
