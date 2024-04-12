@@ -252,20 +252,6 @@ type MenuItemBaseProps = {
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
-
-function truncateMarkdown(text = '', options: { limit?: number; ellipsis?: boolean } = {}): string {
-  const { limit, ellipsis } = options || {};
-
-  if (Number.isNaN(parseInt(limit as unknown as string, 10)) || text.length <= (limit ?? 0)) {
-    return text;
-  }
-
-  let outputText = replaceFormatMarkersWithPlaceholders(text);
-  outputText = truncate(outputText, limit ?? 0, ellipsis ?? false);
-  outputText = replaceFormatPlaceholdersWithMarkers(outputText);
-  return outputText;
-}
-
 function MenuItem(
     {
         interactive = true,
@@ -429,6 +415,8 @@ function MenuItem(
         }
     };
 
+    const parser = new ExpensiMark();
+
     return (
         <View>
             {!!label && !isLabelHoverable && (
@@ -551,7 +539,7 @@ function MenuItem(
                                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                     <View style={styles.renderHTMLTitle}>
-                                                        <RenderHTML html={processedTitle} />
+                                                        <RenderHTML html={parser.truncateMarkdown(processedTitle, 200, true)} />
                                                     </View>
                                                 )}
                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
