@@ -4677,6 +4677,26 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
 }
 
 /**
+ * Attempts to find an invoice chat report in onyx with the provided policyID and receiverID.
+ */
+function getInvoiceChatByParticipants(policyID: string, receiverID: string | number, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
+    return (
+        Object.values(reports ?? {}).find((report) => {
+            if (!report || !isInvoiceRoom(report)) {
+                return false;
+            }
+
+            const isSameReceiver =
+                report.invoiceReceiver &&
+                (('accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverID) ||
+                    ('policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === receiverID));
+
+            return report.policyID === policyID && isSameReceiver;
+        }) ?? null
+    );
+}
+
+/**
  * Attempts to find a report in onyx with the provided list of participants in given policy
  */
 function getChatByParticipantsAndPolicy(newParticipantList: number[], policyID: string): OnyxEntry<Report> {
@@ -6108,6 +6128,7 @@ export {
     buildOptimisticInvoiceReport,
     buildOptimisticInviteReportAction,
     isInvoiceRoom,
+    getInvoiceChatByParticipants,
 };
 
 export type {
