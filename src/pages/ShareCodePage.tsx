@@ -86,8 +86,8 @@ function ShareCodePage({report}: ShareCodePageProps) {
                         title={title}
                         subtitle={subtitle}
                         logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
-                        logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                        logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                        logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                        logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                     />
                 </View>
 
