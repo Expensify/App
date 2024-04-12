@@ -116,6 +116,9 @@ type ListItem = {
     /** The search value from the selection list */
     searchText?: string | null;
 
+    /** What text to show inside the badge (if none present the badge will be omitted) */
+    badgeText?: string;
+
     brickRoadIndicator?: BrickRoad | '' | null;
 };
 
