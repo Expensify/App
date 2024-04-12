@@ -29,10 +29,9 @@ function ChatDetailsQuickActionsBar({report}: ChatDetailsQuickActionsBarProps) {
                         Report.leaveGroupChat(report.reportID);
                     }}
                     onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
-                    // TODO: Get this copy confirmed
-                    prompt="Heads up! You are the last member of this group chat. Once you leave you will not be able to access the contents again."
-                    confirmText={translate('common.leave')}
-                    cancelText={translate('common.cancel')}
+                    prompt={translate('groupChat.lastMemberWarning')}
+                    confirmText={translate('common.yes')}
+                    cancelText={translate('common.no')}
                 />
                 <Button
                     onPress={() => {

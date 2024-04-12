@@ -1232,6 +1232,7 @@ export default {
     },
     groupChat: {
         groupMembersListTitle: 'Directorio de todos los miembros del grupo.',
+        lastMemberWarning: '¡Atención! Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los usuarios. ¿Estás seguro de que quieres irte?',
         defaultReportName: ({displayName}: {displayName: string}) => `Chat de group de ${displayName}`,
     },
     languagePage: {
