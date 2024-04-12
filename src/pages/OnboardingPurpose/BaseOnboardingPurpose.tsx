@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,10 +58,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
     const paddingHorizontal = shouldUseNarrowLayout ? styles.ph8 : styles.ph5;
 
-    const handleGoBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
     const selectedCheckboxIcon = useMemo(
         () => (
             <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
@@ -75,28 +70,13 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
         [styles.pointerEventsAuto, styles.popoverMenuIcon, theme.success],
     );
 
-    const completeEngagement = useCallback(() => {
+    const saveAndNavigate = useCallback(() => {
         if (selectedPurpose === undefined) {
             return;
         }
 
-        Report.completeOnboarding(selectedPurpose, CONST.ONBOARDING_MESSAGES[selectedPurpose]);
-
-        Navigation.dismissModal();
-        // Only navigate to concierge chat when central pane is visible
-        // Otherwise stay on the chats screen.
-        if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.HOME);
-        } else {
-            Report.navigateToConciergeChat();
-        }
-
-        // Small delay purely due to design considerations,
-        // no special technical reasons behind that.
-        setTimeout(() => {
-            Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
-        }, variables.welcomeVideoDelay);
-    }, [isSmallScreenWidth, selectedPurpose]);
+        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+    }, [selectedPurpose]);
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
@@ -126,9 +106,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                 <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
                     <View style={shouldUseNarrowLayout && styles.mh3}>
                         <HeaderWithBackButton
-                            shouldShowBackButton
-                            onBackButtonPress={handleGoBack}
-                            progressBarPercentage={66.6}
+                            shouldShowBackButton={false}
+                            iconFill={theme.iconColorfulBackground}
+                            progressBarPercentage={33.3}
                         />
                     </View>
                     <ScrollView style={[styles.flex1, styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, paddingHorizontal]}>
@@ -152,7 +132,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                                 return;
                             }
                             setError(false);
-                            completeEngagement();
+                            saveAndNavigate();
                         }}
                         message={errorMessage}
                         isAlertVisible={error || Boolean(errorMessage)}

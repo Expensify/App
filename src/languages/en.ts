@@ -1316,7 +1316,6 @@ export default {
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
     onboarding: {
-        welcome: 'Welcome!',
         welcomeVideo: {
             title: 'Welcome to Expensify',
             description: 'Getting paid is as easy as sending a message.',

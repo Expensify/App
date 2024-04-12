@@ -24,12 +24,12 @@ function OnboardingModalNavigator() {
                 <View style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}>
                     <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
                         <Stack.Screen
-                            name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
-                            component={OnboardingPersonalDetails}
-                        />
-                        <Stack.Screen
                             name={SCREENS.ONBOARDING.PURPOSE}
                             component={OnboardingPurpose}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                            component={OnboardingPersonalDetails}
                         />
                     </Stack.Navigator>
                 </View>
