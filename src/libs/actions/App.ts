@@ -238,9 +238,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             params.updateIDFrom = updateIDFrom;
         }
 
-        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(), {
-            getConflictingRequests: (persistedRequests) => persistedRequests.filter((request) => request?.command === WRITE_COMMANDS.RECONNECT_APP),
-        });
+        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect());
     });
 }
 
