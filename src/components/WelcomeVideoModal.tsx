@@ -41,24 +41,24 @@ function WelcomeVideoModal({children, onClose}: WelcomeVideoModalProps) {
     const styles = useThemeStyles();
     const [isModalVisible, setIsModalVisible] = useState(true);
     const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
-    const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
+    const [welcomeVideoType, setWelcomeVideoType] = useState<VideoStatus>('video');
+    const [isWelcomeVideoTypeLocked, setIsWelcomeVideoTypeLocked] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
     useEffect(() => {
-        if (isWelcomeVideoStatusLocked) {
+        if (isWelcomeVideoTypeLocked) {
             return;
         }
 
         if (isOffline) {
-            setWelcomeVideoStatus('animation');
-        } else if (!isOffline) {
-            setWelcomeVideoStatus('video');
-            setIsWelcomeVideoStatusLocked(true);
+            setWelcomeVideoType('animation');
+        } else {
+            setWelcomeVideoType('video');
+            setIsWelcomeVideoTypeLocked(true);
         }
-    }, [isOffline, isWelcomeVideoStatusLocked]);
+    }, [isOffline, isWelcomeVideoTypeLocked]);
 
     const closeModal = useCallback(() => {
         setIsModalVisible(false);
@@ -86,12 +86,12 @@ function WelcomeVideoModal({children, onClose}: WelcomeVideoModalProps) {
                     styles.w100,
                     // Prevent layout jumps by reserving height
                     // for the video until it loads. Also, when
-                    // welcomeVideoStatus === 'animation' it will
+                    // welcomeVideoType === 'animation' it will
                     // set the same aspect ratio as the video would.
                     {aspectRatio},
                 ]}
             >
-                {welcomeVideoStatus === 'video' ? (
+                {welcomeVideoType === 'video' ? (
                     <VideoPlayer
                         url={CONST.WELCOME_VIDEO_URL}
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}

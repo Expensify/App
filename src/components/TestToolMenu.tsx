@@ -105,6 +105,7 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     }}
                 />
             </TestToolRow>
+            {/* Navigate to the Explanation Modal. This button is temporary to test Explanation Modal flow without HybridApp native module. */}
             <TestToolRow title="Explanation modal">
                 <Button
                     small

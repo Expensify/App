@@ -11,12 +11,12 @@ import WelcomeVideoModal from './WelcomeVideoModal';
 function ExplanationModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [shouldNavigateToOnboarding, setShouldNavigateToOnboarding] = useState(false);
+    const [shouldNavigateToOnboardingPage, setShouldNavigateToOnboardingPage] = useState(false);
 
     useEffect(() => {
         Welcome.isOnboardingFlowCompleted({
             onNotCompleted: () => {
-                setShouldNavigateToOnboarding(true);
+                setShouldNavigateToOnboardingPage(true);
             },
         });
     }, []);
@@ -25,7 +25,7 @@ function ExplanationModal() {
         // Small delay purely due to design considerations.
         Navigation.goBack();
         setTimeout(() => {
-            if (!shouldNavigateToOnboarding) {
+            if (!shouldNavigateToOnboardingPage) {
                 return;
             }
             // Uncomment once Stage 1 Onboarding Flow is ready
