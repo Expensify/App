@@ -4339,7 +4339,7 @@ function buildOptimisticMoneyRequestEntities(
     const iouActionCreationTime = DateUtils.getDBTime();
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
 
-    console.log(type)
+    console.log(type);
 
     const iouAction = buildOptimisticIOUReportAction(
         type,
