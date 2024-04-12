@@ -1,10 +1,9 @@
 import {useNavigation} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
+import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import _ from 'underscore';
-import transactionPropTypes from '@components/transactionPropTypes';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
-import compose from '@libs/compose';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -12,35 +11,39 @@ import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryF
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
-
-    /* Onyx Props */
+type IOURequestStepParticipantsOnyxProps = {
     /** The transaction object being modified in Onyx */
-    transaction: transactionPropTypes,
+    transaction: OnyxEntry<Transaction>;
 };
 
-const defaultProps = {
-    transaction: {},
-};
+type IOUValueType = ValueOf<typeof CONST.IOU.TYPE>;
+
+type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
+
+type IOURef = IOUValueType | null;
 
 function IOURequestStepParticipants({
     route: {
         params: {iouType, reportID, transactionID},
     },
     transaction,
-    transaction: {participants = []},
-}) {
+}: IOURequestStepParticipantsProps) {
+    const participants = transaction?.participants;
     const {translate} = useLocalize();
     const navigation = useNavigation();
-    const selectedReportID = useRef(reportID);
-    const numberOfParticipants = useRef(participants.length);
+    const selectedReportID = useRef<string>(reportID);
+    const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const headerTitle = useMemo(() => {
@@ -53,20 +56,24 @@ function IOURequestStepParticipants({
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate, isSplitRequest]);
 
-    const receiptFilename = lodashGet(transaction, 'filename');
-    const receiptPath = lodashGet(transaction, 'receipt.source');
-    const receiptType = lodashGet(transaction, 'receipt.type');
-    const newIouType = useRef();
+    const receiptFilename = transaction?.filename;
+    const receiptPath = transaction?.receipt?.source;
+    const receiptType = transaction?.receipt?.type;
+    const newIouType = useRef<IOURef>();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     useEffect(() => {
-        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, () => {}, iouRequestType, iouType, transactionID, reportID, receiptType);
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
     }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID]);
 
     const updateRouteParams = useCallback(() => {
-        IOU.updateMoneyRequestTypeParams(navigation.getState().routes, newIouType.current);
+        const navigationState = navigation.getState();
+        if (!navigationState || !newIouType.current) {
+            return;
+        }
+        IOU.updateMoneyRequestTypeParams(navigationState.routes, newIouType.current);
     }, [navigation]);
 
     useEffect(() => {
@@ -80,7 +87,7 @@ function IOURequestStepParticipants({
     }, [participants, updateRouteParams]);
 
     const addParticipant = useCallback(
-        (val, selectedIouType) => {
+        (val: Participant[], selectedIouType: IOUValueType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
             // It's only possible to switch between REQUEST and SPLIT.
             // We want to update the IOU type only if it's not updated yet to prevent unnecessary updates.
@@ -94,7 +101,7 @@ function IOURequestStepParticipants({
 
             // If the Onyx participants has the same items as the selected participants (val), Onyx won't update it
             // thus this component won't rerender, so we can immediately update the route params.
-            if (newIouType.current && _.isEqual(participants, val)) {
+            if (newIouType.current && lodashIsEqual(participants, val)) {
                 updateRouteParams();
                 newIouType.current = null;
             }
@@ -110,15 +117,15 @@ function IOURequestStepParticipants({
             }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
-            selectedReportID.current = lodashGet(val, '[0].reportID', reportID);
+            selectedReportID.current = val[0]?.reportID ?? reportID;
         },
         [reportID, transactionID, iouType, participants, updateRouteParams],
     );
 
     const goToNextStep = useCallback(
-        (selectedIouType) => {
+        (selectedIouType: IOUValueType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            let nextStepIOUType = CONST.IOU.TYPE.REQUEST;
+            let nextStepIOUType: IOUValueType = CONST.IOU.TYPE.REQUEST;
 
             if (isSplit && iouType !== CONST.IOU.TYPE.REQUEST) {
                 nextStepIOUType = CONST.IOU.TYPE.SPLIT;
@@ -143,7 +150,7 @@ function IOURequestStepParticipants({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
         >
             {({didScreenTransitionEnd}) => (
                 <MoneyRequestParticipantsSelector
@@ -160,7 +167,5 @@ function IOURequestStepParticipants({
 }
 
 IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
-IOURequestStepParticipants.propTypes = propTypes;
-IOURequestStepParticipants.defaultProps = defaultProps;
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepParticipants);
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));
