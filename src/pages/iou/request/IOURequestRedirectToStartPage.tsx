@@ -1,34 +1,22 @@
-import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        /** Route specific parameters used on this screen */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
-
-            /** The type of IOU Request, i.e. manual, scan, distance */
-            iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
-        }),
-    }).isRequired,
-};
+type IOURequestRedirectToStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.START>;
 
 function IOURequestRedirectToStartPage({
     route: {
         params: {iouType, iouRequestType},
     },
-}) {
-    const isIouTypeValid = _.values(CONST.IOU.TYPE).includes(iouType);
-    const isIouRequestTypeValid = _.values(CONST.IOU.REQUEST_TYPE).includes(iouRequestType);
+}: IOURequestRedirectToStartPageProps) {
+    const isIouTypeValid = Object.values(CONST.IOU.TYPE).includes(iouType);
+    const isIouRequestTypeValid = Object.values(CONST.IOU.REQUEST_TYPE).includes(iouRequestType);
 
     useEffect(() => {
         if (!isIouTypeValid || !isIouRequestTypeValid) {
@@ -64,6 +52,5 @@ function IOURequestRedirectToStartPage({
 }
 
 IOURequestRedirectToStartPage.displayName = 'IOURequestRedirectToStartPage';
-IOURequestRedirectToStartPage.propTypes = propTypes;
 
 export default IOURequestRedirectToStartPage;
