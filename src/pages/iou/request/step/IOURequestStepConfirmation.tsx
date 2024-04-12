@@ -533,7 +533,7 @@ function IOURequestStepConfirmation({
                             iouMerchant={transaction?.merchant}
                             iouCreated={transaction?.created}
                             isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
-                            shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                            shouldShowSmartScanFields={IOUUtils.isMovingTransactionFromTrackExpense(action) ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                             action={action}
                         />
                     </View>

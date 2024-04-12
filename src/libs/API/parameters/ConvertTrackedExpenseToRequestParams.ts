@@ -1,9 +1,9 @@
 type ConvertTrackedExpenseToRequestParams = {
-    amount: number,
-    currency: string,
-    created: string,
-    comment?: string,
-    merchant?: string,
+    amount: number;
+    currency: string;
+    created: string;
+    comment?: string;
+    merchant?: string;
     payerAccountID: number;
     chatReportID: string;
     transactionID: string;
