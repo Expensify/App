@@ -96,7 +96,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
                             <InputWrapper
                                 InputComponent={TextInput}
                                 maxLength={CONST.TAG_NAME_LIMIT}
-                                defaultValue={PolicyUtils.getCleanedTagName(currentTagName)}
+                                defaultValue={currentTagName}
                                 label={translate('common.name')}
                                 accessibilityLabel={translate('common.name')}
                                 inputID={INPUT_IDS.TAG_NAME}
