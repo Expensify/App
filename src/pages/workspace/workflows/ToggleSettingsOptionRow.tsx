@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
@@ -21,7 +21,7 @@ type ToggleSettingOptionRowProps = {
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
     /** Used to apply styles to the outermost container */
-    wrapperStyle?: ViewStyle;
+    wrapperStyle?: StyleProp<ViewStyle>;
     /** Whether the option is enabled or not */
     isActive: boolean;
     /** Callback to be called when the switch is toggled */
@@ -73,7 +73,7 @@ function ToggleSettingOptionRow({
             <View style={styles.pRelative}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                        {icon && (
+                        {!!icon && (
                             <Icon
                                 src={icon}
                                 height={ICON_SIZE}
