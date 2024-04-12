@@ -621,6 +621,7 @@ export default {
         splitBill: 'Split bill',
         request: 'Request',
         categorize: 'Categorize',
+        share: 'Share',
         participants: 'Participants',
         requestMoney: 'Request money',
         sendMoney: 'Send money',

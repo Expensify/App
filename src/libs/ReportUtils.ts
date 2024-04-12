@@ -4339,8 +4339,6 @@ function buildOptimisticMoneyRequestEntities(
     const iouActionCreationTime = DateUtils.getDBTime();
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
 
-    console.log(type);
-
     const iouAction = buildOptimisticIOUReportAction(
         type,
         amount,
@@ -5847,7 +5845,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
 
     const transactionAmount = Math.abs(transaction.amount);
     const transactionCreated = format(new Date(transaction.created), CONST.DATE.FNS_FORMAT_STRING);
-    console.log('transaction', transaction);
+
     IOU.createDraftTransaction({
         ...transaction,
         actionableWhisperReportActionID: reportActionID,

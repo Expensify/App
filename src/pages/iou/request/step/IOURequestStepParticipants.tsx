@@ -53,6 +53,9 @@ function IOURequestStepParticipants({
         if (action === CONST.IOU.ACTION.MOVE) {
             return translate('iou.request');
         }
+        if (action === CONST.IOU.ACTION.SHARE) {
+            return translate('iou.share');
+        }
         if (isSplitRequest) {
             return translate('iou.split');
         }

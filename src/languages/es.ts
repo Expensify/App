@@ -617,6 +617,7 @@ export default {
         splitBill: 'Dividir factura',
         request: 'Solicitar',
         categorize: 'Categorizar',
+        share: 'Compartir',
         participants: 'Participantes',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',

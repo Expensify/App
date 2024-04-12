@@ -86,6 +86,9 @@ function IOURequestStepConfirmation({
         if (action === CONST.IOU.ACTION.MOVE) {
             return translate('iou.request');
         }
+        if (action === CONST.IOU.ACTION.SHARE) {
+            return translate('iou.share');
+        }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             return translate('iou.split');
         }
