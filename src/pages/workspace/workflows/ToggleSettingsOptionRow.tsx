@@ -56,18 +56,7 @@ function ToggleSettingOptionRow({
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
 
-    const subTitleView = () => (
-        <Text
-            style={{
-                ...styles.textLabel,
-                ...(shouldPlaceSubtitleBelowSwitch ? styles.mt4 : styles.mt1),
-                ...(!shouldPlaceSubtitleBelowSwitch && styles.mr5),
-                ...styles.textSupporting,
-            }}
-        >
-            {subtitle}
-        </Text>
-    );
+    const subTitleView = () => <Text style={[styles.textLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt4 : {...styles.mt1, ...styles.mr5}, styles.textSupporting]}>{subtitle}</Text>;
 
     return (
         <OfflineWithFeedback
