@@ -53,7 +53,7 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** True if this is this IOU is a split instead of a submit expense */
+    /** True if this IOU has a type of split */
     isBillSplit: boolean;
 
     /** Whether this IOU is a track expense */
