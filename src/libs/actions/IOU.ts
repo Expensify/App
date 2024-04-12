@@ -44,7 +44,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import * as UserUtils from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {NavigationPartialRoute} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -1272,7 +1271,6 @@ function getMoneyRequestInformation(
         ? {
               [payerAccountID]: {
                   accountID: payerAccountID,
-                  avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
@@ -2804,7 +2802,6 @@ function createSplitsAndOnyxData(
             ? {
                   [accountID]: {
                       accountID,
-                      avatar: UserUtils.getDefaultAvatarURL(accountID),
                       // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
@@ -3248,7 +3245,6 @@ function startSplitBill({
                 value: {
                     [accountID]: {
                         accountID,
-                        avatar: UserUtils.getDefaultAvatarURL(accountID),
                         // Disabling this line since participant.displayName can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
@@ -4578,7 +4574,6 @@ function getSendMoneyParams(
             value: {
                 [recipientAccountID]: {
                     accountID: recipientAccountID,
-                    avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
                     // Disabling this line since participant.displayName can be an empty string
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     displayName: recipient.displayName || recipient.login,

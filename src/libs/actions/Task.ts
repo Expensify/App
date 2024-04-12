@@ -682,7 +682,7 @@ function setAssigneeValue(
             // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
             const optimisticPersonalDetailsListAction = {
                 accountID: assigneeAccountID,
-                avatar: allPersonalDetails?.[assigneeAccountID]?.avatar ?? UserUtils.getDefaultAvatarURL(assigneeAccountID),
+                avatar: allPersonalDetails?.[assigneeAccountID]?.avatar,
                 displayName: allPersonalDetails?.[assigneeAccountID]?.displayName ?? assigneeEmail,
                 login: assigneeEmail,
             };

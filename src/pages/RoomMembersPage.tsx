@@ -36,6 +36,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import SearchInputManager from './workspace/SearchInputManager';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 
 type RoomMembersPageOnyxProps = {
     session: OnyxEntry<Session>;
@@ -206,16 +207,14 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 isDisabled: accountID === session?.accountID,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
-                icons: details.avatar
-                    ? [
-                          {
-                              source: details.avatar,
-                              name: details.login ?? '',
-                              type: CONST.ICON_TYPE_AVATAR,
-                              id: Number(accountID),
-                          },
-                      ]
-                    : [],
+                icons: [
+                    {
+                        source: details.avatar ?? FallbackAvatar,
+                        name: details.login ?? '',
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: Number(accountID),
+                    },
+                ],
                 pendingAction: pendingChatMember?.pendingAction,
             });
         });

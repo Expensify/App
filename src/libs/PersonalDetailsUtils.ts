@@ -150,12 +150,11 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
 
     newLogins.forEach((login, index) => {
         const accountID = newAccountIDs[index];
-        personalDetailsNew[accountID] = {
-            login,
-            accountID,
-            avatar: UserUtils.getDefaultAvatarURL(accountID),
-            displayName: LocalePhoneNumber.formatPhoneNumber(login),
-        };
+            personalDetailsNew[accountID] = {
+                login,
+                accountID,
+                displayName: LocalePhoneNumber.formatPhoneNumber(login),
+            };
 
         /**
          * Cleanup the optimistic user to ensure it does not permanently persist.

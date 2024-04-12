@@ -10,7 +10,6 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
@@ -1818,7 +1817,7 @@ function getIcons(
 ): Icon[] {
     if (isEmptyObject(report)) {
         const fallbackIcon: Icon = {
-            source: defaultIcon ?? Expensicons.FallbackAvatar,
+            source: defaultIcon ?? FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
             name: defaultName,
             id: defaultAccountID,
@@ -3192,7 +3191,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject,
                 },
             ],
             automatic: false,
-            avatar: allPersonalDetails?.[accountID ?? -1]?.avatar ?? UserUtils.getDefaultAvatarURL(accountID),
+            avatar: allPersonalDetails?.[accountID ?? -1]?.avatar,
             created: DateUtils.getDBTimeWithSkew(),
             message: [
                 {
