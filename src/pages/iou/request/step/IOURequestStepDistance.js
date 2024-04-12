@@ -22,6 +22,7 @@ import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as Transaction from '@userActions/Transaction';
+import * as TransactionEdit from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -84,6 +85,7 @@ function IOURequestStepDistance({
     const duplicateWaypointsError = useMemo(() => nonEmptyWaypointsCount >= 2 && _.size(validatedWaypoints) !== nonEmptyWaypointsCount, [nonEmptyWaypointsCount, validatedWaypoints]);
     const atLeastTwoDifferentWaypointsError = useMemo(() => _.size(validatedWaypoints) < 2, [validatedWaypoints]);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
 
     useEffect(() => {
@@ -111,6 +113,29 @@ function IOURequestStepDistance({
         }
         setShouldShowAtLeastTwoDifferentWaypointsError(false);
     }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoading, isLoadingRoute, nonEmptyWaypointsCount, transaction]);
+
+    // This effect runs when the component is mounted and unmounted. It's purpose is to be able to properly
+    // discard changes if the user cancels out of making any changes. This is accomplished by backing up the
+    // original transaction, letting the user modify the current transaction, and then if the user ever
+    // cancels out of the modal without saving changes, the original transaction is restored from the backup.
+    useEffect(() => {
+        if (isCreatingNewRequest) {
+            return () => {};
+        }
+
+        // On mount, create the backup transaction.
+        TransactionEdit.createBackupTransaction(transaction);
+
+        return () => {
+            // If the user cancels out of the modal without without saving changes, then the original transaction
+            // needs to be restored from the backup so that all changes are removed.
+            if (transactionWasSaved.current) {
+                return;
+            }
+            TransactionEdit.restoreOriginalTransactionFromBackup(lodashGet(transaction, 'transactionID', ''), action === CONST.IOU.ACTION.CREATE);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -191,6 +216,9 @@ function IOURequestStepDistance({
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
             return;
         }
+        if (!isCreatingNewRequest) {
+            transactionWasSaved.current = true;
+        }
         if (isEditing) {
             // If nothing was changed, simply go to transaction thread
             // We compare only addresses because numbers are rounded while backup
@@ -213,6 +241,7 @@ function IOURequestStepDistance({
         hasRouteError,
         isLoadingRoute,
         isLoading,
+        isCreatingNewRequest,
         isEditing,
         navigateToNextStep,
         transactionBackup,
@@ -292,7 +321,10 @@ export default compose(
     withFullTransactionOrNotFound,
     withOnyx({
         transactionBackup: {
-            key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${props.transactionID}`,
+            key: ({route}) => {
+                const transactionID = lodashGet(route, 'params.transactionID', 0);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
+            },
         },
     }),
 )(IOURequestStepDistance);
