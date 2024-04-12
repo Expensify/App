@@ -19,7 +19,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import getTopmostWorkspacesCentralPaneName from '@libs/Navigation/getTopmostWorkspacesCentralPaneName';
+import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -68,7 +68,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
-    const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
+    const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
 

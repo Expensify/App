@@ -30,7 +30,7 @@ function adaptStateIfNecessary(state: StackState) {
 
     // If the screen is wide, there should be at least two screens inside:
     // - WORKSPACE.INITIAL to cover left pane.
-    // - WORKSPACES_CENTRAL_PANE to cover central pane.
+    // - WORKSPACE.PROFILE (first workspace settings screen) to cover central pane.
     if (!isNarrowLayout) {
         if (state.routes.length === 1 && state.routes[0].name === SCREENS.WORKSPACE.INITIAL) {
             // @ts-expect-error Updating read only property
