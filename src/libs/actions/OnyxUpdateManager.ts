@@ -41,12 +41,16 @@ export default () => {
     Onyx.connect({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value) => {
-            // When the OpenApp command hasn't finished yet, we should not process any updates.
+            // When value is set to null (which we do once we finish processing this method), we can just return early.
+            // Alternatively, if we're isLoadingApp is positive, that means that OpenApp command hasn't finished yet, 
+            // so we should not process any updates that are being set here.
             if (!value || isLoadingApp) {
                 if (isLoadingApp) {
+                    // Some of the places that set ONYX_UPDATES_FROM_SERVER also stop the sequential queue. If we reached
+                    // this point, let's unpause it to guarantee that it's still possible to use the app.
+                    SequentialQueue.unpause();
                     console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hans't finished yet.`);
                 }
-                SequentialQueue.unpause();
                 return;
             }
             // This key is shared across clients, thus every client/tab will have a copy and try to execute this method.
