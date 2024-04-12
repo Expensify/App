@@ -2519,6 +2519,7 @@ export default {
         reversedTransaction: '[Reversed transaction]',
         deletedTask: '[Deleted task]',
         hiddenMessage: '[Hidden message]',
+        deletedInvoice: '[Deleted invoice]',
     },
     threads: {
         thread: 'Thread',
