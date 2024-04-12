@@ -319,7 +319,7 @@ function clearMoneyRequest(transactionID: string) {
 /**
  * Update money request-related pages IOU type params
  */
-function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase>['routes'] | NavigationPartialRoute[], newIouType: string, tab: string) {
+function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase>['routes'] | NavigationPartialRoute[], newIouType: string, tab?: string) {
     routes.forEach((route) => {
         const tabList = [CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN] as string[];
         if (!route.name.startsWith('Money_Request_') && !tabList.includes(route.name)) {
@@ -1491,7 +1491,7 @@ function getTrackExpenseInformation(
 
 /** Requests money based on a distance (e.g. mileage from a map) */
 function createDistanceRequest(
-    report: OnyxTypes.Report,
+    report: OnyxEntry<OnyxTypes.Report>,
     participant: Participant,
     comment: string,
     created: string,
@@ -1508,8 +1508,8 @@ function createDistanceRequest(
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
-    const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
 
     const optimisticReceipt: Receipt = {
@@ -1569,7 +1569,7 @@ function createDistanceRequest(
     };
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
-    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
+    Navigation.dismissModal(isMoneyRequestReport ? report?.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, userAccountID);
 }
 
@@ -2177,15 +2177,24 @@ function updateMoneyRequestTaxRate(
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
 }
 
+type UpdateMoneyRequestDistanceParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    waypoints: WaypointCollection;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
 /** Updates the waypoints of a distance money request */
-function updateMoneyRequestDistance(
-    transactionID: string,
-    transactionThreadReportID: string,
-    waypoints: WaypointCollection,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+function updateMoneyRequestDistance({
+    transactionID,
+    transactionThreadReportID,
+    waypoints,
+    policy = {} as OnyxTypes.Policy,
+    policyTagList = {},
+    policyCategories = {},
+}: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         waypoints,
     };
@@ -2375,6 +2384,7 @@ function trackExpense(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints?: GPSPoint,
+    validWaypoints?: WaypointCollection,
 ) {
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
@@ -2437,6 +2447,7 @@ function trackExpense(
         gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
     };
 
     API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
@@ -3818,21 +3829,39 @@ function editMoneyRequest(
     }
 }
 
+type UpdateMoneyRequestAmountAndCurrencyParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    currency: string;
+    amount: number;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
 /** Updates the amount and currency fields of a money request */
-function updateMoneyRequestAmountAndCurrency(
-    transactionID: string,
-    transactionThreadReportID: string,
-    currency: string,
-    amount: number,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+function updateMoneyRequestAmountAndCurrency({
+    transactionID,
+    transactionThreadReportID,
+    currency,
+    amount,
+    policy,
+    policyTagList,
+    policyCategories,
+}: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
         currency,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(
+        transactionID,
+        transactionThreadReportID,
+        transactionChanges,
+        policy ?? null,
+        policyTagList ?? null,
+        policyCategories ?? null,
+        true,
+    );
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
@@ -4311,7 +4340,7 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
  * @param recipient - The user receiving the money
  */
 function getSendMoneyParams(
-    report: OnyxTypes.Report,
+    report: OnyxEntry<OnyxTypes.Report> | EmptyObject,
     amount: number,
     currency: string,
     comment: string,
@@ -4330,11 +4359,8 @@ function getSendMoneyParams(
         idempotencyKey: Str.guid(),
     });
 
-    let chatReport = report.reportID ? report : null;
+    let chatReport = !isEmptyObject(report) && report?.reportID ? report : ReportUtils.getChatByParticipants([recipientAccountID]);
     let isNewChat = false;
-    if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([recipientAccountID]);
-    }
     if (!chatReport) {
         chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID]);
         isNewChat = true;
@@ -4766,7 +4792,7 @@ function getPayMoneyRequestParams(
  * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyElsewhere(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
+function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
@@ -4780,7 +4806,7 @@ function sendMoneyElsewhere(report: OnyxTypes.Report, amount: number, currency: 
  * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | ReportUtils.OptionData) {
+function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | ReportUtils.OptionData) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
 
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
@@ -4959,6 +4985,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
     const parameters: ApproveMoneyRequestParams = {
         reportID: expenseReport.reportID,
         approvedReportActionID: optimisticApprovedReportAction.reportActionID,
+        full,
     };
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
@@ -4966,11 +4993,12 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
 
 function submitReport(expenseReport: OnyxTypes.Report) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
-    const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
     const policy = getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
+    const adminAccountID = policy.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails.accountID : undefined;
+    const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
 
     const optimisticData: OnyxUpdate[] = !isSubmitAndClosePolicy
@@ -5274,9 +5302,9 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxTypes.Report) {
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>) {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
+    const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report?.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const shouldAddAsReport = !isEmptyObject(chatReport) && ReportUtils.isSelfDM(chatReport);
     const participants: Participant[] =

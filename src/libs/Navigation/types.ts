@@ -11,6 +11,7 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -349,22 +350,9 @@ type RoomInviteNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
-    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
-        transactionID: string;
-        reportID: string;
-        backTo: string;
-    };
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
         reportID: string;
-    };
-    [SCREENS.MONEY_REQUEST.CURRENCY]: {
-        iouType: string;
-        reportID: string;
-        currency: string;
-        backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_DATE]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -402,6 +390,8 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        reportActionID: string;
+        orderWeight: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -435,7 +425,7 @@ type MoneyRequestNavigatorParamList = {
         threadReportID: number;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
-        action: string;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -445,6 +435,34 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
+    [SCREENS.MONEY_REQUEST.CREATE]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        transactionID: string;
+
+        // These are not used in the screen, but are needed for the navigation
+        // for IOURequestStepDistance and IOURequestStepAmount components
+        backTo: never;
+        action: never;
+    };
+    [SCREENS.MONEY_REQUEST.START]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        transactionID: string;
+        iouRequestType: IOURequestType;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        transactionID: string;
+        backTo: Routes;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+    };
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
@@ -452,6 +470,14 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         pageIndex?: string;
         backTo?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_SCAN]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        pageIndex: number;
+        backTo: Routes;
     };
 };
 
@@ -500,7 +526,6 @@ type SplitDetailsNavigatorParamList = {
         currency: string;
         tagIndex: string;
     };
-    [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: undefined;
 };
 
 type AddPersonalBankAccountNavigatorParamList = {
@@ -534,7 +559,6 @@ type EditRequestNavigatorParamList = {
         field: string;
         threadReportID: string;
     };
-    [SCREENS.EDIT_REQUEST.CURRENCY]: undefined;
 };
 
 type SignInNavigatorParamList = {
