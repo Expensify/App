@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AvatarWithIndicator from '@components/AvatarWithIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -9,19 +8,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type ProfileAvatarWithIndicatorOnyxProps = {
-    /** Indicates whether the app is loading initial data */
-    isLoading: OnyxEntry<boolean>;
-};
-
-type ProfileAvatarWithIndicatorProps = ProfileAvatarWithIndicatorOnyxProps & {
+type ProfileAvatarWithIndicatorProps = {
     /** Whether the avatar is selected */
     isSelected?: boolean;
 };
 
-function ProfileAvatarWithIndicator({isLoading = true, isSelected = false}: ProfileAvatarWithIndicatorProps) {
+function ProfileAvatarWithIndicator({isSelected = false}: ProfileAvatarWithIndicatorProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [isLoadingOnyxValue] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isLoading = isLoadingOnyxValue ?? true;
 
     return (
         <OfflineWithFeedback pendingAction={currentUserPersonalDetails.pendingFields?.avatar}>
@@ -29,7 +25,7 @@ function ProfileAvatarWithIndicator({isLoading = true, isSelected = false}: Prof
                 <AvatarWithIndicator
                     source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
                     fallbackIcon={currentUserPersonalDetails.fallbackIcon}
-                    isLoading={!!isLoading && !currentUserPersonalDetails.avatar}
+                    isLoading={isLoading && !currentUserPersonalDetails.avatar}
                 />
             </View>
         </OfflineWithFeedback>
@@ -38,8 +34,4 @@ function ProfileAvatarWithIndicator({isLoading = true, isSelected = false}: Prof
 
 ProfileAvatarWithIndicator.displayName = 'ProfileAvatarWithIndicator';
 
-export default withOnyx<ProfileAvatarWithIndicatorProps, ProfileAvatarWithIndicatorOnyxProps>({
-    isLoading: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(ProfileAvatarWithIndicator);
+export default ProfileAvatarWithIndicator;
