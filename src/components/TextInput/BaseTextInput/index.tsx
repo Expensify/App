@@ -60,12 +60,12 @@ function BaseTextInput(
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
-        markdownEnabled = false,
+        isMarkdownEnabled = false,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const InputComponent = markdownEnabled ? RNMarkdownTextInput : RNTextInput;
+    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
 
     const theme = useTheme();
     const styles = useThemeStyles();

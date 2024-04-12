@@ -89,7 +89,7 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
                             autoGrowHeight
                             shouldSubmitForm
                             containerStyles={styles.autoGrowHeightMultilineInput}
-                            markdownEnabled
+                            isMarkdownEnabled
                         />
                     </View>
                 </FormProvider>
