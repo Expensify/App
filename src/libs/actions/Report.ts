@@ -99,6 +99,27 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
+type TaskForParameters =
+    | {
+          type: 'task';
+          task: string;
+          taskReportID: string;
+          parentReportID: string;
+          parentReportActionID: string;
+          assigneeChatReportID: string;
+          createdTaskReportActionID: string;
+          title: string;
+          description: string;
+      }
+    | {
+          type: 'message';
+          reportID: string;
+          reportActionID: string;
+          reportComment: string;
+      };
+
+type TaskMessage = Required<Pick<AddCommentOrAttachementParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
+
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
@@ -2790,12 +2811,9 @@ function getReportPrivateNote(reportID: string | undefined) {
 
 // TODO: Clear region
 // #region completeOnboarding
-function completeOnboarding(properties: {data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>; engagementChoice: ValueOf<typeof CONST.ONBOARDING_CHOICES>}) {
-    const {data, engagementChoice} = properties;
+function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>) {
     const targetEmail = CONST.EMAIL.CONCIERGE;
-    const login = allPersonalDetails?.[currentUserAccountID]?.login ?? '';
-    const firstName = allPersonalDetails?.[currentUserAccountID]?.firstName ?? '';
-    const lastName = allPersonalDetails?.[currentUserAccountID]?.lastName ?? '';
+    const {login = '', firstName = '', lastName = ''} = allPersonalDetails?.[currentUserAccountID] ?? {};
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID]);
     const targetChatReportID = targetChatReport?.reportID ?? '';
@@ -2863,12 +2881,12 @@ function completeOnboarding(properties: {data: ValueOf<typeof CONST.ONBOARDING_M
     });
 
     // tasks
-    const tasksForParameters = tasksData.reduce<unknown[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
+    const tasksForParameters = tasksData.reduce<TaskForParameters[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
         // subtitle message
         const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
         const subtitleCommentText = subtitleComment.commentText;
 
-        const subtitleMessage: AddCommentOrAttachementParams = {
+        const subtitleMessage: TaskMessage = {
             reportID: currentTask.reportID,
             reportActionID: subtitleCommentAction.reportActionID,
             reportComment: subtitleCommentText,
@@ -2878,7 +2896,7 @@ function completeOnboarding(properties: {data: ValueOf<typeof CONST.ONBOARDING_M
         const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
         const instructionCommentText = instructionComment.commentText;
 
-        const instructionMessage: AddCommentOrAttachementParams = {
+        const instructionMessage: TaskMessage = {
             reportID: currentTask.reportID,
             reportActionID: instructionCommentAction.reportActionID,
             reportComment: instructionCommentText,
@@ -2887,15 +2905,15 @@ function completeOnboarding(properties: {data: ValueOf<typeof CONST.ONBOARDING_M
         return [
             ...acc,
             {
-                parentReportActionID: taskReportAction.reportAction.reportActionID,
-                parentReportID: currentTask.parentReportID,
-                taskReportID: currentTask.reportID,
-                createdTaskReportActionID: taskCreatedAction.reportActionID,
-                title: currentTask.reportName,
-                description: currentTask.description,
-                assigneeChatReportID: '',
                 type: 'task',
                 task: engagementChoice,
+                taskReportID: currentTask.reportID,
+                parentReportID: currentTask.parentReportID ?? '',
+                parentReportActionID: taskReportAction.reportAction.reportActionID,
+                assigneeChatReportID: '',
+                createdTaskReportActionID: taskCreatedAction.reportActionID,
+                title: currentTask.reportName ?? '',
+                description: currentTask.description ?? '',
             },
             {
                 type: 'message',
@@ -3019,7 +3037,7 @@ function completeOnboarding(properties: {data: ValueOf<typeof CONST.ONBOARDING_M
         engagementChoice,
         firstName,
         lastName,
-        guidedSetupData: JSON.stringify([{type: 'message', ...mentionMessage, ...textMessage}, {type: 'video', ...data.video, ...videoMessage}, ...tasksForParameters]),
+        guidedSetupData: JSON.stringify([{type: 'message', ...textMessage}, {type: 'video', ...data.video, ...videoMessage}, ...tasksForParameters]),
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData});
