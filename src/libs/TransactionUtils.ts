@@ -635,7 +635,8 @@ function getEnabledTaxRateCount(options: TaxRates) {
  */
 function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction?: Transaction) {
     const defaultTaxKey = taxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey]?.name} (${taxRates.taxes[defaultTaxKey]?.value}) • ${Localize.translateLocal('common.default')}`) || '';
+    const defaultTaxName =
+        (defaultTaxKey && `${taxRates.taxes[defaultTaxKey]?.name} (${taxRates.taxes[defaultTaxKey]?.value}) ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}`) || '';
     return transaction?.taxRate?.text ?? defaultTaxName;
 }
 

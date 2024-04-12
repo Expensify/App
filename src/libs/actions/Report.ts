@@ -763,19 +763,7 @@ function openReport(
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(
-            WRITE_COMMANDS.OPEN_REPORT,
-            parameters,
-            {optimisticData, successData, failureData},
-            {
-                getConflictingRequests: (persistedRequests) =>
-                    // requests conflict only if:
-                    // 1. they are OpenReport commands
-                    // 2. they have the same reportID
-                    // 3. they are not creating a report - all calls to OpenReport that create a report will be unique and have a unique createdReportActionID
-                    persistedRequests.filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID && !request.data?.createdReportActionID),
-            },
-        );
+        API.write(WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData});
     }
 }
 
@@ -1238,23 +1226,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
 
     CachedPDFPaths.clearByKey(reportActionID);
 
-    API.write(
-        WRITE_COMMANDS.DELETE_COMMENT,
-        parameters,
-        {optimisticData, successData, failureData},
-        {
-            getConflictingRequests: (persistedRequests) => {
-                const conflictingCommands = (
-                    isDeletedParentAction
-                        ? [WRITE_COMMANDS.UPDATE_COMMENT]
-                        : [WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.UPDATE_COMMENT, WRITE_COMMANDS.DELETE_COMMENT]
-                ) as string[];
-                return persistedRequests.filter((request) => conflictingCommands.includes(request.command) && request.data?.reportActionID === reportActionID);
-            },
-            handleConflictingRequest: () => Onyx.update(successData),
-            shouldIncludeCurrentRequest: !isDeletedParentAction,
-        },
-    );
+    API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
 /**
