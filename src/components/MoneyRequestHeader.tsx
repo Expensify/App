@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -65,7 +66,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
-    const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
 
     const deleteTransaction = useCallback(() => {

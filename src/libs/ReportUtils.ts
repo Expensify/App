@@ -1190,7 +1190,7 @@ function isAllowedToComment(report: OnyxEntry<Report>): boolean {
     // If we've made it here, commenting on this report is restricted.
     // If the user is an admin, allow them to post.
     const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    return policy?.role === CONST.POLICY.ROLE.ADMIN;
+    return PolicyUtils.isPolicyAdmin(policy);
 }
 
 /**
@@ -1201,18 +1201,17 @@ function isPolicyExpenseChatAdmin(report: OnyxEntry<Report>, policies: OnyxColle
         return false;
     }
 
-    const policyRole = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.role;
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
 
-    return policyRole === CONST.POLICY.ROLE.ADMIN;
+    return PolicyUtils.isPolicyAdmin(policy);
 }
 
 /**
  * Checks if the current user is the admin of the policy.
  */
 function isPolicyAdmin(policyID: string, policies: OnyxCollection<Policy>): boolean {
-    const policyRole = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.role;
-
-    return policyRole === CONST.POLICY.ROLE.ADMIN;
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? null;
+    return PolicyUtils.isPolicyAdmin(policy);
 }
 
 /**
@@ -1355,7 +1354,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>) {
     const isApproved = isReportApproved(iouReport);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
-    const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && PolicyUtils.isPolicyAdmin(policy);
     const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
@@ -1455,7 +1454,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN && !isEmptyObject(report) && !isDM(report);
+    const isAdmin = PolicyUtils.isPolicyAdmin(policy) && !isEmptyObject(report) && !isDM(report);
 
     return isActionOwner || isAdmin;
 }
@@ -2164,10 +2163,10 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
         return getPolicyName(report, false, policy);
     }
 
-    let policyExpenseChatRole = 'user';
+    let policyExpenseChatRole: ValueOf<typeof CONST.POLICY.ROLE> = CONST.POLICY.ROLE.USER;
     const policyItem = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     if (policyItem) {
-        policyExpenseChatRole = policyItem.role || 'user';
+        policyExpenseChatRole = PolicyUtils.getPolicyRole(policyItem) ?? CONST.POLICY.ROLE.USER;
     }
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
@@ -2405,7 +2404,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     }
 
     const policy = getPolicy(moneyRequestReport?.policyID ?? '');
-    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isManager = currentUserAccountID === moneyRequestReport?.managerID;
 
     // Admin & managers can always edit coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
@@ -2455,7 +2454,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
 
         if (TransactionUtils.isDistanceRequest(transaction)) {
             const policy = getPolicy(moneyRequestReport?.reportID ?? '');
-            const isAdmin = isExpenseReport(moneyRequestReport) && policy.role === CONST.POLICY.ROLE.ADMIN;
+            const isAdmin = isExpenseReport(moneyRequestReport) && PolicyUtils.isPolicyAdmin(policy);
             const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
 
             return isAdmin || isManager;

@@ -293,8 +293,11 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
     const adminChatEnabledPolicies = Object.values(policies ?? {}).filter(
         (policy) =>
             policy &&
-            ((policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN) ||
-                (!includeOnlyFreePolicies && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.role === CONST.POLICY.ROLE.ADMIN && policy.isPolicyExpenseChatEnabled)),
+            ((policy.type === CONST.POLICY.TYPE.FREE && PolicyUtils.getPolicyRole(policy) === CONST.POLICY.ROLE.ADMIN) ||
+                (!includeOnlyFreePolicies &&
+                    policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+                    PolicyUtils.getPolicyRole(policy) === CONST.POLICY.ROLE.ADMIN &&
+                    policy.isPolicyExpenseChatEnabled)),
     );
 
     if (adminChatEnabledPolicies.length === 0) {
@@ -438,7 +441,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
  * Is the user an admin of a free policy (aka workspace)?
  */
 function isAdminOfFreePolicy(policies?: PoliciesRecord): boolean {
-    return Object.values(policies ?? {}).some((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
+    return Object.values(policies ?? {}).some((policy) => policy && PolicyUtils.isFreeGroupPolicy(policy) && PolicyUtils.isPolicyAdmin(policy));
 }
 
 /**
@@ -1946,7 +1949,6 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 id: policyID,
                 type: CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
-                role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
                 ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
@@ -2011,7 +2013,6 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 id: policyID,
                 type: CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
-                role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
                 ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,

@@ -46,7 +46,7 @@ import WorkspacesListRow from './WorkspacesListRow';
 type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
     Pick<MenuItemProps, 'brickRoadIndicator' | 'iconFill' | 'fallbackIcon'> &
     Pick<OfflineWithFeedbackProps, 'errors' | 'pendingAction'> &
-    Pick<PolicyType, 'role' | 'type' | 'ownerAccountID'> & {
+    Pick<PolicyType, 'type' | 'ownerAccountID'> & {
         icon: AvatarSource;
         action: () => void;
         dismissError: () => void;
@@ -55,6 +55,7 @@ type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
         adminRoom?: string | null;
         announceRoom?: string | null;
         isJoinRequestPending?: boolean;
+        role?: ValueOf<typeof CONST.POLICY.ROLE>;
     };
 
 // eslint-disable-next-line react/no-unused-prop-types
@@ -340,7 +341,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     adminRoom: policyRooms?.[policy.id]?.adminRoom ?? policy.chatReportIDAdmins?.toString(),
                     announceRoom: policyRooms?.[policy.id]?.announceRoom ?? policy.chatReportIDAnnounce?.toString(),
                     ownerAccountID: policy.ownerAccountID,
-                    role: policy.role,
+                    role: PolicyUtils.getPolicyRole(policy),
                     type: policy.type,
                 };
             })

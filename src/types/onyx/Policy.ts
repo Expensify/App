@@ -273,9 +273,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The name of the policy */
         name: string;
 
-        /** The current user's role in the policy */
-        role: ValueOf<typeof CONST.POLICY.ROLE>;
-
         /** The policy type */
         type: ValueOf<typeof CONST.POLICY.TYPE>;
 
@@ -331,7 +328,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         submitsTo?: number;
 
         /** The employee list of the policy */
-        employeeList?: OnyxTypes.PolicyMembers | [];
+        employeeList?: OnyxTypes.PolicyMembers;
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;

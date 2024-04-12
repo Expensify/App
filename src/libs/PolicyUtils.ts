@@ -1,6 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -13,6 +15,14 @@ import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {RootStackParamList, State} from './Navigation/types';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
+
+let sessionEmail = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        sessionEmail = val?.email ?? '';
+    },
+});
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -118,10 +128,15 @@ function isExpensifyTeam(email: string | undefined): boolean {
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
+function getPolicyRole(policy: OnyxEntry<Policy> | OnyxEntry<PolicySelector> | EmptyObject): ValueOf<typeof CONST.POLICY.ROLE> | undefined {
+    const role = policy?.employeeList?.[sessionEmail]?.role;
+    return role;
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => getPolicyRole(policy) === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Checks if the policy is a free group policy.
@@ -351,6 +366,7 @@ export {
     getTaxByID,
     hasPolicyCategoriesError,
     getPolicyIDFromNavigationState,
+    getPolicyRole,
 };
 
 export type {MemberEmailsToAccountIDs};
