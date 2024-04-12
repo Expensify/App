@@ -851,7 +851,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
         const newChat = ReportUtils.buildOptimisticChatReport(
             participantAccountIDs,
             parentReportAction?.message?.[0]?.text,
-            parentReport?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM ? undefined : parentReport?.chatType,
+            ReportUtils.isSelfDM(parentReport) ? undefined : parentReport?.chatType,
             parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
             CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             false,
