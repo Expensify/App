@@ -84,6 +84,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                                     <ConfirmedRoute
                                         transaction={transaction}
                                         isSmallIcon={numberOfShownImages !== 1}
+                                        shouldHaveNoBorderRadius
                                     />
                                 </View>
                             ) : (

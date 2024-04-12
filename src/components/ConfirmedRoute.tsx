@@ -30,9 +30,12 @@ type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
 
     /** Whether the size of the route pending icon is small. */
     isSmallIcon?: boolean;
+
+    /** Whether it should not have border radius */
+    shouldHaveNoBorderRadius?: boolean;
 };
 
-function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon}: ConfirmedRouteProps) {
+function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon, shouldHaveNoBorderRadius = false}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
@@ -102,14 +105,14 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon}: Confirmed
                 location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
             }}
             directionCoordinates={coordinates as Array<[number, number]>}
-            style={[styles.mapView, styles.br4]}
+            style={[styles.mapView, !shouldHaveNoBorderRadius && styles.br4]}
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}
         />
     ) : (
         <PendingMapView
             isSmallIcon={isSmallIcon}
-            style={StyleUtils.getBorderRadiusStyle(0)}
+            style={shouldHaveNoBorderRadius && StyleUtils.getBorderRadiusStyle(0)}
         />
     );
 }
