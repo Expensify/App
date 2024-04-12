@@ -22,6 +22,7 @@ import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
+import PaymentWaitingBanner from './PaymentWaitingBanner';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import SettlementButton from './SettlementButton';
 
@@ -99,6 +100,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
+    const shouldShowWaitingNote = ReportUtils.isInvoiceAwaitingPayment(moneyRequestReport);
+
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
@@ -108,7 +111,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
-    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
+    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth) || shouldShowWaitingNote;
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
         if (!type) {
@@ -262,6 +265,12 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
+                )}
+                {shouldShowWaitingNote && (
+                    <PaymentWaitingBanner
+                        // TODO: Integrate a getter for the payer name
+                        payerName=""
+                    />
                 )}
             </View>
             {isHoldMenuVisible && requestType !== undefined && (
