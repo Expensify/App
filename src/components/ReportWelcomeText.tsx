@@ -67,7 +67,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         }
 
         // example - remove before merge
-        return translate('reportActionsView.sayHello', {count: 1});
+        return translate('reportActionsView.sayHello');
     }, [isChatRoom, isSelfDM, translate, reportName]);
 
     return (
