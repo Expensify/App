@@ -5489,6 +5489,14 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): b
 }
 
 /**
+ * Get all held transactions of a iouReport
+ */
+function getAllHeldTransactions(iouReportID: string): Transaction[] {
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return transactions.filter((transaction) => TransactionUtils.isOnHold(transaction));
+}
+
+/**
  * Check if Report has any held expenses
  */
 function hasHeldExpenses(iouReportID?: string): boolean {
@@ -6024,6 +6032,7 @@ export {
     getReportActionActorAccountID,
     getGroupChatName,
     getOutstandingChildRequest,
+    getAllHeldTransactions,
 };
 
 export type {
