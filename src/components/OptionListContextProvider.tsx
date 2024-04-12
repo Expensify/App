@@ -130,7 +130,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             }
 
             Object.values(reports ?? {})
-                .filter((report) => report?.participantAccountIDs?.includes(Number(accoutID)))
+                .filter((report) => (report?.participantAccountIDs?.includes(Number(accoutID)) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accoutID))))
                 .forEach((report) => {
                     if (!report) {
                         return;
