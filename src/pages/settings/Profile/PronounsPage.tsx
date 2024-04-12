@@ -70,6 +70,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp = true}: Pronoun
 
     const updatePronouns = (selectedPronouns: PronounEntry) => {
         PersonalDetails.updatePronouns(selectedPronouns.keyForList === currentPronounsKey ? '' : selectedPronouns?.value ?? '');
+        Navigation.goBack();
     };
 
     return (
