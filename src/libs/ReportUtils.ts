@@ -5866,6 +5866,13 @@ function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject):
     return {};
 }
 
+/**
+ * Check if a invoice report is awaiting for payment
+ */
+function isInvoiceAwaitingPayment(report: OnyxEntry<Report>): boolean {
+    return !isSettled(report?.reportID ?? '') && isInvoiceReport(report);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -6096,6 +6103,7 @@ export {
     getReportActionActorAccountID,
     getGroupChatName,
     getOutstandingChildRequest,
+    isInvoiceAwaitingPayment,
 };
 
 export type {
