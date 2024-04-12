@@ -2177,15 +2177,24 @@ function updateMoneyRequestTaxRate(
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
 }
 
+type UpdateMoneyRequestDistanceParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    waypoints: WaypointCollection;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
 /** Updates the waypoints of a distance expense */
-function updateMoneyRequestDistance(
-    transactionID: string,
-    transactionThreadReportID: string,
-    waypoints: WaypointCollection,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+function updateMoneyRequestDistance({
+    transactionID,
+    transactionThreadReportID,
+    waypoints,
+    policy = {} as OnyxTypes.Policy,
+    policyTagList = {},
+    policyCategories = {},
+}: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         waypoints,
     };
@@ -3820,21 +3829,39 @@ function editMoneyRequest(
     }
 }
 
+type UpdateMoneyRequestAmountAndCurrencyParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    currency: string;
+    amount: number;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
 /** Updates the amount and currency fields of an expense */
-function updateMoneyRequestAmountAndCurrency(
-    transactionID: string,
-    transactionThreadReportID: string,
-    currency: string,
-    amount: number,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+function updateMoneyRequestAmountAndCurrency({
+    transactionID,
+    transactionThreadReportID,
+    currency,
+    amount,
+    policy,
+    policyTagList,
+    policyCategories,
+}: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
         currency,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(
+        transactionID,
+        transactionThreadReportID,
+        transactionChanges,
+        policy ?? null,
+        policyTagList ?? null,
+        policyCategories ?? null,
+        true,
+    );
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
