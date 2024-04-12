@@ -448,27 +448,27 @@ export default {
         conciergePlaceholderOptions: (option): string => {
             switch (option) {
                 case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.REPORT:
-                return 'Ask for help!';
+                    return 'Ask for help!';
                 case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.IOU:
-                return 'Ask me how to pay people!';
+                    return 'Ask me how to pay people!';
                 case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.CHAT:
-                return 'Ask me to book travel!';
+                    return 'Ask me to book travel!';
                 case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.TRAVEL:
-                return 'Ask me to book a flight!';
+                    return 'Ask me to book a flight!';
                 case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.EXPENSES:
-                return 'Ask me how to submit expenses!';
+                    return 'Ask me how to submit expenses!';
                 case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.BILLS:
-                return 'Ask me how to pay bills!';
+                    return 'Ask me how to pay bills!';
                 case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.CORPORATE_CARD:
-                return 'Ask me how to get a free corporate card!';
+                    return 'Ask me how to get a free corporate card!';
                 case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.INVOICES:
-                return 'Ask me how to send an invoice!';
+                    return 'Ask me how to send an invoice!';
                 case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.RECEIPTS:
-                return 'Ask me how to scan a receipt!';
+                    return 'Ask me how to scan a receipt!';
                 default:
-                return 'Ask for help!';
+                    return 'Ask for help!';
             }
-        }, 
+        },
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}: LocalTimeParams) => `It's ${time} for ${user}`,
