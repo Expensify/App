@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import fastMerge from 'expensify-common/lib/fastMerge';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
@@ -27,7 +28,7 @@ import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import type {OptimisticIOUReportAction} from './ReportUtils';
+import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -915,6 +916,16 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     ];
 }
 
+function getReportActionHtml(reportAction: PartialReportAction): string | undefined {
+    return reportAction?.message?.[0]?.html;
+}
+
+function getReportActionText(reportAction: PartialReportAction): string {
+    const html = getReportActionHtml(reportAction);
+    const parser = new ExpensiMark();
+    return html ? parser.htmlToText(html) : '';
+}
+
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
     const html = messageElements
@@ -932,7 +943,7 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
 
     return {
         html: `<muted-text>${html}</muted-text>`,
-        text: reportAction?.message?.[0] ? reportAction?.message?.[0]?.text : '',
+        text: reportAction?.message?.[0] ? getReportActionText(reportAction) : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
 }
@@ -1151,6 +1162,8 @@ export {
     isCurrentActionUnread,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
+    getReportActionText,
+    getReportActionHtml,
 };
 
 export type {LastVisibleMessage};

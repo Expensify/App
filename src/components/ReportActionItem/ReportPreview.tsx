@@ -170,7 +170,7 @@ function ReportPreview({
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
         let displayAmount = '';
-        const actionMessage = action.message?.[0]?.text ?? '';
+        const actionMessage = ReportActionUtils.getReportActionText(action);
         const splits = actionMessage.split(' ');
 
         splits.forEach((split) => {

@@ -192,6 +192,8 @@ type OptimisticIOUReportAction = Pick<
     | 'childReportID'
 >;
 
+type PartialReportAction = OnyxEntry<ReportAction> | Partial<ReportAction> | OptimisticIOUReportAction | OptimisticApprovedReportAction | OptimisticSubmittedReportAction | undefined;
+
 type ReportRouteParams = {
     reportID: string;
     isSubReportPageRoute: boolean;
@@ -2890,7 +2892,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         const parentReportActionMessage = (
             ReportActionsUtils.isApprovedOrSubmittedReportAction(parentReportAction)
                 ? ReportActionsUtils.getReportActionMessageText(parentReportAction)
-                : parentReportAction?.message?.[0]?.text ?? ''
+                : ReportActionsUtils.getReportActionText(parentReportAction)
         ).replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
@@ -4646,7 +4648,7 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST;
     if (ReportActionsUtils.isWhisperAction(reportAction)) {
         // Allow flagging welcome message whispers as they can be set by any room creator
-        if (report?.description && !isCurrentUserAction && isOriginalMessageHaveHtml && reportAction?.originalMessage?.html === report.description) {
+        if (report?.description && !isCurrentUserAction && isOriginalMessageHaveHtml && ReportActionsUtils.getReportActionHtml(reportAction) === report.description) {
             return true;
         }
 
@@ -5199,7 +5201,7 @@ function getTaskAssigneeChatOnyxData(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const displayname = allPersonalDetails?.[assigneeAccountID]?.displayName || allPersonalDetails?.[assigneeAccountID]?.login || '';
         optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `assigned to ${displayname}`, parentReportID);
-        const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message?.[0]?.text ?? '');
+        const lastAssigneeCommentText = formatReportLastMessageText(ReportActionsUtils.getReportActionText(optimisticAssigneeAddComment.reportAction as ReportAction));
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
             lastMessageText: lastAssigneeCommentText,
@@ -6038,4 +6040,5 @@ export type {
     Ancestor,
     OptimisticIOUReportAction,
     TransactionDetails,
+    PartialReportAction,
 };

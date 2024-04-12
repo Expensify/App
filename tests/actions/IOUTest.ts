@@ -2886,7 +2886,7 @@ describe('actions/IOU', () => {
 
             const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport?.reportID ?? '', iouReport?.reportID ?? '');
             expect(ioupreview).toBeTruthy();
-            expect(ioupreview?.message?.[0]?.text).toBe('rory@expensifail.com owes $300.00');
+            expect(ReportActionsUtils.getReportActionText(ioupreview)).toBe('rory@expensifail.com owes $300.00');
 
             // When we delete the first money request
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
