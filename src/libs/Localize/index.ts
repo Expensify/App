@@ -145,7 +145,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
             return translatedPhrase(...phraseParameters);
         }
 
-        // We set the translated value in the cache only for the phrases without parameters.	
+        // We set the translated value in the cache only for the phrases without parameters.
         cacheForLocale?.set(phraseKey, translatedPhrase);
         return translatedPhrase;
     }
