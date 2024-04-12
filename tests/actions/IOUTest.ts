@@ -1,6 +1,6 @@
 import isEqual from 'lodash/isEqual';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
@@ -397,7 +397,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connectionID = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: true,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction?.pendingAction).toBeFalsy();
@@ -1073,20 +1072,22 @@ describe('actions/IOU', () => {
                         fetch.pause();
                         IOU.splitBill(
                             // TODO: Migrate after the backend accepts accountIDs
-                            [
-                                [CARLOS_EMAIL, String(CARLOS_ACCOUNT_ID)],
-                                [JULES_EMAIL, String(JULES_ACCOUNT_ID)],
-                                [VIT_EMAIL, String(VIT_ACCOUNT_ID)],
-                            ].map(([email, accountID]) => ({login: email, accountID: Number(accountID)})),
-                            RORY_EMAIL,
-                            RORY_ACCOUNT_ID,
-                            amount,
-                            comment,
-                            CONST.CURRENCY.USD,
-                            merchant,
-                            '',
-                            '',
-                            '',
+                            {
+                                participants: [
+                                    [CARLOS_EMAIL, String(CARLOS_ACCOUNT_ID)],
+                                    [JULES_EMAIL, String(JULES_ACCOUNT_ID)],
+                                    [VIT_EMAIL, String(VIT_ACCOUNT_ID)],
+                                ].map(([email, accountID]) => ({login: email, accountID: Number(accountID)})),
+                                currentUserLogin: RORY_EMAIL,
+                                currentUserAccountID: RORY_ACCOUNT_ID,
+                                amount,
+                                comment,
+                                currency: CONST.CURRENCY.USD,
+                                merchant,
+                                created: '',
+                                tag: '',
+                                existingSplitChatReportID: '',
+                            },
                         );
                         return waitForBatchedUpdates();
                     })
@@ -2640,7 +2641,6 @@ describe('actions/IOU', () => {
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: true,
                     callback: (report) => {
                         Onyx.disconnect(connectionID);
                         expect(report).toBeTruthy();
@@ -2697,7 +2697,6 @@ describe('actions/IOU', () => {
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: true,
                     callback: (report) => {
                         Onyx.disconnect(connectionID);
                         expect(report).toBeTruthy();
@@ -2833,7 +2832,7 @@ describe('actions/IOU', () => {
                     callback: (reportActionsForReport) => {
                         Onyx.disconnect(connectionID);
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
-                        expect(createIOUAction?.message?.[0].isDeletedParentAction).toBeTruthy();
+                        expect(createIOUAction?.message?.[0]?.isDeletedParentAction).toBeTruthy();
                         resolve();
                     },
                 });
@@ -2852,7 +2851,7 @@ describe('actions/IOU', () => {
                     callback: (reportActionsForReport) => {
                         Onyx.disconnect(connectionID);
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
-                        expect(createIOUAction?.message?.[0].isDeletedParentAction).toBeTruthy();
+                        expect(createIOUAction?.message?.[0]?.isDeletedParentAction).toBeTruthy();
                         resolve();
                     },
                 });
@@ -2887,7 +2886,7 @@ describe('actions/IOU', () => {
 
             const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport?.reportID ?? '', iouReport?.reportID ?? '');
             expect(ioupreview).toBeTruthy();
-            expect(ioupreview?.message?.[0].text).toBe('rory@expensifail.com owes $300.00');
+            expect(ioupreview?.message?.[0]?.text).toBe('rory@expensifail.com owes $300.00');
 
             // When we delete the first money request
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
@@ -3051,7 +3050,11 @@ describe('actions/IOU', () => {
             let chatReport: OnyxEntry<OnyxTypes.Report>;
             return waitForBatchedUpdates()
                 .then(() => {
-                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    const policyID = PolicyActions.generatePolicyID();
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+
+                    // Change the approval mode for the policy since default is Submit and Close
+                    PolicyActions.setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -3141,6 +3144,110 @@ describe('actions/IOU', () => {
                                     // Report was submitted correctly
                                     expect(expenseReport?.stateNum).toBe(1);
                                     expect(expenseReport?.statusNum).toBe(1);
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+        it('correctly submits a report with Submit and Close approval mode', () => {
+            const amount = 10000;
+            const comment = '💸💸💸💸';
+            const merchant = 'NASDAQ';
+            let expenseReport: OnyxEntry<OnyxTypes.Report>;
+            let chatReport: OnyxEntry<OnyxTypes.Report>;
+            return waitForBatchedUpdates()
+                .then(() => {
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) ?? null;
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    if (chatReport) {
+                        IOU.requestMoney(
+                            chatReport,
+                            amount,
+                            CONST.CURRENCY.USD,
+                            '',
+                            merchant,
+                            RORY_EMAIL,
+                            RORY_ACCOUNT_ID,
+                            {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                            comment,
+                            {},
+                        );
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE) ?? null;
+                                    Onyx.merge(`report_${expenseReport?.reportID}`, {
+                                        statusNum: 0,
+                                        stateNum: 0,
+                                    });
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE) ?? null;
+
+                                    // Verify report is a draft
+                                    expect(expenseReport?.stateNum).toBe(0);
+                                    expect(expenseReport?.statusNum).toBe(0);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    if (expenseReport) {
+                        IOU.submitReport(expenseReport);
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE) ?? null;
+
+                                    // Report is closed since the default policy settings is Submit and Close
+                                    expect(expenseReport?.stateNum).toBe(2);
+                                    expect(expenseReport?.statusNum).toBe(2);
                                     resolve();
                                 },
                             });

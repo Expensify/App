@@ -145,10 +145,11 @@ function ReportActionsView({
         // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-        // Filter out "created" IOU report actions because we don't want to show any preview actions for one transaction reports
-        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter(
-            (action) => ((action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '') !== CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        );
+        // Filter out the money request actions because we don't want to show any preview actions for one-transaction reports
+        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+            const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !ReportActionsUtils.isSentMoneyReportAction(action);
+        });
         return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
     }, [allReportActions, transactionThreadReportActions]);
 
@@ -350,10 +351,7 @@ function ReportActionsView({
         // and there are fewer than 23 items, indicating we've reached the oldest message.
         const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
 
-        if (
-            (reportActionID && indexOfLinkedAction > -1 && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded) ||
-            (!reportActionID && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded)
-        ) {
+        if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
             handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
         }
     }, [
@@ -362,7 +360,6 @@ function ReportActionsView({
         checkIfContentSmallerThanList,
         reportActionID,
         indexOfLinkedAction,
-        hasNewestReportAction,
         handleReportActionPagination,
         network.isOffline,
         reportActions.length,
@@ -380,6 +377,7 @@ function ReportActionsView({
         didLayout.current = true;
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
+            Performance.markEnd(CONST.TIMING.OPEN_REPORT);
             Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
             Timing.end(CONST.TIMING.REPORT_INITIAL_RENDER);
             ReportActionsView.initMeasured = true;
