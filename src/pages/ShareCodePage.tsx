@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -40,6 +40,24 @@ function ShareCodePage({report}: ShareCodePageProps) {
 
     const isReport = !!report?.reportID;
 
+    const subtitle = useMemo(() => {
+        if (isReport) {
+            if (ReportUtils.isExpenseReport(report)) {
+                return ReportUtils.getPolicyName(report);
+            }
+            if (ReportUtils.isMoneyRequestReport(report)) {
+                // generate subtitle from participants
+                return ReportUtils.getVisibleMemberIDs(report)
+                    .map((accountID) => ReportUtils.getDisplayNameForParticipant(accountID))
+                    .join(' & ');
+            }
+
+            return ReportUtils.getParentNavigationSubtitle(report).workspaceName ?? ReportUtils.getChatRoomSubtitle(report);
+        }
+
+        return currentUserPersonalDetails.login;
+    }, [report, currentUserPersonalDetails, isReport]);
+
     const title = isReport ? ReportUtils.getReportName(report) : currentUserPersonalDetails.displayName ?? '';
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
     const url = isReport
@@ -66,7 +84,7 @@ function ShareCodePage({report}: ShareCodePageProps) {
                         ref={qrCodeRef}
                         url={url}
                         title={title}
-                        subtitle={title}
+                        subtitle={subtitle}
                         logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
                         logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                         logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
