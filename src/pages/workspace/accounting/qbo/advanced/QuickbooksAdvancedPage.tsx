@@ -70,18 +70,16 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
                         <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
                             {qboSyncToggleSettings.map((item) => (
-                                <OfflineWithFeedback
+                                <ToggleSettingOptionRow
                                     key={item.title}
+                                    title={item.title}
+                                    subtitle={item.subTitle}
+                                    shouldPlaceSubtitleBelowSwitch
+                                    wrapperStyle={styles.mv3}
+                                    isActive={item.isActive}
+                                    onToggle={item.onToggle}
                                     pendingAction={item.pendingAction}
-                                    style={styles.mv3}
-                                >
-                                    <ToggleSettingOptionRow
-                                        title={item.title}
-                                        subtitle={item.subTitle}
-                                        isActive={item.isActive}
-                                        onToggle={item.onToggle}
-                                    />
-                                </OfflineWithFeedback>
+                                />
                             ))}
 
                             <View style={styles.mv3}>
@@ -91,17 +89,15 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 />
                             </View>
 
-                            <OfflineWithFeedback
-                                style={styles.mv3}
+                            <ToggleSettingOptionRow
+                                title={translate('workspace.qbo.advancedConfig.reimbursedReports')}
+                                subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
+                                shouldPlaceSubtitleBelowSwitch
+                                wrapperStyle={styles.mv3}
                                 pendingAction={pendingFields?.reimbursementAccountID && pendingFields?.collectionAccountID}
-                            >
-                                <ToggleSettingOptionRow
-                                    title={translate('workspace.qbo.advancedConfig.reimbursedReports')}
-                                    subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
-                                    isActive={Boolean(reimbursementAccountID && collectionAccountID)}
-                                    onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, bankAccounts?.[0].id ?? '')}
-                                />
-                            </OfflineWithFeedback>
+                                isActive={Boolean(reimbursementAccountID && collectionAccountID)}
+                                onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, bankAccounts?.[0].id ?? '')}
+                            />
 
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -118,12 +114,14 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 />
                             </View>
 
-                            <MenuItem
+                            <ToggleSettingOptionRow
                                 title={translate('workspace.qbo.advancedConfig.collectionAccount')}
-                                description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
-                                descriptionTextStyle={[styles.pr9]}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                interactive={false}
+                                subtitle={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
+                                shouldPlaceSubtitleBelowSwitch
+                                wrapperStyle={styles.mv3}
+                                pendingAction={pendingFields?.collectionAccountID}
+                                isActive={Boolean(collectionAccountID)}
+                                onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, !collectionAccountID)}
                             />
 
                             <MenuItem
