@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -138,17 +138,12 @@ function WorkspaceMembersPage({policyMembers, personalDetails, invitedEmailsToAc
     // useFocusEffect would make getWorkspaceMembers get called twice on fresh login because policyMember is a dependency of getWorkspaceMembers.
     useEffect(() => {
         if (!isFocused) {
+            setSelectedEmployees([]);
             return;
         }
         getWorkspaceMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused]);
-
-    useFocusEffect(
-        useCallback(() => {
-            setSelectedEmployees([]);
-        }, []),
-    );
 
     useEffect(() => {
         validateSelection();

@@ -1,6 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -53,6 +53,7 @@ function WorkspaceTaxesPage({
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const dropdownButtonRef = useRef(null);
+    const isFocused = useIsFocused();
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -62,10 +63,16 @@ function WorkspaceTaxesPage({
 
     useFocusEffect(
         useCallback(() => {
-            setSelectedTaxesIDs([]);
             fetchTaxes();
         }, [fetchTaxes]),
     );
+
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedTaxesIDs([]);
+    }, [isFocused]);
 
     const textForDefault = useCallback(
         (taxID: string): string => {
@@ -160,7 +167,6 @@ function WorkspaceTaxesPage({
         if (!taxRate.keyForList) {
             return;
         }
-        setSelectedTaxesIDs([]);
         Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxRate.keyForList));
     };
 
