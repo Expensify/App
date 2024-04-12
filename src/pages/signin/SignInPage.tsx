@@ -92,7 +92,7 @@ function getRenderOptions({
     shouldShowAnotherLoginPageOpenedMessage,
 }: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
-    const isSAMLEnabled = true; //!!account?.isSAMLEnabled;
+    const isSAMLEnabled = !!account?.isSAMLEnabled;
     const isSAMLRequired = !!account?.isSAMLRequired;
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
 
