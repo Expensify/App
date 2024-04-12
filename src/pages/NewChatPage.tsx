@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -18,43 +18,29 @@ import doInteractionTask from '@libs/DoInteractionTask';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
-type NewChatPageWithOnyxProps = {
-    /** All reports shared with the user */
-    reports: OnyxCollection<OnyxTypes.Report>;
-
-    /** New group chat draft data */
-    newGroupDraft: OnyxEntry<OnyxTypes.NewGroupChatDraft>;
-
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
-    /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: OnyxEntry<OnyxTypes.DismissedReferralBanners>;
-
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: OnyxEntry<boolean>;
-};
-
-type NewChatPageProps = NewChatPageWithOnyxProps & {
+type NewChatPageProps = {
     isGroupChat?: boolean;
 };
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingForReports, dismissedReferralBanners, newGroupDraft}: NewChatPageProps) {
+function NewChatPage({isGroupChat}: NewChatPageProps) {
+    const [dismissedReferralBanners] = useOnyx(ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS);
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+
     const {translate} = useLocalize();
+
     const styles = useThemeStyles();
 
     const personalData = useCurrentUserPersonalDetails();
@@ -72,13 +58,16 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
     };
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState<ReportUtils.OptionData[]>([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<ReportUtils.OptionData[]>([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState<ReportUtils.OptionData | null>();
+    const [filteredRecentReports, setFilteredRecentReports] = useState<OptionData[]>([]);
+    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<OptionData[]>([]);
+    const [filteredUserToInvite, setFilteredUserToInvite] = useState<OptionData | null>();
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(getGroupParticipants);
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -90,8 +79,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         maxParticipantsReached,
         selectedOptions.some((participant) => participant?.searchText?.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
-
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     const sections = useMemo((): OptionsListUtils.CategorySection[] => {
         const sectionsList: OptionsListUtils.CategorySection[] = [];
@@ -145,8 +132,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             personalDetails: newChatPersonalDetails,
             userToInvite,
         } = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports ?? [],
+            options.personalDetails ?? [],
             betas ?? [],
             searchTerm,
             newSelectedOptions,
@@ -206,8 +193,8 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
             personalDetails: newChatPersonalDetails,
             userToInvite,
         } = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports ?? [],
+            options.personalDetails ?? [],
             betas ?? [],
             searchTerm,
             selectedOptions,
@@ -228,7 +215,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
         setFilteredUserToInvite(userToInvite);
         // props.betas is not added as dependency since it doesn't change during the component lifecycle
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reports, personalDetails, searchTerm]);
+    }, [options, searchTerm]);
 
     useEffect(() => {
         const interactionTask = doInteractionTask(() => {
@@ -290,7 +277,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
                             headerMessage={headerMessage}
                             boldStyle
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
+                            shouldShowOptions={areOptionsInitialized}
                             shouldShowConfirmButton
                             shouldShowReferralCTA={!dismissedReferralBanners?.[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
@@ -312,24 +299,4 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, isSearchingF
 
 NewChatPage.displayName = 'NewChatPage';
 
-export default withOnyx<NewChatPageProps, NewChatPageWithOnyxProps>({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
-    newGroupDraft: {
-        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
-    },
-})(NewChatPage);
+export default NewChatPage;

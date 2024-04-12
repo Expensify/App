@@ -4,10 +4,11 @@
  * @jest-environment node
  */
 import * as core from '@actions/core';
+import run from '@github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
+import type CONST from '@github/libs/CONST';
+import type {InternalOctokit} from '@github/libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
 import asMutable from '@src/types/utils/asMutable';
-import run from '../../.github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
-import type {InternalOctokit} from '../../.github/libs/GithubUtils';
-import GithubUtils from '../../.github/libs/GithubUtils';
 
 type Workflow = {
     workflow_id: string;
@@ -57,6 +58,11 @@ const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
     return defaultReturn;
 });
 
+jest.mock('@github/libs/CONST', () => ({
+    ...jest.requireActual<typeof CONST>('@github/libs/CONST'),
+    POLL_RATE: TEST_POLL_RATE,
+}));
+
 beforeAll(() => {
     // Mock core module
     asMutable(core).getInput = mockGetInput;
@@ -72,7 +78,6 @@ beforeAll(() => {
     };
 
     GithubUtils.internalOctokit = moctokit;
-    GithubUtils.POLL_RATE = TEST_POLL_RATE;
 });
 
 beforeEach(() => {

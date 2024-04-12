@@ -10,7 +10,7 @@ import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
 
-let mockGithub: MockGithub | undefined;
+let mockGithub: MockGithub;
 
 const FILES_TO_COPY_INTO_TEST_REPO: CreateRepositoryFile[] = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
