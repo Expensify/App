@@ -148,6 +148,7 @@ const WRITE_COMMANDS = {
     UPDATE_MONEY_REQUEST_DISTANCE: 'UpdateMoneyRequestDistance',
     UPDATE_MONEY_REQUEST_CATEGORY: 'UpdateMoneyRequestCategory',
     UPDATE_MONEY_REQUEST_DESCRIPTION: 'UpdateMoneyRequestDescription',
+    UPDATE_MONEY_REQUEST_RATE: 'UpdateMoneyRequestRate',
     UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY: 'UpdateMoneyRequestAmountAndCurrency',
     HOLD_MONEY_REQUEST: 'HoldRequest',
     UNHOLD_MONEY_REQUEST: 'UnHoldRequest',

@@ -14,7 +14,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -22,8 +22,14 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepRateOnyxProps = {
-    /** Policy details */
-    policy: OnyxEntry<Policy>;
+    /** The policy of the report */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Collection of categories attached to a policy */
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+
+    /** Collection of tags attached to a policy */
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
 
     /** Mileage rates */
     rates: Record<string, MileageRate>;
@@ -32,23 +38,28 @@ type IOURequestStepRateOnyxProps = {
 type IOURequestStepRateProps = IOURequestStepRateOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_RATE> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-        transaction: OnyxEntry<Transaction>;
+        transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 
 function IOURequestStepRate({
-    policy,
     route: {
-        params: {action, backTo, transactionID},
+        params: {action, reportID, backTo, transactionID},
     },
     transaction,
     rates,
+    policy,
+    policyTags,
+    policyCategories,
 }: IOURequestStepRateProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     const currentRateID = TransactionUtils.getRateID(transaction) ?? '';
-    const initiallyFocusedOption = rates[currentRateID]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
+
+    const navigateBack = () => {
+        Navigation.goBack(backTo);
+    };
 
     const sections = Object.values(rates).map((rate) => {
         const rateForDisplay = DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
@@ -64,12 +75,28 @@ function IOURequestStepRate({
 
     const unit = (Object.values(rates)[0]?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
 
-    const navigateBack = () => {
-        Navigation.goBack(backTo);
-    };
+    const initiallyFocusedOption = rates[currentRateID]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
 
     function selectDistanceRate(customUnitRateID: string) {
-        IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '', !isEditing);
+        // Only update the rateId if it has changed
+        if (customUnitRateID === currentRateID) {
+            navigateBack();
+            return;
+        }
+
+        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+        // if (isEditingSplitBill) {
+        //     // todo
+        //     navigateBack();
+        //     return;
+        // }
+
+        IOU.setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy?.id ?? '', !isEditing);
+
+        if (isEditing) {
+            IOU.updateMoneyRequestDistanceRate(transaction?.transactionID ?? '0', reportID, customUnitRateID, policy, policyTags, policyCategories);
+        }
+
         navigateBack();
     }
 
@@ -77,7 +104,7 @@ function IOURequestStepRate({
         <StepScreenWrapper
             headerTitle={translate('common.rate')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper
             testID="rate"
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>
@@ -97,6 +124,12 @@ IOURequestStepRate.displayName = 'IOURequestStepRate';
 const IOURequestStepRateWithOnyx = withOnyx<IOURequestStepRateProps, IOURequestStepRateOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+    },
+    policyCategories: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+    },
+    policyTags: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
     },
     rates: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`,
