@@ -284,8 +284,8 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether keyboard is visible on the screen */
-    isKeyboardShown?: boolean;
+    /** Whether focus event should be delayed */
+    shouldDelayFocus?: boolean;
 
     /** Component to display on the right side of each child */
     rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem> | null) | ReactElement | null;
