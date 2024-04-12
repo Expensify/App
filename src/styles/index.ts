@@ -3679,8 +3679,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         quickActionTooltipTitle: {
-            color: colors.green500,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            color: colors.green500,
         },
 
         quickActionTooltipSubtitle: {
