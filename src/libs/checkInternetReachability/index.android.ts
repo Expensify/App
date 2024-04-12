@@ -3,10 +3,9 @@ import type InternetReachabilityCheck from './types';
 
 /**
  * Although Android supports internet reachability check, it only does on initiating the connection.
- * We need to implement a test for a highly-available endpoint to cover the case internet is lost during connection.
+ * We need to implement a test for a highly-available endpoint in case of lost internet after initiation.
  */
 export default function checkInternetReachability(): InternetReachabilityCheck {
-    // Using the API url ensures reachability is tested over internet
     return fetch(CONST.GOOGLE_CLOUD_URL, {
         method: 'GET',
         cache: 'no-cache',
