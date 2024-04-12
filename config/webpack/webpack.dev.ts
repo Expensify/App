@@ -49,9 +49,9 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                 ...proxySettings,
                 historyApiFallback: true,
                 port,
-                host: 'localhost',
+                host: 'dev.new.expensify.com',
                 server: {
-                    type: 'http',
+                    type: 'https',
                     options: {
                         key: path.join(__dirname, 'key.pem'),
                         cert: path.join(__dirname, 'certificate.pem'),
