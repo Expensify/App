@@ -79,7 +79,6 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
                 <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
                 <AddressForm
                     inputKeys={INPUT_KEYS}
-                    translate={translate}
                     streetTranslationKey="common.streetAddress"
                     defaultValues={defaultValues}
                     shouldSaveDraft={!isEditing}
