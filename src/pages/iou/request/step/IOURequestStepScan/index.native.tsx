@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/core';
 import React, {useCallback, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, InteractionManager, NativeModules, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -21,6 +21,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import checkPDFDocument from '@libs/CheckPDFDocument';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,8 +38,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
-
-const {CheckPDFDocument} = NativeModules;
 
 type IOURequestStepScanProps = IOURequestStepOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
@@ -148,9 +147,9 @@ function IOURequestStepScan({
         }, []),
     );
 
-    const validateReceipt = (file: FileObject) =>
-        new Promise(() => {
-            CheckPDFDocument.checkPdf(file.uri, (isCorrect: boolean) => {
+    const validateReceipt = (file: FileObject): Promise<boolean> =>
+        new Promise((resolve) => {
+            checkPDFDocument.isValidPDF(file.uri ?? '', (isCorrect) => {
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
                 if (
                     !isCorrect ||
@@ -159,19 +158,19 @@ function IOURequestStepScan({
                     )
                 ) {
                     Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-                    return false;
+                    resolve(false);
                 }
 
                 if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                     Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
-                    return false;
+                    resolve(false);
                 }
 
                 if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                     Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-                    return false;
+                    resolve(false);
                 }
-                return true;
+                resolve(true);
             });
         });
 

@@ -1,8 +1,6 @@
-import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {pdfjs} from 'react-pdf';
 import type Webcam from 'react-webcam';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
@@ -23,6 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import checkPDFDocument from '@libs/CheckPDFDocument';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
@@ -39,10 +38,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type IOURequestStepOnyxProps from './types';
-
-if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
-}
 
 type IOURequestStepScanProps = IOURequestStepOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
@@ -180,17 +175,9 @@ function IOURequestStepScan({
         setAttachmentValidReason(reason);
     };
 
-    const isValidPdfFile = (file: FileObject): Promise<boolean> =>
-        new Promise((resolve) => {
-            pdfjs
-                .getDocument(file.uri ?? '')
-                .promise.then(() => resolve(true))
-                .catch(() => resolve(false));
-        });
-
     function validateReceipt(file: FileObject): Promise<boolean> {
         return new Promise((resolve) => {
-            isValidPdfFile(file).then((isValid) => {
+            checkPDFDocument.isValidPDF(file.uri ?? '').then((isValid) => {
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
                 if (
                     !isValid ||
