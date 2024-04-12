@@ -281,9 +281,9 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                             shouldShowConfirmButton
                             shouldShowReferralCTA={!dismissedReferralBanners?.[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
-                            confirmButtonText={selectedOptions.length > 1 ? translate('common.next') : translate('newChatPage.createChat')}
+                            confirmButtonText={translate('common.next')}
                             textInputAlert={isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
-                            onConfirmSelection={selectedOptions.length > 1 ? navigateToConfirmPage : createChat}
+                            onConfirmSelection={selectedOptions.length > 0 ? navigateToConfirmPage : createChat}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             isLoadingNewOptions={isSearchingForReports}
