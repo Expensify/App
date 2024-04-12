@@ -600,12 +600,12 @@ export default {
         splitBill: 'Split Bill',
         splitScan: 'Split Receipt',
         splitDistance: 'Split Distance',
+        trackManual: 'Track Expense',
+        trackScan: 'Track Receipt',
+        trackDistance: 'Track Distance',
         sendMoney: 'Send Money',
         assignTask: 'Assign Task',
         shortcut: 'Shortcut',
-        trackManual: 'Track Manual',
-        trackScan: 'Track Scan',
-        trackDistance: 'Track Distance',
     },
     iou: {
         amount: 'Amount',
@@ -670,7 +670,7 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
-        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} cancelled the ${amount} payment.`,
+        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>

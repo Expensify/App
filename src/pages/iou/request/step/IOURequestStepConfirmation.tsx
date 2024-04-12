@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -30,6 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, PolicyCategories, PolicyTagList} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -97,7 +97,7 @@ function IOURequestStepConfirmation({
             transaction?.participants?.map((participant) => {
                 const participantAccountID = participant.accountID ?? 0;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
-            }),
+            }) ?? [],
         [transaction?.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -228,6 +228,7 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 gpsPoints,
+                Object.keys(transaction?.comment?.waypoints ?? {}).length ? TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true) : undefined,
             );
         },
         [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, transactionTaxCode, transactionTaxAmount, policy, policyTags, policyCategories],
@@ -235,7 +236,7 @@ function IOURequestStepConfirmation({
 
     const createDistanceRequest = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string) => {
-            if (!report || !transaction) {
+            if (!transaction) {
                 return;
             }
             IOU.createDistanceRequest(
@@ -421,27 +422,25 @@ function IOURequestStepConfirmation({
 
     /**
      * Checks if user has a GOLD wallet then creates a paid IOU report on the fly
-     *
-     * @param {String} paymentMethodType
      */
     const sendMoney = useCallback(
-        (paymentMethodType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => {
+        (paymentMethod: PaymentMethodType | undefined) => {
             const currency = transaction?.currency;
 
             const trimmedComment = transaction?.comment?.comment ? transaction.comment.comment.trim() : '';
 
             const participant = participants?.[0];
 
-            if (!participant || !report || !transaction?.amount || !currency) {
+            if (!participant || !transaction?.amount || !currency) {
                 return;
             }
 
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 IOU.sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
                 return;
             }
 
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 IOU.sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
             }
         },
@@ -489,12 +488,11 @@ function IOURequestStepConfirmation({
                     />
                     {isLoading && <FullScreenLoadingIndicator />}
                     <View style={[styles.flex1, isLoading && styles.opacity0]}>
-                        {/* @ts-expect-error TODO: Remove this once MoneyRequestConfirmationList (https://github.com/Expensify/App/issues/36130) is migrated to TypeScript. */}
                         <MoneyRequestConfirmationList
                             transaction={transaction}
                             hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                             selectedParticipants={participants}
-                            iouAmount={transaction?.amount}
+                            iouAmount={transaction?.amount ?? 0}
                             iouComment={transaction?.comment.comment ?? ''}
                             iouCurrencyCode={transaction?.currency}
                             iouIsBillable={transaction?.billable}
