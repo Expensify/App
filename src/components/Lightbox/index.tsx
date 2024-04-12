@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
@@ -133,10 +133,12 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         const indexOutOfRange = page > activePage + indexCanvasOffset || page < activePage - indexCanvasOffset;
         return !indexOutOfRange;
     }, [activePage, hasSiblingCarouselItems, page]);
-    const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
+    const [isLightboxImageLoading, setLightboxImageLoading] = useState(false);
+    const isLightboxImageLoaded = useRef(false);
 
     const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
-    const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
+    const [isFallbackImageLoading, setFallbackImageLoading] = useState(false);
+    const isFallbackImageLoaded = useRef(false);
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || !contentSize || isCanvasLoading) {
             return undefined;
@@ -154,18 +156,19 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
     // until the fallback gets hidden so that we don't see two overlapping images at the same time.
     // If there the Lightbox is not used within a carousel, we don't need to hide the Lightbox,
     // because it's only going to be rendered after the fallback image is hidden.
-    const shouldShowLightbox = isLightboxImageLoaded && !isFallbackVisible;
+    const shouldShowLightbox = isLightboxImageLoaded.current && !isFallbackVisible;
 
-    const isFallbackStillLoading = isFallbackVisible && !isFallbackImageLoaded;
-    const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
-    const isLoading = isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading);
+    const isFallbackStillLoading = isFallbackVisible && isFallbackImageLoading;
+    const isLightboxStillLoading = isLightboxVisible && isLightboxImageLoading;
+    const isLoading = isActive && (isFallbackStillLoading || isLightboxStillLoading);
 
     // Resets the lightbox when it becomes inactive
     useEffect(() => {
         if (isLightboxVisible) {
             return;
         }
-        setLightboxImageLoaded(false);
+        isLightboxImageLoaded.current = false;
+        setLightboxImageLoading(false);
         setContentSize(undefined);
     }, [isLightboxVisible, setContentSize]);
 
@@ -177,9 +180,10 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         }
 
         // When the carousel item is active and the lightbox has finished loading, we want to hide the fallback image
-        if (isActive && isFallbackVisible && isLightboxVisible && isLightboxImageLoaded) {
+        if (isActive && isFallbackVisible && isLightboxVisible && isLightboxImageLoaded.current) {
             setFallbackVisible(false);
-            setFallbackImageLoaded(false);
+            setFallbackImageLoading(false);
+            isFallbackImageLoaded.current = false;
             return;
         }
 
@@ -187,7 +191,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         if (!isActive && !isLightboxVisible) {
             setFallbackVisible(true);
         }
-    }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
+    }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoading, isLightboxVisible]);
 
     const scaleChange = useCallback(
         (scale: number) => {
@@ -223,8 +227,17 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoad={(e) => {
-                                        setLightboxImageLoaded(true);
+                                        isLightboxImageLoaded.current = true;
+                                        setLightboxImageLoading(false);
                                         updateContentSize(e);
+                                    }}
+                                    onLoadStart={() => {
+                                        setTimeout(() => {
+                                            if (isLightboxImageLoaded.current) {
+                                                return;
+                                            }
+                                            setLightboxImageLoading(true);
+                                        }, 200);
                                     }}
                                 />
                             </MultiGestureCanvas>
@@ -240,22 +253,31 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                 style={[fallbackSize ?? styles.invisibleImage]}
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 onLoad={(e) => {
-                                    setFallbackImageLoaded(true);
+                                    setFallbackImageLoading(false);
+                                    isFallbackImageLoaded.current = true;
                                     updateContentSize(e);
+                                }}
+                                onLoadStart={() => {
+                                    setTimeout(() => {
+                                        if (isFallbackImageLoaded.current) {
+                                            return;
+                                        }
+                                        setFallbackImageLoading(true);
+                                    }, 200);
                                 }}
                             />
                         </View>
                     )}
+                    {/* Show activity or offline indicator (based on the connection status)  while the lightbox is still loading the image. */}
+                    {isLoading && !isOffline && (
+                        <ActivityIndicator
+                            size="large"
+                            style={StyleSheet.absoluteFill}
+                        />
+                    )}
+                    {isLoading && <AttachmentOfflineIndicator />}
                 </>
             )}
-            {/* Show activity or offline indicator (based on the connection status)  while the lightbox is still loading the image. */}
-            {isLoading && !isOffline && (
-                <ActivityIndicator
-                    size="large"
-                    style={StyleSheet.absoluteFill}
-                />
-            )}
-            {isLoading && <AttachmentOfflineIndicator />}
         </View>
     );
 }
