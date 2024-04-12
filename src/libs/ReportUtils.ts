@@ -861,6 +861,13 @@ function isPolicyExpenseChat(report: OnyxEntry<Report> | Participant | EmptyObje
 }
 
 /**
+ * Whether the provided report is an Invoice room chat.
+ */
+function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
+}
+
+/**
  * Whether the provided report belongs to a Control policy and is an expense chat
  */
 function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
@@ -6048,6 +6055,7 @@ export {
     getGroupChatName,
     getOutstandingChildRequest,
     buildOptimisticInvoiceReport,
+    isInvoiceRoom,
 };
 
 export type {

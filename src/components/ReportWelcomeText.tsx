@@ -47,7 +47,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs, canUseTrackExpense);
     const additionalText = moneyRequestOptions
-        .filter((item): item is ValueOf<typeof CONST.IOU.TYPE, 'SEND' | 'SPLIT' | 'REQUEST' | 'TRACK_EXPENSE'> => item !== CONST.IOU.TYPE.INVOICE)
+        .filter((item): item is ValueOf<Omit<typeof CONST.IOU.TYPE, 'INVOICE'>> => item !== CONST.IOU.TYPE.INVOICE)
         .map((item) => translate(`reportActionsView.iouTypes.${item}`))
         .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);

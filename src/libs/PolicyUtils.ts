@@ -316,7 +316,6 @@ function getPolicyIDFromNavigationState() {
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy>): Policy[] {
     const activePolicies = getActivePolicies(policies);
-
     return activePolicies.filter((policy) => isPolicyAdmin(policy));
 }
 

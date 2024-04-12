@@ -52,14 +52,18 @@ const propTypes = {
 
     /** The request type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
+
+    /** ID of the user's active policy */
+    activePolicyID: PropTypes.string,
 };
 
 const defaultProps = {
     participants: [],
     betas: [],
+    activePolicyID: '',
 };
 
-function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, onFinish, onParticipantsAdded, iouType, iouRequestType}) {
+function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, onFinish, onParticipantsAdded, iouType, iouRequestType, activePolicyID}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -188,8 +192,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                // TODO: update the logic if we create from existing invoice room
-                const primaryPolicy = Policy.getPrimaryPolicy();
+                const primaryPolicy = Policy.getPrimaryPolicy(activePolicyID);
 
                 newParticipants.push({
                     policyID: primaryPolicy.id,
@@ -384,6 +387,9 @@ export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
     },
+    activePolicyID: {
+        key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    },
 })(
     memo(
         MoneyTemporaryForRefactorRequestParticipantsSelector,
@@ -391,6 +397,7 @@ export default withOnyx({
             _.isEqual(prevProps.participants, nextProps.participants) &&
             prevProps.iouRequestType === nextProps.iouRequestType &&
             prevProps.iouType === nextProps.iouType &&
-            _.isEqual(prevProps.betas, nextProps.betas),
+            _.isEqual(prevProps.betas, nextProps.betas) &&
+            prevProps.activePolicyID === nextProps.activePolicyID,
     ),
 );

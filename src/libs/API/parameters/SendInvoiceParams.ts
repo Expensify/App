@@ -1,8 +1,8 @@
 type SendInvoiceParams = {
     senderWorkspaceID: string;
     accountID: number;
-    receiverEmail?: string; // used when there is no existing room
-    receiverInvoiceRoomID?: string; // optional param used only when the user sends an invoice to an existing room
+    receiverEmail?: string;
+    receiverInvoiceRoomID?: string;
     amount: number;
     currency: string;
     merchant: string;

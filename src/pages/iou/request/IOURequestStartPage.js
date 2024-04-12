@@ -21,9 +21,11 @@ import * as IOUUtils from '@libs/IOUUtils';
 import * as KeyDownPressListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
+import {policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,6 +53,9 @@ const propTypes = {
 
     /** The transaction being modified */
     transaction: transactionPropTypes,
+
+    /** The list of all policies */
+    allPolicies: PropTypes.objectOf(policyPropTypes.policy),
 };
 
 const defaultProps = {
@@ -58,6 +63,7 @@ const defaultProps = {
     policy: {},
     selectedTab: CONST.TAB_REQUEST.SCAN,
     transaction: {},
+    allPolicies: {},
 };
 
 function IOURequestStartPage({
@@ -69,6 +75,7 @@ function IOURequestStartPage({
     },
     selectedTab,
     transaction,
+    allPolicies,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -117,7 +124,7 @@ function IOURequestStartPage({
     const shouldDisplayScanRequest = iouType !== CONST.IOU.TYPE.INVOICE;
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
-    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, policy, iouType) || true; // TODO: update ReportUtils.canCreateRequest to include invoice
+    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, policy, iouType) || PolicyUtils.canSendInvoice(allPolicies);
 
     const navigateBack = () => {
         Navigation.dismissModal();
@@ -200,5 +207,8 @@ export default withOnyx({
     },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${lodashGet(route, 'params.transactionID', '0')}`,
+    },
+    allPolicies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(IOURequestStartPage);

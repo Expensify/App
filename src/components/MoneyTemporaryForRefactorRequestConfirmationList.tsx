@@ -662,7 +662,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     key={translate('workspace.invoices.sendFrom')}
                     shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
                     title={senderWorkspace?.name}
-                    icon={senderWorkspace?.avatar ?? getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+                    icon={senderWorkspace?.avatar ? senderWorkspace?.avatar : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
                     iconType={CONST.ICON_TYPE_WORKSPACE}
                     description={translate('workspace.common.workspace')}
                     label={translate('workspace.invoices.sendFrom')}

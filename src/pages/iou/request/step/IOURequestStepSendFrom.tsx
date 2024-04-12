@@ -66,7 +66,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
     };
 
     const selectWorkspace = (item: WorkspaceListItem) => {
-        const newParticipants = (transaction?.participants ?? []).filter((participant) => participant.selected);
+        const newParticipants = (transaction?.participants ?? []).filter((participant) => participant.accountID);
 
         newParticipants.push({
             policyID: item.value,

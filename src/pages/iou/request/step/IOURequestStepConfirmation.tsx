@@ -106,7 +106,7 @@ function IOURequestStepConfirmation({
 
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }) ?? [],
-        [transaction?.participants, personalDetails],
+        [transaction?.participants, personalDetails, iouType],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
     const formHasBeenSubmitted = useRef(false);
@@ -342,7 +342,6 @@ function IOURequestStepConfirmation({
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                // TODO: check if we need to navigate to the report
                 IOU.sendInvoice(currentUserPersonalDetails.accountID, transaction, report, receiptFile);
                 return;
             }
@@ -420,18 +419,7 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [
-            transaction,
-            iouType,
-            receiptFile,
-            requestType,
-            requestMoney,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            report?.reportID,
-            trackExpense,
-            createDistanceRequest,
-        ],
+        [transaction, report, iouType, receiptFile, requestType, requestMoney, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trackExpense, createDistanceRequest],
     );
 
     /**
