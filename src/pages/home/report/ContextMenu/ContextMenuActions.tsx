@@ -163,32 +163,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
     },
     {
-        isAnonymousAction: true,
-        textTranslateKey: 'common.download',
-        icon: Expensicons.Download,
-        successTextTranslateKey: 'common.download',
-        successIcon: Expensicons.Download,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is ReportAction => {
-            const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
-            const messageHtml = reportAction?.message?.at(0)?.html;
-            return (
-                isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && !!reportAction?.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline
-            );
-        },
-        onPress: (closePopover, {reportAction}) => {
-            const html = getActionHtml(reportAction);
-            const {originalFileName, sourceURL} = getAttachmentDetails(html);
-            const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
-            const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
-            Download.setDownload(sourceID, true);
-            fileDownload(sourceURLWithAuth, originalFileName ?? '').then(() => Download.setDownload(sourceID, false));
-            if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
-            }
-        },
-        getDescription: () => {},
-    },
-    {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
         icon: Expensicons.ChatBubbleReply,
@@ -488,6 +462,32 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
 
             Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID));
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: true,
+        textTranslateKey: 'common.download',
+        icon: Expensicons.Download,
+        successTextTranslateKey: 'common.download',
+        successIcon: Expensicons.Download,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is ReportAction => {
+            const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
+            const messageHtml = reportAction?.message?.at(0)?.html;
+            return (
+                isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && !!reportAction?.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline
+            );
+        },
+        onPress: (closePopover, {reportAction}) => {
+            const html = getActionHtml(reportAction);
+            const {originalFileName, sourceURL} = getAttachmentDetails(html);
+            const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
+            const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+            Download.setDownload(sourceID, true);
+            fileDownload(sourceURLWithAuth, originalFileName ?? '').then(() => Download.setDownload(sourceID, false));
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
         },
         getDescription: () => {},
     },
