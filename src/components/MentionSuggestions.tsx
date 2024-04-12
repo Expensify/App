@@ -19,14 +19,14 @@ type Mention = {
     text: string;
 
     /**
-     * additional text for the mention
+     * Additional text for the mention
      * visible if it's value is different than Mention.text value
      * rendered after Mention.text
      */
     alternateText: string;
 
     /**
-     * handle of the mention
+     * Handle of the mention
      * used as a value for the mention (e.g. in for the filtering or putting the mention in the message)
      */
     handle?: string;
