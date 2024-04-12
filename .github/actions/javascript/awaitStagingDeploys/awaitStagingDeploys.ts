@@ -2,7 +2,7 @@
 import lodashThrottle from 'lodash/throttle';
 import {getStringInput} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
-import GitHubUtils, {POLL_RATE} from '@github/libs/GithubUtils';
+import GitHubUtils from '@github/libs/GithubUtils';
 import {promiseDoWhile} from '@github/libs/promiseWhile';
 
 type CurrentStagingDeploys = Awaited<ReturnType<typeof GitHubUtils.octokit.actions.listWorkflowRuns>>['data']['workflow_runs'];
@@ -41,20 +41,23 @@ function run() {
                 }),
         ])
             .then((responses) => {
+                console.info('[awaitStagingDeploys] listWorkflowRuns responses', responses);
                 const workflowRuns = responses[0].data.workflow_runs;
                 if (!tag && typeof responses[1] === 'object') {
                     workflowRuns.push(...responses[1].data.workflow_runs);
                 }
+                console.info('[awaitStagingDeploys] workflowRuns', workflowRuns);
                 return workflowRuns;
             })
             .then((workflowRuns) => (currentStagingDeploys = workflowRuns.filter((workflowRun) => workflowRun.status !== 'completed')))
-            .then(() =>
+            .then(() => {
+                console.info('[awaitStagingDeploys] currentStagingDeploys', currentStagingDeploys);
                 console.log(
                     !currentStagingDeploys.length
                         ? 'No current staging deploys found'
                         : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`,
-                ),
-            );
+                );
+            });
     console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
 
     return promiseDoWhile(
@@ -63,7 +66,7 @@ function run() {
             throttleFunc,
 
             // Poll every 60 seconds instead of every 10 seconds
-            POLL_RATE * 6,
+            CONST.POLL_RATE * 6,
         ),
     );
 }
