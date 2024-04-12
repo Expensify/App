@@ -135,7 +135,7 @@ function AttachmentPickerWithMenuItems({
             },
             [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
-                text: translate('iou.payName', {name: ReportUtils.getReportName(report)}),
+                text: translate('iou.paySomeone', {name: ReportUtils.getReportName(report)}),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.TRACK_EXPENSE]: {
