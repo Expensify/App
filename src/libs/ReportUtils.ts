@@ -4395,7 +4395,7 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
 function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): boolean {
     const currentReport = getReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : null);
-    const reportActions = ReportActionsUtils.getAllReportActions(report?.reportID ?? '');
+    const reportActions = reportActionsByReport?.[report?.reportID ?? ''] ?? {};
     const isChildReportHasComment = Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
@@ -5489,6 +5489,14 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): b
 }
 
 /**
+ * Get all held transactions of a iouReport
+ */
+function getAllHeldTransactions(iouReportID: string): Transaction[] {
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return transactions.filter((transaction) => TransactionUtils.isOnHold(transaction));
+}
+
+/**
  * Check if Report has any held expenses
  */
 function hasHeldExpenses(iouReportID?: string): boolean {
@@ -5734,7 +5742,7 @@ function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, rep
  * Checks if report chat contains missing payment method
  */
 function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID: string): boolean {
-    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
+    const reportActions = reportActionsByReport?.[iouReportID] ?? {};
     return Object.values(reportActions).some((action) => getIndicatedMissingPaymentMethod(userWallet, iouReportID, action) !== undefined);
 }
 
@@ -5753,8 +5761,8 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
  * Checks if report contains actions with errors
  */
 function hasActionsWithErrors(reportID: string): boolean {
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID ?? '');
-    return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
+    const reportActions = reportActionsByReport?.[reportID ?? ''] ?? {};
+    return Object.values(reportActions).some((action) => !isEmptyObject(action.errors));
 }
 
 function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report> | undefined): number | undefined {
@@ -6024,6 +6032,7 @@ export {
     getReportActionActorAccountID,
     getGroupChatName,
     getOutstandingChildRequest,
+    getAllHeldTransactions,
 };
 
 export type {

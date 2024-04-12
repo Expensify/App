@@ -8,11 +8,15 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import useLocalize from '@hooks/useLocalize';
+import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,8 +25,6 @@ import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
-import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
 function BaseTextInput(
@@ -56,17 +58,19 @@ function BaseTextInput(
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
-        shouldEnableMarkdown = false,
+        isMarkdownEnabled = false,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
+    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
+
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
     const styles = useThemeStyles();
+    const markdownStyle = useMarkdownStyle();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const InputComponent = shouldEnableMarkdown ? RNMarkdownTextInput : RNTextInput;
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -85,8 +89,6 @@ function BaseTextInput(
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
     const input = useRef<TextInput | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
-
-    const markdownStyle = useMarkdownStyle();
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -328,15 +330,16 @@ function BaseTextInput(
                                 </View>
                             )}
                             <InputComponent
-                                ref={(element: BaseTextInputRef | null) => {
+                                ref={(element: AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
+                                    const baseTextInputRef = element as BaseTextInputRef | null;
                                     if (typeof ref === 'function') {
-                                        ref(element);
+                                        ref(baseTextInputRef);
                                     } else if (ref && 'current' in ref) {
                                         // eslint-disable-next-line no-param-reassign
-                                        ref.current = element;
+                                        ref.current = baseTextInputRef;
                                     }
 
-                                    input.current = element as TextInput | null;
+                                    input.current = element;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}

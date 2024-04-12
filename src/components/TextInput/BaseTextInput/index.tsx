@@ -8,7 +8,9 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
@@ -58,15 +60,16 @@ function BaseTextInput(
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
-        shouldEnableMarkdown = false,
+        isMarkdownEnabled = false,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const InputComponent = shouldEnableMarkdown ? RNMarkdownTextInput : RNTextInput;
+    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
 
     const theme = useTheme();
     const styles = useThemeStyles();
+    const markdownStyle = useMarkdownStyle();
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -86,8 +89,6 @@ function BaseTextInput(
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
     const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
-
-    const markdownStyle = useMarkdownStyle();
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -349,12 +350,13 @@ function BaseTextInput(
                                 </View>
                             )}
                             <InputComponent
-                                ref={(element: BaseTextInputRef | null) => {
+                                ref={(element: AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
+                                    const baseTextInputRef = element as BaseTextInputRef | null;
                                     if (typeof ref === 'function') {
-                                        ref(element);
+                                        ref(baseTextInputRef);
                                     } else if (ref && 'current' in ref) {
                                         // eslint-disable-next-line no-param-reassign
-                                        ref.current = element;
+                                        ref.current = baseTextInputRef;
                                     }
 
                                     input.current = element as HTMLInputElement | null;

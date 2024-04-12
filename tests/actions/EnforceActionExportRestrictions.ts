@@ -22,6 +22,11 @@ describe('ReportUtils', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getPolicy).toBeUndefined();
     });
+
+    it('does not export getAllReportActions', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getAllReportActions).toBeUndefined();
+    });
 });
 
 describe('Policy', () => {
