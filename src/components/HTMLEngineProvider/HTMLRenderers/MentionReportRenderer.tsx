@@ -33,13 +33,13 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEnt
     let reportID: string | undefined;
     let mentionDisplayText: string;
 
-    // get mention details based on reportID from tag attribute
+    // Get mention details based on reportID from tag attribute
     if (!isEmpty(htmlAttributeReportID)) {
         const report = getReport(htmlAttributeReportID);
 
         reportID = report?.reportID ?? undefined;
         mentionDisplayText = removeLeadingLTRAndHash(report?.reportName ?? report?.displayName ?? htmlAttributeReportID);
-        // get mention details from name inside tnode
+        // Get mention details from name inside tnode
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
 
