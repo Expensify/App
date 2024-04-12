@@ -182,7 +182,7 @@ function IOURequestStepAmount({
                         category: '',
                         created: transaction.created,
                         billable: false,
-                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                     });
                     return;
                 }
