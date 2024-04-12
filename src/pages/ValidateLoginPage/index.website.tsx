@@ -25,7 +25,7 @@ function ValidateLoginPage({
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
-    const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (login || exitTo);
+    const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo);
 
     useEffect(() => {
         if (isUserClickedSignIn) {
