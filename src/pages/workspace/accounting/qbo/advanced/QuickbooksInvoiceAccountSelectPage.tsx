@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,11 +18,8 @@ import CONST from '@src/CONST';
 
 type CustomSelectorTypes = ValueOf<typeof CONST.QBO_SELECTOR_OPTIONS>;
 
-type SelectorType = {
+type SelectorType = ListItem & {
     value: CustomSelectorTypes;
-    text: string;
-    keyForList: string;
-    isSelected: boolean;
 };
 
 function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
