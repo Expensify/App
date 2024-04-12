@@ -34,13 +34,20 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
-            PersonalDetails.setDisplayName(values.firstName.trim(), values.lastName.trim());
+            const firstName = values.firstName.trim();
+            const lastName = values.lastName.trim();
+
+            PersonalDetails.setDisplayName(firstName, lastName);
 
             if (!onboardingPurposeSelected) {
                 return;
             }
 
-            Report.completeOnboarding(onboardingPurposeSelected, CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected]);
+            Report.completeOnboarding(onboardingPurposeSelected, CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected], {
+                login: currentUserPersonalDetails.login ?? '',
+                firstName,
+                lastName,
+            });
 
             Navigation.dismissModal();
             // Only navigate to concierge chat when central pane is visible
@@ -57,7 +64,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [isSmallScreenWidth, onboardingPurposeSelected],
+        [currentUserPersonalDetails.login, isSmallScreenWidth, onboardingPurposeSelected],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {

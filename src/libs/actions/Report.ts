@@ -2809,7 +2809,19 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
-function completeOnboarding(engagementChoice: string, data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>) {
+function completeOnboarding(
+    engagementChoice: string,
+    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
+    {
+        login,
+        firstName,
+        lastName,
+    }: {
+        login: string;
+        firstName: string;
+        lastName: string;
+    },
+) {
     const targetEmail = CONST.EMAIL.CONCIERGE;
     const {login = '', firstName = '', lastName = ''} = allPersonalDetails?.[currentUserAccountID] ?? {};
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
