@@ -171,7 +171,19 @@ function IOURequestStepAmount({
 
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBillAndOpenReport(participants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backendAmount, '', currency, '', '', '');
+                    IOU.splitBillAndOpenReport({
+                        participants,
+                        currentUserLogin: currentUserPersonalDetails.login || '',
+                        currentUserAccountID: currentUserPersonalDetails.accountID || 0,
+                        amount: backendAmount,
+                        comment: '',
+                        currency: currency,
+                        tag: '',
+                        category: '',
+                        created: transaction.created,
+                        billable: false,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL
+                    });
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SEND) {

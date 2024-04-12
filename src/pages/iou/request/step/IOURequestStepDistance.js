@@ -203,17 +203,19 @@ function IOURequestStepDistance({
             });
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBillAndOpenReport(
+                    IOU.splitBillAndOpenReport({
                         participants,
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        0,
-                        '',
-                        transaction.currency,
-                        translate('iou.routePending'),
-                        transaction.created,
-                        '',
-                    );
+                        currentUserLogin: currentUserPersonalDetails.login,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        aamount: 0,
+                        currency: transaction.currency || 'USD',
+                        merchant: translate('iou.routePending'),
+                        created: transaction.created,
+                        category: '',
+                        tag: '',
+                        billable: false,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    });
                     return;
                 }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
