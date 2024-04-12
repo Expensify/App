@@ -362,9 +362,10 @@ function Composer(
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
             isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
+            textContainsOnlyEmojis ? {paddingBottom: 0} : null,
         ],
 
-        [numberOfLines, scrollStyleMemo, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
+        [style, StyleUtils, numberOfLines, isComposerFullSize, styles.rtlTextRenderForSafari, scrollStyleMemo, textContainsOnlyEmojis],
     );
 
     return (

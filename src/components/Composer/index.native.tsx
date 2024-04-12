@@ -35,9 +35,9 @@ function Composer(
 ) {
     const textContainsOnlyEmojis = containsOnlyEmojis(value ?? '');
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
+    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis);
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const theme = useTheme();
-    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -68,7 +68,7 @@ function Composer(
     }, [shouldClear, onClear]);
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
-    const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
+    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? {lineHeight: 32} : null]), [style, textContainsOnlyEmojis]);
 
     return (
         <RNMarkdownTextInput
