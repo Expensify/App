@@ -20,12 +20,12 @@ import type {Report} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type RoomMentionOnyxProps = {
+type MentionReportOnyxProps = {
     /** All reports shared with the user */
     reports: OnyxCollection<Report>;
 };
 
-type MentionRoomRendererProps = RoomMentionOnyxProps & CustomRendererProps<TText | TPhrasing>;
+type MentionReportRendererProps = MentionReportOnyxProps & CustomRendererProps<TText | TPhrasing>;
 
 const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').slice(1);
 
@@ -56,7 +56,7 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEnt
     return {reportID, mentionDisplayText};
 };
 
-function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defaultRendererProps}: MentionRoomRendererProps) {
+function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defaultRendererProps}: MentionReportRendererProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
@@ -117,7 +117,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): Report =>
         policyID: report.policyID,
     }) as Report;
 
-export default withOnyx<MentionRoomRendererProps, RoomMentionOnyxProps>({
+export default withOnyx<MentionReportRendererProps, MentionReportOnyxProps>({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
         selector: chatReportSelector,
