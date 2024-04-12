@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -8,6 +9,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RenderHTML from '@components/RenderHTML';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -126,7 +128,8 @@ function ReportPreview({
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
@@ -138,19 +141,12 @@ function ReportPreview({
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
 
-    let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
+    let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
+    const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
+
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
     }
-    const previewSubtitle =
-        // Formatted merchant can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        formattedMerchant ||
-        translate('iou.requestCount', {
-            count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
-            scanningReceipts: numberOfScanningReceipts,
-            pendingReceipts: numberOfPendingRequests,
-        });
 
     const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
@@ -222,13 +218,32 @@ function ReportPreview({
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
      - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
-     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant is shown;
+     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant or description is shown;
 
      * There is an edge case when there is only one distance request with a pending route and amount = 0.
-       In this case, we don't want to show the merchant because it says: "Pending route...", which is already displayed in the amount field.
+       In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
-    const shouldShowSingleRequestMerchant = numberOfRequests === 1 && !!formattedMerchant && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
-    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchant || numberOfRequests > 1);
+    const shouldShowSingleRequestMerchantOrDescription =
+        numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
+    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
+
+    const {isSupportTextHtml, supportText} = useMemo(() => {
+        if (formattedMerchant) {
+            return {isSupportTextHtml: false, supportText: formattedMerchant};
+        }
+        if (formattedDescription ?? moneyRequestComment) {
+            const parsedSubtitle = new ExpensiMark().replace(formattedDescription ?? moneyRequestComment);
+            return {isSupportTextHtml: !!parsedSubtitle, supportText: parsedSubtitle ? `<muted-text>${parsedSubtitle}</muted-text>` : ''};
+        }
+        return {
+            isSupportTextHtml: false,
+            supportText: translate('iou.requestCount', {
+                count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+                scanningReceipts: numberOfScanningReceipts,
+                pendingReceipts: numberOfPendingRequests,
+            }),
+        };
+    }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
     return (
         <OfflineWithFeedback
@@ -292,10 +307,14 @@ function ReportPreview({
                                                 )}
                                             </View>
                                         </View>
-                                        {shouldShowSubtitle && (
+                                        {shouldShowSubtitle && supportText && (
                                             <View style={styles.flexRow}>
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                                    {isSupportTextHtml ? (
+                                                        <RenderHTML html={supportText} />
+                                                    ) : (
+                                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
+                                                    )}
                                                 </View>
                                             </View>
                                         )}

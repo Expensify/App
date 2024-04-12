@@ -4,76 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- *
- * @param {String} name
- * @param {Object} options
- * @param {*} [defaultValue]
- * @returns {string|undefined}
- */
-function getStringInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
-
-module.exports = {
-    getJSONInput,
-    getStringInput,
-};
-
-
-/***/ }),
-
-/***/ 4097:
-/***/ ((module) => {
-
-const CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        INTERNAL_QA: 'InternalQA',
-    },
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-};
-
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
-
-module.exports = CONST;
-
-
-/***/ }),
-
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -11570,8 +11500,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
-const ActionUtils = __importStar(__nccwpck_require__(970));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
+const ActionUtils = __importStar(__nccwpck_require__(6981));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
@@ -11687,8 +11617,103 @@ module.exports = run;
 
 /***/ }),
 
+/***/ 6981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getStringInput = exports.getJSONInput = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param name - The name of the input.
+ * @param options - Options to pass to core.getInput
+ * @param [defaultValue] - A default value to provide for the input.
+ *                         Not required if the {required: true} option is given in the second arg to this function.
+ */
+function getJSONInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+exports.getJSONInput = getJSONInput;
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ */
+function getStringInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+exports.getStringInput = getStringInput;
+
+
+/***/ }),
+
+/***/ 9873:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
+const GIT_CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+};
+const CONST = {
+    ...GIT_CONST,
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
+    ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
+    ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
+    POLL_RATE: 10000,
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+};
+exports["default"] = CONST;
+
+
+/***/ }),
+
 /***/ 9296:
-/***/ (function(module, exports, __nccwpck_require__) {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -11719,7 +11744,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.POLL_RATE = exports.ISSUE_OR_PULL_REQUEST_REGEX = void 0;
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
@@ -11727,18 +11751,7 @@ const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
-const CONST_1 = __importDefault(__nccwpck_require__(4097));
-const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
-const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
-const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
-const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`);
-exports.ISSUE_OR_PULL_REQUEST_REGEX = ISSUE_OR_PULL_REQUEST_REGEX;
-/**
- * The standard rate in ms at which we'll poll the GitHub API to check for status changes.
- * It's 10 seconds :)
- */
-const POLL_RATE = 10000;
-exports.POLL_RATE = POLL_RATE;
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 class GithubUtils {
     static internalOctokit;
     /**
@@ -11865,7 +11878,7 @@ class GithubUtils {
             return [];
         }
         PRListSection = PRListSection[1];
-        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isVerified: match[1] === 'x',
@@ -11883,7 +11896,7 @@ class GithubUtils {
             return [];
         }
         deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -11901,7 +11914,7 @@ class GithubUtils {
             return [];
         }
         internalQASection = internalQASection[1];
-        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2].split('-')[0].trim(),
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -12072,7 +12085,6 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
-        // @ts-expect-error TODO: Remove this once CONST.js (https://github.com/Expensify/App/issues/25362) is migrated to TypeScript
         return `${CONST_1.default.APP_REPO_URL}/pull/${value}`;
     }
     /**
@@ -12081,7 +12093,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Pull Request.
      */
     static getPullRequestNumberFromURL(URL) {
-        const matches = URL.match(PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST_1.default.PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Pull Request!`);
         }
@@ -12093,7 +12105,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue.
      */
     static getIssueNumberFromURL(URL) {
-        const matches = URL.match(ISSUE_REGEX);
+        const matches = URL.match(CONST_1.default.ISSUE_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Issue!`);
         }
@@ -12105,7 +12117,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
      */
     static getIssueOrPullRequestNumberFromURL(URL) {
-        const matches = URL.match(ISSUE_OR_PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
@@ -12133,9 +12145,6 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
-// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
-// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
-module.exports = GithubUtils;
 
 
 /***/ }),

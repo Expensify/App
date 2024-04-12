@@ -218,6 +218,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 <RoomHeaderAvatars
                                     icons={icons}
                                     reportID={report?.reportID}
+                                    isGroupChat={ReportUtils.isGroupChat(report)}
                                 />
                             )}
                         </View>
