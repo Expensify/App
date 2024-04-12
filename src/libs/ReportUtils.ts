@@ -3095,7 +3095,7 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return parser.htmlToText(policy.description);
 }
 
-function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number): OptimisticReportAction {
+function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number, createdOffset = 0): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
     const isAttachmentOnly = file && !text;
@@ -3134,7 +3134,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject,
             ],
             automatic: false,
             avatar: allPersonalDetails?.[accountID ?? -1]?.avatar ?? UserUtils.getDefaultAvatarURL(accountID),
-            created: DateUtils.getDBTimeWithSkew(),
+            created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
                     translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
@@ -3202,6 +3202,7 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
  * @param taskAssigneeAccountID - AccountID of the person assigned to the task
  * @param text - Text of the comment
  * @param parentReportID - Report ID of the parent report
+ * @param createdOffset - The offset for task's created time that created via a loop
  */
 function buildOptimisticTaskCommentReportAction(
     taskReportID: string,
@@ -3210,8 +3211,9 @@ function buildOptimisticTaskCommentReportAction(
     text: string,
     parentReportID: string,
     actorAccountID?: number,
+    createdOffset = 0,
 ): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction(text);
+    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset);
     if (reportAction.reportAction.message?.[0]) {
         reportAction.reportAction.message[0].taskReportID = taskReportID;
     }
