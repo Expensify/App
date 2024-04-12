@@ -1,70 +1,73 @@
-import React, {createContext, useContext, useEffect, useState} from 'react';
-import type {ComponentType, PropsWithChildren} from 'react';
+import {useEffect, useState} from 'react';
+import type {ComponentType} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import useNetwork from '@hooks/useNetwork';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
-import type {Policy} from '@src/types/onyx';
-import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
+import type {WithPolicyProps} from './withPolicy';
 
-const PolicyWithConnectionsDataContext = createContext<Policy | null>(null);
-
-function usePolicyWithConnectionsData() {
-    const policy = useContext(PolicyWithConnectionsDataContext);
-    if (!policy) {
-        throw new Error('usePolicyWithConnectionsData must be used within a PolicyWithConnectionsDataProvider');
-    }
-    return policy;
-}
+type WithPolicyConnectionsProps = WithPolicyProps;
 
 /**
- * A context that provides the policy object and ensures that the `connections` data is fetched once. The context maintains a state to track
- * whether the `connections` data has been fetched, ensuring the fetch request is made only once per user session.
- * Note that the policy object provided by this context may not have the `connections` field populated. When the `connections` data is being
- * fetched, the `connections` field is empty.
- * For this reason, use the `withPolicyConnections` HOC defined in this file when consuming the policy object. It manages the rendering logic
- * when the connections field is empty, ensuring that the `policy` object has its `connections` field populated when the wrapped component is
- * rendered.
- */
-function PolicyWithConnectionsDataContextProviderWrapped({policy, children}: PropsWithChildren<WithPolicyProps>) {
-    const [hasFetchedConnectionsData, setHasFetchedConnectionsData] = useState(false);
-
-    useEffect(() => {
-        if (hasFetchedConnectionsData || !policy || policy.connections) {
-            return;
-        }
-
-        openPolicyAccountingPage(policy.id);
-        setHasFetchedConnectionsData(true);
-    }, [policy, hasFetchedConnectionsData]);
-
-    return <PolicyWithConnectionsDataContext.Provider value={policy}>{children}</PolicyWithConnectionsDataContext.Provider>;
-}
-
-const PolicyWithConnectionsDataContextProvider = withPolicy(PolicyWithConnectionsDataContextProviderWrapped);
-
-/**
- * Higher-order component that provides the policy object which is guaranteed to have the `connections` field populated.
- * If the `connections` field is absent, it either renders nothing or displays the full offline screen when the device is offline.
+ * Higher-order component that fetches the connections data and populates
+ * the corresponding field of the policy object if the field is empty. It then passes the policy object
+ * to the wrapped component.
+ *
  * Use this HOC when you need the policy object with its connections field populated.
+ *
+ * Only the active policy gets the complete policy data upon app start that includes the connections data.
+ * For other policies, the connections data needs to be fetched when it's needed.
  */
-function withPolicyConnections(WrappedComponent: ComponentType<{policy: Policy}>) {
-    function WithPolicyConnections() {
+function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnectionsProps>) {
+    function WithPolicyConnections({policy, policyMembers, policyDraft, policyMembersDraft, route}: WithPolicyConnectionsProps) {
         const {isOffline} = useNetwork();
-        const policy = usePolicyWithConnectionsData();
+
+        // When the accounting feature is enabled, but the user hasn't connected to any accounting software,
+        // the connections data doesn't exist. We don't want to continually attempt to fetch non-existent data.
+        // This state helps us track whether a data fetch attempt has been made.
+        const [wasConnectionsDataFetched, setWasConnectionsDataFetched] = useState(false);
+
+        useEffect(() => {
+            // When the accounting feature is not enabled, or if the connections data already exists,
+            // there is no need to fetch the connections data.
+            if (wasConnectionsDataFetched || !policy?.areConnectionsEnabled || !!policy?.connections || !policy?.id) {
+                return;
+            }
+
+            openPolicyAccountingPage(policy.id);
+            setWasConnectionsDataFetched(true);
+        }, [policy, wasConnectionsDataFetched]);
 
         if (!policy?.connections) {
             if (isOffline) {
-                return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
+                return (
+                    <FullPageOfflineBlockingView>
+                        <WrappedComponent
+                            policy={policy}
+                            policyMembers={policyMembers}
+                            policyDraft={policyDraft}
+                            policyMembersDraft={policyMembersDraft}
+                            route={route}
+                        />
+                    </FullPageOfflineBlockingView>
+                );
             }
 
             return null;
         }
 
-        return <WrappedComponent policy={policy} />;
+        return (
+            <WrappedComponent
+                policy={policy}
+                policyMembers={policyMembers}
+                policyDraft={policyDraft}
+                policyMembersDraft={policyMembersDraft}
+                route={route}
+            />
+        );
     }
 
-    return WithPolicyConnections;
+    return withPolicy(WithPolicyConnections);
 }
 
-export {PolicyWithConnectionsDataContextProvider, withPolicyConnections};
+export default withPolicyConnections;
