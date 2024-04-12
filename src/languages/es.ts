@@ -138,7 +138,6 @@ export default {
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Remisión',
-        everyone: 'A todos',
         payments: 'Pagos',
         wallet: 'Billetera',
         preferences: 'Preferencias',
@@ -250,7 +249,6 @@ export default {
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Introducir manualmente',
         message: 'Chatear con ',
-        leaveRoom: 'Salir de la sala de chat',
         leaveChat: 'Salir del chat',
         leaveThread: 'Salir del hilo',
         you: 'Tú',
@@ -1231,8 +1229,8 @@ export default {
         groupName: 'Nombre del grupo',
     },
     groupChat: {
-        groupMembersListTitle: 'Directorio de todos los miembros del grupo.',
-        lastMemberWarning: '¡Atención! Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los usuarios. ¿Estás seguro de que quieres irte?',
+        groupMembersListTitle: 'Directorio de los miembros del grupo.',
+        lastMemberWarning: '¡Atención! Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los usuarios. ¿Estás seguro de que quieres salir del chat?',
         defaultReportName: ({displayName}: {displayName: string}) => `Chat de group de ${displayName}`,
     },
     languagePage: {

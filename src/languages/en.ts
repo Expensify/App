@@ -148,7 +148,6 @@ export default {
         group: 'Group',
         profile: 'Profile',
         referral: 'Referral',
-        everyone: 'Everyone',
         payments: 'Payments',
         wallet: 'Wallet',
         preferences: 'Preferences',
