@@ -52,6 +52,8 @@ The webpack development server now uses https. If you're using a mac, you can si
 
 If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/webpack`.
 
+If you're using WSL or any other remote systems and trying to browse on your local computer, run `mkcert --install && mkcert -cert-file certificate.pem -key-file key.pem dev.new.expensify.com localhost 127.0.0.1` on your local and copy `certificate.pem` and `key.pem` to `config/webpack` folder manually, because `mkcert --install` command adds generated certs to the OS where you ran it.
+
 ## Running the web app 🕸
 * To run the **development web app**: `npm run web`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
