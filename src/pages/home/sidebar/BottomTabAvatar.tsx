@@ -49,7 +49,7 @@ function BottomTabAvatar({isCreateMenuOpen = false, isSelected = false}: BottomT
     }
 
     return (
-        <Tooltip text={translate('profilePage.profile')}>
+        <Tooltip text={translate('initialSettingsPage.accountSettings')}>
             <PressableWithFeedback
                 onPress={showSettingsPage}
                 role={CONST.ROLE.BUTTON}
