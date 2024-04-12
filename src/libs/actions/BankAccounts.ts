@@ -113,7 +113,7 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
 
 function clearPersonalBankAccount() {
     clearPlaid();
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, null);
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
     clearPersonalBankAccountSetupType();
 }
