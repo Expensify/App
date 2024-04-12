@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} fr
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry, OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -68,6 +68,9 @@ type MoneyRequestConfirmationListOnyxProps = {
 
     /** Unit and rate used for if the money request is a distance request */
     mileageRate: OnyxEntry<DefaultMileageRate>;
+
+    /** The list of all policies */
+    allPolicies: OnyxCollection<OnyxTypes.Policy>;
 };
 
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps & {
@@ -162,9 +165,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     hasSmartScanFailed?: boolean;
 
     reportActionID?: string;
-
-    /** The list of all policies */
-    allPolicies: OnyxCollection<OnyxTypes.Policy>,
 };
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
@@ -248,11 +248,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     const senderWorkspace = useMemo(() => {
-        const senderWorkspaceParticipant = _.find(pickedParticipants, (pickedParticipant) => pickedParticipant.policyID);
-        return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant.policyID}`];
+        const senderWorkspaceParticipant = pickedParticipants.find((pickedParticipant) => pickedParticipant.policyID);
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
     }, [allPolicies, pickedParticipants]);
 
-    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.getActiveAdminWorkspaces(allPolicies).length > 0 && transaction.isFromGlobalCreate, [allPolicies]);
+    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.getActiveAdminWorkspaces(allPolicies).length > 0 && !!transaction?.isFromGlobalCreate, [allPolicies]);
 
     // A flag for showing the tags field
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
@@ -661,15 +661,15 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <MenuItem
                     key={translate('workspace.invoices.sendFrom')}
                     shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
-                    title={lodashGet(senderWorkspace, 'name')}
-                    icon={lodashGet(senderWorkspace, 'avatar') || getDefaultWorkspaceAvatar(lodashGet(senderWorkspace, 'name'))}
+                    title={senderWorkspace?.name}
+                    icon={senderWorkspace?.avatar ?? getDefaultWorkspaceAvatar(senderWorkspace?.name)}
                     iconType={CONST.ICON_TYPE_WORKSPACE}
                     description={translate('workspace.common.workspace')}
                     label={translate('workspace.invoices.sendFrom')}
                     isLabelHoverable={false}
                     interactive={!isReadOnly && canUpdateSenderWorkspace}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
