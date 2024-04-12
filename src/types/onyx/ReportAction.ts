@@ -226,6 +226,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Flag for checking if data is from optimistic data */
     isOptimisticAction?: boolean;
+
+    /** The admins's ID */
+    adminAccountID?: number;
 }>;
 
 type ReportAction = ReportActionBase & OriginalMessage;
