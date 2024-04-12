@@ -336,9 +336,10 @@ const ONYXKEYS = {
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
+        TRANSACTION_DRAFT: 'transactionsDraft_',
 
         // Holds temporary transactions used during the creation and edit flow
-        TRANSACTION_DRAFT: 'transactionsDraft_',
+        TRANSACTION_BACKUP: 'transactionsBackup_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
@@ -436,8 +437,8 @@ const ONYXKEYS = {
         REPORT_FIELD_EDIT_FORM_DRAFT: 'reportFieldEditFormDraft',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
-        PERSONAL_BANK_ACCOUNT_FORM: 'personalBankAccountForm',
-        PERSONAL_BANK_ACCOUNT_FORM_DRAFT: 'personalBankAccountFormDraft',
+        PERSONAL_BANK_ACCOUNT_FORM: 'personalBankAccount',
+        PERSONAL_BANK_ACCOUNT_FORM_DRAFT: 'personalBankAccountDraft',
         EXIT_SURVEY_REASON_FORM: 'exitSurveyReasonForm',
         EXIT_SURVEY_REASON_FORM_DRAFT: 'exitSurveyReasonFormDraft',
         EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
@@ -538,6 +539,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.TRANSACTION_BACKUP]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
     [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;

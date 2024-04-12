@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import React, {useCallback, useMemo} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -12,6 +12,8 @@ import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -23,9 +25,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Callback to request parent modal to go to next step, which should be request */
     navigateToRequest: PropTypes.func.isRequired,
 
@@ -34,9 +33,6 @@ const propTypes = {
 
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
-
-    /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
 
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
@@ -54,24 +50,27 @@ const propTypes = {
 
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
+
+    /** Whether the screen transition has ended */
+    didScreenTransitionEnd: PropTypes.bool,
 };
 
 const defaultProps = {
-    dismissedReferralBanners: {},
     participants: [],
-    betas: [],
     isDistanceRequest: false,
+    didScreenTransitionEnd: false,
 };
 
-function MoneyRequestParticipantsSelector({betas, dismissedReferralBanners, participants, navigateToRequest, navigateToSplit, onAddParticipants, iouType, isDistanceRequest}) {
+function MoneyRequestParticipantsSelector({participants, navigateToRequest, navigateToSplit, onAddParticipants, iouType, isDistanceRequest, didScreenTransitionEnd}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, setSearchTerm] = useState('');
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
+    const {options, areOptionsInitialized} = useOptionsList({shouldInitialize: didScreenTransitionEnd});
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
-    const {options, areOptionsInitialized} = useOptionsList();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -83,7 +82,7 @@ function MoneyRequestParticipantsSelector({betas, dismissedReferralBanners, part
             options.reports,
             options.personalDetails,
             betas,
-            searchTerm,
+            debouncedSearchTerm,
             participants,
             CONST.EXPENSIFY_EMAILS,
 
@@ -108,7 +107,7 @@ function MoneyRequestParticipantsSelector({betas, dismissedReferralBanners, part
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         };
-    }, [options.reports, options.personalDetails, betas, searchTerm, participants, iouType, canUseP2PDistanceRequests, isDistanceRequest]);
+    }, [options.reports, options.personalDetails, betas, debouncedSearchTerm, participants, iouType, canUseP2PDistanceRequests, isDistanceRequest]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -119,7 +118,7 @@ function MoneyRequestParticipantsSelector({betas, dismissedReferralBanners, part
         const newSections = [];
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            searchTerm,
+            debouncedSearchTerm,
             participants,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
@@ -157,7 +156,7 @@ function MoneyRequestParticipantsSelector({betas, dismissedReferralBanners, part
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions.personalDetails, newChatOptions.recentReports, newChatOptions.userToInvite, participants, personalDetails, searchTerm, translate]);
+    }, [maxParticipantsReached, newChatOptions.personalDetails, newChatOptions.recentReports, newChatOptions.userToInvite, participants, personalDetails, debouncedSearchTerm, translate]);
 
     /**
      * Adds a single participant to the request
@@ -232,11 +231,11 @@ function MoneyRequestParticipantsSelector({betas, dismissedReferralBanners, part
             OptionsListUtils.getHeaderMessage(
                 _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
-                searchTerm.trim(),
+                debouncedSearchTerm.trim(),
                 maxParticipantsReached,
-                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions, participants, searchTerm],
+        [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
 
     // Right now you can't split a request with a workspace and other additional participants
@@ -266,10 +265,15 @@ function MoneyRequestParticipantsSelector({betas, dismissedReferralBanners, part
         [shouldShowSplitBillErrorMessage, navigateToSplit, addSingleParticipant, participants.length],
     );
 
-    const footerContent = useMemo(
-        () => (
+    const {isDismissed} = useDismissedReferralBanners({referralContentType});
+
+    const footerContent = useMemo(() => {
+        if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
+            return null;
+        }
+        return (
             <>
-                {!dismissedReferralBanners[referralContentType] && (
+                {!isDismissed && (
                     <ReferralProgramCTA
                         referralContentType={referralContentType}
                         style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
@@ -295,9 +299,8 @@ function MoneyRequestParticipantsSelector({betas, dismissedReferralBanners, part
                     />
                 )}
             </>
-        ),
-        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
-    );
+        );
+    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
 
     const itemRightSideComponent = useCallback(
         (item) => {
@@ -343,7 +346,7 @@ function MoneyRequestParticipantsSelector({betas, dismissedReferralBanners, part
             onSelectRow={addSingleParticipant}
             footerContent={footerContent}
             headerMessage={headerMessage}
-            showLoadingPlaceholder={!areOptionsInitialized}
+            showLoadingPlaceholder={!areOptionsInitialized && !didScreenTransitionEnd}
             rightHandSideComponent={itemRightSideComponent}
         />
     );
@@ -353,11 +356,4 @@ MoneyRequestParticipantsSelector.propTypes = propTypes;
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
-export default withOnyx({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(MoneyRequestParticipantsSelector);
+export default MoneyRequestParticipantsSelector;

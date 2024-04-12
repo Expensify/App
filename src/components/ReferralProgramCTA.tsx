@@ -1,45 +1,49 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
-type ReferralProgramCTAOnyxProps = {
-    dismissedReferralBanners: OnyxEntry<OnyxTypes.DismissedReferralBanners>;
-};
-
-type ReferralProgramCTAProps = ReferralProgramCTAOnyxProps & {
+type ReferralProgramCTAProps = {
     referralContentType:
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
     style?: ViewStyle;
+    onDismiss?: () => void;
 };
 
-function ReferralProgramCTA({referralContentType, dismissedReferralBanners, style}: ReferralProgramCTAProps) {
+function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralProgramCTAProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isDismissed, setAsDismissed} = useDismissedReferralBanners({referralContentType});
 
     const handleDismissCallToAction = () => {
-        User.dismissReferralBanner(referralContentType);
+        setAsDismissed();
+        onDismiss?.();
     };
 
-    if (!referralContentType || dismissedReferralBanners?.[referralContentType]) {
+    const shouldShowBanner = referralContentType && !isDismissed;
+
+    useEffect(() => {
+        if (shouldShowBanner) {
+            return;
+        }
+        onDismiss?.();
+    }, [onDismiss, shouldShowBanner]);
+
+    if (!shouldShowBanner) {
         return null;
     }
 
@@ -83,8 +87,4 @@ function ReferralProgramCTA({referralContentType, dismissedReferralBanners, styl
     );
 }
 
-export default withOnyx<ReferralProgramCTAProps, ReferralProgramCTAOnyxProps>({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
-})(ReferralProgramCTA);
+export default ReferralProgramCTA;
