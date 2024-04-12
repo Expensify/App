@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as NetworkActions from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
+import checkInternetReachability from './checkInternetReachability';
 import Log from './Log';
 
 let isOffline = false;
@@ -69,10 +70,11 @@ Onyx.connect({
 });
 
 /**
- * Set interval to periodically (re)check backend status
+ * Set interval to periodically (re)check backend status.
+ * Because backend unreachability might imply lost internet connection, we need to check internet reachability.
  * @returns clearInterval cleanup
  */
-function subscribeToBackendReachability(): () => void {
+function subscribeToBackendAndInternetReachability(): () => void {
     const intervalID = setInterval(() => {
         // Offline status also implies backend unreachability
         if (isOffline) {
@@ -92,6 +94,15 @@ function subscribeToBackendReachability(): () => void {
                     .then((json) => Promise.resolve(json.jsonCode === 200))
                     .catch(() => Promise.resolve(false));
             })
+            .then((isBackendReachable: boolean) => {
+                if (isBackendReachable) {
+                    return Promise.resolve(true);
+                }
+                return checkInternetReachability().then((isInternetReachable: boolean) => {
+                    NetworkActions.setIsOffline(!isInternetReachable);
+                    return Promise.resolve(false);
+                });
+            })
             .then(NetworkActions.setIsBackendReachable)
             .catch(() => NetworkActions.setIsBackendReachable(false));
     }, CONST.NETWORK.BACKEND_CHECK_INTERVAL_MS);
@@ -108,7 +119,7 @@ function subscribeToBackendReachability(): () => void {
 function subscribeToNetworkStatus(): () => void {
     // Note: We are disabling the reachability check when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for reachability.
     // If you need to test the "recheck" feature then switch to the production API proxy server.
-    const unsubscribeFromBackendReachability = !CONFIG.IS_USING_LOCAL_WEB ? subscribeToBackendReachability() : undefined;
+    const unsubscribeFromBackendReachability = !CONFIG.IS_USING_LOCAL_WEB ? subscribeToBackendAndInternetReachability() : undefined;
 
     // Set up the event listener for NetInfo to tell whether the user has
     // internet connectivity or not. This is more reliable than the Pusher

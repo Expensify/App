@@ -543,6 +543,7 @@ const CONST = {
     STATUS_EXPENSIFY_URL: 'https://status.expensify.com',
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
+    GOOGLE_CLOUD_URL: 'https://clients3.google.com/generate_204',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
