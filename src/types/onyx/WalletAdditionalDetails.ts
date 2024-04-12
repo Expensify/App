@@ -21,6 +21,14 @@ type WalletAdditionalDetails = {
     additionalErrorMessage?: string;
     isLoading?: boolean;
     errors?: OnyxCommon.Errors;
+    firstName: string;
+    lastName: string;
+    dob: string;
+    ssnLast4: string;
+    addressStreet: string;
+    addressCity: string;
+    addressState: string;
+    addressZipCode: string;
 };
 
 export default WalletAdditionalDetails;

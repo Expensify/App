@@ -15,12 +15,12 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+import type {WalletAdditionalDetails} from '@src/types/onyx';
 
 type SocialSecurityNumberOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
 };
 
 type SocialSecurityNumberProps = SocialSecurityNumberOnyxProps & SubStepProps;
@@ -28,7 +28,7 @@ type SocialSecurityNumberProps = SocialSecurityNumberOnyxProps & SubStepProps;
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
     if (values.ssnLast4 && !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
@@ -37,13 +37,14 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACC
 
     return errors;
 };
-function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialSecurityNumberProps) {
+function SocialSecurityNumber({walletAdditionalDetails, onNext, isEditing}: SocialSecurityNumberProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultSsnLast4 = reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
+    const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
+        formId: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
@@ -51,7 +52,7 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
 
     return (
         <FormProvider
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -84,8 +85,8 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}: SocialS
 SocialSecurityNumber.displayName = 'SocialSecurityNumber';
 
 export default withOnyx<SocialSecurityNumberProps, SocialSecurityNumberOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
+    walletAdditionalDetails: {
+        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
     },
 })(SocialSecurityNumber);

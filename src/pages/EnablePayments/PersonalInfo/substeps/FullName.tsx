@@ -15,12 +15,12 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+import type {WalletAdditionalDetails} from '@src/types/onyx';
 
 type FullNameOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+    /** Wallet Additional Details from ONYX */
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
 };
 
 type FullNameProps = FullNameOnyxProps & SubStepProps;
@@ -28,7 +28,7 @@ type FullNameProps = FullNameOnyxProps & SubStepProps;
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.LAST_NAME];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
     if (values.firstName && !ValidationUtils.isValidLegalName(values.firstName)) {
         errors.firstName = 'bankAccount.error.firstName';
@@ -40,16 +40,17 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACC
     return errors;
 };
 
-function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
+function FullName({walletAdditionalDetails, onNext, isEditing}: FullNameProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const defaultValues = {
-        firstName: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
-        lastName: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
+        firstName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
+        lastName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
+        formId: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
@@ -57,7 +58,7 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
 
     return (
         <FormProvider
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -98,7 +99,7 @@ FullName.displayName = 'FullName';
 
 export default withOnyx<FullNameProps, FullNameOnyxProps>({
     // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    walletAdditionalDetails: {
+        key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
     },
 })(FullName);

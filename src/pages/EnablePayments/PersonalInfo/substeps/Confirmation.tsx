@@ -17,16 +17,15 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountForm} from '@src/types/form';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+import type {WalletAdditionalDetails} from '@src/types/onyx';
 
 type ConfirmationOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+    /** wallet additional details from ONYX */
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
+    walletAdditionalDetailsDraft: OnyxEntry<WalletAdditionalDetails>;
 };
 
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
@@ -34,14 +33,14 @@ type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.PERSONAL_INFO;
 
-function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
+function Confirmation({walletAdditionalDetails, walletAdditionalDetailsDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const isLoading = reimbursementAccount?.isLoading ?? false;
-    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
+    const isLoading = walletAdditionalDetailsDraft?.isLoading ?? false;
+    const error = ErrorUtils.getLatestErrorMessage(walletAdditionalDetails ?? {});
+    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
 
     return (
         <SafeAreaConsumer>
@@ -136,11 +135,11 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
 Confirmation.displayName = 'Confirmation';
 
 export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
+    walletAdditionalDetails: {
+        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
     },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
+    walletAdditionalDetailsDraft: {
+        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT,
     },
 })(Confirmation);

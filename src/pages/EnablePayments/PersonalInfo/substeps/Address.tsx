@@ -10,15 +10,15 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+import type {WalletAdditionalDetails} from '@src/types/onyx';
 
 type AddressOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+    /** wallet additional details from ONYX */
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
 };
 
 type AddressProps = AddressOnyxProps & SubStepProps;
@@ -34,32 +34,33 @@ const INPUT_KEYS = {
 
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.STREET, PERSONAL_INFO_STEP_KEY.CITY, PERSONAL_INFO_STEP_KEY.STATE, PERSONAL_INFO_STEP_KEY.ZIP_CODE];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-    if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
-        errors.requestorAddressStreet = 'bankAccount.error.addressStreet';
+    if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+        errors.addressStreet = 'bankAccount.error.addressStreet';
     }
 
-    if (values.requestorAddressZipCode && !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
-        errors.requestorAddressZipCode = 'bankAccount.error.zipCode';
+    if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+        errors.addressZipCode = 'bankAccount.error.zipCode';
     }
 
     return errors;
 };
 
-function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
+function Address({walletAdditionalDetails, onNext, isEditing}: AddressProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const defaultValues = {
-        street: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.STREET] ?? '',
-        city: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.CITY] ?? '',
-        state: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
-        zipCode: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
+        street: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STREET] ?? '',
+        city: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.CITY] ?? '',
+        state: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
+        zipCode: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
+        formId: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
@@ -67,7 +68,7 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
 
     return (
         <FormProvider
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -77,9 +78,8 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('personalInfoStep.enterYourAddress')}</Text>
                 <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
-                <AddressForm
+                <AddressFormFields
                     inputKeys={INPUT_KEYS}
-                    translate={translate}
                     streetTranslationKey="common.streetAddress"
                     defaultValues={defaultValues}
                     shouldSaveDraft={!isEditing}
@@ -93,8 +93,8 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
 Address.displayName = 'Address';
 
 export default withOnyx<AddressProps, AddressOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
+    walletAdditionalDetails: {
+        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
     },
 })(Address);

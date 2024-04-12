@@ -7,7 +7,7 @@ import type {SubStepProps} from './useSubStep/types';
 
 type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
     formId?: OnyxFormKey;
-    fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>;
+    fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>>;
     shouldSaveDraft: boolean;
 };
 
@@ -26,7 +26,7 @@ export default function useReimbursementAccountStepFormSubmit({
     shouldSaveDraft,
 }: UseReimbursementAccountStepFormSubmitParams) {
     return useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>) => {
             if (shouldSaveDraft) {
                 const stepValues = fieldIds.reduce(
                     (acc, key) => ({
