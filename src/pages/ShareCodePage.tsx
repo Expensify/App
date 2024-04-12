@@ -7,6 +7,8 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import QRShare from '@components/QRShare';
+import type {QRShareHandle} from '@components/QRShare/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -21,8 +23,6 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import QRShare from '@components/QRShare';
-import type { QRShareHandle } from '@components/QRShare/types';
 
 type ShareCodePageOnyxProps = {
     /** The report currently being looked at */
@@ -55,22 +55,22 @@ function ShareCodePage({report}: ShareCodePageProps) {
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
                 <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph5]}>
-                {/* 
+                    {/* 
                     Right now QR code download button is not shown anymore
                     This is a temporary measure because right now it's broken because of the Fabric update.
                     We need to wait for react-native v0.74 to be released so react-native-view-shot gets fixed.
                     
                     Please see https://github.com/Expensify/App/issues/40110 to see if it can be re-enabled.
-                */}                    
-                <QRShare
-                    ref={qrCodeRef}
-                    url={url}
-                    title={title}
-                    subtitle={title}
-                    logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
-                    logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                    logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
-                />
+                */}
+                    <QRShare
+                        ref={qrCodeRef}
+                        url={url}
+                        title={title}
+                        subtitle={title}
+                        logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
+                        logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                        logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                    />
                 </View>
 
                 <View style={themeStyles.mt9}>

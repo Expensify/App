@@ -6,6 +6,8 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useSession} from '@components/OnyxProvider';
+import QRShare from '@components/QRShare';
+import type {QRShareHandle} from '@components/QRShare/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useEnvironment from '@hooks/useEnvironment';
@@ -17,8 +19,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import QRShare from '@components/QRShare';
-import type { QRShareHandle } from '@components/QRShare/types';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -55,7 +55,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                             We need to wait for react-native v0.74 to be released so react-native-view-shot gets fixed.
                             
                             Please see https://github.com/Expensify/App/issues/40110 to see if it can be re-enabled.
-                        */}                        
+                        */}
                         <QRShare
                             ref={qrCodeRef}
                             url={url}
@@ -63,7 +63,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                             logo={(policy?.avatar ? policy.avatar : expensifyLogo) as ImageSourcePropType}
                             logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                             logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
-                        />                        
+                        />
                     </View>
 
                     <View style={[themeStyles.mt3, themeStyles.ph4]}>
