@@ -6,6 +6,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
 
 public class CheckPDFDocument extends ReactContextBaseJavaModule {
+    
     private static final String MODULE_NAME = "CheckPDFDocument";
 
     public CheckPDFDocument(ReactApplicationContext reactContext) {
