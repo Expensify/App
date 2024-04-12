@@ -233,11 +233,11 @@ const ROUTES = {
     },
     REPORT_PARTICIPANTS_DETAILS: {
         route: 'r/:reportID/participants/:accountID',
-        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}`,
+        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}` as const,
     },
     REPORT_PARTICIPANTS_ROLE_SELECTION: {
         route: 'r/:reportID/participants/:accountID/role',
-        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}/role`,
+        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}/role` as const,
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
