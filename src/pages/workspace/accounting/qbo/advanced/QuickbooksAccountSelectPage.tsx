@@ -2,9 +2,8 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
+import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -43,21 +42,21 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
             })),
         [selectedAccount, translate],
     );
-
-    const showQBOOnlineSelectorOptions = useCallback(
-        () =>
-            qboOnlineSelectorOptions.map((item) => (
-                <OfflineWithFeedback key={item.keyForList.toString()}>
-                    <RadioListItem
-                        item={item}
-                        onSelectRow={() => setSelectedAccount(item.value)}
-                        showTooltip={false}
-                        isFocused={item.isSelected}
-                    />
-                </OfflineWithFeedback>
-            )),
-        [qboOnlineSelectorOptions, setSelectedAccount],
+    const listHeaderComponent = useMemo(
+        () => (
+            <View style={[styles.pb2, styles.ph5]}>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectDescription')}</Text>
+            </View>
+        ),
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
     );
+
+    const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
+
+    const updateMode = useCallback((mode: SelectorType) => {
+        // TODO add API call for change
+        setSelectedAccount(mode.value);
+    }, []);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -72,10 +71,13 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
                     >
                         <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboAccount')} />
 
-                        <View style={[styles.pb2, styles.ph5]}>
-                            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.accountSelectDescription')}</Text>
-                        </View>
-                        <ScrollView>{showQBOOnlineSelectorOptions()}</ScrollView>
+                        <SelectionList
+                            sections={[{data: qboOnlineSelectorOptions}]}
+                            ListItem={RadioListItem}
+                            headerContent={listHeaderComponent}
+                            onSelectRow={updateMode}
+                            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        />
                     </ScreenWrapper>
                 </FeatureEnabledAccessOrNotFoundWrapper>
             </PaidPolicyAccessOrNotFoundWrapper>
