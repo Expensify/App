@@ -28,6 +28,16 @@ type Participant = {
     role?: 'admin' | 'member';
 };
 
+type InvoiceReceiver =
+    | {
+          type: 'individual';
+          accountID: number;
+      }
+    | {
+          type: 'policy';
+          policyID: string;
+      };
+
 type Participants = Record<number, Participant>;
 
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -127,6 +137,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Report cached total */
         cachedTotal?: string;
+
+        /** Invoice room receiver data */
+        invoiceReceiver?: InvoiceReceiver;
 
         lastMessageTranslationKey?: string;
         parentReportID?: string;

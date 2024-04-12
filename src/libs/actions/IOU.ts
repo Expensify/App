@@ -821,9 +821,9 @@ function buildOnyxDataForInvoice(
     transactionThreadCreatedReportAction: OptimisticCreatedReportAction,
     inviteReportAction?: OptimisticAddCommentReportAction,
     chatBeginningReportAction?: OptimisticAddCommentReportAction,
-    // policy?: OnyxEntry<OnyxTypes.Policy>,
-    // policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
-    // policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
@@ -1088,20 +1088,20 @@ function buildOnyxDataForInvoice(
     ];
 
     // We don't need to compute violations unless we're on a paid policy
-    // if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
-    //     return [optimisticData, successData, failureData];
-    // }
-    //
-    // const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
-    //
-    // if (violationsOnyxData) {
-    //     optimisticData.push(violationsOnyxData);
-    //     failureData.push({
-    //         onyxMethod: Onyx.METHOD.SET,
-    //         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-    //         value: [],
-    //     });
-    // }
+    if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
+        return [optimisticData, successData, failureData];
+    }
+
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+
+    if (violationsOnyxData) {
+        optimisticData.push(violationsOnyxData);
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: [],
+        });
+    }
 
     return [optimisticData, successData, failureData];
 }
@@ -1407,7 +1407,14 @@ function buildOnyxDataForTrackExpense(
 }
 
 /** Gathers all the data needed to create an invoice. */
-function getSendInvoiceInformation(transaction: OnyxEntry<OnyxTypes.Transaction>, invoiceChatReport?: OnyxEntry<OnyxTypes.Report>, receipt?: Receipt) {
+function getSendInvoiceInformation(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
+    receipt?: Receipt,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.policyID)?.policyID ?? '';
@@ -1420,7 +1427,7 @@ function getSendInvoiceInformation(transaction: OnyxEntry<OnyxTypes.Transaction>
 
     if (!chatReport) {
         isNewChatReport = true;
-        chatReport = ReportUtils.buildOptimisticChatReport([receiverAccountID]); // TODO: add additional logic for invoice room
+        chatReport = ReportUtils.buildOptimisticChatReport([receiverAccountID], CONST.REPORT.DEFAULT_REPORT_NAME, CONST.REPORT.CHAT_TYPE.INVOICE);
     }
 
     // STEP 3: Create a new optimistic invoice report.
@@ -1455,8 +1462,8 @@ function getSendInvoiceInformation(transaction: OnyxEntry<OnyxTypes.Transaction>
     const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
 
     // STEP 4: Build optimistic reportActions.
-    let inviteReportAction;
-    let chatBeginningReportAction;
+    let inviteReportAction: OptimisticAddCommentReportAction | undefined;
+    let chatBeginningReportAction: OptimisticAddCommentReportAction | undefined;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         ReportUtils.buildOptimisticMoneyRequestEntities(
             optimisticInvoiceReport,
@@ -1479,7 +1486,7 @@ function getSendInvoiceInformation(transaction: OnyxEntry<OnyxTypes.Transaction>
         inviteReportAction = ReportUtils.buildOptimisticAddCommentReportAction(`${Localize.translateLocal('workspace.invite.invited')} ${receiver?.displayName}`).reportAction;
         chatBeginningReportAction = {
             ...ReportUtils.buildOptimisticAddCommentReportAction(Localize.translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoom')).reportAction,
-            // whisperedToAccountIDs: [userAccountID], //TODO: fix
+            whisperedToAccountIDs: [userAccountID],
         };
     }
 
@@ -1499,6 +1506,9 @@ function getSendInvoiceInformation(transaction: OnyxEntry<OnyxTypes.Transaction>
         optimisticCreatedActionForTransactionThread,
         inviteReportAction,
         chatBeginningReportAction,
+        policy,
+        policyTagList,
+        policyCategories,
     );
 
     return {
@@ -2766,7 +2776,15 @@ function requestMoney(
     }
 }
 
-function sendInvoice(currentUserAccountID: number, transaction: OnyxEntry<OnyxTypes.Transaction>, invoiceChatReport?: OnyxEntry<OnyxTypes.Report>, receiptFile?: Receipt) {
+function sendInvoice(
+    currentUserAccountID: number,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
+    receiptFile?: Receipt,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
     const {
         senderWorkspaceID,
         receiver,
@@ -2777,7 +2795,7 @@ function sendInvoice(currentUserAccountID: number, transaction: OnyxEntry<OnyxTy
         optimisticTransactionID,
         optimisticTransactionThreadReportID,
         onyxData,
-    } = getSendInvoiceInformation(transaction, invoiceChatReport, receiptFile);
+    } = getSendInvoiceInformation(transaction, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
 
     let parameters: SendInvoiceParams = {
         senderWorkspaceID,
@@ -5951,6 +5969,13 @@ function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMeth
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
 }
 
+/** Get report policy id of IOU request */
+function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, report: OnyxEntry<OnyxTypes.Report>): string {
+    // Workspace sender will exist for invoices
+    const workspaceSender = transaction?.participants?.find((participant) => participant.policyID);
+    return workspaceSender?.policyID ?? report?.policyID ?? '0';
+}
+
 export type {GPSPoint as GpsPoint, IOURequestType};
 export {
     setMoneyRequestParticipants,
@@ -6015,4 +6040,5 @@ export {
     canIOUBePaid,
     canApproveIOU,
     sendInvoice,
+    getIOURequestPolicyID,
 };

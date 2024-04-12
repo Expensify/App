@@ -324,7 +324,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
                 )}
             </>
         );
-    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
+    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate, shouldShowReferralBanner]);
 
     const itemRightSideComponent = useCallback(
         (item) => {

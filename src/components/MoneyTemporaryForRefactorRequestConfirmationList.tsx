@@ -252,7 +252,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
     }, [allPolicies, pickedParticipants]);
 
-    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.getActiveAdminWorkspaces(allPolicies).length > 0 && !!transaction?.isFromGlobalCreate, [allPolicies]);
+    const canUpdateSenderWorkspace = useMemo(
+        () => PolicyUtils.getActiveAdminWorkspaces(allPolicies).length > 0 && !!transaction?.isFromGlobalCreate,
+        [allPolicies, transaction?.isFromGlobalCreate],
+    );
 
     // A flag for showing the tags field
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
@@ -392,7 +395,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 value: iouType,
             },
         ];
-    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount]);
+    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount, isTypeInvoice]);
 
     const selectedParticipants = useMemo(() => pickedParticipants.filter((participant) => participant.selected), [pickedParticipants]);
     const personalDetailsOfPayee = useMemo(() => payeePersonalDetails ?? currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);

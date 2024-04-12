@@ -342,7 +342,7 @@ function IOURequestStepConfirmation({
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                IOU.sendInvoice(currentUserPersonalDetails.accountID, transaction, report, receiptFile);
+                IOU.sendInvoice(currentUserPersonalDetails.accountID, transaction, report, receiptFile, policy, policyTags, policyCategories);
                 return;
             }
 
@@ -532,13 +532,13 @@ IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
 const IOURequestStepConfirmationWithOnyx = withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmationOnyxProps>({
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
     policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
 })(IOURequestStepConfirmation);
 /* eslint-disable rulesdir/no-negated-variables */

@@ -140,6 +140,7 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childStatusNum'
     | 'childStateNum'
     | 'errors'
+    | 'whisperedToAccountIDs'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {
@@ -281,6 +282,7 @@ type OptimisticChatReport = Pick<
     | 'visibility'
     | 'description'
     | 'writeCapability'
+    | 'invoiceReceiver'
 > & {
     isOptimisticReport: true;
 };
@@ -3842,7 +3844,7 @@ function buildOptimisticChatReport(
     }, {} as Participants);
     const currentTime = DateUtils.getDBTime();
     const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
-    return {
+    const optimisticChatReport: OptimisticChatReport = {
         isOptimisticReport: true,
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
@@ -3873,6 +3875,16 @@ function buildOptimisticChatReport(
         description,
         writeCapability,
     };
+
+    if (chatType === CONST.REPORT.CHAT_TYPE.INVOICE) {
+        // TODO: update to support workspace receiver when workspace-workspace invoice room exists
+        optimisticChatReport.invoiceReceiver = {
+            type: 'individual',
+            accountID: participantList[0],
+        };
+    }
+
+    return optimisticChatReport;
 }
 
 /**

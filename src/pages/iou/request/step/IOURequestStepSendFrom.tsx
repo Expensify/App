@@ -59,7 +59,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
             ],
             isSelected: !!transaction?.participants?.find((participant) => participant.policyID === policy.id),
         }));
-    }, [allPolicies, transaction]);
+    }, [allPolicies, transaction, styles.mh2, styles.roundCheckmarkWrapper, theme.success]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
