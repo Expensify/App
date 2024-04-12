@@ -190,6 +190,7 @@ type OptimisticIOUReportAction = Pick<
     | 'receipt'
     | 'whisperedToAccountIDs'
     | 'childReportID'
+    | 'childType'
 >;
 
 type ReportRouteParams = {
@@ -2674,6 +2675,10 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
 
     if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
         return Localize.translateLocal('iou.receiptMissingDetails');
+    }
+
+    if (reportAction?.childType === CONST.REPORT.TYPE.INVOICE) {
+        return Localize.translateLocal('parentReportAction.deletedInvoice');
     }
 
     const transactionDetails = getTransactionDetails(transaction);
