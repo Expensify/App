@@ -298,7 +298,7 @@ function FloatingActionButtonAndPopover(
                     },
                     {
                         icon: Expensicons.Send,
-                        text: translate('iou.paySomeone'),
+                        text: translate('iou.paySomeone', {name: undefined}),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
                                 IOU.startMoneyRequest(

@@ -26,17 +26,11 @@ const messageCopy = {
     [CONST.INTRO_CHOICES.TRACK]:
         "Here's how to start tracking business spend for taxes:\n" +
         '\n' +
-        '1. Click the green *+* > *New workspace*.\n' +
-        '2. Your new workspace is now active.\n' +
-        '3. To update your workspace name, click *Profile* > *Name*.\n' +
+        '1. Click the green *+* > *Track expense*.\n' +
+        '2. Scan a receipt, enter an amount, or log your trip.\n' +
+        '3. Click *Track*.\n' +
         '\n' +
-        'Next, start adding expenses to your workspace:\n' +
-        '\n' +
-        '1. Click the green *+* > *Submit expense*.\n' +
-        '2. Add an expense or scan a receipt.\n' +
-        '3. Choose your workspace as the destination.\n' +
-        '\n' +
-        'Be sure to track all of your expenses in your new workspace to keep everything organized. Let me know how it goes!',
+        "And that's it. Every expense will drop into your personal space, neatly organized for tax season. Let me know how it goes!",
     [CONST.INTRO_CHOICES.SUBMIT]:
         "Here's how to submit expenses for reimbursement:\n" +
         '\n' +

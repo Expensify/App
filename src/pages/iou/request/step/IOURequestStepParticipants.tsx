@@ -51,7 +51,7 @@ function IOURequestStepParticipants({
             return translate('iou.splitExpense');
         }
         if (iouType === CONST.IOU.TYPE.SEND) {
-            return translate('iou.paySomeone');
+            return translate('iou.paySomeone', {name: undefined});
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate, isSplitRequest]);
