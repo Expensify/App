@@ -119,9 +119,6 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
 function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
-    // Unpause the Sequential queue so we go back to processing requests to guarantee we don't make the app unusable
-    SequentialQueue.unpause();
-
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, updateParams);
 }
@@ -151,6 +148,9 @@ function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer) {
         apply(updates);
         return;
     }
+
+    // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
+    SequentialQueue.pause();
     saveUpdateInformation(updates);
 }
 
