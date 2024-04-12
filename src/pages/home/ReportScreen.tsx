@@ -335,10 +335,11 @@ function ReportScreen({
     const transactionThreadReportID = useMemo(() => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? []), [report.reportID, reportActions]);
 
     useEffect(() => {
-        if (transactionThreadReportID && route.params.reportActionID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
+        if (!transactionThreadReportID || !route.params.reportActionID) {
+            return;
         }
-    }, [transactionThreadReportID]);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
+    }, [transactionThreadReportID, route.params.reportActionID, route.params.reportID]);
 
     if (ReportUtils.isMoneyRequestReport(report)) {
         headerView = (
