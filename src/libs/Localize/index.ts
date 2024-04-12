@@ -117,10 +117,6 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             const result = translatedPhrase(...phraseParameters);
-            if (typeof result === 'string') {
-                cacheForLocale?.set(phraseKey, result);
-                return result;
-            }
             const countParam = phraseParameters.find((param: unknown) => !!(param as Record<string, number>).count) as Record<string, number>;
             const count = countParam ? countParam.count : undefined;
 
@@ -149,6 +145,8 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
             return translatedPhrase(...phraseParameters);
         }
 
+        // We set the translated value in the cache only for the phrases without parameters.	
+        cacheForLocale?.set(phraseKey, translatedPhrase);
         return translatedPhrase;
     }
 
