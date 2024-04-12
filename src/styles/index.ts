@@ -870,6 +870,7 @@ const styles = (theme: ThemeColors) =>
 
         badgeAdHocSuccess: {
             backgroundColor: theme.badgeAdHoc,
+            minWidth: 28,
         },
 
         badgeAdHocSuccessPressed: {

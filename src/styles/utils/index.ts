@@ -1272,7 +1272,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return theme.icon;
     },
 
-    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean): ViewStyle => {
+    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
+        if (isAdhoc) {
+            return styles.badgeAdHocSuccess;
+        }
         if (isSuccess) {
             return styles.badgeEnvironmentSuccess;
         }

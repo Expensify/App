@@ -19,10 +19,11 @@ function EnvironmentBadge() {
     const StyleUtils = useStyleUtils();
     const {environment, isProduction} = useEnvironment();
 
-    const success = environment === CONST.ENVIRONMENT.STAGING || environment === CONST.ENVIRONMENT.ADHOC;
+    const adhoc = environment === CONST.ENVIRONMENT.ADHOC;
+    const success = environment === CONST.ENVIRONMENT.STAGING;
     const error = environment !== CONST.ENVIRONMENT.STAGING && environment !== CONST.ENVIRONMENT.ADHOC;
 
-    const badgeEnviromentStyle = StyleUtils.getEnvironmentBadgeStyle(success, error);
+    const badgeEnviromentStyle = StyleUtils.getEnvironmentBadgeStyle(success, error, adhoc);
 
     // If we are on production, don't show any badge
     if (isProduction) {
