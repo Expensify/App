@@ -278,7 +278,6 @@ function IOURequestStepConfirmation({
         [policy, policyCategories, policyTags, report, transaction],
     );
 
-
     const createTransaction = useCallback(
         (selectedParticipants: Participant[]) => {
             const trimmedComment = (transaction?.comment.comment ?? '').trim();
