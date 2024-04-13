@@ -1,16 +1,16 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import type {HeaderProps} from '@components/Header';
 import Header from '@components/Header';
 
-type HeaderStory = ComponentStory<typeof Header>;
+type HeaderStory = StoryFn<typeof Header>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof Header> = {
+const story: Meta<typeof Header> = {
     title: 'Components/Header',
     component: Header,
 };
