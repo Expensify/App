@@ -165,6 +165,7 @@ function IOURequestStepTaxAmountPage({
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
+                isCurrencyPressable={!isEditing}
             />
         </StepScreenWrapper>
     );

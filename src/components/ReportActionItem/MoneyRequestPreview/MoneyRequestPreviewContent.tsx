@@ -146,13 +146,13 @@ function MoneyRequestPreviewContent({
         if (isCardTransaction) {
             message = translate('iou.card');
             if (TransactionUtils.isPending(transaction)) {
-                message += ` • ${translate('iou.pending')}`;
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
                 return message;
             }
         }
 
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
-            message += ` • ${getSettledMessage()}`;
+            message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
         }
 
@@ -164,28 +164,28 @@ function MoneyRequestPreviewContent({
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                return `${message} • ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
             const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
             if (isAmountMissing && isMerchantMissing) {
-                message += ` • ${translate('violations.reviewRequired')}`;
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.reviewRequired')}`;
             } else if (isAmountMissing) {
-                message += ` • ${translate('iou.missingAmount')}`;
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingAmount')}`;
             } else if (isMerchantMissing) {
-                message += ` • ${translate('iou.missingMerchant')}`;
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingMerchant')}`;
             } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
-                message += ` • ${translate('iou.hold')}`;
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
             }
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
-            message += ` • ${translate('iou.approved')}`;
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
-            message += ` • ${translate('iou.pending')}`;
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
-            message += ` • ${translate('iou.canceled')}`;
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
-            message += ` • ${translate('iou.hold')}`;
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
         }
         return message;
     };
