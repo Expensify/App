@@ -1454,6 +1454,11 @@ const CONST = {
         CANCEL_REASON: {
             PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED',
         },
+        SHARE: {
+            ROLE: {
+                ACCOUNTANT: 'accountant',
+            },
+        },
     },
 
     GROWL: {
