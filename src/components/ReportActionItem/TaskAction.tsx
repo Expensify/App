@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -6,7 +7,6 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TaskUtils from '@libs/TaskUtils';
 import type {ReportAction} from '@src/types/onyx';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 
 type TaskActionProps = {
     /** Name of the reportAction action */
@@ -20,7 +20,11 @@ function TaskAction({action}: TaskActionProps) {
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.breakWord, styles.preWrap]}>
-            {message.html ? <RenderHTML html={`<muted-text>${parser.replace(message.html)}</muted-text>`} /> : <Text style={[styles.chatItemMessage, styles.colorMuted]}>{message.text}</Text>}
+            {message.html ? (
+                <RenderHTML html={`<muted-text>${parser.replace(message.html)}</muted-text>`} />
+            ) : (
+                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{message.text}</Text>
+            )}
         </View>
     );
 }
