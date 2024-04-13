@@ -44,7 +44,7 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo, action, currency: selectedCurrency},
+        params: {iouType, reportID, transactionID, backTo, action, currency: selectedCurrency = ''},
     },
     transaction,
     splitDraftTransaction,
@@ -106,6 +106,7 @@ function IOURequestStepAmount({
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
+        // eslint-disable-next-line @typescript-eslint/
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
