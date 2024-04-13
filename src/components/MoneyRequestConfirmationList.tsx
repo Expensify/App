@@ -26,7 +26,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AllRoutes} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -122,7 +122,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     isReadOnly?: boolean;
 
     /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute?: AllRoutes;
+    bankAccountRoute?: Route;
 
     /** The policyID of the request */
     policyID?: string;
@@ -275,7 +275,7 @@ function MoneyRequestConfirmationList({
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
 
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) ${CONST.DOT_SEPARATOR} ${translate('common.default')}`) ?? '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing is not working when a left hand side value is ''
     const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
 

@@ -260,7 +260,6 @@ export default {
         cantFindAddress: "Can't find your address? ",
         enterManually: 'Enter it manually',
         message: 'Message ',
-        leaveRoom: 'Leave room',
         leaveThread: 'Leave thread',
         you: 'You',
         youAfterPreposition: 'you',
@@ -673,7 +672,7 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
-        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} cancelled the ${amount} payment.`,
+        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -1229,6 +1228,12 @@ export default {
     },
     groupConfirmPage: {
         groupName: 'Group name',
+    },
+    groupChat: {
+        groupMembersListTitle: 'Directory of all group members.',
+        lastMemberTitle: 'Heads up!',
+        lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
+        defaultReportName: ({displayName}: {displayName: string}) => `${displayName}'s group chat`,
     },
     languagePage: {
         language: 'Language',
@@ -2029,7 +2034,8 @@ export default {
             removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
             removeMemberButtonTitle: 'Remove from workspace',
-            removeMemberPrompt: ({memberName}) => `Are you sure you want to remove ${memberName}`,
+            removeMemberGroupButtonTitle: 'Remove from group',
+            removeMemberPrompt: ({memberName}: {memberName: string}) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
             makeMember: 'Make member',
@@ -2141,6 +2147,7 @@ export default {
         },
         invite: {
             member: 'Invite member',
+            members: 'Invite members',
             invitePeople: 'Invite new members',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
