@@ -283,6 +283,10 @@ const styles = (theme: ThemeColors) =>
         emojiDefault: {
             fontStyle: 'normal',
             fontWeight: 'normal',
+            ...display.dInlineFlex,
+            // textDecoration: 'none',
+            // flexDirection: 'row', flexWrap: 'wrap',
+            
         },
 
         emojiSuggestionsEmoji: {
