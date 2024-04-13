@@ -1,11 +1,13 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import {useMemo} from 'react';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
-function useMarkdownStyle(): MarkdownStyle {
+function useMarkdownStyle(message: string | null = null): MarkdownStyle {
     const theme = useTheme();
+    const emojiFontSize = containsOnlyEmojis(message ?? '') ? variables.fontSizeOnlyEmojis : variables.fontSizeNormal;
 
     const markdownStyle = useMemo(
         () => ({
@@ -17,6 +19,9 @@ function useMarkdownStyle(): MarkdownStyle {
             },
             h1: {
                 fontSize: variables.fontSizeLarge,
+            },
+            emoji: {
+                fontSize: emojiFontSize,
             },
             blockquote: {
                 borderColor: theme.border,
@@ -45,7 +50,7 @@ function useMarkdownStyle(): MarkdownStyle {
                 backgroundColor: theme.mentionBG,
             },
         }),
-        [theme],
+        [theme, emojiFontSize],
     );
 
     return markdownStyle;
