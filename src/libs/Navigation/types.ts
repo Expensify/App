@@ -396,7 +396,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
-        currency: string;
+        currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAG]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -458,7 +458,7 @@ type MoneyRequestNavigatorParamList = {
         // for IOURequestStepDistance and IOURequestStepAmount components
         backTo: never;
         action: never;
-        currency?: string;
+        currency: never;
     };
     [SCREENS.MONEY_REQUEST.START]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;

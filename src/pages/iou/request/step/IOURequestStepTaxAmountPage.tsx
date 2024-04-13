@@ -49,7 +49,7 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWit
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo, currency: selectedCurrency},
+        params: {action, iouType, reportID, transactionID, backTo, currency: selectedCurrency = ''},
     },
     transaction,
     report,
