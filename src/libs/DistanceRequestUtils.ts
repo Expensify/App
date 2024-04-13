@@ -4,11 +4,13 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
+import * as ReportUtils from './ReportUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -28,6 +30,13 @@ Onyx.connect({
 
         policies[key] = policy;
     },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
@@ -114,7 +123,7 @@ function getRateForDisplay(
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
 ): string {
     if (!hasRoute || !rate || !currency) {
-        return translate('iou.routePending');
+        return translate('iou.defaultRate');
     }
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
@@ -248,6 +257,20 @@ function getDistanceFromMerchant(merchant: string | undefined, unit: Unit): numb
     return unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? distance / METERS_TO_KM : distance / METERS_TO_MILES;
 }
 
+/**
+ * Returns custom unit rate ID for the distance transaction
+ */
+function getCustomUnitRateID(reportID: string) {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
+
+    if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
+        return '';
+    }
+
+    return CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -257,6 +280,7 @@ export default {
     getDistanceForDisplay,
     getRateForP2P,
     getDistanceFromMerchant,
+    getCustomUnitRateID,
 };
 
 export type {MileageRate};

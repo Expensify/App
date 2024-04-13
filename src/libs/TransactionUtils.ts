@@ -643,7 +643,7 @@ function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean 
 }
 
 /**
- * Check if the customUnitRateID has a value default for P2P distance requests
+ * Get rate ID from the transaction object
  */
 function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
     return transaction?.modifiedCustomUnitRateID ?? transaction?.comment?.customUnit?.customUnitRateID?.toString();

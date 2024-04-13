@@ -14,8 +14,8 @@ import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import type {DefaultMileageRate} from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
@@ -65,7 +65,13 @@ type MoneyRequestConfirmationListOnyxProps = {
     session: OnyxEntry<OnyxTypes.Session>;
 
     /** Unit and rate used for if the money request is a distance request */
-    mileageRate: OnyxEntry<DefaultMileageRate>;
+    mileageRates: OnyxEntry<Record<string, MileageRate>>;
+
+    /** Mileage rate default for the policy */
+    defaultMileageRate: OnyxEntry<MileageRate>;
+
+    /** Last selected distance rates */
+    lastSelectedDistanceRates: OnyxEntry<Record<string, string>>;
 };
 
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps & {
@@ -177,7 +183,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     isScanRequest = false,
     iouAmount,
     policyCategories,
-    mileageRate,
+    mileageRates,
     isDistanceRequest = false,
     policy,
     isPolicyExpenseChat = false,
@@ -202,13 +208,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     listStyles,
     iouCreated,
     iouIsBillable = false,
-                                                              mileageRates,
-                                                              onConfirm,
-                                                              onSelectParticipant,
-                                                              onSendMoney,
     onToggleBillable,
     hasSmartScanFailed,
     reportActionID,
+    defaultMileageRate,
+    lastSelectedDistanceRates,
 }: MoneyRequestConfirmationListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -221,19 +225,35 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
 
-    const customUnitRateID = lodashGet(transaction, 'comment.customUnit.customUnitRateID', '');
+    const transactionID = transaction?.transactionID ?? '';
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
 
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policy.outputCurrency) : mileageRates[customUnitRateID];
+    useEffect(() => {
+        if (customUnitRateID || !canUseP2PDistanceRequests) {
+            return;
+        }
+        if (!customUnitRateID && defaultMileageRate) {
+            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
+            IOU.setCustomUnitRateID(transactionID, rateID);
+        }
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
 
-    const {unit, rate} = mileageRate || {
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
+        ? DistanceRequestUtils.getRateForP2P(policy?.outputCurrency ?? CONST.CURRENCY.USD)
+        : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
+
+    const {unit, rate} = mileageRate ?? {
         unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
         rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * 100,
     };
 
-    const currency = mileageRate && mileageRate.currency ? mileageRate.currency : policy.outputCurrency;
+    const prevRate = usePrevious(rate);
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate);
 
-    const distance = lodashGet(transaction, 'routes.route0.distance', 0);
-    const taxRates = lodashGet(policy, 'taxRates', {});
+    const currency = (mileageRate as MileageRate)?.currency ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+    const distance = transaction?.routes?.route0?.distance ?? 0;
+    const taxRates = policy?.taxRates ?? null;
 
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -263,7 +283,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(
-              isDistanceRequest && iouAmount === 0 ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0) : iouAmount,
+              shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0) : iouAmount,
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
@@ -282,7 +302,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     };
 
     const shouldDisplayFieldError: boolean = useMemo(() => {
@@ -328,13 +348,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isMerchantRequired, merchantError]);
 
     useEffect(() => {
-        if (!isDistanceRequest) {
+        if (!shouldCalculateDistanceAmount) {
             return;
         }
 
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transaction?.transactionID ?? '', amount, currency ?? '');
-    }, [isDistanceRequest, distance, rate, unit, transaction, currency]);
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency ?? '');
+    }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency, transactionID]);
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
@@ -342,11 +362,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
         if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount) {
-            return IOU.setMoneyRequestTaxAmount(transaction?.transactionID, transaction?.taxAmount, true);
+            return IOU.setMoneyRequestTaxAmount(transactionID, transaction?.taxAmount, true);
         }
 
-        IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', amountInSmallestCurrencyUnits, true);
-    }, [taxRates?.defaultValue, transaction, previousTransactionAmount]);
+        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
+    }, [taxRates?.defaultValue, transaction, previousTransactionAmount, transactionID]);
 
     /**
      * Returns the participants with amount
@@ -470,11 +490,11 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
          When the user completes the initial steps of the IOU flow offline and then goes online on the confirmation page.
          In this scenario, the route will be fetched from the server, and the waypoints will no longer be pending.
         */
-        IOU.setMoneyRequestPendingFields(transaction?.transactionID ?? '', {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
+        IOU.setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? 'USD', translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant(transaction?.transactionID ?? '', distanceMerchant, true);
-    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
+        IOU.setMoneyRequestMerchant(transactionID, distanceMerchant, true);
+    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transactionID]);
 
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
@@ -482,8 +502,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        IOU.setMoneyRequestCategory(transaction?.transactionID ?? '', enabledCategories[0].name);
-    }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
+        IOU.setMoneyRequestCategory(transactionID, enabledCategories[0].name);
+    }, [iouCategory, shouldShowCategories, policyCategories, isCategoryRequired, transactionID]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
@@ -497,9 +517,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags[0] ? enabledTags[0].name : '', index);
         });
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
-            IOU.setMoneyRequestTag(transaction?.transactionID ?? '', updatedTagsString);
+            IOU.setMoneyRequestTag(transactionID, updatedTagsString);
         }
-    }, [policyTagLists, transaction, policyTags, canUseViolations]);
+    }, [policyTagLists, transaction, policyTags, canUseViolations, transactionID]);
 
     /**
      */
@@ -665,9 +685,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.AMOUNT));
                             return;
                         }
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -689,13 +707,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.description')}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                CONST.IOU.ACTION.CREATE,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
+                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     style={[styles.moneyRequestMenuItem]}
@@ -718,15 +730,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
-                                CONST.IOU.ACTION.CREATE,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
-                        )
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
                     }
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={didConfirm}
@@ -746,9 +750,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        )
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
                     }
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -767,9 +769,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly && isPolicyExpenseChat}
@@ -788,15 +788,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
-                                CONST.IOU.ACTION.CREATE,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -819,9 +811,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -841,15 +831,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
                     onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                CONST.IOU.ACTION.CREATE,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
-                        )
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
                     }
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -873,14 +855,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         numberOfLinesTitle={2}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                    CONST.IOU.ACTION.CREATE,
-                                    iouType,
-                                    index,
-                                    transaction?.transactionID ?? '',
-                                    reportID,
-                                    Navigation.getActiveRouteWithoutParams(),
-                                ),
+                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.CREATE, iouType, index, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                             )
                         }
                         style={[styles.moneyRequestMenuItem]}
@@ -903,15 +878,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
-                                CONST.IOU.ACTION.CREATE,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
-                        )
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
                     }
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -931,13 +898,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
-                                CONST.IOU.ACTION.CREATE,
-                                iouType,
-                                transaction?.transactionID ?? '',
-                                reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
+                            ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                         )
                     }
                     disabled={didConfirm}
@@ -1040,13 +1001,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                           <ReceiptEmptyState
                               onPress={() =>
                                   Navigation.navigate(
-                                      ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                          CONST.IOU.ACTION.CREATE,
-                                          iouType,
-                                          transaction?.transactionID ?? '',
-                                          reportID,
-                                          Navigation.getActiveRouteWithoutParams(),
-                                      ),
+                                      ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                                   )
                               }
                           />
@@ -1094,7 +1049,7 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     policyTags: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
     },
-    mileageRate: {
+    defaultMileageRate: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
         selector: DistanceRequestUtils.getDefaultMileageRate,
     },
@@ -1104,5 +1059,8 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    },
+    lastSelectedDistanceRates: {
+        key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
     },
 })(MoneyTemporaryForRefactorRequestConfirmationList);

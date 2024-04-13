@@ -630,6 +630,7 @@ export default {
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
         routePending: 'Ruta pendiente...',
+        defaultRate: 'Tasa predeterminada',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         missingAmount: 'Falta importe',

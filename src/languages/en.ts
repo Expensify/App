@@ -635,6 +635,7 @@ export default {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         routePending: 'Route pending...',
+        defaultRate: 'Default rate',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         missingAmount: 'Missing amount',

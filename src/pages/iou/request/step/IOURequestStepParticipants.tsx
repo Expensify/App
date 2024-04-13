@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -107,7 +108,8 @@ function IOURequestStepParticipants({
             }
 
             IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
-            IOU.setCustomUnitRateID(transactionID, val[0]?.reportID ?? '');
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '');
+            IOU.setCustomUnitRateID(transactionID, rateID);
 
             numberOfParticipants.current = val.length;
 
