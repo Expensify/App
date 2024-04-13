@@ -90,7 +90,7 @@ function WorkspaceInvitePage({
         return () => {
             Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         };
-    }, [route.params.policyID]);
+    }, [setSearchTerm, route.params.policyID]);
 
     useEffect(() => {
         Policy.clearErrors(route.params.policyID);
