@@ -289,9 +289,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                         fileDataObject.height = height;
                         validateAndCompleteAttachmentSelection(fileDataObject);
                     })
-                    .catch(() => {
-                        showImageCorruptionAlert();
-                    });
+                    .catch(() => showImageCorruptionAlert());
             } else {
                 return validateAndCompleteAttachmentSelection(fileDataObject);
             }
