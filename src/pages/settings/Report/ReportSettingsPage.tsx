@@ -27,6 +27,7 @@ type ReportSettingsPageProps = WithReportOrNotFoundProps & StackScreenProps<Repo
 function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const reportID = report?.reportID ?? '';
     const styles = useThemeStyles();
+    const isGroupChat = ReportUtils.isGroupChat(report);
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID) ?? null, [policies, report?.policyID]);
@@ -48,7 +49,9 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
     const reportName =
-        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report) ? ReportUtils.getGroupChatName(report.participantAccountIDs ?? []) : ReportUtils.getReportName(report);
+        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
+            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
+            : ReportUtils.getReportName(report);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
@@ -94,9 +97,13 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             ) : (
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
-                                    title={report?.reportName}
-                                    description={translate('newRoomPage.roomName')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(reportID))}
+                                    title={report?.reportName === '' ? reportName : report?.reportName}
+                                    description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
+                                    onPress={() =>
+                                        isGroupChat
+                                            ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(reportID))
+                                            : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(reportID))
+                                    }
                                 />
                             )}
                         </OfflineWithFeedback>
