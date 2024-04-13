@@ -281,6 +281,7 @@ type OptimisticChatReport = Pick<
     | 'visibility'
     | 'description'
     | 'writeCapability'
+    | 'avatarUrl'
 > & {
     isOptimisticReport: true;
 };
@@ -761,17 +762,17 @@ function isOpenExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
- * Checks if the supplied report has a common policy member with the array passed in params.
+ * Checks if the supplied report has a member with the array passed in params.
  */
-function hasParticipantInArray(report: OnyxEntry<Report>, policyMemberAccountIDs: number[]) {
-    if (!report?.participantAccountIDs) {
+function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: number[]) {
+    if (!report?.participants) {
         return false;
     }
 
-    const policyMemberAccountIDsSet = new Set(policyMemberAccountIDs);
+    const memberAccountIDsSet = new Set(memberAccountIDs);
 
-    for (const reportParticipant of report.participantAccountIDs) {
-        if (policyMemberAccountIDsSet.has(reportParticipant)) {
+    for (const accountID in report.participants) {
+        if (memberAccountIDsSet.has(Number(accountID))) {
             return true;
         }
     }
@@ -1729,21 +1730,77 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     return shouldUseShortForm ? shortName : longName;
 }
 
+function getParticipantAccountIDs(reportID: string) {
+    const report = getReport(reportID);
+    if (!report || !report.participants) {
+        return [];
+    }
+
+    const accountIDStrings = Object.keys(report.participants);
+    return accountIDStrings.map((accountID) => Number(accountID));
+}
+
+function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
+    const finalParticipants: Participants = {};
+    return accountIDs.reduce((participants, accountID) => {
+        // eslint-disable-next-line no-param-reassign
+        participants[accountID] = {hidden: false};
+        return participants;
+    }, finalParticipants);
+}
+
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participantAccountIDs: number[], shouldApplyLimit = false): string | undefined {
-    let participants = participantAccountIDs;
+function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = false, reportID = ''): string | undefined {
+    // If we have a reportID always try to get the name from the report.
+    if (reportID) {
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const reportName = allReports?.[reportKey]?.reportName;
+        if (reportName) {
+            return reportName;
+        }
+    }
+
+    // Get participantAccountIDs from participants object
+    let participants = participantAccountIDs ?? getParticipantAccountIDs(reportID);
     if (shouldApplyLimit) {
         participants = participants.slice(0, 5);
     }
     const isMultipleParticipantReport = participants.length > 1;
 
-    return participants
-        .map((participant) => getDisplayNameForParticipant(participant, isMultipleParticipantReport))
-        .sort((first, second) => localeCompare(first ?? '', second ?? ''))
-        .filter(Boolean)
-        .join(', ');
+    if (isMultipleParticipantReport) {
+        return participants
+            .map((participant) => getDisplayNameForParticipant(participant, isMultipleParticipantReport))
+            .sort((first, second) => localeCompare(first ?? '', second ?? ''))
+            .filter(Boolean)
+            .join(', ');
+    }
+
+    return Localize.translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant(participants[0], false)});
+}
+
+function getVisibleChatMemberAccountIDs(reportID: string): number[] {
+    const report = getReport(reportID);
+    if (!report || !report.participants) {
+        return [];
+    }
+    const visibleParticipantAccountIDs = Object.entries(report.participants).reduce<number[]>((accountIDs, [accountID, participant]) => {
+        if (participant && !participant.hidden) {
+            accountIDs.push(Number(accountID));
+        }
+        return accountIDs;
+    }, []);
+    return visibleParticipantAccountIDs;
+}
+
+function getParticipants(reportID: string) {
+    const report = getReport(reportID);
+    if (!report) {
+        return {};
+    }
+
+    return report.participants;
 }
 
 /**
@@ -1873,10 +1930,11 @@ function getIcons(
 
     if (isGroupChat(report)) {
         const groupChatIcon = {
-            source: getDefaultGroupAvatar(report.reportID),
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
             id: -1,
             type: CONST.ICON_TYPE_AVATAR,
-            name: getGroupChatName(report.participantAccountIDs ?? []),
+            name: getGroupChatName(undefined, true, report.reportID ?? ''),
         };
         return [groupChatIcon];
     }
@@ -2313,7 +2371,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
     }
 
     if (report?.isWaitingOnBankAccount) {
-        return `${payerPaidAmountMessage} • ${Localize.translateLocal('iou.pending')}`;
+        return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('iou.pending')}`;
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
@@ -3800,6 +3858,8 @@ function buildOptimisticChatReport(
     parentReportActionID = '',
     parentReportID = '',
     description = '',
+    avatarUrl = '',
+    optimisticReportID = '',
 ): OptimisticChatReport {
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
@@ -3835,14 +3895,35 @@ function buildOptimisticChatReport(
         // For group chats we need to have participants object as we are migrating away from `participantAccountIDs` and `visibleChatMemberAccountIDs`. See https://github.com/Expensify/App/issues/34692
         participants,
         policyID,
-        reportID: generateReportID(),
+        reportID: optimisticReportID || generateReportID(),
         reportName,
         stateNum: 0,
         statusNum: 0,
         visibility,
         description,
         writeCapability,
+        avatarUrl,
     };
+}
+
+function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportName: string, avatarUri: string, optimisticReportID?: string) {
+    return buildOptimisticChatReport(
+        participantAccountIDs,
+        reportName,
+        CONST.REPORT.CHAT_TYPE.GROUP,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        undefined,
+        undefined,
+        undefined,
+        avatarUri,
+        optimisticReportID,
+    );
 }
 
 /**
@@ -4395,7 +4476,7 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
 function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): boolean {
     const currentReport = getReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : null);
-    const reportActions = ReportActionsUtils.getAllReportActions(report?.reportID ?? '');
+    const reportActions = reportActionsByReport?.[report?.reportID ?? ''] ?? {};
     const isChildReportHasComment = Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
@@ -4834,6 +4915,16 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     return !isPolicyExpenseChat(report) || isOwnPolicyExpenseChat;
 }
 
+function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
+    if (!report?.participants) {
+        return false;
+    }
+
+    const reportParticipants = report.participants ?? {};
+    const participant = reportParticipants[accountID];
+    return participant?.role === CONST.REPORT.ROLE.ADMIN;
+}
+
 /**
  * Helper method to define what money request options we want to show for particular method.
  * There are 4 money request options: Request, Split, Send and Track expense:
@@ -5094,6 +5185,10 @@ function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return true;
     }
 
+    if (isGroupChat(report)) {
+        return false;
+    }
+
     // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
     // which means this has to be a public room we want to disable renaming for
     if (!policy) {
@@ -5241,46 +5336,6 @@ function getTaskAssigneeChatOnyxData(
 }
 
 /**
- * Returns an array of the participants Ids of a report
- *
- * @deprecated Use getVisibleMemberIDs instead
- */
-function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
-    if (!report) {
-        return [];
-    }
-
-    const participants = report.participantAccountIDs ?? [];
-
-    // Build participants list for IOU/expense reports
-    if (isMoneyRequestReport(report)) {
-        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...participants].filter(Boolean) as number[];
-        const onlyUnique = [...new Set([...onlyTruthyValues])];
-        return onlyUnique;
-    }
-    return participants;
-}
-
-/**
- * Returns an array of the visible member accountIDs for a report*
- */
-function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
-    if (!report) {
-        return [];
-    }
-
-    const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
-
-    // Build participants list for IOU/expense reports
-    if (isMoneyRequestReport(report)) {
-        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...visibleChatMemberAccountIDs].filter(Boolean) as number[];
-        const onlyUnique = [...new Set([...onlyTruthyValues])];
-        return onlyUnique;
-    }
-    return visibleChatMemberAccountIDs;
-}
-
-/**
  * Return iou report action display message
  */
 function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>, shouldLog = false): string {
@@ -5404,7 +5459,7 @@ function isReportParticipant(accountID: number, report: OnyxEntry<Report>): bool
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
-    return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report);
+    return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report) || isGroupChat(report);
 }
 
 function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string): OnyxEntry<Report> | undefined {
@@ -5422,7 +5477,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
         isChatRoom(report) &&
         !isChatThread(report) &&
         !isEmpty(policy) &&
-        (getVisibleMemberIDs(report).includes(currentUserAccountID ?? 0) || getParticipantsIDs(report).includes(currentUserAccountID ?? 0))
+        hasParticipantInArray(report, [currentUserAccountID ?? 0])
     );
 }
 
@@ -5486,6 +5541,14 @@ function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
 function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): boolean {
     const holdReportAction = ReportActionsUtils.getReportAction(reportID, `${transaction?.comment?.hold ?? ''}`);
     return isActionCreator(holdReportAction);
+}
+
+/**
+ * Get all held transactions of a iouReport
+ */
+function getAllHeldTransactions(iouReportID: string): Transaction[] {
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return transactions.filter((transaction) => TransactionUtils.isOnHold(transaction));
 }
 
 /**
@@ -5734,7 +5797,7 @@ function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, rep
  * Checks if report chat contains missing payment method
  */
 function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID: string): boolean {
-    const reportActions = ReportActionsUtils.getAllReportActions(iouReportID);
+    const reportActions = reportActionsByReport?.[iouReportID] ?? {};
     return Object.values(reportActions).some((action) => getIndicatedMissingPaymentMethod(userWallet, iouReportID, action) !== undefined);
 }
 
@@ -5753,8 +5816,8 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
  * Checks if report contains actions with errors
  */
 function hasActionsWithErrors(reportID: string): boolean {
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID ?? '');
-    return Object.values(reportActions ?? {}).some((action) => !isEmptyObject(action.errors));
+    const reportActions = reportActionsByReport?.[reportID ?? ''] ?? {};
+    return Object.values(reportActions).some((action) => !isEmptyObject(action.errors));
 }
 
 function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report> | undefined): number | undefined {
@@ -5795,6 +5858,14 @@ function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject):
 
     // We don't need to update hasOutstandingChildRequest in this case
     return {};
+}
+
+function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: string): boolean {
+    if (report?.policyID !== policyID) {
+        return false;
+    }
+
+    return isChatRoom(report) && !isThread(report);
 }
 
 export {
@@ -5865,6 +5936,7 @@ export {
     buildOptimisticWorkspaceChats,
     buildOptimisticTaskReport,
     buildOptimisticChatReport,
+    buildOptimisticGroupChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticRenamedRoomReportAction,
@@ -5952,8 +6024,6 @@ export {
     getTransactionReportName,
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
-    getParticipantsIDs,
-    getVisibleMemberIDs,
     canEditMoneyRequest,
     canEditFieldOfMoneyRequest,
     buildTransactionThread,
@@ -6024,6 +6094,13 @@ export {
     getReportActionActorAccountID,
     getGroupChatName,
     getOutstandingChildRequest,
+    getVisibleChatMemberAccountIDs,
+    getParticipantAccountIDs,
+    getParticipants,
+    isGroupChatAdmin,
+    buildParticipantsFromAccountIDs,
+    canReportBeMentionedWithinPolicy,
+    getAllHeldTransactions,
 };
 
 export type {
