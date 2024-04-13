@@ -284,9 +284,7 @@ const styles = (theme: ThemeColors) =>
             fontStyle: 'normal',
             fontWeight: 'normal',
             ...display.dInlineFlex,
-            // textDecoration: 'none',
-            // flexDirection: 'row', flexWrap: 'wrap',
-            
+            textDecorationLine:'none'
         },
 
         emojiSuggestionsEmoji: {
