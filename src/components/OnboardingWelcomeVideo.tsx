@@ -5,8 +5,8 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -41,7 +41,7 @@ function OnboardingWelcomeVideo() {
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
     const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
     useEffect(() => {

@@ -10,6 +10,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
@@ -22,7 +23,8 @@ import type {PDFViewOnyxProps, PDFViewProps} from './types';
 function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, errorLabelStyles, maxCanvasArea, maxCanvasHeight, maxCanvasWidth, style}: PDFViewProps) {
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const prevWindowHeight = usePrevious(windowHeight);
     const {translate} = useLocalize();
 
