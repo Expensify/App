@@ -1,5 +1,5 @@
-import {useEffect, useState} from 'react';
-import Navigation from '@libs/Navigation/Navigation';
+import {useEffect, useRef, useState} from 'react';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import useWindowDimensions from './useWindowDimensions';
 
 type ResponsiveLayoutResult = {
@@ -21,12 +21,26 @@ type ResponsiveLayoutResult = {
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth, isExtraSmallScreenHeight, isExtraSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, isSmallScreen} = useWindowDimensions();
 
-    const [isInModal, setIsInModal] = useState(Navigation.isDisplayedInModal());
+    const [isInModal, setIsInModal] = useState(false);
+    const hasSetIsInModal = useRef(false);
+    const updateModalStatus = () => {
+        if (hasSetIsInModal.current) {
+            return;
+        }
+        setIsInModal(Navigation.isDisplayedInModal());
+        hasSetIsInModal.current = true;
+    };
 
     useEffect(() => {
-        Navigation.isNavigationReady().then(() => {
-            setIsInModal(Navigation.isDisplayedInModal());
-        });
+        const unsubscribe = navigationRef?.current?.addListener('state', updateModalStatus);
+
+        if (navigationRef?.current?.isReady()) {
+            updateModalStatus();
+        }
+
+        return () => {
+            unsubscribe?.();
+        };
     }, []);
 
     const shouldUseNarrowLayout = isSmallScreenWidth || isInModal;
