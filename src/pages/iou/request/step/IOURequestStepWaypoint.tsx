@@ -233,31 +233,29 @@ function IOURequestStepWaypoint({
 
 IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepWaypointWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepWaypoint);
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepWaypointWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepWaypointWithWritableReportOrNotFound);
+export default withWritableReportOrNotFound(
+    withFullTransactionOrNotFound(
+        withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxProps>({
+            userLocation: {
+                key: ONYXKEYS.USER_LOCATION,
+            },
+            recentWaypoints: {
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
 
-export default withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxProps>({
-    userLocation: {
-        key: ONYXKEYS.USER_LOCATION,
-    },
-    recentWaypoints: {
-        key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-
-        // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
-        // that the google autocomplete component expects for it's "predefined places" feature.
-        selector: (waypoints) =>
-            (waypoints ? waypoints.slice(0, 5) : []).map((waypoint) => ({
-                name: waypoint.name,
-                description: waypoint.address ?? '',
-                geometry: {
-                    location: {
-                        lat: waypoint.lat ?? 0,
-                        lng: waypoint.lng ?? 0,
-                    },
-                },
-            })),
-    },
-    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
-})(IOURequestStepWaypointWithFullTransactionOrNotFound);
+                // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+                // that the google autocomplete component expects for it's "predefined places" feature.
+                selector: (waypoints) =>
+                    (waypoints ? waypoints.slice(0, 5) : []).map((waypoint) => ({
+                        name: waypoint.name,
+                        description: waypoint.address ?? '',
+                        geometry: {
+                            location: {
+                                lat: waypoint.lat ?? 0,
+                                lng: waypoint.lng ?? 0,
+                            },
+                        },
+                    })),
+            },
+        })(IOURequestStepWaypoint),
+    ),
+);
