@@ -17,7 +17,7 @@ import type {
     OriginalMessageReimbursementDequeued,
 } from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, OriginalMessage, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -108,19 +108,23 @@ function isDeletedAction(reportAction: OnyxEntry<ReportAction | OptimisticIOURep
     return isLegacyDeletedComment || !!message[0]?.deleted;
 }
 
+function getReportActionMessage(reportAction: PartialReportAction) {
+    return (reportAction?.message?.[0] ?? reportAction?.message) as Message;
+}
+
 function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    return (reportAction?.message?.[0]?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+    return (getReportActionMessage(reportAction)?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
 function isReversedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>) {
-    return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && ((reportAction as ReportAction)?.childVisibleActionCount ?? 0) > 0;
+    return (getReportActionMessage(reportAction)?.isReversedTransaction ?? false) && ((reportAction as ReportAction)?.childVisibleActionCount ?? 0) > 0;
 }
 
 function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
     if (isEmptyObject(reportAction)) {
         return false;
     }
-    return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+    return getReportActionMessage(reportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
 function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction & OriginalMessageIOU {
@@ -381,7 +385,7 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
  * Returns array of links inside a given report action
  */
 function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): string[] {
-    const htmlContent = reportAction?.message?.[0]?.html;
+    const htmlContent = getReportActionMessage(reportAction)?.html;
 
     // Regex to get link in href prop inside of <a/> component
     const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
@@ -582,7 +586,7 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
     }
 
     if (updatedReportAction.message[0]) {
-        updatedReportAction.message[0].html = reportAction.message?.[0]?.html?.replace('%baseURL', environmentURL);
+        updatedReportAction.message[0].html = getReportActionMessage(reportAction)?.html?.replace('%baseURL', environmentURL);
     }
 
     return updatedReportAction;
@@ -600,7 +604,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<R
 
 function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}, reportAction: OnyxEntry<ReportAction> | undefined = undefined): LastVisibleMessage {
     const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, actionsToMerge);
-    const message = lastVisibleAction?.message?.[0];
+    const message = getReportActionMessage(lastVisibleAction);
 
     if (message && isReportMessageAttachment(message)) {
         return {
@@ -786,7 +790,7 @@ function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boole
  * A helper method to identify if the message is deleted or not.
  */
 function isMessageDeleted(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.message?.[0]?.isDeletedParentAction ?? false;
+    return getReportActionMessage(reportAction)?.isDeletedParentAction ?? false;
 }
 
 /**
@@ -836,7 +840,7 @@ function getAllReportActions(reportID: string): ReportActions {
  *
  */
 function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolean {
-    const message = reportAction?.message?.[0];
+    const message = getReportActionMessage(reportAction);
 
     if (reportAction && ('isAttachment' in reportAction || 'attachmentInfo' in reportAction)) {
         return reportAction?.isAttachment ?? !!reportAction?.attachmentInfo ?? false;
@@ -916,14 +920,20 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     ];
 }
 
-function getReportActionHtml(reportAction: PartialReportAction): string | undefined {
-    return reportAction?.message?.[0]?.html;
+function getReportActionHtml(reportAction: PartialReportAction) {
+    // @ts-expect-error Handle refactor not using message array, will remove when Back End is changed complete https://github.com/Expensify/App/issues/39797
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return reportAction?.message?.html || reportAction?.message?.[0]?.html;
 }
 
 function getReportActionText(reportAction: PartialReportAction): string {
     const html = getReportActionHtml(reportAction);
     const parser = new ExpensiMark();
     return html ? parser.htmlToText(html) : '';
+}
+
+function getReportActionOriginalMessage(reportAction: PartialReportAction) {
+    return (reportAction?.originalMessage ?? reportAction?.message?.[0] ?? reportAction?.message) as OriginalMessage;
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
@@ -943,7 +953,7 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
 
     return {
         html: `<muted-text>${html}</muted-text>`,
-        text: reportAction?.message?.[0] ? getReportActionText(reportAction) : '',
+        text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
 }
@@ -1164,6 +1174,8 @@ export {
     isActionableJoinRequestPending,
     getReportActionText,
     getReportActionHtml,
+    getReportActionMessage,
+    getReportActionOriginalMessage,
 };
 
 export type {LastVisibleMessage};

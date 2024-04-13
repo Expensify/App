@@ -277,7 +277,7 @@ function ReportActionItem({
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
-    const latestDecision = action.message?.[0]?.moderationDecision?.decision ?? '';
+    const latestDecision = ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision ?? '';
     useEffect(() => {
         if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
             return;

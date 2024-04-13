@@ -2832,7 +2832,7 @@ describe('actions/IOU', () => {
                     callback: (reportActionsForReport) => {
                         Onyx.disconnect(connectionID);
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
-                        expect(createIOUAction?.message?.[0]?.isDeletedParentAction).toBeTruthy();
+                        expect(ReportActionsUtils.getReportActionMessage(createIOUAction)?.isDeletedParentAction).toBeTruthy();
                         resolve();
                     },
                 });
@@ -2851,7 +2851,7 @@ describe('actions/IOU', () => {
                     callback: (reportActionsForReport) => {
                         Onyx.disconnect(connectionID);
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
-                        expect(createIOUAction?.message?.[0]?.isDeletedParentAction).toBeTruthy();
+                        expect(ReportActionsUtils.getReportActionMessage(createIOUAction)?.isDeletedParentAction).toBeTruthy();
                         resolve();
                     },
                 });

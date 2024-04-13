@@ -400,7 +400,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
     const currentTime = DateUtils.getDBTimeWithSkew();
-    const lastComment = lastAction?.message?.[0];
+    const lastComment = ReportActionsUtils.getReportActionMessage(lastAction);
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
 
     const optimisticReport: Partial<Report> = {
@@ -1302,7 +1302,7 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
-    const originalCommentHTML = originalReportAction.message?.[0]?.html;
+    const originalCommentHTML = ReportActionsUtils.getReportActionMessage(originalReportAction)?.html;
     const originalCommentMarkdown = parser.htmlToMarkdown(originalCommentHTML ?? '').trim();
 
     // Skip the Edit if draft is not changed
@@ -1334,7 +1334,7 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
 
     // Optimistically update the reportAction with the new message
     const reportActionID = originalReportAction.reportActionID;
-    const originalMessage = originalReportAction?.message?.[0];
+    const originalMessage = ReportActionsUtils.getReportActionMessage(originalReportAction);
     const optimisticReportActions: PartialDeep<ReportActions> = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -2606,7 +2606,7 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
 /** Flag a comment as offensive */
 function flagComment(reportID: string, reportAction: OnyxEntry<ReportAction>, severity: string) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-    const message = reportAction?.message?.[0];
+    const message = ReportActionsUtils.getReportActionMessage(reportAction);
 
     if (!message) {
         return;
@@ -2794,7 +2794,7 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.ONBO
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
     const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
     const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
-    const lastComment = reportCommentAction?.message?.[0];
+    const lastComment = ReportActionsUtils.getReportActionMessage(reportCommentAction);
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
     const reportCommentText = reportComment.commentText;
     const currentTime = DateUtils.getDBTime();
@@ -2978,7 +2978,7 @@ function clearNewRoomFormError() {
 }
 
 function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
-    const message = reportAction?.message?.[0];
+    const message = ReportActionsUtils.getReportActionMessage(reportAction);
     if (!message) {
         return;
     }

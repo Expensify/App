@@ -711,7 +711,7 @@ function isTaskReport(report: OnyxEntry<Report>): boolean {
  * In this case, we have added the key to the report itself
  */
 function isCanceledTaskReport(report: OnyxEntry<Report> | EmptyObject = {}, parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}): boolean {
-    if (!isEmptyObject(parentReportAction) && (parentReportAction?.message?.[0]?.isDeletedParentAction ?? false)) {
+    if (!isEmptyObject(parentReportAction) && (ReportActionsUtils.getReportActionMessage(parentReportAction)?.isDeletedParentAction ?? false)) {
         return true;
     }
 
@@ -2612,7 +2612,7 @@ function getReportPreviewMessage(
     isForListPreview = false,
     originalReportAction: OnyxEntry<ReportAction> | EmptyObject = iouReportAction,
 ): string {
-    const reportActionMessage = iouReportAction?.message?.[0]?.html ?? '';
+    const reportActionMessage = ReportActionsUtils.getReportActionMessage(iouReportAction)?.html ?? '';
 
     if (isEmptyObject(report) || !report?.reportID) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
@@ -2884,7 +2884,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             return formattedName;
         }
 
-        if (parentReportAction?.message?.[0]?.isDeletedParentAction) {
+        if (ReportActionsUtils.getReportActionMessage(parentReportAction)?.isDeletedParentAction) {
             return Localize.translateLocal('parentReportAction.deletedMessage');
         }
 
@@ -2898,9 +2898,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
         if (
-            parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
-            parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
-            parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
+            ReportActionsUtils.getReportActionMessage(parentReportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
+            ReportActionsUtils.getReportActionMessage(parentReportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
+            ReportActionsUtils.getReportActionMessage(parentReportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
         ) {
             return Localize.translateLocal('parentReportAction.hiddenMessage');
         }
@@ -3207,15 +3207,15 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
  */
 function buildOptimisticTaskCommentReportAction(taskReportID: string, taskTitle: string, taskAssigneeAccountID: number, text: string, parentReportID: string): OptimisticReportAction {
     const reportAction = buildOptimisticAddCommentReportAction(text);
-    if (reportAction.reportAction.message?.[0]) {
-        reportAction.reportAction.message[0].taskReportID = taskReportID;
+    if (ReportActionsUtils.getReportActionMessage(reportAction.reportAction)) {
+        ReportActionsUtils.getReportActionMessage(reportAction.reportAction).taskReportID = taskReportID;
     }
 
     // These parameters are not saved on the reportAction, but are used to display the task in the UI
     // Added when we fetch the reportActions on a report
     reportAction.reportAction.originalMessage = {
-        html: reportAction.reportAction.message?.[0]?.html,
-        taskReportID: reportAction.reportAction.message?.[0]?.taskReportID,
+        html: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.html,
+        taskReportID: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.taskReportID,
     };
     reportAction.reportAction.childReportID = taskReportID;
     reportAction.reportAction.parentReportID = parentReportID;
