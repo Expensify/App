@@ -188,26 +188,26 @@ function MoneyRequestView({
 
     if (isCardTransaction) {
         if (formattedOriginalAmount) {
-            amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
         if (TransactionUtils.isPending(transaction)) {
-            amountDescription += ` • ${translate('iou.pending')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
         if (isCancelled) {
-            amountDescription += ` • ${translate('iou.canceled')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
     } else {
         if (!isDistanceRequest) {
-            amountDescription += ` • ${translate('iou.cash')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
         if (isApproved) {
-            amountDescription += ` • ${translate('iou.approved')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (isCancelled) {
-            amountDescription += ` • ${translate('iou.canceled')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isSettled) {
-            amountDescription += ` • ${translate('iou.settledExpensify')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
         } else if (report.isWaitingOnBankAccount) {
-            amountDescription += ` • ${translate('iou.pending')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
     }
 
@@ -397,7 +397,7 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag &&
-                    policyTagLists.map(({name}, index) => (
+                    policyTagLists.map(({name, orderWeight}, index) => (
                         <OfflineWithFeedback
                             key={name}
                             pendingAction={getPendingFieldAction('tag')}
@@ -409,7 +409,9 @@ function MoneyRequestView({
                                 shouldShowRightIcon={canEdit}
                                 titleStyle={styles.flex1}
                                 onPress={() =>
-                                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, index, transaction?.transactionID ?? '', report.reportID))
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction?.transactionID ?? '', report.reportID),
+                                    )
                                 }
                                 brickRoadIndicator={getErrorForField('tag', {tagListIndex: index, tagListName: name}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 error={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
@@ -471,6 +473,7 @@ function MoneyRequestView({
                             accessibilityLabel={translate('common.billable')}
                             isOn={!!transactionBillable}
                             onToggle={saveBillable}
+                            disabled={!canEdit}
                         />
                     </View>
                 )}
