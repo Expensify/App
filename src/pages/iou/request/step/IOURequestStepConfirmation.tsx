@@ -87,10 +87,10 @@ function IOURequestStepConfirmation({
             return translate('iou.trackExpense');
         }
         if (iouType === CONST.IOU.TYPE.SEND) {
-            return translate('iou.paySomeone', {name: undefined});
+            return translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)});
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate]);
+    }, [iouType, report, transaction, translate]);
 
     const participants = useMemo(
         () =>

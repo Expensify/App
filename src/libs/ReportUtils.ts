@@ -2954,6 +2954,22 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 }
 
 /**
+ * Get the payee name given a report.
+ */
+function getPayeeName(report: OnyxEntry<Report>): string | undefined {
+    if (isEmptyObject(report)) {
+        return undefined;
+    }
+
+    const participantAccountIDs = report?.participantAccountIDs ?? [];
+    const participantsWithoutCurrentUser = participantAccountIDs.filter((accountID) => accountID !== currentUserAccountID);
+    if (participantsWithoutCurrentUser.length === 0) {
+        return undefined;
+    }
+    return getDisplayNameForParticipant(participantsWithoutCurrentUser[0], true);
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  */
 function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
@@ -6030,6 +6046,7 @@ export {
     getGroupChatName,
     getOutstandingChildRequest,
     getAllHeldTransactions,
+    getPayeeName,
 };
 
 export type {
