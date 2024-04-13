@@ -683,6 +683,7 @@ const CONST = {
                 UNAPPROVED: 'UNAPPROVED', // OldDot Action
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
+                UPDATEGROUPCHATMEMBERROLE: 'UPDATEGROUPCHATMEMBERROLE',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -1862,17 +1863,17 @@ const CONST = {
 
     MAX_THREAD_REPLIES_PREVIEW: 99,
 
+    // Character Limits
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
-
     TAG_NAME_LIMIT: 256,
-
+    REPORT_NAME_LIMIT: 256,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
-
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
+
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -4313,6 +4314,9 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
+
+    DOT_SEPARATOR: '•',
+
     DEFAULT_TAX: {
         defaultExternalID: 'id_TAX_EXEMPT',
         defaultValue: '0%',

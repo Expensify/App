@@ -23,6 +23,7 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as UserUtils from './UserUtils';
 
+const reportActionsByReport: OnyxCollection<ReportActions> = {};
 const visibleReportActionItems: ReportActions = {};
 
 Onyx.connect({
@@ -31,7 +32,9 @@ Onyx.connect({
         if (!key || !actions) {
             return;
         }
+
         const reportID = CollectionUtils.extractCollectionItemID(key);
+        reportActionsByReport[reportID] = actions;
 
         const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(actions));
 
@@ -84,7 +87,7 @@ function getOrderedReportIDs(
 
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
         const parentReportActions = allReportActions?.[parentReportActionsKey];
-        const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+        const reportActions = reportActionsByReport?.[report.reportID] ?? {};
         const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
         const doesReportHaveViolations = !!(
             betas?.includes(CONST.BETAS.VIOLATIONS) &&
