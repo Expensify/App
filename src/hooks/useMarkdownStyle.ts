@@ -44,13 +44,13 @@ function useMarkdownStyle(): MarkdownStyle {
                 color: theme.mentionText,
                 backgroundColor: theme.mentionBG,
             },
-            emoji: {
-                fontStyle: 'normal',
-                fontWeight: 'normal',
-                fontSize: 12,
-            },
+            // emoji: {
+            //     fontStyle: 'normal',
+            //     fontWeight: 'normal',
+            //     fontSize: 12,
+            // },
         }),
-        [theme],
+        [theme], 
     );
 
     return markdownStyle;
