@@ -130,6 +130,10 @@ function isReportPreviewAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
+function isReportActionSubmitted(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+}
+
 function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
@@ -448,6 +452,18 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
     // Do not group if one of previous / current action is report preview and another one is not report preview
     if ((isReportPreviewAction(previousAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(previousAction))) {
         return false;
+    }
+
+    if (isReportActionSubmitted(currentAction)) {
+        const currentActionAdminAccountID = currentAction.adminAccountID;
+
+        return currentActionAdminAccountID === previousAction.actorAccountID || currentActionAdminAccountID === previousAction.adminAccountID;
+    }
+
+    if (isReportActionSubmitted(previousAction)) {
+        return typeof previousAction.adminAccountID === 'number'
+            ? currentAction.actorAccountID === previousAction.adminAccountID
+            : currentAction.actorAccountID === previousAction.actorAccountID;
     }
 
     return currentAction.actorAccountID === previousAction.actorAccountID;
@@ -1077,7 +1093,6 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
 export {
     extractLinksFromMessageHtml,
     getOneTransactionThreadReportID,
-    getAllReportActions,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
     getLastVisibleAction,

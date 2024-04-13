@@ -14,6 +14,7 @@ import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -37,9 +38,6 @@ const propTypes = {
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
-
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
         PropTypes.shape({
@@ -51,38 +49,36 @@ const propTypes = {
         }),
     ),
 
-    /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
 
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
 
+    /** Whether the screen transition has ended */
+    didScreenTransitionEnd: PropTypes.bool,
+
     /** Whether or not we are searching for reports on the server */
     isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
-    dismissedReferralBanners: {},
     participants: [],
-    safeAreaPaddingBottomStyle: {},
     betas: [],
     isDistanceRequest: false,
+    didScreenTransitionEnd: false,
     isSearchingForReports: false,
 };
 
 function MoneyRequestParticipantsSelector({
     betas,
-    dismissedReferralBanners,
     participants,
     navigateToRequest,
     navigateToSplit,
     onAddParticipants,
-    safeAreaPaddingBottomStyle,
     iouType,
     isDistanceRequest,
+    didScreenTransitionEnd,
     isSearchingForReports,
 }) {
     const {translate} = useLocalize();
@@ -91,8 +87,8 @@ function MoneyRequestParticipantsSelector({
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
+    const {options, areOptionsInitialized} = useOptionsList({shouldInitialize: didScreenTransitionEnd});
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
-    const {options, areOptionsInitialized} = useOptionsList();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
@@ -286,13 +282,19 @@ function MoneyRequestParticipantsSelector({
         [shouldShowSplitBillErrorMessage, navigateToSplit, addSingleParticipant, participants.length],
     );
 
-    const footerContent = useMemo(
-        () => (
+    const {isDismissed} = useDismissedReferralBanners({referralContentType});
+
+    const footerContent = useMemo(() => {
+        if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
+            return null;
+        }
+        return (
             <View>
-                {!dismissedReferralBanners[referralContentType] && (
-                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA referralContentType={referralContentType} />
-                    </View>
+                {!isDismissed && (
+                    <ReferralProgramCTA
+                        referralContentType={referralContentType}
+                        style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
+                    />
                 )}
 
                 {shouldShowSplitBillErrorMessage && (
@@ -314,9 +316,8 @@ function MoneyRequestParticipantsSelector({
                     />
                 )}
             </View>
-        ),
-        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
-    );
+        );
+    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
 
     const itemRightSideComponent = useCallback(
         (item) => {
@@ -354,24 +355,22 @@ function MoneyRequestParticipantsSelector({
     }, [debouncedSearchTerm]);
 
     return (
-        <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-            <SelectionList
-                onConfirm={handleConfirmSelection}
-                sections={sections}
-                ListItem={UserListItem}
-                textInputValue={searchTerm}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputHint={offlineMessage}
-                onChangeText={setSearchTerm}
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                onSelectRow={addSingleParticipant}
-                footerContent={footerContent}
-                headerMessage={headerMessage}
-                showLoadingPlaceholder={!areOptionsInitialized}
-                rightHandSideComponent={itemRightSideComponent}
-                isLoadingNewOptions={!!isSearchingForReports}
-            />
-        </View>
+        <SelectionList
+            onConfirm={handleConfirmSelection}
+            sections={sections}
+            ListItem={UserListItem}
+            textInputValue={searchTerm}
+            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputHint={offlineMessage}
+            onChangeText={setSearchTerm}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            onSelectRow={addSingleParticipant}
+            footerContent={footerContent}
+            headerMessage={headerMessage}
+            showLoadingPlaceholder={!areOptionsInitialized && !didScreenTransitionEnd}
+            rightHandSideComponent={itemRightSideComponent}
+            isLoadingNewOptions={!!isSearchingForReports}
+        />
     );
 }
 
@@ -380,9 +379,6 @@ MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default withOnyx({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
     betas: {
         key: ONYXKEYS.BETAS,
     },
