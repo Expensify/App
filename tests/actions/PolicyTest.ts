@@ -59,6 +59,7 @@ describe('actions/Policy', () => {
             expect(policy?.owner).toBe(ESH_EMAIL);
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
 
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
