@@ -2666,7 +2666,7 @@ function categorizeTrackedExpense(
         created,
     };
 
-    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_TRANSACTION, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
 }
 
 function shareTrackedExpense(
@@ -2731,7 +2731,7 @@ function shareTrackedExpense(
         billable,
     };
 
-    API.write(WRITE_COMMANDS.SHARE_TRACKED_TRANSACTION, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
