@@ -263,7 +263,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={[styles.headerText, styles.pre]}
-                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
+                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || isGroupChat}
                                             renderAdditionalText={renderAdditionalText}
                                         />
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
