@@ -193,6 +193,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isMoneyRequestReport,
         report,
         isGroupDMChat,
+        isPolicyExpenseChat,
         isPolicyMember,
         isUserCreatedPolicyRoom,
         session,
