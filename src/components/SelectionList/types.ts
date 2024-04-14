@@ -51,6 +51,9 @@ type CommonListItemProps<TItem> = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
 };
 
 type ListItem = {
@@ -112,6 +115,9 @@ type ListItem = {
 
     /** The search value from the selection list */
     searchText?: string | null;
+
+    /** What text to show inside the badge (if none present the badge will be omitted) */
+    badgeText?: string;
 
     brickRoadIndicator?: BrickRoad | '' | null;
 };

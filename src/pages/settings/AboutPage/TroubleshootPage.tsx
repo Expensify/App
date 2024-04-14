@@ -22,24 +22,8 @@ import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-
-const keysToPreserve: OnyxKey[] = [
-    ONYXKEYS.ACCOUNT,
-    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
-    ONYXKEYS.IS_LOADING_APP,
-    ONYXKEYS.IS_SIDEBAR_LOADED,
-    ONYXKEYS.MODAL,
-    ONYXKEYS.NETWORK,
-    ONYXKEYS.SESSION,
-    ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-    ONYXKEYS.NVP_TRY_FOCUS_MODE,
-    ONYXKEYS.PREFERRED_THEME,
-    ONYXKEYS.NVP_PREFERRED_LOCALE,
-    ONYXKEYS.CREDENTIALS,
-];
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
@@ -128,7 +112,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                 isVisible={isConfirmationModalVisible}
                 onConfirm={() => {
                     setIsConfirmationModalVisible(false);
-                    Onyx.clear(keysToPreserve).then(() => {
+                    Onyx.clear(App.KEYS_TO_PRESERVE).then(() => {
                         App.openApp();
                     });
                 }}
