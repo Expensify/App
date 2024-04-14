@@ -158,15 +158,15 @@ function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
 
 function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
     return (
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM
     );
 }
 
 function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM;
 }
 
 function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageReimbursementDequeued {
@@ -328,7 +328,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
         (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) ||
         !!sortedReportActions[endIndex + 1]?.whisperedToAccountIDs?.length ||
         !!sortedReportActions[endIndex]?.whisperedToAccountIDs?.length ||
-        sortedReportActions[endIndex]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
+        sortedReportActions[endIndex]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
         sortedReportActions[endIndex + 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
         sortedReportActions[endIndex + 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED
     ) {
@@ -346,7 +346,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
         sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         sortedReportActions[startIndex - 1]?.isOptimisticAction ||
-        sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM
+        sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM
     ) {
         startIndex--;
     }
@@ -487,7 +487,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     return false;
 }
 
-const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOMCHANGELOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
+const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
 const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
 
 /**

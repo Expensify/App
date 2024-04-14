@@ -751,7 +751,7 @@ const CONST = {
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                 },
-                ROOMCHANGELOG: {
+                ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
                     LEAVE_ROOM: 'LEAVEROOM',

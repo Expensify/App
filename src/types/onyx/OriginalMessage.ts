@@ -237,7 +237,7 @@ type OriginalMessageJoinPolicyChangeLog = {
 };
 
 type OriginalMessageRoomChangeLog = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
+    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>;
     originalMessage: ChangeLog;
 };
 

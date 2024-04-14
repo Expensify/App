@@ -770,7 +770,7 @@ describe('ReportUtils', () => {
 
         it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
             const reportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 whisperedToAccountIDs: [123456],
             } as ReportAction;
             expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
@@ -794,10 +794,10 @@ describe('ReportUtils', () => {
         ];
 
         const reportActions: ReportAction[] = [
-            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: 'MARKEDREIMBURSED'},
-            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: 'MARKEDREIMBURSED'},
-            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: 'MARKEDREIMBURSED'},
-            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: 'MARKEDREIMBURSED'},
+            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: 'MARKED_REIMBURSED'},
+            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: 'MARKED_REIMBURSED'},
+            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: 'MARKED_REIMBURSED'},
+            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: 'MARKED_REIMBURSED'},
         ];
 
         beforeAll(() => {
