@@ -111,6 +111,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
 
+    const [featureStates, setFeatureStates] = useState({} as Record<PolicyFeatureName, boolean>);
+
     const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
         {
             translationKey: 'workspace.common.card',
@@ -155,18 +157,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
-    const getFeatureState = useCallback(
-        (policyFeatureName: PolicyFeatureName) => {
-            const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, policyFeatureName);
-            if (policy?.pendingFields?.[policyFeatureName] === 'update' && !isFeatureEnabled && !isOffline) {
-                return true;
+    useEffect(() => {
+        const newFeatureStates = {} as Record<PolicyFeatureName, boolean>;
+        const keys = Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[];
+        keys.forEach((key) => {
+            const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, key);
+            if (policy?.pendingFields?.[key] === 'update' && !isOffline) {
+                return;
             }
-            return isFeatureEnabled;
-        },
-        [policy, isOffline],
-    );
+            newFeatureStates[key] = isFeatureEnabled;
+        });
 
-    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED)) {
+        setFeatureStates(newFeatureStates);
+    }, [policy, isOffline]);
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED] ?? policy?.areDistanceRatesEnabled) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.distanceRates',
             icon: Expensicons.Car,
@@ -175,7 +180,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED)) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED] ?? policy?.areWorkflowsEnabled) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
@@ -185,7 +190,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED)) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED] ?? policy?.areCategoriesEnabled) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.categories',
             icon: Expensicons.Folder,
@@ -195,7 +200,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED)) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED] ?? policy?.areTagsEnabled) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.tags',
             icon: Expensicons.Tag,
@@ -204,7 +209,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED)) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED] ?? policy?.tax?.trackingEnabled) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.taxes',
             icon: Expensicons.Tax,
@@ -214,7 +219,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) && canUseAccountingIntegrations) {
+    if ((featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] ?? policy?.areConnectionsEnabled) && canUseAccountingIntegrations) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,

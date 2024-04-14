@@ -51,7 +51,7 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
     }, [isPolicyIDInRoute, props.policyID]);
 
     useEffect(() => {
-        if (props.policy?.pendingFields?.[props.featureName] === 'update' && !PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName) && !isOffline) {
+        if (props.policy?.pendingFields?.[props.featureName] === 'update' && !isOffline) {
             return;
         }
         setIsPolicyFeatureEnabled(PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName));
