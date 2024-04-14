@@ -147,6 +147,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
     children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
+    hoverStyle?: StyleProp<ViewStyle>;
 };
 
 type UserListItemProps = ListItemProps & {

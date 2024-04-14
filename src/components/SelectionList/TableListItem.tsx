@@ -58,6 +58,7 @@ function TableListItem({
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
+            hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             {(hovered) => (
                 <>
