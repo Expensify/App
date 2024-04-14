@@ -633,58 +633,58 @@ const CONST = {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
-                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
-                ADDCOMMENT: 'ADDCOMMENT',
-                ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
+                ACTIONABLE_MENTION_WHISPER: 'ACTIONABLE_MENTION_WHISPER',
+                ADD_COMMENT: 'ADD_COMMENT',
+                ACTIONABLE_JOIN_REQUEST: 'ACTIONABLE_JOIN_REQUEST',
                 APPROVED: 'APPROVED',
-                CHANGEFIELD: 'CHANGEFIELD', // OldDot Action
-                CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
-                CHANGETYPE: 'CHANGETYPE', // OldDot Action
-                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                CHANGE_FIELD: 'CHANGE_FIELD', // OldDot Action
+                CHANGE_POLICY: 'CHANGE_POLICY', // OldDot Action
+                CHANGE_TYPE: 'CHANGE_TYPE', // OldDot Action
+                CHRONOSOOLIST: 'CHRONOSOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
-                DELEGATESUBMIT: 'DELEGATESUBMIT', // OldDot Action
-                DELETEDACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DELEGATE_SUBMIT: 'DELEGATE_SUBMIT', // OldDot Action
+                DELETED_ACCOUNT: 'DELETED_ACCOUNT', // OldDot Action
                 DONATION: 'DONATION', // OldDot Action
-                EXPORTEDTOCSV: 'EXPORTEDTOCSV', // OldDot Action
-                EXPORTEDTOINTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
-                EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
+                EXPORTED_TO_CSV: 'EXPORTED_TO_CSV', // OldDot Action
+                EXPORTED_TO_INTEGRATION: 'EXPORTED_TO_INTEGRATION', // OldDot Action
+                EXPORTED_TO_QUICK_BOOKS: 'EXPORTED_TO_QUICK_BOOKS', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
-                HOLDCOMMENT: 'HOLDCOMMENT',
+                HOLD_COMMENT: 'HOLD_COMMENT',
                 IOU: 'IOU',
-                INTEGRATIONSMESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
-                MANAGERATTACHRECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
-                MANAGERDETACHRECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
-                MARKEDREIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
-                MARKREIMBURSEDFROMINTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
-                MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
+                INTEGRATIONS_MESSAGE: 'INTEGRATIONS_MESSAGE', // OldDot Action
+                MANAGER_ATTACH_RECEIPT: 'MANAGER_ATTACH_RECEIPT', // OldDot Action
+                MANAGER_DETACH_RECEIPT: 'MANAGER_DETACH_RECEIPT', // OldDot Action
+                MARKED_REIMBURSED: 'MARKED_REIMBURSED', // OldDot Action
+                MARK_REIMBURSED_FROM_INTEGRATION: 'MARK_REIMBURSED_FROM_INTEGRATION', // OldDot Action
+                MODIFIED_EXPENSE: 'MODIFIED_EXPENSE',
                 MOVED: 'MOVED',
-                OUTDATEDBANKACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
-                REIMBURSEMENTACHBOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
-                REIMBURSEMENTACHCANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
-                REIMBURSEMENTACCOUNTCHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
-                REIMBURSEMENTDELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
-                REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
-                REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
-                REIMBURSEMENTREQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
-                REIMBURSEMENTSETUP: 'REIMBURSEMENTSETUP', // OldDot Action
+                OUTDATED_BANK_ACCOUNT: 'OUTDATED_BANK_ACCOUNT', // OldDot Action
+                REIMBURSEMENTACH_BOUNCE: 'REIMBURSEMENTACH_BOUNCE', // OldDot Action
+                REIMBURSEMENTACH_CANCELLED: 'REIMBURSEMENTACH_CANCELLED', // OldDot Action
+                REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENT_ACCOUNT_CHANGED', // OldDot Action
+                REIMBURSEMENT_DELAYED: 'REIMBURSEMENT_DELAYED', // OldDot Action
+                REIMBURSEMENT_QUEUED: 'REIMBURSEMENT_QUEUED',
+                REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENT_DEQUEUED',
+                REIMBURSEMENT_REQUESTED: 'REIMBURSEMENT_REQUESTED', // OldDot Action
+                REIMBURSEMENT_SETUP: 'REIMBURSEMENT_SETUP', // OldDot Action
                 RENAMED: 'RENAMED',
-                REPORTPREVIEW: 'REPORTPREVIEW',
-                SELECTEDFORRANDOMAUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
+                REPORT_PREVIEW: 'REPORT_PREVIEW',
+                SELECTED_FOR_RANDOM_AUDIT: 'SELECTED_FOR_RANDOM_AUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action
-                STRIPEPAID: 'STRIPEPAID', // OldDot Action
+                STRIPE_PAID: 'STRIPE_PAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
-                TAKECONTROL: 'TAKECONTROL', // OldDot Action
-                TASKCANCELLED: 'TASKCANCELLED',
-                TASKCOMPLETED: 'TASKCOMPLETED',
-                TASKEDITED: 'TASKEDITED',
-                TASKREOPENED: 'TASKREOPENED',
+                TAKE_CONTROL: 'TAKE_CONTROL', // OldDot Action
+                TASK_CANCELLED: 'TASK_CANCELLED',
+                TASK_COMPLETED: 'TASK_COMPLETED',
+                TASK_EDITED: 'TASK_EDITED',
+                TASK_REOPENED: 'TASK_REOPENED',
                 UNAPPROVED: 'UNAPPROVED', // OldDot Action
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
-                UPDATEGROUPCHATMEMBERROLE: 'UPDATEGROUPCHATMEMBERROLE',
-                POLICYCHANGELOG: {
+                UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATE_GROUP_CHAT_MEMBER_ROLE',
+                POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
