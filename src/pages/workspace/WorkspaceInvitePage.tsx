@@ -52,13 +52,7 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInvitePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
 
-function WorkspaceInvitePage({
-    route,
-    betas,
-    invitedEmailsToAccountIDsDraft,
-    policy,
-    isLoadingReportData = true,
-}: WorkspaceInvitePageProps) {
+function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, policy, isLoadingReportData = true}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
