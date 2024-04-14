@@ -372,10 +372,10 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTempora
 export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
-        isSearchingForReports: {
-            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-            initWithStoredValues: false,
-        },
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
     },
 })(
     memo(
