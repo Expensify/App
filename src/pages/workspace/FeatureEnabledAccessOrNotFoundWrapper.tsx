@@ -1,9 +1,10 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
@@ -34,8 +35,10 @@ type FeatureEnabledAccessOrNotFoundComponentProps = FeatureEnabledAccessOrNotFou
 
 function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNotFoundComponentProps) {
     const isPolicyIDInRoute = !!props.policyID?.length;
+    const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName));
     const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
-    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
+    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(props.policy)) {
@@ -46,6 +49,14 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
         Policy.openWorkspace(props.policyID, []);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, props.policyID]);
+
+    useEffect(() => {
+        if (props.policy?.pendingFields?.[props.featureName] === 'update' && !PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName) && !isOffline) {
+            return;
+        }
+        setIsPolicyFeatureEnabled(PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.policy?.pendingFields?.[props.featureName], PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName)]);
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;

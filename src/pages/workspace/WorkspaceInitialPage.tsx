@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -33,6 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -71,6 +73,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
+    const {isOffline} = useNetwork();
 
     const policyID = policy?.id ?? '';
     const policyName = policy?.name ?? '';
@@ -152,7 +155,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
-    if (policy?.areDistanceRatesEnabled) {
+    const getFeatureState = useCallback(
+        (policyFeatureName: PolicyFeatureName) => {
+            const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, policyFeatureName);
+            if (policy?.pendingFields?.[policyFeatureName] === 'update' && !isFeatureEnabled && !isOffline) {
+                return true;
+            }
+            return isFeatureEnabled;
+        },
+        [policy, isOffline],
+    );
+
+    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED)) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.distanceRates',
             icon: Expensicons.Car,
@@ -161,7 +175,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (policy?.areWorkflowsEnabled) {
+    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED)) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
@@ -171,7 +185,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (policy?.areCategoriesEnabled) {
+    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED)) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.categories',
             icon: Expensicons.Folder,
@@ -181,7 +195,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (policy?.areTagsEnabled) {
+    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED)) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.tags',
             icon: Expensicons.Tag,
@@ -190,7 +204,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (policy?.tax?.trackingEnabled) {
+    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED)) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.taxes',
             icon: Expensicons.Tax,
@@ -200,7 +214,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (policy?.areConnectionsEnabled && canUseAccountingIntegrations) {
+    if (getFeatureState(CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) && canUseAccountingIntegrations) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
