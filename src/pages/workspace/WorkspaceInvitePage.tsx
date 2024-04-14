@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -53,13 +52,20 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInvitePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
 
-function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, policy, isLoadingReportData = true, didScreenTransitionEnd}: WorkspaceInvitePageProps) {
+function WorkspaceInvitePage({
+    route,
+    betas,
+    invitedEmailsToAccountIDsDraft,
+    policy,
+    isLoadingReportData = true,
+}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -211,18 +217,16 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         setSelectedOptions(newSelectedOptions);
     };
 
-    const validate = (): boolean => {
+    const inviteUser = useCallback(() => {
         const errors: Errors = {};
         if (selectedOptions.length <= 0) {
             errors.noUserSelected = 'true';
         }
 
         Policy.setWorkspaceErrors(route.params.policyID, errors);
-        return isEmptyObject(errors);
-    };
+        const isValid = isEmptyObject(errors);
 
-    const inviteUser = () => {
-        if (!validate()) {
+        if (!isValid) {
             return;
         }
 
@@ -237,7 +241,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         });
         Policy.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID));
-    };
+    }, [route.params.policyID, selectedOptions]);
 
     const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy]);
 
@@ -259,11 +263,29 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
     }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails.length]);
 
+    const footerContent = useMemo(
+        () => (
+            <FormAlertWithSubmitButton
+                isDisabled={!selectedOptions.length}
+                isAlertVisible={shouldShowAlertPrompt}
+                buttonText={translate('common.next')}
+                onSubmit={inviteUser}
+                message={[policy?.alertMessage ?? '', {isTranslated: true}]}
+                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                enabledWhenOffline
+                disablePressOnEnter
+            />
+        ),
+        [inviteUser, policy?.alertMessage, selectedOptions.length, shouldShowAlertPrompt, styles, translate],
+    );
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             shouldUseCachedViewportHeight
             testID={WorkspaceInvitePage.displayName}
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <FullPageNotFoundView
                 shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
@@ -295,21 +317,10 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
                     onSelectRow={toggleOption}
                     onConfirm={inviteUser}
                     showScrollIndicator
-                    showLoadingPlaceholder={!areOptionsInitialized}
+                    showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    footerContent={footerContent}
                 />
-                <View style={[styles.flexShrink0]}>
-                    <FormAlertWithSubmitButton
-                        isDisabled={!selectedOptions.length}
-                        isAlertVisible={shouldShowAlertPrompt}
-                        buttonText={translate('common.next')}
-                        onSubmit={inviteUser}
-                        message={[policy?.alertMessage ?? '', {isTranslated: true}]}
-                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                        enabledWhenOffline
-                        disablePressOnEnter
-                    />
-                </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

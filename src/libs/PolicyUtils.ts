@@ -181,19 +181,15 @@ function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof 
 }
 
 /**
- * Gets a tag name of policy tags based on a tag index.
+ * Gets a tag name of policy tags based on a tag's orderWeight.
  */
-function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): string {
+function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: number): string {
     if (isEmptyObject(policyTagList)) {
         return '';
     }
 
-    const policyTagKeys = getSortedTagKeys(policyTagList ?? {});
-    const policyTagKey = policyTagKeys[tagIndex] ?? '';
-
-    return policyTagList?.[policyTagKey]?.name ?? '';
+    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight)?.name ?? '';
 }
-
 /**
  * Gets all tag lists of a policy
  */

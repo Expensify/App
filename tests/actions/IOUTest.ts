@@ -1,6 +1,6 @@
 import isEqual from 'lodash/isEqual';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
@@ -1072,20 +1072,22 @@ describe('actions/IOU', () => {
                         fetch.pause();
                         IOU.splitBill(
                             // TODO: Migrate after the backend accepts accountIDs
-                            [
-                                [CARLOS_EMAIL, String(CARLOS_ACCOUNT_ID)],
-                                [JULES_EMAIL, String(JULES_ACCOUNT_ID)],
-                                [VIT_EMAIL, String(VIT_ACCOUNT_ID)],
-                            ].map(([email, accountID]) => ({login: email, accountID: Number(accountID)})),
-                            RORY_EMAIL,
-                            RORY_ACCOUNT_ID,
-                            amount,
-                            comment,
-                            CONST.CURRENCY.USD,
-                            merchant,
-                            '',
-                            '',
-                            '',
+                            {
+                                participants: [
+                                    [CARLOS_EMAIL, String(CARLOS_ACCOUNT_ID)],
+                                    [JULES_EMAIL, String(JULES_ACCOUNT_ID)],
+                                    [VIT_EMAIL, String(VIT_ACCOUNT_ID)],
+                                ].map(([email, accountID]) => ({login: email, accountID: Number(accountID)})),
+                                currentUserLogin: RORY_EMAIL,
+                                currentUserAccountID: RORY_ACCOUNT_ID,
+                                amount,
+                                comment,
+                                currency: CONST.CURRENCY.USD,
+                                merchant,
+                                created: '',
+                                tag: '',
+                                existingSplitChatReportID: '',
+                            },
                         );
                         return waitForBatchedUpdates();
                     })

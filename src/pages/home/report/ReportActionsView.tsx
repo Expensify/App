@@ -351,10 +351,7 @@ function ReportActionsView({
         // and there are fewer than 23 items, indicating we've reached the oldest message.
         const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
 
-        if (
-            (reportActionID && indexOfLinkedAction > -1 && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded) ||
-            (!reportActionID && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded)
-        ) {
+        if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
             handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
         }
     }, [
@@ -363,7 +360,6 @@ function ReportActionsView({
         checkIfContentSmallerThanList,
         reportActionID,
         indexOfLinkedAction,
-        hasNewestReportAction,
         handleReportActionPagination,
         network.isOffline,
         reportActions.length,
@@ -510,7 +506,6 @@ function ReportActionsView({
     }
     // AutoScroll is disabled when we do linking to a specific reportAction
     const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage);
-
     return (
         <>
             <ReportActionsList
