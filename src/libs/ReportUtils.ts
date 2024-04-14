@@ -2428,7 +2428,7 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
  *    This is used in conjunction with canEditRestrictedField to control editing of specific fields like amount, currency, created, receipt, and distance.
  *    On its own, it only controls allowing/disallowing navigating to the editing pages or showing/hiding the 'Edit' icon on report actions
  */
-function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
+function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit?: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -2466,6 +2466,10 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = currentUserAccountID === moneyRequestReport?.managerID;
 
+    if ((isAdmin || isManager) && ((isOpenExpenseReport(moneyRequestReport) && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) || isRequestor)) {
+        return true;
+    }
+
     // Admin & managers can always edit coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
     if ((isAdmin || isManager) && !isOpenExpenseReport(moneyRequestReport)) {
         return true;
@@ -2489,7 +2493,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
     ];
 
-    if (!canEditMoneyRequest(reportAction)) {
+    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
         return false;
     }
 
@@ -2521,8 +2525,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
-        const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
-        return !TransactionUtils.isReceiptBeingScanned(transaction) && !TransactionUtils.isDistanceRequest(transaction) && isRequestor;
+        return !TransactionUtils.isReceiptBeingScanned(transaction) && !TransactionUtils.isDistanceRequest(transaction);
     }
 
     return true;
