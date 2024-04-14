@@ -58,6 +58,8 @@ export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriority
 export type {default as UpdateDateOfBirthParams} from './UpdateDateOfBirthParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
 export type {default as UpdateFrequentlyUsedEmojisParams} from './UpdateFrequentlyUsedEmojisParams';
+export type {default as UpdateGroupChatNameParams} from './UpdateGroupChatNameParams';
+export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupChatMemberRolesParams';
 export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
@@ -69,6 +71,7 @@ export type {default as UpdateSelectedTimezoneParams} from './UpdateSelectedTime
 export type {default as UpdateStatusParams} from './UpdateStatusParams';
 export type {default as UpdateThemeParams} from './UpdateThemeParams';
 export type {default as UpdateUserAvatarParams} from './UpdateUserAvatarParams';
+export type {default as UpdateGroupChatAvatarParams} from './UpdateGroupChatAvatarParams';
 export type {default as ValidateBankAccountWithTransactionsParams} from './ValidateBankAccountWithTransactionsParams';
 export type {default as ValidateLoginParams} from './ValidateLoginParams';
 export type {default as ValidateSecondaryLoginParams} from './ValidateSecondaryLoginParams';
@@ -91,8 +94,11 @@ export type {default as UpdatePolicyRoomNameParams} from './UpdatePolicyRoomName
 export type {default as AddEmojiReactionParams} from './AddEmojiReactionParams';
 export type {default as RemoveEmojiReactionParams} from './RemoveEmojiReactionParams';
 export type {default as LeaveRoomParams} from './LeaveRoomParams';
+export type {default as LeaveGroupChatParams} from './LeaveGroupChatParams';
 export type {default as InviteToRoomParams} from './InviteToRoomParams';
+export type {default as InviteToGroupChatParams} from './InviteToGroupChatParams';
 export type {default as RemoveFromRoomParams} from './RemoveFromRoomParams';
+export type {default as RemoveFromGroupChatParams} from './RemoveFromGroupChatParams';
 export type {default as FlagCommentParams} from './FlagCommentParams';
 export type {default as UpdateReportPrivateNoteParams} from './UpdateReportPrivateNoteParams';
 export type {default as UpdateCompanyInformationForBankAccountParams} from './UpdateCompanyInformationForBankAccountParams';
