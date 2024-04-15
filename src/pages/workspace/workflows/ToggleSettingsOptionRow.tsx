@@ -82,7 +82,7 @@ function ToggleSettingOptionRow({
                             />
                         )}
                         <View style={[styles.flexColumn, styles.flex1]}>
-                            <Text style={[shouldPlaceSubtitleBelowSwitch && styles.textMicroBold, styles.textNormal, styles.lh20]}>{title}</Text>
+                            <Text style={[!shouldPlaceSubtitleBelowSwitch && styles.textMicroBold, styles.textNormal, styles.lh20]}>{title}</Text>
                             {!shouldPlaceSubtitleBelowSwitch && subTitleView}
                         </View>
                     </View>
