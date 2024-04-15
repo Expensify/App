@@ -1,5 +1,5 @@
-import lodashGet from 'lodash/get';
 import {isEmpty, isEqual} from 'lodash';
+import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -12,9 +12,7 @@ import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFo
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
-import withCurrentUserPersonalDetails, {
-    WithCurrentUserPersonalDetailsProps,
-} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -111,7 +109,7 @@ function IOURequestStepDistance({
             return false;
         }
 
-        return (!ReportUtils.isArchivedRoom(report) && !ReportUtils.isPolicyExpenseChat(report) && !policy?.requiresCategory && !policy?.requiresTag);
+        return !ReportUtils.isArchivedRoom(report) && !ReportUtils.isPolicyExpenseChat(report) && !policy?.requiresCategory && !policy?.requiresTag;
     }, [report, skipConfirmation, policy]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {

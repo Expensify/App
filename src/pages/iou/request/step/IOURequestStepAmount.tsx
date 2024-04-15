@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -20,13 +21,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+import * as OnyxTypes from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import * as OnyxTypes from "@src/types/onyx";
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type AmountParams = {
     amount: string;
@@ -90,7 +91,7 @@ function IOURequestStepAmount({
             return false;
         }
 
-        return (!(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report)));
+        return !(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report));
     }, [report, skipConfirmation]);
 
     useFocusEffect(
@@ -294,7 +295,6 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
     },
 })(IOURequestStepAmount);
-
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmountWithOnyx);
