@@ -581,6 +581,7 @@ function MoneyRequestConfirmationList({
             onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
+            iouCategory,
             isDistanceRequestWithPendingRoute,
             iouAmount,
             isEditingSplitBill,
