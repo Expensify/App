@@ -19,7 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -35,13 +34,13 @@ type AmountParams = {
 
 type IOURequestStepAmountOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: OnyxEntry<Transaction>;
+    splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Whether the confirmation step should be skipped */
     skipConfirmation: OnyxEntry<boolean>;
 
     /** The draft transaction object being modified in Onyx */
-    draftTransaction: OnyxEntry<Transaction>;
+    draftTransaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Personal details of all users */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -54,7 +53,7 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
     WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
-        transaction: OnyxEntry<Transaction>;
+        transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 
 function IOURequestStepAmount({

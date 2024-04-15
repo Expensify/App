@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
