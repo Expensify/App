@@ -63,6 +63,10 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     };
 
     const welcomeHeroText = useMemo(() => {
+        if (isInvoiceRoom) {
+            return translate('reportActionsView.sayHello');
+        }
+
         if (isChatRoom) {
             return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
         }
@@ -72,7 +76,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         }
 
         return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isSelfDM, translate, reportName]);
+    }, [isChatRoom, isInvoiceRoom, isSelfDM, translate, reportName]);
 
     return (
         <>
