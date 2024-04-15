@@ -534,16 +534,15 @@ Onyx.connect({
     },
 });
 
-const reportActionsByReport: OnyxCollection<ReportActions> = {};
+let reportActionsByReport: OnyxCollection<ReportActions> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
             return;
         }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        reportActionsByReport[reportID] = actions;
+        reportActionsByReport = Object.fromEntries(Object.entries(actions).map(([key, value]) => [CollectionUtils.extractCollectionItemID(key as `reportActions_${string}`), value]));
     },
 });
 

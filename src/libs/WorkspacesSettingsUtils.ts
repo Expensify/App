@@ -52,16 +52,15 @@ Onyx.connect({
     },
 });
 
-const reportActionsByReport: OnyxCollection<ReportActions> = {};
+let reportActionsByReport: OnyxCollection<ReportActions> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
             return;
         }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        reportActionsByReport[reportID] = actions;
+        reportActionsByReport = Object.fromEntries(Object.entries(actions).map(([key, value]) => [CollectionUtils.extractCollectionItemID(key as `reportActions_${string}`), value]));
     },
 });
 
@@ -80,7 +79,7 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     // To determine if the report requires attention from the current user, we need to load the parent report action
     let itemParentReportAction = {};
     if (report.parentReportID) {
-        const itemParentReportActions = reportActionsByReport[report.parentReportID] ?? {};
+        const itemParentReportActions = reportActionsByReport?.[report.parentReportID] ?? {};
         itemParentReportAction = report.parentReportActionID ? itemParentReportActions[report.parentReportActionID] : {};
     }
     const reportOption = {...report, isUnread: ReportUtils.isUnread(report), isUnreadWithMention: ReportUtils.isUnreadWithMention(report)};

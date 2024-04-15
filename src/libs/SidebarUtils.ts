@@ -23,31 +23,41 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as UserUtils from './UserUtils';
 
-const reportActionsByReport: OnyxCollection<ReportActions> = {};
-const visibleReportActionItems: ReportActions = {};
+let reportActionsByReport: OnyxCollection<ReportActions> = {};
+let visibleReportActionItems: ReportActions = {};
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
             return;
         }
 
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        reportActionsByReport[reportID] = actions;
-
-        const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(actions));
-
-        // The report is only visible if it is the last action not deleted that
-        // does not match a closed or created state.
-        const reportActionsForDisplay = actionsArray.filter(
-            (reportAction, actionKey) =>
-                ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
-                !ReportActionsUtils.isWhisperAction(reportAction) &&
-                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        reportActionsByReport = Object.fromEntries(
+            Object.entries(actions).map(([key, reportActions]) => {
+                const reportID = CollectionUtils.extractCollectionItemID(key as `reportActions_${string}`);
+                return [reportID, reportActions];
+            }),
         );
-        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+
+        visibleReportActionItems = Object.fromEntries(
+            Object.entries(reportActionsByReport).map(([reportID, reportActions]) => {
+                const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}));
+
+                // The report is only visible if it is the last action not deleted that
+                // does not match a closed or created state.
+                const reportActionsForDisplay = actionsArray.filter(
+                    (reportAction, actionKey) =>
+                        ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                        !ReportActionsUtils.isWhisperAction(reportAction) &&
+                        reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                );
+
+                return [reportID, reportActionsForDisplay[reportActionsForDisplay.length - 1]];
+            }),
+        );
     },
 });
 
