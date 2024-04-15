@@ -201,6 +201,19 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         [onScaleChangedContext, onScaleChangedProp],
     );
 
+    useEffect(() => {
+        // To avoid showing loading or offline indicator for cached images we set loading
+        // states after a 200 ms delay based on whether the image is loaded or not by then.
+        setTimeout(() => {
+            if (!isFallbackImageLoaded.current) {
+                setFallbackImageLoading(true);
+            }
+            if (!isLightboxImageLoaded.current) {
+                setLightboxImageLoading(true);
+            }
+        }, 200);
+    }, []);
+
     return (
         <View
             style={[StyleSheet.absoluteFill, style]}
@@ -231,14 +244,6 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                         setLightboxImageLoading(false);
                                         updateContentSize(e);
                                     }}
-                                    onLoadStart={() => {
-                                        setTimeout(() => {
-                                            if (isLightboxImageLoaded.current) {
-                                                return;
-                                            }
-                                            setLightboxImageLoading(true);
-                                        }, 200);
-                                    }}
                                 />
                             </MultiGestureCanvas>
                         </View>
@@ -256,14 +261,6 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                     setFallbackImageLoading(false);
                                     isFallbackImageLoaded.current = true;
                                     updateContentSize(e);
-                                }}
-                                onLoadStart={() => {
-                                    setTimeout(() => {
-                                        if (isFallbackImageLoaded.current) {
-                                            return;
-                                        }
-                                        setFallbackImageLoading(true);
-                                    }, 200);
                                 }}
                             />
                         </View>
