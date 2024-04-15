@@ -16,7 +16,6 @@ function ConnectToQuickbooksOnlineButton({policyID}: ConnectToQuickbooksOnlineBu
             onPress={() => Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL, false)}
             text={translate('workspace.accounting.setup')}
             style={styles.justifyContentCenter}
-            small
         />
     );
 }

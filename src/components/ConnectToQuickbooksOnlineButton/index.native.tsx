@@ -1,12 +1,13 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
 import CONST from '@src/CONST';
@@ -22,51 +23,39 @@ type ConnectToQuickbooksOnlineButtonOnyxProps = {
 const renderLoading = () => <FullScreenLoadingIndicator />;
 
 function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbooksOnlineButtonProps & ConnectToQuickbooksOnlineButtonOnyxProps) {
-    const [isWebViewOpen, setWebViewOpen] = useState(false);
-    const [isQuickbooksOnlineReady, setIsQuickbooksOnlineReady] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const {translate} = useLocalize();
-
-    const handleNavigationStateChange = useCallback(({url, loading}: WebViewNavigation) => {
-        if (loading || !url.startsWith('https://accounts.intuit.com/app/sign-in')) {
-            return;
-        }
-        setIsQuickbooksOnlineReady(true);
-    }, []);
 
     return (
         <>
             <Button
-                onPress={() => setWebViewOpen(true)}
+                onPress={() => setIsModalOpen(true)}
                 text={translate('workspace.accounting.setup')}
-                small
             />
-            {isWebViewOpen && (
+            <Modal
+                fullscreen
+                onClose={() => setIsModalOpen(false)}
+                isVisible={isModalOpen}
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.accounting.title')}
+                    onBackButtonPress={() => setIsModalOpen(false)}
+                />
                 <FullPageOfflineBlockingView>
-                    <Modal
-                        onClose={() => {
-                            setWebViewOpen(false);
-                            setIsQuickbooksOnlineReady(false);
+                    <WebView
+                        source={{
+                            uri: getQuickBooksOnlineSetupLink(policyID),
+                            headers: {
+                                Cookie: `authToken=${session?.authToken}`,
+                            },
                         }}
-                        fullscreen
-                        isVisible
-                        type={CONST.MODAL.MODAL_TYPE.CENTERED}
-                    >
-                        {!isQuickbooksOnlineReady && <FullScreenLoadingIndicator />}
-                        <WebView
-                            source={{
-                                uri: getQuickBooksOnlineSetupLink(policyID),
-                                headers: {
-                                    Cookie: `authToken=${session?.authToken}`,
-                                },
-                            }}
-                            incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
-                            startInLoadingState={false}
-                            renderLoading={renderLoading}
-                            onNavigationStateChange={handleNavigationStateChange}
-                        />
-                    </Modal>
+                        incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
+                        startInLoadingState
+                        renderLoading={renderLoading}
+                    />
                 </FullPageOfflineBlockingView>
-            )}
+            </Modal>
         </>
     );
 }
