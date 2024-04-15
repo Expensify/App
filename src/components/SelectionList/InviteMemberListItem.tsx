@@ -89,17 +89,19 @@ function InviteMemberListItem({
                             />
                         ))}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={Str.removeSMSDomain(item.text ?? '')}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                item.isBold !== false && styles.sidebarLinkTextBold,
-                                styles.pre,
-                                item.alternateText ? styles.mb1 : null,
-                            ]}
-                        />
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={Str.removeSMSDomain(item.text ?? '')}
+                                style={[
+                                    styles.optionDisplayName,
+                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                    item.isBold !== false && styles.sidebarLinkTextBold,
+                                    styles.pre,
+                                    item.alternateText ? styles.mb1 : null,
+                                ]}
+                            />
+                        </View>
                         {!!item.alternateText && (
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
@@ -109,7 +111,7 @@ function InviteMemberListItem({
                         )}
                     </View>
                     {!!item.rightElement && item.rightElement}
-                    {canSelectMultiple && (
+                    {canSelectMultiple && !item.isDisabled && (
                         <PressableWithFeedback
                             onPress={handleCheckboxPress}
                             disabled={isDisabled}
