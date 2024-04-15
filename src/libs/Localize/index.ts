@@ -109,7 +109,7 @@ function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl
     }
 
     Log.warn(`Pluralization form '${pluralForm}' not found for phrase '${phraseKey}'. Falling back to 'other' form.`);
-    
+
     const otherForm = result.other;
     if (typeof otherForm === 'function') {
         return otherForm();
@@ -153,7 +153,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     const valueFromCache = cacheForLocale?.get(phraseKey);
 
     // If the phrase is already translated, return the translated value
-    if (valueFromCache && typeof valueFromCache === 'string') {
+    if (valueFromCache) {
         return valueFromCache;
     }
 
@@ -162,9 +162,9 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             const result = translatedPhrase(...phraseParameters);
+            const pluralForm = phraseParameters.find((param) => typeof param === 'number') as Record<string, number>;
 
-            if (typeof result === 'object') {
-                const pluralForm = phraseParameters.find((param) => typeof param === 'number') as Record<string, number>;
+            if (typeof result === 'object' && pluralForm) {
                 return getPluralTranslation(result, language, phraseKey, pluralForm.count);
             }
 
