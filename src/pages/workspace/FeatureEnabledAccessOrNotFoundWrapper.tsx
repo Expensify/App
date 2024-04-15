@@ -8,6 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -50,13 +51,14 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, props.policyID]);
 
+    const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
+
     useEffect(() => {
-        if (props.policy?.pendingFields?.[props.featureName] === 'update' && !isOffline) {
+        if (props.policy?.pendingFields?.[props.featureName] === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE && !isFeatureEnabled && !isOffline) {
             return;
         }
-        setIsPolicyFeatureEnabled(PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.policy?.pendingFields?.[props.featureName], PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName)]);
+        setIsPolicyFeatureEnabled(isFeatureEnabled);
+    }, [props.policy, props.featureName, isFeatureEnabled, isOffline]);
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;

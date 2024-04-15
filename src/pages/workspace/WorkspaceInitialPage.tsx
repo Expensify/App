@@ -162,7 +162,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         const keys = Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[];
         keys.forEach((key) => {
             const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, key);
-            if (policy?.pendingFields?.[key] === 'update' && !isOffline) {
+            if (policy?.pendingFields?.[key] === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE && !isFeatureEnabled && !isOffline) {
                 return;
             }
             newFeatureStates[key] = isFeatureEnabled;
@@ -180,7 +180,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED] ?? policy?.areWorkflowsEnabled) {
+    console.log(featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED], policy?.areWorkflowsEnabled);
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED] || policy?.areWorkflowsEnabled) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
