@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
-import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -51,8 +51,6 @@ import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import Text from './Text';
 
-type IouType = ValueOf<typeof CONST.IOU.TYPE>;
-
 type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -75,7 +73,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     onConfirm?: (selectedParticipants: Array<Participant | ReportUtils.OptionData>) => void;
 
     /** Callback to parent modal to send money */
-    onSendMoney?: (paymentMethod: IouType | PaymentMethodType | undefined) => void;
+    onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
     /** Callback to inform a participant is selected */
     onSelectParticipant?: (option: Participant) => void;
@@ -93,7 +91,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     iouCurrencyCode?: string;
 
     /** IOU type */
-    iouType?: IouType;
+    iouType?: ValueOf<typeof CONST.IOU.TYPE>;
 
     /** IOU date */
     iouCreated?: string;
@@ -362,7 +360,7 @@ function MoneyRequestConfirmationList({
         setDidConfirm(false);
     }
 
-    const splitOrRequestOptions: Array<DropdownOption<IouType>> = useMemo(() => {
+    const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
         if (isTypeTrackExpense) {
             text = translate('iou.trackExpense');
@@ -392,7 +390,7 @@ function MoneyRequestConfirmationList({
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
-    
+
     const optionSelectorSections: OptionsListUtils.CategorySection[] = useMemo(() => {
         const sections = [];
         const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
@@ -534,7 +532,7 @@ function MoneyRequestConfirmationList({
      * @param {String} paymentMethod
      */
     const confirm = useCallback(
-        (paymentMethod: IouType | PaymentMethodType | undefined) => {
+        (paymentMethod: PaymentMethodType | undefined) => {
             if (selectedParticipants.length === 0) {
                 return;
             }
@@ -627,7 +625,7 @@ function MoneyRequestConfirmationList({
                 success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
-                onPress={(_event, value) => confirm(value)}
+                onPress={(event, value) => confirm(value as PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
