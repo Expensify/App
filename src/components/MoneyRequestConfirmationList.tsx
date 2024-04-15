@@ -535,6 +535,10 @@ function MoneyRequestConfirmationList({
                 setMerchantError(true);
                 return;
             }
+            if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+                setFormError('iou.error.invalidCategoryLength');
+                return;
+            }
 
             if (iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
