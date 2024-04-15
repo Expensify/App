@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import type {ComponentType} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import useNetwork from '@hooks/useNetwork';
@@ -22,11 +22,6 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
     function WithPolicyConnections({policy, policyMembers, policyDraft, policyMembersDraft, route}: WithPolicyConnectionsProps) {
         const {isOffline} = useNetwork();
 
-        // When the accounting feature is enabled, but the user hasn't connected to any accounting software,
-        // the connections data doesn't exist. We don't want to continually attempt to fetch non-existent data.
-        // This state helps us track whether a data fetch attempt has been made.
-        const [wasConnectionsDataFetched, setWasConnectionsDataFetched] = useState(false);
-
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
@@ -35,8 +30,7 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
             }
 
             openPolicyAccountingPage(policy.id);
-            setWasConnectionsDataFetched(true);
-        }, [policy, wasConnectionsDataFetched]);
+        }, [policy]);
 
         if (!policy?.connections) {
             if (isOffline) {
