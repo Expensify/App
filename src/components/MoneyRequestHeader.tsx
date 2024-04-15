@@ -188,8 +188,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         title={
                             <Icon
                                 src={Expensicons.CreditCardHourglass}
-                                height={variables.iconSizeExtraSmall}
-                                width={variables.iconSizeExtraSmall}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
                                 fill={theme.textSupporting}
                             />
                         }
@@ -202,8 +202,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         title={
                             <Icon
                                 src={Expensicons.ReceiptScan}
-                                height={variables.iconSizeExtraSmall}
-                                width={variables.iconSizeExtraSmall}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
                                 fill={theme.textSupporting}
                             />
                         }

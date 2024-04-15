@@ -313,7 +313,9 @@ function MoneyRequestPreviewContent({
                                                     width={variables.iconSizeExtraSmall}
                                                     fill={theme.textSupporting}
                                                 />
-                                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>{translate('iou.receiptScanInProgress')}</Text>
+                                                <Text style={[styles.textMicroSupporting, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
+                                                    {translate('iou.receiptScanInProgress')}
+                                                </Text>
                                             </View>
                                         )}
                                         {isPending && (
@@ -324,7 +326,9 @@ function MoneyRequestPreviewContent({
                                                     width={variables.iconSizeExtraSmall}
                                                     fill={theme.textSupporting}
                                                 />
-                                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>{translate('iou.transactionPending')}</Text>
+                                                <Text style={[styles.textMicroSupporting, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
+                                                    {translate('iou.transactionPending')}
+                                                </Text>
                                             </View>
                                         )}
                                     </View>
