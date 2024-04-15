@@ -2993,7 +2993,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     }
 
     if (isGroupChat(report)) {
-        return getGroupChatName(report?.participantAccountIDs ?? [], true) ?? '';
+        return getGroupChatName(report?.participantAccountIDs ?? [], true, report?.reportID) ?? '';
     }
 
     if (isChatRoom(report) || isTaskReport(report)) {
