@@ -28,7 +28,7 @@ function BaseListItem<TItem extends ListItem>({
     FooterComponent,
     children,
     isFocused,
-    shouldPreventFocusSync = false,
+    shouldSyncFocus = true,
     onFocus = () => {},
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
@@ -38,7 +38,7 @@ function BaseListItem<TItem extends ListItem>({
     const pressableRef = useRef<View | HTMLDivElement>(null);
 
     // Sync focus on an item
-    useSyncFocus(pressableRef, Boolean(isFocused && !shouldPreventFocusSync));
+    useSyncFocus(pressableRef, Boolean(isFocused && shouldSyncFocus));
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {

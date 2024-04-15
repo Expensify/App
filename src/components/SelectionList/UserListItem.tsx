@@ -28,7 +28,7 @@ function UserListItem({
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     onFocus,
-    shouldPreventFocusSync,
+    shouldSyncFocus,
 }: UserListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -70,7 +70,7 @@ function UserListItem({
             }
             keyForList={item.keyForList}
             onFocus={onFocus}
-            shouldPreventFocusSync={shouldPreventFocusSync}
+            shouldSyncFocus={shouldSyncFocus}
         >
             {(hovered?: boolean) => (
                 <>

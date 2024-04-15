@@ -351,7 +351,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
                 onFocus={() => setFocusedIndex(normalizedIndex)}
-                shouldPreventFocusSync={isTextInputFocusedRef.current}
+                shouldSyncFocus={!isTextInputFocusedRef.current}
             />
         );
     };
