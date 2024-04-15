@@ -1,6 +1,6 @@
 import React from 'react';
-import type {OnboardingPersonalDetailsProps} from '@pages/OnboardingPurpose/types';
 import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
+import type {OnboardingPersonalDetailsProps} from './types';
 
 function OnboardingPersonalDetails({...rest}: Omit<OnboardingPersonalDetailsProps, 'shouldUseNativeStyles'>) {
     return (
