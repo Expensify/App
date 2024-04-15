@@ -1,17 +1,9 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import lodashIsEmpty from 'lodash/isEmpty';
-import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import transactionPropTypes from '@components/transactionPropTypes';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
-    WithCurrentUserPersonalDetailsProps,
-    withCurrentUserPersonalDetailsPropTypes
-} from '@components/withCurrentUserPersonalDetails';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
@@ -22,8 +14,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,10 +26,11 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import * as OnyxTypes from "@src/types/onyx";
-import IOURequestStepScanWithFullTransactionOrNotFound from "@pages/iou/request/step/IOURequestStepScan";
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type AmountParams = {
     amount: string;
+    paymentMethod?: PaymentMethodType;
 };
 
 type IOURequestStepAmountOnyxProps = {
@@ -94,7 +85,13 @@ function IOURequestStepAmount({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
-    const shouldSkipConfirmation = skipConfirmation && report.reportID && !ReportUtils.isArchivedRoom(report) && !ReportUtils.isPolicyExpenseChat(report);
+    const shouldSkipConfirmation: boolean = useMemo(() => {
+        if (!skipConfirmation || !report?.reportID) {
+            return false;
+        }
+
+        return (!(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report)));
+    }, [report, skipConfirmation]);
 
     useFocusEffect(
         useCallback(() => {
@@ -145,7 +142,7 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
     };
 
-    const navigateToNextPage = ({amount}: AmountParams, paymentMethod) => {
+    const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
@@ -171,14 +168,15 @@ function IOURequestStepAmount({
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBillAndOpenReport({
                         participants,
-                        currentUserLogin: currentUserPersonalDetails.login || '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID || 0,
+                        currentUserLogin: currentUserPersonalDetails.login ?? '',
+                        currentUserAccountID: currentUserPersonalDetails.accountID ?? 0,
                         amount: backendAmount,
                         comment: '',
                         currency,
+                        merchant: '',
                         tag: '',
                         category: '',
-                        created: transaction.created,
+                        created: transaction?.created ?? '',
                         billable: false,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                     });
@@ -198,13 +196,13 @@ function IOURequestStepAmount({
                         report,
                         backendAmount,
                         currency,
-                        transaction.created,
+                        transaction?.created ?? '',
                         '',
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
+                        currentUserPersonalDetails.login ?? '',
+                        currentUserPersonalDetails.accountID ?? 0,
                         participants[0],
                         '',
-                        null,
+                        {},
                     );
                     return;
                 }
@@ -219,7 +217,7 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
-    const saveAmountAndCurrency = ({amount}: AmountParams, paymentMethod) => {
+    const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
         if (!isEditing) {
             navigateToNextPage({amount, paymentMethod});
             return;
@@ -255,9 +253,9 @@ function IOURequestStepAmount({
                 isEditing={!!backTo || isEditing}
                 currency={currency}
                 amount={Math.abs(transactionAmount)}
-                skipConfirmation={shouldSkipConfirmation}
+                skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
-                policyID={policy.policyID}
+                policyID={policy?.policyID ?? 0}
                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}

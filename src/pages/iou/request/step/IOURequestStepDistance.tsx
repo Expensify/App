@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import {isEmpty, isEqual} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -13,11 +12,8 @@ import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFo
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
-import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
     WithCurrentUserPersonalDetailsProps,
-    withCurrentUserPersonalDetailsPropTypes
 } from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -28,10 +24,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
-import reportPropTypes from '@pages/reportPropTypes';
-import {policyPropTypes} from '@pages/workspace/withPolicy';
-import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as TransactionAction from '@userActions/Transaction';
@@ -47,7 +39,6 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import IOURequestStepAmountWithFullTransactionOrNotFound from "@pages/iou/request/step/IOURequestStepAmount";
 
 type IOURequestStepDistanceOnyxProps = {
     /** backup version of the original transaction  */
@@ -115,11 +106,13 @@ function IOURequestStepDistance({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
-    const shouldSkipConfirmation =
-        skipConfirmation &&
-        report.reportID &&
-        !ReportUtils.isArchivedRoom(report) &&
-        !(ReportUtils.isPolicyExpenseChat(reportID) && (lodashGet(policy, 'requiresCategory', false) || lodashGet(policy, 'requiresTag', false)));
+    const shouldSkipConfirmation: boolean = useMemo(() => {
+        if (!skipConfirmation || !report?.reportID) {
+            return false;
+        }
+
+        return (!ReportUtils.isArchivedRoom(report) && !ReportUtils.isPolicyExpenseChat(report) && !policy?.requiresCategory && !policy?.requiresTag);
+    }, [report, skipConfirmation, policy]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.request');
@@ -202,7 +195,7 @@ function IOURequestStepDistance({
         // to the confirm step.
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            const participants = _.map(selectedParticipants, (participant) => {
+            const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = lodashGet(participant, 'accountID', 0);
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
@@ -210,12 +203,13 @@ function IOURequestStepDistance({
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBillAndOpenReport({
                         participants,
-                        currentUserLogin: currentUserPersonalDetails.login,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        aamount: 0,
-                        currency: transaction.currency || 'USD',
+                        currentUserLogin: currentUserPersonalDetails.login ?? '',
+                        currentUserAccountID: currentUserPersonalDetails.accountID ?? 0,
+                        amount: 0,
+                        comment: '',
+                        currency: transaction?.currency ?? 'USD',
                         merchant: translate('iou.routePending'),
-                        created: transaction.created,
+                        created: transaction?.created ?? '',
                         category: '',
                         tag: '',
                         billable: false,
@@ -229,11 +223,11 @@ function IOURequestStepDistance({
                     report,
                     participants[0],
                     '',
-                    transaction.created,
+                    transaction?.created ?? '',
                     '',
                     '',
                     0,
-                    transaction.currency,
+                    transaction?.currency ?? 'USD',
                     translate('iou.routePending'),
                     false,
                     TransactionUtils.getValidWaypoints(waypoints, true),
@@ -410,7 +404,7 @@ const IOURequestStepDistanceWithOnyx = withOnyx<IOURequestStepDistanceProps, IOU
         },
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report?.policyID : '0'}`,
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
