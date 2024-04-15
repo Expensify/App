@@ -78,7 +78,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.FolderOpen,
             titleTranslationKey: 'workspace.moreFeatures.categories.title',
             subtitleTranslationKey: 'workspace.moreFeatures.categories.subtitle',
-            isActive: (policy?.areCategoriesEnabled ?? false) || hasAccountingConnection,
+            isActive: policy?.areCategoriesEnabled ?? false,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
@@ -89,7 +89,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Tag,
             titleTranslationKey: 'workspace.moreFeatures.tags.title',
             subtitleTranslationKey: 'workspace.moreFeatures.tags.subtitle',
-            isActive: (policy?.areTagsEnabled ?? false) || hasAccountingConnection,
+            isActive: policy?.areTagsEnabled ?? false,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
