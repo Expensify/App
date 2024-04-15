@@ -133,7 +133,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
         const requestMoneyOptions = debouncedSearchTerm.trim() !== '' ? filteredOptions : chatOptions;
         const newSections = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return [newSections, {}];
+            return [newSections, ''];
         }
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
