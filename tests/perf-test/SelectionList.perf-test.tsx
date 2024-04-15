@@ -63,6 +63,15 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(),
 }));
 
+jest.mock('../../src/hooks/useKeyboardState', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => ({
+        isKeyboardShown: false,
+        keyboardHeight: 0,
+    })),
+}));
+
 function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 

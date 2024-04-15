@@ -67,6 +67,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -288,8 +289,8 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
 /**
  * Check if the user has any active free policies (aka workspaces)
  */
-function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<Policy>> | PoliciesRecord, includeOnlyFreePolicies = false): boolean {
-    const adminChatEnabledPolicies = Object.values(policies).filter(
+function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>> | OnyxCollection<PolicySelector>, includeOnlyFreePolicies = false): boolean {
+    const adminChatEnabledPolicies = Object.values(policies ?? {}).filter(
         (policy) =>
             policy &&
             ((policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN) ||
@@ -464,6 +465,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
             value: {
+                participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
                 participantAccountIDs,
                 visibleChatMemberAccountIDs: participantAccountIDs,
                 pendingChatMembers,
@@ -475,6 +477,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
         value: {
+            participants: announceReport?.participants,
             participantAccountIDs: announceReport?.participantAccountIDs,
             visibleChatMemberAccountIDs: announceReport?.visibleChatMemberAccountIDs,
             pendingChatMembers: announceReport?.pendingChatMembers ?? null,
@@ -1284,7 +1287,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
 
     const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
 
@@ -3075,6 +3079,9 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         name: policyCategory.newName,
                         unencodedName: decodeURIComponent(policyCategory.newName),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -3091,6 +3098,9 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         unencodedName: decodeURIComponent(policyCategory.newName),
                         errors: null,
                         pendingAction: null,
+                        pendingFields: {
+                            name: null,
+                        },
                     },
                 },
             },
@@ -3381,6 +3391,9 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 ...oldTag,
                                 name: policyTag.newName,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                pendingFields: {
+                                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
                             },
                         },
                     },
@@ -3397,6 +3410,9 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                             [policyTag.newName]: {
                                 errors: null,
                                 pendingAction: null,
+                                pendingFields: {
+                                    name: null,
+                                },
                             },
                         },
                     },
@@ -3706,6 +3722,77 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     const params: OpenPolicyDistanceRatesPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
+}
+
+function updatePolicyConnectionConfig(policyID: string, settingName: ValueOf<typeof CONST.QUICK_BOOKS_IMPORTS>, settingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>) {
+    const parameters = {policyID, connectionName: CONST.QUICK_BOOKS_ONLINE, settingName, settingValue, idempotencyKey: settingName};
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            [settingName]: settingValue,
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            [settingName]: settingValue,
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    quickbooksOnline: {
+                        config: {
+                            [settingName]: settingValue,
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 
 function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
@@ -4982,6 +5069,7 @@ export {
     setWorkspaceTagEnabled,
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
+    updatePolicyConnectionConfig,
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
