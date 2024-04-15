@@ -62,7 +62,12 @@ function AdminPolicyAccessOrNotFoundComponent(props: AdminPolicyAccessOrNotFound
                 />
             );
         }
-        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(props.policyID))} />;
+        return (
+            <NotFoundPage
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(props.policyID))}
+                shouldForceFullScreen
+            />
+        );
     }
 
     return typeof props.children === 'function' ? props.children(props) : props.children;
