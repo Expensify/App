@@ -42,13 +42,18 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
     };
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData, failureData});
 }
-function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>(policyID: string, connectionName: TConnectionName, settingName: TSettingName, settingValue: Connections[TConnectionName]['config'][TSettingName]) {
+function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>(
+    policyID: string,
+    connectionName: TConnectionName,
+    settingName: TSettingName,
+    settingValue: Connections[TConnectionName]['config'][TSettingName],
+) {
     const parameters: UpdatePolicyConnectionConfigParams<TConnectionName, TSettingName> = {
         policyID,
         connectionName,
         settingName,
         settingValue,
-        idempotencyKey: String(settingName)
+        idempotencyKey: String(settingName),
     };
     const optimisticData: OnyxUpdate[] = [
         {
