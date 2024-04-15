@@ -120,12 +120,14 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
                                     </View>
                                 </View>
                             </OfflineWithFeedback>
-                            <MenuItemWithTopDescription
-                                title={currentPolicyTag.name}
-                                description={translate(`workspace.tags.tagName`)}
-                                onPress={navigateToEditTag}
-                                shouldShowRightIcon
-                            />
+                            <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
+                                <MenuItemWithTopDescription
+                                    title={currentPolicyTag.name}
+                                    description={translate(`workspace.tags.tagName`)}
+                                    onPress={navigateToEditTag}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
                         </View>
                     </ScreenWrapper>
                 </FeatureEnabledAccessOrNotFoundWrapper>

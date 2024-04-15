@@ -106,9 +106,11 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
             const {policyID} = option;
 
             setActiveWorkspaceID(policyID);
-            Navigation.goBack();
+
             if (policyID !== activeWorkspaceID) {
                 Navigation.navigateWithSwitchPolicyID({policyID});
+            } else {
+                Navigation.goBack();
             }
         },
         [activeWorkspaceID, setActiveWorkspaceID],

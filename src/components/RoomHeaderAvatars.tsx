@@ -13,15 +13,10 @@ import Text from './Text';
 type RoomHeaderAvatarsProps = {
     icons: Icon[];
     reportID: string;
-    isGroupChat?: boolean;
 };
 
-function RoomHeaderAvatars({icons, reportID, isGroupChat}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
-        if (isGroupChat) {
-            return;
-        }
-
         if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID));
             return;
