@@ -33,15 +33,15 @@ type IOURequestStepAmountOnyxProps = {
 
     /** The draft transaction object being modified in Onyx */
     draftTransaction: OnyxEntry<Transaction>;
-
-    /** Whether the user input should be kept or not */
-    shouldKeepUserInput: PropTypes.bool;
 };
 
 type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
+
+        /** Whether the user input should be kept or not */
+        shouldKeepUserInput?: boolean;
     };
 
 function IOURequestStepAmount({
@@ -169,7 +169,7 @@ function IOURequestStepAmount({
                 currency={currency}
                 amount={Math.abs(transactionAmount)}
                 ref={(e) => (textInput.current = e)}
-                shouldKeepUserInput={transaction.shouldShowOriginalAmount}
+                shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
