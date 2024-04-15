@@ -14,6 +14,8 @@ type SplitBillParams = {
     createdReportActionID?: string;
     policyID: string | undefined;
     chatType: string | undefined;
+    taxCode: string;
+    taxAmount: number;
 };
 
 export default SplitBillParams;
