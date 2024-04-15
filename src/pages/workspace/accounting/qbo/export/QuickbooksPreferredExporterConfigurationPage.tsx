@@ -7,25 +7,20 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getAdminEmailList} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
-
-const draft = [
-    {name: '+14153166423@expensify.sms', currency: 'USD', id: '94', email: '+14153166423@expensify.sms'},
-    {name: 'Account Maintenance Fee', currency: 'USD', id: '141', email: 'alberto@expensify213.com'},
-    {name: 'Admin Test', currency: 'USD', id: '119', email: 'admin@qbocard.com'},
-    {name: 'Alberto Gonzalez-Cela', currency: 'USD', id: '104', email: 'alberto@expensify.com'},
-    {name: 'Aldo test QBO2 QBO2 Last name', currency: 'USD', id: '140', email: 'admin@qbo.com'},
-];
 
 function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {data, config} = policy?.connections?.quickbooksOnline ?? {};
+    const exporters = getAdminEmailList(policy);
+
     // const policyID = policy?.id ?? '';
     const sections = useMemo(
         () =>
-            (data?.vendors ?? draft)?.map((vendor) => ({
+            exporters?.map((vendor) => ({
                 value: vendor.email,
                 text: vendor.email,
                 keyForList: vendor.email,
@@ -34,7 +29,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
         [config?.export?.exporter, data?.vendors],
     );
 
-    const updateMode = useCallback((mode: {value: string}) => {
+    const updateMode = useCallback((mode: {value?: string}) => {
         // TODO add API call for change
     }, []);
 

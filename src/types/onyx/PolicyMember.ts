@@ -1,8 +1,10 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 type PolicyMember = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Role of the user in the policy */
-    role?: string;
+    role?: ValueOf<typeof CONST.POLICY.ROLE>;
 
     /** Email of the user */
     email?: string;

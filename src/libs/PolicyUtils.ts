@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+import PolicyMember from '@src/types/onyx/PolicyMember';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
@@ -317,6 +318,10 @@ function getPolicyIDFromNavigationState() {
     return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
+function getAdminEmailList(policy: Policy | null) {
+    return policy?.employeeList?.filter((employee: PolicyMember) => employee?.role === CONST.POLICY.ROLE.ADMIN).map((admin) => admin.email);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -355,6 +360,7 @@ export {
     getTaxByID,
     hasPolicyCategoriesError,
     getPolicyIDFromNavigationState,
+    getAdminEmailList,
 };
 
 export type {MemberEmailsToAccountIDs};

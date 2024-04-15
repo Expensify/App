@@ -4,40 +4,47 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import CONST from '@src/CONST';
 
 const CARDS = {
-    CREDIT_CARD: 'credit_card',
-    DEBIT_CARD: 'debit_card',
+    CHECK: 'check',
+    JOURNAL_ENTRY: 'journal_entry',
     VENDOR_BILL: 'vendor_bill',
 };
 
-function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps) {
+function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {nonReimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {nonReimbursableExpensesExportDestination, syncTaxes} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const isTaxesEnabled = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+
     // const policyID = policy?.id ?? '';
     const data = [
         {
-            value: CARDS.CREDIT_CARD,
-            text: translate(`workspace.qbo.creditCard`),
-            keyForList: CARDS.CREDIT_CARD,
-            isSelected: nonReimbursableExpensesExportDestination === CARDS.CREDIT_CARD,
+            value: CARDS.CHECK,
+            text: translate(`workspace.qbo.check`),
+            keyForList: CARDS.CHECK,
+            isSelected: nonReimbursableExpensesExportDestination === CARDS.CHECK,
+            isShown: true,
         },
         {
-            value: CARDS.DEBIT_CARD,
-            text: translate(`workspace.qbo.debitCard`),
-            keyForList: CARDS.DEBIT_CARD,
-            isSelected: nonReimbursableExpensesExportDestination === CARDS.DEBIT_CARD,
+            value: CARDS.JOURNAL_ENTRY,
+            text: translate(`workspace.qbo.journalEntry`),
+            keyForList: CARDS.JOURNAL_ENTRY,
+            isSelected: nonReimbursableExpensesExportDestination === CARDS.JOURNAL_ENTRY,
+            isShown: !isTaxesEnabled,
         },
         {
             value: CARDS.VENDOR_BILL,
             text: translate(`workspace.qbo.vendorBill`),
             keyForList: CARDS.VENDOR_BILL,
             isSelected: nonReimbursableExpensesExportDestination === CARDS.VENDOR_BILL,
+            isShown: true,
         },
     ];
 
@@ -49,21 +56,23 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}
+            testID={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>
             <ScrollView contentContainerStyle={styles.pb2}>
                 <SelectionList
-                    sections={[{data}]}
+                    sections={[{data: data.filter((item) => item.isShown)}]}
                     ListItem={RadioListItem}
                     onSelectRow={updateMode}
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
+                <Text style={[styles.mutedTextLabel, styles.pt2, styles.ph5]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>
             </ScrollView>
         </ScreenWrapper>
     );
 }
 
-QuickbooksCompanyCardExpenseAccountSelectPage.displayName = 'QuickbooksCompanyCardExpenseAccountSelectPage';
+QuickbooksOutOfPocketExpenseEntitySelectPage.displayName = 'QuickbooksOutOfPocketExpenseEntitySelectPage';
 
-export default withPolicy(QuickbooksCompanyCardExpenseAccountSelectPage);
+export default withPolicy(QuickbooksOutOfPocketExpenseEntitySelectPage);

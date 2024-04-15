@@ -10,24 +10,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 
+const selected = 'selected';
+
 function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
+
     // const policyID = policy?.id ?? '';
-    const data = [
-        {
-            value: 'receivable',
-            text: translate(`workspace.qbo.receivable`),
-            keyForList: 'receivable',
-            isSelected: false,
-        },
-        {
-            value: 'archive',
-            text: translate(`workspace.qbo.archive`),
-            keyForList: 'archive',
-            isSelected: false,
-        },
-    ];
+    const data =
+        accountsReceivable?.map((account) => ({
+            value: account.name,
+            text: account.name,
+            keyForList: account.name,
+            isSelected: account.name === selected,
+        })) || [];
 
     const updateMode = useCallback((mode: {value: string}) => {
         // TODO add API call for change

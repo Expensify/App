@@ -1881,15 +1881,15 @@ export default {
             exportInvoices: 'Export invoices to',
             exportCompany: 'Export company cards as',
             exportExpensifyCard: 'Export Expensify Card transactions as',
-            deepDiveExpensifyCard: 'Expensify Card transactions automatically export to a “Expensify Card Liability Account” created with',
+            deepDiveExpensifyCard: 'Expensify Card transactions automatically export to a "Expensify Card Liability Account" created with',
             deepDiveExpensifyCardIntegration: 'our integration.',
-            exportDate: 'Export Date',
+            exportDate: 'Export date',
             exportDateDescription: 'Use this date when exporting reports to QuickBooks Online.',
             lastExpense: {label: 'Date of last expense', description: 'The date of the most recent expense on the report'},
-            exportedDate: {label: 'Export date', description: 'The date the report was exported to QuickBooksOnline'},
-            submittedData: {label: 'Submitted data', description: 'The date the report was submitted for approval'},
-            receivable: 'Accounts receivable',
-            archive: 'Accounts receivable archive',
+            exportedDate: {label: 'Export date', description: 'The date the report was exported to QuickBooks Online'},
+            submittedData: {label: 'Submitted date', description: 'The date the report was submitted for approval'},
+            receivable: 'Accounts receivable', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
+            archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.',
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
             creditCard: 'Credit Card',
@@ -1899,16 +1899,16 @@ export default {
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
             exportVendorBillDescription:
-                'We’ll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we’ll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).',
+                'We`ll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we`ll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).',
             check: 'Check',
             journalEntry: 'Journal Entry',
             optionBelow: 'Choose an option below:',
             outOfPocketTaxEnabledDescription:
-                'Note: QuickBooks Online doesn’t support a field for tax on Journal Entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.',
+                'Note: QuickBooks Online doesn`t support a field for tax on Journal Entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.',
             outOfPocketTaxEnabledError: 'Journal entry is not available when taxes enabled. please select a different export option.',
             outOfPocketLocationEnabledError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
             outOfPocketLocationEnabledDescription:
-                'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations from, this this export option is unavailable.',
+                'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations as Tags, this export option is unavailable.',
         },
         type: {
             free: 'Free',

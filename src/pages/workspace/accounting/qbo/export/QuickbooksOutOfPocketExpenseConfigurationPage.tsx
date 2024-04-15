@@ -40,8 +40,8 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                         interactive={!isLocationEnabled}
                     />
                 </OfflineWithFeedback>
-                {isVendorBill && !isLocationEnabled && <Text style={[styles.ph5, styles.pb5, styles.pt5]}>{translate('workspace.qbo.exportVendorBillDescription')}</Text>}
-                {isLocationEnabled && <Text style={[styles.ph5, styles.pb5, styles.pt5]}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
+                {isVendorBill && !isLocationEnabled && <Text style={[styles.ph5, styles.mutedTextLabel, styles.pt2]}>{translate('workspace.qbo.exportVendorBillDescription')}</Text>}
+                {isLocationEnabled && <Text style={[styles.ph5, styles.mutedTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
                 {!isLocationEnabled && (
                     <OfflineWithFeedback>
                         <MenuItemWithTopDescription
