@@ -28,7 +28,7 @@ function resetFreePlanBankAccount(bankAccountID: number | undefined, session: On
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
 
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as OnyxTypes.Policy);
 
     API.write(
         WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP,
