@@ -230,6 +230,7 @@ function MoneyRequestConfirmationList({
     const distance = transaction?.routes?.route0.distance ?? 0;
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
     const taxRates = policy?.taxRates;
+    const transactionID = transaction?.transactionID ?? '';
 
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -279,7 +280,7 @@ function MoneyRequestConfirmationList({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
     const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID));
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
     };
 
     const shouldDisplayFieldError: boolean = useMemo(() => {
@@ -330,7 +331,7 @@ function MoneyRequestConfirmationList({
         }
 
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transaction?.transactionID ?? '', amount, currency ?? '');
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency ?? '');
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
 
     // Calculate and set tax amount in transaction draft
@@ -342,7 +343,7 @@ function MoneyRequestConfirmationList({
             return IOU.setMoneyRequestTaxAmount(transaction?.transactionID, transaction?.taxAmount, true);
         }
 
-        IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', amountInSmallestCurrencyUnits, true);
+        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
     }, [taxRates?.defaultValue, transaction, previousTransactionAmount]);
 
     /**
@@ -467,10 +468,10 @@ function MoneyRequestConfirmationList({
          When the user completes the initial steps of the IOU flow offline and then goes online on the confirmation page.
          In this scenario, the route will be fetched from the server, and the waypoints will no longer be pending.
         */
-        IOU.setMoneyRequestPendingFields(transaction?.transactionID ?? '', {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
+        IOU.setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant(transaction?.transactionID ?? '', distanceMerchant, true);
+        IOU.setMoneyRequestMerchant(transactionID, distanceMerchant, true);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
     // Auto select the category if there is only one enabled category and it is required
@@ -479,7 +480,7 @@ function MoneyRequestConfirmationList({
         if (iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        IOU.setMoneyRequestCategory(transaction?.transactionID ?? '', enabledCategories[0].name);
+        IOU.setMoneyRequestCategory(transactionID, enabledCategories[0].name);
     }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
 
     // Auto select the tag if there is only one enabled tag and it is required
@@ -494,7 +495,7 @@ function MoneyRequestConfirmationList({
             updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags[0] ? enabledTags[0].name : '', index);
         });
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
-            IOU.setMoneyRequestTag(transaction?.transactionID ?? '', updatedTagsString);
+            IOU.setMoneyRequestTag(transactionID, updatedTagsString);
         }
     }, [policyTagLists, transaction, policyTags, canUseViolations]);
 
@@ -668,7 +669,7 @@ function MoneyRequestConfirmationList({
                             return;
                         }
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
@@ -694,7 +695,7 @@ function MoneyRequestConfirmationList({
                             ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
                                 CONST.IOU.ACTION.CREATE,
                                 iouType,
-                                transaction?.transactionID ?? '',
+                                transactionID,
                                 reportID,
                                 Navigation.getActiveRouteWithoutParams(),
                                 reportActionID,
@@ -725,7 +726,7 @@ function MoneyRequestConfirmationList({
                             ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
                                 CONST.IOU.ACTION.CREATE,
                                 iouType,
-                                transaction?.transactionID ?? '',
+                                transactionID,
                                 reportID,
                                 Navigation.getActiveRouteWithoutParams(),
                             ),
@@ -753,7 +754,7 @@ function MoneyRequestConfirmationList({
                             ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
                                 CONST.IOU.ACTION.CREATE,
                                 iouType,
-                                transaction?.transactionID ?? '',
+                                transactionID,
                                 reportID,
                                 Navigation.getActiveRouteWithoutParams(),
                             ),
@@ -781,7 +782,7 @@ function MoneyRequestConfirmationList({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
                     disabled={didConfirm}
@@ -806,7 +807,7 @@ function MoneyRequestConfirmationList({
                             ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
                                 CONST.IOU.ACTION.CREATE,
                                 iouType,
-                                transaction?.transactionID ?? '',
+                                transactionID,
                                 reportID,
                                 Navigation.getActiveRouteWithoutParams(),
                                 reportActionID,
@@ -839,7 +840,7 @@ function MoneyRequestConfirmationList({
                                     CONST.IOU.ACTION.CREATE,
                                     iouType,
                                     index,
-                                    transaction?.transactionID ?? '',
+                                    transactionID,
                                     reportID,
                                     Navigation.getActiveRouteWithoutParams(),
                                     reportActionID,
@@ -870,7 +871,7 @@ function MoneyRequestConfirmationList({
                             ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
                                 CONST.IOU.ACTION.CREATE,
                                 iouType,
-                                transaction?.transactionID ?? '',
+                                transactionID,
                                 reportID,
                                 Navigation.getActiveRouteWithoutParams(),
                             ),
@@ -897,7 +898,7 @@ function MoneyRequestConfirmationList({
                             ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
                                 CONST.IOU.ACTION.CREATE,
                                 iouType,
-                                transaction?.transactionID ?? '',
+                                transactionID,
                                 reportID,
                                 Navigation.getActiveRouteWithoutParams(),
                             ),
@@ -1005,7 +1006,7 @@ function MoneyRequestConfirmationList({
                                       ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                           CONST.IOU.ACTION.CREATE,
                                           iouType,
-                                          transaction?.transactionID ?? '',
+                                          transactionID,
                                           reportID,
                                           Navigation.getActiveRouteWithoutParams(),
                                       ),
