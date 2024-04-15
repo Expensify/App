@@ -183,6 +183,14 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
             }
 
+            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription);
+            if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
+                ErrorUtils.addErrorMessage(errors, 'reportDescription', [
+                    'common.error.characterLimitExceedCounter',
+                    {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH},
+                ]);
+            }
+
             if (!values.policyID) {
                 errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
             }
